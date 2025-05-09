@@ -1,13 +1,22 @@
 #pragma once
+#include <vector>
 
-namespace Game
+class Game
 {
-	// 画面情報を定数定義
-//	constexpr int kScreenWidth = 1280;
-//	constexpr int kScreenHeigth = 720;
-	constexpr int kScreenWidth = 640;
-	constexpr int kScreenHeigth = 480;
-	constexpr int kColorBitNum = 32;
+public:
+    // 画面情報を定数定義
+    //static constexpr int kScreenWidth  = 1920;
+    //static constexpr int kScreenHeigth = 1080;
+    //static constexpr int kScreenWidth  = 1280;
+ //   static constexpr int kScreenHeigth = 720;
+    static constexpr int kScreenWidth  = 640;
+    static constexpr int kScreenHeigth = 480;
+    static constexpr int kColorBitNum  = 32;
 
-	constexpr bool kDefaultWindowMode = true;
-}
+    static constexpr bool kDefaultWindowMode = true;
+
+    // グローバルなカメラ感度
+    static float g_cameraSensitivity;
+
+private:
+};
