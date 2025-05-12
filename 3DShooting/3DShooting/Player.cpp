@@ -11,6 +11,11 @@ namespace
 	// アニメーション名
 	const char* const kIdleAnimName = "Pistol_IDLE"; // 待機
 	const char* const kShotAnimName = "Pistol_FIRE"; // 弾を撃つ
+	const char* const kWalkAnimName = "Pistol_WALK"; // 歩く
+	const char* const kRunAnimName  = "Pistol_RUN";  // 走る
+
+	constexpr float kMoveSpeed = 2.0f; // 歩く速度
+	constexpr float kRunSpeed  = 5.0f; // 走る速度
 }
 
 Player::Player() :
@@ -18,8 +23,8 @@ Player::Player() :
 	m_shootSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
-	m_animBlendRate(0.0f)
-
+	m_animBlendRate(0.0f),
+	m_isMoving(false)
 {
 	// モデルの読み込み
 	m_modelHandle = MV1LoadModel("data/image/player.mv1");
@@ -63,12 +68,12 @@ void Player::Update()
 	UpdateAnimeBlend();
 
 	// モデルの位置をカメラの前方に設定
-	VECTOR modelOffset = VGet(4.0f, 30.0f, 40.0f);
-	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot = MMult(rotPitch, rotYaw);
+	VECTOR modelOffset        = VGet(4.0f, 30.0f, 40.0f);
+	MATRIX rotYaw             = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch           = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot           = MMult(rotPitch, rotYaw);
 	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);
+	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);
 
 	// モデルの位置を更新
 	MV1SetPosition(m_modelHandle, modelPosition);
@@ -83,12 +88,79 @@ void Player::Update()
 		// ショットアニメーションを再生
 		ChangeAnime(kShotAnimName, false);
 	}
-	// 現在再生中のアニメーションが終了待機アニメーションに戻す
-	if (m_nextAnimData.isEnd)
-	{
-		// 待機アニメーションを再生
-		ChangeAnime(kIdleAnimName, true);
+
+	// 移動処理とアニメーションの切り替え
+	bool isCurrentlyMoving = false;
+	bool isRunning = CheckHitKey(KEY_INPUT_LSHIFT); // シフトキーが押されているか判定
+	float currentSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 現在の移動速度を決定
+
+	if (CheckHitKey(KEY_INPUT_W)) {
+		VECTOR forward = VGet(
+			sinf(m_pCamera->GetYaw()),
+			0.0f,
+			cosf(m_pCamera->GetYaw())
+		);
+		m_modelPos = VAdd(m_modelPos, VScale(forward, currentSpeed)); // 前進
+		isCurrentlyMoving = true;
 	}
+	if (CheckHitKey(KEY_INPUT_S)) {
+		VECTOR backward = VGet(
+			sinf(m_pCamera->GetYaw()),
+			0.0f,
+			cosf(m_pCamera->GetYaw())
+		);
+		m_modelPos = VAdd(m_modelPos, VScale(backward, -currentSpeed)); // 後退
+		isCurrentlyMoving = true;
+	}
+	if (CheckHitKey(KEY_INPUT_A)) {
+		VECTOR left = VGet(
+			sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f),
+			0.0f,
+			cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f)
+		);
+		m_modelPos = VAdd(m_modelPos, VScale(left, currentSpeed)); // 左移動
+		isCurrentlyMoving = true;
+	}
+	if (CheckHitKey(KEY_INPUT_D)) {
+		VECTOR right = VGet(
+			sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f),
+			0.0f,
+			cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f)
+		);
+		m_modelPos = VAdd(m_modelPos, VScale(right, currentSpeed)); // 右移動
+		isCurrentlyMoving = true;
+	}
+
+	// 移動状態が変化した場合のみアニメーションを切り替える
+	if (isCurrentlyMoving && !m_isMoving)
+	{
+		// 移動を開始した場合
+		if (isRunning)
+		{
+			// 走るアニメーションを再生
+			if (m_nextAnimData.attachNo != MV1GetAnimIndex(m_modelHandle, kRunAnimName)) {
+				ChangeAnime(kRunAnimName, true);
+			}
+		}
+		else 
+		{
+			// 歩くアニメーションを再生
+			if (m_nextAnimData.attachNo != MV1GetAnimIndex(m_modelHandle, kWalkAnimName)) {
+				ChangeAnime(kWalkAnimName, true);
+			}
+		}
+	}
+	else if (!isCurrentlyMoving && m_isMoving)
+	{
+		// 移動を停止した場合
+		if (m_nextAnimData.attachNo != MV1GetAnimIndex(m_modelHandle, kIdleAnimName)) {
+			ChangeAnime(kIdleAnimName, true);
+		}
+	}
+
+
+	// 現在の移動状態を更新
+	m_isMoving = isCurrentlyMoving;
 }
 
 void Player::Draw()

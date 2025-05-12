@@ -13,5 +13,16 @@ public:
 	void Init() override;
 	SceneBase* Update() override;
 	void Draw() override;
+
+private:
+	int m_logoHandle;	   // タイトルロゴのハンドル
+	int m_fadeAlpha;	   // フェードのアルファ値
+	int m_fadeFrame;	   // フェードのフレームカウント
+	int m_sceneFadeAlpha;  // シーンフェードのアルファ値
+	int m_waitFrame;	   // 待機フレーム
+	bool m_isFadeComplete; // フェード完了フラグ
+	bool m_isFadeOut;	   // フェードアウトフラグ
+	bool m_skipLogo;       // ロゴスキップ用のフラグ
+	bool m_isSceneFadeIn;  // シーンフェードインフラグ
 };
 
