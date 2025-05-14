@@ -29,6 +29,12 @@ namespace
 	constexpr float kGunOffsetX = 10.0f;  // X軸オフセット
 	constexpr float kGunOffsetY = 88.0f;  // Y軸オフセット
 	constexpr float kGunOffsetZ = 200.0f; // Z軸オフセット
+
+	// スタミナ関連定数
+	constexpr float kStaminaMax        = 100.0f; // 最大スタミナ
+	constexpr float kStaminaRunCost    = 0.8f;   // 走る時の1フレームあたり消費量
+	constexpr float kStaminaRecover    = 0.5f;   // 歩き/停止時の1フレームあたり回復量
+	constexpr float kStaminaRunRecover = 30.0f;  // 走れるようになるスタミナ値
 }
 
 Player::Player() :
@@ -38,7 +44,9 @@ Player::Player() :
 	m_pCamera(std::make_shared<Camera>()),
 	m_animBlendRate(0.0f),
 	m_isMoving(false),
-	m_isWasRunning(false)
+	m_isWasRunning(false),
+	m_stamina(kStaminaMax),
+	m_isCanRun(true)
 {
 	// モデルの読み込み
 	m_modelHandle = MV1LoadModel("data/image/player.mv1");
@@ -103,7 +111,12 @@ void Player::Update()
 	}
 
 	// 移動状態・走り状態の判定
-	const bool isRunning = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
+	const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
+	bool isRunning = false;
+	if (wantRun && m_isCanRun && m_stamina > 0.0f) 
+	{
+		isRunning = true;
+	}
 	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed;
 	
 	bool isMoving = false; 
@@ -139,6 +152,28 @@ void Player::Update()
 		moveDir.z /= len;
 		m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
 		isMoving = true;
+	}
+
+	// スタミナ処理
+	if (isRunning && isMoving) 
+	{
+		m_stamina -= kStaminaRunCost;
+		if (m_stamina < 0.0f) m_stamina = 0.0f;
+	}
+	else 
+	{
+		m_stamina += kStaminaRecover;
+		if (m_stamina > kStaminaMax) m_stamina = kStaminaMax;
+	}
+
+	// 走れるかどうかの判定
+	if (m_stamina <= 0.0f) 
+	{
+		m_isCanRun = false;
+	}
+	else if (!m_isCanRun && m_stamina >= kStaminaRunRecover) 
+	{
+		m_isCanRun = true;
 	}
 
 	// ショットアニメーション終了時の復帰
@@ -181,6 +216,29 @@ void Player::Draw()
 
 	// フィールドの描画
 	DrawField();
+
+	// スタミナ表示
+	DrawFormatString(10, 30, 0x000000, "Stamina: %.1f", m_stamina);
+	
+	// スタミナゲージ描画
+	const int gaugeX = 10;
+	const int gaugeY = 50;
+	const int gaugeWidth = 200;
+	const int gaugeHeight = 16;
+
+	// ゲージの枠
+	DrawBox(gaugeX - 1, gaugeY - 1, gaugeX + gaugeWidth + 1, gaugeY + gaugeHeight + 1, GetColor(0x80, 0x80, 0x80), FALSE);
+
+	// ゲージの中身（スタミナ割合で幅を決定）
+	float staminaRate = m_stamina / kStaminaMax;
+	int filledWidth = static_cast<int>(gaugeWidth * staminaRate);
+
+	// ゲージ本体（緑→赤に変化させる）
+	int r = static_cast<int>((1.0f - staminaRate) * 255);
+	int g = static_cast<int>(staminaRate * 255);
+	int gaugeColor = GetColor(r, g, 0);
+
+	DrawBox(gaugeX, gaugeY, gaugeX + filledWidth, gaugeY + gaugeHeight, gaugeColor, TRUE);
 }
 
 void Player::DrawField()

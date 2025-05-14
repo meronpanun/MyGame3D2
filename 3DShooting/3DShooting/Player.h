@@ -95,5 +95,8 @@ private:
 	int   m_shootSEHandle;  // 弾を撃つSEのハンドル
 	bool  m_isMoving;       // 移動中かどうか
 	bool  m_isWasRunning;   // 走っていたかどうか
+
+	float m_stamina; // スタミナ
+	bool  m_isCanRun; // 走れるかどうか
 };
 

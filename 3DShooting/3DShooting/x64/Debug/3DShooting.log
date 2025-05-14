@@ -1,15 +1,4 @@
-﻿  SceneMain.cpp
-  SceneManager.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneManager.cpp(29,3): warning C4150: 'SceneResult' 型を削除するため delete 演算子が呼び出されましたが、定義がありません。
-      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneManager.h(6,7):
-      'SceneResult' の宣言を確認してください
-  
-  SceneTitle.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneTitle.cpp(15,23): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneTitle.cpp(16,23): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneTitle.cpp(26,34): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneTitle.cpp(190,62): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneTitle.cpp(191,23): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SceneTitle.cpp(192,23): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-  コードを生成中...
+﻿  Player.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Player.cpp(258,13): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Player.cpp(260,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe
