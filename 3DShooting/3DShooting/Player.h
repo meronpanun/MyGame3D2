@@ -93,6 +93,7 @@ private:
 	float m_animBlendRate;  // 0.0f:前のアニメーション 1.0f:次のアニメーション
 	int   m_modelHandle;    // モデルのハンドル
 	int   m_shootSEHandle;  // 弾を撃つSEのハンドル
-	bool  m_isMoving; // 移動中かどうか
+	bool  m_isMoving;       // 移動中かどうか
+	bool  m_isWasRunning;   // 走っていたかどうか
 };
 

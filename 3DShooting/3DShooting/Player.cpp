@@ -24,7 +24,8 @@ Player::Player() :
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
 	m_animBlendRate(0.0f),
-	m_isMoving(false)
+	m_isMoving(false),
+	m_isWasRunning(false)
 {
 	// モデルの読み込み
 	m_modelHandle = MV1LoadModel("data/image/player.mv1");
@@ -71,7 +72,7 @@ void Player::Update()
 	VECTOR modelOffset        = VGet(4.0f, 30.0f, 40.0f);
 	MATRIX rotYaw             = MGetRotY(m_pCamera->GetYaw());
 	MATRIX rotPitch           = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot           = MMult(rotPitch, rotYaw);
+	MATRIX modelRot			  = MMult(rotPitch, rotYaw);
 	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
 	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);
 
@@ -85,84 +86,87 @@ void Player::Update()
 	if (Mouse::IsTriggerLeft())
 	{
 		Shoot();
-		// ショットアニメーションを再生
 		ChangeAnime(kShotAnimName, false);
 	}
 
-	// 移動処理とアニメーションの切り替え
-	bool isCurrentlyMoving = false;
-	bool isRunning = CheckHitKey(KEY_INPUT_LSHIFT); // シフトキーが押されているか判定
-	float currentSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 現在の移動速度を決定
+	// --- 移動状態・走り状態の判定 ---
+	const bool wKey = CheckHitKey(KEY_INPUT_W);
+	const bool sKey = CheckHitKey(KEY_INPUT_S);
+	const bool aKey = CheckHitKey(KEY_INPUT_A);
+	const bool dKey = CheckHitKey(KEY_INPUT_D);
+	const bool shiftKey = CheckHitKey(KEY_INPUT_LSHIFT);
 
-	if (CheckHitKey(KEY_INPUT_W)) {
+	const bool isRunning = wKey && shiftKey;
+	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed;
+
+	bool isMoving = false;
+
+	// --- 移動処理 ---
+	if (wKey) {
 		VECTOR forward = VGet(
 			sinf(m_pCamera->GetYaw()),
 			0.0f,
 			cosf(m_pCamera->GetYaw())
 		);
-		m_modelPos = VAdd(m_modelPos, VScale(forward, currentSpeed)); // 前進
-		isCurrentlyMoving = true;
+		m_modelPos = VAdd(m_modelPos, VScale(forward, moveSpeed));
+		isMoving = true;
 	}
-	if (CheckHitKey(KEY_INPUT_S)) {
+	if (sKey) {
 		VECTOR backward = VGet(
 			sinf(m_pCamera->GetYaw()),
 			0.0f,
 			cosf(m_pCamera->GetYaw())
 		);
-		m_modelPos = VAdd(m_modelPos, VScale(backward, -currentSpeed)); // 後退
-		isCurrentlyMoving = true;
+		m_modelPos = VAdd(m_modelPos, VScale(backward, -kMoveSpeed));
+		isMoving = true;
 	}
-	if (CheckHitKey(KEY_INPUT_A)) {
+	if (aKey) {
 		VECTOR left = VGet(
 			sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f),
 			0.0f,
 			cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f)
 		);
-		m_modelPos = VAdd(m_modelPos, VScale(left, currentSpeed)); // 左移動
-		isCurrentlyMoving = true;
+		m_modelPos = VAdd(m_modelPos, VScale(left, kMoveSpeed));
+		isMoving = true;
 	}
-	if (CheckHitKey(KEY_INPUT_D)) {
+	if (dKey) {
 		VECTOR right = VGet(
 			sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f),
 			0.0f,
 			cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f)
 		);
-		m_modelPos = VAdd(m_modelPos, VScale(right, currentSpeed)); // 右移動
-		isCurrentlyMoving = true;
+		m_modelPos = VAdd(m_modelPos, VScale(right, kMoveSpeed));
+		isMoving = true;
 	}
 
-	// 移動状態が変化した場合のみアニメーションを切り替える
-	if (isCurrentlyMoving && !m_isMoving)
+	// --- ショットアニメーション終了時の復帰 ---
+	if (m_nextAnimData.isEnd)
 	{
-		// 移動を開始した場合
-		if (isRunning)
-		{
-			// 走るアニメーションを再生
-			if (m_nextAnimData.attachNo != MV1GetAnimIndex(m_modelHandle, kRunAnimName)) {
-				ChangeAnime(kRunAnimName, true);
-			}
+		if (m_isMoving) {
+			ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
 		}
-		else 
-		{
-			// 歩くアニメーションを再生
-			if (m_nextAnimData.attachNo != MV1GetAnimIndex(m_modelHandle, kWalkAnimName)) {
-				ChangeAnime(kWalkAnimName, true);
-			}
-		}
-	}
-	else if (!isCurrentlyMoving && m_isMoving)
-	{
-		// 移動を停止した場合
-		if (m_nextAnimData.attachNo != MV1GetAnimIndex(m_modelHandle, kIdleAnimName)) {
+		else {
 			ChangeAnime(kIdleAnimName, true);
 		}
 	}
 
+	// --- アニメーション切り替え ---
+	// 1. 移動開始
+	if (isMoving && !m_isMoving) {
+		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+	}
+	// 2. 移動終了
+	else if (!isMoving && m_isMoving) {
+		ChangeAnime(kIdleAnimName, true);
+	}
+	// 3. 移動中に走り⇔歩きが切り替わった場合
+	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning)) {
+		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+	}
 
-	// 現在の移動状態を更新
-	m_isMoving = isCurrentlyMoving;
+	m_isMoving = isMoving;
+	m_isWasRunning = isRunning;
 }
-
 void Player::Draw()
 {
 	// モデルの描画
