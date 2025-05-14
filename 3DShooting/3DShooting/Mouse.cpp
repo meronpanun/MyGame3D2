@@ -54,14 +54,14 @@ namespace Mouse
     // トリガー判定
     bool IsTriggerLeft()
     {
-        bool isNow = mouseLog[0]; // 現在の状態
+        bool isNow  = mouseLog[0]; // 現在の状態
         bool isLast = mouseLog[1]; // 1フレーム前の状態
         return (isNow && !isLast);
     }
     // 離した瞬間判定
     bool IsReleaseLeft()
     {
-        bool isNow = mouseLog[0]; // 現在の状態
+        bool isNow  = mouseLog[0]; // 現在の状態
         bool isLast = mouseLog[1]; // 1フレーム前の状態
         return (!isNow && isLast);
     }
@@ -73,11 +73,11 @@ namespace Mouse
         Vec2 mousePos = GetPos();
 
         // マウスの移動量に基づいてカメラの回転角度を更新
-        cameraYaw += (mousePos.x - Game::kScreenWidth * 0.5f) * sensitivity;
+        cameraYaw   += (mousePos.x - Game::kScreenWidth  * 0.5f) * sensitivity;
         cameraPitch -= (mousePos.y - Game::kScreenHeigth * 0.5f) * sensitivity;
 
         // カメラのピッチ角度を制限
-        if (cameraPitch > DX_PI_F * 0.5f) cameraPitch = DX_PI_F * 0.5f;
+        if (cameraPitch >  DX_PI_F * 0.5f) cameraPitch = DX_PI_F * 0.5f;
         if (cameraPitch < -DX_PI_F * 0.5f) cameraPitch = -DX_PI_F * 0.5f;
 
         // マウスの位置を中央に戻す

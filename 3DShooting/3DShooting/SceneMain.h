@@ -1,11 +1,11 @@
 #pragma once
 #include "SceneBase.h"
-#include "Camera.h"
 #include <memory>
 #include <chrono>
 #include <vector>
 
 class Player;
+class Camera;
 
 /// <summary>
 /// ゲームシーンクラス

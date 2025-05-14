@@ -19,14 +19,14 @@ namespace
 	constexpr int kWaitDuration = 60; // フェードイン後の待機時間（フレーム数）
 
     // パネルの幅と高さ
-    constexpr int kPanelWidth = 350; // パネルの幅
+    constexpr int kPanelWidth  = 350; // パネルの幅
     constexpr int kPanelHeight = 240; // パネルの高さ
 
     // スタートボタンの範囲を定数化
-    constexpr int kStartButtonX1 = (Game::kScreenWidth - kPanelWidth) / 2; // スタートボタンの左上X座標
-    constexpr int kStartButtonY1 = 10;                                    // スタートボタンの左上Y座標
-    constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth;          // スタートボタンの右下X座標
-    constexpr int kStartButtonY2 = 300;         // スタートボタンの右下Y座標
+    constexpr int kStartButtonX1 = (Game::kScreenWidth - kPanelWidth) * 0.5f; // スタートボタンの左上X座標
+    constexpr int kStartButtonY1 = 10;                                        // スタートボタンの左上Y座標
+    constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth;              // スタートボタンの右下X座標
+    constexpr int kStartButtonY2 = 300;                                       // スタートボタンの右下Y座標
 }
 
 SceneTitle::SceneTitle(bool skipLogo):
@@ -48,11 +48,11 @@ SceneTitle::SceneTitle(bool skipLogo):
     if (m_skipLogo)
     {
         m_isFadeComplete = true;
-        m_isFadeOut = true;
-        m_waitFrame = kWaitDuration; // 待機時間をスキップ
-        m_fadeAlpha = 0; // フェードアウト済みの状態に設定
-        m_isSceneFadeIn = true; // タイトルシーンのフェードインを開始
-        m_sceneFadeAlpha = 255; // フェードインを完全に表示
+        m_isFadeOut      = true;
+        m_waitFrame      = kWaitDuration; // 待機時間をスキップ
+        m_fadeAlpha      = 0;             // フェードアウト済みの状態に設定
+        m_isSceneFadeIn  = true;          // タイトルシーンのフェードインを開始
+        m_sceneFadeAlpha = 255;           // フェードインを完全に表示
     }
 }
 
@@ -80,9 +80,9 @@ SceneBase* SceneTitle::Update()
         }
         else
         {
-            m_fadeAlpha = 255;
+            m_fadeAlpha      = 255;
             m_isFadeComplete = true; // フェードインが完了
-            m_fadeFrame = 0;         // フェードアウト用にリセット
+            m_fadeFrame      = 0;    // フェードアウト用にリセット
         }
         return this;
     }
@@ -121,7 +121,7 @@ SceneBase* SceneTitle::Update()
         else
         {
             m_sceneFadeAlpha = 255; // フェードイン完了
-            m_isSceneFadeIn = true;
+            m_isSceneFadeIn  = true;
         }
         return this;
     }
@@ -188,8 +188,8 @@ void SceneTitle::Draw()
         // ボタンのテキストを描画
         const char* buttonText = "START";
         int textWidth = GetDrawStringWidth(buttonText, strlen(buttonText));
-        int textX = (kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f;
-        int textY = (kStartButtonY1 + kStartButtonY2) * 0.5f - 10; // テキストの高さを調整
+        int textX     = (kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f;
+        int textY     = (kStartButtonY1 + kStartButtonY2) * 0.5f - 10; // テキストの高さを調整
         DrawString(textX, textY, buttonText, GetColor(0, 0, 0)); // テキスト色は黒
     }
 }

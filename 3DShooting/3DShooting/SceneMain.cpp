@@ -12,14 +12,14 @@
 namespace
 {
     constexpr int	kInitialCountdownValue = 3;	   // 初期カウントダウンの値
-    constexpr int	kMainCountdownValue = 10;   // メインカウントダウンの値
-    constexpr int	kButtonWidth = 200;  // ボタンの幅
-    constexpr int	kButtonHeight = 50;   // ボタンの幅
-    constexpr int	kFontSize = 48;   // フォントサイズ
-    constexpr int   kReticleSize = 2;    // レティクルのサイズ
-    constexpr float kScreenCenterOffset = 0.5f; // 画面中央のオフセット
-    constexpr int   kButtonYOffset = 70;   // ボタンのY軸オフセット
-    constexpr int   kButtonSpacing = 20;   // ボタン間のスペース
+    constexpr int	kMainCountdownValue    = 10;   // メインカウントダウンの値
+    constexpr int	kButtonWidth           = 200;  // ボタンの幅
+    constexpr int	kButtonHeight          = 50;   // ボタンの幅
+    constexpr int	kFontSize              = 48;   // フォントサイズ
+    constexpr int   kReticleSize           = 2;    // レティクルのサイズ
+    constexpr float kScreenCenterOffset    = 0.5f; // 画面中央のオフセット
+    constexpr int   kButtonYOffset         = 70;   // ボタンのY軸オフセット
+    constexpr int   kButtonSpacing         = 20;   // ボタン間のスペース
 
     // ボタンの位置を計算
     constexpr int kReturnButtonX = 210; // 戻るボタンの背景の左上X座標
@@ -29,6 +29,12 @@ namespace
 
     //カメラを回す速度
     constexpr float kCameraRotaSpeed = 0.001f;
+
+    // スカイドームの位置
+	constexpr float kSkyDomePosY = 200.0f; // スカイドームのY座標
+
+    // スカイドームの大きさ
+	constexpr float kSkyDomeScale = 10.0f; // スカイドームのスケール
 }
 
 SceneMain::SceneMain() :
@@ -64,11 +70,11 @@ void SceneMain::Init()
     // ポーズ状態に応じてマウスカーソルの表示を切り替える
     SetMouseDispFlag(m_isPaused);
 
-    //スカイドームの設定
-    MV1SetPosition(m_skyDomeHandle, VGet(0, 200, 0));
+    //スカイドームの位置
+    MV1SetPosition(m_skyDomeHandle, VGet(0, kSkyDomePosY, 0));
 
-    // スカイドームのスケールを設定
-    MV1SetScale(m_skyDomeHandle, VGet(10.0f, 10.0f, 10.0f));
+    // スカイドームの大きさを設定
+    MV1SetScale(m_skyDomeHandle, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
 
     // フラグをリセット
     m_isReturningFromOption = false;

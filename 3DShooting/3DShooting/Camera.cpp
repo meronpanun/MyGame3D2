@@ -8,7 +8,7 @@ namespace
     constexpr float kCameraYPos = 90.0f;          // カメラのY軸
     constexpr float kCameraZPos = 25.0f;          // カメラのZ軸
     constexpr float kCameraNear = 10.0f;          // カメラの近くの距離
-    constexpr float kCameraFar = 1800.0f;        // カメラの遠くの距離
+    constexpr float kCameraFar  = 1800.0f;        // カメラの遠くの距離
 }
 
 Camera::Camera() :
@@ -50,8 +50,8 @@ void Camera::Update()
     }
 
     // カメラの回転行列を作成
-    MATRIX rotYaw = MGetRotY(m_yaw);
-    MATRIX rotPitch = MGetRotX(-m_pitch);
+    MATRIX rotYaw    = MGetRotY(m_yaw);
+    MATRIX rotPitch  = MGetRotX(-m_pitch);
     MATRIX cameraRot = MMult(rotPitch, rotYaw);
 
     // カメラの向きを計算
@@ -61,7 +61,7 @@ void Camera::Update()
     VECTOR rotatedOffset = VTransform(m_offset, cameraRot);
 
     // カメラの位置を更新
-    m_pos = VAdd(m_playerPos, rotatedOffset);
+    m_pos    = VAdd(m_playerPos, rotatedOffset);
     m_target = VAdd(m_pos, forward);
 
     // カメラの設定を更新

@@ -23,7 +23,7 @@ private:
 	SceneBase* m_pNextScene;
 
 	// SceneManager‚ÅŠÇ—‚·‚éƒV[ƒ“
-	SceneTitle* m_pTitle;
-	SceneMain* m_pSceneMain;
+	SceneTitle*  m_pTitle;
+	SceneMain*   m_pSceneMain;
 	SceneResult* m_pResult;
 };

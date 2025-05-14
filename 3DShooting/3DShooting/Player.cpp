@@ -16,6 +16,19 @@ namespace
 
 	constexpr float kMoveSpeed = 2.0f; // 歩く速度
 	constexpr float kRunSpeed  = 5.0f; // 走る速度
+
+	// プレイヤーモデルのオフセット
+	constexpr float kModelOffsetX = 4.0f;  // X軸オフセット
+	constexpr float kModelOffsetY = 30.0f; // Y軸オフセット
+	constexpr float kModelOffsetZ = 40.0f; // Z軸オフセット
+
+	// アニメーションのブレンド率
+	constexpr float kAnimBlendRate = 1.0f; 
+
+	// 銃のオフセット
+	constexpr float kGunOffsetX = 10.0f;  // X軸オフセット
+	constexpr float kGunOffsetY = 88.0f;  // Y軸オフセット
+	constexpr float kGunOffsetZ = 200.0f; // Z軸オフセット
 }
 
 Player::Player() :
@@ -53,7 +66,7 @@ void Player::Init()
 
 	// アニメーションのアタッチ
 	AttachAnime(m_nextAnimData, kIdleAnimName, true);
-	m_animBlendRate = 1.0f; // アニメーションのブレンド率を1.0に設定
+	m_animBlendRate = kAnimBlendRate;
 }
 
 void Player::Update()
@@ -69,7 +82,7 @@ void Player::Update()
 	UpdateAnimeBlend();
 
 	// モデルの位置をカメラの前方に設定
-	VECTOR modelOffset        = VGet(4.0f, 30.0f, 40.0f);
+	VECTOR modelOffset        = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
 	MATRIX rotYaw             = MGetRotY(m_pCamera->GetYaw());
 	MATRIX rotPitch           = MGetRotX(-m_pCamera->GetPitch());
 	MATRIX modelRot			  = MMult(rotPitch, rotYaw);
@@ -89,83 +102,77 @@ void Player::Update()
 		ChangeAnime(kShotAnimName, false);
 	}
 
-	// --- 移動状態・走り状態の判定 ---
-	const bool wKey = CheckHitKey(KEY_INPUT_W);
-	const bool sKey = CheckHitKey(KEY_INPUT_S);
-	const bool aKey = CheckHitKey(KEY_INPUT_A);
-	const bool dKey = CheckHitKey(KEY_INPUT_D);
-	const bool shiftKey = CheckHitKey(KEY_INPUT_LSHIFT);
-
-	const bool isRunning = wKey && shiftKey;
+	// 移動状態・走り状態の判定
+	const bool isRunning = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
 	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed;
+	
+	bool isMoving = false; 
 
-	bool isMoving = false;
+	// 移動ベクトルを合成
+	VECTOR moveDir = VGet(0, 0, 0);
 
-	// --- 移動処理 ---
-	if (wKey) {
-		VECTOR forward = VGet(
-			sinf(m_pCamera->GetYaw()),
-			0.0f,
-			cosf(m_pCamera->GetYaw())
-		);
-		m_modelPos = VAdd(m_modelPos, VScale(forward, moveSpeed));
-		isMoving = true;
+	if (CheckHitKey(KEY_INPUT_W))
+	{
+		moveDir.x += sinf(m_pCamera->GetYaw());
+		moveDir.z += cosf(m_pCamera->GetYaw());
 	}
-	if (sKey) {
-		VECTOR backward = VGet(
-			sinf(m_pCamera->GetYaw()),
-			0.0f,
-			cosf(m_pCamera->GetYaw())
-		);
-		m_modelPos = VAdd(m_modelPos, VScale(backward, -kMoveSpeed));
-		isMoving = true;
+	if (CheckHitKey(KEY_INPUT_S))
+	{
+		moveDir.x -= sinf(m_pCamera->GetYaw());
+		moveDir.z -= cosf(m_pCamera->GetYaw());
 	}
-	if (aKey) {
-		VECTOR left = VGet(
-			sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f),
-			0.0f,
-			cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f)
-		);
-		m_modelPos = VAdd(m_modelPos, VScale(left, kMoveSpeed));
-		isMoving = true;
+	if (CheckHitKey(KEY_INPUT_A)) 
+	{
+		moveDir.x += sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
+		moveDir.z += cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
 	}
-	if (dKey) {
-		VECTOR right = VGet(
-			sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f),
-			0.0f,
-			cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f)
-		);
-		m_modelPos = VAdd(m_modelPos, VScale(right, kMoveSpeed));
+	if (CheckHitKey(KEY_INPUT_D))
+	{
+		moveDir.x += sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
+		moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
+	}
+
+	// ベクトルが0でなければ正規化して移動
+	if (moveDir.x != 0.0f || moveDir.z != 0.0f) {
+		float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
+		moveDir.x /= len;
+		moveDir.z /= len;
+		m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
 		isMoving = true;
 	}
 
-	// --- ショットアニメーション終了時の復帰 ---
+	// ショットアニメーション終了時の復帰
 	if (m_nextAnimData.isEnd)
 	{
-		if (m_isMoving) {
+		if (m_isMoving)
+		{
 			ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
 		}
-		else {
+		else 
+		{
 			ChangeAnime(kIdleAnimName, true);
 		}
 	}
 
-	// --- アニメーション切り替え ---
-	// 1. 移動開始
-	if (isMoving && !m_isMoving) {
+	// アニメーション切り替え
+	// 移動開始
+	if (isMoving && !m_isMoving)
+	{
 		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
 	}
-	// 2. 移動終了
-	else if (!isMoving && m_isMoving) {
+	// 移動終了
+	else if (!isMoving && m_isMoving)
+	{
 		ChangeAnime(kIdleAnimName, true);
 	}
-	// 3. 移動中に走り⇔歩きが切り替わった場合
-	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning)) {
+	// 移動中に走り⇔歩きが切り替わった場合
+	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
+	{
 		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
 	}
 
-	m_isMoving = isMoving;
-	m_isWasRunning = isRunning;
+	m_isMoving = isMoving;     
+	m_isWasRunning = isRunning; 
 }
 void Player::Draw()
 {
@@ -315,7 +322,7 @@ void Player::ChangeAnime(const char* animName, bool isLoop)
 VECTOR Player::GetGunPos() const
 {
 	// 銃の位置をプレイヤーモデルの位置に基づいて設定
-	VECTOR gunOffset = VGet(10.0f, 88.0f, 200.0f);
+	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);
 	MATRIX rotYaw    = MGetRotY(m_pCamera->GetYaw());
 	MATRIX rotPitch  = MGetRotX(-m_pCamera->GetPitch());
 	MATRIX gunRot    = MMult(rotPitch, rotYaw);
