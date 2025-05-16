@@ -9,16 +9,17 @@
 namespace
 {
 	// アニメーション名
-	const char* const kIdleAnimName = "Pistol_IDLE"; // 待機
-	const char* const kShotAnimName = "Pistol_FIRE"; // 弾を撃つ
-	const char* const kWalkAnimName = "Pistol_WALK"; // 歩く
-	const char* const kRunAnimName  = "Pistol_RUN";  // 走る
+	const char* const kIdleAnimName   = "Pistol_IDLE";   // 待機
+	const char* const kShotAnimName   = "Pistol_FIRE";   // 弾を撃つ
+	const char* const kWalkAnimName   = "Pistol_WALK";   // 歩く
+	const char* const kRunAnimName    = "Pistol_RUN";    // 走る
+	const char* const kReloadAnimName = "Pistol_RELOAD"; // リロード
 
 	constexpr float kMoveSpeed = 2.0f; // 歩く速度
 	constexpr float kRunSpeed  = 5.0f; // 走る速度
 
 	// プレイヤーモデルのオフセット
-	constexpr float kModelOffsetX = 4.0f;  // X軸オフセット
+	constexpr float kModelOffsetX = 2.0f;  // X軸オフセット
 	constexpr float kModelOffsetY = 30.0f; // Y軸オフセット
 	constexpr float kModelOffsetZ = 40.0f; // Z軸オフセット
 
@@ -35,6 +36,16 @@ namespace
 	constexpr float kStaminaRunCost    = 0.8f;   // 走る時の1フレームあたり消費量
 	constexpr float kStaminaRecover    = 0.5f;   // 歩き/停止時の1フレームあたり回復量
 	constexpr float kStaminaRunRecover = 30.0f;  // 走れるようになるスタミナ値
+
+	// リロード関連定数
+	constexpr int kInitialAmmo = 7;  // 初期弾薬数
+	constexpr int kMaxAmmo     = 10; // 最大弾薬数
+	constexpr int kReloadTime  = 80; // リロード時間（フレーム数）
+	// 右下表示用のオフセット
+	constexpr int kMarginX    = 20; // X軸オフセット
+	constexpr int kMarginY    = 20; // Y軸オフセット
+	constexpr int kFontHeight = 20; // フォント高さ（適宜調整）
+
 }
 
 Player::Player() :
@@ -46,7 +57,11 @@ Player::Player() :
 	m_isMoving(false),
 	m_isWasRunning(false),
 	m_stamina(kStaminaMax),
-	m_isCanRun(true)
+	m_isCanRun(true),
+	m_ammo(kInitialAmmo),
+	m_maxAmmo(kMaxAmmo),
+	m_isReloading(false),
+	m_reloadTimer(0)
 {
 	// モデルの読み込み
 	m_modelHandle = MV1LoadModel("data/image/player.mv1");
@@ -75,6 +90,10 @@ void Player::Init()
 	// アニメーションのアタッチ
 	AttachAnime(m_nextAnimData, kIdleAnimName, true);
 	m_animBlendRate = kAnimBlendRate;
+
+	m_ammo = kInitialAmmo;
+	m_isReloading = false;
+	m_reloadTimer = 0;
 }
 
 void Player::Update()
@@ -103,11 +122,42 @@ void Player::Update()
 	// プレイヤーモデルの回転を更新
 	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
 
-	// 弾の発射
-	if (Mouse::IsTriggerLeft())
+	// リロード処理
+	if (m_isReloading) 
 	{
-		Shoot();
-		ChangeAnime(kShotAnimName, false);
+		m_reloadTimer--;
+		if (m_reloadTimer <= 0)
+		{
+			// 補充できる弾数を計算
+			int need = kInitialAmmo - m_ammo;
+			if (need > 0)
+			{
+				// 補充できる弾数
+				int reloadAmount = (m_maxAmmo < need) ? m_maxAmmo : need; 
+				m_ammo += reloadAmount;    // 弾数を増やす
+				m_maxAmmo -= reloadAmount; // 残弾数を減らす
+
+				// 最大弾数を超えないようにする
+				if (m_maxAmmo < 0) m_maxAmmo = 0;
+			}
+			m_isReloading = false;
+		}
+	}
+	else
+	{
+		// 弾発射
+		if (Mouse::IsTriggerLeft() && m_ammo > 0) 
+		{
+			Shoot();
+			m_ammo--;
+			ChangeAnime(kShotAnimName, false);
+		}
+		// Rキーでリロード
+		if (CheckHitKey(KEY_INPUT_R) && m_ammo < kInitialAmmo && m_maxAmmo > 0)
+		{
+			Reload();
+			ChangeAnime(kReloadAnimName, false);
+		}
 	}
 
 	// 移動状態・走り状態の判定
@@ -217,6 +267,31 @@ void Player::Draw()
 	// フィールドの描画
 	DrawField();
 
+	// 画面サイズ取得
+	int screenW, screenH;
+	GetDrawScreenSize(&screenW, &screenH);
+
+	const int bgWidth = 160;
+	const int bgHeight = 48;
+	int bgX = screenW - kMarginX - bgWidth;
+	int bgY = screenH - kMarginY - bgHeight;
+
+	// 半透明の背景板
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); // 0～255で透明度指定
+	DrawBox(bgX, bgY, bgX + bgWidth, bgY + bgHeight, GetColor(0, 0, 0), TRUE);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// 弾数表示
+	int ammoX = bgX + 12;
+	int ammoY = bgY + 8;
+	DrawFormatString(ammoX, ammoY, 0xFFFFFF, "Ammo: %d / %d", m_ammo, m_maxAmmo);
+
+	// リロード中表示
+	if (m_isReloading)
+	{
+		DrawFormatString(ammoX, ammoY + kFontHeight, 0xFF4444, "Reloading...");
+	}
+
 	// スタミナ表示
 	DrawFormatString(10, 30, 0x000000, "Stamina: %.1f", m_stamina);
 	
@@ -314,8 +389,12 @@ void Player::UpdateAnime(AnimData& data)
 	if (data.attachNo == -1) return;
 
 	// アニメーションの更新
-	data.count += 1.0f;
-
+	float animSpeed = 1.0f;
+	// リロードアニメーション中は2倍速
+	if (m_isReloading && data.attachNo == m_nextAnimData.attachNo) {
+		animSpeed = 2.0f; // 2倍速
+	}
+	data.count += animSpeed;
 	// 現在再生中のアニメーションの総時間を取得
 	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo);
 
@@ -395,4 +474,10 @@ VECTOR Player::GetGunRot() const
 		sinf(m_pCamera->GetPitch()),
 		cosf(m_pCamera->GetPitch()) * cosf(m_pCamera->GetYaw())
 	);
+}
+
+void Player::Reload()
+{
+	m_isReloading = true;
+	m_reloadTimer = kReloadTime;
 }
