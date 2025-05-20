@@ -226,8 +226,8 @@ void Player::Update()
 		m_isCanRun = true;
 	}
 
-	// ショットアニメーション終了時の復帰
-	if (!m_isReloading) // ←リロード中は切り替え処理を行わない
+	// リロード中はアニメーション切り替えを行わない
+	if (!m_isReloading)
 	{
 		if (m_nextAnimData.isEnd)
 		{
