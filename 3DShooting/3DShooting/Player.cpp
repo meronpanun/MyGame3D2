@@ -3,6 +3,7 @@
 #include "Game.h" 
 #include "Mouse.h"
 #include "Camera.h"
+#include "Effect.h"	
 #include <cmath>
 #include <cassert>
 
@@ -28,8 +29,8 @@ namespace
 
 	// 銃のオフセット
 	constexpr float kGunOffsetX = 10.0f;  // X軸オフセット
-	constexpr float kGunOffsetY = 88.0f;  // Y軸オフセット
-	constexpr float kGunOffsetZ = 200.0f; // Z軸オフセット
+	constexpr float kGunOffsetY = 58.0f;  // Y軸オフセット
+	constexpr float kGunOffsetZ = 5.0f; // Z軸オフセット
 
 	// スタミナ関連定数
 	constexpr float kStaminaMax        = 100.0f; // 最大スタミナ
@@ -38,7 +39,7 @@ namespace
 	constexpr float kStaminaRunRecover = 30.0f;  // 走れるようになるスタミナ値
 
 	// リロード関連定数
-	constexpr int kInitialAmmo = 7;  // 初期弾薬数
+	constexpr int kInitialAmmo = 700;  // 初期弾薬数
 	constexpr int kMaxAmmo     = 10; // 最大弾薬数
 	constexpr int kReloadTime  = 80; // リロード時間（フレーム数）
 	// 右下表示用のオフセット
@@ -53,6 +54,7 @@ Player::Player() :
 	m_shootSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
+	m_pEffect(std::make_shared<Effect>()),
 	m_animBlendRate(0.0f),
 	m_isMoving(false),
 	m_isWasRunning(false),
@@ -65,6 +67,7 @@ Player::Player() :
 {
 	// モデルの読み込み
 	m_modelHandle = MV1LoadModel("data/image/player.mv1");
+	assert(m_modelHandle != -1);
 
 	// 弾を撃つSEを読み込む
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
@@ -87,13 +90,12 @@ void Player::Init()
 	// カメラの初期化
 	m_pCamera->Init();
 
+	// エフェクトの初期化
+	m_pEffect->Init();
+
 	// アニメーションのアタッチ
 	AttachAnime(m_nextAnimData, kIdleAnimName, true);
 	m_animBlendRate = kAnimBlendRate;
-
-	m_ammo = kInitialAmmo;
-	m_isReloading = false;
-	m_reloadTimer = 0;
 }
 
 void Player::Update()
@@ -103,6 +105,9 @@ void Player::Update()
 
 	// カメラの更新
 	m_pCamera->Update();
+
+	// エフェクトの更新
+	m_pEffect->Update();
 
 	UpdateAnime(m_prevAnimData);
 	UpdateAnime(m_nextAnimData);
@@ -267,6 +272,9 @@ void Player::Draw()
 	// モデルの描画
 	MV1DrawModel(m_modelHandle);
 
+	// エフェクトの描画
+	m_pEffect->Draw();
+
 	// フィールドの描画
 	DrawField();
 
@@ -348,8 +356,8 @@ void Player::DrawField()
 
 			// 立方体を描画
 			DrawCube3D(
-				VGet(cubeCenter.x - cubeSize.x * 0.5f, cubeCenter.y, cubeCenter.z - cubeSize.z * 0.5f), // 最小座標
-				VGet(cubeCenter.x + cubeSize.x * 0.5f, cubeCenter.y + cubeSize.y, cubeCenter.z + cubeSize.z * 0.5f), // 最大座標
+				VGet(cubeCenter.x - cubeSize.x * 0.5f, cubeCenter.y - 50, cubeCenter.z - cubeSize.z * 0.5f), // 最小座標
+				VGet(cubeCenter.x + cubeSize.x * 0.5f, cubeCenter.y - 50 + cubeSize.y, cubeCenter.z + cubeSize.z * 0.5f), // 最大座標
 				color,
 				color,
 				true // 塗りつぶし
@@ -365,7 +373,17 @@ void Player::Shoot()
 {
 	// 銃の位置を取得
 	VECTOR gunPos = GetGunPos();
-	VECTOR gunDir = GetGunRot();
+
+	// 銃の向きをオイラー角（ラジアン）で算出
+	float rotX = -m_pCamera->GetPitch(); // X軸（上下）
+	float rotY = m_pCamera->GetYaw();    // Y軸（左右）
+	float rotZ = 0.0f;                   // Z軸（ロールは不要）
+
+	// マズルフラッシュエフェクト再生
+	if (m_pEffect)
+	{
+		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
+	}
 
 	// 弾を撃つSEを再生
 	PlaySoundMem(m_shootSEHandle, DX_PLAYTYPE_BACK);
@@ -461,12 +479,18 @@ void Player::ChangeAnime(const char* animName, bool isLoop)
 
 VECTOR Player::GetGunPos() const
 {
-	// 銃の位置をプレイヤーモデルの位置に基づいて設定
+   // モデルの実際の描画位置を算出
+	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
+	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot = MMult(rotPitch, rotYaw);
+	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
+	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);
+
+	// 銃のオフセットをモデルの描画位置から算出
 	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);
-	MATRIX rotYaw    = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch  = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX gunRot    = MMult(rotPitch, rotYaw);
-	return VAdd(m_modelPos, VTransform(gunOffset, gunRot));
+	VECTOR gunPos = VTransform(gunOffset, modelRot);
+	return VAdd(modelPosition, gunPos);
 }
 
 VECTOR Player::GetGunRot() const

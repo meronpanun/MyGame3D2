@@ -1,7 +1,7 @@
 #include "DxLib.h"
 #include "game.h"
 #include "SceneManager.h"
-
+#include "EffekseerForDXLib.h"
 
 // プログラムは WinMain から始まります
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -23,12 +23,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetWriteZBuffer3D(true);	// 3D描画でZBufferに書き込む
 	SetUseBackCulling(true);	// 裏面カリングを有効にする
 
+	//Effekseer関係初期化
+	SetUseDirect3DVersion(DX_DIRECT3D_11);
+	// 引数には画面に表示する最大パーティクル数を設定する。
+	if (Effekseer_Init(8000) == -1)
+	{
+		DxLib_End();
+		return -1;
+	}
+	// フルスクリーンウインドウの切り替えでリソースが消えるのを防ぐ
+	SetChangeScreenModeGraphicsSystemResetFlag(FALSE);
+
+	// DXライブラリのデバイスロストした時のコールバックを設定する
+	Effekseer_SetGraphicsDeviceLostCallbackFunctions();
+
 	SceneManager* pScene = new SceneManager();
 	pScene->Init();
 
 	// ゲームループ
 	while (ProcessMessage() == 0)	// Windowsが行う処理を待つ必要がある
 	{
+		// DXライブラリのカメラとEffekseerのカメラを同期する。
+		Effekseer_Sync3DSetting();
+
 		// エスケープキーが押されたらループを抜ける
 		if (CheckHitKey(KEY_INPUT_RETURN))
 		{
@@ -54,6 +71,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 		}
 	}
+
+	// Effekseerを終了する。
+	Effkseer_End();
 
 	DxLib_End();				// ＤＸライブラリ使用の終了処理
 

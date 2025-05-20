@@ -4,6 +4,7 @@
 #include <memory>
 
 class Camera;
+class Effect;
 
 /// <summary>
 /// プレイヤークラス
@@ -83,6 +84,8 @@ private:
 private:
 	// カメラの管理
 	std::shared_ptr<Camera> m_pCamera;
+	// エフェクトの管理
+	std::shared_ptr<Effect> m_pEffect; 
 
 	// モデルの位置
 	VECTOR m_modelPos;
