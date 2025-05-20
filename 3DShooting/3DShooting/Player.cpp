@@ -227,33 +227,36 @@ void Player::Update()
 	}
 
 	// ショットアニメーション終了時の復帰
-	if (m_nextAnimData.isEnd)
+	if (!m_isReloading) // ←リロード中は切り替え処理を行わない
 	{
-		if (m_isMoving)
+		if (m_nextAnimData.isEnd)
 		{
-			ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
+			if (m_isMoving)
+			{
+				ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
+			}
+			else
+			{
+				ChangeAnime(kIdleAnimName, true);
+			}
 		}
-		else 
+
+		// アニメーション切り替え
+		// 移動開始
+		if (isMoving && !m_isMoving)
+		{
+			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+		}
+		// 移動終了
+		else if (!isMoving && m_isMoving)
 		{
 			ChangeAnime(kIdleAnimName, true);
 		}
-	}
-
-	// アニメーション切り替え
-	// 移動開始
-	if (isMoving && !m_isMoving)
-	{
-		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-	}
-	// 移動終了
-	else if (!isMoving && m_isMoving)
-	{
-		ChangeAnime(kIdleAnimName, true);
-	}
-	// 移動中に走り⇔歩きが切り替わった場合
-	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
-	{
-		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+		// 移動中に走り⇔歩きが切り替わった場合
+		else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
+		{
+			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+		}
 	}
 
 	m_isMoving = isMoving;     
