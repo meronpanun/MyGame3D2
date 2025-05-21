@@ -97,16 +97,19 @@ private:
 	// アニメーションブレンド率
 	float m_animBlendRate;  // 0.0f:前のアニメーション 1.0f:次のアニメーション
 	int   m_modelHandle;    // モデルのハンドル
+	int   m_shieldHandle;   // 盾のモデルハンドル
 	int   m_shootSEHandle;  // 弾を撃つSEのハンドル
 	bool  m_isMoving;       // 移動中かどうか
 	bool  m_isWasRunning;   // 走っていたかどうか
 
-	float m_stamina; // スタミナ
+	float m_stamina;  // スタミナ
 	bool  m_isCanRun; // 走れるかどうか
 
 	int  m_ammo;        // 現在の弾数
 	int  m_maxAmmo;     // 最大弾数
 	int  m_reloadTimer; // リロード時間
 	bool m_isReloading; // リロード中かどうか
+
+	int m_shotCooldown; // 発射クールタイム
 };
 

@@ -22,15 +22,15 @@ namespace
 	// プレイヤーモデルのオフセット
 	constexpr float kModelOffsetX = 2.0f;  // X軸オフセット
 	constexpr float kModelOffsetY = 30.0f; // Y軸オフセット
-	constexpr float kModelOffsetZ = 40.0f; // Z軸オフセット
+	constexpr float kModelOffsetZ = 25.0f; // Z軸オフセット
 
 	// アニメーションのブレンド率
 	constexpr float kAnimBlendRate = 1.0f; 
 
 	// 銃のオフセット
-	constexpr float kGunOffsetX = 10.0f;  // X軸オフセット
-	constexpr float kGunOffsetY = 58.0f;  // Y軸オフセット
-	constexpr float kGunOffsetZ = 5.0f; // Z軸オフセット
+	constexpr float kGunOffsetX = 10.0f; // X軸オフセット
+	constexpr float kGunOffsetY = 58.0f; // Y軸オフセット
+	constexpr float kGunOffsetZ = 12.0f;  // Z軸オフセット
 
 	// スタミナ関連定数
 	constexpr float kStaminaMax        = 100.0f; // 最大スタミナ
@@ -39,18 +39,25 @@ namespace
 	constexpr float kStaminaRunRecover = 30.0f;  // 走れるようになるスタミナ値
 
 	// リロード関連定数
-	constexpr int kInitialAmmo = 700;  // 初期弾薬数
-	constexpr int kMaxAmmo     = 10; // 最大弾薬数
-	constexpr int kReloadTime  = 80; // リロード時間（フレーム数）
+	constexpr int kInitialAmmo = 700; // 初期弾薬数
+	constexpr int kMaxAmmo     = 10;  // 最大弾薬数
+	constexpr int kReloadTime  = 80;  // リロード時間
+
 	// 右下表示用のオフセット
 	constexpr int kMarginX    = 20; // X軸オフセット
 	constexpr int kMarginY    = 20; // Y軸オフセット
-	constexpr int kFontHeight = 20; // フォント高さ（適宜調整）
+	constexpr int kFontHeight = 20; // フォント高さ
+
+	// 盾のオフセット
+	constexpr float kShieldScreenOffsetX = 10.0f; // 左方向
+	constexpr float kShieldScreenOffsetY = 0.0f; // 高さ
+	constexpr float kShieldScreenOffsetZ = 15.0f; // 前方
 
 }
 
 Player::Player() :
 	m_modelHandle(-1),
+	m_shieldHandle(-1),
 	m_shootSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
@@ -63,24 +70,37 @@ Player::Player() :
 	m_ammo(kInitialAmmo),
 	m_maxAmmo(kMaxAmmo),
 	m_isReloading(false),
-	m_reloadTimer(0)
+	m_reloadTimer(0),
+	m_shotCooldown(0)
 {
 	// モデルの読み込み
-	m_modelHandle = MV1LoadModel("data/image/player.mv1");
+	m_modelHandle = MV1LoadModel("data/image/Player.mv1");
 	assert(m_modelHandle != -1);
+
+	// 盾のモデルを読み込む
+	m_shieldHandle = MV1LoadModel("data/image/Shield.mv1");
+	assert(m_shieldHandle != -1);
 
 	// 弾を撃つSEを読み込む
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
 	assert(m_shootSEHandle != -1);
 
-	// プレイヤーモデルの初期回転を設定 (Z-方向を向く)
+	// プレイヤーモデルの初期回転を設定
 	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, 0.0f, 0.0f));
+
+	// 盾の初期回転を設定
+	MV1SetRotationXYZ(m_shieldHandle, VGet(0.0f, 0.0f, 0.0f));
+	// 盾の大きさを設定
+	MV1SetScale(m_shieldHandle, VGet(0.2f, 0.2f, 0.2f));
 }
 
 Player::~Player()
 {
 	// モデルの削除
 	MV1DeleteModel(m_modelHandle);
+	// 盾のモデルの削除
+	MV1DeleteModel(m_shieldHandle);
+
 	// SEの削除
 	DeleteSoundMem(m_shootSEHandle);
 }
@@ -127,6 +147,12 @@ void Player::Update()
 	// プレイヤーモデルの回転を更新
 	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
 
+	// クールタイム減算
+	if (m_shotCooldown > 0)
+	{
+		m_shotCooldown--;
+	}
+
 	// リロード処理
 	if (m_isReloading) 
 	{
@@ -151,10 +177,11 @@ void Player::Update()
 	else
 	{
 		// 弾発射
-		if (Mouse::IsTriggerLeft() && m_ammo > 0) 
+		if (Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)
 		{
 			Shoot();
 			m_ammo--;
+			m_shotCooldown = 10; // 10フレーム間隔で発射可能
 			ChangeAnime(kShotAnimName, false);
 		}
 		// Rキーでリロード
@@ -272,6 +299,41 @@ void Player::Draw()
 	// モデルの描画
 	MV1DrawModel(m_modelHandle);
 
+	// カメラの位置
+	VECTOR camPos = m_pCamera->GetPosition();
+
+	// カメラのヨー・ピッチ取得
+	float yaw = m_pCamera->GetYaw();
+	float pitch = m_pCamera->GetPitch();
+
+	// カメラの左方向ベクトル（ヨーのみ）
+	VECTOR left = VGet(-cosf(yaw), 0, sinf(yaw));
+	// カメラの前方向ベクトル（ピッチも考慮）
+	VECTOR forward = VGet(
+		sinf(yaw) * cosf(pitch),
+		-sinf(pitch),
+		cosf(yaw) * cosf(pitch)
+	);
+
+	// 盾の画面固定オフセット
+	constexpr float kShieldScreenOffsetX = 10.0f; // 左方向
+	constexpr float kShieldScreenOffsetY = 0.0f;  // 高さ
+	constexpr float kShieldScreenOffsetZ = 15.0f; // 前方
+
+	// 盾のワールド座標を計算
+	VECTOR shieldPos = camPos;
+	shieldPos = VAdd(shieldPos, VScale(left, kShieldScreenOffsetX));
+	shieldPos = VAdd(shieldPos, VScale(forward, kShieldScreenOffsetZ));
+	shieldPos.y += kShieldScreenOffsetY;
+
+	// 盾の位置・回転を設定
+	MV1SetPosition(m_shieldHandle, shieldPos);
+	MV1SetRotationXYZ(m_shieldHandle, VGet(pitch, yaw + DX_PI_F, 0.0f));
+
+	// 盾モデルの描画
+	MV1DrawModel(m_shieldHandle);
+
+
 	// エフェクトの描画
 	m_pEffect->Draw();
 
@@ -356,8 +418,8 @@ void Player::DrawField()
 
 			// 立方体を描画
 			DrawCube3D(
-				VGet(cubeCenter.x - cubeSize.x * 0.5f, cubeCenter.y - 50, cubeCenter.z - cubeSize.z * 0.5f), // 最小座標
-				VGet(cubeCenter.x + cubeSize.x * 0.5f, cubeCenter.y - 50 + cubeSize.y, cubeCenter.z + cubeSize.z * 0.5f), // 最大座標
+				VGet(cubeCenter.x - cubeSize.x * 0.5f, cubeCenter.y - 80, cubeCenter.z - cubeSize.z * 0.5f), // 最小座標
+				VGet(cubeCenter.x + cubeSize.x * 0.5f, cubeCenter.y - 80 + cubeSize.y, cubeCenter.z + cubeSize.z * 0.5f), // 最大座標
 				color,
 				color,
 				true // 塗りつぶし

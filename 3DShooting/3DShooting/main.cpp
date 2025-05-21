@@ -19,9 +19,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetDrawScreen(DX_SCREEN_BACK);
 
 	// 3D関連の設定
-	SetUseZBuffer3D(true);		// 3D描画でZBufferを使用する
-	SetWriteZBuffer3D(true);	// 3D描画でZBufferに書き込む
-	SetUseBackCulling(true);	// 裏面カリングを有効にする
+	SetUseZBuffer3D(true);	 // 3D描画でZBufferを使用する
+	SetWriteZBuffer3D(true); // 3D描画でZBufferに書き込む
+	SetUseBackCulling(true); // 裏面カリングを有効にする
 
 	//Effekseer関係初期化
 	SetUseDirect3DVersion(DX_DIRECT3D_11);
