@@ -299,36 +299,29 @@ void Player::Draw()
 	// モデルの描画
 	MV1DrawModel(m_modelHandle);
 
-	// カメラの位置
+	// カメラの位置・向き取得
 	VECTOR camPos = m_pCamera->GetPosition();
-
-	// カメラのヨー・ピッチ取得
 	float yaw = m_pCamera->GetYaw();
-	float pitch = m_pCamera->GetPitch();
+	// float pitch = m_pCamera->GetPitch(); // 不要
 
-	// カメラの左方向ベクトル（ヨーのみ）
+	// DOOM風：カメラの前方（ピッチ無視）を計算
+	VECTOR forward = VGet(sinf(yaw), 0, cosf(yaw));
 	VECTOR left = VGet(-cosf(yaw), 0, sinf(yaw));
-	// カメラの前方向ベクトル（ピッチも考慮）
-	VECTOR forward = VGet(
-		sinf(yaw) * cosf(pitch),
-		-sinf(pitch),
-		cosf(yaw) * cosf(pitch)
-	);
 
-	// 盾の画面固定オフセット
+	// 盾の画面固定オフセット（DOOM風：ピッチ無視、画面下寄りに配置）
 	constexpr float kShieldScreenOffsetX = 10.0f; // 左方向
-	constexpr float kShieldScreenOffsetY = 0.0f;  // 高さ
+	constexpr float kShieldScreenOffsetY = -8.0f; // 下方向（マイナスで下げる）
 	constexpr float kShieldScreenOffsetZ = 15.0f; // 前方
 
-	// 盾のワールド座標を計算
+	// 盾のワールド座標を計算（カメラの前方＋オフセット）
 	VECTOR shieldPos = camPos;
-	shieldPos = VAdd(shieldPos, VScale(left, kShieldScreenOffsetX));
 	shieldPos = VAdd(shieldPos, VScale(forward, kShieldScreenOffsetZ));
+	shieldPos = VAdd(shieldPos, VScale(left, kShieldScreenOffsetX));
 	shieldPos.y += kShieldScreenOffsetY;
 
-	// 盾の位置・回転を設定
+	// 盾の回転（DOOM風：ヨーのみ反映、ピッチは無視）
 	MV1SetPosition(m_shieldHandle, shieldPos);
-	MV1SetRotationXYZ(m_shieldHandle, VGet(pitch, yaw + DX_PI_F, 0.0f));
+	MV1SetRotationXYZ(m_shieldHandle, VGet(0.0f, yaw + DX_PI_F, 0.0f));
 
 	// 盾モデルの描画
 	MV1DrawModel(m_shieldHandle);
