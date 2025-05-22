@@ -49,9 +49,9 @@ namespace
 	constexpr int kFontHeight = 20; // フォント高さ
 
 	// 盾のオフセット
-	constexpr float kShieldScreenOffsetX = 10.0f; // 左方向
-	constexpr float kShieldScreenOffsetY = 0.0f; // 高さ
-	constexpr float kShieldScreenOffsetZ = 15.0f; // 前方
+	constexpr float kShieldScreenOffsetX = -30.0f; 
+	constexpr float kShieldScreenOffsetY = 10.0f; 
+	constexpr float kShieldScreenOffsetZ = 40.0f; 
 
 }
 
@@ -123,6 +123,9 @@ void Player::Update()
 	// カメラの位置をプレイヤーの位置に基づいて更新
 	m_pCamera->SetPlayerPos(m_modelPos);
 
+	// カメラの位置を盾の位置に基づいて更新
+	m_pCamera->SetShieldPos(m_modelPos);
+
 	// カメラの更新
 	m_pCamera->Update();
 
@@ -134,18 +137,32 @@ void Player::Update()
 	UpdateAnimeBlend();
 
 	// モデルの位置をカメラの前方に設定
-	VECTOR modelOffset        = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
-	MATRIX rotYaw             = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch           = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot			  = MMult(rotPitch, rotYaw);
-	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);
+	VECTOR modelOffset    = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
+	MATRIX rotYaw         = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch       = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot		  = MMult(rotPitch, rotYaw);
+	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
+	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
 
 	// モデルの位置を更新
-	MV1SetPosition(m_modelHandle, modelPosition);
+	MV1SetPosition(m_modelHandle, modelPos);
 
 	// プレイヤーモデルの回転を更新
 	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
+
+	// 盾モデルの位置をカメラの前方に設定
+	VECTOR shieldOffset	   = VGet(kShieldScreenOffsetX, kShieldScreenOffsetY, kShieldScreenOffsetZ);
+	MATRIX shieldRotYaw    = MGetRotY(m_pCamera->GetYaw());
+	MATRIX shieldRotPitch  = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX shieldModelRot  = MMult(shieldRotPitch, shieldRotYaw);
+	VECTOR rotShieldOffset = VTransform(shieldOffset, shieldModelRot);
+	VECTOR shieldPos       = VAdd(m_modelPos, rotShieldOffset);
+
+	// 盾の位置を更新
+	MV1SetPosition(m_shieldHandle, shieldPos);
+
+	// 盾モデルの回転を更新
+	MV1SetRotationXYZ(m_shieldHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
 
 	// クールタイム減算
 	if (m_shotCooldown > 0)
@@ -298,34 +315,9 @@ void Player::Draw()
 {
 	// モデルの描画
 	MV1DrawModel(m_modelHandle);
-
-	// カメラの位置・向き取得
-	VECTOR camPos = m_pCamera->GetPosition();
-	float yaw = m_pCamera->GetYaw();
-	// float pitch = m_pCamera->GetPitch(); // 不要
-
-	// DOOM風：カメラの前方（ピッチ無視）を計算
-	VECTOR forward = VGet(sinf(yaw), 0, cosf(yaw));
-	VECTOR left = VGet(-cosf(yaw), 0, sinf(yaw));
-
-	// 盾の画面固定オフセット（DOOM風：ピッチ無視、画面下寄りに配置）
-	constexpr float kShieldScreenOffsetX = 10.0f; // 左方向
-	constexpr float kShieldScreenOffsetY = -8.0f; // 下方向（マイナスで下げる）
-	constexpr float kShieldScreenOffsetZ = 15.0f; // 前方
-
-	// 盾のワールド座標を計算（カメラの前方＋オフセット）
-	VECTOR shieldPos = camPos;
-	shieldPos = VAdd(shieldPos, VScale(forward, kShieldScreenOffsetZ));
-	shieldPos = VAdd(shieldPos, VScale(left, kShieldScreenOffsetX));
-	shieldPos.y += kShieldScreenOffsetY;
-
-	// 盾の回転（DOOM風：ヨーのみ反映、ピッチは無視）
-	MV1SetPosition(m_shieldHandle, shieldPos);
-	MV1SetRotationXYZ(m_shieldHandle, VGet(0.0f, yaw + DX_PI_F, 0.0f));
-
+	
 	// 盾モデルの描画
 	MV1DrawModel(m_shieldHandle);
-
 
 	// エフェクトの描画
 	m_pEffect->Draw();
@@ -536,15 +528,15 @@ VECTOR Player::GetGunPos() const
 {
    // モデルの実際の描画位置を算出
 	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
-	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot = MMult(rotPitch, rotYaw);
+	MATRIX rotYaw      = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch    = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot    = MMult(rotPitch, rotYaw);
 	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);
+	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);
 
 	// 銃のオフセットをモデルの描画位置から算出
 	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);
-	VECTOR gunPos = VTransform(gunOffset, modelRot);
+	VECTOR gunPos    = VTransform(gunOffset, modelRot);
 	return VAdd(modelPosition, gunPos);
 }
 
