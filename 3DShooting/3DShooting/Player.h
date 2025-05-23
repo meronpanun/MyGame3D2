@@ -79,7 +79,7 @@ private:
 	VECTOR GetGunPos() const;
 	VECTOR GetGunRot() const;
 
-	void Reload(); // リロード管理
+//	void Reload(); // リロード管理
 
 private:
 	// カメラの管理
@@ -106,9 +106,9 @@ private:
 	bool  m_isCanRun; // 走れるかどうか
 
 	int  m_ammo;        // 現在の弾数
-	int  m_maxAmmo;     // 最大弾数
-	int  m_reloadTimer; // リロード時間
-	bool m_isReloading; // リロード中かどうか
+//	int  m_maxAmmo;     // 最大弾数
+//	int  m_reloadTimer; // リロード時間
+//	bool m_isReloading; // リロード中かどうか
 
 	int m_shotCooldown; // 発射クールタイム
 };

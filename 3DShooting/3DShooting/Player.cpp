@@ -40,8 +40,8 @@ namespace
 
 	// リロード関連定数
 	constexpr int kInitialAmmo = 700; // 初期弾薬数
-	constexpr int kMaxAmmo     = 10;  // 最大弾薬数
-	constexpr int kReloadTime  = 80;  // リロード時間
+//	constexpr int kMaxAmmo     = 10;  // 最大弾薬数
+//	constexpr int kReloadTime  = 80;  // リロード時間
 
 	// 右下表示用のオフセット
 	constexpr int kMarginX    = 20; // X軸オフセット
@@ -68,9 +68,9 @@ Player::Player() :
 	m_stamina(kStaminaMax),
 	m_isCanRun(true),
 	m_ammo(kInitialAmmo),
-	m_maxAmmo(kMaxAmmo),
-	m_isReloading(false),
-	m_reloadTimer(0),
+//	m_maxAmmo(kMaxAmmo),
+//	m_isReloading(false),
+//	m_reloadTimer(0),
 	m_shotCooldown(0)
 {
 	// モデルの読み込み
@@ -123,9 +123,6 @@ void Player::Update()
 	// カメラの位置をプレイヤーの位置に基づいて更新
 	m_pCamera->SetPlayerPos(m_modelPos);
 
-	// カメラの位置を盾の位置に基づいて更新
-	m_pCamera->SetShieldPos(m_modelPos);
-
 	// カメラの更新
 	m_pCamera->Update();
 
@@ -150,20 +147,6 @@ void Player::Update()
 	// プレイヤーモデルの回転を更新
 	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
 
-	// 盾モデルの位置をカメラの前方に設定
-	VECTOR shieldOffset	   = VGet(kShieldScreenOffsetX, kShieldScreenOffsetY, kShieldScreenOffsetZ);
-	MATRIX shieldRotYaw    = MGetRotY(m_pCamera->GetYaw());
-	MATRIX shieldRotPitch  = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX shieldModelRot  = MMult(shieldRotPitch, shieldRotYaw);
-	VECTOR rotShieldOffset = VTransform(shieldOffset, shieldModelRot);
-	VECTOR shieldPos       = VAdd(m_modelPos, rotShieldOffset);
-
-	// 盾の位置を更新
-	MV1SetPosition(m_shieldHandle, shieldPos);
-
-	// 盾モデルの回転を更新
-	MV1SetRotationXYZ(m_shieldHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
-
 	// クールタイム減算
 	if (m_shotCooldown > 0)
 	{
@@ -171,28 +154,28 @@ void Player::Update()
 	}
 
 	// リロード処理
-	if (m_isReloading) 
-	{
-		m_reloadTimer--;
-		if (m_reloadTimer <= 0)
-		{
-			// 補充できる弾数を計算
-			int need = kInitialAmmo - m_ammo;
-			if (need > 0)
-			{
-				// 補充できる弾数
-				int reloadAmount = (m_maxAmmo < need) ? m_maxAmmo : need; 
-				m_ammo += reloadAmount;    // 弾数を増やす
-				m_maxAmmo -= reloadAmount; // 残弾数を減らす
+	//if (m_isReloading) 
+	//{
+	//	m_reloadTimer--;
+	//	if (m_reloadTimer <= 0)
+	//	{
+	//		// 補充できる弾数を計算
+	//		int need = kInitialAmmo - m_ammo;
+	//		if (need > 0)
+	//		{
+	//			// 補充できる弾数
+	//			int reloadAmount = (m_maxAmmo < need) ? m_maxAmmo : need; 
+	//			m_ammo += reloadAmount;    // 弾数を増やす
+	//			m_maxAmmo -= reloadAmount; // 残弾数を減らす
 
-				// 最大弾数を超えないようにする
-				if (m_maxAmmo < 0) m_maxAmmo = 0;
-			}
-			m_isReloading = false;
-		}
-	}
-	else
-	{
+	//			// 最大弾数を超えないようにする
+	//			if (m_maxAmmo < 0) m_maxAmmo = 0;
+	//		}
+	//		m_isReloading = false;
+	//	}
+	//}
+//	else
+//	{
 		// 弾発射
 		if (Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)
 		{
@@ -201,13 +184,13 @@ void Player::Update()
 			m_shotCooldown = 10; // 10フレーム間隔で発射可能
 			ChangeAnime(kShotAnimName, false);
 		}
-		// Rキーでリロード
-		if (CheckHitKey(KEY_INPUT_R) && m_ammo < kInitialAmmo && m_maxAmmo > 0)
-		{
-			Reload();
-			ChangeAnime(kReloadAnimName, false);
-		}
-	}
+		//// Rキーでリロード
+		//if (CheckHitKey(KEY_INPUT_R) && m_ammo < kInitialAmmo && m_maxAmmo > 0)
+		//{
+		//	Reload();
+		//	ChangeAnime(kReloadAnimName, false);
+		//}
+//	}
 
 	// 移動状態・走り状態の判定
 	const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
@@ -276,7 +259,7 @@ void Player::Update()
 	}
 
 	// リロード中はアニメーション切り替えを行わない
-	if (!m_isReloading)
+//	if (!m_isReloading)
 	{
 		if (m_nextAnimData.isEnd)
 		{
@@ -316,6 +299,31 @@ void Player::Draw()
 	// モデルの描画
 	MV1DrawModel(m_modelHandle);
 	
+
+	// カメラの位置・向き取得
+	VECTOR camPos = m_pCamera->GetPosition();
+	float yaw = m_pCamera->GetYaw();
+	// float pitch = m_pCamera->GetPitch(); // 不要
+
+	// DOOM風：カメラの前方（ピッチ無視）を計算
+	VECTOR forward = VGet(sinf(yaw), 0, cosf(yaw));
+	VECTOR left = VGet(-cosf(yaw), 0, sinf(yaw));
+
+	// 盾の画面固定オフセット（DOOM風：ピッチ無視、画面下寄りに配置）
+	constexpr float kShieldScreenOffsetX = 10.0f; // 左方向
+	constexpr float kShieldScreenOffsetY = -8.0f; // 下方向（マイナスで下げる）
+	constexpr float kShieldScreenOffsetZ = 15.0f; // 前方
+
+	// 盾のワールド座標を計算（カメラの前方＋オフセット）
+	VECTOR shieldPos = camPos;
+	shieldPos = VAdd(shieldPos, VScale(forward, kShieldScreenOffsetZ));
+	shieldPos = VAdd(shieldPos, VScale(left, kShieldScreenOffsetX));
+	shieldPos.y += kShieldScreenOffsetY;
+
+	// 盾の回転（DOOM風：ヨーのみ反映、ピッチは無視）
+	MV1SetPosition(m_shieldHandle, shieldPos);
+	MV1SetRotationXYZ(m_shieldHandle, VGet(0.0f, yaw + DX_PI_F, 0.0f));
+
 	// 盾モデルの描画
 	MV1DrawModel(m_shieldHandle);
 
@@ -342,13 +350,7 @@ void Player::Draw()
 	// 弾数表示
 	int ammoX = bgX + 12;
 	int ammoY = bgY + 8;
-	DrawFormatString(ammoX, ammoY, 0xFFFFFF, "Ammo: %d / %d", m_ammo, m_maxAmmo);
-
-	// リロード中表示
-	if (m_isReloading)
-	{
-		DrawFormatString(ammoX, ammoY + kFontHeight, 0xFF4444, "Reloading...");
-	}
+	DrawFormatString(ammoX, ammoY, 0xFFFFFF, "Ammo: %d", m_ammo/*, m_maxAmmo*/);
 
 	// スタミナ表示
 	DrawFormatString(10, 30, 0x000000, "Stamina: %.1f", m_stamina);
@@ -458,10 +460,11 @@ void Player::UpdateAnime(AnimData& data)
 
 	// アニメーションの更新
 	float animSpeed = 1.0f;
-	// リロードアニメーション中は2倍速
-	if (m_isReloading && data.attachNo == m_nextAnimData.attachNo) {
-		animSpeed = 2.0f; // 2倍速
-	}
+	//// リロードアニメーション中は2倍速
+	//if (m_isReloading && data.attachNo == m_nextAnimData.attachNo) 
+	//{
+	//	animSpeed = 2.0f; // 2倍速
+	//}
 	data.count += animSpeed;
 	// 現在再生中のアニメーションの総時間を取得
 	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo);
@@ -550,8 +553,8 @@ VECTOR Player::GetGunRot() const
 	);
 }
 
-void Player::Reload()
-{
-	m_isReloading = true;
-	m_reloadTimer = kReloadTime;
-}
+//void Player::Reload()
+//{
+//	m_isReloading = true;
+//	m_reloadTimer = kReloadTime;
+//}
