@@ -43,17 +43,6 @@ SceneTitle::SceneTitle(bool skipLogo):
     // タイトルロゴ画像を読み込む
     m_logoHandle = LoadGraph("data/image/TitleLogo.png");
     assert(m_logoHandle != -1);
-
-    // ロゴをスキップする場合、フェード処理と待機時間をスキップし、ボタン操作を有効化
-    if (m_skipLogo)
-    {
-        m_isFadeComplete = true;
-        m_isFadeOut      = true;
-        m_waitFrame      = kWaitDuration; // 待機時間をスキップ
-        m_fadeAlpha      = 0;             // フェードアウト済みの状態に設定
-        m_isSceneFadeIn  = true;          // タイトルシーンのフェードインを開始
-        m_sceneFadeAlpha = 255;           // フェードインを完全に表示
-    }
 }
 
 SceneTitle::~SceneTitle()
@@ -70,6 +59,13 @@ void SceneTitle::Init()
 
 SceneBase* SceneTitle::Update()
 {
+    // Sキーでロゴをスキップ
+    if (!m_isFadeOut && CheckHitKey(KEY_INPUT_S))
+    {
+        SkipLogo();
+        return this;
+    }
+
     // タイトルロゴのフェードイン処理
     if (!m_isFadeComplete)
     {
@@ -125,7 +121,6 @@ SceneBase* SceneTitle::Update()
         }
         return this;
     }
-
 
     // マウスの左クリックをチェック
     if (Mouse::IsTriggerLeft())
@@ -192,4 +187,15 @@ void SceneTitle::Draw()
         int textY     = (kStartButtonY1 + kStartButtonY2) * 0.5f - 10; // テキストの高さを調整
         DrawString(textX, textY, buttonText, GetColor(0, 0, 0)); // テキスト色は黒
     }
+}
+
+// ロゴをスキップする場合、フェード処理と待機時間をスキップし、ボタン操作を有効化
+void SceneTitle::SkipLogo()
+{
+	m_isFadeComplete = true;          // フェードインを完了
+	m_isFadeOut      = true;          // フェードアウトを開始
+    m_waitFrame      = kWaitDuration; // 待機時間をスキップ
+    m_fadeAlpha      = 0;             // フェードアウト済みの状態に設定
+    m_isSceneFadeIn  = true;          // タイトルシーンのフェードインを開始
+    m_sceneFadeAlpha = 255;           // フェードインを完全に表示
 }

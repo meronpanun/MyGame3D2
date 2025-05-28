@@ -9,9 +9,9 @@ public:
 	SceneBase() = default;
 	virtual ~SceneBase() = default;
 
-	virtual void Init() abstract;
+	virtual void Init()		    abstract;
 	virtual SceneBase* Update() abstract;
-	virtual void Draw() abstract;
+	virtual void Draw()		    abstract;
 
 protected:
 };

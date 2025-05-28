@@ -7,7 +7,7 @@ class Camera;
 class Effect;
 
 /// <summary>
-/// ƒvƒŒƒCƒ„[ƒNƒ‰ƒX
+/// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Nï¿½ï¿½ï¿½X
 /// </summary>
 class Player
 {
@@ -20,96 +20,96 @@ public:
 	void Draw();
 
 	/// <summary>
-	/// ƒJƒƒ‰‚Ö‚ÌƒAƒNƒZƒX‚ð’ñ‹Ÿ
+	/// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ö‚ÌƒAï¿½Nï¿½Zï¿½Xï¿½ï¿½ï¿½
 	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ì‹¤—Lƒ|ƒCƒ“ƒ^</returns>
+	/// <returns>ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ì‹ï¿½ï¿½Lï¿½|ï¿½Cï¿½ï¿½ï¿½^</returns>
 	std::shared_ptr<Camera> GetCamera() const { return m_pCamera; }
 
 	/// <summary>
-	/// ƒtƒB[ƒ‹ƒh‚Ì•`‰æ
+	/// ï¿½tï¿½Bï¿½[ï¿½ï¿½ï¿½hï¿½Ì•`ï¿½ï¿½
 	/// </summary>
 	void DrawField();
 
 private:
 	/// <summary>
-	/// ’e‚ð”­ŽË
+	/// ï¿½eï¿½ð”­Žï¿½
 	/// </summary>
 	void Shoot();
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“ó‘ÔŠÇ—\‘¢‘Ì
+	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔŠÇ—ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½
 	/// </summary>
 	struct AnimData
 	{
-		int   attachNo = -1;    // ƒAƒ^ƒbƒ`”Ô†
-		float count    = 0.0f;  // ƒAƒjƒƒJƒEƒ“ƒg
-		bool  isLoop   = false; // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªI‚í‚Á‚½Žžƒ‹[ƒv‚·‚é‚©Atrue:ƒ‹[ƒv‚·‚é false:ÅŒã‚ÌƒtƒŒ[ƒ€‚Å’âŽ~
-		bool  isEnd    = false; // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªI—¹‚µ‚½‚©
+		int   attachNo = -1;    // ï¿½Aï¿½^ï¿½bï¿½`ï¿½Ôï¿½
+		float count    = 0.0f;  // ï¿½Aï¿½jï¿½ï¿½ï¿½Jï¿½Eï¿½ï¿½ï¿½g
+		bool  isLoop   = false; // ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½é‚©ï¿½Atrue:ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½ï¿½ false:ï¿½ÅŒï¿½Ìƒtï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Å’ï¿½~
+		bool  isEnd    = false; // ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	};
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“‚ðƒAƒ^ƒbƒ`
+	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½^ï¿½bï¿½`
 	/// </summary>
-	/// <param name="data">ƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^</param>
-	/// <param name="animName">ƒAƒjƒ[ƒVƒ‡ƒ“–¼</param>
-	/// <param name="isLoop">ƒ‹[ƒv‚·‚é‚©</param>
+	/// <param name="data">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^</param>
+	/// <param name="animName">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</param>
+	/// <param name="isLoop">ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½é‚©</param>
 	void AttachAnime(AnimData& data, const char* animName, bool isLoop);
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“‚ðXV
+	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½V
 	/// </summary>
-	/// <param name="data">ƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^</param>
+	/// <param name="data">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^</param>
 	void UpdateAnime(AnimData& data);
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“ƒuƒŒƒ“ƒh—¦‚ÌXV
+	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½ÌXï¿½V
 	/// </summary>
 	void UpdateAnimeBlend();
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“‚ð•ÏX
+	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏX
 	/// </summary>
-	/// <param name="animName">ƒAƒjƒ[ƒVƒ‡ƒ“–¼</param>
-	/// <param name="isLoop">ƒ‹[ƒv‚·‚é‚©</param>
+	/// <param name="animName">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</param>
+	/// <param name="isLoop">ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½é‚©</param>
 	void ChangeAnime(const char* animName, bool isLoop);
 
 	/// <summary>
-	/// e‚ÌˆÊ’u‚Æ‰ñ“]‚ðŽæ“¾
+	/// ï¿½eï¿½ÌˆÊ’uï¿½Æ‰ï¿½]ï¿½ï¿½ï¿½æ“¾
 	/// </summary>
 	VECTOR GetGunPos() const;
 	VECTOR GetGunRot() const;
 
-//	void Reload(); // ƒŠƒ[ƒhŠÇ—
+//	void Reload(); // ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½Ç—ï¿½
 
 private:
-	// ƒJƒƒ‰‚ÌŠÇ—
+	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ÌŠÇ—ï¿½
 	std::shared_ptr<Camera> m_pCamera;
-	// ƒGƒtƒFƒNƒg‚ÌŠÇ—
+	// ï¿½Gï¿½tï¿½Fï¿½Nï¿½gï¿½ÌŠÇ—ï¿½
 	std::shared_ptr<Effect> m_pEffect; 
 
-	// ƒ‚ƒfƒ‹‚ÌˆÊ’u
+	// ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ÌˆÊ’u
 	VECTOR m_modelPos;
 
-	/* ƒAƒjƒ[ƒVƒ‡ƒ“Ä¶‚É•K—v‚Èƒf[ƒ^‚ð‚Ü‚Æ‚ß‚½‚à‚Ì */
-	AnimData m_nextAnimData; // ÅŒã‚ÉÝ’è‚µ‚½ƒAƒjƒî•ñ
-	AnimData m_prevAnimData; // ˆê‚Â‘O‚ÉÝ’è‚µ‚½ƒAƒjƒî•ñ
+	/* ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½ï¿½É•Kï¿½vï¿½Èƒfï¿½[ï¿½^ï¿½ï¿½ï¿½Ü‚Æ‚ß‚ï¿½ï¿½ï¿½ï¿½ï¿½ */
+	AnimData m_nextAnimData; // ï¿½ÅŒï¿½ÉÝ’è‚µï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½ï¿½ï¿½
+	AnimData m_prevAnimData; // ï¿½ï¿½Â‘Oï¿½ÉÝ’è‚µï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½ï¿½ï¿½
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“ƒuƒŒƒ“ƒh—¦
-	float m_animBlendRate;  // 0.0f:‘O‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ 1.0f:ŽŸ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“
-	int   m_modelHandle;    // ƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹
-	int   m_shieldHandle;   // ‚‚Ìƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹
-	int   m_shootSEHandle;  // ’e‚ðŒ‚‚ÂSE‚Ìƒnƒ“ƒhƒ‹
-	bool  m_isMoving;       // ˆÚ“®’†‚©‚Ç‚¤‚©
-	bool  m_isWasRunning;   // ‘–‚Á‚Ä‚¢‚½‚©‚Ç‚¤‚©
+	// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½hï¿½ï¿½
+	float m_animBlendRate;  // 0.0f:ï¿½Oï¿½ÌƒAï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ 1.0f:ï¿½ï¿½ï¿½ÌƒAï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½
+	int   m_modelHandle;    // ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Ìƒnï¿½ï¿½ï¿½hï¿½ï¿½
+	int   m_shieldHandle;   // ï¿½ï¿½ï¿½Ìƒï¿½ï¿½fï¿½ï¿½ï¿½nï¿½ï¿½ï¿½hï¿½ï¿½
+	int   m_shootSEHandle;  // ï¿½eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SEï¿½Ìƒnï¿½ï¿½ï¿½hï¿½ï¿½
+	bool  m_isMoving;       // ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½
+	bool  m_isWasRunning;   // ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½
 
-	float m_stamina;  // ƒXƒ^ƒ~ƒi
-	bool  m_isCanRun; // ‘–‚ê‚é‚©‚Ç‚¤‚©
+	float m_stamina;  // ï¿½Xï¿½^ï¿½~ï¿½i
+	bool  m_isCanRun; // ï¿½ï¿½ï¿½ï¿½é‚©ï¿½Ç‚ï¿½ï¿½ï¿½
 
-	int  m_ammo;        // Œ»Ý‚Ì’e”
-//	int  m_maxAmmo;     // Å‘å’e”
-//	int  m_reloadTimer; // ƒŠƒ[ƒhŽžŠÔ
-//	bool m_isReloading; // ƒŠƒ[ƒh’†‚©‚Ç‚¤‚©
+	int  m_ammo;        // ï¿½ï¿½ï¿½Ý‚Ì’eï¿½ï¿½
+//	int  m_maxAmmo;     // ï¿½Å‘ï¿½eï¿½ï¿½
+//	int  m_reloadTimer; // ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½
+//	bool m_isReloading; // ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½
 
-	int m_shotCooldown; // ”­ŽËƒN[ƒ‹ƒ^ƒCƒ€
+	int m_shotCooldown; // ï¿½ï¿½ï¿½ËƒNï¿½[ï¿½ï¿½ï¿½^ï¿½Cï¿½ï¿½
 };
 

@@ -14,6 +14,8 @@ public:
 	SceneBase* Update() override;
 	void Draw() override;
 
+	void SkipLogo();
+
 private:
 	int m_logoHandle;	   // タイトルロゴのハンドル
 	int m_fadeAlpha;	   // フェードのアルファ値

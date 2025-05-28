@@ -73,3 +73,8 @@ void Camera::SetSensitivity(float sensitivity)
 {
     m_sensitivity = sensitivity;
 }
+
+void Camera::SetCameraToDxLib()
+{
+    SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
+}

@@ -63,6 +63,8 @@ public:
 	/// <returns>カメラのピッチ角度</returns>
 	float GetPitch() const { return m_pitch; }
 
+	void SetCameraToDxLib();
+
 private:
 	VECTOR m_pos;	    // カメラの位置
 	VECTOR m_target;    // カメラの注視点
