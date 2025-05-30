@@ -2,29 +2,30 @@
 #include "DxLib.h"
 #include <memory>
 
-// 前方宣言
 class Player;
 
 // 敵の状態を表す列挙型
-enum class EnemyState {
+enum class EnemyState 
+{
 	IDLE,
 	CHASE,
 	ATTACK,
 	DEAD
 };
 
-class EnemyBase
+class EnemyBase abstract
 {
 public:
-	EnemyBase();
+	EnemyBase() {};
 	virtual ~EnemyBase() = default;
 
-	virtual void Init() = 0;
-	virtual void Update() = 0;
-	virtual void Draw() = 0;
+	virtual void Init()    abstract;
+	virtual void Update()  abstract;
+	virtual void Draw()    abstract;
 
 	// 共通の属性
-	struct Stats {
+	struct Stats 
+	{
 		float maxHealth;    // 最大体力
 		float health;       // 現在の体力
 		float moveSpeed;    // 移動速度
@@ -35,12 +36,12 @@ public:
 
 	// ゲッター
 	const Stats& GetStats() const { return m_stats; }
-	const VECTOR& GetPosition() const { return m_position; }
+	const VECTOR& GetPos() const { return m_pos; }
 	bool IsDead() const { return m_stats.health <= 0; }
 
 protected:
 	Stats m_stats;
-	VECTOR m_position;
+	VECTOR m_pos;
 	EnemyState m_currentState;
 	std::shared_ptr<Player> m_targetPlayer;
 
@@ -51,6 +52,6 @@ protected:
 	virtual void UpdateState() = 0;
 	virtual void UpdateMovement() = 0;
 	virtual void UpdateAttack() = 0;
-	virtual void TakeDamage(float damage);
+//	virtual void TakeDamage(float damage);
 };
 

@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "Mouse.h"
 #include "Game.h"
+#include "EnemyNormal.h"
 #include "Camera.h"
 #include <cassert>
 
@@ -60,6 +61,10 @@ void SceneMain::Init()
     // プレイヤーの初期化
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
+
+	// 通常ゾンビの初期化
+	m_pEnemyNormal = std::make_shared<EnemyNormal>();
+	m_pEnemyNormal->Init();
 
     // グローバル変数からカメラ感度を取得して設定
     if (m_pPlayer->GetCamera())
@@ -142,6 +147,9 @@ SceneBase* SceneMain::Update()
     // プレイヤーの更新
     m_pPlayer->Update();
 
+	// 通常ゾンビの更新
+	m_pEnemyNormal->Update();
+
     // 何もしなければシーン遷移しない(ゲーム画面のまま)
     return this;
 }
@@ -153,6 +161,9 @@ void SceneMain::Draw()
 
     // プレイヤーの描画
     m_pPlayer->Draw();
+
+	// 通常ゾンビの描画
+	m_pEnemyNormal->Draw();
 
     // ポーズ中はポーズメニューを描画する
     if (m_isPaused)

@@ -141,7 +141,11 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Effect.cpp" />
+    <ClCompile Include="EnemyAcid.cpp" />
     <ClCompile Include="EnemyBase.cpp" />
+    <ClCompile Include="EnemyBoss.cpp" />
+    <ClCompile Include="EnemyNormal.cpp" />
+    <ClCompile Include="EnemyRunner.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mouse.cpp" />
@@ -157,7 +161,11 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Effect.h" />
+    <ClInclude Include="EnemyAcid.h" />
     <ClInclude Include="EnemyBase.h" />
+    <ClInclude Include="EnemyBoss.h" />
+    <ClInclude Include="EnemyNormal.h" />
+    <ClInclude Include="EnemyRunner.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="Player.h" />

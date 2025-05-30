@@ -6,9 +6,6 @@
 class Camera;
 class Effect;
 
-/// <summary>
-/// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Nï¿½ï¿½ï¿½X
-/// </summary>
 class Player
 {
 public:
@@ -19,97 +16,92 @@ public:
 	void Update();
 	void Draw();
 
-	/// <summary>
-	/// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ö‚ÌƒAï¿½Nï¿½Zï¿½Xï¿½ï¿½ï¿½
-	/// </summary>
-	/// <returns>ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ì‹ï¿½ï¿½Lï¿½|ï¿½Cï¿½ï¿½ï¿½^</returns>
+
 	std::shared_ptr<Camera> GetCamera() const { return m_pCamera; }
 
+
 	/// <summary>
-	/// ï¿½tï¿½Bï¿½[ï¿½ï¿½ï¿½hï¿½Ì•`ï¿½ï¿½
+	/// ƒtƒB[ƒ‹ƒh‚ğ•`‰æ‚·‚é
 	/// </summary>
 	void DrawField();
 
-private:
+	void TakeDamage(float damage);
+
 	/// <summary>
-	/// ï¿½eï¿½ğ”­ï¿½
+	/// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğæ“¾‚·‚é
+	/// </summary>
+	/// <returns>ƒvƒŒƒCƒ„[‚ÌˆÊ’u</returns>
+	VECTOR GetPos() const { return m_pos; }
+
+
+private:
+
+	/// <summary>
+	/// ’e‚ğ”­Ë‚·‚é
 	/// </summary>
 	void Shoot();
 
-	/// <summary>
-	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔŠÇ—ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½
-	/// </summary>
 	struct AnimData
 	{
-		int   attachNo = -1;    // ï¿½Aï¿½^ï¿½bï¿½`ï¿½Ôï¿½
-		float count    = 0.0f;  // ï¿½Aï¿½jï¿½ï¿½ï¿½Jï¿½Eï¿½ï¿½ï¿½g
-		bool  isLoop   = false; // ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½é‚©ï¿½Atrue:ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½ï¿½ false:ï¿½ÅŒï¿½Ìƒtï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Å’ï¿½~
-		bool  isEnd    = false; // ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		int   attachNo = -1;
+		float count = 0.0f;
+		bool  isLoop = false;
+		bool  isEnd = false;
 	};
 
-	/// <summary>
-	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½^ï¿½bï¿½`
-	/// </summary>
-	/// <param name="data">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^</param>
-	/// <param name="animName">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</param>
-	/// <param name="isLoop">ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½é‚©</param>
+
 	void AttachAnime(AnimData& data, const char* animName, bool isLoop);
 
-	/// <summary>
-	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½V
-	/// </summary>
-	/// <param name="data">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½fï¿½[ï¿½^</param>
+
 	void UpdateAnime(AnimData& data);
 
-	/// <summary>
-	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½ÌXï¿½V
-	/// </summary>
+
 	void UpdateAnimeBlend();
 
-	/// <summary>
-	/// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÏX
-	/// </summary>
-	/// <param name="animName">ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</param>
-	/// <param name="isLoop">ï¿½ï¿½ï¿½[ï¿½vï¿½ï¿½ï¿½é‚©</param>
 	void ChangeAnime(const char* animName, bool isLoop);
 
 	/// <summary>
-	/// ï¿½eï¿½ÌˆÊ’uï¿½Æ‰ï¿½]ï¿½ï¿½ï¿½æ“¾
+	/// e‚ÌˆÊ’u‚ğæ“¾‚·‚é
 	/// </summary>
+	/// <returns>e‚ÌˆÊ’u</returns>
 	VECTOR GetGunPos() const;
 	VECTOR GetGunRot() const;
 
-//	void Reload(); // ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½Ç—ï¿½
+	//	void Reload();
 
 private:
-	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ÌŠÇ—ï¿½
-	std::shared_ptr<Camera> m_pCamera;
-	// ï¿½Gï¿½tï¿½Fï¿½Nï¿½gï¿½ÌŠÇ—ï¿½
-	std::shared_ptr<Effect> m_pEffect; 
 
-	// ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ÌˆÊ’u
+	std::shared_ptr<Camera> m_pCamera;
+
+	std::shared_ptr<Effect> m_pEffect;
+
+	// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğ•Û‚·‚éƒƒ“ƒo[•Ï”
+	VECTOR m_pos;
+
 	VECTOR m_modelPos;
 
-	/* ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½ï¿½É•Kï¿½vï¿½Èƒfï¿½[ï¿½^ï¿½ï¿½ï¿½Ü‚Æ‚ß‚ï¿½ï¿½ï¿½ï¿½ï¿½ */
-	AnimData m_nextAnimData; // ï¿½ÅŒï¿½Éİ’è‚µï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½ï¿½ï¿½
-	AnimData m_prevAnimData; // ï¿½ï¿½Â‘Oï¿½Éİ’è‚µï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½ï¿½ï¿½
 
-	// ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½ï¿½ï¿½hï¿½ï¿½
-	float m_animBlendRate;  // 0.0f:ï¿½Oï¿½ÌƒAï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ 1.0f:ï¿½ï¿½ï¿½ÌƒAï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½
-	int   m_modelHandle;    // ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Ìƒnï¿½ï¿½ï¿½hï¿½ï¿½
-	int   m_shieldHandle;   // ï¿½ï¿½ï¿½Ìƒï¿½ï¿½fï¿½ï¿½ï¿½nï¿½ï¿½ï¿½hï¿½ï¿½
-	int   m_shootSEHandle;  // ï¿½eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SEï¿½Ìƒnï¿½ï¿½ï¿½hï¿½ï¿½
-	bool  m_isMoving;       // ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½
-	bool  m_isWasRunning;   // ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½
+	AnimData m_nextAnimData;
+	AnimData m_prevAnimData;
 
-	float m_stamina;  // ï¿½Xï¿½^ï¿½~ï¿½i
-	bool  m_isCanRun; // ï¿½ï¿½ï¿½ï¿½é‚©ï¿½Ç‚ï¿½ï¿½ï¿½
 
-	int  m_ammo;        // ï¿½ï¿½ï¿½İ‚Ì’eï¿½ï¿½
-//	int  m_maxAmmo;     // ï¿½Å‘ï¿½eï¿½ï¿½
-//	int  m_reloadTimer; // ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½
-//	bool m_isReloading; // ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½
+	float m_animBlendRate;
+	int   m_modelHandle;
+	int   m_shieldHandle;
+	int   m_shootSEHandle;
+	bool  m_isMoving;
+	bool  m_isWasRunning;
 
-	int m_shotCooldown; // ï¿½ï¿½ï¿½ËƒNï¿½[ï¿½ï¿½ï¿½^ï¿½Cï¿½ï¿½
+	float m_stamina;
+	bool  m_isCanRun;
+
+	int  m_ammo;
+	//	int  m_maxAmmo;   
+	//	int  m_reloadTimer;
+	//	bool m_isReloading;
+
+	int m_shotCooldown;
+
+	float m_health; // ƒvƒŒƒCƒ„[‚Ì‘Ì—Í
 };
 
