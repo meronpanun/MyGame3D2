@@ -1,6 +1,7 @@
 #include "SceneManager.h"
 #include "SceneTitle.h"
 #include "SceneMain.h"
+#include "SceneResult.h"
 #include "Mouse.h"
 
 SceneManager::SceneManager() :

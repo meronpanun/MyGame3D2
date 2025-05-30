@@ -331,9 +331,9 @@ void Player::DrawField()
 	unsigned int color1 = GetColor(80, 80, 80);
 	unsigned int color2 = GetColor(100, 100, 100);
 
-	for (int z = -fieldSize * 0.5f; z < fieldSize * 0.5f; z += gridSize)
+	for (int z = static_cast<int>(-fieldSize * 0.5f); z < static_cast<int>(fieldSize * 0.5f); z += gridSize)
 	{
-		for (int x = -fieldSize * 0.5f; x < fieldSize * 0.5f; x += gridSize)
+		for (int x = static_cast<int>(-fieldSize * 0.5f); x < static_cast<int>(fieldSize * 0.5f); x += gridSize)
 		{
 			VECTOR cubeCenter = VGet(x + gridSize * 0.5f, 0, z + gridSize * 0.5f);
 

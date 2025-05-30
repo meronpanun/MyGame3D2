@@ -16,7 +16,7 @@ enum class EnemyState
 class EnemyBase abstract
 {
 public:
-	EnemyBase() {};
+	EnemyBase();
 	virtual ~EnemyBase() = default;
 
 	virtual void Init()    abstract;

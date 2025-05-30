@@ -7,7 +7,7 @@ Effect::Effect() :
 	muzzleFlashEffectHandle(-1)
 {
 	// エフェクトのハンドルを取得
-	muzzleFlashEffectHandle = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 0.7);
+	muzzleFlashEffectHandle = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 0.7f);
 	assert(muzzleFlashEffectHandle != -1);
 }
 

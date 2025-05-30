@@ -12,8 +12,8 @@ namespace
     constexpr int kLogoHeight = 1080;
 
 	// タイトルロゴの表示位置
-	constexpr int kLogoX = Game::kScreenWidth * -0.5f;
-	constexpr int kLogoY = (Game::kScreenHeigth - kLogoHeight) * 0.5f;
+    constexpr int kLogoX = static_cast<int>(Game::kScreenWidth * -0.5f);
+    constexpr int kLogoY = static_cast<int>((Game::kScreenHeigth - kLogoHeight) * 0.5f);
 
 	constexpr int kFadeDuration = 60; // フェードイン・フェードアウトのフレーム数
 	constexpr int kWaitDuration = 60; // フェードイン後の待機時間（フレーム数）
@@ -23,7 +23,7 @@ namespace
     constexpr int kPanelHeight = 240; // パネルの高さ
 
     // スタートボタンの範囲を定数化
-    constexpr int kStartButtonX1 = (Game::kScreenWidth - kPanelWidth) * 0.5f; // スタートボタンの左上X座標
+    constexpr int kStartButtonX1 = static_cast<int>((Game::kScreenWidth - kPanelWidth) * 0.5f); // スタートボタンの左上X座標
     constexpr int kStartButtonY1 = 10;                                        // スタートボタンの左上Y座標
     constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth;              // スタートボタンの右下X座標
     constexpr int kStartButtonY2 = 300;                                       // スタートボタンの右下Y座標
@@ -182,9 +182,9 @@ void SceneTitle::Draw()
 
         // ボタンのテキストを描画
         const char* buttonText = "START";
-        int textWidth = GetDrawStringWidth(buttonText, strlen(buttonText));
-        int textX     = (kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f;
-        int textY     = (kStartButtonY1 + kStartButtonY2) * 0.5f - 10; // テキストの高さを調整
+        int textWidth = GetDrawStringWidth(buttonText, static_cast<int>(strlen(buttonText)));
+        int textX = static_cast<int>((kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f);
+        int textY = static_cast<int>((kStartButtonY1 + kStartButtonY2) * 0.5f) - 10; // テキストの高さを調整
         DrawString(textX, textY, buttonText, GetColor(0, 0, 0)); // テキスト色は黒
     }
 }

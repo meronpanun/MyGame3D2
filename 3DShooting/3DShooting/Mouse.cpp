@@ -81,6 +81,6 @@ namespace Mouse
         if (cameraPitch < -DX_PI_F * 0.5f) cameraPitch = -DX_PI_F * 0.5f;
 
         // マウスの位置を中央に戻す
-        SetMousePoint(Game::kScreenWidth * 0.5f, Game::kScreenHeigth * 0.5f);
+        SetMousePoint(static_cast<int>(Game::kScreenWidth * 0.5f), static_cast<int>(Game::kScreenHeigth * 0.5f));
     }
 }
