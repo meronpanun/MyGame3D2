@@ -14,6 +14,8 @@ namespace
 	const char* const kShotAnimName = "Pistol_FIRE";
 	const char* const kWalkAnimName = "Pistol_WALK";
 	const char* const kRunAnimName = "Pistol_RUN";
+	const char* const kJumpAnimName = "Pistol_JUMP";
+
 	//const char* const kReloadAnimName = "Pistol_RELOAD"; 
 
 	constexpr float kMoveSpeed = 2.0f; // 移動速度
@@ -38,7 +40,6 @@ namespace
 	//	constexpr int kMaxAmmo     = 10;  
 	//	constexpr int kReloadTime  = 80;  
 
-
 	constexpr int kMarginX = 20;
 	constexpr int kMarginY = 20;
 	constexpr int kFontHeight = 20;
@@ -47,9 +48,15 @@ namespace
 	constexpr float kShieldScreenOffsetY = 10.0f;
 	constexpr float kShieldScreenOffsetZ = 40.0f;
 
+	constexpr float kGravity   = 0.35f; // 重力の強さ
+	constexpr float kJumpPower = 7.0f;  // ジャンプの初速
+	constexpr float kGroundY   = 0.0f;  // 地面のY座標
 }
 
 Player::Player() :
+	//	m_maxAmmo(kMaxAmmo),
+	//	m_isReloading(false),
+	//	m_reloadTimer(0),
 	m_modelHandle(-1),
 	m_shieldHandle(-1),
 	m_shootSEHandle(-1),
@@ -62,12 +69,11 @@ Player::Player() :
 	m_stamina(kStaminaMax),
 	m_isCanRun(true),
 	m_ammo(kInitialAmmo),
-	//	m_maxAmmo(kMaxAmmo),
-	//	m_isReloading(false),
-	//	m_reloadTimer(0),
 	m_shotCooldown(0),
 	m_pos(VGet(0, 0, 0)),
-	m_health(100.0f)
+	m_health(100.0f),
+	m_isJumping(false),
+	m_jumpVelocity(0.0f)
 {
 	m_modelHandle = MV1LoadModel("data/image/Player.mv1");
 	assert(m_modelHandle != -1);
@@ -199,6 +205,32 @@ void Player::Update()
 	{
 		moveDir.x += sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
 		moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
+	}
+
+	// 地面にいるか判定
+	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f);
+
+	// スペースキーでジャンプ
+	if (CheckHitKey(KEY_INPUT_SPACE) && isOnGround && !m_isJumping)
+	{
+		m_jumpVelocity = kJumpPower;
+		m_isJumping = true;
+		//ChangeAnime(kJumpAnimName, false);
+	}
+
+	// ジャンプ中または空中なら重力適用
+	if (m_isJumping || !isOnGround)
+	{
+		m_modelPos.y += m_jumpVelocity;
+		m_jumpVelocity -= kGravity;
+
+		// 着地判定
+		if (m_modelPos.y <= kGroundY)
+		{
+			m_modelPos.y = kGroundY;
+			m_jumpVelocity = 0.0f;
+			m_isJumping = false;
+		}
 	}
 
 	if (moveDir.x != 0.0f || moveDir.z != 0.0f)

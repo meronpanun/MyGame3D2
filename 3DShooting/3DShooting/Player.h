@@ -86,22 +86,24 @@ private:
 
 
 	float m_animBlendRate;
+	float m_stamina;
+	float m_health;        // プレイヤーの体力
+	float m_jumpVelocity;
 	int   m_modelHandle;
 	int   m_shieldHandle;
 	int   m_shootSEHandle;
 	bool  m_isMoving;
+	bool  m_isJumping;
 	bool  m_isWasRunning;
 
-	float m_stamina;
 	bool  m_isCanRun;
 
 	int  m_ammo;
-	//	int  m_maxAmmo;   
-	//	int  m_reloadTimer;
-	//	bool m_isReloading;
 
 	int m_shotCooldown;
 
-	float m_health; // プレイヤーの体力
+	//	int  m_maxAmmo;   
+	//	int  m_reloadTimer;
+	//	bool m_isReloading;
 };
 
