@@ -4,59 +4,61 @@
 #include "Mouse.h"
 #include "Camera.h"
 #include "Effect.h"	
+#include "Bullet.h"
 #include <cmath>
 #include <cassert>
 
 namespace
 {
 	// アニメーション名
-	const char* const kIdleAnimName = "Pistol_IDLE";
-	const char* const kShotAnimName = "Pistol_FIRE";
-	const char* const kWalkAnimName = "Pistol_WALK";
-	const char* const kRunAnimName = "Pistol_RUN";
-	const char* const kJumpAnimName = "Pistol_JUMP";
-
-	//const char* const kReloadAnimName = "Pistol_RELOAD"; 
+	const char* const kIdleAnimName = "Pistol_IDLE"; // 待機
+	const char* const kShotAnimName = "Pistol_FIRE"; // 発射
+	const char* const kWalkAnimName = "Pistol_WALK"; // 歩行
+	const char* const kRunAnimName  = "Pistol_RUN";  // 走行
+	const char* const kJumpAnimName = "Pistol_JUMP"; // ジャンプ
 
 	constexpr float kMoveSpeed = 2.0f; // 移動速度
-	constexpr float kRunSpeed = 5.0f;  // 走る速度
+	constexpr float kRunSpeed  = 5.0f; // 走る速度
 
-	constexpr float kModelOffsetX = 2.0f;
+	// モデルのオフセット
+	constexpr float kModelOffsetX = 2.0f; 
 	constexpr float kModelOffsetY = 30.0f;
 	constexpr float kModelOffsetZ = 25.0f;
 
-	constexpr float kAnimBlendRate = 1.0f;
+	// アニメーションのブレンド率
+	constexpr float kAnimBlendRate = 1.0f; 
 
+	// 銃のオフセット
 	constexpr float kGunOffsetX = 10.0f;
 	constexpr float kGunOffsetY = 58.0f;
 	constexpr float kGunOffsetZ = 12.0f;
 
-	constexpr float kStaminaMax = 100.0f;
-	constexpr float kStaminaRunCost = 0.8f;
-	constexpr float kStaminaRecover = 0.5f;
+	// スタミナ関連
+	constexpr float kStaminaMax        = 100.0f;
+	constexpr float kStaminaRunCost	   = 0.8f;
+	constexpr float kStaminaRecover    = 0.5f;
 	constexpr float kStaminaRunRecover = 30.0f;
 
+	// 初期弾薬数
 	constexpr int kInitialAmmo = 700;
-	//	constexpr int kMaxAmmo     = 10;  
-	//	constexpr int kReloadTime  = 80;  
 
-	constexpr int kMarginX = 20;
-	constexpr int kMarginY = 20;
+	// UI関連
+	constexpr int kMarginX    = 20; 
+	constexpr int kMarginY    = 20;
 	constexpr int kFontHeight = 20;
 
+	// シールドのオフセット
 	constexpr float kShieldScreenOffsetX = -30.0f;
 	constexpr float kShieldScreenOffsetY = 10.0f;
 	constexpr float kShieldScreenOffsetZ = 40.0f;
 
+	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.35f; // 重力の強さ
 	constexpr float kJumpPower = 7.0f;  // ジャンプの初速
 	constexpr float kGroundY   = 0.0f;  // 地面のY座標
 }
 
 Player::Player() :
-	//	m_maxAmmo(kMaxAmmo),
-	//	m_isReloading(false),
-	//	m_reloadTimer(0),
 	m_modelHandle(-1),
 	m_shieldHandle(-1),
 	m_shootSEHandle(-1),
@@ -73,119 +75,105 @@ Player::Player() :
 	m_pos(VGet(0, 0, 0)),
 	m_health(100.0f),
 	m_isJumping(false),
-	m_jumpVelocity(0.0f)
+	m_jumpVelocity(0.0f),
+	m_hasShot(false)
 {
+	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/image/Player.mv1");
 	assert(m_modelHandle != -1);
 
+	// シールドの読み込み
 	m_shieldHandle = MV1LoadModel("data/image/Shield.mv1");
 	assert(m_shieldHandle != -1);
 
+	// SEの読み込み
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
 	assert(m_shootSEHandle != -1);
 
+	// モデルの初期位置と回転
 	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, 0.0f, 0.0f));
 }
 
 Player::~Player()
 {
+	// モデルの解放
 	MV1DeleteModel(m_modelHandle);
 	MV1DeleteModel(m_shieldHandle);
 
+	// SEの解放
 	DeleteSoundMem(m_shootSEHandle);
 }
 
 void Player::Init()
 {
-	m_pCamera->Init();
+	m_pCamera->Init(); // カメラの初期化
+	m_pEffect->Init(); // エフェクトの初期化
 
-	m_pEffect->Init();
-
+	// アニメーションデータの初期化
 	AttachAnime(m_nextAnimData, kIdleAnimName, true);
-	m_animBlendRate = kAnimBlendRate;
+	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
 }
 
 void Player::Update()
 {
+	// プレイヤーの位置をカメラに設定
 	m_pCamera->SetPlayerPos(m_modelPos);
 
-	m_pCamera->Update();
+	m_pCamera->Update(); // カメラの更新
+	m_pEffect->Update(); // エフェクトの更新
 
-	m_pEffect->Update();
+	UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
+	UpdateAnime(m_nextAnimData); //	次のアニメーションデータを更新
+	UpdateAnimeBlend();			 // アニメーションのブレンドを更新
 
-	UpdateAnime(m_prevAnimData);
-	UpdateAnime(m_nextAnimData);
-	UpdateAnimeBlend();
-
-	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
-	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot = MMult(rotPitch, rotYaw);
+	// モデルの位置と回転を更新
+	VECTOR modelOffset    = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
+	MATRIX rotYaw         = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch	      = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot       = MMult(rotPitch, rotYaw);
 	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPos = VAdd(m_modelPos, rotModelOffset);
+	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
 
-	MV1SetPosition(m_modelHandle, modelPos);
+	// モデルの位置を設定
+	MV1SetPosition(m_modelHandle, modelPos); 
 
-	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
+	// モデルの回転を設定
+	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f)); 
 
-	if (m_shotCooldown > 0)
+	// ショットクールダウンがある場合
+	if (m_shotCooldown > 0) 
 	{
 		m_shotCooldown--;
 	}
 
-
-	//if (m_isReloading) 
-	//{
-	//	m_reloadTimer--;
-	//	if (m_reloadTimer <= 0)
-	//	{
-	//	
-	//		int need = kInitialAmmo - m_ammo;
-	//		if (need > 0)
-	//		{
-	//			
-	//			int reloadAmount = (m_maxAmmo < need) ? m_maxAmmo : need; 
-	//			m_ammo += reloadAmount;  
-	//			m_maxAmmo -= reloadAmount; 
-
-	//			
-	//			if (m_maxAmmo < 0) m_maxAmmo = 0;
-	//		}
-	//		m_isReloading = false;
-	//	}
-	//}
-//	else
-//	{
-
-	if (Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)
+	// マウスの左クリックで射撃
+	if (Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)  
 	{
-		Shoot();
-		m_ammo--;
-		m_shotCooldown = 10;
-		ChangeAnime(kShotAnimName, false);
+		Shoot();  // 射撃処理
+		m_ammo--; // 弾薬を減らす
+		m_shotCooldown = 10; // ショットクールダウンを設定
+		ChangeAnime(kShotAnimName, false); // 発射アニメーションに変更
 	}
 
-	//if (CheckHitKey(KEY_INPUT_R) && m_ammo < kInitialAmmo && m_maxAmmo > 0)
-	//{
-	//	Reload();
-	//	ChangeAnime(kReloadAnimName, false);
-	//}
-//	}
+	// 弾の更新
+	Bullet::UpdateBullets(m_bullets);
 
+	// 走るキー入力
+	const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT); 
+	bool isRunning = false; // 走っているかどうかのフラグ
 
-	const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
-	bool isRunning = false;
-	if (wantRun && m_isCanRun && m_stamina > 0.0f)
+	// 走る条件
+	if (wantRun && m_isCanRun && m_stamina > 0.0f) 
 	{
 		isRunning = true;
 	}
-	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed;
+	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 移動速度の設定
+	bool isMoving = false; // 移動中かどうかのフラグ
 
-	bool isMoving = false;
+	// 移動方向の初期化s
+	VECTOR moveDir = VGet(0, 0, 0); 
 
-
-	VECTOR moveDir = VGet(0, 0, 0);
-
+	// キー入力による移動方向の設定
 	if (CheckHitKey(KEY_INPUT_W))
 	{
 		moveDir.x += sinf(m_pCamera->GetYaw());
@@ -221,81 +209,93 @@ void Player::Update()
 	// ジャンプ中または空中なら重力適用
 	if (m_isJumping || !isOnGround)
 	{
-		m_modelPos.y += m_jumpVelocity;
-		m_jumpVelocity -= kGravity;
+		m_modelPos.y += m_jumpVelocity; // ジャンプの速度を適用
+		m_jumpVelocity -= kGravity;     // 重力を適用
 
 		// 着地判定
 		if (m_modelPos.y <= kGroundY)
 		{
-			m_modelPos.y = kGroundY;
-			m_jumpVelocity = 0.0f;
-			m_isJumping = false;
+			m_modelPos.y = kGroundY; // 地面に着地
+			m_jumpVelocity = 0.0f;   // ジャンプ速度をリセット
+			m_isJumping = false;     // ジャンプ状態を解除
 		}
 	}
 
-	if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+	// 移動方向がある場合
+	if (moveDir.x != 0.0f || moveDir.z != 0.0f) 
 	{
-		float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
+		// 移動方向の長さを計算
+		float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z); 
 		moveDir.x /= len;
 		moveDir.z /= len;
 		m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
 		isMoving = true;
 	}
 
-	if (isRunning && isMoving)
+	// 走っていて移動中なら
+	if (isRunning && isMoving) 
 	{
-		m_stamina -= kStaminaRunCost;
-		if (m_stamina < 0.0f) m_stamina = 0.0f;
+		m_stamina -= kStaminaRunCost; // スタミナを減らす
+
+		// スタミナが0未満にならないようにする
+		if (m_stamina < 0.0f) m_stamina = 0.0f; 
 	}
 	else
 	{
-		m_stamina += kStaminaRecover;
-		if (m_stamina > kStaminaMax) m_stamina = kStaminaMax;
+		m_stamina += kStaminaRecover; // スタミナを回復
+
+		// スタミナの上限を設定
+		if (m_stamina > kStaminaMax) m_stamina = kStaminaMax; 
 	}
 
-	if (m_stamina <= 0.0f)
+	// スタミナが0以下なら走れない
+	if (m_stamina <= 0.0f) 
 	{
-		m_isCanRun = false;
+		m_isCanRun = false; // 走れない状態にする
 	}
-	else if (!m_isCanRun && m_stamina >= kStaminaRunRecover)
+	else if (!m_isCanRun && m_stamina >= kStaminaRunRecover) // スタミナが回復したら
 	{
-		m_isCanRun = true;
+		m_isCanRun = true; // 走れる状態に戻す
 	}
 
-	//	if (!m_isReloading)
+	// アニメーションが終了したら
+	if (m_nextAnimData.isEnd)  
 	{
-		if (m_nextAnimData.isEnd)
+		if (m_isMoving)
 		{
-			if (m_isMoving)
-			{
-				ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
-			}
-			else
-			{
-				ChangeAnime(kIdleAnimName, true);
-			}
+			// 移動アニメーションに変更
+			ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true); 
 		}
-
-		if (isMoving && !m_isMoving)
+		else
 		{
-			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-		}
-		else if (!isMoving && m_isMoving)
-		{
+			// 待機アニメーションに変更
 			ChangeAnime(kIdleAnimName, true);
 		}
-		else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
-		{
-			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-		}
 	}
 
-	m_isMoving = isMoving;
+	if (isMoving && !m_isMoving) 
+	{
+		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+	}
+	else if (!isMoving && m_isMoving)
+	{
+		ChangeAnime(kIdleAnimName, true);
+	}
+	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
+	{
+		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+	}
+
+	m_isMoving	   = isMoving;
 	m_isWasRunning = isRunning;
 }
 void Player::Draw()
 {
-	MV1DrawModel(m_modelHandle);
+	// プレイヤーモデルの描画
+	MV1DrawModel(m_modelHandle); 
+
+	// 弾の描画
+	Bullet::DrawBullets(m_bullets);
 
 	int screenW = Game::kScreenWidth;
 	int screenH = Game::kScreenHeigth;
@@ -395,9 +395,27 @@ void Player::TakeDamage(float damage)
 	}
 }
 
+// 弾の取得
+std::vector<Bullet>& Player::GetBullets()
+{
+	return m_bullets;
+}
+
+bool Player::HasShot()
+{
+	bool shot = m_hasShot;
+	m_hasShot = false; // 状態をリセット
+	return shot; // 撃ったかどうかを返す
+}
+
 void Player::Shoot()
 {
+	// 銃の位置を取得
 	VECTOR gunPos = GetGunPos();
+	VECTOR gunDir = GetGunRot();
+
+	// 弾を生成
+	m_bullets.emplace_back(gunPos, gunDir);
 
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();
@@ -408,7 +426,10 @@ void Player::Shoot()
 		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
 	}
 
+	// 弾を撃つSEを再生
 	PlaySoundMem(m_shootSEHandle, DX_PLAYTYPE_BACK);
+
+	m_hasShot = true; // 弾を撃ったフラグを立てる
 }
 
 void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop)
