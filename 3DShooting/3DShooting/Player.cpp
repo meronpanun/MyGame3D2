@@ -441,10 +441,11 @@ void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop)
 	// アニメーションのインデックスを取得
 	int index = MV1GetAnimIndex(m_modelHandle, animName); 
 
+	// モデルアニメーションをアタッチ
 	data.attachNo = MV1AttachAnim(m_modelHandle, index, -1, false); 
 	data.count  = 0.0f;	  // アニメーションのカウントを初期化
 	data.isLoop = isLoop; // ループフラグを設定
-	data.isEnd  = false;  // アニメーションの終了フラグを初期化
+	data.isEnd  = false;  // アニメーションが終了したか
 }
 
 // アニメーションの更新
@@ -507,11 +508,15 @@ void Player::ChangeAnime(const char* animName, bool isLoop)
 {
 	// 前のアニメーションを解除
 	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
-	m_prevAnimData = m_nextAnimData; // 前のアニメーションデータを保存
+
+	// 前のアニメーションデータを保存
+	m_prevAnimData = m_nextAnimData; 
 
 	// 次のアニメーションをアタッチ
 	AttachAnime(m_nextAnimData, animName, isLoop); 
-	m_animBlendRate = 0.0f; // アニメーションのブレンド率をリセット
+
+	// アニメーションのブレンド率をリセット
+	m_animBlendRate = 0.0f; 
 
 	// 前のアニメーションのブレンド率を設定
 	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 

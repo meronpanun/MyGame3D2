@@ -4,9 +4,9 @@
 namespace
 {
 	// 弾の半径
-	constexpr float kBulletRadius = 5.0f;
+	constexpr float kBulletRadius = 2.0f;
 	// 弾の速度
-	constexpr float kBulletSpeed = 20.0f;
+	constexpr float kBulletSpeed = 25.0f;
 
 	// 画面外に出たら非アクティブにする範囲
 	constexpr int kScreenBoundary = 1000;
@@ -33,8 +33,17 @@ void Bullet::Update()
 {
 	if (!m_isActive) return;
 
-	// 弾の移動
-	m_pos = VAdd(m_pos, VScale(m_dir, m_speed));
+	// Rayの始点と終点
+	VECTOR rayStart = m_pos;
+	VECTOR rayDir = VNorm(m_dir);
+	float rayLength = m_speed;
+	VECTOR rayEnd = VAdd(rayStart, VScale(rayDir, rayLength));
+
+	// ここでRay判定処理を行う（例：敵や壁との当たり判定）
+	// 例: if (CheckHit(rayStart, rayEnd)) { m_isActive = false; }
+
+	// Rayの終点まで進める
+	m_pos = rayEnd;
 
 	// 画面外に出たら非アクティブにする
 	if (m_pos.x < -kScreenBoundary || m_pos.x > kScreenBoundary ||
@@ -45,12 +54,21 @@ void Bullet::Update()
 	}
 }
 
+
 void Bullet::Draw() const
 {
+#ifdef _DEBUG
 	if (!m_isActive) return;
 
-	// 弾の描画
-	DrawSphere3D(m_pos, m_radius, 32, 0xffff00, 0xffff00, true);
+	// Rayの始点と終点
+	VECTOR rayStart = m_pos;
+	VECTOR rayDir = VNorm(m_dir);
+	float rayLength = m_speed;
+	VECTOR rayEnd = VAdd(rayStart, VScale(rayDir, rayLength));
+
+	// デバッグ用にRayを描画
+	DrawLine3D(rayStart, rayEnd, 0xff0000);
+#endif
 }
 
 // 弾の更新
@@ -61,8 +79,7 @@ void Bullet::UpdateBullets(std::vector<Bullet>& bullets)
 		bullet.Update();
 	}
 	// 弾の削除
-	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& bullet)
-		{
+	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& bullet){
 			return !bullet.IsActive();
 		}), bullets.end());
 }
