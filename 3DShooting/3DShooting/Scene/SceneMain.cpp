@@ -17,7 +17,6 @@ namespace
     constexpr int	kButtonWidth           = 200;  // ボタンの幅
     constexpr int	kButtonHeight          = 50;   // ボタンの幅
     constexpr int	kFontSize              = 48;   // フォントサイズ
-    constexpr int   kReticleSize           = 2;    // レティクルのサイズ
     constexpr float kScreenCenterOffset    = 0.5f; // 画面中央のオフセット
     constexpr int   kButtonYOffset         = 70;   // ボタンのY軸オフセット
     constexpr int   kButtonSpacing         = 20;   // ボタン間のスペース
@@ -45,15 +44,25 @@ SceneMain::SceneMain() :
     m_cameraSensitivity(Game::g_cameraSensitivity),
     m_pCamera(std::make_unique<Camera>()),
     m_skyDomeHandle(-1),
-    m_skyDomeTextureHandle(-1)
+    m_skyDomeTextureHandle(-1),
+    m_dotHandle(-1)
 {
+	// スカイドームのモデルを読み込む
     m_skyDomeHandle = MV1LoadModel("data/image/Dome.mv1");
     assert(m_skyDomeHandle != -1);
+
+	// ドット型の画像を読み込む
+    m_dotHandle = LoadGraph("data/image/Dot.png");
+	assert(m_dotHandle != -1);
 }
 
 SceneMain::~SceneMain()
 {
-    MV1DeleteModel(m_skyDomeHandle); // スカイドームのモデルを削除
+    MV1DeleteModel(m_skyDomeHandle);     // スカイドームのモデルを削除
+	DeleteGraph(m_skyDomeTextureHandle); // スカイドームのテクスチャを削除
+
+    // ドット型の画像を削除
+	DeleteGraph(m_dotHandle);
 }
 
 void SceneMain::Init()
@@ -156,8 +165,18 @@ SceneBase* SceneMain::Update()
 
 void SceneMain::Draw()
 {
-    MV1DrawModel(m_skyDomeHandle);
-    MV1SetTextureGraphHandle(m_skyDomeHandle, 0, m_skyDomeTextureHandle, false);
+    // 画面中央座標を取得
+    int screenW, screenH;
+    GetScreenState(&screenW, &screenH, nullptr);
+
+    // スカイドームを描画
+	MV1DrawModel(m_skyDomeHandle); 
+    // スカイドームのテクスチャを設定
+//	MV1SetTextureGraphHandle(m_skyDomeHandle, 0, m_skyDomeTextureHandle, false); 
+
+    // ドット型のレティクルを描画
+    constexpr int kDotSize = 64;
+    DrawGraph(screenW * 0.5f - kDotSize * 0.5f, screenH * 0.5f - kDotSize * 0.5f, m_dotHandle, true);
 
     // プレイヤーの描画
     m_pPlayer->Draw();
