@@ -273,21 +273,22 @@ void Player::Update()
 		}
 	}
 
-	if (isMoving && !m_isMoving) 
+	// 移動中で前回は移動していなかった場合
+	if (isMoving && !m_isMoving)
 	{
 		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
 	}
-	else if (!isMoving && m_isMoving)
+	else if (!isMoving && m_isMoving) 
 	{
 		ChangeAnime(kIdleAnimName, true);
 	}
-	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
+	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning)) 
 	{
-		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true); 
 	}
 
-	m_isMoving	   = isMoving;
-	m_isWasRunning = isRunning;
+	m_isMoving	   = isMoving;  // 移動中の状態を更新
+	m_isWasRunning = isRunning; // 走っている状態を更新
 }
 void Player::Draw()
 {
@@ -304,22 +305,24 @@ void Player::Draw()
 	float shieldScreenY = -30;
 	float shieldScreenZ = 42.0f;
 
-	VECTOR camPos = VGet(0, 0, -shieldScreenZ);
-	VECTOR camTgt = VGet(0, 0, 0);
-	SetCameraPositionAndTarget_UpVecY(camPos, camTgt);
+	VECTOR camPos = VGet(0, 0, -shieldScreenZ); // カメラの位置
+	VECTOR camTgt = VGet(0, 0, 0);			    // カメラのターゲット位置
+	SetCameraPositionAndTarget_UpVecY(camPos, camTgt); 
 
-	MV1SetPosition(m_shieldHandle, VGet(shieldScreenX, shieldScreenY, 0.0f));
+	// シールドの位置
+	MV1SetPosition(m_shieldHandle, VGet(shieldScreenX, shieldScreenY, 0.0f)); 
 
-	MV1SetRotationXYZ(m_shieldHandle, VGet(0.0f, DX_PI_F, 0.0f));
-	MV1SetScale(m_shieldHandle, VGet(0.5f, 0.5f, 0.5f));
+	MV1SetRotationXYZ(m_shieldHandle, VGet(0.0f, DX_PI_F, 0.0f)); // シールドの回転
+	MV1SetScale(m_shieldHandle, VGet(0.5f, 0.5f, 0.5f));		  // シールドのスケール
 
-	MV1DrawModel(m_shieldHandle);
+	// シールドの描画
+	MV1DrawModel(m_shieldHandle); 
 
 	m_pCamera->SetCameraToDxLib();
 
-	m_pEffect->Draw();
+	m_pEffect->Draw(); // エフェクトの描画
 
-	DrawField();
+	DrawField(); // フィールドの描画
 
 	const int bgWidth = 160;
 	const int bgHeight = 48;
@@ -332,7 +335,7 @@ void Player::Draw()
 
 	int ammoX = bgX + 12;
 	int ammoY = bgY + 8;
-	DrawFormatString(ammoX, ammoY, 0xFFFFFF, "Ammo: %d", m_ammo/*, m_maxAmmo*/);
+	DrawFormatString(ammoX, ammoY, 0xFFFFFF, "Ammo: %d", m_ammo); 
 
 	DrawFormatString(10, 30, 0x000000, "Stamina: %.1f", m_stamina);
 
@@ -432,90 +435,110 @@ void Player::Shoot()
 	m_hasShot = true; // 弾を撃ったフラグを立てる
 }
 
-void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop)
+// アニメーションのアタッチ
+void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop) 
 {
-	int index = MV1GetAnimIndex(m_modelHandle, animName);
+	// アニメーションのインデックスを取得
+	int index = MV1GetAnimIndex(m_modelHandle, animName); 
 
-	data.attachNo = MV1AttachAnim(m_modelHandle, index, -1, false);
-	data.count = 0.0f;
-	data.isLoop = isLoop;
-	data.isEnd = false;
+	data.attachNo = MV1AttachAnim(m_modelHandle, index, -1, false); 
+	data.count  = 0.0f;	  // アニメーションのカウントを初期化
+	data.isLoop = isLoop; // ループフラグを設定
+	data.isEnd  = false;  // アニメーションの終了フラグを初期化
 }
 
-void Player::UpdateAnime(AnimData& data)
+// アニメーションの更新
+void Player::UpdateAnime(AnimData& data) 
 {
-	if (data.attachNo == -1) return;
+	if (data.attachNo == -1) return; // アタッチされていない場合は何もしない
 
 	float animSpeed = 1.0f;
-	//if (m_isReloading && data.attachNo == m_nextAnimData.attachNo) 
-	//{
-	//	animSpeed = 2.0f; 
-	//}
+
 	data.count += animSpeed;
 
-	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo);
-
+	// アニメーションの総時間を取得
+	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo); 
+	
+	// ループアニメーションの場合
 	if (data.isLoop)
 	{
-		while (data.count > totalTime)
+		// アニメーションのカウントが総時間を超えた場合、ループさせる
+		while (data.count > totalTime)  
 		{
-			data.count -= totalTime;
+			data.count -= totalTime; // 総時間を引いてループ
 		}
 	}
 	else
 	{
 		if (data.count > totalTime)
 		{
-			data.count = totalTime;
-			data.isEnd = true;
+			data.count = totalTime; // アニメーションのカウントを総時間に制限
+			data.isEnd = true;      // アニメーションが終了したフラグを立てる
 		}
 	}
-	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count);
+
+	// アニメーションの時間を設定
+	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count); 
 }
 
-void Player::UpdateAnimeBlend()
+// アニメーションのブレンドを更新
+void Player::UpdateAnimeBlend() 
 {
-	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return;
+	// アタッチされていない場合は何もしない
+	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return; 
 
-	m_animBlendRate += 1.0f / 8.0f;
+	// アニメーションのブレンド率を更新
+	m_animBlendRate += 1.0f / 8.0f; 
+
+	// ブレンド率が1.0を超えたら
 	if (m_animBlendRate > 1.0f)
 	{
-		m_animBlendRate = 1.0f;
+		m_animBlendRate = 1.0f; // 1.0に制限
 	}
 
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate);
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
+	// 前のアニメーションのブレンド率を設定
+	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
+	// 次のアニメーションのブレンド率を設定
+	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate); 
 }
 
-void Player::ChangeAnime(const char* animName, bool isLoop)
+// アニメーションの変更
+void Player::ChangeAnime(const char* animName, bool isLoop) 
 {
+	// 前のアニメーションを解除
 	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
+	m_prevAnimData = m_nextAnimData; // 前のアニメーションデータを保存
 
-	m_prevAnimData = m_nextAnimData;
+	// 次のアニメーションをアタッチ
+	AttachAnime(m_nextAnimData, animName, isLoop); 
+	m_animBlendRate = 0.0f; // アニメーションのブレンド率をリセット
 
-	AttachAnime(m_nextAnimData, animName, isLoop);
-
-	m_animBlendRate = 0.0f;
-
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate);
+	// 前のアニメーションのブレンド率を設定
+	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
+	// 次のアニメーションのブレンド率を設定
 	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
 }
 
-VECTOR Player::GetGunPos() const
+// 銃の位置を取得
+VECTOR Player::GetGunPos() const 
 {
-	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
-	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot = MMult(rotPitch, rotYaw);
-	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);
+	// モデルのオフセットと回転を計算
+	VECTOR modelOffset		  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ); // モデルのオフセット
+	MATRIX rotYaw			  = MGetRotY(m_pCamera->GetYaw());                     // カメラのヨー回転
+	MATRIX rotPitch			  = MGetRotX(-m_pCamera->GetPitch());	               // カメラのピッチ回転
+	MATRIX modelRot			  = MMult(rotPitch, rotYaw);						   // モデルの回転行列を計算
+	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);				   // オフセットを回転
+	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);			   // モデルの位置とオフセットを組み合わせて銃の位置を計算
 
-	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);
-	VECTOR gunPos = VTransform(gunOffset, modelRot);
-	return VAdd(modelPosition, gunPos);
+	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ); // 銃のオフセット
+	VECTOR gunPos    = VTransform(gunOffset, modelRot);			    // 銃のオフセットを回転
+
+	// 銃の位置を計算して返す
+	return VAdd(modelPosition, gunPos); 
 }
 
-VECTOR Player::GetGunRot() const
+// 銃の回転を取得
+VECTOR Player::GetGunRot() const 
 {
 	return VGet(
 		cosf(m_pCamera->GetPitch()) * sinf(m_pCamera->GetYaw()),
@@ -523,9 +546,3 @@ VECTOR Player::GetGunRot() const
 		cosf(m_pCamera->GetPitch()) * cosf(m_pCamera->GetYaw())
 	);
 }
-
-//void Player::Reload()
-//{
-//	m_isReloading = true;
-//	m_reloadTimer = kReloadTime;
-//}
