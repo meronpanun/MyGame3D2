@@ -36,5 +36,6 @@ protected:
 	std::shared_ptr<Player> m_targetPlayer;
 
 	int   m_modelHandle;
+	float m_colRadius; // 当たり判定用半径
 };
 

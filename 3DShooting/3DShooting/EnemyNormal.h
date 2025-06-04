@@ -20,5 +20,8 @@ private:
 	VECTOR m_pos; // “G‚ÌˆÊ’u
 
     float m_colRadius = 1.0f;
+
+    VECTOR m_aabbMin; // AABBÅ¬À•W
+    VECTOR m_aabbMax; // AABBÅ‘åÀ•W
 };
 
