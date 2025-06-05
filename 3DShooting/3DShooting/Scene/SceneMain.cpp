@@ -157,7 +157,7 @@ SceneBase* SceneMain::Update()
     m_pPlayer->Update();
 
 	// 通常ゾンビの更新
-	m_pEnemyNormal->Update();
+	m_pEnemyNormal->Update(m_pPlayer->GetBullets());
 
     // 何もしなければシーン遷移しない(ゲーム画面のまま)
     return this;
@@ -174,15 +174,15 @@ void SceneMain::Draw()
     // スカイドームのテクスチャを設定
 //	MV1SetTextureGraphHandle(m_skyDomeHandle, 0, m_skyDomeTextureHandle, false); 
 
-    // ドット型のレティクルを描画
-    constexpr int kDotSize = 64;
-    DrawGraph(screenW * 0.5f - kDotSize * 0.5f, screenH * 0.5f - kDotSize * 0.5f, m_dotHandle, true);
-
     // プレイヤーの描画
     m_pPlayer->Draw();
 
 	// 通常ゾンビの描画
 	m_pEnemyNormal->Draw();
+
+    // ドット型のレティクルを描画
+    constexpr int kDotSize = 64;
+    DrawGraph(screenW * 0.5f - kDotSize * 0.5f, screenH * 0.5f - kDotSize * 0.5f, m_dotHandle, true);
 
     // ポーズ中はポーズメニューを描画する
     if (m_isPaused)
