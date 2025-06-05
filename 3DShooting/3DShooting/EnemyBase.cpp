@@ -16,7 +16,7 @@ void EnemyBase::CheckHitAndDamage(const std::vector<Bullet>& bullets)
 	{
 		if (IsHit(bullet)) 
 		{
-			TakeDamage(bullet.GetRadius()); // 仮: 弾の半径をダメージに
+			TakeDamage(bullet.GetRadius()); // 弾の半径をダメージに
 			// bullet.Deactivate(); // 必要に応じて
 		}
 	}

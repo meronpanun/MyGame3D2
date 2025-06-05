@@ -18,10 +18,12 @@ protected:
 
 private:
 	VECTOR m_pos; // 敵の位置
-
-    float m_colRadius = 1.0f;
-
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
+    VECTOR m_headPos; // ヘッドショット判定用中心座標
+
+    float m_colRadius;
+    float m_headRadius; // ヘッドショット判定用半径
+
 };
 

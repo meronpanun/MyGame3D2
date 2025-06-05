@@ -7,8 +7,10 @@
 EnemyNormal::EnemyNormal():
     m_colRadius(1.0f),
 	m_pos{ 0.0f, -30.0f, 0.0f },
-	m_aabbMin{ 25.0f, 150.0f, -18.0f },
-	m_aabbMax{ -25.0f, 0.0f, 13.0f }
+	m_aabbMin{ 25.0f, 125.0f, -18.0f },
+	m_aabbMax{ -25.0f, 0.0f, 13.0f },
+	m_headPos{ 0.0f, 160.0f, -5.0f },
+	m_headRadius(12.0f)
 {
 }
 
@@ -70,18 +72,6 @@ bool EnemyNormal::IsHit(const Bullet& bullet) const
     return CheckAABBSphereHit(boxMin, boxMax, bullet.GetPos(), bullet.GetRadius());
 }
 
-//void EnemyNormal::DrawCollisionDebug() const
-//{
-//    DrawSphere3D(
-//        m_pos,
-//        m_colRadius,
-//        16,
-//        0xff0000, 
-//        0xff0000, 
-//        false     
-//    );
-//}
-
 void EnemyNormal::DrawCollisionDebug() const
 {
     VECTOR boxMin = {
@@ -106,6 +96,14 @@ void EnemyNormal::DrawCollisionDebug() const
         std::abs(boxMax.z - boxMin.z)
         ) * 0.5f;
 
-    DrawCapsule3D(centerMin, centerMax, radius, 16, color, color, FALSE);
-}
+    DrawCapsule3D(centerMin, centerMax, radius, 16, color, color, false);
 
+    // ヘッドショット判定デバッグ描画
+    VECTOR headCenter = {
+        m_pos.x + m_headPos.x,
+        m_pos.y + m_headPos.y,
+        m_pos.z + m_headPos.z
+    };
+    unsigned int headColor = GetColor(0, 255, 0); // 緑色で描画
+    DrawSphere3D(headCenter, m_headRadius, 16, headColor, headColor, false);
+}
