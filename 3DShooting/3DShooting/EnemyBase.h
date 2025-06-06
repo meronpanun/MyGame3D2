@@ -15,38 +15,60 @@ public:
 	EnemyBase();
 	virtual ~EnemyBase() = default;
 
-	virtual void Init()    abstract;
+	virtual void Init() abstract;
 	virtual void Update(const std::vector<Bullet>& bullets) abstract; // 弾リストを受け取る
-	virtual void Draw()    abstract;
+	virtual void Draw() abstract;
+	
 
-	// 弾や攻撃を受ける処理(基底で共通処理)
-	virtual void CheckHitAndDamage(const std::vector<Bullet>& bullets) abstract;
+	/// <summary>
+	/// 弾や攻撃を受ける処理(基底で共通処理) 
+	/// </summary>
+	/// <param name="bullets">弾のリスト</param>
+	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets) abstract; 
 
-	// 当たり判定
+	/// <summary>
+	/// 敵が弾に当たったかどうかをチェックする関数
+	/// </summary>
+	/// <param name="bullet">弾の情報</param>
+	/// <returns>当たったかどうか</returns>
 	virtual bool IsHit(const Bullet& bullet) const abstract;
 
-	// ダメージ処理
+	/// <summary>
+	/// 敵がダメージを受ける処理
+	/// </summary>
+	/// <param name="damage">受けるダメージ量</param>
 	virtual void TakeDamage(float damage) abstract;
 
-	// デバッグ用当たり判定描画
+	/// <summary>
+	/// デバッグ用の当たり判定を描画する関数
+	/// </summary>
 	virtual void DrawCollisionDebug() const {}
 
-	// どこに当たったか
+	// 当たり判定の部位
 	enum class HitPart {
 		None,
 		Body,
 		Head
 	};
 
-	// 派生クラスでどこに当たったか判定する仮想関数
+	/// <summary>
+	/// 派生クラスでどこに当たったか判定する仮想関数
+	/// </summary>
+	/// <param name="bullet">弾の情報</param>
+	/// <returns>当たった部位</returns>
 	virtual HitPart CheckHitPart(const Bullet& bullet) const { return HitPart::None; }
 
-
 protected:
-	VECTOR m_pos;
-	std::shared_ptr<Player> m_targetPlayer;
+	VECTOR m_pos; // 位置
 
-	int   m_modelHandle;
-	float m_colRadius; // 当たり判定用半径
+	std::shared_ptr<Player> m_targetPlayer;  // ターゲットプレイヤー
+
+	HitPart m_lastHitPart; // 最後に当たった部位
+
+	int   m_modelHandle;     // モデルハンドル
+	int   m_hitDisplayTimer; // ヒット表示タイマー
+	float m_colRadius;       // 当たり判定用半径
+	float m_hp;              // 体力
+
 };
 

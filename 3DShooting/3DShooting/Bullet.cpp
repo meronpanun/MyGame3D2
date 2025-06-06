@@ -1,14 +1,15 @@
 #include "Bullet.h"
 #include "DxLib.h"
+#include <algorithm>
 
 namespace
 {
-	// ’e‚Ì”¼Œa
+	// å¼¾ã®åŠå¾„
 	constexpr float kBulletRadius = 2.0f;
-	// ’e‚Ì‘¬“x
+	// å¼¾ã®é€Ÿåº¦
 	constexpr float kBulletSpeed = 25.0f;
 
-	// ‰æ–ÊŠO‚Éo‚½‚ç”ñƒAƒNƒeƒBƒu‚É‚·‚é”ÍˆÍ
+	// ç”»é¢å¤–ã«å‡ºãŸã‚‰éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹ç¯„å›²
 	constexpr int kScreenBoundary = 1000;
 }
 
@@ -34,19 +35,19 @@ void Bullet::Update()
 {
 	if (!m_isActive) return;
 
-	// Ray‚Ìn“_‚ÆI“_
-	VECTOR rayStart = m_pos;
-	VECTOR rayDir = VNorm(m_dir);
-	float rayLength = m_speed;
-	VECTOR rayEnd = VAdd(rayStart, VScale(rayDir, rayLength));
+	// Rayã®å§‹ç‚¹ã¨çµ‚ç‚¹
+	VECTOR rayStart = m_pos;	    // å¼¾ã®ä½ç½®
+	VECTOR rayDir   = VNorm(m_dir); // å¼¾ã®æ–¹å‘ã‚’æ­£è¦åŒ–
+	float rayLength = m_speed;	    // å¼¾ã®é€Ÿåº¦ã‚’Rayã®é•·ã•ã¨ã™ã‚‹
+	VECTOR rayEnd   = VAdd(rayStart, VScale(rayDir, rayLength)); // Rayã®çµ‚ç‚¹
 
-	// ‚±‚±‚ÅRay”»’èˆ—‚ğs‚¤i—áF“G‚â•Ç‚Æ‚Ì“–‚½‚è”»’èj
-	// —á: if (CheckHit(rayStart, rayEnd)) { m_isActive = false; }
+// ã“ã“ã§Rayã¨ã®è¡çªåˆ¤å®šã‚’è¡Œã†(ä¾‹ï¼šåœ°å½¢ã¨ã®å½“ãŸã‚Šåˆ¤å®š)
+	// æ³¨: if (CheckHit(rayStart, rayEnd)) { m_isActive = false; }
 
-	// Ray‚ÌI“_‚Ü‚Åi‚ß‚é
+	// Rayã®çµ‚ç‚¹ã¾ã§é€²ã‚€
 	m_pos = rayEnd;
 
-	// ‰æ–ÊŠO‚Éo‚½‚ç”ñƒAƒNƒeƒBƒu‚É‚·‚é
+	// ç”»é¢å¤–ã«å‡ºãŸã‚‰éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
 	if (m_pos.x < -kScreenBoundary || m_pos.x > kScreenBoundary ||
 		m_pos.y < -kScreenBoundary || m_pos.y > kScreenBoundary ||
 		m_pos.z < -kScreenBoundary || m_pos.z > kScreenBoundary)
@@ -55,37 +56,37 @@ void Bullet::Update()
 	}
 }
 
-
 void Bullet::Draw() const
 {
 #ifdef _DEBUG
 	if (!m_isActive) return;
 
-	// Ray‚Ìn“_‚ÆI“_
-	VECTOR rayStart = m_pos;
-	VECTOR rayDir = VNorm(m_dir);
-	float rayLength = m_speed;
-	VECTOR rayEnd = VAdd(rayStart, VScale(rayDir, rayLength));
+	// Rayã®å§‹ç‚¹ã¨çµ‚ç‚¹
+	VECTOR rayStart = m_pos;        // å¼¾ã®ä½ç½®
+	VECTOR rayDir   = VNorm(m_dir); // å¼¾ã®æ–¹å‘ã‚’æ­£è¦åŒ–
+	float rayLength = m_speed;      // å¼¾ã®é€Ÿåº¦ã‚’Rayã®é•·ã•ã¨ã™ã‚‹
+	VECTOR rayEnd   = VAdd(rayStart, VScale(rayDir, rayLength)); // Rayã®çµ‚ç‚¹
 
-	// ƒfƒoƒbƒO—p‚ÉRay‚ğ•`‰æ
+	// ãƒ‡ãƒãƒƒã‚°ç”¨ã«Rayã‚’æç”»
 	DrawLine3D(rayStart, rayEnd, 0xff0000);
 #endif
 }
 
-// ’e‚ÌXV
+// å¼¾ã®å‰Šé™¤
 void Bullet::UpdateBullets(std::vector<Bullet>& bullets)
 {
-	for (auto& bullet : bullets)
+	for (auto& bullet : bullets) 
 	{
 		bullet.Update();
 	}
-	// ’e‚Ìíœ
-	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& bullet){
-			return !bullet.IsActive();
-		}), bullets.end());
+
+	// å¼¾ãŒéã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªå ´åˆã¯å‰Šé™¤
+	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& bullet) {
+		return !bullet.IsActive(); 
+	}), bullets.end());
 }
 
-// ’e‚Ì•`‰æ
+// å¼¾ã®æç”»
 void Bullet::DrawBullets(const std::vector<Bullet>& bullets)
 {
 	for (const auto& bullet : bullets)
@@ -94,7 +95,7 @@ void Bullet::DrawBullets(const std::vector<Bullet>& bullets)
 	}
 }
 
-// ’e‚ğ”ñƒAƒNƒeƒBƒu‰»
+// å¼¾ã®éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
 void Bullet::Deactivate()
 {
 	m_isActive = false;

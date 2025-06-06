@@ -3,7 +3,7 @@
 #include <vector>
 
 /// <summary>
-/// ’eƒNƒ‰ƒX
+/// å¼¾ã‚¯ãƒ©ã‚¹
 /// </summary>
 class Bullet
 {
@@ -15,47 +15,47 @@ public:
 	void Update();
 	void Draw() const;
 
-	// ’e‚ÌˆÊ’u‚ğæ“¾
+	// å¼¾ã®ä½ç½®ã‚’å–å¾—
 	VECTOR GetPos() const { return m_pos; }
 
 	/// <summary>
-	/// ’e‚Ì”¼Œa‚ğæ“¾
+	/// å¼¾ã®åŠå¾„ã‚’å–å¾—
 	/// </summary>
-	/// <returns>’e‚Ì”¼Œa</returns>
+	/// <returns>å¼¾ã®åŠå¾„</returns>
 	float GetRadius() const { return m_radius; }
 
 	/// <summary>
-	/// ’e‚ª—LŒø‚©‚Ç‚¤‚©
+	/// å¼¾ãŒæœ‰åŠ¹ã‹ã©ã†ã‹
 	/// </summary>
-	/// <returns>—LŒø‚È‚çtrue</returns>
+	/// <returns>æœ‰åŠ¹ãªã‚‰true</returns>
 	bool IsActive() const { return m_isActive; }
 
 	/// <summary>
-	/// ’e‚ÌXV
+	/// å¼¾ã®æ›´æ–°
 	/// </summary>
-	/// <param name="bullets">’e‚Ì”z—ñ</param>
+	/// <param name="bullets">å¼¾ã®é…åˆ—</param>
 	static void UpdateBullets(std::vector<Bullet>& bullets);
 
 	/// <summary>
-	/// ’e‚Ì•`‰æ
+	/// å¼¾ã®æç”»
 	/// </summary>
-	/// <param name="bullets">’e‚Ì”z—ñ</param>
+	/// <param name="bullets">å¼¾ã®é…åˆ—</param>
 	static void DrawBullets(const std::vector<Bullet>& bullets);
 
 	/// <summary>
-	/// ’e‚ğ”ñƒAƒNƒeƒBƒu‰»
+	/// å¼¾ã‚’éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
 	/// </summary>
 	void Deactivate();
 
 	float GetDamage() const { return m_damage; }
 
 private:
-	VECTOR m_pos; // ’e‚ÌˆÊ’u
-	VECTOR m_dir; // ’e‚Ì•ûŒü
+	VECTOR m_pos;     // å¼¾ã®ä½ç½®
+	VECTOR m_dir;     // å¼¾ã®æ–¹å‘
 
-	float m_speed;    // ’e‚Ì‘¬“x
-	float m_radius;   // ’e‚Ì”¼Œa
-	float m_damage;   // ’e‚Ìƒ_ƒ[ƒW
-	bool  m_isActive; // ’e‚Ì—LŒø«
+	float m_speed;    // å¼¾ã®é€Ÿåº¦
+	float m_radius;   // å¼¾ã®åŠå¾„
+	float m_damage;   // å¼¾ã®ãƒ€ãƒ¡ãƒ¼ã‚¸
+	bool m_isActive;  // å¼¾ã®æœ‰åŠ¹çŠ¶æ…‹
 };
 

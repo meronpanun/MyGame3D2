@@ -4,7 +4,7 @@
 class Bullet;
 
 /// <summary>
-/// ’Êí‚Ì“GƒNƒ‰ƒX
+/// é€šå¸¸ã®æ•µã‚¯ãƒ©ã‚¹
 /// </summary>
 class EnemyNormal : public EnemyBase
 {
@@ -13,53 +13,45 @@ public:
     virtual ~EnemyNormal() = default;
 
     void Init() override;
-    void Update(const std::vector<Bullet>& bullets) override; // ’eƒŠƒXƒg‚ğó‚¯æ‚é
+	void Update(const std::vector<Bullet>& bullets) override; // å¼¾ã®ãƒªã‚¹ãƒˆã‚’å—ã‘å–ã‚‹
     void Draw() override;
 
     /// <summary>
-	/// “–‚½‚è”»’è‚ğs‚¤ŠÖ”
+    /// å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã†é–¢æ•°
     /// </summary>
-	/// <param name="bullet">’e‚Ìî•ñ</param>
-	/// /// <returns>“–‚½‚Á‚½‚©‚Ç‚¤‚©</returns>
+    /// <param name="bullet">å¼¾ã®æƒ…å ±</param>
+    /// /// <returns>å½“ãŸã£ãŸã‹ã©ã†ã‹</returns>
     virtual bool IsHit(const Bullet& bullet) const override;
 
     /// <summary>
-	/// ƒfƒoƒbƒO—p‚Ì“–‚½‚è”»’è‚ğ•`‰æ‚·‚éŠÖ”
+    /// ãƒ‡ãƒãƒƒã‚°ç”¨ã®å½“ãŸã‚Šåˆ¤å®šã‚’æç”»ã™ã‚‹é–¢æ•°
     /// </summary>
     virtual void DrawCollisionDebug() const override;
 
     /// <summary>
-	/// ‚Ç‚±‚É“–‚½‚Á‚½‚©‚ğ”»’è‚·‚éŠÖ”
+    /// ã©ã“ã«å½“ãŸã£ãŸã‹ã‚’åˆ¤å®šã™ã‚‹é–¢æ•°
     /// </summary>
-	/// <param name="bullet">’e‚Ìî•ñ</param>
-	/// /// <returns>“–‚½‚Á‚½•”ˆÊ</returns>
+    /// <param name="bullet">å¼¾ã®æƒ…å ±</param>
+    /// <returns>å½“ãŸã£ãŸéƒ¨ä½</returns>
     HitPart CheckHitPart(const Bullet& bullet) const override;
 
-	/// <summary>
-	/// “G‚ª’e‚É“–‚½‚Á‚½‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚µAƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
-	/// </summary>
-	/// /// <param name="bullets">’e‚ÌƒŠƒXƒg</param>
-	virtual void CheckHitAndDamage(const std::vector<Bullet>& bullets) override;
+    /// <summary>
+    /// æ•µãŒå¼¾ã«å½“ãŸã£ãŸã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ã—ã€ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
+    /// </summary>
+    /// /// <param name="bullets">å¼¾ã®ãƒªã‚¹ãƒˆ</param>
+    virtual void CheckHitAndDamage(std::vector<Bullet>& bullets) override; 
 
     /// <summary>
-	/// “G‚ªƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
+    /// æ•µãŒãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
     /// </summary>
-	/// <param name="damage">ó‚¯‚éƒ_ƒ[ƒW—Ê</param>
+    /// <param name="damage">å—ã‘ã‚‹ãƒ€ãƒ¡ãƒ¼ã‚¸é‡</param>
     void TakeDamage(float damage) override;
 
-protected:
-
 private:
-	VECTOR m_pos;     // “G‚ÌˆÊ’u
-    VECTOR m_aabbMin; // AABBÅ¬À•W
-    VECTOR m_aabbMax; // AABBÅ‘åÀ•W
-    VECTOR m_headPos; // ƒwƒbƒhƒVƒ‡ƒbƒg”»’è—p’†SÀ•W
+    VECTOR m_aabbMin; // AABBæœ€å°åº§æ¨™
+    VECTOR m_aabbMax; // AABBæœ€å¤§åº§æ¨™
+    VECTOR m_headPos; // ãƒ˜ãƒƒãƒ‰ã‚·ãƒ§ãƒƒãƒˆåˆ¤å®šç”¨ä¸­å¿ƒåº§æ¨™
 
-    HitPart m_lastHitPart = HitPart::None; // ’¼‹ß‚Ìƒqƒbƒg•”ˆÊ
-
-    int m_hitDisplayTimer = 0; // ƒfƒoƒbƒO•\¦—pƒ^ƒCƒ}[
-	float m_colRadius;         // “–‚½‚è”»’è—p”¼Œa
-    float m_headRadius;        // ƒwƒbƒhƒVƒ‡ƒbƒg”»’è—p”¼Œa
-	float m_hp;                // “G‚Ì‘Ì—Í
+    float m_headRadius; // ãƒ˜ãƒƒãƒ‰ã‚·ãƒ§ãƒƒãƒˆåˆ¤å®šç”¨åŠå¾„
 };
 

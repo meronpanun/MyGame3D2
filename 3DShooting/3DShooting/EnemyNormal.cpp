@@ -3,6 +3,7 @@
 #include "Bullet.h"
 #include "DxLib.h"
 #include <cassert>
+#include <algorithm>
 
 namespace
 {
@@ -24,17 +25,58 @@ namespace
 
 	// 敵の初期体力
 	constexpr float kInitialHP = 200.0f;
+
+    // VECTORの長さの二乗を計算する関数
+    float VLenSq(const VECTOR& vec)
+    {
+        return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+    }
+
+    // AABBと球の当たり判定(ヘルパー関数としてnamespace内に残す)
+    static bool CheckCapsuleSphereHit(
+        const VECTOR& capA, const VECTOR& capB, float capRadius,
+        const VECTOR& sphereCenter, float sphereRadius)
+    {
+        // 線分capA-capB上の最近点を求める
+        VECTOR ab = VSub(capB, capA);
+        VECTOR ac = VSub(sphereCenter, capA);
+
+        float abLenSq = VDot(ab, ab); // 線分の長さの二乗
+        float t       = 0.0f; // 最近点の線分上の位置
+
+        // 線分の長さが0でない場合
+        if (abLenSq > 0.0f)
+        {
+            t = VDot(ac, ab) / abLenSq; // 線分上の位置を計算
+            t = (std::max)(0.0f, (std::min)(1.0f, t)); // tを0から1の範囲に制限
+        }
+
+        // 最近点の座標を計算
+        VECTOR closest = VAdd(capA, VScale(ab, t));
+
+        // 最近点と球の中心の距離を計算
+        float distSq = VLenSq(VSub(sphereCenter, closest));
+        float radiusSum = capRadius + sphereRadius;
+
+        // 当たっているかどうかを返す
+        return distSq <= radiusSum * radiusSum;
+    }
 }
 
-EnemyNormal::EnemyNormal():
-    m_colRadius(1.0f),
-	m_pos{ kInitialPosition },
+EnemyNormal::EnemyNormal() :
     m_aabbMin{ kAABBMin },
     m_aabbMax{ kAABBMax },
-	m_headPos{ kHeadShotPosition },
-	m_headRadius(kHeadRadius),
-	m_hp(kInitialHP)
+    m_headPos{ kHeadShotPosition },
+    m_headRadius(kHeadRadius)
 {
+    // EnemyNormal固有の初期体力とヒット表示タイマーを上書き
+    m_hp = kInitialHP;
+    m_hitDisplayTimer = 0; // EnemyBaseで初期化されるが、念のため明示的に初期化
+    m_lastHitPart = HitPart::None; // EnemyBaseで初期化されるが、念のため明示的に初期化
+
+    // m_posはEnemyBaseのコンストラクタで初期化される
+    // 必要であればここでkInitialPositionに設定し直す
+    m_pos = kInitialPosition;
 }
 
 
@@ -50,8 +92,8 @@ void EnemyNormal::Update(const std::vector<Bullet>& bullets)
     // モデルの位置を更新
     MV1SetPosition(m_modelHandle, m_pos);
 
-    // 当たり判定
-    CheckHitAndDamage(bullets);
+	// 弾の当たり判定をチェック
+	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
 
 
     // デバッグ表示タイマー減少
@@ -97,43 +139,6 @@ void EnemyNormal::Draw()
     }
 }
 
-// AABBと球の当たり判定
-static bool CheckCapsuleSphereHit(
-    const VECTOR& capA, const VECTOR& capB, float capRadius,
-    const VECTOR& sphereCenter, float sphereRadius)
-{
-    // 線分capA-capB上の最近点を求める
-    VECTOR ab = { capB.x - capA.x, capB.y - capA.y, capB.z - capA.z };
-    VECTOR ac = { sphereCenter.x - capA.x, sphereCenter.y - capA.y, sphereCenter.z - capA.z };
-
-	float abLenSq = ab.x * ab.x + ab.y * ab.y + ab.z * ab.z; // 線分の長さの二乗
-	float t = 0.0f; // 最近点の線分上の位置
-
-    // 線分の長さが0でない場合
-	if (abLenSq > 0.0f)  
-    {
-		t = (ac.x * ab.x + ac.y * ab.y + ac.z * ab.z) / abLenSq; // 線分上の位置を計算
-		t = (std::max)(0.0f, (std::min)(1.0f, t));               // tを0から1の範囲に制限
-    }
-
-	// 最近点の座標を計算
-    VECTOR closest = { 
-        capA.x + ab.x * t,
-        capA.y + ab.y * t,
-        capA.z + ab.z * t
-    };
-
-	// 最近点と球の中心の距離を計算
-	float dx = sphereCenter.x - closest.x;
-	float dy = sphereCenter.y - closest.y;
-	float dz = sphereCenter.z - closest.z;
-    float distSq = dx * dx + dy * dy + dz * dz;
-    float radiusSum = capRadius + sphereRadius;
-
-    // 当たっているかどうかを返す
-	return distSq <= radiusSum * radiusSum; 
-}
-
 // 敵の当たり判定を行う関数
 bool EnemyNormal::IsHit(const Bullet& bullet) const
 {
@@ -148,6 +153,8 @@ bool EnemyNormal::IsHit(const Bullet& bullet) const
         m_pos.y + m_aabbMax.y,
         m_pos.z + m_aabbMax.z
     };
+
+	// カプセルの上下中心を計算
     VECTOR capA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
     VECTOR capB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
 
@@ -173,7 +180,7 @@ void EnemyNormal::DrawCollisionDebug() const
         m_pos.y + m_aabbMax.y,
         m_pos.z + m_aabbMax.z
     };
-    unsigned int color = GetColor(255, 0, 0);
+	unsigned int color = 0xff0000;
 
     // カプセルの中心軸をAABBの上下中心に
     VECTOR centerMin = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
@@ -193,7 +200,7 @@ void EnemyNormal::DrawCollisionDebug() const
         m_pos.y + m_headPos.y,
         m_pos.z + m_headPos.z
     };
-    unsigned int headColor = GetColor(0, 255, 0); // 緑色で描画
+    unsigned int headColor =0x00ff00;
     DrawSphere3D(headCenter, m_headRadius, 16, headColor, headColor, false);
 }
 
@@ -207,11 +214,15 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
         m_pos.z + m_headPos.z
     };
     VECTOR bulletPos = bullet.GetPos();
+
+	// ヘッドショット判定のための距離計算
     float dx = bulletPos.x - headCenter.x;
     float dy = bulletPos.y - headCenter.y;
     float dz = bulletPos.z - headCenter.z;
     float distSq = dx * dx + dy * dy + dz * dz;
     float radiusSum = m_headRadius + bullet.GetRadius();
+
+	// ヘッドショット判定
     if (distSq <= radiusSum * radiusSum)
     {
         return HitPart::Head;
@@ -226,26 +237,26 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
 }
 
 // 敵が弾に当たったかどうかをチェックし、ダメージを受ける処理
-void EnemyNormal::CheckHitAndDamage(const std::vector<Bullet>& bullets)
+void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets) 
 {
-    for (auto& bullet : bullets)
+    for (auto& bullet : bullets) 
     {
         if (!bullet.IsActive()) continue;
         HitPart part = CheckHitPart(bullet);
         if (part == HitPart::Head)
         {
-			TakeDamage(bullet.GetDamage() * 2.0f); // ヘッドショットはダメージ2倍
+            TakeDamage(bullet.GetDamage() * 2.0f); // ヘッドショットはダメージ2倍
             m_lastHitPart = HitPart::Head;
-            m_hitDisplayTimer = kHitDisplayDuration;
-            const_cast<Bullet&>(bullet).Deactivate();
+            m_hitDisplayTimer = kHitDisplayDuration; 
+            bullet.Deactivate(); 
             break;
         }
         else if (part == HitPart::Body)
         {
             TakeDamage(bullet.GetDamage());
             m_lastHitPart = HitPart::Body;
-            m_hitDisplayTimer = kHitDisplayDuration;
-            const_cast<Bullet&>(bullet).Deactivate();
+            m_hitDisplayTimer = kHitDisplayDuration; 
+            bullet.Deactivate(); 
             break;
         }
     }
@@ -256,6 +267,7 @@ void EnemyNormal::CheckHitAndDamage(const std::vector<Bullet>& bullets)
 void EnemyNormal::TakeDamage(float damage)
 {
     m_hp -= damage;
+
     if (m_hp < 0) m_hp = 0;
 }
 
