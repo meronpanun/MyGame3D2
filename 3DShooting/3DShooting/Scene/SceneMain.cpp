@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "Mouse.h"
 #include "Game.h"
+#include "EnemyBase.h"
 #include "EnemyNormal.h"
 #include "Camera.h"
 #include <cassert>
@@ -174,11 +175,11 @@ void SceneMain::Draw()
     // スカイドームのテクスチャを設定
 //	MV1SetTextureGraphHandle(m_skyDomeHandle, 0, m_skyDomeTextureHandle, false); 
 
-    // プレイヤーの描画
-    m_pPlayer->Draw();
-
 	// 通常ゾンビの描画
 	m_pEnemyNormal->Draw();
+
+    // プレイヤーの描画
+    m_pPlayer->Draw();
 
     // ドット型のレティクルを描画
     constexpr int kDotSize = 64;

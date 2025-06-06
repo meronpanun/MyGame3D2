@@ -8,27 +8,23 @@ namespace
     constexpr int kLogNum = 16;
     // 入力ログ0が最新の状態
     int mouseLog[kLogNum];
+    int mouseRightLog[kLogNum];
 }
 
 namespace Mouse
 {
     // マウスの入力状態を取得
-    void Update()
+    void Mouse::Update()
     {
         // ログの更新
         for (int i = kLogNum - 1; i >= 1; i--)
         {
             mouseLog[i] = mouseLog[i - 1];
+            mouseRightLog[i] = mouseRightLog[i - 1]; // 右ボタンも
         }
         // 最新の状態を取得
-        if (GetMouseInput() & MOUSE_INPUT_LEFT)
-        {
-            mouseLog[0] = 1;
-        }
-        else
-        {
-            mouseLog[0] = 0;
-        }
+        mouseLog[0]      = (GetMouseInput() & MOUSE_INPUT_LEFT) ? 1 : 0;
+        mouseRightLog[0] = (GetMouseInput() & MOUSE_INPUT_RIGHT) ? 1 : 0; 
     }
 
     // 現在のマウスの位置を取得
@@ -64,6 +60,20 @@ namespace Mouse
         bool isNow  = mouseLog[0]; // 現在の状態
         bool isLast = mouseLog[1]; // 1フレーム前の状態
         return (!isNow && isLast);
+    }
+
+	// 右クリックのトリガー判定
+    bool IsTriggerRight()
+    {
+        bool isNow = mouseRightLog[0];
+        bool isLast = mouseRightLog[1];
+        return (isNow && !isLast);
+    }
+
+	// 右クリックの押し下げ判定
+    bool IsPressRight()
+    {
+        return (mouseRightLog[0]);
     }
 
     // カメラの回転角度を更新

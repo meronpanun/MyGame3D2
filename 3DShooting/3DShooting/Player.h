@@ -116,24 +116,24 @@ private:
 	AnimData m_nextAnimData;
 	AnimData m_prevAnimData;
 
+	
 	float m_animBlendRate; // アニメーションのブレンド率
 	float m_stamina;	   // プレイヤーのスタミナ
 	float m_health;        // プレイヤーの体力
 	float m_jumpVelocity;  // ジャンプの速度
-	int   m_modelHandle;   // プレイヤーモデルのハンドル
-	int   m_shieldHandle;  // シールドのハンドル
-	int   m_shootSEHandle; // シュートのSEハンドル
+
+	int   m_modelHandle;    // プレイヤーモデルのハンドル
+	int   m_shieldHandle;   // シールドのハンドル
+	int   m_shootSEHandle;  // シュートのSEハンドル
+	int   m_shotCooldown;   // ショットのクールダウンタイマー
+	int   m_ammo;		    // プレイヤーの弾薬数	
+	int   m_lockOnTargetId; // ロックオンターゲットのID
+
 	bool  m_isMoving;	   // プレイヤーが移動中かどうか
 	bool  m_isJumping;	   // プレイヤーがジャンプ中かどうか
 	bool  m_isWasRunning;  // 前回の移動状態が走っていたかどうか
 	bool  m_isCanRun;	   // プレイヤーが走れるかどうか
-	bool  m_hasShot;      // プレイヤーがショット可能かどうか
-	int   m_ammo;		   // プレイヤーの弾薬数	
-	int   m_shotCooldown;  // ショットのクールダウンタイマー
-
-
-	//	int  m_maxAmmo;   
-	//	int  m_reloadTimer;
-	//	bool m_isReloading;
+	bool  m_hasShot;       // プレイヤーがショット可能かどうか
+	bool  m_isLockOn;      // ロックオン状態かどうか
 };
 

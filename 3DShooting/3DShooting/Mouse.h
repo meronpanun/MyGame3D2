@@ -18,16 +18,30 @@ namespace Mouse
 	/// </summary>
 	/// <returns>押されているならtrue</returns>
 	bool IsPressLeft();
+
 	/// <summary>
 	/// マウスの左ボタンがトリガーされた瞬間の判定
 	/// </summary>
 	/// <returns>トリガーされた瞬間ならtrue</returns>
 	bool IsTriggerLeft();
+
 	/// <summary>
 	/// マウスの左ボタンが離された瞬間の判定
 	/// </summary>
 	/// <returns>離された瞬間ならtrue</returns>
 	bool IsReleaseLeft();
+
+	/// <summary>
+	/// マウスの右ボタンが押されているかの判定
+	/// </summary>
+	/// <returns>押されているならtrue</returns>
+	bool IsTriggerRight();
+
+	/// <summary>
+	/// マウスの右ボタンが離された瞬間の判定
+	/// </summary>
+    /// <returns>離された瞬間ならtrue</returns>
+	bool IsPressRight(); 
 
 	/// <summary>
 	/// カメラの回転角度を更新

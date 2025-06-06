@@ -5,6 +5,8 @@
 #include "Camera.h"
 #include "Effect.h"	
 #include "Bullet.h"
+#include "SceneMain.h"
+#include "EnemyBase.h"
 #include <cmath>
 #include <cassert>
 
@@ -76,7 +78,9 @@ Player::Player() :
 	m_health(100.0f),
 	m_isJumping(false),
 	m_jumpVelocity(0.0f),
-	m_hasShot(false)
+	m_hasShot(false),
+	m_lockOnTargetId(-1),
+	m_isLockOn(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/image/Player.mv1");
@@ -153,6 +157,16 @@ void Player::Update()
 		m_ammo--; // 弾薬を減らす
 		m_shotCooldown = 10; // ショットクールダウンを設定
 		ChangeAnime(kShotAnimName, false); // 発射アニメーションに変更
+	}
+
+	// マウスの右クリックでロックオンの切り替え
+	if (Mouse::IsPressRight()) 
+	{
+		m_isLockOn = true;
+	}
+	else
+	{
+		m_isLockOn = false;
 	}
 
 	// 弾の更新
@@ -330,7 +344,7 @@ void Player::Draw()
 	int bgY = screenH - kMarginY - bgHeight;
 
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	DrawBox(bgX, bgY, bgX + bgWidth, bgY + bgHeight, GetColor(0, 0, 0), TRUE);
+	DrawBox(bgX, bgY, bgX + bgWidth, bgY + bgHeight, GetColor(0, 0, 0), false);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 	int ammoX = bgX + 12;
@@ -344,7 +358,7 @@ void Player::Draw()
 	const int gaugeWidth = 200;
 	const int gaugeHeight = 16;
 
-	DrawBox(gaugeX - 1, gaugeY - 1, gaugeX + gaugeWidth + 1, gaugeY + gaugeHeight + 1, GetColor(0x80, 0x80, 0x80), FALSE);
+	DrawBox(gaugeX - 1, gaugeY - 1, gaugeX + gaugeWidth + 1, gaugeY + gaugeHeight + 1, GetColor(0x80, 0x80, 0x80), false);
 
 	float staminaRate = m_stamina / kStaminaMax;
 	int filledWidth = static_cast<int>(gaugeWidth * staminaRate);
@@ -353,7 +367,19 @@ void Player::Draw()
 	int g = static_cast<int>(staminaRate * 255);
 	int gaugeColor = GetColor(r, g, 0);
 
-	DrawBox(gaugeX, gaugeY, gaugeX + filledWidth, gaugeY + gaugeHeight, gaugeColor, TRUE);
+	DrawBox(gaugeX, gaugeY, gaugeX + filledWidth, gaugeY + gaugeHeight, gaugeColor, false);
+
+	// ロックオン中なら画面中央に赤い円を描画
+	if (m_isLockOn)
+	{
+		// 画面中央に赤い円を描画
+		int centerX = Game::kScreenWidth * 0.5f;
+		int centerY = Game::kScreenHeigth * 0.5f;
+		int radius = 40; // 円の半径
+		int color = GetColor(255, 64, 64);
+		int thickness = 4; // 円の太さ
+		DrawCircle(centerX, centerY, radius, color, false, thickness);
+	}
 }
 
 void Player::DrawField()
