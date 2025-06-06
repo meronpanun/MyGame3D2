@@ -228,14 +228,13 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
 // 敵が弾に当たったかどうかをチェックし、ダメージを受ける処理
 void EnemyNormal::CheckHitAndDamage(const std::vector<Bullet>& bullets)
 {
-    // ヒット情報はリセットしない
     for (auto& bullet : bullets)
     {
         if (!bullet.IsActive()) continue;
         HitPart part = CheckHitPart(bullet);
         if (part == HitPart::Head)
         {
-            TakeDamage(50.0f);
+			TakeDamage(bullet.GetDamage() * 2.0f); // ヘッドショットはダメージ2倍
             m_lastHitPart = HitPart::Head;
             m_hitDisplayTimer = kHitDisplayDuration;
             const_cast<Bullet&>(bullet).Deactivate();
@@ -243,7 +242,7 @@ void EnemyNormal::CheckHitAndDamage(const std::vector<Bullet>& bullets)
         }
         else if (part == HitPart::Body)
         {
-            TakeDamage(10.0f);
+            TakeDamage(bullet.GetDamage());
             m_lastHitPart = HitPart::Body;
             m_hitDisplayTimer = kHitDisplayDuration;
             const_cast<Bullet&>(bullet).Deactivate();
@@ -251,6 +250,7 @@ void EnemyNormal::CheckHitAndDamage(const std::vector<Bullet>& bullets)
         }
     }
 }
+
 
 // 敵がダメージを受ける処理
 void EnemyNormal::TakeDamage(float damage)

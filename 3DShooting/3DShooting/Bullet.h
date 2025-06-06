@@ -8,7 +8,7 @@
 class Bullet
 {
 public:
-	Bullet(VECTOR position, VECTOR direction);
+	Bullet(VECTOR position, VECTOR direction, float damage = 10.0f);
 	virtual ~Bullet();
 
 	void Init();
@@ -47,12 +47,15 @@ public:
 	/// </summary>
 	void Deactivate();
 
+	float GetDamage() const { return m_damage; }
+
 private:
 	VECTOR m_pos; // ’e‚ÌˆÊ’u
 	VECTOR m_dir; // ’e‚Ì•ûŒü
 
 	float m_speed;    // ’e‚Ì‘¬“x
 	float m_radius;   // ’e‚Ì”¼Œa
+	float m_damage;   // ’e‚Ìƒ_ƒ[ƒW
 	bool  m_isActive; // ’e‚Ì—LŒø«
 };
 

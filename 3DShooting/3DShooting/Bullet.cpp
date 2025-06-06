@@ -12,12 +12,13 @@ namespace
 	constexpr int kScreenBoundary = 1000;
 }
 
-Bullet::Bullet(VECTOR position, VECTOR direction) :
+Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
 	m_pos(position),
 	m_dir(direction),
 	m_speed(kBulletSpeed),
 	m_isActive(true),
-	m_radius(kBulletRadius)
+	m_radius(kBulletRadius),
+	m_damage(damage)
 {
 }
 

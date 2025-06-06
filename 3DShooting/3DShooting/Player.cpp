@@ -418,7 +418,7 @@ void Player::Shoot()
 	VECTOR gunDir = GetGunRot();
 
 	// ’e‚ð¶¬
-	m_bullets.emplace_back(gunPos, gunDir);
+	m_bullets.emplace_back(gunPos, gunDir, 10.0f);
 
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();
