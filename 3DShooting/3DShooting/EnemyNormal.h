@@ -10,7 +10,7 @@ class EnemyNormal : public EnemyBase
 {
 public:
     EnemyNormal(); 
-    virtual ~EnemyNormal() = default;
+    virtual ~EnemyNormal();
 
     void Init() override;
 	void Update(const std::vector<Bullet>& bullets) override; // 弾のリストを受け取る

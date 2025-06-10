@@ -93,9 +93,6 @@ Player::Player() :
 	// SEの読み込み
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
 	assert(m_shootSEHandle != -1);
-
-	// モデルの初期位置と回転
-	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, 0.0f, 0.0f));
 }
 
 Player::~Player()
@@ -112,6 +109,9 @@ void Player::Init()
 {
 	m_pCamera->Init(); // カメラの初期化
 	m_pEffect->Init(); // エフェクトの初期化
+
+	// モデルの初期位置と回転
+	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, 0.0f, 0.0f));
 
 	// アニメーションデータの初期化
 	AttachAnime(m_nextAnimData, kIdleAnimName, true);

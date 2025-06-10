@@ -69,22 +69,25 @@ EnemyNormal::EnemyNormal() :
     m_headPos{ kHeadShotPosition },
     m_headRadius(kHeadRadius)
 {
-    // EnemyNormal固有の初期体力とヒット表示タイマーを上書き
-    m_hp = kInitialHP;
-    m_hitDisplayTimer = 0; // EnemyBaseで初期化されるが、念のため明示的に初期化
-    m_lastHitPart = HitPart::None; // EnemyBaseで初期化されるが、念のため明示的に初期化
+    // モデルの読み込み
+    m_modelHandle = MV1LoadModel("data/image/NormalZombie.mv1");
+    assert(m_modelHandle != -1);
+}
 
-    // m_posはEnemyBaseのコンストラクタで初期化される
-    // 必要であればここでkInitialPositionに設定し直す
-    m_pos = kInitialPosition;
+EnemyNormal::~EnemyNormal()
+{
+    // モデルの解放
+	DeleteGraph(m_modelHandle); 
 }
 
 
 void EnemyNormal::Init()
 {
-    // モデルの読み込み
-    m_modelHandle = MV1LoadModel("data/image/NormalZombie.mv1");
-    assert(m_modelHandle != -1);
+    // 初期化
+    m_hp              = kInitialHP;
+    m_hitDisplayTimer = 0;
+    m_lastHitPart     = HitPart::None;
+    m_pos             = kInitialPosition;
 }
 
 void EnemyNormal::Update(const std::vector<Bullet>& bullets)
@@ -94,7 +97,6 @@ void EnemyNormal::Update(const std::vector<Bullet>& bullets)
 
 	// 弾の当たり判定をチェック
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
-
 
     // デバッグ表示タイマー減少
     if (m_hitDisplayTimer > 0) 
@@ -115,6 +117,7 @@ void EnemyNormal::Draw()
         // モデルの描画
         MV1DrawModel(m_modelHandle);
 
+#ifdef _DEBUG
         // デバッグ用の当たり判定描画
         DrawCollisionDebug();
 
@@ -136,6 +139,7 @@ void EnemyNormal::Draw()
 
         // 体力のデバッグ表示
         DrawFormatString(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
+#endif
     }
 }
 
@@ -216,11 +220,11 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
     VECTOR bulletPos = bullet.GetPos();
 
 	// ヘッドショット判定のための距離計算
-    float dx = bulletPos.x - headCenter.x;
-    float dy = bulletPos.y - headCenter.y;
-    float dz = bulletPos.z - headCenter.z;
-    float distSq = dx * dx + dy * dy + dz * dz;
-    float radiusSum = m_headRadius + bullet.GetRadius();
+	float dx        = bulletPos.x - headCenter.x;        // X座標の差
+	float dy        = bulletPos.y - headCenter.y;        // Y座標の差
+	float dz        = bulletPos.z - headCenter.z;        // Z座標の差
+	float distSq    = dx * dx + dy * dy + dz * dz;       // 距離の二乗を計算
+	float radiusSum = m_headRadius + bullet.GetRadius(); // ヘッドショット半径と弾の半径の和を計算
 
 	// ヘッドショット判定
     if (distSq <= radiusSum * radiusSum)
@@ -228,7 +232,7 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
         return HitPart::Head;
     }
 
-    // 体判定
+    // ボディヒット判定
     if (IsHit(bullet)) 
     {
         return HitPart::Body;
@@ -241,22 +245,33 @@ void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets)
 {
     for (auto& bullet : bullets) 
     {
-        if (!bullet.IsActive()) continue;
-        HitPart part = CheckHitPart(bullet);
-        if (part == HitPart::Head)
+		if (!bullet.IsActive()) continue; // 弾が非アクティブならスキップ
+
+        // どこに当たったかをチェック
+		HitPart part = CheckHitPart(bullet); 
+
+        // ヘッドショット判定
+		if (part == HitPart::Head) 
         {
-            TakeDamage(bullet.GetDamage() * 2.0f); // ヘッドショットはダメージ2倍
-            m_lastHitPart = HitPart::Head;
-            m_hitDisplayTimer = kHitDisplayDuration; 
-            bullet.Deactivate(); 
+            // ヘッドショットはダメージ2倍
+            TakeDamage(bullet.GetDamage() * 2.0f); 
+
+			m_lastHitPart     = HitPart::Head;       // 最後に当たった部位をヘッドショットに設定
+			m_hitDisplayTimer = kHitDisplayDuration; // ヒット表示タイマーをリセット
+
+			bullet.Deactivate(); // 弾を非アクティブ化
             break;
         }
-        else if (part == HitPart::Body)
+        // ボディヒット判定
+		else if (part == HitPart::Body)
         {
-            TakeDamage(bullet.GetDamage());
-            m_lastHitPart = HitPart::Body;
-            m_hitDisplayTimer = kHitDisplayDuration; 
-            bullet.Deactivate(); 
+            // ボディヒットは通常ダメージ
+			TakeDamage(bullet.GetDamage()); 
+
+			m_lastHitPart     = HitPart::Body;        // 最後に当たった部位をボディヒットに設定
+			m_hitDisplayTimer = kHitDisplayDuration;  // ヒット表示タイマーをリセット
+
+			bullet.Deactivate(); // 弾を非アクティブ化
             break;
         }
     }
