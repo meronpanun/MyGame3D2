@@ -45,11 +45,10 @@ SceneMain::SceneMain() :
     m_cameraSensitivity(Game::g_cameraSensitivity),
     m_pCamera(std::make_unique<Camera>()),
     m_skyDomeHandle(-1),
-    m_skyDomeTextureHandle(-1),
     m_dotHandle(-1)
 {
 	// スカイドームのモデルを読み込む
-    m_skyDomeHandle = MV1LoadModel("data/image/Dome.mv1");
+    m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
     assert(m_skyDomeHandle != -1);
 
 	// ドット型の画像を読み込む
@@ -59,8 +58,8 @@ SceneMain::SceneMain() :
 
 SceneMain::~SceneMain()
 {
-    MV1DeleteModel(m_skyDomeHandle);     // スカイドームのモデルを削除
-	DeleteGraph(m_skyDomeTextureHandle); // スカイドームのテクスチャを削除
+    // スカイドームのモデルを削除
+    MV1DeleteModel(m_skyDomeHandle);    
 
     // ドット型の画像を削除
 	DeleteGraph(m_dotHandle);
@@ -172,8 +171,6 @@ void SceneMain::Draw()
 
     // スカイドームを描画
 	MV1DrawModel(m_skyDomeHandle); 
-    // スカイドームのテクスチャを設定
-//	MV1SetTextureGraphHandle(m_skyDomeHandle, 0, m_skyDomeTextureHandle, false); 
 
 	// 通常ゾンビの描画
 	m_pEnemyNormal->Draw();

@@ -70,7 +70,7 @@ EnemyNormal::EnemyNormal() :
     m_headRadius(kHeadRadius)
 {
     // ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ
-    m_modelHandle = MV1LoadModel("data/image/NormalZombie.mv1");
+    m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
     assert(m_modelHandle != -1);
 }
 

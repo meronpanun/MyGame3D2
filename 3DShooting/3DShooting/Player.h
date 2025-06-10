@@ -123,7 +123,7 @@ private:
 	float m_jumpVelocity;  // ジャンプの速度
 
 	int   m_modelHandle;    // プレイヤーモデルのハンドル
-	int   m_shieldHandle;   // シールドのハンドル
+	int   m_swordHandle;    // 剣のハンドル
 	int   m_shootSEHandle;  // シュートのSEハンドル
 	int   m_shotCooldown;   // ショットのクールダウンタイマー
 	int   m_ammo;		    // プレイヤーの弾薬数	

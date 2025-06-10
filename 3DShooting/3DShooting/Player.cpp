@@ -49,11 +49,6 @@ namespace
 	constexpr int kMarginY    = 20;
 	constexpr int kFontHeight = 20;
 
-	// シールドのオフセット
-	constexpr float kShieldScreenOffsetX = -30.0f;
-	constexpr float kShieldScreenOffsetY = 10.0f;
-	constexpr float kShieldScreenOffsetZ = 40.0f;
-
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.35f; // 重力の強さ
 	constexpr float kJumpPower = 7.0f;  // ジャンプの初速
@@ -62,7 +57,7 @@ namespace
 
 Player::Player() :
 	m_modelHandle(-1),
-	m_shieldHandle(-1),
+	m_swordHandle(-1),
 	m_shootSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
@@ -83,12 +78,12 @@ Player::Player() :
 	m_isLockOn(false)
 {
 	// プレイヤーモデルの読み込み
-	m_modelHandle = MV1LoadModel("data/image/Player.mv1");
+	m_modelHandle = MV1LoadModel("data/model/Player.mv1");
 	assert(m_modelHandle != -1);
 
 	// シールドの読み込み
-	m_shieldHandle = MV1LoadModel("data/image/Shield.mv1");
-	assert(m_shieldHandle != -1);
+	m_swordHandle = MV1LoadModel("data/model/Sword.mv1");
+	assert(m_swordHandle != -1);
 
 	// SEの読み込み
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
@@ -99,7 +94,7 @@ Player::~Player()
 {
 	// モデルの解放
 	MV1DeleteModel(m_modelHandle);
-	MV1DeleteModel(m_shieldHandle);
+	MV1DeleteModel(m_swordHandle);
 
 	// SEの解放
 	DeleteSoundMem(m_shootSEHandle);
@@ -160,14 +155,14 @@ void Player::Update()
 	}
 
 	// マウスの右クリックでロックオンの切り替え
-	if (Mouse::IsPressRight()) 
-	{
-		m_isLockOn = true;
-	}
-	else
-	{
-		m_isLockOn = false;
-	}
+	//if (Mouse::IsPressRight()) 
+	//{
+	//	m_isLockOn = true;
+	//}
+	//else
+	//{
+	//	m_isLockOn = false;
+	//}
 
 	// 弾の更新
 	Bullet::UpdateBullets(m_bullets);
@@ -317,20 +312,20 @@ void Player::Draw()
 
 	float shieldScreenX = -25.0f;
 	float shieldScreenY = -30;
-	float shieldScreenZ = 42.0f;
+	float shieldScreenZ = 55.0f;
 
 	VECTOR camPos = VGet(0, 0, -shieldScreenZ); // カメラの位置
 	VECTOR camTgt = VGet(0, 0, 0);			    // カメラのターゲット位置
 	SetCameraPositionAndTarget_UpVecY(camPos, camTgt); 
 
-	// シールドの位置
-	MV1SetPosition(m_shieldHandle, VGet(shieldScreenX, shieldScreenY, 0.0f)); 
+	// 剣の位置
+	MV1SetPosition(m_swordHandle, VGet(shieldScreenX, shieldScreenY, 0.0f));
 
-	MV1SetRotationXYZ(m_shieldHandle, VGet(0.0f, DX_PI_F, 0.0f)); // シールドの回転
-	MV1SetScale(m_shieldHandle, VGet(0.5f, 0.5f, 0.5f));		  // シールドのスケール
+	MV1SetRotationXYZ(m_swordHandle, VGet(0.0f, 200.0f, 0.0f)); // 剣の回転
+	MV1SetScale(m_swordHandle, VGet(0.5f, 0.5f, 0.5f));		    // 剣のスケール
 
-	// シールドの描画
-	MV1DrawModel(m_shieldHandle); 
+	// 剣の描画
+	MV1DrawModel(m_swordHandle);
 
 	m_pCamera->SetCameraToDxLib();
 

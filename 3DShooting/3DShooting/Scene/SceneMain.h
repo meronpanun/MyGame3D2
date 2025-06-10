@@ -54,7 +54,6 @@ private:
 	bool  m_isReturningFromOption; // オプションシーンから戻ったかどうかを判定するフラグ
 	bool  m_isEscapePressed;       // エスケープキーの押下状態を管理するフラグ
 	int   m_skyDomeHandle;         // スカイドームのハンドル
-	int   m_skyDomeTextureHandle;  // スカイドームのテクスチャハンドル
 	int   m_dotHandle;             // ドット型の画像ハンドル
 
 	float m_cameraSensitivity;     // カメラの感度
