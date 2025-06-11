@@ -7,10 +7,11 @@ namespace
 	// 弾の半径
 	constexpr float kBulletRadius = 2.0f;
 	// 弾の速度
-	constexpr float kBulletSpeed = 25.0f;
+	constexpr float kBulletSpeed = 35.0f;
 
 	// 画面外に出たら非アクティブにする範囲
 	constexpr int kScreenBoundary = 1000;
+
 }
 
 Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
@@ -41,7 +42,7 @@ void Bullet::Update()
 	float rayLength = m_speed;	    // 弾の速度をRayの長さとする
 	VECTOR rayEnd   = VAdd(rayStart, VScale(rayDir, rayLength)); // Rayの終点
 
-// ここでRayとの衝突判定を行う(例：地形との当たり判定)
+    // ここでRayとの衝突判定を行う(例：地形との当たり判定)
 	// 注: if (CheckHit(rayStart, rayEnd)) { m_isActive = false; }
 
 	// Rayの終点まで進む

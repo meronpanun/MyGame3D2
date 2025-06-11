@@ -6,6 +6,8 @@
 class Camera;
 class Effect;
 class Bullet;
+class EnemyBase;
+class EnemyNormal;
 
 class Player
 {
@@ -14,7 +16,7 @@ public:
 	virtual ~Player();
 
 	void Init();
-	void Update();
+	void Update(const std::vector<EnemyBase*>& enemyList);
 	void Draw();
 
 	/// <summary>
@@ -51,6 +53,16 @@ public:
 	/// </summary>
 	/// <returns>ショット可能ならtrue</returns>
 	bool HasShot(); 
+
+	struct TackleInfo 
+	{
+		bool isTackling = false;
+		VECTOR capA = { 0,0,0 };
+		VECTOR capB = { 0,0,0 };
+		float radius = 0.0f;
+		float damage = 0.0f;
+	};
+	TackleInfo GetTackleInfo() const;
 
 private:
 
@@ -111,6 +123,7 @@ private:
 	// プレイヤーの位置を保持するメンバー変数
 	VECTOR m_pos;
 	VECTOR m_modelPos;
+	VECTOR m_tackleDir; // タックルの方向
 
 	// アニメーションデータ
 	AnimData m_nextAnimData;
@@ -122,12 +135,12 @@ private:
 	float m_health;        // プレイヤーの体力
 	float m_jumpVelocity;  // ジャンプの速度
 
-	int   m_modelHandle;    // プレイヤーモデルのハンドル
-	int   m_swordHandle;    // 剣のハンドル
-	int   m_shootSEHandle;  // シュートのSEハンドル
-	int   m_shotCooldown;   // ショットのクールダウンタイマー
-	int   m_ammo;		    // プレイヤーの弾薬数	
-	int   m_lockOnTargetId; // ロックオンターゲットのID
+	int   m_modelHandle;   // プレイヤーモデルのハンドル
+	int   m_swordHandle;   // 剣のハンドル
+	int   m_shootSEHandle; // シュートのSEハンドル
+	int   m_shotCooldown;  // ショットのクールダウンタイマー
+	int   m_ammo;		   // プレイヤーの弾薬数	
+	int   m_tackleFrame;   // タックルのフレーム数
 
 	bool  m_isMoving;	   // プレイヤーが移動中かどうか
 	bool  m_isJumping;	   // プレイヤーがジャンプ中かどうか
@@ -135,5 +148,6 @@ private:
 	bool  m_isCanRun;	   // プレイヤーが走れるかどうか
 	bool  m_hasShot;       // プレイヤーがショット可能かどうか
 	bool  m_isLockOn;      // ロックオン状態かどうか
+	bool  m_isTackling;    // タックル中かどうか
 };
 

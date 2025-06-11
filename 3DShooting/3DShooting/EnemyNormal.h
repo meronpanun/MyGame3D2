@@ -2,6 +2,7 @@
 #include "EnemyBase.h"
 
 class Bullet;
+class Player;
 
 /// <summary>
 /// 通常の敵クラス
@@ -13,7 +14,7 @@ public:
     virtual ~EnemyNormal();
 
     void Init() override;
-	void Update(const std::vector<Bullet>& bullets) override; // 弾のリストを受け取る
+	void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo) override; 
     void Draw() override;
 
     /// <summary>
@@ -35,23 +36,25 @@ public:
     /// <returns>当たった部位</returns>
     HitPart CheckHitPart(const Bullet& bullet) const override;
 
-    /// <summary>
-    /// 敵が弾に当たったかどうかをチェックし、ダメージを受ける処理
-    /// </summary>
-    /// /// <param name="bullets">弾のリスト</param>
-    virtual void CheckHitAndDamage(std::vector<Bullet>& bullets) override; 
+	/// <summary>
+	/// ダメージを計算する関数
+	/// </summary>
+	/// <param name="bullet">弾の情報</param>
+	/// <param name="part">当たった部位</param>
+	/// <returns>計算されたダメージ</returns>
+	float CalcDamage(const Bullet& bullet, HitPart part) const override;
 
-    /// <summary>
-    /// 敵がダメージを受ける処理
-    /// </summary>
-    /// <param name="damage">受けるダメージ量</param>
-    void TakeDamage(float damage) override;
+	// 敵がタックルダメージを受ける処理
+    VECTOR GetAABBMinWorld() const override { return VAdd(m_pos, m_aabbMin); }
+    VECTOR GetAABBMaxWorld() const override { return VAdd(m_pos, m_aabbMax); }
 
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
     VECTOR m_headPos; // ヘッドショット判定用中心座標
 
-    float m_headRadius; // ヘッドショット判定用半径
+    float m_headRadius; // ヘッドショット判定用半径  
+
+    bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
 };
 

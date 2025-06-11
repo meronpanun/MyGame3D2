@@ -1,5 +1,5 @@
-#include "EnemyNormal.h"
 #include "Player.h"
+#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "DxLib.h"
 #include <cassert>
@@ -8,7 +8,7 @@
 namespace
 {
 	// ヒット表示の持続時間
-	constexpr int kHitDisplayDuration = 60; // 1秒間表示
+	//constexpr int kHitDisplayDuration = 60; // 1秒間表示
 
     // 敵の位置
     constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 0.0f };
@@ -61,13 +61,50 @@ namespace
         // 当たっているかどうかを返す
         return distSq <= radiusSum * radiusSum;
     }
+
+    // 2つのカプセルの当たり判定
+    static bool CheckCapsuleCapsuleHit(
+        const VECTOR& a1, const VECTOR& a2, float r1,
+        const VECTOR& b1, const VECTOR& b2, float r2)
+    {
+        VECTOR d1 = VSub(a2, a1);
+        VECTOR d2 = VSub(b2, b1);
+        VECTOR r = VSub(a1, b1);
+        float a = VDot(d1, d1);
+        float e = VDot(d2, d2);
+        float f = VDot(d2, r);
+
+        float s = 0.0f, t = 0.0f;
+        float c = VDot(d1, r);
+        float b = VDot(d1, d2);
+        float denom = a * e - b * b;
+
+        if (denom != 0.0f)
+            s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+        else
+            s = 0.0f;
+
+        t = (b * s + f) / e;
+        t = std::clamp(t, 0.0f, 1.0f);
+
+        s = (b * t - c) / a;
+        s = std::clamp(s, 0.0f, 1.0f);
+
+        VECTOR p1 = VAdd(a1, VScale(d1, s));
+        VECTOR p2 = VAdd(b1, VScale(d2, t));
+        float distSq = VDot(VSub(p1, p2), VSub(p1, p2));
+        float radiusSum = r1 + r2;
+        return distSq <= radiusSum * radiusSum;
+    }
+
 }
 
 EnemyNormal::EnemyNormal() :
     m_aabbMin{ kAABBMin },
     m_aabbMax{ kAABBMax },
     m_headPos{ kHeadShotPosition },
-    m_headRadius(kHeadRadius)
+    m_headRadius(kHeadRadius),
+	m_isTackleHit(false)
 {
     // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
@@ -90,13 +127,41 @@ void EnemyNormal::Init()
     m_pos             = kInitialPosition;
 }
 
-void EnemyNormal::Update(const std::vector<Bullet>& bullets)
+void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo)
 {
     // モデルの位置を更新
     MV1SetPosition(m_modelHandle, m_pos);
 
 	// 弾の当たり判定をチェック
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
+
+    // タックル当たり判定の追加
+    if (tackleInfo.isTackling && m_hp > 0.0f && !m_isTackleHit)
+    {
+        // 敵のカプセル情報
+        VECTOR boxMin = {
+            m_pos.x + m_aabbMin.x,
+            m_pos.y + m_aabbMin.y,
+            m_pos.z + m_aabbMin.z
+        };
+        VECTOR boxMax = {
+            m_pos.x + m_aabbMax.x,
+            m_pos.y + m_aabbMax.y,
+            m_pos.z + m_aabbMax.z
+        };
+        VECTOR capA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
+        VECTOR capB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
+        float capRadius = (std::max)(std::abs(boxMax.x - boxMin.x), std::abs(boxMax.z - boxMin.z)) * 0.5f;
+
+        // カプセル同士の当たり判定
+        if (CheckCapsuleCapsuleHit(
+            tackleInfo.capA, tackleInfo.capB, tackleInfo.radius,
+            capA, capB, capRadius))
+        {
+            TakeTackleDamage(tackleInfo.damage);
+            m_isTackleHit = true; // 1回だけダメージ
+        }
+    }
 
     // デバッグ表示タイマー減少
     if (m_hitDisplayTimer > 0) 
@@ -120,7 +185,6 @@ void EnemyNormal::Draw()
 #ifdef _DEBUG
         // デバッグ用の当たり判定描画
         DrawCollisionDebug();
-
 
         // デバッグ表示
         const char* hitMsg = "";
@@ -240,49 +304,16 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
     return HitPart::None;
 }
 
-// 敵が弾に当たったかどうかをチェックし、ダメージを受ける処理
-void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets) 
+// ダメージ計算
+float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
 {
-    for (auto& bullet : bullets) 
+    if (part == HitPart::Head)
     {
-		if (!bullet.IsActive()) continue; // 弾が非アクティブならスキップ
-
-        // どこに当たったかをチェック
-		HitPart part = CheckHitPart(bullet); 
-
-        // ヘッドショット判定
-		if (part == HitPart::Head) 
-        {
-            // ヘッドショットはダメージ2倍
-            TakeDamage(bullet.GetDamage() * 2.0f); 
-
-			m_lastHitPart     = HitPart::Head;       // 最後に当たった部位をヘッドショットに設定
-			m_hitDisplayTimer = kHitDisplayDuration; // ヒット表示タイマーをリセット
-
-			bullet.Deactivate(); // 弾を非アクティブ化
-            break;
-        }
-        // ボディヒット判定
-		else if (part == HitPart::Body)
-        {
-            // ボディヒットは通常ダメージ
-			TakeDamage(bullet.GetDamage()); 
-
-			m_lastHitPart     = HitPart::Body;        // 最後に当たった部位をボディヒットに設定
-			m_hitDisplayTimer = kHitDisplayDuration;  // ヒット表示タイマーをリセット
-
-			bullet.Deactivate(); // 弾を非アクティブ化
-            break;
-        }
+        return bullet.GetDamage() * 2.0f; // ヘッドショットは2倍
     }
+    else if (part == HitPart::Body)
+    {
+        return bullet.GetDamage();
+    }
+    return 0.0f;
 }
-
-
-// 敵がダメージを受ける処理
-void EnemyNormal::TakeDamage(float damage)
-{
-    m_hp -= damage;
-
-    if (m_hp < 0) m_hp = 0;
-}
-

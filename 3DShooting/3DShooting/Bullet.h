@@ -47,7 +47,18 @@ public:
 	/// </summary>
 	void Deactivate();
 
+	/// <summary>
+	/// 弾のダメージを取得
+	/// </summary>
+	/// <returns></returns>
 	float GetDamage() const { return m_damage; }
+
+	// 位置を設定
+	void SetPos(const VECTOR& pos) { m_pos = pos; }
+
+	// 半径を設定
+	void SetRadius(float radius) { m_radius = radius; }
+
 
 private:
 	VECTOR m_pos;     // 弾の位置

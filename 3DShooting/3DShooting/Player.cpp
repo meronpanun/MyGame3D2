@@ -9,6 +9,7 @@
 #include "EnemyBase.h"
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 
 namespace
 {
@@ -19,8 +20,8 @@ namespace
 	const char* const kRunAnimName  = "Pistol_RUN";  // 走行
 	const char* const kJumpAnimName = "Pistol_JUMP"; // ジャンプ
 
-	constexpr float kMoveSpeed = 2.0f; // 移動速度
-	constexpr float kRunSpeed  = 5.0f; // 走る速度
+	constexpr float kMoveSpeed = 3.0f; // 移動速度
+	constexpr float kRunSpeed  = 6.0f; // 走る速度
 
 	// モデルのオフセット
 	constexpr float kModelOffsetX = 2.0f; 
@@ -53,6 +54,14 @@ namespace
 	constexpr float kGravity   = 0.35f; // 重力の強さ
 	constexpr float kJumpPower = 7.0f;  // ジャンプの初速
 	constexpr float kGroundY   = 0.0f;  // 地面のY座標
+
+	// タックル関連
+	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
+	constexpr float kTackleSpeed	 = 20.0f;  // タックル時の速度
+	constexpr float kTackleHitRange  = 100.0f; // タックルの前方有効距離
+	constexpr float kTackleHitRadius = 300.0f; // タックルの横幅(半径)
+	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
+	constexpr float kTackleDamage    = 200.0f; // タックルダメージ
 }
 
 Player::Player() :
@@ -74,8 +83,10 @@ Player::Player() :
 	m_isJumping(false),
 	m_jumpVelocity(0.0f),
 	m_hasShot(false),
-	m_lockOnTargetId(-1),
-	m_isLockOn(false)
+	m_isLockOn(false),
+	m_tackleFrame(0),
+	m_tackleDir(VGet(0, 0, 0)),
+	m_isTackling(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/Player.mv1");
@@ -113,7 +124,7 @@ void Player::Init()
 	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
 }
 
-void Player::Update()
+void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
 	// プレイヤーの位置をカメラに設定
 	m_pCamera->SetPlayerPos(m_modelPos);
@@ -145,8 +156,8 @@ void Player::Update()
 		m_shotCooldown--;
 	}
 
-	// マウスの左クリックで射撃
-	if (Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)  
+	// マウスの左クリックで射撃(タックル中は射撃不可)
+	if (!m_isTackling && Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)
 	{
 		Shoot();  // 射撃処理
 		m_ammo--; // 弾薬を減らす
@@ -154,15 +165,98 @@ void Player::Update()
 		ChangeAnime(kShotAnimName, false); // 発射アニメーションに変更
 	}
 
-	// マウスの右クリックでロックオンの切り替え
-	//if (Mouse::IsPressRight()) 
-	//{
-	//	m_isLockOn = true;
-	//}
-	//else
-	//{
-	//	m_isLockOn = false;
-	//}
+	// 地面にいるかどうかの判定
+	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f); 
+
+	// 右クリックでタックル開始
+	if (!m_isTackling && Mouse::IsTriggerRight())
+	{
+		m_isTackling  = true;
+		m_tackleFrame = kTackleDuration;
+
+		// カメラの向きで3D正規化ベクトルを作成
+		float yaw   = m_pCamera->GetYaw();
+		float pitch = m_pCamera->GetPitch();
+		// タックル方向を計算
+		m_tackleDir = VGet(
+			cosf(pitch) * sinf(yaw),
+			sinf(pitch),
+			cosf(pitch) * cosf(yaw)
+		);
+
+		for (EnemyBase* enemy : enemyList)
+		{
+			if (enemy)
+			{
+				enemy->ResetTackleHitFlag();
+			}
+		}
+
+	//	ChangeAnime(kTackleAnimName, false); // タックルアニメーション
+	}
+
+	// タックル中の処理
+	if (m_isTackling)
+	{
+		m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, kTackleSpeed));
+
+		// 地面より下に行かないように制限
+		if (m_modelPos.y < kGroundY)
+		{
+			m_modelPos.y = kGroundY;
+		}
+
+		// タックル判定情報を作成
+		TackleInfo tackleInfo = GetTackleInfo();
+
+		// 各敵にタックル情報を渡してUpdate
+		for (EnemyBase* enemy : enemyList)
+		{
+			// 敵がnullptrの場合はスキップ
+			if (!enemy) continue; 
+
+			// 敵の更新処理
+			enemy->Update(m_bullets, tackleInfo); 
+		}
+
+#ifdef _DEBUG
+		// タックル判定カプセルのデバッグ描画
+		DrawCapsule3D(
+			tackleInfo.capA,
+			tackleInfo.capB,
+			tackleInfo.radius,
+			16,
+			GetColor(0, 255, 0),
+			GetColor(128, 255, 128),
+			false
+		);
+#endif
+		m_tackleFrame--;
+		// タックル終了判定
+		if (m_tackleFrame <= 0)
+		{
+			m_isTackling = false;
+			// タックル後のアニメーション遷移
+			/*if (m_isMoving)
+			{
+				ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
+			}	
+			else
+			{
+				ChangeAnime(kIdleAnimName, true);
+			}*/
+		}
+		// タックル中は他の移動・ジャンプを無効化
+		return;
+	}
+
+	// タックル中でなければ bullets のみ渡す
+	TackleInfo tackleInfo{};
+	for (EnemyBase* enemy : enemyList)
+	{
+		if (!enemy) continue;
+		enemy->Update(m_bullets, tackleInfo);
+	}
 
 	// 弾の更新
 	Bullet::UpdateBullets(m_bullets);
@@ -177,7 +271,7 @@ void Player::Update()
 		isRunning = true;
 	}
 	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 移動速度の設定
-	bool isMoving = false; // 移動中かどうかのフラグ
+	bool isMoving   = false; // 移動中かどうかのフラグ
 
 	// 移動方向の初期化s
 	VECTOR moveDir = VGet(0, 0, 0); 
@@ -204,11 +298,8 @@ void Player::Update()
 		moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
 	}
 
-	// 地面にいるか判定
-	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f);
-
 	// スペースキーでジャンプ
-	if (CheckHitKey(KEY_INPUT_SPACE) && isOnGround && !m_isJumping)
+	if (CheckHitKey(KEY_INPUT_SPACE) && isOnGround && !m_isJumping && !m_isTackling)
 	{
 		m_jumpVelocity = kJumpPower;
 		m_isJumping = true;
@@ -363,18 +454,6 @@ void Player::Draw()
 	int gaugeColor = GetColor(r, g, 0);
 
 	DrawBox(gaugeX, gaugeY, gaugeX + filledWidth, gaugeY + gaugeHeight, gaugeColor, false);
-
-	// ロックオン中なら画面中央に赤い円を描画
-	if (m_isLockOn)
-	{
-		// 画面中央に赤い円を描画
-		int centerX = Game::kScreenWidth * 0.5f;
-		int centerY = Game::kScreenHeigth * 0.5f;
-		int radius = 40; // 円の半径
-		int color = GetColor(255, 64, 64);
-		int thickness = 4; // 円の太さ
-		DrawCircle(centerX, centerY, radius, color, false, thickness);
-	}
 }
 
 void Player::DrawField()
@@ -571,4 +650,19 @@ VECTOR Player::GetGunRot() const
 		sinf(m_pCamera->GetPitch()),
 		cosf(m_pCamera->GetPitch()) * cosf(m_pCamera->GetYaw())
 	);
+}
+
+Player::TackleInfo Player::GetTackleInfo() const
+{
+	TackleInfo info;
+	info.isTackling = m_isTackling;
+	if (m_isTackling)
+	{
+		float tackleHeight = kTackleHitHeight;
+		info.capA = VAdd(m_modelPos, VGet(0, -tackleHeight * 0.5f, 0));
+		info.capB = VAdd(m_modelPos, VGet(0, tackleHeight * 0.5f, 0));
+		info.radius = kTackleHitRadius; 
+		info.damage = kTackleDamage; 
+	}
+	return info;
 }

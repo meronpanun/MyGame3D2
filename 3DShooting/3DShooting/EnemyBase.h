@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-class Player;
 class Bullet;
+class Player;
 
 /// <summary>
 /// 敵の基底クラス
@@ -16,7 +16,7 @@ public:
 	virtual ~EnemyBase() = default;
 
 	virtual void Init() abstract;
-	virtual void Update(const std::vector<Bullet>& bullets) abstract; // 弾リストを受け取る
+	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo) abstract;
 	virtual void Draw() abstract;
 	
 
@@ -24,7 +24,7 @@ public:
 	/// 弾や攻撃を受ける処理(基底で共通処理) 
 	/// </summary>
 	/// <param name="bullets">弾のリスト</param>
-	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets) abstract; 
+	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets); 
 
 	/// <summary>
 	/// 敵が弾に当たったかどうかをチェックする関数
@@ -37,12 +37,24 @@ public:
 	/// 敵がダメージを受ける処理
 	/// </summary>
 	/// <param name="damage">受けるダメージ量</param>
-	virtual void TakeDamage(float damage) abstract;
+	virtual void TakeDamage(float damage);
+
+	/// <summary>
+	/// タックルダメージを受ける処理
+	/// </summary>
+	/// <param name="damage">受けるダメージ量</param>
+	virtual void TakeTackleDamage(float damage);
 
 	/// <summary>
 	/// デバッグ用の当たり判定を描画する関数
 	/// </summary>
 	virtual void DrawCollisionDebug() const {}
+
+	// 生存判定
+	virtual bool IsAlive() const { return m_isAlive; }
+
+	// 位置取得
+	virtual VECTOR GetPos() const { return m_pos; }
 
 	// 当たり判定の部位
 	enum class HitPart {
@@ -58,6 +70,20 @@ public:
 	/// <returns>当たった部位</returns>
 	virtual HitPart CheckHitPart(const Bullet& bullet) const { return HitPart::None; }
 
+	// AABBの最小座標と最大座標を取得する関数
+	virtual VECTOR GetAABBMinWorld() const abstract;
+	virtual VECTOR GetAABBMaxWorld() const abstract;
+
+	/// <summary>
+	/// タックルでダメージを受けたかどうかのフラグを取得
+	/// </summary>
+	virtual void ResetTackleHitFlag() { m_isTackleHit = false; }
+
+protected:
+	// ダメージ計算用
+    virtual float CalcDamage(const Bullet& bullet, HitPart part) const abstract;
+    
+
 protected:
 	VECTOR m_pos; // 位置
 
@@ -70,5 +96,7 @@ protected:
 	float m_colRadius;       // 当たり判定用半径
 	float m_hp;              // 体力
 
+	bool  m_isAlive;         // 生存状態フラグ
+	bool  m_isTackleHit;     // タックルで既にダメージを受けたか
 };
 

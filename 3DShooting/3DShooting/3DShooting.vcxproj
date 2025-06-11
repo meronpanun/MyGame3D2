@@ -183,6 +183,9 @@
     <ClInclude Include="Scene\SceneTitle.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="テキスト.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

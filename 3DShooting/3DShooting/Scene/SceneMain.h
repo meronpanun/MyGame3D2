@@ -7,6 +7,7 @@
 class Player;
 class Camera;
 class EnemyNormal;
+class EnemyBase;
 
 /// <summary>
 /// ゲームシーンクラス
@@ -46,6 +47,7 @@ private:
 	std::unique_ptr<Player> m_pPlayer;
 	std::shared_ptr<Camera> m_pCamera;
 	std::shared_ptr<EnemyNormal> m_pEnemyNormal;
+	std::vector<EnemyBase*> m_enemyList;
 
 	// ポーズに入ったタイミングの時間を記録する
 	std::chrono::steady_clock::time_point m_pauseStartTime;
