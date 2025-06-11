@@ -36,12 +36,6 @@ namespace
 	constexpr float kGunOffsetY = 58.0f;
 	constexpr float kGunOffsetZ = 12.0f;
 
-	// スタミナ関連
-	constexpr float kStaminaMax        = 100.0f;
-	constexpr float kStaminaRunCost	   = 0.8f;
-	constexpr float kStaminaRecover    = 0.5f;
-	constexpr float kStaminaRunRecover = 30.0f;
-
 	// 初期弾薬数
 	constexpr int kInitialAmmo = 700;
 
@@ -56,12 +50,13 @@ namespace
 	constexpr float kGroundY   = 0.0f;  // 地面のY座標
 
 	// タックル関連
-	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
-	constexpr float kTackleSpeed	 = 20.0f;  // タックル時の速度
-	constexpr float kTackleHitRange  = 100.0f; // タックルの前方有効距離
-	constexpr float kTackleHitRadius = 300.0f; // タックルの横幅(半径)
+	constexpr int   kTackleDuration    = 20;   // タックル持続フレーム数
+	constexpr int   kTackleCooldownMax = 120;  // クールタイム最大値
+	constexpr float kTackleSpeed	 = 25.0f;  // タックル時の速度
+	constexpr float kTackleHitRange  = 250.0f; // タックルの前方有効距離
+	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅(半径)
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
-	constexpr float kTackleDamage    = 200.0f; // タックルダメージ
+	constexpr float kTackleDamage    = 10.0f;  // タックルダメージ
 }
 
 Player::Player() :
@@ -74,8 +69,6 @@ Player::Player() :
 	m_animBlendRate(0.0f),
 	m_isMoving(false),
 	m_isWasRunning(false),
-	m_stamina(kStaminaMax),
-	m_isCanRun(true),
 	m_ammo(kInitialAmmo),
 	m_shotCooldown(0),
 	m_pos(VGet(0, 0, 0)),
@@ -83,10 +76,11 @@ Player::Player() :
 	m_isJumping(false),
 	m_jumpVelocity(0.0f),
 	m_hasShot(false),
-	m_isLockOn(false),
 	m_tackleFrame(0),
 	m_tackleDir(VGet(0, 0, 0)),
-	m_isTackling(false)
+	m_isTackling(false),
+	m_tackleCooldown(0),
+	m_tackleId(0)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/Player.mv1");
@@ -126,6 +120,9 @@ void Player::Init()
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
+	unsigned char keyState[256];
+	GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+
 	// プレイヤーの位置をカメラに設定
 	m_pCamera->SetPlayerPos(m_modelPos);
 
@@ -156,6 +153,24 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_shotCooldown--;
 	}
 
+	// タックルクールタイム減少
+	if (m_tackleCooldown > 0)
+	{
+		m_tackleCooldown--;
+
+		// クールタイムが0になった瞬間に全敵のタックルヒットフラグをリセット
+		if (m_tackleCooldown == 0)
+		{
+			for (EnemyBase* enemy : enemyList)
+			{
+				if (enemy)
+				{
+					enemy->ResetTackleHitFlag();
+				}
+			}
+		}
+	}
+
 	// マウスの左クリックで射撃(タックル中は射撃不可)
 	if (!m_isTackling && Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)
 	{
@@ -169,28 +184,23 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f); 
 
 	// 右クリックでタックル開始
-	if (!m_isTackling && Mouse::IsTriggerRight())
+	if (!m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
 	{
-		m_isTackling  = true;
-		m_tackleFrame = kTackleDuration;
+		m_isTackling     = true;
+		m_tackleFrame    = kTackleDuration;
+		m_tackleCooldown = kTackleCooldownMax; // クールタイム開始
+		m_tackleId++; // タックルごとにIDを更新
 
 		// カメラの向きで3D正規化ベクトルを作成
 		float yaw   = m_pCamera->GetYaw();
 		float pitch = m_pCamera->GetPitch();
+
 		// タックル方向を計算
 		m_tackleDir = VGet(
 			cosf(pitch) * sinf(yaw),
 			sinf(pitch),
 			cosf(pitch) * cosf(yaw)
 		);
-
-		for (EnemyBase* enemy : enemyList)
-		{
-			if (enemy)
-			{
-				enemy->ResetTackleHitFlag();
-			}
-		}
 
 	//	ChangeAnime(kTackleAnimName, false); // タックルアニメーション
 	}
@@ -263,13 +273,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	// 走るキー入力
 	const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT); 
-	bool isRunning = false; // 走っているかどうかのフラグ
+	bool isRunning = wantRun; // 走っているかどうかのフラグ
 
-	// 走る条件
-	if (wantRun && m_isCanRun && m_stamina > 0.0f) 
-	{
-		isRunning = true;
-	}
 	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 移動速度の設定
 	bool isMoving   = false; // 移動中かどうかのフラグ
 
@@ -298,8 +303,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
 	}
 
-	// スペースキーでジャンプ
-	if (CheckHitKey(KEY_INPUT_SPACE) && isOnGround && !m_isJumping && !m_isTackling)
+	// スペースキーを押した瞬間のみジャンプ
+	if (keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
 	{
 		m_jumpVelocity = kJumpPower;
 		m_isJumping = true;
@@ -330,32 +335,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		moveDir.z /= len;
 		m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
 		isMoving = true;
-	}
-
-	// 走っていて移動中なら
-	if (isRunning && isMoving) 
-	{
-		m_stamina -= kStaminaRunCost; // スタミナを減らす
-
-		// スタミナが0未満にならないようにする
-		if (m_stamina < 0.0f) m_stamina = 0.0f; 
-	}
-	else
-	{
-		m_stamina += kStaminaRecover; // スタミナを回復
-
-		// スタミナの上限を設定
-		if (m_stamina > kStaminaMax) m_stamina = kStaminaMax; 
-	}
-
-	// スタミナが0以下なら走れない
-	if (m_stamina <= 0.0f) 
-	{
-		m_isCanRun = false; // 走れない状態にする
-	}
-	else if (!m_isCanRun && m_stamina >= kStaminaRunRecover) // スタミナが回復したら
-	{
-		m_isCanRun = true; // 走れる状態に戻す
 	}
 
 	// アニメーションが終了したら
@@ -389,6 +368,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	m_isMoving	   = isMoving;  // 移動中の状態を更新
 	m_isWasRunning = isRunning; // 走っている状態を更新
+
+	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 }
 void Player::Draw()
 {
@@ -424,36 +405,31 @@ void Player::Draw()
 
 	DrawField(); // フィールドの描画
 
-	const int bgWidth = 160;
-	const int bgHeight = 48;
-	int bgX = screenW - kMarginX - bgWidth;
-	int bgY = screenH - kMarginY - bgHeight;
+	// タックルクールタイムゲージ
+	const int tackleGaugeX = 10;
+	const int tackleGaugeY = 50;
+	const int tackleGaugeWidth = 200;
+	const int tackleGaugeHeight = 16;
 
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	DrawBox(bgX, bgY, bgX + bgWidth, bgY + bgHeight, GetColor(0, 0, 0), false);
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	// 枠
+	DrawBox(tackleGaugeX - 1, tackleGaugeY - 1, tackleGaugeX + tackleGaugeWidth + 1, tackleGaugeY + tackleGaugeHeight + 1, GetColor(80, 80, 200), false);
 
-	int ammoX = bgX + 12;
-	int ammoY = bgY + 8;
-	DrawFormatString(ammoX, ammoY, 0xFFFFFF, "Ammo: %d", m_ammo); 
+	// ゲージ本体
+	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(kTackleCooldownMax));
+	int tackleFilledWidth = static_cast<int>(tackleGaugeWidth * tackleRate);
+	int tackleColor = GetColor(80, 180, 255);
+	DrawBox(tackleGaugeX, tackleGaugeY, tackleGaugeX + tackleFilledWidth, tackleGaugeY + tackleGaugeHeight, tackleColor, true);
 
-	DrawFormatString(10, 30, 0x000000, "Stamina: %.1f", m_stamina);
-
-	const int gaugeX = 10;
-	const int gaugeY = 50;
-	const int gaugeWidth = 200;
-	const int gaugeHeight = 16;
-
-	DrawBox(gaugeX - 1, gaugeY - 1, gaugeX + gaugeWidth + 1, gaugeY + gaugeHeight + 1, GetColor(0x80, 0x80, 0x80), false);
-
-	float staminaRate = m_stamina / kStaminaMax;
-	int filledWidth = static_cast<int>(gaugeWidth * staminaRate);
-
-	int r = static_cast<int>((1.0f - staminaRate) * 255);
-	int g = static_cast<int>(staminaRate * 255);
-	int gaugeColor = GetColor(r, g, 0);
-
-	DrawBox(gaugeX, gaugeY, gaugeX + filledWidth, gaugeY + gaugeHeight, gaugeColor, false);
+	// テキスト
+	DrawFormatString(tackleGaugeX, tackleGaugeY - 18, 0xFFFFFF, "Tackle Cooldown");
+	if (m_tackleCooldown > 0) 
+	{
+		DrawFormatString(tackleGaugeX + tackleGaugeWidth + 10, tackleGaugeY, 0xFF8080, "WAIT");
+	}
+	else 
+	{
+		DrawFormatString(tackleGaugeX + tackleGaugeWidth + 10, tackleGaugeY, 0x80FF80, "READY");
+	}
 }
 
 void Player::DrawField()
@@ -652,6 +628,7 @@ VECTOR Player::GetGunRot() const
 	);
 }
 
+// タックル情報を取得
 Player::TackleInfo Player::GetTackleInfo() const
 {
 	TackleInfo info;
@@ -659,10 +636,23 @@ Player::TackleInfo Player::GetTackleInfo() const
 	if (m_isTackling)
 	{
 		float tackleHeight = kTackleHitHeight;
-		info.capA = VAdd(m_modelPos, VGet(0, -tackleHeight * 0.5f, 0));
-		info.capB = VAdd(m_modelPos, VGet(0, tackleHeight * 0.5f, 0));
-		info.radius = kTackleHitRadius; 
-		info.damage = kTackleDamage; 
+		info.tackleId = m_tackleId; // タックルIDをセット
+
+		// プレイヤーの体の中心位置
+		VECTOR bodyCenter = m_modelPos;
+		bodyCenter.y += kModelOffsetY;
+
+		// プレイヤーの前面中心（体の中心から前方へkTackleHitRangeだけ進める）
+		VECTOR frontCenter = VAdd(bodyCenter, VScale(m_tackleDir, kTackleHitRange));
+
+		// カプセルの中心軸を前面中心の上下に伸ばす
+		VECTOR capA = VAdd(frontCenter, VGet(0, -tackleHeight * 0.5f, 0));
+		VECTOR capB = VAdd(frontCenter, VGet(0, tackleHeight * 0.5f, 0));
+
+		info.capA = capA;
+		info.capB = capB;
+		info.radius = kTackleHitRadius;
+		info.damage = kTackleDamage;
 	}
 	return info;
 }

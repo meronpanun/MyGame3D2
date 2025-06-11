@@ -21,7 +21,7 @@ namespace
 	constexpr VECTOR kHeadShotPosition = { 0.0f, 160.0f, -6.0f };
 
     // ヘッドショットの判定半径
-    constexpr float kHeadRadius = 12.5f;
+    constexpr float kHeadRadius = 13.5f;
 
 	// 敵の初期体力
 	constexpr float kInitialHP = 200.0f;
@@ -104,7 +104,8 @@ EnemyNormal::EnemyNormal() :
     m_aabbMax{ kAABBMax },
     m_headPos{ kHeadShotPosition },
     m_headRadius(kHeadRadius),
-	m_isTackleHit(false)
+	m_isTackleHit(false),
+    m_lastTackleId(-1)
 {
     // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
@@ -136,7 +137,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
 
     // タックル当たり判定の追加
-    if (tackleInfo.isTackling && m_hp > 0.0f && !m_isTackleHit)
+    if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
         // 敵のカプセル情報
         VECTOR boxMin = {
@@ -159,7 +160,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             capA, capB, capRadius))
         {
             TakeTackleDamage(tackleInfo.damage);
-            m_isTackleHit = true; // 1回だけダメージ
+            m_lastTackleId = tackleInfo.tackleId; // このタックルIDでダメージを受けたことを記録
         }
     }
 

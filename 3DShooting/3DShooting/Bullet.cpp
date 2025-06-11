@@ -7,7 +7,7 @@ namespace
 	// 弾の半径
 	constexpr float kBulletRadius = 2.0f;
 	// 弾の速度
-	constexpr float kBulletSpeed = 35.0f;
+	constexpr float kBulletSpeed = 50.0f;
 
 	// 画面外に出たら非アクティブにする範囲
 	constexpr int kScreenBoundary = 1000;

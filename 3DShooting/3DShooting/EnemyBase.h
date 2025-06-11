@@ -77,7 +77,7 @@ public:
 	/// <summary>
 	/// タックルでダメージを受けたかどうかのフラグを取得
 	/// </summary>
-	virtual void ResetTackleHitFlag() { m_isTackleHit = false; }
+	virtual void ResetTackleHitFlag() abstract;
 
 protected:
 	// ダメージ計算用

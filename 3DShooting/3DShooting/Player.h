@@ -54,14 +54,23 @@ public:
 	/// <returns>ショット可能ならtrue</returns>
 	bool HasShot(); 
 
+	/// <summary>
+	/// タックル情報構造体
+	/// </summary>
 	struct TackleInfo 
 	{
-		bool isTackling = false;
-		VECTOR capA = { 0,0,0 };
-		VECTOR capB = { 0,0,0 };
-		float radius = 0.0f;
-		float damage = 0.0f;
+		VECTOR capA		  = { 0,0,0 }; // タックル判定カプセルのA点
+		VECTOR capB		  = { 0,0,0 }; // タックル判定カプセルのB点
+		float  radius	  = 0.0f;      // タックル判定カプセルの半径
+		float  damage	  = 0.0f;	   // タックルのダメージ量
+		bool   isTackling = false;	   // タックル中かどうか
+		int    tackleId   = 0;         // タックルID
 	};
+
+	/// <summary>
+	/// タックル情報を取得する
+	/// </summary>
+	/// <returns>タックル情報</returns>
 	TackleInfo GetTackleInfo() const;
 
 private:
@@ -76,10 +85,10 @@ private:
 	/// </summary>
 	struct AnimData
 	{
-		int   attachNo = -1;
-		float count = 0.0f;
-		bool  isLoop = false;
-		bool  isEnd = false;
+		int   attachNo = -1;    // アタッチされているアニメーションの番号
+		float count    = 0.0f;  // アニメーションのカウント
+		bool  isLoop   = false; // ループアニメーションかどうか
+		bool  isEnd    = false; // アニメーションが終了したかどうか
 	};
 
 	/// <summary>
@@ -129,25 +138,25 @@ private:
 	AnimData m_nextAnimData;
 	AnimData m_prevAnimData;
 
+	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
 	
 	float m_animBlendRate; // アニメーションのブレンド率
-	float m_stamina;	   // プレイヤーのスタミナ
 	float m_health;        // プレイヤーの体力
 	float m_jumpVelocity;  // ジャンプの速度
 
-	int   m_modelHandle;   // プレイヤーモデルのハンドル
-	int   m_swordHandle;   // 剣のハンドル
-	int   m_shootSEHandle; // シュートのSEハンドル
-	int   m_shotCooldown;  // ショットのクールダウンタイマー
-	int   m_ammo;		   // プレイヤーの弾薬数	
-	int   m_tackleFrame;   // タックルのフレーム数
+	int   m_modelHandle;    // プレイヤーモデルのハンドル
+	int   m_swordHandle;    // 剣のハンドル
+	int   m_shootSEHandle;  // シュートのSEハンドル
+	int   m_shotCooldown;   // ショットのクールダウンタイマー
+	int   m_ammo;		    // プレイヤーの弾薬数	
+	int   m_tackleFrame;    // タックルのフレーム数
+	int   m_tackleCooldown; // タックルのクールダウンタイマー
+	int   m_tackleId;       // タックルID
 
 	bool  m_isMoving;	   // プレイヤーが移動中かどうか
 	bool  m_isJumping;	   // プレイヤーがジャンプ中かどうか
 	bool  m_isWasRunning;  // 前回の移動状態が走っていたかどうか
-	bool  m_isCanRun;	   // プレイヤーが走れるかどうか
 	bool  m_hasShot;       // プレイヤーがショット可能かどうか
-	bool  m_isLockOn;      // ロックオン状態かどうか
 	bool  m_isTackling;    // タックル中かどうか
 };
 

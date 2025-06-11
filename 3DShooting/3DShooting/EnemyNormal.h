@@ -48,6 +48,11 @@ public:
     VECTOR GetAABBMinWorld() const override { return VAdd(m_pos, m_aabbMin); }
     VECTOR GetAABBMaxWorld() const override { return VAdd(m_pos, m_aabbMax); }
 
+    /// <summary>
+	/// タックルダメージを受ける処理
+    /// </summary>
+    void ResetTackleHitFlag() { m_isTackleHit = false; }
+
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
@@ -56,5 +61,7 @@ private:
     float m_headRadius; // ヘッドショット判定用半径  
 
     bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
+
+	int m_lastTackleId; // 最後にタックルを受けたID
 };
 
