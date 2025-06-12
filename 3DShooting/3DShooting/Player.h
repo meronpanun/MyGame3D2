@@ -103,19 +103,19 @@ private:
 	///  アニメーションの更新
 	/// </summary>
 	/// <param name="data">アニメーションデータ</param>
-	void UpdateAnime(AnimData& data); 
+//	void UpdateAnime(AnimData& data); 
 
 	/// <summary>
 	///  アニメーションのブレンドを更新
 	/// </summary>
-	void UpdateAnimeBlend(); 
+//	void UpdateAnimeBlend(); 
 
 	/// <summary>
 	/// アニメーションを変更する
 	/// </summary>
 	/// <param name="animName">アニメーション名</param>
 	/// <param name="isLoop">ループするかどうか</param>
-	void ChangeAnime(const char* animName, bool isLoop); 
+//	void ChangeAnime(const char* animName, bool isLoop); 
 
 	/// <summary>
 	/// 銃の位置を取得する
@@ -147,7 +147,6 @@ private:
 	int   m_modelHandle;    // プレイヤーモデルのハンドル
 	int   m_swordHandle;    // 剣のハンドル
 	int   m_shootSEHandle;  // シュートのSEハンドル
-	int   m_shotCooldown;   // ショットのクールダウンタイマー
 	int   m_ammo;		    // プレイヤーの弾薬数	
 	int   m_tackleFrame;    // タックルのフレーム数
 	int   m_tackleCooldown; // タックルのクールダウンタイマー

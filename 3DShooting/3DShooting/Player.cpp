@@ -13,31 +13,24 @@
 
 namespace
 {
-	// アニメーション名
-	const char* const kIdleAnimName = "Pistol_IDLE"; // 待機
-	const char* const kShotAnimName = "Pistol_FIRE"; // 発射
-	const char* const kWalkAnimName = "Pistol_WALK"; // 歩行
-	const char* const kRunAnimName  = "Pistol_RUN";  // 走行
-	const char* const kJumpAnimName = "Pistol_JUMP"; // ジャンプ
-
 	constexpr float kMoveSpeed = 3.0f; // 移動速度
 	constexpr float kRunSpeed  = 6.0f; // 走る速度
 
 	// モデルのオフセット
-	constexpr float kModelOffsetX = 2.0f; 
-	constexpr float kModelOffsetY = 30.0f;
-	constexpr float kModelOffsetZ = 21.0f;
+	constexpr float kModelOffsetX = 80.0f; 
+	constexpr float kModelOffsetY = 20.0f;
+	constexpr float kModelOffsetZ = 60.0f;
 
 	// アニメーションのブレンド率
 	constexpr float kAnimBlendRate = 1.0f; 
 
 	// 銃のオフセット
-	constexpr float kGunOffsetX = 10.0f;
-	constexpr float kGunOffsetY = 58.0f;
-	constexpr float kGunOffsetZ = 12.0f;
+	constexpr float kGunOffsetX = -55.0f;
+	constexpr float kGunOffsetY = 55.0f;
+	constexpr float kGunOffsetZ = 10.0f;
 
 	// 初期弾薬数
-	constexpr int kInitialAmmo = 700;
+	constexpr int kInitialAmmo = 7000;
 
 	// UI関連
 	constexpr int kMarginX    = 20; 
@@ -70,7 +63,6 @@ Player::Player() :
 	m_isMoving(false),
 	m_isWasRunning(false),
 	m_ammo(kInitialAmmo),
-	m_shotCooldown(0),
 	m_pos(VGet(0, 0, 0)),
 	m_health(100.0f),
 	m_isJumping(false),
@@ -83,10 +75,10 @@ Player::Player() :
 	m_tackleId(0)
 {
 	// プレイヤーモデルの読み込み
-	m_modelHandle = MV1LoadModel("data/model/Player.mv1");
+	m_modelHandle = MV1LoadModel("data/model/M4A1.mv1");
 	assert(m_modelHandle != -1);
 
-	// シールドの読み込み
+	// 剣の読み込み
 	m_swordHandle = MV1LoadModel("data/model/Sword.mv1");
 	assert(m_swordHandle != -1);
 
@@ -110,11 +102,9 @@ void Player::Init()
 	m_pCamera->Init(); // カメラの初期化
 	m_pEffect->Init(); // エフェクトの初期化
 
-	// モデルの初期位置と回転
-	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, 0.0f, 0.0f));
+	// モデルの大きさ
+	MV1SetScale(m_modelHandle, VGet(10.0f, 10.0f, 5.0f));
 
-	// アニメーションデータの初期化
-	AttachAnime(m_nextAnimData, kIdleAnimName, true);
 	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
 }
 
@@ -129,9 +119,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	m_pCamera->Update(); // カメラの更新
 	m_pEffect->Update(); // エフェクトの更新
 
-	UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
-	UpdateAnime(m_nextAnimData); //	次のアニメーションデータを更新
-	UpdateAnimeBlend();			 // アニメーションのブレンドを更新
+	//UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
+	//UpdateAnime(m_nextAnimData); //	次のアニメーションデータを更新
+	//UpdateAnimeBlend();			 // アニメーションのブレンドを更新
 
 	// モデルの位置と回転を更新
 	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
@@ -145,13 +135,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	MV1SetPosition(m_modelHandle, modelPos);
 
 	// モデルの回転を設定
-	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
-
-	// ショットクールダウンがある場合
-	if (m_shotCooldown > 0)
-	{
-		m_shotCooldown--;
-	}
+	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f));
 
 	// タックルクールタイム減少
 	if (m_tackleCooldown > 0)
@@ -172,12 +156,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃(タックル中は射撃不可)
-	if (!m_isTackling && Mouse::IsTriggerLeft() && m_ammo > 0 && m_shotCooldown == 0)
+	if (!m_isTackling && Mouse::IsPressLeft() && m_ammo > 0)
 	{
 		Shoot();  // 射撃処理
 		m_ammo--; // 弾薬を減らす
-		m_shotCooldown = 10; // ショットクールダウンを設定
-		ChangeAnime(kShotAnimName, false); // 発射アニメーションに変更
 	}
 
 	// 地面にいるかどうかの判定
@@ -354,34 +336,34 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			isMoving = true;
 		}
 
-		// アニメーションが終了したら
-		if (m_nextAnimData.isEnd)
-		{
-			if (m_isMoving)
-			{
-				// 移動アニメーションに変更
-				ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
-			}
-			else
-			{
-				// 待機アニメーションに変更
-				ChangeAnime(kIdleAnimName, true);
-			}
-		}
+		//// アニメーションが終了したら
+		//if (m_nextAnimData.isEnd)
+		//{
+		//	if (m_isMoving)
+		//	{
+		//		// 移動アニメーションに変更
+		//		ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
+		//	}
+		//	else
+		//	{
+		//		// 待機アニメーションに変更
+		//		ChangeAnime(kIdleAnimName, true);
+		//	}
+		//}
 
 		// 移動中で前回は移動していなかった場合
-		if (isMoving && !m_isMoving)
-		{
-			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-		}
-		else if (!isMoving && m_isMoving)
-		{
-			ChangeAnime(kIdleAnimName, true);
-		}
-		else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
-		{
-			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-		}
+		//if (isMoving && !m_isMoving)
+		//{
+		//	ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+		//}
+		//else if (!isMoving && m_isMoving)
+		//{
+		//	ChangeAnime(kIdleAnimName, true);
+		//}
+		//else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
+		//{
+		//	ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+		//}
 
 		m_isMoving = isMoving;  // 移動中の状態を更新
 		m_isWasRunning = isRunning; // 走っている状態を更新
@@ -392,6 +374,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 void Player::Draw()
 {
+	DrawField(); // フィールドの描画
+
 	// プレイヤーモデルの描画
 	MV1DrawModel(m_modelHandle); 
 
@@ -400,6 +384,18 @@ void Player::Draw()
 
 	int screenW = Game::kScreenWidth;
 	int screenH = Game::kScreenHeigth;
+
+	// 残弾数の表示
+	int ammoFontSize = 32;
+	int ammoX = screenW - 200;
+	int ammoY = screenH - 60;
+	int ammoColor = GetColor(255, 255, 80);
+
+	SetFontSize(ammoFontSize);
+	DrawFormatString(ammoX, ammoY, ammoColor, "AMMO: %d", m_ammo);
+	SetFontSize(16); // フォントサイズを元に戻す
+
+
 
 	float swordScreenX = -25.0f;
 	float swordScreenY = -30;
@@ -421,8 +417,6 @@ void Player::Draw()
 	m_pCamera->SetCameraToDxLib();
 
 	m_pEffect->Draw(); // エフェクトの描画
-
-	DrawField(); // フィールドの描画
 
 	// タックルクールタイムゲージ
 	const int tackleGaugeX = 10;
@@ -499,6 +493,7 @@ std::vector<Bullet>& Player::GetBullets()
 	return m_bullets;
 }
 
+// プレイヤーがショット可能かどうか
 bool Player::HasShot()
 {
 	bool shot = m_hasShot;
@@ -506,7 +501,8 @@ bool Player::HasShot()
 	return shot; // 撃ったかどうかを返す
 }
 
-void Player::Shoot()
+// プレイヤーが弾を撃つ処理
+void Player::Shoot() 
 {
 	// 銃の位置を取得
 	VECTOR gunPos = GetGunPos();
@@ -544,80 +540,80 @@ void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop)
 }
 
 // アニメーションの更新
-void Player::UpdateAnime(AnimData& data) 
-{
-	if (data.attachNo == -1) return; // アタッチされていない場合は何もしない
-
-	float animSpeed = 1.0f;
-
-	data.count += animSpeed;
-
-	// アニメーションの総時間を取得
-	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo); 
-	
-	// ループアニメーションの場合
-	if (data.isLoop)
-	{
-		// アニメーションのカウントが総時間を超えた場合、ループさせる
-		while (data.count > totalTime)  
-		{
-			data.count -= totalTime; // 総時間を引いてループ
-		}
-	}
-	else
-	{
-		if (data.count > totalTime)
-		{
-			data.count = totalTime; // アニメーションのカウントを総時間に制限
-			data.isEnd = true;      // アニメーションが終了したフラグを立てる
-		}
-	}
-
-	// アニメーションの時間を設定
-	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count); 
-}
+//void Player::UpdateAnime(AnimData& data) 
+//{
+//	if (data.attachNo == -1) return; // アタッチされていない場合は何もしない
+//
+//	float animSpeed = 1.0f;
+//
+//	data.count += animSpeed;
+//
+//	// アニメーションの総時間を取得
+//	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo); 
+//	
+//	// ループアニメーションの場合
+//	if (data.isLoop)
+//	{
+//		// アニメーションのカウントが総時間を超えた場合、ループさせる
+//		while (data.count > totalTime)  
+//		{
+//			data.count -= totalTime; // 総時間を引いてループ
+//		}
+//	}
+//	else
+//	{
+//		if (data.count > totalTime)
+//		{
+//			data.count = totalTime; // アニメーションのカウントを総時間に制限
+//			data.isEnd = true;      // アニメーションが終了したフラグを立てる
+//		}
+//	}
+//
+//	// アニメーションの時間を設定
+//	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count); 
+//}
 
 // アニメーションのブレンドを更新
-void Player::UpdateAnimeBlend() 
-{
-	// アタッチされていない場合は何もしない
-	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return; 
-
-	// アニメーションのブレンド率を更新
-	m_animBlendRate += 1.0f / 8.0f; 
-
-	// ブレンド率が1.0を超えたら
-	if (m_animBlendRate > 1.0f)
-	{
-		m_animBlendRate = 1.0f; // 1.0に制限
-	}
-
-	// 前のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-	// 次のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate); 
-}
+//void Player::UpdateAnimeBlend() 
+//{
+//	// アタッチされていない場合は何もしない
+//	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return; 
+//
+//	// アニメーションのブレンド率を更新
+//	m_animBlendRate += 1.0f / 8.0f; 
+//
+//	// ブレンド率が1.0を超えたら
+//	if (m_animBlendRate > 1.0f)
+//	{
+//		m_animBlendRate = 1.0f; // 1.0に制限
+//	}
+//
+//	// 前のアニメーションのブレンド率を設定
+//	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
+//	// 次のアニメーションのブレンド率を設定
+//	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate); 
+//}
 
 // アニメーションの変更
-void Player::ChangeAnime(const char* animName, bool isLoop) 
-{
-	// 前のアニメーションを解除
-	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
-
-	// 前のアニメーションデータを保存
-	m_prevAnimData = m_nextAnimData; 
-
-	// 次のアニメーションをアタッチ
-	AttachAnime(m_nextAnimData, animName, isLoop); 
-
-	// アニメーションのブレンド率をリセット
-	m_animBlendRate = 0.0f; 
-
-	// 前のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-	// 次のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
-}
+//void Player::ChangeAnime(const char* animName, bool isLoop) 
+//{
+//	// 前のアニメーションを解除
+//	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
+//
+//	// 前のアニメーションデータを保存
+//	m_prevAnimData = m_nextAnimData; 
+//
+//	// 次のアニメーションをアタッチ
+//	AttachAnime(m_nextAnimData, animName, isLoop); 
+//
+//	// アニメーションのブレンド率をリセット
+//	m_animBlendRate = 0.0f; 
+//
+//	// 前のアニメーションのブレンド率を設定
+//	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
+//	// 次のアニメーションのブレンド率を設定
+//	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
+//}
 
 // 銃の位置を取得
 VECTOR Player::GetGunPos() const 
