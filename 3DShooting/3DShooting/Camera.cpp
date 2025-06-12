@@ -15,10 +15,15 @@ Camera::Camera() :
     m_pos(VGet(0, 0, 0)),
     m_target(VGet(0, 0, 0)),
     m_offset(VGet(kCameraXPos, kCameraYPos, kCameraZPos)),
+	m_defaultOffset(VGet(kCameraXPos, kCameraYPos, kCameraZPos)),
     m_playerPos(VGet(0, 0, 0)),
     m_yaw(DX_PI_F),
     m_pitch(0.0f),
-    m_sensitivity(0.1f)
+    m_sensitivity(0.1f),
+    m_fov(DX_PI_F * 0.5f),
+    m_defaultFov(DX_PI_F * 0.5f),
+	m_targetFov(DX_PI_F * 0.5f),
+    m_fovLerpSpeed(0.15f) 
 {
 }
 
@@ -30,7 +35,7 @@ void Camera::Init()
 {
     // カメラの設定
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
-    SetupCamera_Perspective(DX_PI_F / 3);
+    SetupCamera_Perspective(m_fov);
     SetCameraNearFar(kCameraNear, kCameraFar);
 }
 
@@ -64,8 +69,12 @@ void Camera::Update()
     m_pos    = VAdd(m_playerPos, rotatedOffset);
     m_target = VAdd(m_pos, forward);
 
+    // FOVを滑らかに補間
+    m_fov += (m_targetFov - m_fov) * m_fovLerpSpeed;
+
     // カメラの設定を更新
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
+    SetupCamera_Perspective(m_fov); // FOVを毎フレーム反映
 }
 
 // カメラの感度を設定
@@ -74,7 +83,34 @@ void Camera::SetSensitivity(float sensitivity)
     m_sensitivity = sensitivity;
 }
 
+// カメラの位置を設定
 void Camera::SetCameraToDxLib()
 {
-    SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
+    // カメラの位置と注視点を設定
+	SetCameraPositionAndTarget_UpVecY(m_pos, m_target); 
+}
+
+void Camera::SetFOV(float fov)
+{
+    m_targetFov = fov;
+}
+
+float Camera::GetFOV() const
+{
+    return m_fov;
+}
+
+void Camera::ResetFOV()
+{
+    m_targetFov = m_defaultFov;
+}
+
+void Camera::ResetOffset()
+{
+	m_offset = m_defaultOffset;
+}
+
+void Camera::SetTargetFOV(float fov)
+{
+	m_targetFov = fov;
 }

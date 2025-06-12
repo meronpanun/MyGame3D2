@@ -26,7 +26,7 @@ namespace
 	// モデルのオフセット
 	constexpr float kModelOffsetX = 2.0f; 
 	constexpr float kModelOffsetY = 30.0f;
-	constexpr float kModelOffsetZ = 25.0f;
+	constexpr float kModelOffsetZ = 21.0f;
 
 	// アニメーションのブレンド率
 	constexpr float kAnimBlendRate = 1.0f; 
@@ -134,21 +134,21 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	UpdateAnimeBlend();			 // アニメーションのブレンドを更新
 
 	// モデルの位置と回転を更新
-	VECTOR modelOffset    = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
-	MATRIX rotYaw         = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch	      = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot       = MMult(rotPitch, rotYaw);
+	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
+	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot = MMult(rotPitch, rotYaw);
 	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
+	VECTOR modelPos = VAdd(m_modelPos, rotModelOffset);
 
 	// モデルの位置を設定
-	MV1SetPosition(m_modelHandle, modelPos); 
+	MV1SetPosition(m_modelHandle, modelPos);
 
 	// モデルの回転を設定
-	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f)); 
+	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f));
 
 	// ショットクールダウンがある場合
-	if (m_shotCooldown > 0) 
+	if (m_shotCooldown > 0)
 	{
 		m_shotCooldown--;
 	}
@@ -181,18 +181,18 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// 地面にいるかどうかの判定
-	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f); 
+	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f);
 
 	// 右クリックでタックル開始
 	if (!m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
 	{
-		m_isTackling     = true;
-		m_tackleFrame    = kTackleDuration;
+		m_isTackling = true;
+		m_tackleFrame = kTackleDuration;
 		m_tackleCooldown = kTackleCooldownMax; // クールタイム開始
 		m_tackleId++; // タックルごとにIDを更新
 
 		// カメラの向きで3D正規化ベクトルを作成
-		float yaw   = m_pCamera->GetYaw();
+		float yaw = m_pCamera->GetYaw();
 		float pitch = m_pCamera->GetPitch();
 
 		// タックル方向を計算
@@ -202,175 +202,194 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			cosf(pitch) * cosf(yaw)
 		);
 
-	//	ChangeAnime(kTackleAnimName, false); // タックルアニメーション
+		//	ChangeAnime(kTackleAnimName, false); // タックルアニメーション
+
+		// タックル開始時にFOVを広げ、カメラを後ろに引く
+		if (m_pCamera)
+		{
+			m_pCamera->SetTargetFOV(100.0f * DX_PI_F / 180.0f);
+			VECTOR offset = m_pCamera->GetOffset();
+			offset.z = 30.0f;
+			m_pCamera->SetOffset(offset);
+		}
 	}
 
-	// タックル中の処理
-	if (m_isTackling)
-	{
-		m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, kTackleSpeed));
-
-		// 地面より下に行かないように制限
-		if (m_modelPos.y < kGroundY)
+		// タックル中の処理
+		if (m_isTackling)
 		{
-			m_modelPos.y = kGroundY;
-		}
+			m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, kTackleSpeed));
 
-		// タックル判定情報を作成
-		TackleInfo tackleInfo = GetTackleInfo();
+			// 地面より下に行かないように制限
+			if (m_modelPos.y < kGroundY)
+			{
+				m_modelPos.y = kGroundY;
+			}
 
-		// 各敵にタックル情報を渡してUpdate
-		for (EnemyBase* enemy : enemyList)
-		{
-			// 敵がnullptrの場合はスキップ
-			if (!enemy) continue; 
+			// タックル判定情報を作成
+			TackleInfo tackleInfo = GetTackleInfo();
 
-			// 敵の更新処理
-			enemy->Update(m_bullets, tackleInfo); 
-		}
+			// 各敵にタックル情報を渡してUpdate
+			for (EnemyBase* enemy : enemyList)
+			{
+				// 敵がnullptrの場合はスキップ
+				if (!enemy) continue;
+
+				// 敵の更新処理
+				enemy->Update(m_bullets, tackleInfo);
+			}
 
 #ifdef _DEBUG
-		// タックル判定カプセルのデバッグ描画
-		DrawCapsule3D(
-			tackleInfo.capA,
-			tackleInfo.capB,
-			tackleInfo.radius,
-			16,
-			GetColor(0, 255, 0),
-			GetColor(128, 255, 128),
-			false
-		);
+			// タックル判定カプセルのデバッグ描画
+			DrawCapsule3D(
+				tackleInfo.capA,
+				tackleInfo.capB,
+				tackleInfo.radius,
+				16,
+				GetColor(0, 255, 0),
+				GetColor(128, 255, 128),
+				false
+			);
 #endif
-		m_tackleFrame--;
-		// タックル終了判定
-		if (m_tackleFrame <= 0)
-		{
-			m_isTackling = false;
-			// タックル後のアニメーション遷移
-			/*if (m_isMoving)
+			m_tackleFrame--;
+			// タックル終了判定
+			if (m_tackleFrame <= 0)
 			{
+				m_isTackling = false;
+
+				// タックル終了時にFOVとカメラオフセットを元に戻す
+				if (m_pCamera)
+				{
+					m_pCamera->ResetFOV();
+					m_pCamera->ResetOffset();
+				}
+
+				// タックル後のアニメーション遷移
+				/*if (m_isMoving)
+				{
+					ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
+				}
+				else
+				{
+					ChangeAnime(kIdleAnimName, true);
+				}*/
+			}
+			// タックル中は他の移動・ジャンプを無効化
+			return;
+		}
+
+		// タックル中でなければ bullets のみ渡す
+		TackleInfo tackleInfo{};
+		for (EnemyBase* enemy : enemyList)
+		{
+			if (!enemy) continue;
+			enemy->Update(m_bullets, tackleInfo);
+		}
+	
+		// 弾の更新
+		Bullet::UpdateBullets(m_bullets);
+
+		// 走るキー入力
+		const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
+		bool isRunning = wantRun; // 走っているかどうかのフラグ
+
+		float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 移動速度の設定
+		bool isMoving = false; // 移動中かどうかのフラグ
+
+		// 移動方向の初期化s
+		VECTOR moveDir = VGet(0, 0, 0);
+
+		// キー入力による移動方向の設定
+		if (CheckHitKey(KEY_INPUT_W))
+		{
+			moveDir.x += sinf(m_pCamera->GetYaw());
+			moveDir.z += cosf(m_pCamera->GetYaw());
+		}
+		if (CheckHitKey(KEY_INPUT_S))
+		{
+			moveDir.x -= sinf(m_pCamera->GetYaw());
+			moveDir.z -= cosf(m_pCamera->GetYaw());
+		}
+		if (CheckHitKey(KEY_INPUT_A))
+		{
+			moveDir.x += sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
+			moveDir.z += cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
+		}
+		if (CheckHitKey(KEY_INPUT_D))
+		{
+			moveDir.x += sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
+			moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
+		}
+
+		// スペースキーを押した瞬間のみジャンプ
+		if (keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
+		{
+			m_jumpVelocity = kJumpPower;
+			m_isJumping = true;
+			//ChangeAnime(kJumpAnimName, false);
+		}
+
+		// ジャンプ中または空中なら重力適用
+		if (m_isJumping || !isOnGround)
+		{
+			m_modelPos.y += m_jumpVelocity; // ジャンプの速度を適用
+			m_jumpVelocity -= kGravity;     // 重力を適用
+
+			// 着地判定
+			if (m_modelPos.y <= kGroundY)
+			{
+				m_modelPos.y = kGroundY; // 地面に着地
+				m_jumpVelocity = 0.0f;   // ジャンプ速度をリセット
+				m_isJumping = false;     // ジャンプ状態を解除
+			}
+		}
+
+		// 移動方向がある場合
+		if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+		{
+			// 移動方向の長さを計算
+			float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
+			moveDir.x /= len;
+			moveDir.z /= len;
+			m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
+			isMoving = true;
+		}
+
+		// アニメーションが終了したら
+		if (m_nextAnimData.isEnd)
+		{
+			if (m_isMoving)
+			{
+				// 移動アニメーションに変更
 				ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
-			}	
+			}
 			else
 			{
+				// 待機アニメーションに変更
 				ChangeAnime(kIdleAnimName, true);
-			}*/
+			}
 		}
-		// タックル中は他の移動・ジャンプを無効化
-		return;
-	}
 
-	// タックル中でなければ bullets のみ渡す
-	TackleInfo tackleInfo{};
-	for (EnemyBase* enemy : enemyList)
-	{
-		if (!enemy) continue;
-		enemy->Update(m_bullets, tackleInfo);
-	}
-
-	// 弾の更新
-	Bullet::UpdateBullets(m_bullets);
-
-	// 走るキー入力
-	const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT); 
-	bool isRunning = wantRun; // 走っているかどうかのフラグ
-
-	float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 移動速度の設定
-	bool isMoving   = false; // 移動中かどうかのフラグ
-
-	// 移動方向の初期化s
-	VECTOR moveDir = VGet(0, 0, 0); 
-
-	// キー入力による移動方向の設定
-	if (CheckHitKey(KEY_INPUT_W))
-	{
-		moveDir.x += sinf(m_pCamera->GetYaw());
-		moveDir.z += cosf(m_pCamera->GetYaw());
-	}
-	if (CheckHitKey(KEY_INPUT_S))
-	{
-		moveDir.x -= sinf(m_pCamera->GetYaw());
-		moveDir.z -= cosf(m_pCamera->GetYaw());
-	}
-	if (CheckHitKey(KEY_INPUT_A))
-	{
-		moveDir.x += sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
-		moveDir.z += cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
-	}
-	if (CheckHitKey(KEY_INPUT_D))
-	{
-		moveDir.x += sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
-		moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
-	}
-
-	// スペースキーを押した瞬間のみジャンプ
-	if (keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
-	{
-		m_jumpVelocity = kJumpPower;
-		m_isJumping = true;
-		//ChangeAnime(kJumpAnimName, false);
-	}
-
-	// ジャンプ中または空中なら重力適用
-	if (m_isJumping || !isOnGround)
-	{
-		m_modelPos.y += m_jumpVelocity; // ジャンプの速度を適用
-		m_jumpVelocity -= kGravity;     // 重力を適用
-
-		// 着地判定
-		if (m_modelPos.y <= kGroundY)
+		// 移動中で前回は移動していなかった場合
+		if (isMoving && !m_isMoving)
 		{
-			m_modelPos.y = kGroundY; // 地面に着地
-			m_jumpVelocity = 0.0f;   // ジャンプ速度をリセット
-			m_isJumping = false;     // ジャンプ状態を解除
+			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
 		}
-	}
-
-	// 移動方向がある場合
-	if (moveDir.x != 0.0f || moveDir.z != 0.0f) 
-	{
-		// 移動方向の長さを計算
-		float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z); 
-		moveDir.x /= len;
-		moveDir.z /= len;
-		m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
-		isMoving = true;
-	}
-
-	// アニメーションが終了したら
-	if (m_nextAnimData.isEnd)  
-	{
-		if (m_isMoving)
+		else if (!isMoving && m_isMoving)
 		{
-			// 移動アニメーションに変更
-			ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true); 
-		}
-		else
-		{
-			// 待機アニメーションに変更
 			ChangeAnime(kIdleAnimName, true);
 		}
+		else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
+		{
+			ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
+		}
+
+		m_isMoving = isMoving;  // 移動中の状態を更新
+		m_isWasRunning = isRunning; // 走っている状態を更新
+
+		std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 	}
 
-	// 移動中で前回は移動していなかった場合
-	if (isMoving && !m_isMoving)
-	{
-		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-	}
-	else if (!isMoving && m_isMoving) 
-	{
-		ChangeAnime(kIdleAnimName, true);
-	}
-	else if (isMoving && m_isMoving && (isRunning != m_isWasRunning)) 
-	{
-		ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true); 
-	}
 
-	m_isMoving	   = isMoving;  // 移動中の状態を更新
-	m_isWasRunning = isRunning; // 走っている状態を更新
-
-	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
-}
 void Player::Draw()
 {
 	// プレイヤーモデルの描画
@@ -382,16 +401,16 @@ void Player::Draw()
 	int screenW = Game::kScreenWidth;
 	int screenH = Game::kScreenHeigth;
 
-	float shieldScreenX = -25.0f;
-	float shieldScreenY = -30;
-	float shieldScreenZ = 55.0f;
+	float swordScreenX = -25.0f;
+	float swordScreenY = -30;
+	float swordScreenZ = 35.0f;
 
-	VECTOR camPos = VGet(0, 0, -shieldScreenZ); // カメラの位置
+	VECTOR camPos = VGet(0, 0, -swordScreenZ); // カメラの位置
 	VECTOR camTgt = VGet(0, 0, 0);			    // カメラのターゲット位置
 	SetCameraPositionAndTarget_UpVecY(camPos, camTgt); 
 
 	// 剣の位置
-	MV1SetPosition(m_swordHandle, VGet(shieldScreenX, shieldScreenY, 0.0f));
+	MV1SetPosition(m_swordHandle, VGet(swordScreenX, swordScreenY, 0.0f));
 
 	MV1SetRotationXYZ(m_swordHandle, VGet(0.0f, 200.0f, 0.0f)); // 剣の回転
 	MV1SetScale(m_swordHandle, VGet(0.5f, 0.5f, 0.5f));		    // 剣のスケール

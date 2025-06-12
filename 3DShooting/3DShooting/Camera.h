@@ -36,6 +36,12 @@ public:
 	VECTOR GetOffset() const { return m_offset; }
 
 	/// <summary>
+	/// カメラのオフセットを設定
+	/// </summary>
+	/// <param name="offset">カメラのオフセット</param>
+	void SetOffset(const VECTOR& offset) { m_offset = offset; }
+
+	/// <summary>
 	/// カメラの位置を設定
 	/// </summary>
 	/// <param name="pos">カメラの位置</param>
@@ -63,17 +69,42 @@ public:
 	/// <returns>カメラのピッチ角度</returns>
 	float GetPitch() const { return m_pitch; }
 
-	void SetCameraToDxLib();
+	/// <summary>
+	/// カメラの位置と注視点をDxLibに設定
+	/// </summary>
+	void SetCameraToDxLib(); 
+
+	/// <summary>
+	/// カメラの視野角(FOV)を設定
+	/// </summary>
+	/// <param name="fov">視野角</param>
+	void SetFOV(float fov);
+
+	/// <summary>
+	/// 現在の視野角(FOV)を取得
+	/// </summary>
+	/// <returns>現在の視野角(FOV)</returns>
+	float GetFOV() const;
+	void ResetFOV();             // デフォルトFOVに戻す
+
+	void ResetOffset();         // デフォルトオフセットに戻す
+
+	void SetTargetFOV(float fov); // 目標FOVをセット
 
 private:
-	VECTOR m_pos;	    // カメラの位置
-	VECTOR m_target;    // カメラの注視点
-	VECTOR m_offset;    // カメラのオフセット
-	VECTOR m_playerPos; // プレイヤーの位置
+	VECTOR m_pos;			// カメラの位置
+	VECTOR m_target;		// カメラの注視点
+	VECTOR m_offset;		// カメラのオフセット
+	VECTOR m_defaultOffset; // デフォルトのオフセット
+	VECTOR m_playerPos;		// プレイヤーの位置
 
 	// カメラの回転角度
 	float m_yaw;
 	float m_pitch;
 	float m_sensitivity;
+	float m_fov;		// カメラの視野角
+	float m_defaultFov; // デフォルトのFOV
+	float m_targetFov; // 目標FOV
+	float m_fovLerpSpeed; // FOVの補間速度
 };
 
