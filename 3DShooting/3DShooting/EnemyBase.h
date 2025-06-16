@@ -111,8 +111,8 @@ protected:
 
 	HitPart m_lastHitPart; // 最後に当たった部位
 
-	int   m_modelHandle;      // モデルハンドル
-	int   m_hitDisplayTimer;  // ヒット表示タイマー
+	int   m_modelHandle;       // モデルハンドル
+	int   m_hitDisplayTimer;   // ヒット表示タイマー
 	int   m_attackCooldown;    // 攻撃クールダウンタイマー
 	int   m_attackCooldownMax; // 攻撃クールダウンの最大値
 

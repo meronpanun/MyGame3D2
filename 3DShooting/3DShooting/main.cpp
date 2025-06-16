@@ -7,6 +7,13 @@
 // プログラムは WinMain から始まります
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	/*コンソールDebug用*/
+#ifdef _DEBUG
+	AllocConsole();                                        
+	FILE* out = 0; freopen_s(&out, "CON", "w", stdout); // stdout
+	FILE* in  = 0; freopen_s(&in, "CON", "r", stdin);   // stdin
+#endif
+
 	// フルスクリーンではなく、ウインドウモードで開くようにする
 	ChangeWindowMode(Game::kDefaultWindowMode);
 	// 画面のサイズを変更する
@@ -77,6 +84,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Effkseer_End();
 
 	DxLib_End();				// ＤＸライブラリ使用の終了処理
+
+#ifdef _DEBUG//コンソールDebug用
+	fclose(out); fclose(in); FreeConsole();//コンソール解放
+#endif
 
 	return 0;				// ソフトの終了 
 }

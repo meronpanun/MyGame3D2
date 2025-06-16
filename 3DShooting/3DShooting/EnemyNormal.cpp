@@ -71,10 +71,10 @@ namespace
         VECTOR d1 = VSub(a2, a1);
         VECTOR d2 = VSub(b2, b1);
         VECTOR r = VSub(a1, b1);
+
         float a = VDot(d1, d1);
         float e = VDot(d2, d2);
         float f = VDot(d2, r);
-
         float s = 0.0f, t = 0.0f;
         float c = VDot(d1, r);
         float b = VDot(d1, d2);
@@ -125,7 +125,7 @@ void EnemyNormal::Init()
     // 初期化
     m_hp                = kInitialHP;
     m_pos               = kInitialPosition;
-	m_attackRange       = 200.0f; // 攻撃範囲
+	m_attackRange       = 150.0f; // 攻撃範囲
 	m_attackPower       = 20.0f;  // 攻撃力
 	m_attackCooldownMax = 45;     // 攻撃クールダウンの最大値
 }
@@ -273,7 +273,13 @@ void EnemyNormal::DrawCollisionDebug() const
     DrawSphere3D(headCenter, m_headRadius, 16, 0x00ff00, 0x00ff00, false);
 
     // 攻撃範囲のデバッグ表示
-    DrawSphere3D(m_pos, m_attackRange, 16, 0xff8000, 0xff8000, false);
+    
+    // AABBのY中心を計算
+    float centerY = (boxMin.y + boxMax.y) * 0.5f;
+    VECTOR attackCenter = { m_pos.x, centerY, m_pos.z };
+
+    // 攻撃範囲を球で表示
+    DrawSphere3D(attackCenter, m_attackRange, 16, 0xff8000, 0xff8000, false);
 }
 
 // どこに当たったか判定する関数

@@ -78,6 +78,7 @@ void EnemyBase::TakeTackleDamage(float damage)
 void EnemyBase::UpdateAttack()
 {
 	if (!m_targetPlayer) return;
+
 	if (m_attackCooldown > 0) 
 	{
 		m_attackCooldown--;

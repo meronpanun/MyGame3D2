@@ -58,6 +58,7 @@ Player::Player() :
 	m_shootSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
+	m_pDebugCamera(std::make_shared<Camera>()),
 	m_pEffect(std::make_shared<Effect>()),
 	m_animBlendRate(0.0f),
 	m_isMoving(false),
@@ -369,6 +370,17 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_isWasRunning = isRunning; // 走っている状態を更新
 
 		std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
+
+		// プレイヤーの斜め後方上空からプレイヤーを見る
+		if (m_pDebugCamera) 
+		{
+			VECTOR target = m_modelPos;
+			VECTOR offset = VGet(-200.0f, 150.0f, -200.0f); // 斜め後方上空
+
+			m_pDebugCamera->SetPosition(VAdd(target, offset));
+			m_pDebugCamera->SetTarget(target);
+			m_pDebugCamera->SetFOV(60.0f * DX_PI_F / 180.0f);
+		}
 	}
 
 
@@ -443,6 +455,51 @@ void Player::Draw()
 	{
 		DrawFormatString(tackleGaugeX + tackleGaugeWidth + 10, tackleGaugeY, 0x80FF80, "READY");
 	}
+
+#ifdef _DEBUG
+	if (m_pCamera)
+	{
+		// デバッグカメラの位置とターゲットを取得
+		const VECTOR pos = m_pCamera->GetPosition();
+		const VECTOR tgt = m_pCamera->GetTarget();
+		float fov = m_pCamera->GetFOV();
+
+		// サブカメラ用描画領域
+		int subW = 320, subH = 180; // サブウィンドウサイズ
+		int subX = Game::kScreenWidth - subW - 16;
+		int subY = Game::kScreenHeigth - subH - 16;
+
+		// サブカメラ用描画先サーフェス作成
+		int subScreen = MakeScreen(subW, subH, TRUE);
+		SetDrawScreen(subScreen);
+		ClearDrawScreen();
+
+		// サブカメラで描画
+		m_pDebugCamera->SetCameraToDxLib();
+
+		// ここでフィールド・プレイヤーモデル・当たり判定を描画 
+		DrawField(); // フィールド描画
+		MV1DrawModel(m_modelHandle); // プレイヤーモデル描画
+
+		// プレイヤーの当たり判定デバッグ描画
+		DrawPlayerCollisionDebug();
+
+		// メイン画面に戻す
+		SetDrawScreen(DX_SCREEN_BACK);
+
+		// サブ画面を右下に転送
+		DrawGraph(subX, subY, subScreen, false);
+
+		// サーフェス解放
+		DeleteGraph(subScreen);
+
+		// 標準出力
+		printf("[DebugCamera] Pos:(%.1f, %.1f, %.1f)  Target:(%.1f, %.1f, %.1f)  FOV:%.1f\n",
+			pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
+
+	}
+#endif
+
 }
 
 void Player::DrawField()
@@ -478,6 +535,7 @@ void Player::DrawField()
 	SetUseLighting(true);
 }
 
+// ダメージを受ける処理
 void Player::TakeDamage(float damage)
 {
 	m_health -= damage; // ダメージを適用
@@ -642,6 +700,18 @@ VECTOR Player::GetGunRot() const
 		cosf(m_pCamera->GetPitch()) * cosf(m_pCamera->GetYaw())
 	);
 }
+
+// プレイヤーの当たり判定をデバッグ描画
+void Player::DrawPlayerCollisionDebug() const
+{
+	// プレイヤーのカプセル当たり判定を描画
+	VECTOR capA = m_modelPos;
+	VECTOR capB = m_modelPos;
+	capB.y += 100.0f; // 高さ例
+	float radius = 60.0f; // 半径例
+	DrawCapsule3D(capA, capB, radius, 16, 0x00ff00, 0x80ff80, false);
+}
+
 
 // タックル情報を取得
 Player::TackleInfo Player::GetTackleInfo() const
