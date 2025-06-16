@@ -4,26 +4,27 @@
 #include "DxLib.h"
 #include <cassert>
 #include <algorithm>
+#include <cmath>
 
 namespace
 {
-	// ヒット表示の持続時間
-	//constexpr int kHitDisplayDuration = 60; // 1秒間表示
+    // 攻撃アニメーション
+	constexpr char kAttackAnimName[] = "ATK";
 
-    // 敵の位置
+    // 位置
     constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 0.0f };
 
 	// AABBの最小座標と最大座標
 	constexpr VECTOR kAABBMin = { -20.0f, 0.0f, -15.0f };
 	constexpr VECTOR kAABBMax = { 20.0f, 128.0f, 15.0f };
 
-	// 敵のヘッドショット判定用中心座標
+	// ヘッドショット判定用中心座標
 	constexpr VECTOR kHeadShotPosition = { 0.0f, 160.0f, -6.0f };
 
     // ヘッドショットの判定半径
     constexpr float kHeadRadius = 13.5f;
 
-	// 敵の初期体力
+	// 初期体力
 	constexpr float kInitialHP = 200.0f;
 
     // VECTORの長さの二乗を計算する関数
@@ -122,10 +123,11 @@ EnemyNormal::~EnemyNormal()
 void EnemyNormal::Init()
 {
     // 初期化
-    m_hp              = kInitialHP;
-    m_hitDisplayTimer = 0;
-    m_lastHitPart     = HitPart::None;
-    m_pos             = kInitialPosition;
+    m_hp                = kInitialHP;
+    m_pos               = kInitialPosition;
+	m_attackRange       = 200.0f; // 攻撃範囲
+	m_attackPower       = 20.0f;  // 攻撃力
+	m_attackCooldownMax = 45;     // 攻撃クールダウンの最大値
 }
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo)
@@ -249,7 +251,6 @@ void EnemyNormal::DrawCollisionDebug() const
         m_pos.y + m_aabbMax.y,
         m_pos.z + m_aabbMax.z
     };
-	unsigned int color = 0xff0000;
 
     // カプセルの中心軸をAABBの上下中心に
     VECTOR centerMin = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
@@ -261,7 +262,7 @@ void EnemyNormal::DrawCollisionDebug() const
         std::abs(boxMax.z - boxMin.z)
         ) * 0.5f;
 
-    DrawCapsule3D(centerMin, centerMax, radius, 16, color, color, false);
+    DrawCapsule3D(centerMin, centerMax, radius, 16, 0xff0000, 0xff0000, false);
 
     // ヘッドショット判定デバッグ描画
     VECTOR headCenter = {
@@ -269,8 +270,10 @@ void EnemyNormal::DrawCollisionDebug() const
         m_pos.y + m_headPos.y,
         m_pos.z + m_headPos.z
     };
-    unsigned int headColor =0x00ff00;
-    DrawSphere3D(headCenter, m_headRadius, 16, headColor, headColor, false);
+    DrawSphere3D(headCenter, m_headRadius, 16, 0x00ff00, 0x00ff00, false);
+
+    // 攻撃範囲のデバッグ表示
+    DrawSphere3D(m_pos, m_attackRange, 16, 0xff8000, 0xff8000, false);
 }
 
 // どこに当たったか判定する関数
@@ -310,7 +313,7 @@ float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
 {
     if (part == HitPart::Head)
     {
-        return bullet.GetDamage() * 2.0f; // ヘッドショットは2倍
+        return bullet.GetDamage() * 2.0f; // ヘッドショットはダメージ2倍
     }
     else if (part == HitPart::Body)
     {
@@ -318,3 +321,13 @@ float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
     }
     return 0.0f;
 }
+
+void EnemyNormal::UpdateAttack()
+{
+}
+
+void EnemyNormal::AttackPlayer(Player* player)
+{
+}
+
+

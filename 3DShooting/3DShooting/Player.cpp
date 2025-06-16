@@ -43,13 +43,13 @@ namespace
 	constexpr float kGroundY   = 0.0f;  // 地面のY座標
 
 	// タックル関連
-	constexpr int   kTackleDuration    = 20;   // タックル持続フレーム数
-	constexpr int   kTackleCooldownMax = 120;  // クールタイム最大値
-	constexpr float kTackleSpeed	 = 25.0f;  // タックル時の速度
-	constexpr float kTackleHitRange  = 250.0f; // タックルの前方有効距離
-	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅(半径)
-	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
-	constexpr float kTackleDamage    = 10.0f;  // タックルダメージ
+	constexpr int   kTackleDuration    = 20;     // タックル持続フレーム数
+	constexpr int   kTackleCooldownMax = 120;    // クールタイム最大値
+	constexpr float kTackleSpeed	   = 25.0f;  // タックル時の速度
+	constexpr float kTackleHitRange    = 250.0f; // タックルの前方有効距離
+	constexpr float kTackleHitRadius   = 250.0f; // タックルの横幅(半径)
+	constexpr float kTackleHitHeight   = 100.0f; // タックルの高さ
+	constexpr float kTackleDamage      = 10.0f;  // タックルダメージ
 }
 
 Player::Player() :
@@ -124,12 +124,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	//UpdateAnimeBlend();			 // アニメーションのブレンドを更新
 
 	// モデルの位置と回転を更新
-	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
-	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot = MMult(rotPitch, rotYaw);
+	VECTOR modelOffset	  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
+	MATRIX rotYaw		  = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch		  = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot		  = MMult(rotPitch, rotYaw);
 	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPos = VAdd(m_modelPos, rotModelOffset);
+	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
 
 	// モデルの位置を設定
 	MV1SetPosition(m_modelHandle, modelPos);

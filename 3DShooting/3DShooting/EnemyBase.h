@@ -27,7 +27,7 @@ public:
 	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets); 
 
 	/// <summary>
-	/// 敵が弾に当たったかどうかをチェックする関数
+	/// 敵が弾に当たったかどうかをチェックする
 	/// </summary>
 	/// <param name="bullet">弾の情報</param>
 	/// <returns>当たったかどうか</returns>
@@ -46,7 +46,7 @@ public:
 	virtual void TakeTackleDamage(float damage);
 
 	/// <summary>
-	/// デバッグ用の当たり判定を描画する関数
+	/// デバッグ用の当たり判定を描画する
 	/// </summary>
 	virtual void DrawCollisionDebug() const {}
 
@@ -63,6 +63,15 @@ public:
 		Head
 	};
 
+	// 敵の状態管理
+	enum class EnemyState {
+		Idle,       // 待機状態
+		Moving,     // 移動状態
+		Attacking,  // 攻撃状態
+		Damaged,    // ダメージを受けた状態
+		Dead        // 死亡状態
+	};
+
 	/// <summary>
 	/// 派生クラスでどこに当たったか判定する仮想関数
 	/// </summary>
@@ -70,7 +79,7 @@ public:
 	/// <returns>当たった部位</returns>
 	virtual HitPart CheckHitPart(const Bullet& bullet) const { return HitPart::None; }
 
-	// AABBの最小座標と最大座標を取得する関数
+	// AABBの最小座標と最大座標を取得する
 	virtual VECTOR GetAABBMinWorld() const abstract;
 	virtual VECTOR GetAABBMaxWorld() const abstract;
 
@@ -78,6 +87,17 @@ public:
 	/// タックルでダメージを受けたかどうかのフラグを取得
 	/// </summary>
 	virtual void ResetTackleHitFlag() abstract;
+
+	/// <summary>
+	/// 敵の攻撃を更新する
+	/// </summary>
+	virtual void UpdateAttack();
+
+	/// <summary>
+	/// プレイヤー攻撃処理
+	/// </summary>
+	/// <param name="player">攻撃対象のプレイヤー</param>
+	virtual void AttackPlayer(Player* player);
 
 protected:
 	// ダメージ計算用
@@ -91,10 +111,15 @@ protected:
 
 	HitPart m_lastHitPart; // 最後に当たった部位
 
-	int   m_modelHandle;     // モデルハンドル
-	int   m_hitDisplayTimer; // ヒット表示タイマー
+	int   m_modelHandle;      // モデルハンドル
+	int   m_hitDisplayTimer;  // ヒット表示タイマー
+	int   m_attackCooldown;    // 攻撃クールダウンタイマー
+	int   m_attackCooldownMax; // 攻撃クールダウンの最大値
+
 	float m_colRadius;       // 当たり判定用半径
 	float m_hp;              // 体力
+	float m_attackPower;     // 攻撃力
+	float m_attackRange;     // 攻撃範囲
 
 	bool  m_isAlive;         // 生存状態フラグ
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか

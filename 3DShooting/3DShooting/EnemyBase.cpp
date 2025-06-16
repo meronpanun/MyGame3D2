@@ -2,11 +2,14 @@
 #include "EnemyBase.h"
 #include "Bullet.h"
 
-// デフォルトのヒット表示持続時間
 namespace
 {
 	constexpr int   kDefaultHitDisplayDuration = 60;     // 1秒間表示
 	constexpr float kDefaultInitialHP          = 100.0f; // デフォルトの初期体力 
+
+	constexpr float kDefaultCooldownMax = 60;     // 攻撃クールダウンの最大値
+	constexpr float kDefaultAttackPower = 10.0f;  // 攻撃力
+	constexpr float kDefaultAttackRange = 100.0f; // 攻撃範囲
 }
 
 EnemyBase::EnemyBase() :
@@ -18,7 +21,11 @@ EnemyBase::EnemyBase() :
 	m_lastHitPart(HitPart::None),
 	m_hitDisplayTimer(0),
 	m_isAlive(true),
-	m_isTackleHit(false)
+	m_isTackleHit(false),
+	m_attackCooldown(0),
+	m_attackCooldownMax(kDefaultCooldownMax),
+	m_attackPower(kDefaultAttackPower),
+	m_attackRange(kDefaultAttackRange)
 {
 }
 
@@ -66,3 +73,34 @@ void EnemyBase::TakeTackleDamage(float damage)
 	m_lastHitPart = HitPart::Body;
 	m_hitDisplayTimer = kDefaultHitDisplayDuration; // 1秒間表示
 }
+
+// 敵の攻撃を更新する処理
+void EnemyBase::UpdateAttack()
+{
+	if (!m_targetPlayer) return;
+	if (m_attackCooldown > 0) 
+	{
+		m_attackCooldown--;
+		return;
+	}
+
+	VECTOR playerPos = m_targetPlayer->GetPos();
+	float dx = playerPos.x - m_pos.x;
+	float dy = playerPos.y - m_pos.y;
+	float dz = playerPos.z - m_pos.z;
+	float dist = sqrtf(dx * dx + dy * dy + dz * dz);
+
+	if (dist <= m_attackRange) 
+	{
+		AttackPlayer(m_targetPlayer.get());
+		m_attackCooldown = m_attackCooldownMax;
+	}
+}
+
+// プレイヤーに攻撃を行う処理
+void EnemyBase::AttackPlayer(Player* player)
+{
+	if (!player) return;
+	player->TakeDamage(m_attackPower);
+}
+

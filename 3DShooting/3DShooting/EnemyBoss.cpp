@@ -56,7 +56,10 @@
 //
 //void EnemyBoss::UpdateState()
 //{
-//    if (!m_targetPlayer) return;
+//    if (!
+// 
+// 
+// ) return;
 //
 //    VECTOR playerPos = m_targetPlayer->GetPosition();
 //    float distance = VSize(VSub(playerPos, m_position));

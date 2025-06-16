@@ -18,26 +18,26 @@ public:
     void Draw() override;
 
     /// <summary>
-    /// 当たり判定を行う関数
+    /// 当たり判定を行う
     /// </summary>
     /// <param name="bullet">弾の情報</param>
     /// /// <returns>当たったかどうか</returns>
     virtual bool IsHit(const Bullet& bullet) const override;
 
     /// <summary>
-    /// デバッグ用の当たり判定を描画する関数
+    /// デバッグ用の当たり判定を描画する
     /// </summary>
     virtual void DrawCollisionDebug() const override;
 
     /// <summary>
-    /// どこに当たったかを判定する関数
+    /// どこに当たったかを判定する
     /// </summary>
     /// <param name="bullet">弾の情報</param>
     /// <returns>当たった部位</returns>
     HitPart CheckHitPart(const Bullet& bullet) const override;
 
 	/// <summary>
-	/// ダメージを計算する関数
+	/// ダメージを計算する
 	/// </summary>
 	/// <param name="bullet">弾の情報</param>
 	/// <param name="part">当たった部位</param>
@@ -53,15 +53,22 @@ public:
     /// </summary>
     void ResetTackleHitFlag() { m_isTackleHit = false; }
 
+    /// <summary>
+	/// 攻撃を更新する処理
+    /// </summary>
+    void UpdateAttack() override;
+
+	void AttackPlayer(Player* player) override;
+
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
     VECTOR m_headPos; // ヘッドショット判定用中心座標
 
+	int m_lastTackleId; // 最後にタックルを受けたID
+
     float m_headRadius; // ヘッドショット判定用半径  
 
     bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
-
-	int m_lastTackleId; // 最後にタックルを受けたID
 };
 
