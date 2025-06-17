@@ -115,6 +115,7 @@ protected:
 	int   m_hitDisplayTimer;   // ヒット表示タイマー
 	int   m_attackCooldown;    // 攻撃クールダウンタイマー
 	int   m_attackCooldownMax; // 攻撃クールダウンの最大値
+	int   m_attackHitFrame;    // 攻撃ヒットフレーム
 
 	float m_colRadius;       // 当たり判定用半径
 	float m_hp;              // 体力
@@ -123,5 +124,6 @@ protected:
 
 	bool  m_isAlive;         // 生存状態フラグ
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか
+	bool  m_isAttacking;     // 攻撃中かどうか
 };
 

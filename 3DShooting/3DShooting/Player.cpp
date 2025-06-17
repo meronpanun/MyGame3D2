@@ -470,7 +470,7 @@ void Player::Draw()
 		int subY = Game::kScreenHeigth - subH - 16;
 
 		// サブカメラ用描画先サーフェス作成
-		int subScreen = MakeScreen(subW, subH, TRUE);
+		int subScreen = MakeScreen(subW, subH, true);
 		SetDrawScreen(subScreen);
 		ClearDrawScreen();
 
