@@ -135,6 +135,30 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     // モデルの位置を更新
     MV1SetPosition(m_modelHandle, m_pos);
 
+    // 攻撃アニメーションの再生（初回のみセット）
+    if (m_currentAnimIndex == -1)
+    {
+        m_currentAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
+        if (m_currentAnimIndex != -1) 
+        {
+            MV1DetachAnim(m_modelHandle, 0);
+            MV1AttachAnim(m_modelHandle, m_currentAnimIndex, -1, m_currentAnimLoop);
+            m_currentAnimLoop = true;
+            m_animTime = 0.0f;
+        }
+    }
+
+    // アニメーションの進行
+    if (m_currentAnimIndex != -1) {
+        // アニメーションの長さを取得
+        float animTotalTime = MV1GetAnimTotalTime(m_modelHandle, m_currentAnimIndex);
+        m_animTime += 1.0f; // 1フレーム進める（必要に応じてフレームレートで調整）
+        if (m_currentAnimLoop && m_animTime > animTotalTime) {
+            m_animTime = 0.0f; // ループ
+        }
+        MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
+    }
+
 	// 弾の当たり判定をチェック
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
 
@@ -213,23 +237,26 @@ void EnemyNormal::Draw()
 // 敵の当たり判定を行う関数
 bool EnemyNormal::IsHit(const Bullet& bullet) const
 {
-    // カプセルの中心軸
+    // Spine_01ボーンのワールド座標を取得
+    int spineIndex = MV1SearchFrame(m_modelHandle, "Root");
+    VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
+
     VECTOR boxMin = {
-        m_pos.x + m_aabbMin.x,
-        m_pos.y + m_aabbMin.y,
-        m_pos.z + m_aabbMin.z
+        spinePos.x + m_aabbMin.x,
+        spinePos.y + m_aabbMin.y,
+        spinePos.z + m_aabbMin.z
     };
     VECTOR boxMax = {
-        m_pos.x + m_aabbMax.x,
-        m_pos.y + m_aabbMax.y,
-        m_pos.z + m_aabbMax.z
+        spinePos.x + m_aabbMax.x,
+        spinePos.y + m_aabbMax.y,
+        spinePos.z + m_aabbMax.z
     };
 
-	// カプセルの上下中心を計算
+    // カプセルの上下中心を計算
     VECTOR capA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
     VECTOR capB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
 
-    float capRadius = (std::max)( 
+    float capRadius = (std::max)(
         std::abs(boxMax.x - boxMin.x),
         std::abs(boxMax.z - boxMin.z)
         ) * 0.5f;
@@ -238,25 +265,27 @@ bool EnemyNormal::IsHit(const Bullet& bullet) const
     return CheckCapsuleSphereHit(capA, capB, capRadius, bullet.GetPos(), bullet.GetRadius());
 }
 
-// デバッグ用の当たり判定描画
+
 void EnemyNormal::DrawCollisionDebug() const
 {
+    // Spine_01ボーンのワールド座標を取得
+    int spineIndex = MV1SearchFrame(m_modelHandle, "Root");
+    VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
+
     VECTOR boxMin = {
-        m_pos.x + m_aabbMin.x,
-        m_pos.y + m_aabbMin.y,
-        m_pos.z + m_aabbMin.z
+        spinePos.x + m_aabbMin.x,
+        spinePos.y + m_aabbMin.y,
+        spinePos.z + m_aabbMin.z
     };
     VECTOR boxMax = {
-        m_pos.x + m_aabbMax.x,
-        m_pos.y + m_aabbMax.y,
-        m_pos.z + m_aabbMax.z
+        spinePos.x + m_aabbMax.x,
+        spinePos.y + m_aabbMax.y,
+        spinePos.z + m_aabbMax.z
     };
 
-    // カプセルの中心軸をAABBの上下中心に
     VECTOR centerMin = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
     VECTOR centerMax = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
 
-    // 半径はX,Z方向のAABBサイズのうち大きい方の半分
     float radius = (std::max)(
         std::abs(boxMax.x - boxMin.x),
         std::abs(boxMax.z - boxMin.z)
@@ -264,33 +293,32 @@ void EnemyNormal::DrawCollisionDebug() const
 
     DrawCapsule3D(centerMin, centerMax, radius, 16, 0xff0000, 0xff0000, false);
 
-    // ヘッドショット判定デバッグ描画
-    VECTOR headCenter = {
-        m_pos.x + m_headPos.x,
-        m_pos.y + m_headPos.y,
-        m_pos.z + m_headPos.z
-    };
-    DrawSphere3D(headCenter, m_headRadius, 16, 0x00ff00, 0x00ff00, false);
+    // Headボーンのワールド座標を取得
+    int headIndex = MV1SearchFrame(m_modelHandle, "Head");
+    VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
+
+    DrawSphere3D(headPos, m_headRadius, 16, 0x00ff00, 0x00ff00, false);
 
     // 攻撃範囲のデバッグ表示
-    
-    // AABBのY中心を計算
     float centerY = (boxMin.y + boxMax.y) * 0.5f;
-    VECTOR attackCenter = { m_pos.x, centerY, m_pos.z };
-
-    // 攻撃範囲を球で表示
+    VECTOR attackCenter = { spinePos.x, centerY, spinePos.z };
     DrawSphere3D(attackCenter, m_attackRange, 16, 0xff8000, 0xff8000, false);
 }
+
 
 // どこに当たったか判定する関数
 EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const 
 {
-    // ヘッドショット判定
+    // Headボーンのワールド座標を取得
+    int headIndex = MV1SearchFrame(m_modelHandle, "Head"); // "Head"はモデルに合わせて変更
+    VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
+
     VECTOR headCenter = {
-        m_pos.x + m_headPos.x,
-        m_pos.y + m_headPos.y,
-        m_pos.z + m_headPos.z
+        headPos.x,
+        headPos.y,
+        headPos.z
     };
+
     VECTOR bulletPos = bullet.GetPos();
 
 	// ヘッドショット判定のための距離計算
@@ -326,14 +354,6 @@ float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
         return bullet.GetDamage();
     }
     return 0.0f;
-}
-
-void EnemyNormal::UpdateAttack()
-{
-}
-
-void EnemyNormal::AttackPlayer(Player* player)
-{
 }
 
 

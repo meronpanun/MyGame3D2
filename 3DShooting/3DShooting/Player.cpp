@@ -598,80 +598,80 @@ void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop)
 }
 
 // アニメーションの更新
-//void Player::UpdateAnime(AnimData& data) 
-//{
-//	if (data.attachNo == -1) return; // アタッチされていない場合は何もしない
-//
-//	float animSpeed = 1.0f;
-//
-//	data.count += animSpeed;
-//
-//	// アニメーションの総時間を取得
-//	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo); 
-//	
-//	// ループアニメーションの場合
-//	if (data.isLoop)
-//	{
-//		// アニメーションのカウントが総時間を超えた場合、ループさせる
-//		while (data.count > totalTime)  
-//		{
-//			data.count -= totalTime; // 総時間を引いてループ
-//		}
-//	}
-//	else
-//	{
-//		if (data.count > totalTime)
-//		{
-//			data.count = totalTime; // アニメーションのカウントを総時間に制限
-//			data.isEnd = true;      // アニメーションが終了したフラグを立てる
-//		}
-//	}
-//
-//	// アニメーションの時間を設定
-//	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count); 
-//}
+void Player::UpdateAnime(AnimData& data) 
+{
+	if (data.attachNo == -1) return; // アタッチされていない場合は何もしない
+
+	float animSpeed = 1.0f;
+
+	data.count += animSpeed;
+
+	// アニメーションの総時間を取得
+	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo); 
+	
+	// ループアニメーションの場合
+	if (data.isLoop)
+	{
+		// アニメーションのカウントが総時間を超えた場合、ループさせる
+		while (data.count > totalTime)  
+		{
+			data.count -= totalTime; // 総時間を引いてループ
+		}
+	}
+	else
+	{
+		if (data.count > totalTime)
+		{
+			data.count = totalTime; // アニメーションのカウントを総時間に制限
+			data.isEnd = true;      // アニメーションが終了したフラグを立てる
+		}
+	}
+
+	// アニメーションの時間を設定
+	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count); 
+}
 
 // アニメーションのブレンドを更新
-//void Player::UpdateAnimeBlend() 
-//{
-//	// アタッチされていない場合は何もしない
-//	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return; 
-//
-//	// アニメーションのブレンド率を更新
-//	m_animBlendRate += 1.0f / 8.0f; 
-//
-//	// ブレンド率が1.0を超えたら
-//	if (m_animBlendRate > 1.0f)
-//	{
-//		m_animBlendRate = 1.0f; // 1.0に制限
-//	}
-//
-//	// 前のアニメーションのブレンド率を設定
-//	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-//	// 次のアニメーションのブレンド率を設定
-//	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate); 
-//}
+void Player::UpdateAnimeBlend() 
+{
+	// アタッチされていない場合は何もしない
+	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return; 
+
+	// アニメーションのブレンド率を更新
+	m_animBlendRate += 1.0f / 8.0f; 
+
+	// ブレンド率が1.0を超えたら
+	if (m_animBlendRate > 1.0f)
+	{
+		m_animBlendRate = 1.0f; // 1.0に制限
+	}
+
+	// 前のアニメーションのブレンド率を設定
+	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
+	// 次のアニメーションのブレンド率を設定
+	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate); 
+}
 
 // アニメーションの変更
-//void Player::ChangeAnime(const char* animName, bool isLoop) 
-//{
-//	// 前のアニメーションを解除
-//	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
-//
-//	// 前のアニメーションデータを保存
-//	m_prevAnimData = m_nextAnimData; 
-//
-//	// 次のアニメーションをアタッチ
-//	AttachAnime(m_nextAnimData, animName, isLoop); 
-//
-//	// アニメーションのブレンド率をリセット
-//	m_animBlendRate = 0.0f; 
-//
-//	// 前のアニメーションのブレンド率を設定
-//	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-//	// 次のアニメーションのブレンド率を設定
-//	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
-//}
+void Player::ChangeAnime(const char* animName, bool isLoop) 
+{
+	// 前のアニメーションを解除
+	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
+
+	// 前のアニメーションデータを保存
+	m_prevAnimData = m_nextAnimData; 
+
+	// 次のアニメーションをアタッチ
+	AttachAnime(m_nextAnimData, animName, isLoop); 
+
+	// アニメーションのブレンド率をリセット
+	m_animBlendRate = 0.0f; 
+
+	// 前のアニメーションのブレンド率を設定
+	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
+	// 次のアニメーションのブレンド率を設定
+	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
+}
 
 // 銃の位置を取得
 VECTOR Player::GetGunPos() const 

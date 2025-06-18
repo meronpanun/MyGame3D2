@@ -73,12 +73,8 @@ public:
 	/// <returns>タックル情報</returns>
 	TackleInfo GetTackleInfo() const;
 
-private:
 
-	/// <summary>
-	/// 弾を発射する
-	/// </summary>
-	void Shoot();
+	// TODO:アニメーション処理は敵も行うので後でクラス化
 
 	/// <summary>
 	/// アニメーションデータ構造体
@@ -86,9 +82,9 @@ private:
 	struct AnimData
 	{
 		int   attachNo = -1;    // アタッチされているアニメーションの番号
-		float count    = 0.0f;  // アニメーションのカウント
-		bool  isLoop   = false; // ループアニメーションかどうか
-		bool  isEnd    = false; // アニメーションが終了したかどうか
+		float count = 0.0f;  // アニメーションのカウント
+		bool  isLoop = false; // ループアニメーションかどうか
+		bool  isEnd = false; // アニメーションが終了したかどうか
 	};
 
 	/// <summary>
@@ -97,25 +93,34 @@ private:
 	/// <param name="data">アニメーションデータ</param>
 	/// <param name="animName">アニメーション名</param>
 	/// <param name="isLoop">ループするかどうか</param>
-	void AttachAnime(AnimData& data, const char* animName, bool isLoop); 
+	void AttachAnime(AnimData& data, const char* animName, bool isLoop);
 
 	/// <summary>
 	///  アニメーションの更新
 	/// </summary>
 	/// <param name="data">アニメーションデータ</param>
-//	void UpdateAnime(AnimData& data); 
+	void UpdateAnime(AnimData& data);
+
+private:
+
+
+	/// <summary>
+	/// 弾を発射する
+	/// </summary>
+	void Shoot();
+
 
 	/// <summary>
 	///  アニメーションのブレンドを更新
 	/// </summary>
-//	void UpdateAnimeBlend(); 
+	void UpdateAnimeBlend(); 
 
 	/// <summary>
 	/// アニメーションを変更する
 	/// </summary>
 	/// <param name="animName">アニメーション名</param>
 	/// <param name="isLoop">ループするかどうか</param>
-//	void ChangeAnime(const char* animName, bool isLoop); 
+	void ChangeAnime(const char* animName, bool isLoop); 
 
 	/// <summary>
 	/// 銃の位置を取得する

@@ -25,7 +25,9 @@ EnemyBase::EnemyBase() :
 	m_attackCooldown(0),
 	m_attackCooldownMax(kDefaultCooldownMax),
 	m_attackPower(kDefaultAttackPower),
-	m_attackRange(kDefaultAttackRange)
+	m_attackRange(kDefaultAttackRange),
+	m_attackHitFrame(0),
+	m_isAttacking(false)
 {
 }
 
@@ -77,25 +79,25 @@ void EnemyBase::TakeTackleDamage(float damage)
 // “G‚ÌUŒ‚‚ðXV‚·‚éˆ—
 void EnemyBase::UpdateAttack()
 {
-	if (!m_targetPlayer) return;
+	//if (!m_targetPlayer) return;
 
-	if (m_attackCooldown > 0) 
-	{
-		m_attackCooldown--;
-		return;
-	}
+	//if (m_attackCooldown > 0) 
+	//{
+	//	m_attackCooldown--;
+	//	return;
+	//}
 
-	VECTOR playerPos = m_targetPlayer->GetPos();
-	float dx = playerPos.x - m_pos.x;
-	float dy = playerPos.y - m_pos.y;
-	float dz = playerPos.z - m_pos.z;
-	float dist = sqrtf(dx * dx + dy * dy + dz * dz);
+	//VECTOR playerPos = m_targetPlayer->GetPos();
+	//float dx = playerPos.x - m_pos.x;
+	//float dy = playerPos.y - m_pos.y;
+	//float dz = playerPos.z - m_pos.z;
+	//float dist = sqrtf(dx * dx + dy * dy + dz * dz);
 
-	if (dist <= m_attackRange) 
-	{
-		AttackPlayer(m_targetPlayer.get());
-		m_attackCooldown = m_attackCooldownMax;
-	}
+	//if (dist <= m_attackRange) 
+	//{
+	//	AttackPlayer(m_targetPlayer.get());
+	//	m_attackCooldown = m_attackCooldownMax;
+	//}
 }
 
 // ƒvƒŒƒCƒ„[‚ÉUŒ‚‚ðs‚¤ˆ—

@@ -1,5 +1,7 @@
 #pragma once
 #include "EnemyBase.h"
+#include <vector>
+#include <string>
 
 class Bullet;
 class Player;
@@ -21,7 +23,7 @@ public:
     /// 当たり判定を行う
     /// </summary>
     /// <param name="bullet">弾の情報</param>
-    /// /// <returns>当たったかどうか</returns>
+    /// <returns>当たったかどうか</returns>
     virtual bool IsHit(const Bullet& bullet) const override;
 
     /// <summary>
@@ -53,13 +55,6 @@ public:
     /// </summary>
     void ResetTackleHitFlag() { m_isTackleHit = false; }
 
-    /// <summary>
-	/// 攻撃を更新する処理
-    /// </summary>
-    void UpdateAttack() override;
-
-	void AttackPlayer(Player* player) override;
-
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
@@ -70,5 +65,9 @@ private:
     float m_headRadius; // ヘッドショット判定用半径  
 
     bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
+
+    int m_currentAnimIndex = -1; // 現在再生中のアニメーションインデックス
+    bool m_currentAnimLoop = false;
+    float m_animTime = 0.0f; // アニメーションの経過時間
 };
 
