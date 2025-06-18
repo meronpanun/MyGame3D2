@@ -81,10 +81,14 @@ namespace
         float denom = a * e - b * b;
 
         if (denom != 0.0f)
+        {
             s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+        }
         else
+        {
             s = 0.0f;
-
+        }
+            
         t = (b * s + f) / e;
         t = std::clamp(t, 0.0f, 1.0f);
 
@@ -106,7 +110,10 @@ EnemyNormal::EnemyNormal() :
     m_headPos{ kHeadShotPosition },
     m_headRadius(kHeadRadius),
 	m_isTackleHit(false),
-    m_lastTackleId(-1)
+    m_lastTackleId(-1),
+	m_currentAnimLoop(false),
+	m_currentAnimIndex(-1),
+	m_animTime(0.0f)
 {
     // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
@@ -135,7 +142,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     // モデルの位置を更新
     MV1SetPosition(m_modelHandle, m_pos);
 
-    // 攻撃アニメーションの再生（初回のみセット）
+    // 攻撃アニメーションの再生
     if (m_currentAnimIndex == -1)
     {
         m_currentAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
@@ -149,11 +156,13 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     }
 
     // アニメーションの進行
-    if (m_currentAnimIndex != -1) {
+    if (m_currentAnimIndex != -1) 
+    {
         // アニメーションの長さを取得
         float animTotalTime = MV1GetAnimTotalTime(m_modelHandle, m_currentAnimIndex);
         m_animTime += 1.0f; // 1フレーム進める（必要に応じてフレームレートで調整）
-        if (m_currentAnimLoop && m_animTime > animTotalTime) {
+        if (m_currentAnimLoop && m_animTime > animTotalTime) 
+        {
             m_animTime = 0.0f; // ループ
         }
         MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
@@ -237,16 +246,18 @@ void EnemyNormal::Draw()
 // 敵の当たり判定を行う関数
 bool EnemyNormal::IsHit(const Bullet& bullet) const
 {
-    // Spine_01ボーンのワールド座標を取得
-    int spineIndex = MV1SearchFrame(m_modelHandle, "Root");
+    // ボーンのワールド座標を取得
+    int spineIndex  = MV1SearchFrame(m_modelHandle, "Root");
     VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
 
-    VECTOR boxMin = {
+    VECTOR boxMin = 
+    {
         spinePos.x + m_aabbMin.x,
         spinePos.y + m_aabbMin.y,
         spinePos.z + m_aabbMin.z
     };
-    VECTOR boxMax = {
+    VECTOR boxMax = 
+    {
         spinePos.x + m_aabbMax.x,
         spinePos.y + m_aabbMax.y,
         spinePos.z + m_aabbMax.z
@@ -265,19 +276,20 @@ bool EnemyNormal::IsHit(const Bullet& bullet) const
     return CheckCapsuleSphereHit(capA, capB, capRadius, bullet.GetPos(), bullet.GetRadius());
 }
 
-
 void EnemyNormal::DrawCollisionDebug() const
 {
-    // Spine_01ボーンのワールド座標を取得
+    // ボーンのワールド座標を取得
     int spineIndex = MV1SearchFrame(m_modelHandle, "Root");
     VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
 
-    VECTOR boxMin = {
+    VECTOR boxMin = 
+    {
         spinePos.x + m_aabbMin.x,
         spinePos.y + m_aabbMin.y,
         spinePos.z + m_aabbMin.z
     };
-    VECTOR boxMax = {
+    VECTOR boxMax = 
+    {
         spinePos.x + m_aabbMax.x,
         spinePos.y + m_aabbMax.y,
         spinePos.z + m_aabbMax.z
@@ -303,14 +315,47 @@ void EnemyNormal::DrawCollisionDebug() const
     float centerY = (boxMin.y + boxMax.y) * 0.5f;
     VECTOR attackCenter = { spinePos.x, centerY, spinePos.z };
     DrawSphere3D(attackCenter, m_attackRange, 16, 0xff8000, 0xff8000, false);
-}
 
+    // Hand_RからHand_Lまでの攻撃カプセル描画
+    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+    int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+
+    if (handRIndex != -1 && handLIndex != -1)
+    {
+        VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+        VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+        float attackCapsuleRadius = 20.0f;
+        DrawCapsule3D(handRPos, handLPos, attackCapsuleRadius, 16, 0x0000ff, 0x0000ff, false);
+    }
+
+#ifdef _DEBUG
+    // プレイヤー座標を取得
+    extern Player* g_pPlayer; // グローバルでプレイヤーへのポインタがある場合
+    if (g_pPlayer)
+    {
+        VECTOR playerPos = g_pPlayer->GetPos();
+        float dx = playerPos.x - attackCenter.x;
+        float dy = playerPos.y - attackCenter.y;
+        float dz = playerPos.z - attackCenter.z;
+        float distSq = dx * dx + dy * dy + dz * dz;
+
+        if (distSq <= m_attackRange * m_attackRange)
+        {
+            DrawFormatString(20, 100, 0xff0000, "攻撃範囲内に入った");
+        }
+        else
+        {
+            DrawFormatString(20, 100, 0x00ff00, "攻撃範囲外");
+        }
+    }
+#endif
+}
 
 // どこに当たったか判定する関数
 EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const 
 {
     // Headボーンのワールド座標を取得
-    int headIndex = MV1SearchFrame(m_modelHandle, "Head"); // "Head"はモデルに合わせて変更
+    int headIndex  = MV1SearchFrame(m_modelHandle, "Head"); 
     VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
 
     VECTOR headCenter = {
@@ -354,6 +399,51 @@ float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
         return bullet.GetDamage();
     }
     return 0.0f;
+}
+
+// 攻撃用当たり判定
+// TODO:まだ使えていない
+bool EnemyNormal::IsAttackHit(const VECTOR& targetPos, float targetRadius) const
+{
+    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+    int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+    if (handRIndex == -1 || handLIndex == -1) return false;
+
+    VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+    VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+
+    float attackCapsuleRadius = 20.0f; 
+
+    // カプセルと球の当たり判定
+    return CheckCapsuleSphereHit(handRPos, handLPos, attackCapsuleRadius, targetPos, targetRadius);
+}
+
+// TODO:攻撃範囲の中心取得修正
+VECTOR EnemyNormal::GetAttackRangeCenter() const
+{
+    // ボーンのワールド座標を取得
+    int spineIndex = MV1SearchFrame(m_modelHandle, "Root");
+    VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
+
+    VECTOR boxMin = {
+        spinePos.x + m_aabbMin.x,
+        spinePos.y + m_aabbMin.y,
+        spinePos.z + m_aabbMin.z
+    };
+    VECTOR boxMax = {
+        spinePos.x + m_aabbMax.x,
+        spinePos.y + m_aabbMax.y,
+        spinePos.z + m_aabbMax.z
+    };
+
+    float centerY = (boxMin.y + boxMax.y) * 0.5f;
+    return { spinePos.x, centerY, spinePos.z };
+}
+
+float EnemyNormal::GetAttackRange() const
+{
+	// 攻撃範囲の半径を返す
+	return m_attackRange;
 }
 
 

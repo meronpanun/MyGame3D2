@@ -55,19 +55,38 @@ public:
     /// </summary>
     void ResetTackleHitFlag() { m_isTackleHit = false; }
 
+    /// <summary>
+    /// Hand_RからHand_Lまでの攻撃カプセル当たり判定
+    /// </summary>
+    /// <param name="targetPos">判定対象の中心座標</param>
+    /// <param name="targetRadius">判定対象の半径</param>
+    /// <returns>当たっていればtrue</returns>
+    bool IsAttackHit(const VECTOR& targetPos, float targetRadius) const;
+
+    /// <summary>
+    /// 攻撃範囲の中心座標を取得
+    /// </summary>
+    VECTOR GetAttackRangeCenter() const override;
+
+	/// <summary>
+	/// 攻撃範囲を取得
+	/// </summary>
+	/// <returns>攻撃範囲の半径</returns>
+    float GetAttackRange() const override;
+
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
     VECTOR m_headPos; // ヘッドショット判定用中心座標
 
 	int m_lastTackleId; // 最後にタックルを受けたID
+    int m_currentAnimIndex; // 現在再生中のアニメーションインデックス
 
+    float m_animTime; // アニメーションの経過時間
     float m_headRadius; // ヘッドショット判定用半径  
 
     bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
+    bool m_currentAnimLoop;
 
-    int m_currentAnimIndex = -1; // 現在再生中のアニメーションインデックス
-    bool m_currentAnimLoop = false;
-    float m_animTime = 0.0f; // アニメーションの経過時間
 };
 

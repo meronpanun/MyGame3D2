@@ -1,4 +1,6 @@
 #include "Player.h"
+#include "EnemyNormal.h"
+#include "EnemyBase.h"
 #include "DxLib.h"
 #include "Game.h" 
 #include "Mouse.h"
@@ -6,7 +8,6 @@
 #include "Effect.h"	
 #include "Bullet.h"
 #include "SceneMain.h"
-#include "EnemyBase.h"
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -50,6 +51,10 @@ namespace
 	constexpr float kTackleHitRadius   = 250.0f; // タックルの横幅(半径)
 	constexpr float kTackleHitHeight   = 100.0f; // タックルの高さ
 	constexpr float kTackleDamage      = 10.0f;  // タックルダメージ
+
+	// カプセル当たり判定
+	constexpr float kPlayerCollisionHeight = 100.0f; // カプセル当たり判定の高さ
+	constexpr float kPlayerCollisionRadius = 60.0f;  // カプセル当たり判定の半径
 }
 
 Player::Player() :
@@ -496,7 +501,6 @@ void Player::Draw()
 		// 標準出力
 		printf("[DebugCamera] Pos:(%.1f, %.1f, %.1f)  Target:(%.1f, %.1f, %.1f)  FOV:%.1f\n",
 			pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
-
 	}
 #endif
 
@@ -704,12 +708,68 @@ VECTOR Player::GetGunRot() const
 // プレイヤーの当たり判定をデバッグ描画
 void Player::DrawPlayerCollisionDebug() const
 {
-	// プレイヤーのカプセル当たり判定を描画
+	// プレイヤーのカプセル当たり判定
 	VECTOR capA = m_modelPos;
 	VECTOR capB = m_modelPos;
-	capB.y += 100.0f; // 高さ例
-	float radius = 60.0f; // 半径例
-	DrawCapsule3D(capA, capB, radius, 16, 0x00ff00, 0x80ff80, false);
+	capB.y += kPlayerCollisionHeight;      // 高さ
+	float radius = kPlayerCollisionRadius; // 半径
+
+	// デバッグ用: 敵リストを取得
+	extern std::vector<EnemyBase*> g_enemyList;
+
+	// 敵の攻撃範囲ないに入っているかどうかのフラグ
+	bool isInEnemyRange = false;
+
+	for (const EnemyBase* enemy : g_enemyList)
+	{
+		if (!enemy) continue;
+
+		// 通常敵のみ
+		const EnemyNormal* normal = dynamic_cast<const EnemyNormal*>(enemy);
+
+		// 攻撃範囲中心・半径を取得
+		VECTOR attackCenter = normal->GetAttackRangeCenter();
+		float attackRange = normal->GetAttackRange();
+		if (attackRange <= 0.0f) continue; // 攻撃範囲が無効な場合はスキップ
+
+		// プレイヤーのXZ座標＋攻撃範囲中心のY座標で判定
+		VECTOR playerJudgePos = m_modelPos;
+		playerJudgePos.y = attackCenter.y;
+
+		// XZ平面のみで判定
+		float dx = playerJudgePos.x - attackCenter.x;
+		float dz = playerJudgePos.z - attackCenter.z;
+		float distSqXZ = dx * dx + dz * dz;
+
+		if (distSqXZ <= attackRange * attackRange)
+		{
+			isInEnemyRange = true;
+			// 攻撃範囲を赤色で描画
+			DrawSphere3D(attackCenter, attackRange, 16, 0xff0000, 0xff0000, false);
+		}
+		else
+		{
+			// 通常色で描画
+			DrawSphere3D(attackCenter, attackRange, 16, 0xff8000, 0xff8000, false);
+		}
+	}
+
+	// カプセルの描画（攻撃範囲内なら赤色、そうでなければ緑色）
+	unsigned int colorMain = isInEnemyRange ? 0xff0000 : 0x00ff00;
+	unsigned int colorSub = isInEnemyRange ? 0xff8080 : 0x80ff80;
+	DrawCapsule3D(capA, capB, radius, 16, colorMain, colorSub, false);
+
+#ifdef _DEBUG
+	// デバッグ用に判定結果を画面に表示
+	if (isInEnemyRange)
+	{
+		DrawFormatString(20, 20,0xff0000, "攻撃範囲内に入った");
+	}
+	else
+	{
+		DrawFormatString(20, 20, 0x00ff00, "攻撃範囲外");
+	}
+#endif
 }
 
 

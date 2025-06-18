@@ -99,6 +99,9 @@ public:
 	/// <param name="player">攻撃対象のプレイヤー</param>
 	virtual void AttackPlayer(Player* player);
 
+	virtual VECTOR GetAttackRangeCenter() const { return VGet(0, 0, 0); } 
+	virtual float GetAttackRange() const { return 0.0f; }
+
 protected:
 	// ダメージ計算用
     virtual float CalcDamage(const Bullet& bullet, HitPart part) const abstract;

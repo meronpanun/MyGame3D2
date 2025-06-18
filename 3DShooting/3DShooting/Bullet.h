@@ -67,6 +67,6 @@ private:
 	float m_speed;    // 弾の速度
 	float m_radius;   // 弾の半径
 	float m_damage;   // 弾のダメージ
-	bool m_isActive;  // 弾の有効状態
+	bool  m_isActive;  // 弾の有効状態
 };
 
