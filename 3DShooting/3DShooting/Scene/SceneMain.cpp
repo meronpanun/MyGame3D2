@@ -11,10 +11,6 @@
 #include "Camera.h"
 #include <cassert>
 
-// グローバル敵リストの定義
-std::vector<EnemyBase*> g_enemyList;
-Player* g_pPlayer = nullptr;
-
 namespace
 {
     constexpr int	kInitialCountdownValue = 3;	   // 初期カウントダウンの値

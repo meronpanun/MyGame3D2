@@ -714,62 +714,9 @@ void Player::DrawPlayerCollisionDebug() const
 	capB.y += kPlayerCollisionHeight;      // 高さ
 	float radius = kPlayerCollisionRadius; // 半径
 
-	// デバッグ用: 敵リストを取得
-	extern std::vector<EnemyBase*> g_enemyList;
+	// カプセルの描画
+	DrawCapsule3D(capA, capB, radius, 16, 0xff0000, 0xff0000, false);
 
-	// 敵の攻撃範囲ないに入っているかどうかのフラグ
-	bool isInEnemyRange = false;
-
-	for (const EnemyBase* enemy : g_enemyList)
-	{
-		if (!enemy) continue;
-
-		// 通常敵のみ
-		const EnemyNormal* normal = dynamic_cast<const EnemyNormal*>(enemy);
-
-		// 攻撃範囲中心・半径を取得
-		VECTOR attackCenter = normal->GetAttackRangeCenter();
-		float attackRange = normal->GetAttackRange();
-		if (attackRange <= 0.0f) continue; // 攻撃範囲が無効な場合はスキップ
-
-		// プレイヤーのXZ座標＋攻撃範囲中心のY座標で判定
-		VECTOR playerJudgePos = m_modelPos;
-		playerJudgePos.y = attackCenter.y;
-
-		// XZ平面のみで判定
-		float dx = playerJudgePos.x - attackCenter.x;
-		float dz = playerJudgePos.z - attackCenter.z;
-		float distSqXZ = dx * dx + dz * dz;
-
-		if (distSqXZ <= attackRange * attackRange)
-		{
-			isInEnemyRange = true;
-			// 攻撃範囲を赤色で描画
-			DrawSphere3D(attackCenter, attackRange, 16, 0xff0000, 0xff0000, false);
-		}
-		else
-		{
-			// 通常色で描画
-			DrawSphere3D(attackCenter, attackRange, 16, 0xff8000, 0xff8000, false);
-		}
-	}
-
-	// カプセルの描画（攻撃範囲内なら赤色、そうでなければ緑色）
-	unsigned int colorMain = isInEnemyRange ? 0xff0000 : 0x00ff00;
-	unsigned int colorSub = isInEnemyRange ? 0xff8080 : 0x80ff80;
-	DrawCapsule3D(capA, capB, radius, 16, colorMain, colorSub, false);
-
-#ifdef _DEBUG
-	// デバッグ用に判定結果を画面に表示
-	if (isInEnemyRange)
-	{
-		DrawFormatString(20, 20,0xff0000, "攻撃範囲内に入った");
-	}
-	else
-	{
-		DrawFormatString(20, 20, 0x00ff00, "攻撃範囲外");
-	}
-#endif
 }
 
 

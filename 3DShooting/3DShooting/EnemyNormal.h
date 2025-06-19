@@ -63,17 +63,6 @@ public:
     /// <returns>当たっていればtrue</returns>
     bool IsAttackHit(const VECTOR& targetPos, float targetRadius) const;
 
-    /// <summary>
-    /// 攻撃範囲の中心座標を取得
-    /// </summary>
-    VECTOR GetAttackRangeCenter() const override;
-
-	/// <summary>
-	/// 攻撃範囲を取得
-	/// </summary>
-	/// <returns>攻撃範囲の半径</returns>
-    float GetAttackRange() const override;
-
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
