@@ -3,6 +3,7 @@
 #include "Game.h"
 #include "SceneMain.h"
 #include "Mouse.h"
+#include "DebugUtil.h"
 #include <cassert>
 
 namespace
@@ -59,12 +60,14 @@ void SceneTitle::Init()
 
 SceneBase* SceneTitle::Update()
 {
+#ifdef _DEBUG
     // Sキーでロゴをスキップ
-    if (!m_isFadeOut && CheckHitKey(KEY_INPUT_S))
+    if (!m_isFadeOut && DebugUtil::IsSkipLogoKeyPressed())
     {
         SkipLogo();
         return this;
     }
+#endif // _DEBUG
 
     // タイトルロゴのフェードイン処理
     if (!m_isFadeComplete)

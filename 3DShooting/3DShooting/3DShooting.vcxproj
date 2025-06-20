@@ -112,14 +112,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)Scene;$(ProjectDir)GameObject;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)Scene;$(ProjectDir)GameObject;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)Scene;$(ProjectDir)GameObject;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -139,10 +139,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)Scene;$(ProjectDir)GameObject;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="GameObject\Bullet.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Effect.cpp" />
@@ -165,6 +166,7 @@
     <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="GameObject\Bullet.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Effect.h" />

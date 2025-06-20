@@ -4,6 +4,7 @@
 #include "SceneResult.h"
 #include "SceneOption.h"
 #include "SceneGameOver.h"
+#include "DebugUtil.h"
 #include "Mouse.h"
 
 SceneManager::SceneManager() :
@@ -80,4 +81,7 @@ void SceneManager::Draw()
 	{
 		m_pCurrentScene->Draw();
 	}
+
+	// デバッグウィンドウを表示
+	DebugUtil::ShowDebugWindow();
 }

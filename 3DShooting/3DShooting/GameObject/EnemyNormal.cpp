@@ -2,6 +2,7 @@
 #include "EnemyNormal.h"
 #include "Bullet.h"
 #include "DxLib.h"
+#include "DebugUtil.h"
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -375,7 +376,8 @@ void EnemyNormal::Draw()
         }
 
         // 体力のデバッグ表示
-        DrawFormatString(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
+        DebugUtil::DrawMessage(20, 100, 0xff0000, hitMsg);
+        DebugUtil::DrawFormat(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
 #endif
     }
 }
@@ -440,28 +442,21 @@ void EnemyNormal::DrawCollisionDebug() const
         std::abs(boxMax.z - boxMin.z)
         ) * 0.5f;
 
-    DrawCapsule3D(centerMin, centerMax, radius, 16, 0xff0000, 0xff0000, false);
+    DebugUtil::DrawCapsule(centerMin, centerMax, radius, 16, 0xff0000);
 
     // Headボーンのワールド座標を取得
     int headIndex = MV1SearchFrame(m_modelHandle, "Head");
     VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
 
 	// ヘッドショット判定用の球をデバッグ表示
-    DrawSphere3D(headPos, m_headRadius, 16, 0x00ff00, 0x00ff00, false); 
+    DebugUtil::DrawSphere(headPos, m_headRadius, 16, 0x00ff00);
 
     // 攻撃範囲のデバッグ表示
     float attackCenterY = m_pos.y + (m_aabbMax.y - m_aabbMin.y) * 0.5f; // AABBの中心高さ
     VECTOR attackCenter = m_pos;
     attackCenter.y = attackCenterY;
 
-    DrawSphere3D(
-        attackCenter,
-        kAttackRangeRadius,
-        24,
-        GetColor(255, 128, 0), // オレンジ
-        GetColor(255, 200, 0),
-        false
-    );
+    DebugUtil::DrawSphere(attackCenter, kAttackRangeRadius, 24, 0xff8000);
 
     // 攻撃用当たり判定（両手の間のカプセル）をデバッグ表示
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
@@ -473,7 +468,7 @@ void EnemyNormal::DrawCollisionDebug() const
         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
         
         // 攻撃判定カプセル
-        DrawCapsule3D(handRPos, handLPos, kAttackHitRadius, 16, 0x0000ff, 0x0000ff, false);
+        DebugUtil::DrawCapsule(handRPos, handLPos, kAttackHitRadius, 16, 0x0000ff);
     }
 }
 

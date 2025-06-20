@@ -23,3 +23,16 @@
 2025/06/18
 プレイヤークラスにあるアニメーション処理クラス化：
 デバック表示上は当たり判定が消えているが実際は残っているので弾が消えてしまっている問題：
+
+2025/06/20
+/// <summary>
+/// 3Dカプセルのデバッグ描画 
+/// </summary>
+/// <param name="a">カプセルの始点</param>
+/// <param name="b">カプセルの終点</param>
+/// <param name="radius">カプセルの半径</param>
+/// <param name="div">分割数</param>
+/// <param name="color">カプセルの色</param>
+/// <param name="fill">trueならカプセルを塗りつぶす</param>
+static void DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill = false);
+カプセルの始点終点の引数名がわかりずらいため修正した方がいいのか聞く：

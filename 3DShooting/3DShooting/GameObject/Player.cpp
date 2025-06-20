@@ -10,6 +10,7 @@
 #include "SceneManager.h"
 #include "SceneMain.h"
 #include "SceneGameOver.h"
+#include "DebugUtil.h"	
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -226,13 +227,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 #ifdef _DEBUG
 			// タックル判定カプセルのデバッグ描画
-			DrawCapsule3D(
+			DebugUtil::DrawCapsule(
 				tackleInfo.capA,
 				tackleInfo.capB,
 				tackleInfo.radius,
 				16,
-				GetColor(0, 255, 0),
-				GetColor(128, 255, 128),
+				0x00ff00,
 				false
 			);
 #endif
@@ -517,13 +517,12 @@ void Player::Draw()
 		VECTOR capA, capB;
 		float radius;
 		GetCapsuleInfo(capA, capB, radius);
-		DrawCapsule3D(
+		DebugUtil::DrawCapsule(
 			capA,
 			capB,
 			radius,
 			16,
-			GetColor(255, 0, 255), // マゼンタ
-			GetColor(255, 128, 255),
+			0xff00ff,
 			false
 		);
 
@@ -544,6 +543,7 @@ void Player::Draw()
 
 }
 
+// フィールドの描画
 void Player::DrawField()
 {
 	SetUseLighting(false);
