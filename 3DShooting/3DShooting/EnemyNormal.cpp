@@ -175,86 +175,38 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
     if (attackAnimIndex != -1)
     {
-        // アニメーションの総時間を取得
         double animTotalTime = MV1GetAnimTotalTime(m_modelHandle, attackAnimIndex);
 
-        // 攻撃アニメーション再生中か
-        bool isAttackAnimPlaying = (m_currentAnimIndex == attackAnimIndex);
+        // アニメーション再生中
+        if (m_currentAnimIndex != -1)
+        {
+            m_animTime += 1.0f;
+            if (m_animTime >= animTotalTime)
+            {
+                m_animTime = animTotalTime;
+                m_currentAnimIndex = -1; // 終了
+            }
+            else
+            {
+                MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
+            }
+        }
 
-        // 攻撃範囲内に入った瞬間、かつ再生中でない or 再生が終わっている場合のみ再生開始
-        if (isPlayerInAttackRange && (!isAttackAnimPlaying || m_animTime >= animTotalTime))
+        // アニメーションが再生中でない場合、攻撃範囲内なら再生開始
+        if (m_currentAnimIndex == -1 && isPlayerInAttackRange)
         {
             MV1DetachAnim(m_modelHandle, 0);
             m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, FALSE); // ループなし
             m_currentAnimLoop = false;
             m_animTime = 0.0f;
-            isAttackAnimPlaying = true;
-        }
-
-        // 攻撃アニメーション再生中は進行（範囲外でも止めない）
-        if (isAttackAnimPlaying && m_animTime < animTotalTime)
-        {
-            m_animTime += 1.0f; // フレームごとに進める
-            if (m_animTime > animTotalTime)
-            {
-                m_animTime = animTotalTime; // 終了で止める
-            }
             MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
-
-            // アニメーションが終わったら状態リセット
-            if (m_animTime >= animTotalTime)
-            {
-                m_currentAnimIndex = -1;
-            }
         }
     }
     else
     {
-        // アニメーションが見つからない場合は状態リセット
         m_currentAnimIndex = -1;
         m_animTime = 0.0f;
     }
-
-
-    //// 攻撃アニメーション制御
-    //if (isPlayerInAttackRange)
-    //{
-    //    int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
-    //    if (attackAnimIndex != -1)
-    //    {
-    //        // まだアタッチされていなければアタッチ
-    //        if (m_currentAnimIndex != attackAnimIndex)
-    //        {
-    //            MV1DetachAnim(m_modelHandle, 0);
-    //            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, TRUE); // ループ再生
-    //            m_currentAnimLoop = true;
-    //        }
-
-    //        // アニメーションの長さを取得
-    //        double animTotalTime = MV1GetAnimTotalTime(m_modelHandle, attackAnimIndex);
-
-    //        // アニメーションの進行
-    //        m_animTime += 1.0f; // 1フレームごとに進める（必要に応じて速度調整）
-
-    //        // ループ再生
-    //        if (m_animTime >= animTotalTime)
-    //        {
-    //            m_animTime = 0.0f;
-    //        }
-    //        MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
-    //    }
-    //}
-    //else
-    //{
-    //    // 攻撃アニメーション停止
-    //    if (m_currentAnimIndex != -1)
-    //    {
-    //        MV1DetachAnim(m_modelHandle, 0);
-    //        m_currentAnimIndex = -1;
-    //        m_currentAnimLoop = false;
-    //        m_animTime = 0.0f;
-    //    }
-    //}
 
 	// 弾の当たり判定をチェック
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
