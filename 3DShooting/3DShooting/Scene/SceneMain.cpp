@@ -157,7 +157,7 @@ SceneBase* SceneMain::Update()
     m_pPlayer->Update(m_enemyList);
 
 	// 通常ゾンビの更新
-	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo());
+	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
     // 何もしなければシーン遷移しない(ゲーム画面のまま)
     return this;

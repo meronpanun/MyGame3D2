@@ -16,7 +16,7 @@ public:
 	virtual ~EnemyBase() = default;
 
 	virtual void Init() abstract;
-	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo) abstract;
+	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player) abstract;
 	virtual void Draw() abstract;
 	
 
@@ -120,7 +120,6 @@ protected:
 	float m_colRadius;       // 当たり判定用半径
 	float m_hp;              // 体力
 	float m_attackPower;     // 攻撃力
-	float m_attackRange;     // 攻撃範囲
 
 	bool  m_isAlive;         // 生存状態フラグ
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか

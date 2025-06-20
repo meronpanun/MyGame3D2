@@ -9,7 +9,6 @@ namespace
 
 	constexpr float kDefaultCooldownMax = 60;     // 攻撃クールダウンの最大値
 	constexpr float kDefaultAttackPower = 10.0f;  // 攻撃力
-	constexpr float kDefaultAttackRange = 100.0f; // 攻撃範囲
 }
 
 EnemyBase::EnemyBase() :
@@ -25,7 +24,6 @@ EnemyBase::EnemyBase() :
 	m_attackCooldown(0),
 	m_attackCooldownMax(kDefaultCooldownMax),
 	m_attackPower(kDefaultAttackPower),
-	m_attackRange(kDefaultAttackRange),
 	m_attackHitFrame(0),
 	m_isAttacking(false)
 {

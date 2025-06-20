@@ -27,6 +27,12 @@ namespace
 	// 初期体力
 	constexpr float kInitialHP = 200.0f;
 
+    // 攻撃時の当たり判定
+	constexpr float kAttackHitRadius = 20.0f; 
+
+    // 攻撃範囲の半径
+    constexpr float kAttackRangeRadius = 120.0f; 
+
     // VECTORの長さの二乗を計算する関数
     float VLenSq(const VECTOR& vec)
     {
@@ -102,6 +108,14 @@ namespace
         return distSq <= radiusSum * radiusSum;
     }
 
+	// 攻撃範囲の当たり判定
+    static bool CheckSphereCapsuleHit(
+        const VECTOR& sphereCenter, float sphereRadius,
+        const VECTOR& capA, const VECTOR& capB, float capRadius)
+    {
+        // カプセルと球の当たり判定は既存のCheckCapsuleSphereHit
+        return CheckCapsuleSphereHit(capA, capB, capRadius, sphereCenter, sphereRadius);
+    }
 }
 
 EnemyNormal::EnemyNormal() :
@@ -126,47 +140,121 @@ EnemyNormal::~EnemyNormal()
 	DeleteGraph(m_modelHandle); 
 }
 
-
 void EnemyNormal::Init()
 {
     // 初期化
     m_hp                = kInitialHP;
     m_pos               = kInitialPosition;
-	m_attackRange       = 150.0f; // 攻撃範囲
 	m_attackPower       = 20.0f;  // 攻撃力
 	m_attackCooldownMax = 45;     // 攻撃クールダウンの最大値
 }
 
-void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo)
+void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
     // モデルの位置を更新
     MV1SetPosition(m_modelHandle, m_pos);
 
-    // 攻撃アニメーションの再生
-    if (m_currentAnimIndex == -1)
+    // 攻撃範囲の中心
+    VECTOR attackCenter = m_pos;
+    attackCenter.y += (m_aabbMax.y - m_aabbMin.y) * 0.5f; // AABB中心高さに補正
+    float attackRadius = kAttackRangeRadius;
+
+
+    // プレイヤーのカプセル情報取得
+    VECTOR playerCapA, playerCapB;
+    float  playerCapRadius;
+    player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
+
+    // 攻撃範囲内か判定
+    bool isPlayerInAttackRange = CheckSphereCapsuleHit(
+        attackCenter, attackRadius,
+        playerCapA, playerCapB, playerCapRadius
+    );
+
+    // 攻撃アニメーション制御
+    int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
+    if (attackAnimIndex != -1)
     {
-        m_currentAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
-        if (m_currentAnimIndex != -1) 
+        // アニメーションの総時間を取得
+        double animTotalTime = MV1GetAnimTotalTime(m_modelHandle, attackAnimIndex);
+
+        // 攻撃アニメーション再生中か
+        bool isAttackAnimPlaying = (m_currentAnimIndex == attackAnimIndex);
+
+        // 攻撃範囲内に入った瞬間、かつ再生中でない or 再生が終わっている場合のみ再生開始
+        if (isPlayerInAttackRange && (!isAttackAnimPlaying || m_animTime >= animTotalTime))
         {
             MV1DetachAnim(m_modelHandle, 0);
-            MV1AttachAnim(m_modelHandle, m_currentAnimIndex, -1, m_currentAnimLoop);
-            m_currentAnimLoop = true;
+            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, FALSE); // ループなし
+            m_currentAnimLoop = false;
             m_animTime = 0.0f;
+            isAttackAnimPlaying = true;
         }
+
+        // 攻撃アニメーション再生中は進行（範囲外でも止めない）
+        if (isAttackAnimPlaying && m_animTime < animTotalTime)
+        {
+            m_animTime += 1.0f; // フレームごとに進める
+            if (m_animTime > animTotalTime)
+            {
+                m_animTime = animTotalTime; // 終了で止める
+            }
+            MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
+
+            // アニメーションが終わったら状態リセット
+            if (m_animTime >= animTotalTime)
+            {
+                m_currentAnimIndex = -1;
+            }
+        }
+    }
+    else
+    {
+        // アニメーションが見つからない場合は状態リセット
+        m_currentAnimIndex = -1;
+        m_animTime = 0.0f;
     }
 
-    // アニメーションの進行
-    if (m_currentAnimIndex != -1) 
-    {
-        // アニメーションの長さを取得
-        float animTotalTime = MV1GetAnimTotalTime(m_modelHandle, m_currentAnimIndex);
-        m_animTime += 1.0f; // 1フレーム進める（必要に応じてフレームレートで調整）
-        if (m_currentAnimLoop && m_animTime > animTotalTime) 
-        {
-            m_animTime = 0.0f; // ループ
-        }
-        MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
-    }
+
+    //// 攻撃アニメーション制御
+    //if (isPlayerInAttackRange)
+    //{
+    //    int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
+    //    if (attackAnimIndex != -1)
+    //    {
+    //        // まだアタッチされていなければアタッチ
+    //        if (m_currentAnimIndex != attackAnimIndex)
+    //        {
+    //            MV1DetachAnim(m_modelHandle, 0);
+    //            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, TRUE); // ループ再生
+    //            m_currentAnimLoop = true;
+    //        }
+
+    //        // アニメーションの長さを取得
+    //        double animTotalTime = MV1GetAnimTotalTime(m_modelHandle, attackAnimIndex);
+
+    //        // アニメーションの進行
+    //        m_animTime += 1.0f; // 1フレームごとに進める（必要に応じて速度調整）
+
+    //        // ループ再生
+    //        if (m_animTime >= animTotalTime)
+    //        {
+    //            m_animTime = 0.0f;
+    //        }
+    //        MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
+    //    }
+    //}
+    //else
+    //{
+    //    // 攻撃アニメーション停止
+    //    if (m_currentAnimIndex != -1)
+    //    {
+    //        MV1DetachAnim(m_modelHandle, 0);
+    //        m_currentAnimIndex = -1;
+    //        m_currentAnimLoop = false;
+    //        m_animTime = 0.0f;
+    //    }
+    //}
 
 	// 弾の当たり判定をチェック
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
@@ -309,12 +397,35 @@ void EnemyNormal::DrawCollisionDebug() const
     int headIndex = MV1SearchFrame(m_modelHandle, "Head");
     VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
 
-    DrawSphere3D(headPos, m_headRadius, 16, 0x00ff00, 0x00ff00, false);
+	// ヘッドショット判定用の球をデバッグ表示
+    DrawSphere3D(headPos, m_headRadius, 16, 0x00ff00, 0x00ff00, false); 
 
     // 攻撃範囲のデバッグ表示
-    float centerY = (boxMin.y + boxMax.y) * 0.5f;
-    VECTOR attackCenter = { spinePos.x, centerY, spinePos.z };
-    DrawSphere3D(attackCenter, m_attackRange, 16, 0xff8000, 0xff8000, false);
+    float attackCenterY = m_pos.y + (m_aabbMax.y - m_aabbMin.y) * 0.5f; // AABBの中心高さ
+    VECTOR attackCenter = m_pos;
+    attackCenter.y = attackCenterY;
+
+    DrawSphere3D(
+        attackCenter,
+        kAttackRangeRadius,
+        24,
+        GetColor(255, 128, 0), // オレンジ
+        GetColor(255, 200, 0),
+        false
+    );
+
+    // 攻撃用当たり判定（両手の間のカプセル）をデバッグ表示
+    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+    int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+
+    if (handRIndex != -1 && handLIndex != -1) 
+    {
+        VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+        VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+        
+        // 攻撃判定カプセル
+        DrawCapsule3D(handRPos, handLPos, kAttackHitRadius, 16, 0x0000ff, 0x0000ff, false);
+    }
 }
 
 // どこに当たったか判定する関数
@@ -378,9 +489,7 @@ bool EnemyNormal::IsAttackHit(const VECTOR& targetPos, float targetRadius) const
     VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
     VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
-    float attackCapsuleRadius = 20.0f; 
-
     // カプセルと球の当たり判定
-    return CheckCapsuleSphereHit(handRPos, handLPos, attackCapsuleRadius, targetPos, targetRadius);
+    return CheckCapsuleSphereHit(handRPos, handLPos, kAttackHitRadius, targetPos, targetRadius);
 }
 

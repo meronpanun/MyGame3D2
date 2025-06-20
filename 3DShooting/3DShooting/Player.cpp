@@ -51,10 +51,6 @@ namespace
 	constexpr float kTackleHitRadius   = 250.0f; // タックルの横幅(半径)
 	constexpr float kTackleHitHeight   = 100.0f; // タックルの高さ
 	constexpr float kTackleDamage      = 10.0f;  // タックルダメージ
-
-	// カプセル当たり判定
-	constexpr float kPlayerCollisionHeight = 100.0f; // カプセル当たり判定の高さ
-	constexpr float kPlayerCollisionRadius = 60.0f;  // カプセル当たり判定の半径
 }
 
 Player::Player() :
@@ -223,7 +219,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 				if (!enemy) continue;
 
 				// 敵の更新処理
-				enemy->Update(m_bullets, tackleInfo);
+				enemy->Update(m_bullets, tackleInfo, *this);
 			}
 
 #ifdef _DEBUG
@@ -270,7 +266,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		for (EnemyBase* enemy : enemyList)
 		{
 			if (!enemy) continue;
-			enemy->Update(m_bullets, tackleInfo);
+			enemy->Update(m_bullets, tackleInfo, *this);
 		}
 	
 		// 弾の更新
@@ -413,7 +409,7 @@ void Player::Draw()
 	SetFontSize(16); // フォントサイズを元に戻す
 
 
-
+	/*剣の描画*/
 	float swordScreenX = -25.0f;
 	float swordScreenY = -30;
 	float swordScreenZ = 35.0f;
@@ -486,8 +482,19 @@ void Player::Draw()
 		DrawField(); // フィールド描画
 		MV1DrawModel(m_modelHandle); // プレイヤーモデル描画
 
-		// プレイヤーの当たり判定デバッグ描画
-		DrawPlayerCollisionDebug();
+		// プレイヤーカプセル当たり判定のデバッグ表示
+		VECTOR capA, capB;
+		float radius;
+		GetCapsuleInfo(capA, capB, radius);
+		DrawCapsule3D(
+			capA,
+			capB,
+			radius,
+			16,
+			GetColor(255, 0, 255), // マゼンタ
+			GetColor(255, 128, 255),
+			false
+		);
 
 		// メイン画面に戻す
 		SetDrawScreen(DX_SCREEN_BACK);
@@ -705,21 +712,6 @@ VECTOR Player::GetGunRot() const
 	);
 }
 
-// プレイヤーの当たり判定をデバッグ描画
-void Player::DrawPlayerCollisionDebug() const
-{
-	// プレイヤーのカプセル当たり判定
-	VECTOR capA = m_modelPos;
-	VECTOR capB = m_modelPos;
-	capB.y += kPlayerCollisionHeight;      // 高さ
-	float radius = kPlayerCollisionRadius; // 半径
-
-	// カプセルの描画
-	DrawCapsule3D(capA, capB, radius, 16, 0xff0000, 0xff0000, false);
-
-}
-
-
 // タックル情報を取得
 Player::TackleInfo Player::GetTackleInfo() const
 {
@@ -747,4 +739,19 @@ Player::TackleInfo Player::GetTackleInfo() const
 		info.damage = kTackleDamage;
 	}
 	return info;
+}
+
+// カプセル情報を取得
+void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
+{
+	// プレイヤーの体の中心を基準に、縦長のカプセルを想定
+	constexpr float kCapsuleHeight = 100.0f; // プレイヤーの身長
+	constexpr float kCapsuleRadius = 80.0f;  // プレイヤーの体の半径
+
+	VECTOR center = m_modelPos;
+	center.y += 60.0f; // 足元から腰～胸あたりを中心に
+
+	capA = VAdd(center, VGet(0, -kCapsuleHeight * 0.5f, 0));
+	capB = VAdd(center, VGet(0, kCapsuleHeight * 0.5f, 0));
+	radius = kCapsuleRadius;
 }

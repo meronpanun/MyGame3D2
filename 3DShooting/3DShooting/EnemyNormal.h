@@ -16,7 +16,7 @@ public:
     virtual ~EnemyNormal();
 
     void Init() override;
-	void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo) override; 
+    void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player) override;
     void Draw() override;
 
     /// <summary>

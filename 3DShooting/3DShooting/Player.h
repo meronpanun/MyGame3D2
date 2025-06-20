@@ -73,6 +73,14 @@ public:
 	/// <returns>タックル情報</returns>
 	TackleInfo GetTackleInfo() const;
 
+	/// <summary>
+	/// プレイヤーのカプセル当たり判定情報を取得
+	/// </summary>
+	/// <param name="capA">カプセルのA端点</param>
+	/// <param name="capB">カプセルのB端点</param>
+	/// <param name="radius">カプセルの半径</param>
+	void GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const;
+
 
 	// TODO:アニメーション処理は敵も行うので後でクラス化
 
@@ -126,8 +134,6 @@ private:
 	/// <returns>銃の位置</returns>
 	VECTOR GetGunPos() const;
 	VECTOR GetGunRot() const;
-
-	void DrawPlayerCollisionDebug() const;
 
 private:
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
