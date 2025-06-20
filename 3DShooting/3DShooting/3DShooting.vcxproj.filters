@@ -19,6 +19,12 @@
     <Filter Include="ヘッダー ファイル\Scene">
       <UniqueIdentifier>{1c33cfb0-aa54-46c2-8159-74a1054e41cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\GameObject">
+      <UniqueIdentifier>{33ab87b9-1fde-43a1-8c1f-08ec19badb35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\GameObject">
+      <UniqueIdentifier>{2bbf9d9b-9e6a-4f4b-914e-8c5d3988a1ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -57,26 +63,29 @@
     <ClCompile Include="Effect.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="EnemyBase.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="Scene\SceneGameOver.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="EnemyNormal.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="GameObject\Player.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="EnemyAcid.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="GameObject\EnemyRunner.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="EnemyBoss.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="GameObject\EnemyNormal.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="EnemyRunner.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="GameObject\EnemyBoss.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="GameObject\EnemyBase.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
-    <ClCompile Include="Bullet.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="GameObject\EnemyAcid.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject\Bullet.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -113,26 +122,29 @@
     <ClInclude Include="Effect.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="EnemyBase.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Scene\SceneGameOver.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="EnemyNormal.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="GameObject\Bullet.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="EnemyAcid.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="GameObject\EnemyRunner.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="EnemyBoss.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="GameObject\EnemyNormal.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="EnemyRunner.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="GameObject\EnemyBoss.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="GameObject\EnemyBase.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="Bullet.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="GameObject\EnemyAcid.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject\Player.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

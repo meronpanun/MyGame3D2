@@ -4,6 +4,8 @@
 class SceneTitle;
 class SceneMain;
 class SceneResult;
+class SceneOption;
+class SceneGameOver;
 
 /// <summary>
 /// シーン管理クラス
@@ -23,7 +25,9 @@ private:
 	SceneBase* m_pNextScene;
 
 	// SceneManagerで管理するシーン
-	SceneTitle*  m_pTitle;
-	SceneMain*   m_pSceneMain;
-	SceneResult* m_pResult;
+	SceneTitle*    m_pTitle;
+	SceneMain*     m_pSceneMain;
+	SceneResult*   m_pResult;
+	SceneOption*   m_pOption;
+	SceneGameOver* m_pGameOver;
 };

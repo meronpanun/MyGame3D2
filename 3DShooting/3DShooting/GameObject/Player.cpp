@@ -7,7 +7,9 @@
 #include "Camera.h"
 #include "Effect.h"	
 #include "Bullet.h"
+#include "SceneManager.h"
 #include "SceneMain.h"
+#include "SceneGameOver.h"
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -397,6 +399,7 @@ void Player::Draw()
 
 	int screenW = Game::kScreenWidth;
 	int screenH = Game::kScreenHeigth;
+	GetScreenState(&screenW, &screenH, NULL);
 
 	// 残弾数の表示
 	int ammoFontSize = 32;
@@ -456,6 +459,34 @@ void Player::Draw()
 	{
 		DrawFormatString(tackleGaugeX + tackleGaugeWidth + 10, tackleGaugeY, 0x80FF80, "READY");
 	}
+
+	// HPバーのパラメータ
+    const int barWidth  = 200;
+    const int barHeight = 24;
+    const int margin    = 30;
+    const int barX      = margin;
+    const int barY      = screenH - barHeight - margin;
+
+    // 最大HP（必要に応じて定数化）
+    const float maxHP = 100.0f; // 例: 100
+    float hp = m_health;
+    if (hp < 0) hp = 0;
+    if (hp > maxHP) hp = maxHP;
+
+    // HP割合
+    float hpRate = hp / maxHP;
+
+    // 背景
+    DrawBox(barX, barY, barX + barWidth, barY + barHeight, GetColor(80, 80, 80), TRUE);
+
+    // HPバー本体
+    DrawBox(barX, barY, barX + static_cast<int>(barWidth * hpRate), barY + barHeight, GetColor(255, 64, 64), TRUE);
+
+    // 枠
+    DrawBox(barX, barY, barX + barWidth, barY + barHeight, GetColor(0, 0, 0), FALSE);
+
+    // HP数値
+    DrawFormatString(barX + 8, barY + 2, GetColor(255,255,255), "HP: %.0f / %.0f", hp, maxHP);
 
 #ifdef _DEBUG
 	if (m_pCamera)

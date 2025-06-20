@@ -55,14 +55,6 @@ public:
     /// </summary>
     void ResetTackleHitFlag() { m_isTackleHit = false; }
 
-    /// <summary>
-    /// Hand_RからHand_Lまでの攻撃カプセル当たり判定
-    /// </summary>
-    /// <param name="targetPos">判定対象の中心座標</param>
-    /// <param name="targetRadius">判定対象の半径</param>
-    /// <returns>当たっていればtrue</returns>
-    bool IsAttackHit(const VECTOR& targetPos, float targetRadius) const;
-
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
@@ -76,6 +68,6 @@ private:
 
     bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
     bool m_currentAnimLoop;
-
+    bool m_hasAttackHit;
 };
 

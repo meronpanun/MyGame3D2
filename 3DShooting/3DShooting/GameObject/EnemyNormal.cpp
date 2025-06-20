@@ -12,7 +12,7 @@ namespace
 	constexpr char kAttackAnimName[] = "ATK";
 
     // 位置
-    constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 0.0f };
+    constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 200.0f };
 
 	// AABBの最小座標と最大座標
 	constexpr VECTOR kAABBMin = { -20.0f, 0.0f, -15.0f };
@@ -127,7 +127,8 @@ EnemyNormal::EnemyNormal() :
     m_lastTackleId(-1),
 	m_currentAnimLoop(false),
 	m_currentAnimIndex(-1),
-	m_animTime(0.0f)
+	m_animTime(0.0f),
+	m_hasAttackHit(false)
 {
     // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
@@ -151,6 +152,82 @@ void EnemyNormal::Init()
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
+    // プレイヤーのカプセル情報取得
+    VECTOR playerCapA, playerCapB;
+    float  playerCapRadius;
+    player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
+
+    // 敵のカプセル情報取得
+    VECTOR boxMin = {
+        m_pos.x + m_aabbMin.x,
+        m_pos.y + m_aabbMin.y,
+        m_pos.z + m_aabbMin.z
+    };
+    VECTOR boxMax = {
+        m_pos.x + m_aabbMax.x,
+        m_pos.y + m_aabbMax.y,
+        m_pos.z + m_aabbMax.z
+    };
+    VECTOR enemyCapA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
+    VECTOR enemyCapB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
+    float enemyCapRadius = (std::max)(std::abs(boxMax.x - boxMin.x), std::abs(boxMax.z - boxMin.z)) * 0.5f;
+
+    // カプセル同士の最近点を求める
+    auto ClosestPtSegmentSegment = [](const VECTOR& p1, const VECTOR& q1, const VECTOR& p2, const VECTOR& q2, VECTOR& c1, VECTOR& c2) {
+        VECTOR d1 = VSub(q1, p1);
+        VECTOR d2 = VSub(q2, p2);
+        VECTOR r = VSub(p1, p2);
+        float a = VDot(d1, d1);
+        float e = VDot(d2, d2);
+        float f = VDot(d2, r);
+
+        float s, t;
+        float c = VDot(d1, r);
+        float b = VDot(d1, d2);
+        float denom = a * e - b * b;
+
+        if (denom != 0.0f) 
+        {
+            s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+        }
+        else 
+        {
+            s = 0.0f;
+        }
+
+        t = (b * s + f) / e;
+        t = std::clamp(t, 0.0f, 1.0f);
+
+        s = (b * t - c) / a;
+        s = std::clamp(s, 0.0f, 1.0f);
+
+        c1 = VAdd(p1, VScale(d1, s));
+        c2 = VAdd(p2, VScale(d2, t));
+        };
+
+    VECTOR closestPlayer, closestEnemy;
+    ClosestPtSegmentSegment(
+        playerCapA, playerCapB,
+        enemyCapA, enemyCapB,
+        closestPlayer, closestEnemy
+    );
+
+    VECTOR diff = VSub(closestPlayer, closestEnemy);
+    float distSq = VDot(diff, diff);
+    float minDist = playerCapRadius + enemyCapRadius;
+
+    if (distSq < minDist * minDist && distSq > 0.0001f)
+    {
+        float dist = std::sqrt(distSq);
+        float pushBack = minDist - dist;
+        VECTOR pushDir = VScale(diff, 1.0f / dist);
+
+        // プレイヤーを押し戻す（外部力として加算）
+        VECTOR pushVec = VScale(pushDir, pushBack);
+        const_cast<Player&>(player).AddExternalForce(pushVec);
+    }
+
+
     // モデルの位置を更新
     MV1SetPosition(m_modelHandle, m_pos);
 
@@ -159,11 +236,6 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     attackCenter.y += (m_aabbMax.y - m_aabbMin.y) * 0.5f; // AABB中心高さに補正
     float attackRadius = kAttackRangeRadius;
 
-
-    // プレイヤーのカプセル情報取得
-    VECTOR playerCapA, playerCapB;
-    float  playerCapRadius;
-    player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
 
     // 攻撃範囲内か判定
     bool isPlayerInAttackRange = CheckSphereCapsuleHit(
@@ -185,27 +257,52 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             {
                 m_animTime = animTotalTime;
                 m_currentAnimIndex = -1; // 終了
+                m_hasAttackHit = false;  // 攻撃判定リセット
             }
             else
             {
                 MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
+
+                // 攻撃アニメーションの中盤で攻撃判定を行う(全体の30%～70%の間)
+                float attackStart = animTotalTime * 0.3f;
+                float attackEnd = animTotalTime * 0.7f;
+                if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+                {
+                    // 両手のワールド座標取得
+                    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+                    int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+                    if (handRIndex != -1 && handLIndex != -1)
+                    {
+                        VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+                        VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+
+                        // プレイヤーカプセル取得
+                        VECTOR playerCapA, playerCapB;
+                        float  playerCapRadius;
+                        player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
+
+                        // カプセル同士の当たり判定
+                        if (CheckCapsuleCapsuleHit(
+                            handRPos, handLPos, kAttackHitRadius,
+                            playerCapA, playerCapB, playerCapRadius))
+                        {
+                            // ダメージを与える
+                            const_cast<Player&>(player).TakeDamage(m_attackPower);
+                            m_hasAttackHit = true; // 多重ヒット防止
+                        }
+                    }
+                }
             }
         }
-
         // アニメーションが再生中でない場合、攻撃範囲内なら再生開始
-        if (m_currentAnimIndex == -1 && isPlayerInAttackRange)
+        else if (isPlayerInAttackRange)
         {
             MV1DetachAnim(m_modelHandle, 0);
-            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, FALSE); // ループなし
+            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, false); // ループなし
             m_currentAnimLoop = false;
             m_animTime = 0.0f;
             MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
         }
-    }
-    else
-    {
-        m_currentAnimIndex = -1;
-        m_animTime = 0.0f;
     }
 
 	// 弾の当たり判定をチェック
@@ -428,20 +525,5 @@ float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
         return bullet.GetDamage();
     }
     return 0.0f;
-}
-
-// 攻撃用当たり判定
-// TODO:まだ使えていない
-bool EnemyNormal::IsAttackHit(const VECTOR& targetPos, float targetRadius) const
-{
-    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
-    int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
-    if (handRIndex == -1 || handLIndex == -1) return false;
-
-    VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
-    VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
-
-    // カプセルと球の当たり判定
-    return CheckCapsuleSphereHit(handRPos, handLPos, kAttackHitRadius, targetPos, targetRadius);
 }
 

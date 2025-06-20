@@ -1,7 +1,8 @@
 #include "SceneMain.h"
 #include "SceneTitle.h"
-#include "SceneResult.h"
 #include "SceneOption.h"
+#include "SceneResult.h"
+#include "SceneGameOver.h" 
 #include "DxLib.h"
 #include "Player.h"
 #include "Mouse.h"
@@ -155,6 +156,12 @@ SceneBase* SceneMain::Update()
 
     // プレイヤーの更新
     m_pPlayer->Update(m_enemyList);
+
+    // 体力チェックしてゲームオーバー遷移
+    if (m_pPlayer->GetHealth() <= 0.0f)
+    {
+        return new SceneGameOver();
+    }
 
 	// 通常ゾンビの更新
 	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);

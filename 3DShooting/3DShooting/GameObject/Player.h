@@ -42,6 +42,8 @@ public:
 	/// <returns>プレイヤーの位置</returns>
 	VECTOR GetPos() const { return m_pos; }
 
+	void SetPos(const VECTOR& pos) { m_pos = pos; } // プレイヤーの位置を設定する
+
 	/// <summary>
 	/// 弾の取得
 	/// </summary>
@@ -80,6 +82,14 @@ public:
 	/// <param name="capB">カプセルのB端点</param>
 	/// <param name="radius">カプセルの半径</param>
 	void GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const;
+
+	/// <summary>
+	/// プレイヤーの体力を取得する
+	/// </summary>
+	/// <returns>プレイヤーの体力</returns>
+	float GetHealth() const { return m_health; }
+
+	void AddExternalForce(const VECTOR& force) { m_modelPos = VAdd(m_modelPos, force); } // 外部からの力を加える
 
 
 	// TODO:アニメーション処理は敵も行うので後でクラス化
