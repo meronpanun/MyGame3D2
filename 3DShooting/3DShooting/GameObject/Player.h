@@ -89,8 +89,6 @@ public:
 	/// <returns>プレイヤーの体力</returns>
 	float GetHealth() const { return m_health; }
 
-	void AddExternalForce(const VECTOR& force) { m_modelPos = VAdd(m_modelPos, force); } // 外部からの力を加える
-
 
 	// TODO:アニメーション処理は敵も行うので後でクラス化
 

@@ -9,6 +9,7 @@
 #include "Game.h"
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
+#include "DebugUtil.h"
 #include "Camera.h"
 #include <cassert>
 
@@ -97,6 +98,12 @@ void SceneMain::Init()
 
 SceneBase* SceneMain::Update()
 {
+    if (DebugUtil::IsDebugWindowVisible())
+    {
+        return this;
+    }
+
+
     // スカイドームの回転を更新
     MV1SetRotationXYZ(m_skyDomeHandle, VGet(0, MV1GetRotationXYZ(m_skyDomeHandle).y + kCameraRotaSpeed, 0));
 

@@ -59,5 +59,10 @@ public:
 	/// デバッグウィンドウを表示する
     /// </summary>
     static void ShowDebugWindow();
+
+	static bool IsDebugWindowVisible();
+
+private:
+	static bool s_isVisible;
 };
 

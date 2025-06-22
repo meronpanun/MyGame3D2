@@ -153,6 +153,9 @@ void EnemyNormal::Init()
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
+    // HPが0以下なら何もしない
+    if (m_hp <= 0.0f) return;
+
     // プレイヤーのカプセル情報取得
     VECTOR playerCapA, playerCapB;
     float  playerCapRadius;
@@ -223,9 +226,8 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         float pushBack = minDist - dist;
         VECTOR pushDir = VScale(diff, 1.0f / dist);
 
-        // プレイヤーを押し戻す（外部力として加算）
-        VECTOR pushVec = VScale(pushDir, pushBack);
-        const_cast<Player&>(player).AddExternalForce(pushVec);
+        // プレイヤーと敵の位置を調整
+        m_pos = VSub(m_pos, VScale(pushDir, pushBack * 0.5f));
     }
 
 
@@ -305,8 +307,8 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
         }
     }
-
-	// 弾の当たり判定をチェック
+    
+    // 弾の当たり判定をチェック
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
 
     // タックル当たり判定の追加
@@ -350,36 +352,36 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
 void EnemyNormal::Draw()
 {
-    // HPが0より大きい場合のみ描画
-    if (m_hp > 0.0f)
-    {
-        // モデルの描画
-        MV1DrawModel(m_modelHandle);
+    // HPが0以下なら何もしない
+    if (m_hp <= 0.0f) return;
+
+    // モデルの描画
+    MV1DrawModel(m_modelHandle);
 
 #ifdef _DEBUG
-        // デバッグ用の当たり判定描画
-        DrawCollisionDebug();
+    // デバッグ用の当たり判定描画
+    DrawCollisionDebug();
 
-        // デバッグ表示
-        const char* hitMsg = "";
+    // デバッグ表示
+    const char* hitMsg = "";
 
-		// ヒット部位に応じてメッセージを設定
-        switch (m_lastHitPart)
-        {
-        case HitPart::Head: hitMsg = "HeadShot!"; break;
-        case HitPart::Body: hitMsg = "BodyHit!"; break;
-        default: break;
-        }
-        if (*hitMsg)
-        {
-            DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
-        }
-
-        // 体力のデバッグ表示
-        DebugUtil::DrawMessage(20, 100, 0xff0000, hitMsg);
-        DebugUtil::DrawFormat(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
-#endif
+    // ヒット部位に応じてメッセージを設定
+    switch (m_lastHitPart)
+    {
+    case HitPart::Head: hitMsg = "HeadShot!"; break;
+    case HitPart::Body: hitMsg = "BodyHit!"; break;
+    default: break;
     }
+    if (*hitMsg)
+    {
+        DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
+    }
+
+    // 体力のデバッグ表示
+    DebugUtil::DrawMessage(20, 100, 0xff0000, hitMsg);
+    DebugUtil::DrawFormat(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
+#endif
+    
 }
 
 // 敵の当たり判定を行う関数
@@ -452,13 +454,13 @@ void EnemyNormal::DrawCollisionDebug() const
     DebugUtil::DrawSphere(headPos, m_headRadius, 16, 0x00ff00);
 
     // 攻撃範囲のデバッグ表示
-    float attackCenterY = m_pos.y + (m_aabbMax.y - m_aabbMin.y) * 0.5f; // AABBの中心高さ
+    float attackCenterY = m_pos.y + (m_aabbMax.y - m_aabbMin.y) * 0.5f;
     VECTOR attackCenter = m_pos;
     attackCenter.y = attackCenterY;
 
     DebugUtil::DrawSphere(attackCenter, kAttackRangeRadius, 24, 0xff8000);
 
-    // 攻撃用当たり判定（両手の間のカプセル）をデバッグ表示
+    // 攻撃用当たり判定(両手の間のカプセル)をデバッグ表示
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
 

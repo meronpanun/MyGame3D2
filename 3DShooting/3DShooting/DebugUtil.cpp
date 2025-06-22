@@ -2,6 +2,8 @@
 #include "DxLib.h"
 #include <cstdarg>
 
+bool DebugUtil::s_isVisible = false;
+
 // 3Dカプセルのデバッグ描画関数
 void DebugUtil::DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill)
 {
@@ -44,12 +46,21 @@ void DebugUtil::ShowDebugWindow()
     // F1キーが押された瞬間に表示/非表示を切り替え
     static int prevF1 = 0;
     int nowF1 = CheckHitKey(KEY_INPUT_F1);
-    if (nowF1 && !prevF1) {
-        isVisible = !isVisible;
+    if (nowF1 && !prevF1)
+    {
+        s_isVisible = !s_isVisible;
     }
     prevF1 = nowF1;
 
-    if (!isVisible) return;
+    if (!s_isVisible) return;
+
+    // デバッグウィンドウの背景を半透明で描画
+    int screenW, screenH;
+    GetScreenState(&screenW, &screenH, NULL);
+    unsigned int bgAlphaColor = GetColor(0, 0, 0); // 黒
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); // 半透明
+    DrawBox(0, 0, screenW, screenH, bgAlphaColor, TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // デバッグウィンドウの内容
     const int x = 40;
@@ -69,4 +80,9 @@ void DebugUtil::ShowDebugWindow()
     DrawString(x + 16, y + 16, "デバッグウィンドウ (F1で切替)", textColor);
     DrawString(x + 16, y + 48, "・ここにデバッグ情報を表示できます", textColor);
     // 必要に応じて追加情報をここに描画
+}
+
+bool DebugUtil::IsDebugWindowVisible()
+{
+    return s_isVisible;
 }

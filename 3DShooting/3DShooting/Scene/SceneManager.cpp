@@ -60,6 +60,8 @@ void SceneManager::Update()
 	// マウスの入力状態を更新
 	Mouse::Update();
 
+
+
 	// 現在のシーンを更新
 	if (m_pCurrentScene != nullptr)
 	{
