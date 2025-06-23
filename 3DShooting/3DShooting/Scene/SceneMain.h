@@ -1,5 +1,6 @@
 #pragma once
 #include "SceneBase.h"
+#include "DxLib.h"
 #include <memory>
 #include <chrono>
 #include <vector>
@@ -48,7 +49,7 @@ private:
 	std::unique_ptr<Player> m_pPlayer;
 	std::shared_ptr<Camera> m_pCamera;
 	std::shared_ptr<EnemyNormal> m_pEnemyNormal;
-	std::shared_ptr<FirstAidKitItem> m_pFirstAidKitItem;
+	std::shared_ptr<FirstAidKitItem> m_pFirstAidKitItem; // 回復アイテムのポインタ
 	std::vector<EnemyBase*> m_enemyList;
 
 	// ポーズに入ったタイミングの時間を記録する

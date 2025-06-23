@@ -15,8 +15,6 @@
 #include <cassert>
 #include <algorithm>
 
-Player* Player::s_instance = nullptr; // シングルトンインスタンスの初期化
-
 namespace
 {
 	constexpr float kMoveSpeed = 3.0f; // 移動速度
@@ -806,9 +804,4 @@ void Player::AddHp(float value)
 	{
 		m_health = 0.0f; // 体力が負にならないように制限
 	}
-}
-
-Player* Player::GetInstance()
-{
-	return s_instance;
 }

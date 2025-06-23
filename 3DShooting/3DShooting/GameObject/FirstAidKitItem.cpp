@@ -4,6 +4,7 @@
 #include "DebugUtil.h"
 #include <cassert>
 #include <algorithm>
+#include <cmath>
 
 namespace
 {
@@ -14,10 +15,33 @@ namespace
 	constexpr float kHealAmount = 30.0f; // 回復アイテムが回復する量
 }
 
+// カプセルと球の当たり判定
+bool CapsuleSphereHit(const VECTOR& capA, const VECTOR& capB, float capRadius, const VECTOR& sphereCenter, float sphereRadius)
+{
+	// カプセルの線分上の最近接点を求める
+	VECTOR ab = VSub(capB, capA);
+	VECTOR ac = VSub(sphereCenter, capA);
+	float abLenSq = ab.x * ab.x + ab.y * ab.y + ab.z * ab.z;
+	float t = 0.0f;
+	if (abLenSq > 0.0f)
+	{
+		t = (ac.x * ab.x + ac.y * ab.y + ac.z * ab.z) / abLenSq;
+		t = std::clamp(t, 0.0f, 1.0f);
+	}
+	VECTOR closest = VAdd(capA, VScale(ab, t));
+	// 最近接点と球中心の距離
+	float distSq = (closest.x - sphereCenter.x) * (closest.x - sphereCenter.x)
+		+ (closest.y - sphereCenter.y) * (closest.y - sphereCenter.y)
+		+ (closest.z - sphereCenter.z) * (closest.z - sphereCenter.z);
+	float hitDist = capRadius + sphereRadius;
+	return distSq <= hitDist * hitDist;
+}
+
 FirstAidKitItem::FirstAidKitItem():
 	m_radius(kInitialRadius),
-	m_isActive(true),
-	m_pos(VGet(0.0f, 0.0f, 0.0f))
+	m_pos(VGet(300.0f, 0.0f, 0.0f)),
+	m_isHit(false),
+	m_isUsed(false) 
 {
 }
 
@@ -29,55 +53,30 @@ void FirstAidKitItem::Init()
 {
 }
 
-void FirstAidKitItem::Update()
+void FirstAidKitItem::Update(Player* player)
 {
-    if (!m_isActive) return;
+	if (m_isUsed) return; // 既に使われていたら何もしない
 
-    OutputDebugStringA("Update: isActive\n");
+	// プレイヤーのカプセル情報を取得
+	VECTOR capA, capB;
+	float capRadius;
+	player->GetCapsuleInfo(capA, capB, capRadius);
 
-    Player* player = Player::GetInstance();
-    if (!player) {
-        OutputDebugStringA("Update: player is null\n");
-        return;
-    }
-    OutputDebugStringA("Update: got player\n");
+	// カプセル-球判定
+	m_isHit = CapsuleSphereHit(capA, capB, capRadius, m_pos, m_radius);
 
-    VECTOR capA, capB;
-    float capsuleRadius;
-    player->GetCapsuleInfo(capA, capB, capsuleRadius);
-    OutputDebugStringA("Update: got capsule info\n");
-
-    float dist = GetCapsuleSphereDistance(capA, capB, capsuleRadius, m_pos, m_radius);
-    OutputDebugStringA("Update: got distance\n");
-
-    if (dist <= 0.0f)
-    {
-        OutputDebugStringA("Update: hit!\n");
-        if (player->GetHealth() < player->GetMaxHealth())
-        {
-            player->AddHp(kHealAmount);
-            m_isActive = false;
-            OutputDebugStringA("Update: healed\n");
-        }
-    }
+	// プレイヤーの体力が満タンでなく、当たっていたら回復
+	if (m_isHit && player->GetHealth() < player->GetMaxHealth())
+	{
+		player->AddHp(kHealAmount);
+		m_isUsed = true; // 1回だけ使えるように
+	}
 }
-
 
 void FirstAidKitItem::Draw()
 {
-    if (!m_isActive) return;
+	if (m_isUsed) return; // 既に使われていたら何もしない
+
     // 球の描画
     DrawSphere3D(m_pos, m_radius, 16, 0xff0000, 0xff8080, true);
-}
-
-float FirstAidKitItem::GetCapsuleSphereDistance(const VECTOR& capA, const VECTOR& capB, float capRadius, const VECTOR& spherePos, float sphereRadius)
-{
-    // 線分capA-capBと点spherePosの最近接点を求める
-    VECTOR ab = VSub(capB, capA);
-    VECTOR ap = VSub(spherePos, capA);
-    float t = (ab.x * ap.x + ab.y * ap.y + ab.z * ap.z) / (ab.x * ab.x + ab.y * ab.y + ab.z * ab.z);
-    t = std::clamp(t, 0.0f, 1.0f);
-    VECTOR closest = VAdd(capA, VScale(ab, t));
-    float dist = VSize(VSub(closest, spherePos));
-    return dist - capRadius - sphereRadius;
 }

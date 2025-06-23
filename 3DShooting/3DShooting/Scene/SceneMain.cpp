@@ -176,7 +176,7 @@ SceneBase* SceneMain::Update()
     }
 
     // 回復アイテムの更新
-    m_pFirstAidKitItem->Update();
+	m_pFirstAidKitItem->Update(m_pPlayer.get());
 
 	// 通常ゾンビの更新
 	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);

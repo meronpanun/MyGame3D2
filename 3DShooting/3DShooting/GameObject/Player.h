@@ -97,12 +97,6 @@ public:
 
 	void AddHp(float value);
 
-	/// <summary>
-	/// シングルトンインスタンスを取得する
-	/// </summary>
-	/// <returns>プレイヤーのインスタンス</returns>
-	static Player* GetInstance();
-
 	// TODO:アニメーション処理は敵も行うので後でクラス化
 
 	/// <summary>
@@ -170,8 +164,6 @@ private:
 	// アニメーションデータ
 	AnimData m_nextAnimData;
 	AnimData m_prevAnimData;
-
-	static Player* s_instance; // シングルトンインスタンス
 
 	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
 	
