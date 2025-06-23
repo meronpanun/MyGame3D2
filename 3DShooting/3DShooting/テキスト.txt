@@ -36,3 +36,7 @@
 /// <param name="fill">trueならカプセルを塗りつぶす</param>
 static void DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill = false);
 カプセルの始点終点の引数名がわかりずらいため修正した方がいいのか聞く：
+
+2025/06/23
+敵、プレイヤー、アイテム等で使用している当たり判定をクラス化：
+ダッシュを長押しから単押しに変更：

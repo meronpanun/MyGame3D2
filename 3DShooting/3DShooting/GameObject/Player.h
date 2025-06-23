@@ -89,6 +89,19 @@ public:
 	/// <returns>プレイヤーの体力</returns>
 	float GetHealth() const { return m_health; }
 
+	/// <summary>
+	/// 最大体力を取得する
+	/// </summary>
+	/// <returns>最大体力</returns>
+	float GetMaxHealth() const { return m_maxHealth; }
+
+	void AddHp(float value);
+
+	/// <summary>
+	/// シングルトンインスタンスを取得する
+	/// </summary>
+	/// <returns>プレイヤーのインスタンス</returns>
+	static Player* GetInstance();
 
 	// TODO:アニメーション処理は敵も行うので後でクラス化
 
@@ -123,7 +136,6 @@ private:
 	/// </summary>
 	void Shoot();
 
-
 	/// <summary>
 	///  アニメーションのブレンドを更新
 	/// </summary>
@@ -148,6 +160,7 @@ private:
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
 	std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
+	std::shared_ptr<EnemyNormal> m_pEnemy; // 敵のポインタ
 
 	// プレイヤーの位置を保持するメンバー変数
 	VECTOR m_pos;
@@ -158,11 +171,14 @@ private:
 	AnimData m_nextAnimData;
 	AnimData m_prevAnimData;
 
+	static Player* s_instance; // シングルトンインスタンス
+
 	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
 	
 	float m_animBlendRate; // アニメーションのブレンド率
-	float m_health;        // プレイヤーの体力
+	float m_health;        // 現在の体力
 	float m_jumpVelocity;  // ジャンプの速度
+	float m_maxHealth;     // 最大体力
 
 	int   m_modelHandle;    // プレイヤーモデルのハンドル
 	int   m_swordHandle;    // 剣のハンドル

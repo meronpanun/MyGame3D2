@@ -8,6 +8,7 @@ class Player;
 class Camera;
 class EnemyNormal;
 class EnemyBase;
+class FirstAidKitItem;
 
 /// <summary>
 /// ゲームシーンクラス
@@ -47,6 +48,7 @@ private:
 	std::unique_ptr<Player> m_pPlayer;
 	std::shared_ptr<Camera> m_pCamera;
 	std::shared_ptr<EnemyNormal> m_pEnemyNormal;
+	std::shared_ptr<FirstAidKitItem> m_pFirstAidKitItem;
 	std::vector<EnemyBase*> m_enemyList;
 
 	// ポーズに入ったタイミングの時間を記録する

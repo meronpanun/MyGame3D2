@@ -11,6 +11,7 @@
 #include "EnemyNormal.h"
 #include "DebugUtil.h"
 #include "Camera.h"
+#include "FirstAidKitItem.h"
 #include <cassert>
 
 namespace
@@ -77,6 +78,10 @@ void SceneMain::Init()
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();
 	m_pEnemyNormal->Init();
 
+	// 回復アイテムの初期化
+	m_pFirstAidKitItem = std::make_shared<FirstAidKitItem>();
+	m_pFirstAidKitItem->Init();
+
     // グローバル変数からカメラ感度を取得して設定
     if (m_pPlayer->GetCamera())
     {
@@ -98,11 +103,11 @@ void SceneMain::Init()
 
 SceneBase* SceneMain::Update()
 {
+	// デバッグウィンドウが表示されている場合は更新処理を行わない
     if (DebugUtil::IsDebugWindowVisible())
     {
         return this;
     }
-
 
     // スカイドームの回転を更新
     MV1SetRotationXYZ(m_skyDomeHandle, VGet(0, MV1GetRotationXYZ(m_skyDomeHandle).y + kCameraRotaSpeed, 0));
@@ -170,6 +175,9 @@ SceneBase* SceneMain::Update()
         return new SceneGameOver();
     }
 
+    // 回復アイテムの更新
+    m_pFirstAidKitItem->Update();
+
 	// 通常ゾンビの更新
 	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
@@ -185,6 +193,9 @@ void SceneMain::Draw()
 
     // スカイドームを描画
 	MV1DrawModel(m_skyDomeHandle); 
+
+    // 回復アイテムの描画
+    m_pFirstAidKitItem->Draw();
 
 	// 通常ゾンビの描画
 	m_pEnemyNormal->Draw();

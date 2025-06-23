@@ -15,6 +15,8 @@
 #include <cassert>
 #include <algorithm>
 
+Player* Player::s_instance = nullptr; // シングルトンインスタンスの初期化
+
 namespace
 {
 	constexpr float kMoveSpeed = 3.0f; // 移動速度
@@ -54,6 +56,9 @@ namespace
 	constexpr float kTackleHitRadius   = 250.0f; // タックルの横幅(半径)
 	constexpr float kTackleHitHeight   = 100.0f; // タックルの高さ
 	constexpr float kTackleDamage      = 10.0f;  // タックルダメージ
+
+	// 体力
+	constexpr float kMaxHealth = 100.0f; // 最大体力
 }
 
 Player::Player() :
@@ -64,6 +69,7 @@ Player::Player() :
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
 	m_pEffect(std::make_shared<Effect>()),
+	m_pEnemy(std::make_shared<EnemyNormal>()),
 	m_animBlendRate(0.0f),
 	m_isMoving(false),
 	m_isWasRunning(false),
@@ -77,7 +83,8 @@ Player::Player() :
 	m_tackleDir(VGet(0, 0, 0)),
 	m_isTackling(false),
 	m_tackleCooldown(0),
-	m_tackleId(0)
+	m_tackleId(0),
+	m_maxHealth(kMaxHealth)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/M4A1.mv1");
@@ -498,8 +505,8 @@ void Player::Draw()
 
 		// サブカメラ用描画領域
 		int subW = 320, subH = 180; // サブウィンドウサイズ
-		int subX = Game::kScreenWidth - subW - 16;
-		int subY = Game::kScreenHeigth - subH - 16;
+		int subX = Game::kScreenWidth - subW;
+		int subY = Game::kScreenHeigth - subH;
 
 		// サブカメラ用描画先サーフェス作成
 		int subScreen = MakeScreen(subW, subH, true);
@@ -785,4 +792,23 @@ void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
 	capA = VAdd(center, VGet(0, -kCapsuleHeight * 0.5f, 0));
 	capB = VAdd(center, VGet(0, kCapsuleHeight * 0.5f, 0));
 	radius = kCapsuleRadius;
+}
+
+void Player::AddHp(float value)
+{
+	m_health += value; // 体力を加算
+	if (m_health > m_maxHealth)
+	{
+		m_health = m_maxHealth; // 最大体力を超えないように制限
+	}
+
+	if (m_health < 0.0f)
+	{
+		m_health = 0.0f; // 体力が負にならないように制限
+	}
+}
+
+Player* Player::GetInstance()
+{
+	return s_instance;
 }

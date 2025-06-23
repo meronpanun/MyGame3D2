@@ -57,9 +57,9 @@ void DebugUtil::ShowDebugWindow()
     // デバッグウィンドウの背景を半透明で描画
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, NULL);
-    unsigned int bgAlphaColor = GetColor(0, 0, 0); // 黒
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); // 半透明
-    DrawBox(0, 0, screenW, screenH, bgAlphaColor, TRUE);
+    unsigned int bgAlphaColor = GetColor(0, 0, 0);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); 
+    DrawBox(0, 0, screenW, screenH, bgAlphaColor, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // デバッグウィンドウの内容
@@ -68,13 +68,13 @@ void DebugUtil::ShowDebugWindow()
     const int w = 400;
     const int h = 200;
     unsigned int bgColor = GetColor(0, 0, 0);
-    unsigned int borderColor = GetColor(255, 255, 0);
+    unsigned int borderColor = GetColor(0, 0, 0);
     unsigned int textColor = GetColor(255, 255, 255);
 
     // 背景
-    DrawBox(x, y, x + w, y + h, bgColor, TRUE);
+    DrawBox(x, y, x + w, y + h, bgColor, true);
     // 枠
-    DrawBox(x, y, x + w, y + h, borderColor, FALSE);
+    DrawBox(x, y, x + w, y + h, borderColor, true);
 
     // テキスト
     DrawString(x + 16, y + 16, "デバッグウィンドウ (F1で切替)", textColor);

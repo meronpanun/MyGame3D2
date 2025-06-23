@@ -112,14 +112,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\プロジェクトに追加すべきファイル_VC用;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\プロジェクトに追加すべきファイル_VC用;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\プロジェクトに追加すべきファイル_VC用;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -139,11 +139,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\プロジェクトに追加すべきファイル_VC用;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\EffekseerForDXLib_170e_324b\EffekseerForDXLib_170e_324b\EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DebugUtil.cpp" />
+    <ClCompile Include="GameObject\FirstAidKitItem.cpp" />
     <ClCompile Include="GameObject\Bullet.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Effect.cpp" />
@@ -153,6 +154,7 @@
     <ClCompile Include="GameObject\EnemyNormal.cpp" />
     <ClCompile Include="GameObject\EnemyRunner.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameObject\ItemBase.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="GameObject\Player.cpp" />
@@ -167,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebugUtil.h" />
+    <ClInclude Include="GameObject\FirstAidKitItem.h" />
     <ClInclude Include="GameObject\Bullet.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Effect.h" />
@@ -176,6 +179,7 @@
     <ClInclude Include="GameObject\EnemyNormal.h" />
     <ClInclude Include="GameObject\EnemyRunner.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GameObject\ItemBase.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="GameObject\Player.h" />
     <ClInclude Include="Scene\SceneGameOver.h" />
