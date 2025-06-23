@@ -10,10 +10,8 @@ class Camera;
 class EnemyNormal;
 class EnemyBase;
 class FirstAidKitItem;
+class ItemBase;
 
-/// <summary>
-/// ゲームシーンクラス
-/// </summary>
 class SceneMain : public SceneBase
 {
 public:
@@ -24,43 +22,30 @@ public:
 	SceneBase* Update() override;
 	void Draw() override;
 
-	/// <summary>
-	/// ポーズ状態を設定する
-	/// </summary>
-	/// <param name="paused">ポーズ状態</param>
 	void SetPaused(bool paused);
 
-	// カメラを取得するメソッドを追加
 	Camera* GetCamera() const { return m_pCamera.get(); }
 	
-	/// <summary>
-	/// カメラの感度を設定する
-	/// </summary>
-	/// <param name="sensitivity">感度</param>
 	void SetCameraSensitivity(float sensitivity);
 
 private:
-	/// <summary>
-	/// ポーズメニューを描画
-	/// </summary>
 	void DrawPauseMenu();
 
 private:
 	std::unique_ptr<Player> m_pPlayer;
 	std::shared_ptr<Camera> m_pCamera;
 	std::shared_ptr<EnemyNormal> m_pEnemyNormal;
-	std::shared_ptr<FirstAidKitItem> m_pFirstAidKitItem; // 回復アイテムのポインタ
 	std::vector<EnemyBase*> m_enemyList;
+	std::vector<std::shared_ptr<ItemBase>> m_items;
 
-	// ポーズに入ったタイミングの時間を記録する
 	std::chrono::steady_clock::time_point m_pauseStartTime;
 
-	bool  m_isPaused;              // ポーズ状態を管理するフラグ
-	bool  m_isReturningFromOption; // オプションシーンから戻ったかどうかを判定するフラグ
-	bool  m_isEscapePressed;       // エスケープキーの押下状態を管理するフラグ
-	int   m_skyDomeHandle;         // スカイドームのハンドル
-	int   m_dotHandle;             // ドット型の画像ハンドル
+	bool  m_isPaused;             
+	bool  m_isReturningFromOption;
+	bool  m_isEscapePressed;      
+	int   m_skyDomeHandle;        
+	int   m_dotHandle;            
 
-	float m_cameraSensitivity;     // カメラの感度
+	float m_cameraSensitivity;
 };
 

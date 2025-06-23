@@ -1,10 +1,11 @@
 #pragma once
 #include "ItemBase.h"
+#include "DxLib.h"
 
 class Player;
 
 /// <summary>
-/// ‰ñ•œƒAƒCƒeƒ€ƒNƒ‰ƒX
+/// å›å¾©ã‚¢ã‚¤ãƒ†ãƒ ã‚¯ãƒ©ã‚¹
 /// </summary>
 class FirstAidKitItem : public ItemBase
 {
@@ -16,12 +17,15 @@ public:
 	void Update(Player* player) override;
 	void Draw() override;
 
+	void SetPos(const VECTOR& pos) { m_pos = pos; }
+	bool IsUsed() const override { return m_isUsed; }
+
 private:
 	VECTOR m_pos;
 
-	float m_radius; 
+	float m_radius;
 
 	bool m_isHit;
-	bool m_isUsed; // ƒAƒCƒeƒ€‚ªg—p‚³‚ê‚½‚©‚Ç‚¤‚©
+	bool m_isUsed; // ã‚¢ã‚¤ãƒ†ãƒ ãŒä½¿ç”¨ã•ã‚ŒãŸã‹ã©ã†ã‹
 };
 

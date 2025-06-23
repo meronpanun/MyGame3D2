@@ -3,7 +3,7 @@
 class Player;
 
 /// <summary>
-/// ƒAƒCƒeƒ€Šî’êƒNƒ‰ƒX
+/// ï¿½Aï¿½Cï¿½eï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½X
 /// </summary>
 class ItemBase abstract
 {
@@ -14,4 +14,6 @@ public:
 	virtual void Init()   abstract;
 	virtual void Update(Player* player) abstract;
 	virtual void Draw()   abstract;
+
+	virtual bool IsUsed() const abstract;
 };

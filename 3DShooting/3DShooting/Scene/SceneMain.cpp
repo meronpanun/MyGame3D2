@@ -13,32 +13,33 @@
 #include "Camera.h"
 #include "FirstAidKitItem.h"
 #include <cassert>
+#include <algorithm>
 
 namespace
 {
-    constexpr int	kInitialCountdownValue = 3;	   // ‰ŠúƒJƒEƒ“ƒgƒ_ƒEƒ“‚Ì’l
-    constexpr int	kMainCountdownValue    = 10;   // ƒƒCƒ“ƒJƒEƒ“ƒgƒ_ƒEƒ“‚Ì’l
-    constexpr int	kButtonWidth           = 200;  // ƒ{ƒ^ƒ“‚Ì•
-    constexpr int	kButtonHeight          = 50;   // ƒ{ƒ^ƒ“‚Ì•
-    constexpr int	kFontSize              = 48;   // ƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr float kScreenCenterOffset    = 0.5f; // ‰æ–Ê’†‰›‚ÌƒIƒtƒZƒbƒg
-    constexpr int   kButtonYOffset         = 70;   // ƒ{ƒ^ƒ“‚ÌY²ƒIƒtƒZƒbƒg
-    constexpr int   kButtonSpacing         = 20;   // ƒ{ƒ^ƒ“ŠÔ‚ÌƒXƒy[ƒX
+    constexpr int	kInitialCountdownValue = 3;	   // ï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½_ï¿½Eï¿½ï¿½ï¿½Ì’l
+    constexpr int	kMainCountdownValue    = 10;   // ï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½_ï¿½Eï¿½ï¿½ï¿½Ì’l
+    constexpr int	kButtonWidth           = 200;  // ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì•ï¿½
+    constexpr int	kButtonHeight          = 50;   // ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì•ï¿½
+    constexpr int	kFontSize              = 48;   // ï¿½tï¿½Hï¿½ï¿½ï¿½gï¿½Tï¿½Cï¿½Y
+    constexpr float kScreenCenterOffset    = 0.5f; // ï¿½ï¿½Ê’ï¿½ï¿½ï¿½ï¿½ÌƒIï¿½tï¿½Zï¿½bï¿½g
+    constexpr int   kButtonYOffset         = 70;   // ï¿½{ï¿½^ï¿½ï¿½ï¿½ï¿½Yï¿½ï¿½ï¿½Iï¿½tï¿½Zï¿½bï¿½g
+    constexpr int   kButtonSpacing         = 20;   // ï¿½{ï¿½^ï¿½ï¿½ï¿½Ô‚ÌƒXï¿½yï¿½[ï¿½X
 
-    // ƒ{ƒ^ƒ“‚ÌˆÊ’u‚ğŒvZ
-    constexpr int kReturnButtonX = 210; // –ß‚éƒ{ƒ^ƒ“‚Ì”wŒi‚Ì¶ãXÀ•W
-    constexpr int kReturnButtonY = 290; // –ß‚éƒ{ƒ^ƒ“‚Ì”wŒi‚Ì¶ãYÀ•W
-    constexpr int kOptionButtonX = 210; // ƒIƒvƒVƒ‡ƒ“ƒ{ƒ^ƒ“‚Ì”wŒi‚Ì¶ãXÀ•W
-    constexpr int kOptionButtonY = 120; // ƒIƒvƒVƒ‡ƒ“ƒ{ƒ^ƒ“‚Ì”wŒi‚Ì¶ãYÀ•W
+    // ï¿½{ï¿½^ï¿½ï¿½ï¿½ÌˆÊ’uï¿½ï¿½ï¿½vï¿½Z
+    constexpr int kReturnButtonX = 210; // ï¿½ß‚ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì”wï¿½iï¿½Ìï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½W
+    constexpr int kReturnButtonY = 290; // ï¿½ß‚ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì”wï¿½iï¿½Ìï¿½ï¿½ï¿½Yï¿½ï¿½ï¿½W
+    constexpr int kOptionButtonX = 210; // ï¿½Iï¿½vï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì”wï¿½iï¿½Ìï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½W
+    constexpr int kOptionButtonY = 120; // ï¿½Iï¿½vï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì”wï¿½iï¿½Ìï¿½ï¿½ï¿½Yï¿½ï¿½ï¿½W
 
-    //ƒJƒƒ‰‚ğ‰ñ‚·‘¬“x
+    //ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ñ‚·‘ï¿½ï¿½x
     constexpr float kCameraRotaSpeed = 0.001f;
 
-    // ƒXƒJƒCƒh[ƒ€‚ÌˆÊ’u
-	constexpr float kSkyDomePosY = 200.0f; // ƒXƒJƒCƒh[ƒ€‚ÌYÀ•W
+    // ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½ÌˆÊ’u
+	constexpr float kSkyDomePosY = 200.0f; // ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½ï¿½Yï¿½ï¿½ï¿½W
 
-    // ƒXƒJƒCƒh[ƒ€‚Ì‘å‚«‚³
-	constexpr float kSkyDomeScale = 10.0f; // ƒXƒJƒCƒh[ƒ€‚ÌƒXƒP[ƒ‹
+    // ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½Ì‘å‚«ï¿½ï¿½
+	constexpr float kSkyDomeScale = 10.0f; // ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½ÌƒXï¿½Pï¿½[ï¿½ï¿½
 }
 
 SceneMain::SceneMain() :
@@ -50,85 +51,94 @@ SceneMain::SceneMain() :
     m_skyDomeHandle(-1),
     m_dotHandle(-1)
 {
-	// ƒXƒJƒCƒh[ƒ€‚Ìƒ‚ƒfƒ‹‚ğ“Ç‚İ‚Ş
+	// ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½Ìƒï¿½ï¿½fï¿½ï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ï¿½
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
     assert(m_skyDomeHandle != -1);
 
-	// ƒhƒbƒgŒ^‚Ì‰æ‘œ‚ğ“Ç‚İ‚Ş
+	// ï¿½hï¿½bï¿½gï¿½^ï¿½Ì‰æ‘œï¿½ï¿½Ç‚İï¿½ï¿½ï¿½
     m_dotHandle = LoadGraph("data/image/Dot.png");
 	assert(m_dotHandle != -1);
 }
 
 SceneMain::~SceneMain()
 {
-    // ƒXƒJƒCƒh[ƒ€‚Ìƒ‚ƒfƒ‹‚ğíœ
+    // ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½Ìƒï¿½ï¿½fï¿½ï¿½ï¿½ï¿½ï¿½íœ
     MV1DeleteModel(m_skyDomeHandle);    
 
-    // ƒhƒbƒgŒ^‚Ì‰æ‘œ‚ğíœ
+    // ï¿½hï¿½bï¿½gï¿½^ï¿½Ì‰æ‘œï¿½ï¿½ï¿½íœ
 	DeleteGraph(m_dotHandle);
 }
 
 void SceneMain::Init()
 {
-    // ƒvƒŒƒCƒ„[‚Ì‰Šú‰»
+    // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
 
-	// ’Êíƒ]ƒ“ƒr‚Ì‰Šú‰»
+	// ï¿½Êï¿½]ï¿½ï¿½ï¿½rï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();
 	m_pEnemyNormal->Init();
 
-	// ‰ñ•œƒAƒCƒeƒ€‚Ì‰Šú‰»
-	m_pFirstAidKitItem = std::make_shared<FirstAidKitItem>();
-	m_pFirstAidKitItem->Init();
-
-    // ƒOƒ[ƒoƒ‹•Ï”‚©‚çƒJƒƒ‰Š´“x‚ğæ“¾‚µ‚Äİ’è
+    //O[oÏJxæ“¾Äİ’
     if (m_pPlayer->GetCamera())
     {
         m_pPlayer->GetCamera()->SetSensitivity(m_cameraSensitivity);
     }
 
-    // ƒ|[ƒYó‘Ô‚É‰‚¶‚Äƒ}ƒEƒXƒJ[ƒ\ƒ‹‚Ì•\¦‚ğØ‚è‘Ö‚¦‚é
+    //|[YÔ‚É‰Äƒ}EXJ[\Ì•\Ø‚Ö‚
     SetMouseDispFlag(m_isPaused);
 
-    //ƒXƒJƒCƒh[ƒ€‚ÌˆÊ’u
+    //XJCh[ÌˆÊ’u
     MV1SetPosition(m_skyDomeHandle, VGet(0, kSkyDomePosY, 0));
 
-    // ƒXƒJƒCƒh[ƒ€‚Ì‘å‚«‚³‚ğİ’è
+    //XJCh[Ì‘å‚«İ’
     MV1SetScale(m_skyDomeHandle, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
 
-    // ƒtƒ‰ƒO‚ğƒŠƒZƒbƒg
+    //tOZbg
     m_isReturningFromOption = false;
+
+    m_items.clear();
+    // auto item = std::make_shared<FirstAidKitItem>();
+    // item->Init();
+    // m_items.push_back(item);
+
+    // æ•µã®æ­»äº¡æ™‚ã«ã‚¢ã‚¤ãƒ†ãƒ ã‚’ãƒ‰ãƒ­ãƒƒãƒ—ã™ã‚‹ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’è¨­å®š
+    m_pEnemyNormal->SetOnDropItemCallback([this](const VECTOR& pos) {
+        auto dropItem = std::make_shared<FirstAidKitItem>();
+        dropItem->Init();
+        dropItem->SetPos(pos);
+        m_items.push_back(dropItem);
+    });
 }
 
 SceneBase* SceneMain::Update()
 {
-	// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ª•\¦‚³‚ê‚Ä‚¢‚éê‡‚ÍXVˆ—‚ğs‚í‚È‚¢
+	// ï¿½fï¿½oï¿½bï¿½Oï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ê‡ï¿½ÍXï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½È‚ï¿½
     if (DebugUtil::IsDebugWindowVisible())
     {
         return this;
     }
 
-    // ƒXƒJƒCƒh[ƒ€‚Ì‰ñ“]‚ğXV
+    // ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½Ì‰ï¿½]ï¿½ï¿½ï¿½Xï¿½V
     MV1SetRotationXYZ(m_skyDomeHandle, VGet(0, MV1GetRotationXYZ(m_skyDomeHandle).y + kCameraRotaSpeed, 0));
 
-    // ƒGƒXƒP[ƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚çƒ|[ƒYó‘Ô‚ğØ‚è‘Ö‚¦‚é
+    // ï¿½Gï¿½Xï¿½Pï¿½[ï¿½vï¿½Lï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½ï¿½|ï¿½[ï¿½Yï¿½ï¿½Ô‚ï¿½Ø‚ï¿½Ö‚ï¿½ï¿½ï¿½
     if (CheckHitKey(KEY_INPUT_ESCAPE))
     {
         if (!m_isEscapePressed)
         {
             m_isPaused = !m_isPaused;
-            SetMouseDispFlag(m_isPaused); // ƒ|[ƒYó‘Ô‚É‰‚¶‚Äƒ}ƒEƒXƒJ[ƒ\ƒ‹‚Ì•\¦‚ğØ‚è‘Ö‚¦‚é
+            SetMouseDispFlag(m_isPaused); // ï¿½|ï¿½[ï¿½Yï¿½ï¿½Ô‚É‰ï¿½ï¿½ï¿½ï¿½Äƒ}ï¿½Eï¿½Xï¿½Jï¿½[ï¿½\ï¿½ï¿½ï¿½Ì•\ï¿½ï¿½ï¿½ï¿½Ø‚ï¿½Ö‚ï¿½ï¿½ï¿½
             m_isEscapePressed = true;
 
             if (m_isPaused)
             {
-                // ƒ|[ƒY‚É“ü‚Á‚½ƒ^ƒCƒ~ƒ“ƒO‚ÅŒ»İ‚ÌŠÔ‚ğ‹L˜^
+                // ï¿½|ï¿½[ï¿½Yï¿½É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½Cï¿½~ï¿½ï¿½ï¿½Oï¿½ÅŒï¿½ï¿½İ‚Ìï¿½ï¿½Ô‚ï¿½ï¿½Lï¿½^
                 m_pauseStartTime = std::chrono::steady_clock::now();
             }
             else
             {
-                // ƒ|[ƒY‚©‚ç–ß‚Á‚½ƒ^ƒCƒ~ƒ“ƒO‚ÅŒo‰ßŠÔ‚ğŒvZ‚µAƒJƒEƒ“ƒgƒ_ƒEƒ“‚ÌŠJnŠÔ‚ğ’²®
+                // ï¿½|ï¿½[ï¿½Yï¿½ï¿½ï¿½ï¿½ß‚ï¿½ï¿½ï¿½ï¿½^ï¿½Cï¿½~ï¿½ï¿½ï¿½Oï¿½ÅŒoï¿½ßï¿½ï¿½Ô‚ï¿½ï¿½vï¿½Zï¿½ï¿½ï¿½Aï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½_ï¿½Eï¿½ï¿½ï¿½ÌŠJï¿½nï¿½ï¿½ï¿½Ô‚ğ’²ï¿½
                 auto now = std::chrono::steady_clock::now();
                 auto pauseDuration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_pauseStartTime).count();
             }
@@ -139,75 +149,85 @@ SceneBase* SceneMain::Update()
         m_isEscapePressed = false;
     }
 
-    // ƒ|[ƒY’†‚ÍXVˆ—‚ğs‚í‚È‚¢
+    // ï¿½|ï¿½[ï¿½Yï¿½ï¿½ï¿½ÍXï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½È‚ï¿½
     if (m_isPaused)
     {
-        // ƒ}ƒEƒX‚Ì¶ƒNƒŠƒbƒN‚ğƒ`ƒFƒbƒN
+        // ï¿½}ï¿½Eï¿½Xï¿½Ìï¿½ï¿½Nï¿½ï¿½ï¿½bï¿½Nï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½N
         if (Mouse::IsTriggerLeft())
         {
-            // ƒ}ƒEƒX‚ÌˆÊ’u‚ğæ“¾
+            // ï¿½}ï¿½Eï¿½Xï¿½ÌˆÊ’uï¿½ï¿½ï¿½æ“¾
             Vec2 mousePos = Mouse::GetPos();
 
-            // ƒ}ƒEƒX‚ªƒ^ƒCƒgƒ‹‚É–ß‚éƒ{ƒ^ƒ“‚Ì”ÍˆÍ“à‚É‚ ‚é‚©ƒ`ƒFƒbƒN
+            // ï¿½}ï¿½Eï¿½Xï¿½ï¿½ï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½É–ß‚ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì”ÍˆÍ“ï¿½ï¿½É‚ï¿½ï¿½é‚©ï¿½`ï¿½Fï¿½bï¿½N
             if (mousePos.x >= kReturnButtonX && mousePos.x <= kReturnButtonX + kButtonWidth &&
                 mousePos.y >= kReturnButtonY && mousePos.y <= kReturnButtonY + kButtonHeight)
             {
-                return new SceneTitle(true); // ƒƒSƒXƒLƒbƒvƒtƒ‰ƒO‚ğ—LŒø‚É‚µ‚Äƒ^ƒCƒgƒ‹ƒV[ƒ“‚É–ß‚é
+                return new SceneTitle(true); // ï¿½ï¿½ï¿½Sï¿½Xï¿½Lï¿½bï¿½vï¿½tï¿½ï¿½ï¿½Oï¿½ï¿½Lï¿½ï¿½ï¿½É‚ï¿½ï¿½Äƒ^ï¿½Cï¿½gï¿½ï¿½ï¿½Vï¿½[ï¿½ï¿½ï¿½É–ß‚ï¿½
             }
 
-            // ƒ}ƒEƒX‚ªƒIƒvƒVƒ‡ƒ“ƒ{ƒ^ƒ“‚Ì”ÍˆÍ“à‚É‚ ‚é‚©ƒ`ƒFƒbƒN
+            // ï¿½}ï¿½Eï¿½Xï¿½ï¿½ï¿½Iï¿½vï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½{ï¿½^ï¿½ï¿½ï¿½Ì”ÍˆÍ“ï¿½ï¿½É‚ï¿½ï¿½é‚©ï¿½`ï¿½Fï¿½bï¿½N
             if (mousePos.x >= kOptionButtonX && mousePos.x <= kOptionButtonX + kButtonWidth &&
                 mousePos.y >= kOptionButtonY && mousePos.y <= kOptionButtonY + kButtonHeight)
             {
-                m_isReturningFromOption = true; // ƒIƒvƒVƒ‡ƒ“ƒV[ƒ“‚©‚ç–ß‚éƒtƒ‰ƒO‚ğİ’è
+                m_isReturningFromOption = true; // ï¿½Iï¿½vï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Vï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½tï¿½ï¿½ï¿½Oï¿½ï¿½İ’ï¿½
                 return new SceneOption(this);
             }
         }
         return this;
     }
 
-    // ƒvƒŒƒCƒ„[‚ÌXV
+    // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌXï¿½V
     m_pPlayer->Update(m_enemyList);
 
-    // ‘Ì—Íƒ`ƒFƒbƒN‚µ‚ÄƒQ[ƒ€ƒI[ƒo[‘JˆÚ
+    // ï¿½Ì—Íƒ`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½ÄƒQï¿½[ï¿½ï¿½ï¿½Iï¿½[ï¿½oï¿½[ï¿½Jï¿½ï¿½
     if (m_pPlayer->GetHealth() <= 0.0f)
     {
         return new SceneGameOver();
     }
 
-    // ‰ñ•œƒAƒCƒeƒ€‚ÌXV
-	m_pFirstAidKitItem->Update(m_pPlayer.get());
-
-	// ’Êíƒ]ƒ“ƒr‚ÌXV
+    // ï¿½Ê]rÌXV
 	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
-    // ‰½‚à‚µ‚È‚¯‚ê‚ÎƒV[ƒ“‘JˆÚ‚µ‚È‚¢(ƒQ[ƒ€‰æ–Ê‚Ì‚Ü‚Ü)
+    for (auto& item : m_items)
+    {
+        item->Update(m_pPlayer.get());
+    }
+    // å–å¾—æ¸ˆã¿ã‚¢ã‚¤ãƒ†ãƒ ã‚’å‰Šé™¤
+    m_items.erase(
+        std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) {
+            return item->IsUsed();
+        }),
+        m_items.end()
+    );
+
     return this;
 }
 
 void SceneMain::Draw()
 {
-    // ‰æ–Ê’†‰›À•W‚ğæ“¾
+    // ï¿½ï¿½Ê’ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½æ“¾
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
 
-    // ƒXƒJƒCƒh[ƒ€‚ğ•`‰æ
+    // ï¿½Xï¿½Jï¿½Cï¿½hï¿½[ï¿½ï¿½ï¿½ï¿½`ï¿½ï¿½
 	MV1DrawModel(m_skyDomeHandle); 
 
-    // ‰ñ•œƒAƒCƒeƒ€‚Ì•`‰æ
-    m_pFirstAidKitItem->Draw();
+    for (auto& item : m_items) 
+    {
+        item->Draw();
+    }
 
-	// ’Êíƒ]ƒ“ƒr‚Ì•`‰æ
+    // ï¿½Ê]rÌ•`
 	m_pEnemyNormal->Draw();
 
-    // ƒvƒŒƒCƒ„[‚Ì•`‰æ
+    //vC[Ì•`
     m_pPlayer->Draw();
 
-    // ƒhƒbƒgŒ^‚ÌƒŒƒeƒBƒNƒ‹‚ğ•`‰æ
+    //hbg^ÌƒeBN`
     constexpr int kDotSize = 64;
     DrawGraph(screenW * 0.5f - kDotSize * 0.5f, screenH * 0.5f - kDotSize * 0.5f, m_dotHandle, true);
 
-    // ƒ|[ƒY’†‚Íƒ|[ƒYƒƒjƒ…[‚ğ•`‰æ‚·‚é
+    //|[YÍƒ|[Yj[`æ‚·ï¿½ï¿½
     if (m_isPaused)
     {
         DrawPauseMenu();
@@ -216,23 +236,23 @@ void SceneMain::Draw()
 
 void SceneMain::DrawPauseMenu()
 {
-    // ƒ}ƒEƒX‚ÌˆÊ’u‚ğæ“¾
+    // ï¿½}ï¿½Eï¿½Xï¿½ÌˆÊ’uï¿½ï¿½ï¿½æ“¾
     Vec2 mousePos = Mouse::GetPos();
 
-    // ”¼“§–¾‚È”Â‚ğ•`‰æ
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); // “§–¾“x‚ğİ’è
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È”Â‚ï¿½`ï¿½ï¿½
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); // ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½İ’ï¿½
     DrawBox(50, 50, Game::kScreenWidth - 50, Game::kScreenHeigth - 50, 0x000000, true);
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // “§–¾“x‚ğƒŠƒZƒbƒg
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½g
 }
 
-// ƒ|[ƒYó‘Ô‚ğİ’è‚·‚é
+// ï¿½|ï¿½[ï¿½Yï¿½ï¿½Ô‚ï¿½İ’è‚·ï¿½ï¿½
 void SceneMain::SetPaused(bool paused)
 {
     m_isPaused = paused;
-    SetMouseDispFlag(m_isPaused); // ƒ|[ƒYó‘Ô‚É‰‚¶‚Äƒ}ƒEƒXƒJ[ƒ\ƒ‹‚Ì•\¦‚ğØ‚è‘Ö‚¦‚é
+    SetMouseDispFlag(m_isPaused); // ï¿½|ï¿½[ï¿½Yï¿½ï¿½Ô‚É‰ï¿½ï¿½ï¿½ï¿½Äƒ}ï¿½Eï¿½Xï¿½Jï¿½[ï¿½\ï¿½ï¿½ï¿½Ì•\ï¿½ï¿½ï¿½ï¿½Ø‚ï¿½Ö‚ï¿½ï¿½ï¿½
 }
 
-// ƒJƒƒ‰‚ÌŠ´“x‚ğİ’è‚·‚é
+// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ÌŠï¿½ï¿½xï¿½ï¿½İ’è‚·ï¿½ï¿½
 void SceneMain::SetCameraSensitivity(float sensitivity)
 {
     m_cameraSensitivity = sensitivity;

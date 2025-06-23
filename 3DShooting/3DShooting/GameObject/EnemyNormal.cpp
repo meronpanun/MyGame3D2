@@ -6,71 +6,72 @@
 #include <cassert>
 #include <algorithm>
 #include <cmath>
+#include <functional>
 
 namespace
 {
-    // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“
+    //UAj[V
 	constexpr char kAttackAnimName[] = "ATK";
 
-    // ˆÊ’u
+    // Ê’u
     constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 200.0f };
 
-	// AABB‚ÌÅ¬À•W‚ÆÅ‘åÀ•W
+	// AABBÌÅWÆÅ‘W
 	constexpr VECTOR kAABBMin = { -20.0f, 0.0f, -15.0f };
 	constexpr VECTOR kAABBMax = { 20.0f, 128.0f, 15.0f };
 
-	// ƒwƒbƒhƒVƒ‡ƒbƒg”»’è—p’†SÀ•W
+	//wbhVbgpSW
 	constexpr VECTOR kHeadShotPosition = { 0.0f, 160.0f, -6.0f };
 
-    // ƒwƒbƒhƒVƒ‡ƒbƒg‚Ì”»’è”¼Œa
+    //wbhVbgÌ”è”¼a
     constexpr float kHeadRadius = 13.5f;
 
-	// ‰Šú‘Ì—Í
+	// Ì—
 	constexpr float kInitialHP = 200.0f;
 
-    // UŒ‚‚Ì“–‚½‚è”»’è
+    //UÌ“è”»
 	constexpr float kAttackHitRadius = 20.0f; 
 
-    // UŒ‚”ÍˆÍ‚Ì”¼Œa
+    //UÍˆÍ‚Ì”a
     constexpr float kAttackRangeRadius = 120.0f; 
 
-    // VECTOR‚Ì’·‚³‚Ì“ñæ‚ğŒvZ‚·‚éŠÖ”
+    // VECTORÌ’Ì“vZÖ
     float VLenSq(const VECTOR& vec)
     {
         return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
     }
 
-    // AABB‚Æ‹…‚Ì“–‚½‚è”»’è(ƒwƒ‹ƒp[ŠÖ”‚Æ‚µ‚Änamespace“à‚Éc‚·)
+    // AABBÆ‹Ì“è”»(wp[ÖÆ‚namespaceÉc)
     static bool CheckCapsuleSphereHit(
         const VECTOR& capA, const VECTOR& capB, float capRadius,
         const VECTOR& sphereCenter, float sphereRadius)
     {
-        // ü•ªcapA-capBã‚ÌÅ‹ß“_‚ğ‹‚ß‚é
+        // capA-capBÌÅ‹ß“_ß‚
         VECTOR ab = VSub(capB, capA);
         VECTOR ac = VSub(sphereCenter, capA);
 
-        float abLenSq = VDot(ab, ab); // ü•ª‚Ì’·‚³‚Ì“ñæ
-        float t       = 0.0f; // Å‹ß“_‚Ìü•ªã‚ÌˆÊ’u
+        float abLenSq = VDot(ab, ab); // Ì’Ì“
+        float t       = 0.0f; // Å‹ß“_ÌÌˆÊ’u
 
-        // ü•ª‚Ì’·‚³‚ª0‚Å‚È‚¢ê‡
+        // Ì’0Å‚È‚ê‡
         if (abLenSq > 0.0f)
         {
-            t = VDot(ac, ab) / abLenSq; // ü•ªã‚ÌˆÊ’u‚ğŒvZ
-            t = (std::max)(0.0f, (std::min)(1.0f, t)); // t‚ğ0‚©‚ç1‚Ì”ÍˆÍ‚É§ŒÀ
+            t = VDot(ac, ab) / abLenSq; // ÌˆÊ’uvZ
+            t = (std::max)(0.0f, (std::min)(1.0f, t)); // t01Ì”ÍˆÍ‚É
         }
 
-        // Å‹ß“_‚ÌÀ•W‚ğŒvZ
+        // Å‹ß“_ÌWvZ
         VECTOR closest = VAdd(capA, VScale(ab, t));
 
-        // Å‹ß“_‚Æ‹…‚Ì’†S‚Ì‹——£‚ğŒvZ
+        // Å‹ß“_Æ‹Ì’SÌ‹vZ
         float distSq = VLenSq(VSub(sphereCenter, closest));
         float radiusSum = capRadius + sphereRadius;
 
-        // “–‚½‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·
+        // Ä‚é‚©Ç‚Ô‚
         return distSq <= radiusSum * radiusSum;
     }
 
-    // 2‚Â‚ÌƒJƒvƒZƒ‹‚Ì“–‚½‚è”»’è
+    // 2Â‚ÌƒJvZÌ“è”»
     static bool CheckCapsuleCapsuleHit(
         const VECTOR& a1, const VECTOR& a2, float r1,
         const VECTOR& b1, const VECTOR& b2, float r2)
@@ -109,12 +110,12 @@ namespace
         return distSq <= radiusSum * radiusSum;
     }
 
-	// UŒ‚”ÍˆÍ‚Ì“–‚½‚è”»’è
+	// ï¿½Uï¿½ï¿½ï¿½ÍˆÍ‚Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½
     static bool CheckSphereCapsuleHit(
         const VECTOR& sphereCenter, float sphereRadius,
         const VECTOR& capA, const VECTOR& capB, float capRadius)
     {
-        // ƒJƒvƒZƒ‹‚Æ‹…‚Ì“–‚½‚è”»’è‚ÍŠù‘¶‚ÌCheckCapsuleSphereHit
+        // ï¿½Jï¿½vï¿½Zï¿½ï¿½ï¿½Æ‹ï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ÍŠï¿½ï¿½ï¿½ï¿½ï¿½CheckCapsuleSphereHit
         return CheckCapsuleSphereHit(capA, capB, capRadius, sphereCenter, sphereRadius);
     }
 }
@@ -129,39 +130,42 @@ EnemyNormal::EnemyNormal() :
 	m_currentAnimLoop(false),
 	m_currentAnimIndex(-1),
 	m_animTime(0.0f),
-	m_hasAttackHit(false)
+	m_hasAttackHit(false),
+    m_onDropItem(nullptr)
 {
-    // ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ
+    // fÌ“Ç‚İï¿½ï¿½ï¿½
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
     assert(m_modelHandle != -1);
 }
 
 EnemyNormal::~EnemyNormal()
 {
-    // ƒ‚ƒfƒ‹‚Ì‰ğ•ú
+    // ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Ì‰ï¿½ï¿½
 	DeleteGraph(m_modelHandle); 
 }
 
 void EnemyNormal::Init()
 {
-    // ‰Šú‰»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     m_hp                = kInitialHP;
     m_pos               = kInitialPosition;
-	m_attackPower       = 20.0f;  // UŒ‚—Í
-	m_attackCooldownMax = 45;     // UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ÌÅ‘å’l
+	m_attackPower       = 20.0f;  // ï¿½Uï¿½ï¿½ï¿½ï¿½
+	m_attackCooldownMax = 45;     // ï¿½Uï¿½ï¿½ï¿½Nï¿½[ï¿½ï¿½ï¿½_ï¿½Eï¿½ï¿½ï¿½ÌÅ‘ï¿½l
 }
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
-    // HP‚ª0ˆÈ‰º‚È‚ç‰½‚à‚µ‚È‚¢
-    if (m_hp <= 0.0f) return;
+    if (m_hp <= 0.0f) {
+        if (m_onDropItem) m_onDropItem(m_pos);
+        return;
+    }
 
-    // ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹î•ñæ“¾
+    //vC[ÌƒJvZæ“¾
     VECTOR playerCapA, playerCapB;
     float  playerCapRadius;
     player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
 
-    // “G‚ÌƒJƒvƒZƒ‹î•ñæ“¾
+    // ï¿½Gï¿½ÌƒJï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½æ“¾
     VECTOR boxMin = {
         m_pos.x + m_aabbMin.x,
         m_pos.y + m_aabbMin.y,
@@ -176,7 +180,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     VECTOR enemyCapB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
     float enemyCapRadius = (std::max)(std::abs(boxMax.x - boxMin.x), std::abs(boxMax.z - boxMin.z)) * 0.5f;
 
-    // ƒJƒvƒZƒ‹“¯m‚ÌÅ‹ß“_‚ğ‹‚ß‚é
+    // ï¿½Jï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½mï¿½ÌÅ‹ß“_ï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½
     auto ClosestPtSegmentSegment = [](const VECTOR& p1, const VECTOR& q1, const VECTOR& p2, const VECTOR& q2, VECTOR& c1, VECTOR& c2) {
         VECTOR d1 = VSub(q1, p1);
         VECTOR d2 = VSub(q2, p2);
@@ -226,52 +230,52 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         float pushBack = minDist - dist;
         VECTOR pushDir = VScale(diff, 1.0f / dist);
 
-        // ƒvƒŒƒCƒ„[‚Æ“G‚ÌˆÊ’u‚ğ’²®
+        // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Æ“Gï¿½ÌˆÊ’uï¿½ğ’²ï¿½
         m_pos = VSub(m_pos, VScale(pushDir, pushBack * 0.5f));
     }
 
 
-    // ƒ‚ƒfƒ‹‚ÌˆÊ’u‚ğXV
+    // ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ÌˆÊ’uï¿½ï¿½ï¿½Xï¿½V
     MV1SetPosition(m_modelHandle, m_pos);
 
-    // UŒ‚”ÍˆÍ‚Ì’†S
+    // ï¿½Uï¿½ï¿½ï¿½ÍˆÍ‚Ì’ï¿½ï¿½S
     VECTOR attackCenter = m_pos;
-    attackCenter.y += (m_aabbMax.y - m_aabbMin.y) * 0.5f; // AABB’†S‚‚³‚É•â³
+    attackCenter.y += (m_aabbMax.y - m_aabbMin.y) * 0.5f; // AABBï¿½ï¿½ï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½É•â³
     float attackRadius = kAttackRangeRadius;
 
 
-    // UŒ‚”ÍˆÍ“à‚©”»’è
+    // ï¿½Uï¿½ï¿½ï¿½ÍˆÍ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     bool isPlayerInAttackRange = CheckSphereCapsuleHit(
         attackCenter, attackRadius,
         playerCapA, playerCapB, playerCapRadius
     );
 
-    // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“§Œä
+    // ï¿½Uï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
     if (attackAnimIndex != -1)
     {
         double animTotalTime = MV1GetAnimTotalTime(m_modelHandle, attackAnimIndex);
 
-        // ƒAƒjƒ[ƒVƒ‡ƒ“Ä¶’†
+        // ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½
         if (m_currentAnimIndex != -1)
         {
             m_animTime += 1.0f;
             if (m_animTime >= animTotalTime)
             {
                 m_animTime = animTotalTime;
-                m_currentAnimIndex = -1; // I—¹
-                m_hasAttackHit = false;  // UŒ‚”»’èƒŠƒZƒbƒg
+                m_currentAnimIndex = -1; // ï¿½Iï¿½ï¿½
+                m_hasAttackHit = false;  // ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½èƒŠï¿½Zï¿½bï¿½g
             }
             else
             {
                 MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
 
-                // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì’†”Õ‚ÅUŒ‚”»’è‚ğs‚¤(‘S‘Ì‚Ì30%`70%‚ÌŠÔ)
+                // ï¿½Uï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Ì’ï¿½ï¿½Õ‚ÅUï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½(ï¿½Sï¿½Ì‚ï¿½30%ï¿½`70%ï¿½ÌŠï¿½)
                 float attackStart = animTotalTime * 0.3f;
                 float attackEnd = animTotalTime * 0.7f;
                 if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
                 {
-                    // —¼è‚Ìƒ[ƒ‹ƒhÀ•Wæ“¾
+                    // ï¿½ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½æ“¾
                     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
                     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
                     if (handRIndex != -1 && handLIndex != -1)
@@ -279,42 +283,42 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                         VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
                         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
-                        // ƒvƒŒƒCƒ„[ƒJƒvƒZƒ‹æ“¾
+                        // ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Jï¿½vï¿½Zï¿½ï¿½ï¿½æ“¾
                         VECTOR playerCapA, playerCapB;
                         float  playerCapRadius;
                         player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
 
-                        // ƒJƒvƒZƒ‹“¯m‚Ì“–‚½‚è”»’è
+                        // ï¿½Jï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½mï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½
                         if (CheckCapsuleCapsuleHit(
                             handRPos, handLPos, kAttackHitRadius,
                             playerCapA, playerCapB, playerCapRadius))
                         {
-                            // ƒ_ƒ[ƒW‚ğ—^‚¦‚é
+                            // ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½^ï¿½ï¿½ï¿½ï¿½
                             const_cast<Player&>(player).TakeDamage(m_attackPower);
-                            m_hasAttackHit = true; // ‘½dƒqƒbƒg–h~
+                            m_hasAttackHit = true; // ï¿½ï¿½ï¿½dï¿½qï¿½bï¿½gï¿½hï¿½~
                         }
                     }
                 }
             }
         }
-        // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªÄ¶’†‚Å‚È‚¢ê‡AUŒ‚”ÍˆÍ“à‚È‚çÄ¶ŠJn
+        // ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½Å‚È‚ï¿½ï¿½ê‡ï¿½Aï¿½Uï¿½ï¿½ï¿½ÍˆÍ“ï¿½ï¿½È‚ï¿½Äï¿½ï¿½Jï¿½n
         else if (isPlayerInAttackRange)
         {
             MV1DetachAnim(m_modelHandle, 0);
-            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, false); // ƒ‹[ƒv‚È‚µ
+            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, false); // ï¿½ï¿½ï¿½[ï¿½vï¿½È‚ï¿½
             m_currentAnimLoop = false;
             m_animTime = 0.0f;
             MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
         }
     }
     
-    // ’e‚Ì“–‚½‚è”»’è‚ğƒ`ƒFƒbƒN
+    // ï¿½eï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ï¿½ï¿½`ï¿½Fï¿½bï¿½N
 	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
 
-    // ƒ^ƒbƒNƒ‹“–‚½‚è”»’è‚Ì’Ç‰Á
+    // ï¿½^ï¿½bï¿½Nï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½Ì’Ç‰ï¿½
     if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
-        // “G‚ÌƒJƒvƒZƒ‹î•ñ
+        // ï¿½Gï¿½ÌƒJï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½
         VECTOR boxMin = {
             m_pos.x + m_aabbMin.x,
             m_pos.y + m_aabbMin.y,
@@ -329,17 +333,17 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         VECTOR capB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
         float capRadius = (std::max)(std::abs(boxMax.x - boxMin.x), std::abs(boxMax.z - boxMin.z)) * 0.5f;
 
-        // ƒJƒvƒZƒ‹“¯m‚Ì“–‚½‚è”»’è
+        // ï¿½Jï¿½vï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½mï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½
         if (CheckCapsuleCapsuleHit(
             tackleInfo.capA, tackleInfo.capB, tackleInfo.radius,
             capA, capB, capRadius))
         {
             TakeTackleDamage(tackleInfo.damage);
-            m_lastTackleId = tackleInfo.tackleId; // ‚±‚Ìƒ^ƒbƒNƒ‹ID‚Åƒ_ƒ[ƒW‚ğó‚¯‚½‚±‚Æ‚ğ‹L˜^
+            m_lastTackleId = tackleInfo.tackleId; // ï¿½ï¿½ï¿½Ìƒ^ï¿½bï¿½Nï¿½ï¿½IDï¿½Åƒ_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ó‚¯‚ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Lï¿½^
         }
     }
 
-    // ƒfƒoƒbƒO•\¦ƒ^ƒCƒ}[Œ¸­
+    // ï¿½fï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½ï¿½^ï¿½Cï¿½}ï¿½[ï¿½ï¿½ï¿½ï¿½
     if (m_hitDisplayTimer > 0) 
     {
         --m_hitDisplayTimer; 
@@ -352,20 +356,20 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
 void EnemyNormal::Draw()
 {
-    // HP‚ª0ˆÈ‰º‚È‚ç‰½‚à‚µ‚È‚¢
+    // HPï¿½ï¿½0ï¿½È‰ï¿½ï¿½È‚ç‰½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½
     if (m_hp <= 0.0f) return;
 
-    // ƒ‚ƒfƒ‹‚Ì•`‰æ
+    // ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Ì•`ï¿½ï¿½
     MV1DrawModel(m_modelHandle);
 
 #ifdef _DEBUG
-    // ƒfƒoƒbƒO—p‚Ì“–‚½‚è”»’è•`‰æ
+    // ï¿½fï¿½oï¿½bï¿½Oï¿½pï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½`ï¿½ï¿½
     DrawCollisionDebug();
 
-    // ƒfƒoƒbƒO•\¦
+    // ï¿½fï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½
     const char* hitMsg = "";
 
-    // ƒqƒbƒg•”ˆÊ‚É‰‚¶‚ÄƒƒbƒZ[ƒW‚ğİ’è
+    // ï¿½qï¿½bï¿½gï¿½ï¿½ï¿½Ê‚É‰ï¿½ï¿½ï¿½ï¿½Äƒï¿½ï¿½bï¿½Zï¿½[ï¿½Wï¿½ï¿½İ’ï¿½
     switch (m_lastHitPart)
     {
     case HitPart::Head: hitMsg = "HeadShot!"; break;
@@ -377,17 +381,17 @@ void EnemyNormal::Draw()
         DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
     }
 
-    // ‘Ì—Í‚ÌƒfƒoƒbƒO•\¦
+    // ï¿½Ì—Í‚Ìƒfï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½
     DebugUtil::DrawMessage(20, 100, 0xff0000, hitMsg);
     DebugUtil::DrawFormat(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
 #endif
     
 }
 
-// “G‚Ì“–‚½‚è”»’è‚ğs‚¤ŠÖ”
+// ï¿½Gï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½Öï¿½
 bool EnemyNormal::IsHit(const Bullet& bullet) const
 {
-    // ƒ{[ƒ“‚Ìƒ[ƒ‹ƒhÀ•W‚ğæ“¾
+    // ï¿½{ï¿½[ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½æ“¾
     int spineIndex  = MV1SearchFrame(m_modelHandle, "Root");
     VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
 
@@ -404,7 +408,7 @@ bool EnemyNormal::IsHit(const Bullet& bullet) const
         spinePos.z + m_aabbMax.z
     };
 
-    // ƒJƒvƒZƒ‹‚Ìã‰º’†S‚ğŒvZ
+    // ï¿½Jï¿½vï¿½Zï¿½ï¿½ï¿½Ìã‰ºï¿½ï¿½ï¿½Sï¿½ï¿½ï¿½vï¿½Z
     VECTOR capA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
     VECTOR capB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
 
@@ -413,13 +417,13 @@ bool EnemyNormal::IsHit(const Bullet& bullet) const
         std::abs(boxMax.z - boxMin.z)
         ) * 0.5f;
 
-    // ƒJƒvƒZƒ‹‚Æ‹…‚Ì“–‚½‚è”»’è
+    // ï¿½Jï¿½vï¿½Zï¿½ï¿½ï¿½Æ‹ï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½
     return CheckCapsuleSphereHit(capA, capB, capRadius, bullet.GetPos(), bullet.GetRadius());
 }
 
 void EnemyNormal::DrawCollisionDebug() const
 {
-    // ƒ{[ƒ“‚Ìƒ[ƒ‹ƒhÀ•W‚ğæ“¾
+    // ï¿½{ï¿½[ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½æ“¾
     int spineIndex = MV1SearchFrame(m_modelHandle, "Root");
     VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
 
@@ -446,21 +450,21 @@ void EnemyNormal::DrawCollisionDebug() const
 
     DebugUtil::DrawCapsule(centerMin, centerMax, radius, 16, 0xff0000);
 
-    // Headƒ{[ƒ“‚Ìƒ[ƒ‹ƒhÀ•W‚ğæ“¾
+    // Headï¿½{ï¿½[ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½æ“¾
     int headIndex = MV1SearchFrame(m_modelHandle, "Head");
     VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
 
-	// ƒwƒbƒhƒVƒ‡ƒbƒg”»’è—p‚Ì‹…‚ğƒfƒoƒbƒO•\¦
+	// ï¿½wï¿½bï¿½hï¿½Vï¿½ï¿½ï¿½bï¿½gï¿½ï¿½ï¿½ï¿½pï¿½Ì‹ï¿½ï¿½ï¿½ï¿½fï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½
     DebugUtil::DrawSphere(headPos, m_headRadius, 16, 0x00ff00);
 
-    // UŒ‚”ÍˆÍ‚ÌƒfƒoƒbƒO•\¦
+    // ï¿½Uï¿½ï¿½ï¿½ÍˆÍ‚Ìƒfï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½
     float attackCenterY = m_pos.y + (m_aabbMax.y - m_aabbMin.y) * 0.5f;
     VECTOR attackCenter = m_pos;
     attackCenter.y = attackCenterY;
 
     DebugUtil::DrawSphere(attackCenter, kAttackRangeRadius, 24, 0xff8000);
 
-    // UŒ‚—p“–‚½‚è”»’è(—¼è‚ÌŠÔ‚ÌƒJƒvƒZƒ‹)‚ğƒfƒoƒbƒO•\¦
+    // ï¿½Uï¿½ï¿½ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ÌŠÔ‚ÌƒJï¿½vï¿½Zï¿½ï¿½)ï¿½ï¿½ï¿½fï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
 
@@ -469,15 +473,15 @@ void EnemyNormal::DrawCollisionDebug() const
         VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
         
-        // UŒ‚”»’èƒJƒvƒZƒ‹
+        // ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½vï¿½Zï¿½ï¿½
         DebugUtil::DrawCapsule(handRPos, handLPos, kAttackHitRadius, 16, 0x0000ff);
     }
 }
 
-// ‚Ç‚±‚É“–‚½‚Á‚½‚©”»’è‚·‚éŠÖ”
+// ï¿½Ç‚ï¿½ï¿½É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è‚·ï¿½ï¿½Öï¿½
 EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const 
 {
-    // Headƒ{[ƒ“‚Ìƒ[ƒ‹ƒhÀ•W‚ğæ“¾
+    // Headï¿½{ï¿½[ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½æ“¾
     int headIndex  = MV1SearchFrame(m_modelHandle, "Head"); 
     VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
 
@@ -489,20 +493,20 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
 
     VECTOR bulletPos = bullet.GetPos();
 
-	// ƒwƒbƒhƒVƒ‡ƒbƒg”»’è‚Ì‚½‚ß‚Ì‹——£ŒvZ
-	float dx        = bulletPos.x - headCenter.x;        // XÀ•W‚Ì·
-	float dy        = bulletPos.y - headCenter.y;        // YÀ•W‚Ì·
-	float dz        = bulletPos.z - headCenter.z;        // ZÀ•W‚Ì·
-	float distSq    = dx * dx + dy * dy + dz * dz;       // ‹——£‚Ì“ñæ‚ğŒvZ
-	float radiusSum = m_headRadius + bullet.GetRadius(); // ƒwƒbƒhƒVƒ‡ƒbƒg”¼Œa‚Æ’e‚Ì”¼Œa‚Ì˜a‚ğŒvZ
+	// ï¿½wï¿½bï¿½hï¿½Vï¿½ï¿½ï¿½bï¿½gï¿½ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½ß‚Ì‹ï¿½ï¿½ï¿½ï¿½vï¿½Z
+	float dx        = bulletPos.x - headCenter.x;        // Xï¿½ï¿½ï¿½Wï¿½Ìï¿½
+	float dy        = bulletPos.y - headCenter.y;        // Yï¿½ï¿½ï¿½Wï¿½Ìï¿½
+	float dz        = bulletPos.z - headCenter.z;        // Zï¿½ï¿½ï¿½Wï¿½Ìï¿½
+	float distSq    = dx * dx + dy * dy + dz * dz;       // ï¿½ï¿½ï¿½ï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½vï¿½Z
+	float radiusSum = m_headRadius + bullet.GetRadius(); // ï¿½wï¿½bï¿½hï¿½Vï¿½ï¿½ï¿½bï¿½gï¿½ï¿½ï¿½aï¿½Æ’eï¿½Ì”ï¿½ï¿½aï¿½Ì˜aï¿½ï¿½ï¿½vï¿½Z
 
-	// ƒwƒbƒhƒVƒ‡ƒbƒg”»’è
+	// ï¿½wï¿½bï¿½hï¿½Vï¿½ï¿½ï¿½bï¿½gï¿½ï¿½ï¿½ï¿½
     if (distSq <= radiusSum * radiusSum)
     {
         return HitPart::Head;
     }
 
-    // ƒ{ƒfƒBƒqƒbƒg”»’è
+    // ï¿½{ï¿½fï¿½Bï¿½qï¿½bï¿½gï¿½ï¿½ï¿½ï¿½
     if (IsHit(bullet)) 
     {
         return HitPart::Body;
@@ -510,17 +514,21 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const
     return HitPart::None;
 }
 
-// ƒ_ƒ[ƒWŒvZ
+// ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½vï¿½Z
 float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
 {
     if (part == HitPart::Head)
     {
-        return bullet.GetDamage() * 2.0f; // ƒwƒbƒhƒVƒ‡ƒbƒg‚Íƒ_ƒ[ƒW2”{
+        return bullet.GetDamage() * 2.0f; // ï¿½wï¿½bï¿½hï¿½Vï¿½ï¿½ï¿½bï¿½gï¿½Íƒ_ï¿½ï¿½ï¿½[ï¿½W2ï¿½{
     }
     else if (part == HitPart::Body)
     {
         return bullet.GetDamage();
     }
     return 0.0f;
+}
+
+void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb) {
+    m_onDropItem = cb;
 }
 

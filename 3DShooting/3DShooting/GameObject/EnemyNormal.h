@@ -2,6 +2,7 @@
 #include "EnemyBase.h"
 #include <vector>
 #include <string>
+#include <functional>
 
 class Bullet;
 class Player;
@@ -55,6 +56,8 @@ public:
     /// </summary>
     void ResetTackleHitFlag() { m_isTackleHit = false; }
 
+    void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
+
 private:
     VECTOR m_aabbMin; // AABB最小座標
     VECTOR m_aabbMax; // AABB最大座標
@@ -69,5 +72,7 @@ private:
     bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
     bool m_currentAnimLoop;
     bool m_hasAttackHit;
+
+    std::function<void(const VECTOR&)> m_onDropItem;
 };
 
