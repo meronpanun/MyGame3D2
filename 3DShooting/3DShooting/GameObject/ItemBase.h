@@ -3,7 +3,7 @@
 class Player;
 
 /// <summary>
-/// �A�C�e�����N���X
+/// アイテム基底クラス
 /// </summary>
 class ItemBase abstract
 {
