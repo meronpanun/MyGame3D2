@@ -6,7 +6,7 @@
 namespace
 {
 	constexpr int   kDefaultHitDisplayDuration = 60;     // 1秒間表示
-	constexpr float kDefaultInitialHP          = 100.0f; // デフォルトの初期体力 
+	constexpr float kDefaultInitialHP = 100.0f; // デフォルトの初期体力 
 
 	constexpr float kDefaultCooldownMax = 60;     // 攻撃クールダウンの最大値
 	constexpr float kDefaultAttackPower = 10.0f;  // 攻撃力
@@ -15,7 +15,7 @@ namespace
 EnemyBase::EnemyBase() :
 	m_pos{ 0, 0, 0 },
 	m_modelHandle(-1),
-	m_colRadius(1.0f), 
+	// m_colRadius(1.0f), // 削除
 	m_targetPlayer(nullptr),
 	m_hp(kDefaultInitialHP),
 	m_lastHitPart(HitPart::None),
@@ -32,26 +32,50 @@ EnemyBase::EnemyBase() :
 
 void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
 {
-	for (auto& bullet : bullets)
-	{
-		// 弾が非アクティブならスキップ
-		if (!bullet.IsActive()) continue;
+    // 最も近いヒット情報を保持
+    int hitBulletIndex = -1;
+    float minHitDistSq = FLT_MAX; // 最も近い衝突までの距離の2乗
+    HitPart determinedHitPart = HitPart::None; // 最終的に決定されたヒット部位
 
-		// どこに当たったのかをチェック
-		HitPart part = CheckHitPart(bullet);
+    for (int i = 0; i < bullets.size(); ++i)
+    {
+        auto& bullet = bullets[i];
+        if (!bullet.IsActive()) continue;
 
-		if (part == HitPart::Head || part == HitPart::Body)
-		{
-			float damage = CalcDamage(bullet, part);
-			TakeDamage(damage);
+        // 弾のRay情報を取得 (前フレーム位置 -> 現在位置)
+        VECTOR rayStart = bullet.GetPrevPos();
+        VECTOR rayEnd = bullet.GetPos();
 
-			m_lastHitPart = part;
-			m_hitDisplayTimer = kDefaultHitDisplayDuration;
+        // どこに当たったのかをチェック
+        // CheckHitPartは最も近い衝突点を考慮してHitPartを返すようにする
+        // ここでは距離の情報も内部で利用するようにする
+        VECTOR currentHitPos;
+        float currentHitDistSq;
+        HitPart part = CheckHitPart(rayStart, rayEnd, currentHitPos, currentHitDistSq); // 距離情報も受け取るように変更
 
-			bullet.Deactivate();
-			break;
-		}
-	}
+        if (part != HitPart::None)
+        {
+            if (currentHitDistSq < minHitDistSq)
+            {
+                minHitDistSq = currentHitDistSq;
+                hitBulletIndex = i;
+                determinedHitPart = part; // 最も近いヒットの部位を保持
+            }
+        }
+    }
+
+    // 最も近い弾でダメージ処理を行う
+    if (hitBulletIndex != -1)
+    {
+        auto& bullet = bullets[hitBulletIndex];
+        float damage = CalcDamage(bullet.GetDamage(), determinedHitPart);
+        TakeDamage(damage);
+
+        m_lastHitPart = determinedHitPart;
+        m_hitDisplayTimer = kDefaultHitDisplayDuration;
+
+        bullet.Deactivate(); // 敵に当たった弾は非アクティブにする
+    }
 }
 
 // 敵がダメージを受ける処理
@@ -74,4 +98,3 @@ void EnemyBase::TakeTackleDamage(float damage)
 	m_lastHitPart = HitPart::Body;
 	m_hitDisplayTimer = kDefaultHitDisplayDuration; // 1秒間表示
 }
-

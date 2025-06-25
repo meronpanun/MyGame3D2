@@ -1,2 +1,2 @@
-#include "Collider.h"
 #include "DxLib.h"
+#include "Collider.h"

@@ -3,11 +3,13 @@
 #include "Bullet.h"
 #include "DxLib.h"
 #include "DebugUtil.h"
-#include "Collider.h"
+#include "SphereCollider.h" 
+#include "CapsuleCollider.h" 
 #include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <float.h>
 
 namespace
 {
@@ -15,102 +17,24 @@ namespace
 
     constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 200.0f };
 
-	constexpr VECTOR kAABBMin = { -20.0f, 0.0f, -15.0f };
-	constexpr VECTOR kAABBMax = { 20.0f, 128.0f, 15.0f };
+	// AABBではなくカプセルコライダーのサイズを定義
+	constexpr float kBodyColliderRadius = 20.0f;
+    constexpr float kBodyColliderHeight = 128.0f;
 
-	constexpr VECTOR kHeadShotPosition = { 0.0f, 160.0f, -6.0f };
+	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 160.0f, -6.0f }; // オフセットに変更
 
     constexpr float kHeadRadius = 13.5f;
 
 	constexpr float kInitialHP = 200.0f;
 
-	constexpr float kAttackHitRadius = 20.0f; 
+	constexpr float kAttackHitRadius = 20.0f; // 攻撃の当たり判定半径
 
-    constexpr float kAttackRangeRadius = 120.0f; 
-
-    float VLenSq(const VECTOR& vec)
-    {
-        return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
-    }
-
-
-    static bool CheckCapsuleSphereHit(
-        const VECTOR& capA, const VECTOR& capB, float capRadius,
-        const VECTOR& sphereCenter, float sphereRadius)
-    {
-        VECTOR ab = VSub(capB, capA);
-        VECTOR ac = VSub(sphereCenter, capA);
-
-        float abLenSq = VDot(ab, ab); 
-        float t       = 0.0f; 
-
-        
-        if (abLenSq > 0.0f)
-        {
-            t = VDot(ac, ab) / abLenSq; 
-            t = (std::max)(0.0f, (std::min)(1.0f, t)); 
-        }
-
-        VECTOR closest = VAdd(capA, VScale(ab, t));
-
-        float distSq = VLenSq(VSub(sphereCenter, closest));
-        float radiusSum = capRadius + sphereRadius;
-
-        return distSq <= radiusSum * radiusSum;
-    }
-
-    static bool CheckCapsuleCapsuleHit(
-        const VECTOR& a1, const VECTOR& a2, float r1,
-        const VECTOR& b1, const VECTOR& b2, float r2)
-    {
-        VECTOR d1 = VSub(a2, a1);
-        VECTOR d2 = VSub(b2, b1);
-        VECTOR r = VSub(a1, b1);
-
-        float a = VDot(d1, d1);
-        float e = VDot(d2, d2);
-        float f = VDot(d2, r);
-        float s = 0.0f, t = 0.0f;
-        float c = VDot(d1, r);
-        float b = VDot(d1, d2);
-        float denom = a * e - b * b;
-
-        if (denom != 0.0f)
-        {
-            s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
-        }
-        else
-        {
-            s = 0.0f;
-        }
-            
-        t = (b * s + f) / e;
-        t = std::clamp(t, 0.0f, 1.0f);
-
-        s = (b * t - c) / a;
-        s = std::clamp(s, 0.0f, 1.0f);
-
-        VECTOR p1 = VAdd(a1, VScale(d1, s));
-        VECTOR p2 = VAdd(b1, VScale(d2, t));
-        float distSq = VDot(VSub(p1, p2), VSub(p1, p2));
-        float radiusSum = r1 + r2;
-        return distSq <= radiusSum * radiusSum;
-    }
-
-    static bool CheckSphereCapsuleHit( 
-        const VECTOR& sphereCenter, float sphereRadius,
-        const VECTOR& capA, const VECTOR& capB, float capRadius)
-    {
-        return CheckCapsuleSphereHit(capA, capB, capRadius, sphereCenter, sphereRadius);
-    }
+    constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
 }
 
 EnemyNormal::EnemyNormal() :
-    m_aabbMin{ kAABBMin },
-    m_aabbMax{ kAABBMax },
-    m_headPos{ kHeadShotPosition },
-    m_headRadius(kHeadRadius),
-	m_isTackleHit(false),
+    m_headPosOffset{ kHeadShotPositionOffset }, // オフセットで初期化
+    m_isTackleHit(false),
     m_lastTackleId(-1),
 	m_currentAnimLoop(false),
 	m_currentAnimIndex(-1),
@@ -120,19 +44,25 @@ EnemyNormal::EnemyNormal() :
 {
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
     assert(m_modelHandle != -1);
+
+    // コライダーの初期化
+    m_bodyCollider = std::make_shared<CapsuleCollider>();
+    m_headCollider = std::make_shared<SphereCollider>();
+    m_attackRangeCollider = std::make_shared<SphereCollider>();
+    m_attackHitCollider = std::make_shared<CapsuleCollider>();
 }
 
 EnemyNormal::~EnemyNormal()
 {
-	DeleteGraph(m_modelHandle); 
+	MV1DeleteModel(m_modelHandle); 
 }
 
 void EnemyNormal::Init()
 {
     m_hp                = kInitialHP;
     m_pos               = kInitialPosition;
-	m_attackPower       = 20.0f;  
-	m_attackCooldownMax = 45;     
+	m_attackPower       = 20.0f;
+	m_attackCooldownMax = 45;
 }
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
@@ -147,88 +77,59 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         return;
     }
 
+    MV1SetPosition(m_modelHandle, m_pos);
+
+    // コライダーの更新
+    // 体のコライダー（カプセル）
+    VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
+    VECTOR bodyCapB = VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
+    m_bodyCollider->SetSegment(bodyCapA, bodyCapB);
+    m_bodyCollider->SetRadius(kBodyColliderRadius);
+
+    // 頭のコライダー（球）
+    int headIndex = MV1SearchFrame(m_modelHandle, "Head");
+    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0,0,0);
+    VECTOR headCenter = VAdd(headModelPos, m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
+    m_headCollider->SetCenter(headCenter);
+    m_headCollider->SetRadius(kHeadRadius);
+
+    // 攻撃範囲のコライダー（球）
+    VECTOR attackRangeCenter = m_pos;
+    attackRangeCenter.y += (kBodyColliderHeight * 0.5f); // 敵の高さの半分くらい
+    m_attackRangeCollider->SetCenter(attackRangeCenter);
+    m_attackRangeCollider->SetRadius(kAttackRangeRadius);
+
+    // プレイヤーのカプセルコライダー情報を取得
     VECTOR playerCapA, playerCapB;
     float  playerCapRadius;
     player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
+    CapsuleCollider playerBodyCollider(playerCapA, playerCapB, playerCapRadius);
 
-    VECTOR boxMin = {
-        m_pos.x + m_aabbMin.x,
-        m_pos.y + m_aabbMin.y,
-        m_pos.z + m_aabbMin.z
-    };
-    VECTOR boxMax = {
-        m_pos.x + m_aabbMax.x,
-        m_pos.y + m_aabbMax.y,
-        m_pos.z + m_aabbMax.z
-    };
-    VECTOR enemyCapA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
-    VECTOR enemyCapB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
-    float enemyCapRadius = (std::max)(std::abs(boxMax.x - boxMin.x), std::abs(boxMax.z - boxMin.z)) * 0.5f;
 
-    auto ClosestPtSegmentSegment = [](const VECTOR& p1, const VECTOR& q1, const VECTOR& p2, const VECTOR& q2, VECTOR& c1, VECTOR& c2) {
-        VECTOR d1 = VSub(q1, p1);
-        VECTOR d2 = VSub(q2, p2);
-        VECTOR r = VSub(p1, p2);
-        float a = VDot(d1, d1);
-        float e = VDot(d2, d2);
-        float f = VDot(d2, r);
-
-        float s, t;
-        float c = VDot(d1, r);
-        float b = VDot(d1, d2);
-        float denom = a * e - b * b;
-
-        if (denom != 0.0f) 
-        {
-            s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
-        }
-        else 
-        {
-            s = 0.0f;
-        }
-
-        t = (b * s + f) / e;
-        t = std::clamp(t, 0.0f, 1.0f);
-
-        s = (b * t - c) / a;
-        s = std::clamp(s, 0.0f, 1.0f);
-
-        c1 = VAdd(p1, VScale(d1, s));
-        c2 = VAdd(p2, VScale(d2, t));
-        };
-
-    VECTOR closestPlayer, closestEnemy;
-    ClosestPtSegmentSegment(
-        playerCapA, playerCapB,
-        enemyCapA, enemyCapB,
-        closestPlayer, closestEnemy
-    );
-
-    VECTOR diff = VSub(closestPlayer, closestEnemy);
-    float distSq = VDot(diff, diff);
-    float minDist = playerCapRadius + enemyCapRadius;
-
-    if (distSq < minDist * minDist && distSq > 0.0001f)
+    // 敵とプレイヤーの押し出し処理 (カプセル同士の衝突)
+    if (m_bodyCollider->Intersects(&playerBodyCollider))
     {
-        float dist = std::sqrt(distSq);
-        float pushBack = minDist - dist;
-        VECTOR pushDir = VScale(diff, 1.0f / dist);
+        // 簡易的な押し出し処理 (より正確な物理演算は別途実装が必要)
+        VECTOR enemyCenter = VScale(VAdd(bodyCapA, bodyCapB), 0.5f);
+        VECTOR playerCenter = VScale(VAdd(playerCapA, playerCapB), 0.5f);
+        VECTOR diff = VSub(enemyCenter, playerCenter);
+        float distSq = VDot(diff, diff);
+        float minDist = kBodyColliderRadius + playerCapRadius; 
 
-        m_pos = VSub(m_pos, VScale(pushDir, pushBack * 0.5f));
+        if (distSq < minDist * minDist && distSq > 0.0001f)
+        {
+            float dist = std::sqrt(distSq);
+            float pushBack = minDist - dist;
+            if (dist > 0)
+            {
+                VECTOR pushDir = VScale(diff, 1.0f / dist);
+                m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f)); 
+            }
+        }
     }
 
 
-    MV1SetPosition(m_modelHandle, m_pos);
-
-    VECTOR attackCenter = m_pos;
-    attackCenter.y += (m_aabbMax.y - m_aabbMin.y) * 0.5f; 
-    float attackRadius = kAttackRangeRadius;
-
-
-    bool isPlayerInAttackRange = CheckSphereCapsuleHit(
-        attackCenter, attackRadius,
-        playerCapA, playerCapB, playerCapRadius
-    );
+    bool isPlayerInAttackRange = m_attackRangeCollider->Intersects(&playerBodyCollider);
 
     int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
     if (attackAnimIndex != -1)
@@ -241,8 +142,8 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             if (m_animTime >= animTotalTime)
             {
                 m_animTime = animTotalTime;
-                m_currentAnimIndex = -1; 
-                m_hasAttackHit = false;  
+                m_currentAnimIndex = -1;
+                m_hasAttackHit = false;
             }
             else
             {
@@ -259,16 +160,14 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                         VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
                         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
-                        VECTOR playerCapA, playerCapB;
-                        float  playerCapRadius;
-                        player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
-
-                        if (CheckCapsuleCapsuleHit(
-                            handRPos, handLPos, kAttackHitRadius,
-                            playerCapA, playerCapB, playerCapRadius))
+                        // 攻撃ヒット用コライダーの更新
+                        m_attackHitCollider->SetSegment(handRPos, handLPos);
+                        m_attackHitCollider->SetRadius(kAttackHitRadius);
+                        
+                        if (m_attackHitCollider->Intersects(&playerBodyCollider))
                         {
                             const_cast<Player&>(player).TakeDamage(m_attackPower);
-                            m_hasAttackHit = true; 
+                            m_hasAttackHit = true;
                         }
                     }
                 }
@@ -277,7 +176,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         else if (isPlayerInAttackRange)
         {
             MV1DetachAnim(m_modelHandle, 0);
-            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, false); 
+            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, false);
             m_currentAnimLoop = false;
             m_animTime = 0.0f;
             MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
@@ -288,32 +187,18 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
     if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
-        VECTOR boxMin = {
-            m_pos.x + m_aabbMin.x,
-            m_pos.y + m_aabbMin.y,
-            m_pos.z + m_aabbMin.z
-        };
-        VECTOR boxMax = {
-            m_pos.x + m_aabbMax.x,
-            m_pos.y + m_aabbMax.y,
-            m_pos.z + m_aabbMax.z
-        };
-        VECTOR capA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
-        VECTOR capB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
-        float capRadius = (std::max)(std::abs(boxMax.x - boxMin.x), std::abs(boxMax.z - boxMin.z)) * 0.5f;
+        CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
 
-        if (CheckCapsuleCapsuleHit(
-            tackleInfo.capA, tackleInfo.capB, tackleInfo.radius,
-            capA, capB, capRadius))
+        if (m_bodyCollider->Intersects(&playerTackleCollider))
         {
             TakeTackleDamage(tackleInfo.damage);
-            m_lastTackleId = tackleInfo.tackleId; 
+            m_lastTackleId = tackleInfo.tackleId;
         }
     }
 
     if (m_hitDisplayTimer > 0) 
     {
-        --m_hitDisplayTimer; 
+        --m_hitDisplayTimer;
         if (m_hitDisplayTimer == 0) 
         {
             m_lastHitPart = HitPart::None;
@@ -340,82 +225,24 @@ void EnemyNormal::Draw()
     }
     if (*hitMsg)
     {
-        DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
+        DrawFormatString(20, 100, 0xff0000, "%s", hitMsg); 
     }
 
-    DebugUtil::DrawMessage(20, 100, 0xff0000, hitMsg);
     DebugUtil::DrawFormat(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
 #endif
     
 }
 
-bool EnemyNormal::IsHit(const Bullet& bullet) const
-{
-    int spineIndex  = MV1SearchFrame(m_modelHandle, "Root");
-    VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
-
-    VECTOR boxMin = 
-    {
-        spinePos.x + m_aabbMin.x,
-        spinePos.y + m_aabbMin.y,
-        spinePos.z + m_aabbMin.z
-    };
-    VECTOR boxMax = 
-    {
-        spinePos.x + m_aabbMax.x,
-        spinePos.y + m_aabbMax.y,
-        spinePos.z + m_aabbMax.z
-    };
-
-    VECTOR capA = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
-    VECTOR capB = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
-
-    float capRadius = (std::max)(
-        std::abs(boxMax.x - boxMin.x),
-        std::abs(boxMax.z - boxMin.z)
-        ) * 0.5f;
-
-    return CheckCapsuleSphereHit(capA, capB, capRadius, bullet.GetPos(), bullet.GetRadius());
-}
-
 void EnemyNormal::DrawCollisionDebug() const
 {
-    int spineIndex = MV1SearchFrame(m_modelHandle, "Root");
-    VECTOR spinePos = MV1GetFramePosition(m_modelHandle, spineIndex);
+    // 体のコライダーデバッグ描画
+    DebugUtil::DrawCapsule(m_bodyCollider->GetSegmentA(), m_bodyCollider->GetSegmentB(), m_bodyCollider->GetRadius(), 16, 0xff0000);
 
-    VECTOR boxMin = 
-    {
-        spinePos.x + m_aabbMin.x,
-        spinePos.y + m_aabbMin.y,
-        spinePos.z + m_aabbMin.z
-    };
-    VECTOR boxMax = 
-    {
-        spinePos.x + m_aabbMax.x,
-        spinePos.y + m_aabbMax.y,
-        spinePos.z + m_aabbMax.z
-    };
+    // 頭のコライダーデバッグ描画
+    DebugUtil::DrawSphere(m_headCollider->GetCenter(), m_headCollider->GetRadius(), 16, 0x00ff00);
 
-    VECTOR centerMin = { (boxMin.x + boxMax.x) * 0.5f, boxMin.y, (boxMin.z + boxMax.z) * 0.5f };
-    VECTOR centerMax = { (boxMin.x + boxMax.x) * 0.5f, boxMax.y, (boxMin.z + boxMax.z) * 0.5f };
-
-    float radius = (std::max)(
-        std::abs(boxMax.x - boxMin.x),
-        std::abs(boxMax.z - boxMin.z)
-        ) * 0.5f;
-
-    DebugUtil::DrawCapsule(centerMin, centerMax, radius, 16, 0xff0000);
-
-    int headIndex = MV1SearchFrame(m_modelHandle, "Head");
-    VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
-
-    DebugUtil::DrawSphere(headPos, m_headRadius, 16, 0x00ff00);
-
-    float attackCenterY = m_pos.y + (m_aabbMax.y - m_aabbMin.y) * 0.5f;
-    VECTOR attackCenter = m_pos;
-    attackCenter.y = attackCenterY;
-
-    DebugUtil::DrawSphere(attackCenter, kAttackRangeRadius, 24, 0xff8000);
+    // 攻撃範囲のデバッグ描画
+    DebugUtil::DrawSphere(m_attackRangeCollider->GetCenter(), m_attackRangeCollider->GetRadius(), 24, 0xff8000);
 
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
@@ -425,50 +252,63 @@ void EnemyNormal::DrawCollisionDebug() const
         VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
         
+        // 攻撃ヒット用コライダーのデバッグ描画
         DebugUtil::DrawCapsule(handRPos, handLPos, kAttackHitRadius, 16, 0x0000ff);
     }
 }
 
-EnemyBase::HitPart EnemyNormal::CheckHitPart(const Bullet& bullet) const 
+EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const
 {
-    int headIndex  = MV1SearchFrame(m_modelHandle, "Head"); 
-    VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
+    VECTOR hitPosHead, hitPosBody;
+    float hitDistSqHead = FLT_MAX;
+    float hitDistSqBody = FLT_MAX;
 
-    VECTOR headCenter = {
-        headPos.x,
-        headPos.y,
-        headPos.z
-    };
+    bool headHit = m_headCollider->IntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
+    bool bodyHit = m_bodyCollider->IntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
 
-    VECTOR bulletPos = bullet.GetPos();
-
-	float dx        = bulletPos.x - headCenter.x;        
-	float dy        = bulletPos.y - headCenter.y;        
-	float dz        = bulletPos.z - headCenter.z;        
-	float distSq    = dx * dx + dy * dy + dz * dz;       
-	float radiusSum = m_headRadius + bullet.GetRadius(); 
-
-    if (distSq <= radiusSum * radiusSum)
+    if (headHit && bodyHit)
     {
+        // 両方にヒットした場合、より近い方を優先
+        if (hitDistSqHead <= hitDistSqBody)
+        {
+            out_hitPos = hitPosHead;
+            out_hitDistSq = hitDistSqHead;
+            return HitPart::Head;
+        }
+        else
+        {
+            out_hitPos = hitPosBody;
+            out_hitDistSq = hitDistSqBody;
+            return HitPart::Body;
+        }
+    }
+    else if (headHit)
+    {
+        out_hitPos = hitPosHead;
+        out_hitDistSq = hitDistSqHead;
         return HitPart::Head;
     }
-
-    if (IsHit(bullet)) 
+    else if (bodyHit)
     {
+        out_hitPos = hitPosBody;
+        out_hitDistSq = hitDistSqBody;
         return HitPart::Body;
     }
+
+    out_hitPos = VGet(0, 0, 0); // ヒットしない場合は適当な値を入れておく
+    out_hitDistSq = FLT_MAX;
     return HitPart::None;
 }
 
-float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
+float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
 {
     if (part == HitPart::Head)
     {
-        return bullet.GetDamage() * 2.0f; 
+        return bulletDamage * 2.0f; // ヘッドショットは2倍ダメージ
     }
     else if (part == HitPart::Body)
     {
-        return bullet.GetDamage();
+        return bulletDamage; // ボディショットは通常のダメージ
     }
     return 0.0f;
 }
@@ -478,4 +318,3 @@ void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
-

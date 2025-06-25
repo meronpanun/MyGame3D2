@@ -43,3 +43,7 @@ static void DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div,
 　→DOOMではダッシュ状態からジャンプをすると歩き状態に戻りリセットされる
 　→後ろ移動時はダッシュ状態にならない
 　→ダッシュ状態になったらジャンプや後ろ移動、攻撃などしない限り常にダッシュ状態になる
+
+2025/06/25
+マウスクラスをInputManagerクラスに変更修正：
+Vec3クラス作成：

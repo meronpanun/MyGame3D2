@@ -14,10 +14,10 @@ namespace
 
 Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
 	m_pos(position),
+	m_prevPos(position), // 初期位置をprevPosにも設定
 	m_dir(direction),
 	m_speed(kBulletSpeed),
 	m_isActive(true),
-	m_radius(0.0f),
 	m_damage(damage)
 {
 }
@@ -34,17 +34,8 @@ void Bullet::Update()
 {
 	if (!m_isActive) return;
 
-	// Rayの始点と終点
-	VECTOR rayStart = m_pos;	    // 弾の位置
-	VECTOR rayDir   = VNorm(m_dir); // 弾の方向を正規化
-	float rayLength = m_speed;	    // 弾の速度をRayの長さとする
-	VECTOR rayEnd   = VAdd(rayStart, VScale(rayDir, rayLength)); // Rayの終点
-
-    // ここでRayとの衝突判定を行う(例：地形との当たり判定)
-	// 注: if (CheckHit(rayStart, rayEnd)) { m_isActive = false; }
-
-	// Rayの終点まで進む
-	m_pos = rayEnd;
+	m_prevPos = m_pos; // 現在の位置を前フレームの位置として保存
+	m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // 新しい位置を計算
 
 	// 画面外に出たら非アクティブにする
 	if (m_pos.x < -kScreenBoundary || m_pos.x > kScreenBoundary ||
@@ -60,32 +51,23 @@ void Bullet::Draw() const
 #ifdef _DEBUG
 	if (!m_isActive) return;
 
-	// Rayの始点と終点
-	VECTOR rayStart = m_pos;        // 弾の位置
-	VECTOR rayDir   = VNorm(m_dir); // 弾の方向を正規化
-	float rayLength = m_speed;      // 弾の速度をRayの長さとする
-	VECTOR rayEnd   = VAdd(rayStart, VScale(rayDir, rayLength)); // Rayの終点
-
-	// デバッグ用にRayを描画
-	DrawLine3D(rayStart, rayEnd, 0xff0000);
+	// Rayのデバッグ描画 (前フレーム位置から現在の位置へ)
+	DrawLine3D(m_prevPos, m_pos, GetColor(255, 255, 0)); // 黄色の線
+	DrawSphere3D(m_pos, 2.0f, 16, GetColor(255, 255, 0), GetColor(255, 255, 0), FALSE); // 仮の弾の描画
 #endif
 }
 
-// 弾の削除
 void Bullet::UpdateBullets(std::vector<Bullet>& bullets)
 {
-	for (auto& bullet : bullets) 
+	for (auto& bullet : bullets)
 	{
 		bullet.Update();
 	}
 
-	// 弾が非アクティブな場合は削除
-	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& bullet) {
-		return !bullet.IsActive(); 
-	}), bullets.end());
+	// 非アクティブな弾を削除
+	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) { return !b.IsActive(); }), bullets.end());
 }
 
-// 弾の描画
 void Bullet::DrawBullets(const std::vector<Bullet>& bullets)
 {
 	for (const auto& bullet : bullets)
@@ -94,9 +76,7 @@ void Bullet::DrawBullets(const std::vector<Bullet>& bullets)
 	}
 }
 
-// 弾の非アクティブ化
 void Bullet::Deactivate()
 {
 	m_isActive = false;
 }
-

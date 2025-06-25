@@ -6,6 +6,9 @@
 class Bullet;
 class Player;
 class Collider;
+class SphereCollider;
+class CapsuleCollider;
+
 
 /// <summary>
 /// 敵の基底クラス
@@ -19,20 +22,13 @@ public:
 	virtual void Init() abstract;
 	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player) abstract;
 	virtual void Draw() abstract;
-	
+
 
 	/// <summary>
 	/// 弾や攻撃を受ける処理(基底で共通処理) 
 	/// </summary>
 	/// <param name="bullets">弾のリスト</param>
-	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets); 
-
-	/// <summary>
-	/// 敵が弾に当たったかどうかをチェックする
-	/// </summary>
-	/// <param name="bullet">弾の情報</param>
-	/// <returns>当たったかどうか</returns>
-	virtual bool IsHit(const Bullet& bullet) const abstract;
+	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets);
 
 	/// <summary>
 	/// 敵がダメージを受ける処理
@@ -76,13 +72,17 @@ public:
 	/// <summary>
 	/// 派生クラスでどこに当たったか判定する仮想関数
 	/// </summary>
-	/// <param name="bullet">弾の情報</param>
+	/// <param name="rayStart">弾のRayの始点</param>
+	/// <param name="rayEnd">弾のRayの終点</param>
 	/// <returns>当たった部位</returns>
-	virtual HitPart CheckHitPart(const Bullet& bullet) const { return HitPart::None; }
+	// BulletからRayの情報を直接受け取るように変更
+	virtual HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const { return HitPart::None; }
+
 
 	// AABBの最小座標と最大座標を取得する
-	virtual VECTOR GetAABBMinWorld() const abstract;
-	virtual VECTOR GetAABBMaxWorld() const abstract;
+	// AABBは個別のコライダーで表現するため、ここでは不要。必要であれば派生クラスで持つ。
+	// virtual VECTOR GetAABBMinWorld() const abstract;
+	// virtual VECTOR GetAABBMaxWorld() const abstract;
 
 	/// <summary>
 	/// タックルでダメージを受けたかどうかのフラグを取得
@@ -91,8 +91,8 @@ public:
 
 protected:
 	// ダメージ計算用
-    virtual float CalcDamage(const Bullet& bullet, HitPart part) const abstract;
-    
+	virtual float CalcDamage(float bulletDamage, HitPart part) const abstract; // bulletDamageを受け取るように変更
+
 
 protected:
 	VECTOR m_pos; // 位置
@@ -107,7 +107,7 @@ protected:
 	int   m_attackCooldownMax; // 攻撃クールダウンの最大値
 	int   m_attackHitFrame;    // 攻撃ヒットフレーム
 
-	float m_colRadius;       // 当たり判定用半径
+	// float m_colRadius;       // 当たり判定用半径 -> 各コライダーで持つ
 	float m_hp;              // 体力
 	float m_attackPower;     // 攻撃力
 
@@ -115,4 +115,3 @@ protected:
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか
 	bool  m_isAttacking;     // 攻撃中かどうか
 };
-

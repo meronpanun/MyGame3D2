@@ -4,7 +4,6 @@
 #include <cmath> 
 #include <algorithm>
 
-
 SphereCollider::SphereCollider(const VECTOR& center, float radius)
     : m_center(center), m_radius(radius)
 {
@@ -64,4 +63,63 @@ bool SphereCollider::Intersects(const Collider* other) const
     }
 
     return false; // 未知のコライダータイプ
+}
+
+bool SphereCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const
+{
+    VECTOR rayDir = VSub(rayEnd, rayStart);
+    float rayLengthSq = VDot(rayDir, rayDir);
+
+    if (rayLengthSq < 0.0001f) // レイの長さが0に近い場合
+    {
+        // 点と球の判定にフォールバック
+        float distSq = VDot(VSub(m_center, rayStart), VSub(m_center, rayStart));
+        if (distSq <= m_radius * m_radius)
+        {
+            out_hitPos = rayStart; // 始点自体が球内部なら始点をヒット位置とする
+            out_hitDistSq = 0.0f;
+            return true;
+        }
+        return false;
+    }
+
+    VECTOR m = VSub(rayStart, m_center);
+    float b = VDot(m, rayDir);
+    float c = VDot(m, m) - m_radius * m_radius;
+
+    // レイの始点が球の外側かつレイが球から離れていく場合
+    if (c > 0.0f && b > 0.0f)
+    {
+        return false;
+    }
+
+    float discr = b * b - c;
+
+    // 判別式が負の場合、交差しない
+    if (discr < 0.0f)
+    {
+        return false;
+    }
+
+    // 交点までの距離 (始点から)
+    float t = -b - std::sqrt(discr);
+
+    // 交点がレイの範囲外の場合 (0から1の範囲)
+    if (t < 0.0f)
+    {
+        t = 0.0f; // 始点が球内にある場合、tは負になりうる
+    }
+
+    // レイの長さに正規化
+    t /= std::sqrt(rayLengthSq);
+
+    // レイの終点を超えている場合
+    if (t > 1.0f)
+    {
+        return false;
+    }
+
+    out_hitPos = VAdd(rayStart, VScale(rayDir, t));
+    out_hitDistSq = VDot(VSub(out_hitPos, rayStart), VSub(out_hitPos, rayStart));
+    return true;
 }

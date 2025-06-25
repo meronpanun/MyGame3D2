@@ -11,6 +11,7 @@ public:
     void Update() override;
 
     bool Intersects(const Collider* other) const override;
+    bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const override;
 
     VECTOR GetCenter() const { return m_center; }
     float GetRadius() const { return m_radius; }
