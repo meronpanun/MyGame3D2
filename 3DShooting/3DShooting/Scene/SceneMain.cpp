@@ -89,9 +89,6 @@ void SceneMain::Init()
     m_isReturningFromOption = false;
 
     m_items.clear();
-    // auto item = std::make_shared<FirstAidKitItem>();
-    // item->Init();
-    // m_items.push_back(item);
 
     // 敵の死亡時にアイテムをドロップするコールバックを設定
     m_pEnemyNormal->SetOnDropItemCallback([this](const VECTOR& pos) {

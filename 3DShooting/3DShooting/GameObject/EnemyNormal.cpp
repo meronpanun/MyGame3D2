@@ -135,12 +135,16 @@ void EnemyNormal::Init()
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
-    if (m_hp <= 0.0f) {
-        if (m_onDropItem) m_onDropItem(m_pos);
+    if (m_hp <= 0.0f)
+    {
+        if (m_onDropItem)
+        {
+            m_onDropItem(m_pos);    // アイテムドロップコールバックを呼び出す
+            m_onDropItem = nullptr; // アイテムドロップ後はコールバックを無効化
+        }
         return;
     }
 
-    
     VECTOR playerCapA, playerCapB;
     float  playerCapRadius;
     player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);

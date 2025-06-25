@@ -39,7 +39,7 @@ bool CapsuleSphereHit(const VECTOR& capA, const VECTOR& capB, float capRadius, c
 
 FirstAidKitItem::FirstAidKitItem():
 	m_radius(kInitialRadius),
-	m_pos(VGet(300.0f, 0.0f, 0.0f)),
+	m_pos(VGet(0.0f, 0.0f, 0.0f)),
 	m_isHit(false),
 	m_isUsed(false) 
 {
@@ -55,7 +55,7 @@ void FirstAidKitItem::Init()
 
 void FirstAidKitItem::Update(Player* player)
 {
-	if (m_isUsed) return; // 既に使われていたら何もしない
+	if (IsUsed()) return; // 既に使用されていたら描画しない
 
 	// プレイヤーのカプセル情報を取得
 	VECTOR capA, capB;
@@ -75,7 +75,7 @@ void FirstAidKitItem::Update(Player* player)
 
 void FirstAidKitItem::Draw()
 {
-	if (m_isUsed) return; // 既に使われていたら何もしない
+	if (IsUsed()) return; // 既に使用されていたら描画しない
 
     // 球の描画
     DrawSphere3D(m_pos, m_radius, 16, 0xff0000, 0xff8080, true);
