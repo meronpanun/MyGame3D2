@@ -3,6 +3,7 @@
 #include "Bullet.h"
 #include "DxLib.h"
 #include "DebugUtil.h"
+#include "Collider.h"
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -31,6 +32,7 @@ namespace
     {
         return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
     }
+
 
     static bool CheckCapsuleSphereHit(
         const VECTOR& capA, const VECTOR& capB, float capRadius,
@@ -95,7 +97,7 @@ namespace
         return distSq <= radiusSum * radiusSum;
     }
 
-    static bool CheckSphereCapsuleHit(
+    static bool CheckSphereCapsuleHit( 
         const VECTOR& sphereCenter, float sphereRadius,
         const VECTOR& capA, const VECTOR& capB, float capRadius)
     {
@@ -471,7 +473,9 @@ float EnemyNormal::CalcDamage(const Bullet& bullet, HitPart part) const
     return 0.0f;
 }
 
-void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb) {
+// アイテムドロップ時のコールバック関数を設定する
+void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb) 
+{
     m_onDropItem = cb;
 }
 

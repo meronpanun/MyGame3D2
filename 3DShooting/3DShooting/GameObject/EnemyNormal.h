@@ -6,6 +6,7 @@
 
 class Bullet;
 class Player;
+class Collider;
 
 /// <summary>
 /// 通常の敵クラス
@@ -56,6 +57,10 @@ public:
     /// </summary>
     void ResetTackleHitFlag() { m_isTackleHit = false; }
 
+    /// <summary>
+	/// アイテムドロップ時のコールバック関数を設定する
+    /// </summary>
+	/// <param name="cb">コールバック関数</param>
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
 private:
@@ -63,16 +68,19 @@ private:
     VECTOR m_aabbMax; // AABB最大座標
     VECTOR m_headPos; // ヘッドショット判定用中心座標
 
-	int m_lastTackleId; // 最後にタックルを受けたID
+	std::shared_ptr<Collider> m_pCollider; // コライダーオブジェクト
+
+    // アイテムドロップ時のコールバック関数
+    std::function<void(const VECTOR&)> m_onDropItem;
+
+	int m_lastTackleId;     // 最後にタックルを受けたID
     int m_currentAnimIndex; // 現在再生中のアニメーションインデックス
 
-    float m_animTime; // アニメーションの経過時間
+    float m_animTime;   // アニメーションの経過時間
     float m_headRadius; // ヘッドショット判定用半径  
 
-    bool m_isTackleHit; // 1フレームで複数回ダメージを受けないためのフラグ
-    bool m_currentAnimLoop;
-    bool m_hasAttackHit;
-
-    std::function<void(const VECTOR&)> m_onDropItem;
+    bool m_isTackleHit;     // 1フレームで複数回ダメージを受けないためのフラグ
+	bool m_currentAnimLoop; // 現在のアニメーションがループするかどうか 
+	bool m_hasAttackHit;    // 攻撃がヒットしたかどうか
 };
 

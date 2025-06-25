@@ -5,6 +5,7 @@
 
 class Bullet;
 class Player;
+class Collider;
 
 /// <summary>
 /// 敵の基底クラス
@@ -87,17 +88,6 @@ public:
 	/// タックルでダメージを受けたかどうかのフラグを取得
 	/// </summary>
 	virtual void ResetTackleHitFlag() abstract;
-
-	/// <summary>
-	/// 敵の攻撃を更新する
-	/// </summary>
-	virtual void UpdateAttack();
-
-	/// <summary>
-	/// プレイヤー攻撃処理
-	/// </summary>
-	/// <param name="player">攻撃対象のプレイヤー</param>
-	virtual void AttackPlayer(Player* player);
 
 protected:
 	// ダメージ計算用

@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "EnemyBase.h"
 #include "Bullet.h"
+#include "Collider.h"
 
 namespace
 {
@@ -72,17 +73,5 @@ void EnemyBase::TakeTackleDamage(float damage)
 	// ヒット表示を体ヒットとして更新
 	m_lastHitPart = HitPart::Body;
 	m_hitDisplayTimer = kDefaultHitDisplayDuration; // 1秒間表示
-}
-
-// 敵の攻撃を更新する処理
-void EnemyBase::UpdateAttack()
-{
-}
-
-// プレイヤーに攻撃を行う処理
-void EnemyBase::AttackPlayer(Player* player)
-{
-	if (!player) return;
-	player->TakeDamage(m_attackPower);
 }
 

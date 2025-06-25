@@ -143,6 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CapsuleCollider.cpp" />
+    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="GameObject\FirstAidKitItem.cpp" />
     <ClCompile Include="GameObject\Bullet.cpp" />
@@ -165,9 +167,12 @@
     <ClCompile Include="Scene\SceneOption.cpp" />
     <ClCompile Include="Scene\SceneResult.cpp" />
     <ClCompile Include="Scene\SceneTitle.cpp" />
+    <ClCompile Include="SphereCollider.cpp" />
     <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CapsuleCollider.h" />
+    <ClInclude Include="Collider.h" />
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="GameObject\FirstAidKitItem.h" />
     <ClInclude Include="GameObject\Bullet.h" />
@@ -189,6 +194,7 @@
     <ClInclude Include="Scene\SceneOption.h" />
     <ClInclude Include="Scene\SceneResult.h" />
     <ClInclude Include="Scene\SceneTitle.h" />
+    <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>
