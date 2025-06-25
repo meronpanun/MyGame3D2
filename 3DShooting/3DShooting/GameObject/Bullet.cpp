@@ -4,8 +4,6 @@
 
 namespace
 {
-	// 弾の半径
-	constexpr float kBulletRadius = 20.0f;
 	// 弾の速度
 	constexpr float kBulletSpeed = 50.0f;
 
@@ -19,7 +17,7 @@ Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
 	m_dir(direction),
 	m_speed(kBulletSpeed),
 	m_isActive(true),
-	m_radius(kBulletRadius),
+	m_radius(0.0f),
 	m_damage(damage)
 {
 }

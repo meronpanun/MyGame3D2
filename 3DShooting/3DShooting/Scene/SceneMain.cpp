@@ -39,6 +39,8 @@ namespace
 
    
 	constexpr float kSkyDomeScale = 10.0f; 
+
+    constexpr float kDropInitialHeight = 140.0f; // アイテムドロップ時の初期上昇量
 }
 
 SceneMain::SceneMain() :
@@ -94,7 +96,9 @@ void SceneMain::Init()
     m_pEnemyNormal->SetOnDropItemCallback([this](const VECTOR& pos) {
         auto dropItem = std::make_shared<FirstAidKitItem>();
         dropItem->Init();
-        dropItem->SetPos(pos);
+        VECTOR dropPos = pos;
+        dropPos.y += kDropInitialHeight;
+        dropItem->SetPos(dropPos);
         m_items.push_back(dropItem);
     });
 }

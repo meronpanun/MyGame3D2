@@ -27,5 +27,8 @@ private:
 
 	bool m_isHit;
 	bool m_isUsed; // アイテムが使用されたかどうか
+
+	float m_velocityY; // 落下速度
+	bool m_isDropping; // 落下中かどうか
 };
 

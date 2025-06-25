@@ -8,17 +8,17 @@
 
 namespace
 {
-	// ‰Šú”¼Œa
-	constexpr float kInitialRadius = 50.0f; 
+	
+	constexpr float kInitialRadius = 20.0f; 
 
-	// ‰ñ•œ—Ê
-	constexpr float kHealAmount = 30.0f; // ‰ñ•œƒAƒCƒeƒ€‚ª‰ñ•œ‚·‚é—Ê
+	
+	constexpr float kHealAmount = 30.0f; 
+	constexpr float kDropGravity = 0.5f; // è½ä¸‹é‡åŠ›åŠ é€Ÿåº¦
+	constexpr float kGroundY = 0.0f; // åœ°é¢ã®é«˜ã•
 }
 
-// ƒJƒvƒZƒ‹‚Æ‹…‚Ì“–‚½‚è”»’è
 bool CapsuleSphereHit(const VECTOR& capA, const VECTOR& capB, float capRadius, const VECTOR& sphereCenter, float sphereRadius)
 {
-	// ƒJƒvƒZƒ‹‚Ìü•ªã‚ÌÅ‹ßÚ“_‚ğ‹‚ß‚é
 	VECTOR ab = VSub(capB, capA);
 	VECTOR ac = VSub(sphereCenter, capA);
 	float abLenSq = ab.x * ab.x + ab.y * ab.y + ab.z * ab.z;
@@ -29,7 +29,6 @@ bool CapsuleSphereHit(const VECTOR& capA, const VECTOR& capB, float capRadius, c
 		t = std::clamp(t, 0.0f, 1.0f);
 	}
 	VECTOR closest = VAdd(capA, VScale(ab, t));
-	// Å‹ßÚ“_‚Æ‹…’†S‚Ì‹——£
 	float distSq = (closest.x - sphereCenter.x) * (closest.x - sphereCenter.x)
 		+ (closest.y - sphereCenter.y) * (closest.y - sphereCenter.y)
 		+ (closest.z - sphereCenter.z) * (closest.z - sphereCenter.z);
@@ -41,7 +40,9 @@ FirstAidKitItem::FirstAidKitItem():
 	m_radius(kInitialRadius),
 	m_pos(VGet(0.0f, 0.0f, 0.0f)),
 	m_isHit(false),
-	m_isUsed(false) 
+	m_isUsed(false),
+	m_isDropping(true),
+	m_velocityY(0.0f) 
 {
 }
 
@@ -51,32 +52,46 @@ FirstAidKitItem::~FirstAidKitItem()
 
 void FirstAidKitItem::Init()
 {
+	m_isDropping = true;
+	m_velocityY = 0.0f;
 }
 
 void FirstAidKitItem::Update(Player* player)
 {
-	if (IsUsed()) return; // Šù‚Ég—p‚³‚ê‚Ä‚¢‚½‚ç•`‰æ‚µ‚È‚¢
+	if (IsUsed()) return;
 
-	// ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹î•ñ‚ğæ“¾
+	// ãƒ‰ãƒ­ãƒƒãƒ—æ¼”å‡ºï¼ˆè½ä¸‹å‡¦ç†ï¼‰
+	if (m_isDropping) 
+	{
+		m_velocityY -= kDropGravity;
+		m_pos.y += m_velocityY;
+		if (m_pos.y <= kGroundY) 
+		{
+			m_pos.y = kGroundY;
+			m_velocityY = 0.0f;
+			m_isDropping = false;
+		}
+	}
+
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«æƒ…å ±ã‚’å–å¾—
 	VECTOR capA, capB;
 	float capRadius;
 	player->GetCapsuleInfo(capA, capB, capRadius);
 
-	// ƒJƒvƒZƒ‹-‹…”»’è
+	// ã‚«ãƒ—ã‚»ãƒ«-çƒåˆ¤å®š
 	m_isHit = CapsuleSphereHit(capA, capB, capRadius, m_pos, m_radius);
 
-	// ƒvƒŒƒCƒ„[‚Ì‘Ì—Í‚ª–ƒ^ƒ“‚Å‚È‚­A“–‚½‚Á‚Ä‚¢‚½‚ç‰ñ•œ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½“åŠ›ãŒæº€ã‚¿ãƒ³ã§ãªãã€ã‹ã¤å½“ãŸã£ã¦ã„ã‚Œã°å›å¾©
 	if (m_isHit && player->GetHealth() < player->GetMaxHealth())
 	{
 		player->AddHp(kHealAmount);
-		m_isUsed = true; // 1‰ñ‚¾‚¯g‚¦‚é‚æ‚¤‚É
+		m_isUsed = true;
 	}
 }
 
 void FirstAidKitItem::Draw()
 {
-	if (IsUsed()) return; // Šù‚Ég—p‚³‚ê‚Ä‚¢‚½‚ç•`‰æ‚µ‚È‚¢
+	if (IsUsed()) return; 
 
-    // ‹…‚Ì•`‰æ
     DrawSphere3D(m_pos, m_radius, 16, 0xff0000, 0xff8080, true);
 }
