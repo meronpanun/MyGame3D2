@@ -23,12 +23,14 @@ public:
 	/// カメラの位置を取得
 	/// </summary>
 	/// <returns>カメラの位置</returns>
-	VECTOR GetPosition() const { return m_pos; }
+	VECTOR GetPos() const { return m_pos; }
+
 	/// <summary>
 	/// カメラの注視点を取得
 	/// </summary>
 	/// <returns>カメラの注視点</returns>
 	VECTOR GetTarget() const { return m_target; }
+
 	/// <summary>
 	/// カメラのオフセットを取得
 	/// </summary>
@@ -45,7 +47,7 @@ public:
 	/// カメラの位置を設定
 	/// </summary>
 	/// <param name="pos">カメラの位置</param>
-	void SetPosition(const VECTOR& pos) { m_pos = pos; }
+	void SetPos(const VECTOR& pos) { m_pos = pos; }
 	/// <summary>
 	/// カメラの注視点を設定
 	/// </summary>
@@ -90,6 +92,8 @@ public:
 	void ResetOffset();         // デフォルトオフセットに戻す
 
 	void SetTargetFOV(float fov); // 目標FOVをセット
+
+
 
 private:
 	VECTOR m_pos;			// カメラの位置

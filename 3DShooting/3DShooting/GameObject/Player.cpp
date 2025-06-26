@@ -168,7 +168,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// マウスの左クリックで射撃(タックル中は射撃不可)
 	if (!m_isTackling && Mouse::IsPressLeft() && m_ammo > 0)
 	{
-		Shoot();  // 射撃処理
+		Shoot(m_bullets); // 弾を発射
 		m_ammo--; // 弾薬を減らす
 	}
 
@@ -385,7 +385,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			VECTOR target = m_modelPos;
 			VECTOR offset = VGet(-200.0f, 150.0f, -200.0f); // 斜め後方上空
 
-			m_pDebugCamera->SetPosition(VAdd(target, offset));
+			m_pDebugCamera->SetPos(VAdd(target, offset));
 			m_pDebugCamera->SetTarget(target);
 			m_pDebugCamera->SetFOV(60.0f * DX_PI_F / 180.0f);
 		}
@@ -497,7 +497,7 @@ void Player::Draw()
 	if (m_pCamera)
 	{
 		// デバッグカメラの位置とターゲットを取得
-		const VECTOR pos = m_pCamera->GetPosition();
+		const VECTOR pos = m_pCamera->GetPos();
 		const VECTOR tgt = m_pCamera->GetTarget();
 		float fov = m_pCamera->GetFOV();
 
@@ -606,29 +606,44 @@ bool Player::HasShot()
 	return shot; // 撃ったかどうかを返す
 }
 
-// プレイヤーが弾を撃つ処理
-void Player::Shoot() 
+void Player::Shoot(std::vector<Bullet>& bullets)
 {
-	// 銃の位置を取得
-	VECTOR gunPos = GetGunPos();
-	VECTOR gunDir = GetGunRot();
+    //// クールダウン中なら発射しない
+    //if (m_shotCooldownTimer > 0)
+    //{
+    //    return;
+    //}
 
-	// 弾を生成
-	m_bullets.emplace_back(gunPos, gunDir, 10.0f);
+    //// 弾薬がないなら発射しない
+    //if (m_ammoCount <= 0)
+    //{
+    //    return;
+    //}
 
-	float rotX = -m_pCamera->GetPitch();
-	float rotY = m_pCamera->GetYaw();
-	float rotZ = 0.0f;
+    // カメラの位置とカメラが向いている方向の遠い目標点を取得
+    // m_pCameraがGetPos()メソッドを持つことを前提としています。
+    // もしコンパイルエラーが発生する場合、Cameraクラスの実装をご確認ください。
+    VECTOR cameraPos = m_pCamera->GetPos();
+    VECTOR cameraLookDir = GetGunRot(); // カメラの現在の向き
+    float targetDistance = 1000.0f; // 十分に遠い距離（例: 1000単位）
+    VECTOR targetPoint = VAdd(cameraPos, VScale(cameraLookDir, targetDistance));
 
-	if (m_pEffect)
-	{
-		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
-	}
+    // 銃の発射位置から目標点への方向ベクトルを計算
+    VECTOR gunPos = GetGunPos();
+    VECTOR bulletDirection = VNorm(VSub(targetPoint, gunPos));
 
-	// 弾を撃つSEを再生
-	PlaySoundMem(m_shootSEHandle, DX_PLAYTYPE_BACK);
+    // 弾丸を発射
+    bullets.emplace_back(gunPos, bulletDirection); // 新しい bulletDirection を使用
+    m_ammo--;
+ //   m_pEffect->PlaySound(Effect::SoundType::Shot);
+//    m_pEffect->SpawnEffect(Effect::EffectType::MuzzleFlash, gunPos, bulletDirection); // エフェクトの向きも更新
 
-	m_hasShot = true; // 弾を撃ったフラグを立てる
+    // 発射クールダウンを設定
+    //m_shotCooldownTimer = kShotCooldown;
+
+    // アニメーション関連
+    ChangeAnime("Shoot", false); // 射撃アニメーションを再生
+  //  SetAnimSpeed(kShotAnimSpeed);
 }
 
 // アニメーションのアタッチ
@@ -738,9 +753,10 @@ VECTOR Player::GetGunPos() const
 	return VAdd(modelPosition, gunPos); 
 }
 
-// 銃の回転を取得
-VECTOR Player::GetGunRot() const 
+// 銃の向きを取得
+VECTOR Player::GetGunRot() const
 {
+	// この関数はカメラの純粋な向きを返すものとして維持します
 	return VGet(
 		cosf(m_pCamera->GetPitch()) * sinf(m_pCamera->GetYaw()),
 		sinf(m_pCamera->GetPitch()),

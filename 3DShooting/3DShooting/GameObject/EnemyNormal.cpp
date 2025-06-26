@@ -15,17 +15,17 @@ namespace
 {
 	constexpr char kAttackAnimName[] = "ATK";
 
-    constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 200.0f };
+    constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 300.0f };
 
-	// AABBではなくカプセルコライダーのサイズを定義
+	// カプセルコライダーのサイズを定義
 	constexpr float kBodyColliderRadius = 20.0f;
-    constexpr float kBodyColliderHeight = 128.0f;
+    constexpr float kBodyColliderHeight = 135.0f;
 
-	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 160.0f, -6.0f }; // オフセットに変更
+	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 
-    constexpr float kHeadRadius = 13.5f;
+    constexpr float kHeadRadius = 18.0f;
 
-	constexpr float kInitialHP = 200.0f;
+	constexpr float kInitialHP = 20000.0f;
 
 	constexpr float kAttackHitRadius = 20.0f; // 攻撃の当たり判定半径
 

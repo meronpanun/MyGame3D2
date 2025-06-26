@@ -128,7 +128,7 @@ private:
 	/// <summary>
 	/// 弾を発射する
 	/// </summary>
-	void Shoot();
+	void Shoot(std::vector<Bullet>& bullets);
 
 	/// <summary>
 	///  アニメーションのブレンドを更新

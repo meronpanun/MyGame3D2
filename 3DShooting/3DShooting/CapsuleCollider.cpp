@@ -14,14 +14,13 @@ VECTOR ClosestPtPointSegment(const VECTOR& c, const VECTOR& p, const VECTOR& q)
     return VAdd(p, VScale(ab, std::clamp(t, 0.0f, 1.0f)));
 }
 
-// Rayと球体の交差判定のヘルパー関数 (SphereCollider::IntersectsRayから流用・調整)
-// SphereColliderのRay判定が正しく機能している前提
+// Rayと球体の交差判定のヘルパー関数 (修正版)
 bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VECTOR& sphereCenter, float sphereRadius, VECTOR& out_hitPos, float& out_hitDistSq)
 {
     VECTOR rayDir = VSub(rayEnd, rayStart);
     float rayLengthSq = VDot(rayDir, rayDir);
 
-    if (rayLengthSq < 0.0001f) // レイの長さが0に近い場合
+    if (rayLengthSq < 0.0001f)
     {
         float distSq = VDot(VSub(sphereCenter, rayStart), VSub(sphereCenter, rayStart));
         if (distSq <= sphereRadius * sphereRadius)
@@ -33,44 +32,35 @@ bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VEC
         return false;
     }
 
-    VECTOR m = VSub(rayStart, sphereCenter);
-    float b = VDot(m, rayDir);
-    float c = VDot(m, m) - sphereRadius * sphereRadius;
+    VECTOR oc = VSub(rayStart, sphereCenter);
+    float a = rayLengthSq;
+    float b = 2.0f * VDot(oc, rayDir);
+    float c = VDot(oc, oc) - sphereRadius * sphereRadius;
+    float discriminant = b * b - 4 * a * c;
 
-    // レイの始点が球の外側かつレイが球から離れていく場合
-    if (c > 0.0f && b > 0.0f)
+    if (discriminant < 0)
     {
         return false;
     }
-
-    float discr = b * b - c;
-
-    // 判別式が負の場合、交差しない
-    if (discr < 0.0f)
+    else
     {
-        return false;
+        float t = (-b - std::sqrt(discriminant)) / (2.0f * a);
+        float t1 = (-b + std::sqrt(discriminant)) / (2.0f * a);
+
+        // Rayの範囲 (0から1) 内で、最も近い交点を探す
+        if (t < 0.0f || t > 1.0f)
+        {
+            t = t1;
+            if (t < 0.0f || t > 1.0f)
+            {
+                return false;
+            }
+        }
+
+        out_hitPos = VAdd(rayStart, VScale(rayDir, t));
+        out_hitDistSq = VDot(VSub(out_hitPos, rayStart), VSub(out_hitPos, rayStart));
+        return true;
     }
-
-    // 交点までの距離 (始点から)
-    float t = -b - std::sqrt(discr);
-
-    if (t < 0.0f) // 始点が球内にある場合
-    {
-        t = 0.0f;
-    }
-
-    // レイの長さに正規化
-    t /= std::sqrt(rayLengthSq);
-
-    // レイの終点を超えている場合
-    if (t > 1.0f)
-    {
-        return false;
-    }
-
-    out_hitPos = VAdd(rayStart, VScale(rayDir, t));
-    out_hitDistSq = VDot(VSub(out_hitPos, rayStart), VSub(out_hitPos, rayStart));
-    return true;
 }
 
 
@@ -182,52 +172,54 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
     float currentHitDistSq;
 
     // --- 1. カプセルの円柱部分とRayの交差判定 ---
-    // カプセルの軸ABとRayの方向ベクトルDで、Rayをカプセルの中心線に対して垂直な平面に投影し、円と線の交差判定に帰着させる
-    // または、以下のようなアルゴリズムを用いる:
-    // ref: Real-Time Collision Detection by Christer Ericson, Chapter 5.3.3 Ray vs. Capsule
-    VECTOR A = m_segmentA;
-    VECTOR B = m_segmentB;
-    float r = m_radius;
+    // カプセルを線分ABと半径rの無限長円柱として扱う。
+    // その後、線分ABの範囲にクリッピングする。
 
-    VECTOR OA = VSub(rayStart, A); // Ray始点からカプセル軸Aへのベクトル
-    VECTOR AB = VSub(B, A);        // カプセル軸のベクトル
+    VECTOR OA = VSub(rayStart, m_segmentA); // Ray始点からカプセル軸Aへのベクトル
+    VECTOR AB = VSub(m_segmentB, m_segmentA); // カプセル軸のベクトル
 
-    float dot_dir_AB = VDot(rayDir, AB);
-    float dot_OA_AB = VDot(OA, AB);
-    float dot_AB_AB = VDot(AB, AB); // カプセル軸の長さの2乗
-
-    VECTOR Q = VSub(VSub(VScale(rayDir, dot_AB_AB), VScale(AB, dot_dir_AB)), VSub(VScale(OA, dot_AB_AB), VScale(AB, dot_OA_AB)));
-    float a = VDot(Q, Q);
-    float b = 2.0f * VDot(Q, VSub(VScale(OA, dot_AB_AB), VScale(AB, dot_OA_AB)));
-    float c = VDot(VSub(VScale(OA, dot_AB_AB), VScale(AB, dot_OA_AB)), VSub(VScale(OA, dot_AB_AB), VScale(AB, dot_OA_AB))) - r * r * dot_AB_AB * dot_AB_AB;
-
-    float discr = b * b - 4.0f * a * c;
-
-    if (discr >= 0.0f)
+    float abLenSq = VDot(AB, AB);
+    if (abLenSq < 0.0001f) // カプセルが球になっている場合 (線分ABの長さがゼロに近い)
     {
-        float sqrt_discr = std::sqrt(discr);
-        float t0 = (-b - sqrt_discr) / (2.0f * a);
-        float t1 = (-b + sqrt_discr) / (2.0f * a);
+        return IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, out_hitPos, out_hitDistSq);
+    }
 
-        if (t0 <= 1.0f && t1 >= 0.0f) // Rayがカプセルと交差する範囲にある
+    VECTOR u = VNorm(AB); // カプセル軸の単位ベクトル
+
+    // Rayをカプセル軸に直交する平面に投影したベクトルを考える
+    VECTOR v = VSub(rayDir, VScale(u, VDot(rayDir, u)));
+    VECTOR w = VSub(OA, VScale(u, VDot(OA, u)));
+
+    float a = VDot(v, v);
+    float b = 2.0f * VDot(v, w);
+    float c = VDot(w, w) - m_radius * m_radius;
+
+    float discriminant = b * b - 4 * a * c;
+
+    if (discriminant >= 0)
+    {
+        float sqrt_discr = std::sqrt(discriminant);
+        float t_cyl0 = (-b - sqrt_discr) / (2.0f * a);
+        float t_cyl1 = (-b + sqrt_discr) / (2.0f * a);
+
+        // Cylindrical part intersection
+        for (float t_cyl : {t_cyl0, t_cyl1})
         {
-            float t_intersect =(std::max)(0.0f, t0); // レイの始点より手前の交差は無視
-
-            if (t_intersect <= 1.0f)
+            if (t_cyl >= 0.0f && t_cyl <= 1.0f) // Ray segment intersects the infinite cylinder
             {
-                // 交差したレイ上の点P
-                VECTOR P = VAdd(rayStart, VScale(rayDir, t_intersect));
+                VECTOR p_intersect = VAdd(rayStart, VScale(rayDir, t_cyl));
 
-                // Pがカプセル軸ABの間に位置するかチェック
-                // Pから軸ABへの最短点Sを求める
-                VECTOR S = ClosestPtPointSegment(P, A, B);
+                // Check if the intersection point lies within the finite capsule segment
+                VECTOR proj_on_axis = VAdd(m_segmentA, VScale(u, VDot(VSub(p_intersect, m_segmentA), u)));
 
-                // PとSの距離が半径r以下であれば有効な衝突
-                if (VDot(VSub(P, S), VSub(P, S)) <= r * r + 0.0001f) // 誤差許容
+                // t_axis represents the parameter along the capsule's segment
+                float t_axis = VDot(VSub(proj_on_axis, m_segmentA), AB) / abLenSq;
+
+                if (t_axis >= 0.0f && t_axis <= 1.0f)
                 {
-                    currentHitPos = P;
-                    currentHitDistSq = VDot(VSub(P, rayStart), VSub(P, rayStart));
-                    if (currentHitDistSq < minT) // より近いヒットを優先
+                    currentHitPos = p_intersect;
+                    currentHitDistSq = VDot(VSub(currentHitPos, rayStart), VSub(currentHitPos, rayStart));
+                    if (currentHitDistSq < minT)
                     {
                         minT = currentHitDistSq;
                         out_hitPos = currentHitPos;
@@ -239,10 +231,9 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
         }
     }
 
-
     // --- 2. カプセルの両端の半球とRayの交差判定 ---
     // RayとA端の球の交差
-    if (IntersectsRaySphere(rayStart, rayEnd, A, r, currentHitPos, currentHitDistSq))
+    if (IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, currentHitPos, currentHitDistSq))
     {
         if (currentHitDistSq < minT)
         {
@@ -254,7 +245,7 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
     }
 
     // RayとB端の球の交差
-    if (IntersectsRaySphere(rayStart, rayEnd, B, r, currentHitPos, currentHitDistSq))
+    if (IntersectsRaySphere(rayStart, rayEnd, m_segmentB, m_radius, currentHitPos, currentHitDistSq))
     {
         if (currentHitDistSq < minT)
         {
