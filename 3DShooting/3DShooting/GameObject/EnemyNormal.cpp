@@ -114,7 +114,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         VECTOR playerCenter = VScale(VAdd(playerCapA, playerCapB), 0.5f);
         VECTOR diff = VSub(enemyCenter, playerCenter);
         float distSq = VDot(diff, diff);
-        float minDist = kBodyColliderRadius + playerCapRadius; 
+        float minDist = kBodyColliderRadius + playerCapRadius;
 
         if (distSq < minDist * minDist && distSq > 0.0001f)
         {
@@ -122,12 +122,18 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             float pushBack = minDist - dist;
             if (dist > 0)
             {
-                VECTOR pushDir = VScale(diff, 1.0f / dist);
-                m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f)); 
+                VECTOR pushDir = VSub(enemyCenter, playerCenter);
+                pushDir.y = 0.0f; // Y¬•ª‚ð–³Ž‹‚µ‚Ä…•½•ûŒü‚Ì‰Ÿ‚µo‚µ‚É‚·‚é
+                float horizontalDistSq = VDot(pushDir, pushDir);
+
+                if (horizontalDistSq > 0.0001f) // …•½•ûŒü‚Ì¬•ª‚ª‚ ‚éê‡‚Ì‚Ý³‹K‰»‚µ‚Ä“K—p
+                {
+                    pushDir = VNorm(pushDir); // Y¬•ª‚ð0‚É‚µ‚½Œã‚É³‹K‰»
+                    m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
+                }
             }
         }
     }
-
 
     bool isPlayerInAttackRange = m_attackRangeCollider->Intersects(&playerBodyCollider);
 
