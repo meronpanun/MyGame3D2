@@ -1,7 +1,8 @@
+#include "DxLib.h"
 #pragma once
 
 /// <summary>
-/// “–‚½‚è”»’è‚ÌŠî’êƒNƒ‰ƒX
+/// å½“ãŸã‚Šåˆ¤å®šé–¢æ•°
 /// </summary>
 class Collider abstract
 {
@@ -9,17 +10,16 @@ public:
 	Collider() = default;
 	virtual ~Collider() = default;
 
-	virtual void Init()   abstract;
+	virtual void Init() abstract;
 	virtual void Update() abstract;
 
-	// ƒˆ‰¼‘zŠÖ”‚Æ‚µ‚Ä“–‚½‚è”»’èƒƒ\ƒbƒh‚ğ’Ç‰Á
+	// å½“ãŸã‚Šåˆ¤å®šé–¢æ•°
 	virtual bool Intersects(const Collider* other) const abstract;
 
-	// Ray‚Æ‚ÌŒğ·”»’èƒƒ\ƒbƒh‚ğ’Ç‰Á
-	// out_hitPos: Œğ·‚µ‚½ê‡‚ÌƒqƒbƒgÀ•W
-	// out_hitDistSq: Œğ·‚µ‚½ê‡‚ÌARayn“_‚©‚ç‚Ì‹——£‚Ì2æ
+	// Rayã¨ã®å½“ãŸã‚Šåˆ¤å®šé–¢æ•°
+	// out_hitPos: å½“ãŸã£ãŸå ´åˆã®ãƒ’ãƒƒãƒˆä½ç½®
+	// out_hitDistSq: å½“ãŸã£ãŸå ´åˆã®ã€Rayå§‹ç‚¹ã‹ã‚‰ã®è·é›¢ã®2ä¹—
 	virtual bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const abstract;
-
 
 protected:
 };
