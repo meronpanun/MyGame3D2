@@ -11,6 +11,7 @@
 #include "SceneMain.h"
 #include "SceneGameOver.h"
 #include "DebugUtil.h"	
+#include "CapsuleCollider.h"
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -68,6 +69,7 @@ Player::Player() :
 	m_pDebugCamera(std::make_shared<Camera>()),
 	m_pEffect(std::make_shared<Effect>()),
 	m_pEnemy(std::make_shared<EnemyNormal>()),
+	m_pBodyCollider(std::make_shared<CapsuleCollider>()),
 	m_animBlendRate(0.0f),
 	m_isMoving(false),
 	m_isWasRunning(false),
@@ -132,6 +134,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	//UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
 	//UpdateAnime(m_nextAnimData); //	次のアニメーションデータを更新
 	//UpdateAnimeBlend();			 // アニメーションのブレンドを更新
+
+	// プレイヤーのカプセルコライダーを毎フレーム更新
+	constexpr float kCapsuleHeight = 100.0f;
+	constexpr float kCapsuleRadius = 80.0f;
+	VECTOR center = m_modelPos;
+	center.y += 60.0f; // 足元から腰～胸あたりを中心に
+	VECTOR capA = VAdd(center, VGet(0, -kCapsuleHeight * 0.5f, 0));
+	VECTOR capB = VAdd(center, VGet(0, kCapsuleHeight * 0.5f, 0));
+	m_pBodyCollider->SetSegment(capA, capB);
+	m_pBodyCollider->SetRadius(kCapsuleRadius);
 
 	// モデルの位置と回転を更新
 	VECTOR modelOffset	  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
@@ -519,13 +531,11 @@ void Player::Draw()
 		MV1DrawModel(m_modelHandle); // プレイヤーモデル描画
 
 		// プレイヤーカプセル当たり判定のデバッグ表示
-		VECTOR capA, capB;
-		float radius;
-		GetCapsuleInfo(capA, capB, radius);
+		auto playerCol = GetBodyCollider();
 		DebugUtil::DrawCapsule(
-			capA,
-			capB,
-			radius,
+			playerCol->GetSegmentA(),
+			playerCol->GetSegmentB(),
+			playerCol->GetRadius(),
 			16,
 			0xff00ff,
 			false
@@ -764,6 +774,11 @@ VECTOR Player::GetGunRot() const
 	);
 }
 
+std::shared_ptr<CapsuleCollider> Player::GetBodyCollider() const
+{
+	return m_pBodyCollider;
+}
+
 // タックル情報を取得
 Player::TackleInfo Player::GetTackleInfo() const
 {
@@ -796,16 +811,10 @@ Player::TackleInfo Player::GetTackleInfo() const
 // カプセル情報を取得
 void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
 {
-	// プレイヤーの体の中心を基準に、縦長のカプセルを想定
-	constexpr float kCapsuleHeight = 100.0f; // プレイヤーの身長
-	constexpr float kCapsuleRadius = 80.0f;  // プレイヤーの体の半径
-
-	VECTOR center = m_modelPos;
-	center.y += 60.0f; // 足元から腰～胸あたりを中心に
-
-	capA = VAdd(center, VGet(0, -kCapsuleHeight * 0.5f, 0));
-	capB = VAdd(center, VGet(0, kCapsuleHeight * 0.5f, 0));
-	radius = kCapsuleRadius;
+	// m_pBodyCollider から直接取得
+	capA   = m_pBodyCollider->GetSegmentA();
+	capB   = m_pBodyCollider->GetSegmentB();
+	radius = m_pBodyCollider->GetRadius();
 }
 
 void Player::AddHp(float value)

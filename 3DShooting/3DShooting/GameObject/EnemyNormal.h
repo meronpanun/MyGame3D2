@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include <memory> // std::shared_ptrのために必要
+#include <memory>
 
 class Bullet;
 class Player;
@@ -45,10 +45,6 @@ public:
     /// <returns>計算されたダメージ</returns>
     float CalcDamage(float bulletDamage, HitPart part) const override;
 
-    // AABBを直接持たなくなったので、これらのメソッドは削除するか、適切な情報を返すように修正
-  //  VECTOR GetAABBMinWorld() const override { /* 必要に応じてダミー値を返すか、使用しない */ return VGet(0, 0, 0); }
- //   VECTOR GetAABBMaxWorld() const override { /* 必要に応じてダミー値を返すか、使用しない */ return VGet(0, 0, 0); }
-
     /// <summary>
     /// タックルダメージを受ける処理
     /// </summary>
@@ -63,14 +59,14 @@ public:
 private:
     VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
 
-    std::shared_ptr<CapsuleCollider> m_bodyCollider; // 体のコライダー
-    std::shared_ptr<SphereCollider> m_headCollider;  // 頭のコライダー
+    std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
+    std::shared_ptr<SphereCollider> m_pHeadCollider;  // 頭のコライダー
 
     // 攻撃範囲のコライダー
-    std::shared_ptr<SphereCollider> m_attackRangeCollider;
+    std::shared_ptr<SphereCollider> m_pAttackRangeCollider;
 
-    // 攻撃ヒット判定用のコライダー（手など）
-    std::shared_ptr<CapsuleCollider> m_attackHitCollider;
+    // 攻撃ヒット判定用のコライダー
+    std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;
 
     // アイテムドロップ時のコールバック関数
     std::function<void(const VECTOR&)> m_onDropItem;

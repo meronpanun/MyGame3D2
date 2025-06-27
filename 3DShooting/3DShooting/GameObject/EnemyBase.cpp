@@ -15,8 +15,7 @@ namespace
 EnemyBase::EnemyBase() :
 	m_pos{ 0, 0, 0 },
 	m_modelHandle(-1),
-	// m_colRadius(1.0f), // íœ
-	m_targetPlayer(nullptr),
+	m_pTargetPlayer(nullptr),
 	m_hp(kDefaultInitialHP),
 	m_lastHitPart(HitPart::None),
 	m_hitDisplayTimer(0),

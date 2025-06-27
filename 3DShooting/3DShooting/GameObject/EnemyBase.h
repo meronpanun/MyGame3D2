@@ -97,7 +97,7 @@ protected:
 protected:
 	VECTOR m_pos; // 位置
 
-	std::shared_ptr<Player> m_targetPlayer;  // ターゲットプレイヤー
+	std::shared_ptr<Player> m_pTargetPlayer;  // ターゲットプレイヤー
 
 	HitPart m_lastHitPart; // 最後に当たった部位
 
@@ -107,7 +107,6 @@ protected:
 	int   m_attackCooldownMax; // 攻撃クールダウンの最大値
 	int   m_attackHitFrame;    // 攻撃ヒットフレーム
 
-	// float m_colRadius;       // 当たり判定用半径 -> 各コライダーで持つ
 	float m_hp;              // 体力
 	float m_attackPower;     // 攻撃力
 

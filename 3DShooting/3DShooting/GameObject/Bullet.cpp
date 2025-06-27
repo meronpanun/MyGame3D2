@@ -14,7 +14,7 @@ namespace
 
 Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
 	m_pos(position),
-	m_prevPos(position), // 初期位置をprevPosにも設定
+	m_prevPos(position), 
 	m_dir(direction),
 	m_speed(kBulletSpeed),
 	m_isActive(true),

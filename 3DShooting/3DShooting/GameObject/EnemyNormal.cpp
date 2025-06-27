@@ -13,27 +13,29 @@
 
 namespace
 {
-	constexpr char kAttackAnimName[] = "ATK";
+    // アニメーション関連
+	constexpr char kAttackAnimName[] = "ATK"; // 攻撃アニメーション
 
-    constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 300.0f };
-
-	// カプセルコライダーのサイズを定義
-	constexpr float kBodyColliderRadius = 20.0f;
-    constexpr float kBodyColliderHeight = 135.0f;
-
+	constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 300.0f };
 	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 
-    constexpr float kHeadRadius = 18.0f;
+	// カプセルコライダーのサイズを定義
+	constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
+	constexpr float kBodyColliderHeight = 135.0f; // 体のコライダー高さ
+	constexpr float kHeadRadius         = 18.0f;  // 頭のコライダー半径
 
-	constexpr float kInitialHP = 20000.0f;
+	constexpr float kInitialHP = 200.0f; // 初期HP
 
-	constexpr float kAttackHitRadius = 20.0f; // 攻撃の当たり判定半径
-
+	// 攻撃関連
+	constexpr int   kAttackCooldownMax = 45;     // 攻撃クールダウン時間
+	constexpr float kAttackPower       = 20.0f;  // 攻撃力
+	constexpr float kAttackHitRadius   = 20.0f;  // 攻撃の当たり判定半径
     constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
+
 }
 
 EnemyNormal::EnemyNormal() :
-    m_headPosOffset{ kHeadShotPositionOffset }, // オフセットで初期化
+    m_headPosOffset{ kHeadShotPositionOffset },
     m_isTackleHit(false),
     m_lastTackleId(-1),
 	m_currentAnimLoop(false),
@@ -42,18 +44,20 @@ EnemyNormal::EnemyNormal() :
 	m_hasAttackHit(false),
     m_onDropItem(nullptr)
 {
+	// モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
     assert(m_modelHandle != -1);
 
     // コライダーの初期化
-    m_bodyCollider = std::make_shared<CapsuleCollider>();
-    m_headCollider = std::make_shared<SphereCollider>();
-    m_attackRangeCollider = std::make_shared<SphereCollider>();
-    m_attackHitCollider = std::make_shared<CapsuleCollider>();
+    m_pBodyCollider        = std::make_shared<CapsuleCollider>();
+    m_pHeadCollider        = std::make_shared<SphereCollider>();
+    m_pAttackRangeCollider = std::make_shared<SphereCollider>();
+    m_pAttackHitCollider   = std::make_shared<CapsuleCollider>();
 }
 
 EnemyNormal::~EnemyNormal()
 {
+
 	MV1DeleteModel(m_modelHandle); 
 }
 
@@ -61,8 +65,8 @@ void EnemyNormal::Init()
 {
     m_hp                = kInitialHP;
     m_pos               = kInitialPosition;
-	m_attackPower       = 20.0f;
-	m_attackCooldownMax = 45;
+	m_attackPower       = kAttackPower;
+	m_attackCooldownMax = kAttackCooldownMax;
 }
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
@@ -83,38 +87,41 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     // 体のコライダー（カプセル）
     VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
     VECTOR bodyCapB = VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
-    m_bodyCollider->SetSegment(bodyCapA, bodyCapB);
-    m_bodyCollider->SetRadius(kBodyColliderRadius);
+    m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
+    m_pBodyCollider->SetRadius(kBodyColliderRadius);
 
     // 頭のコライダー（球）
     int headIndex = MV1SearchFrame(m_modelHandle, "Head");
     VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0,0,0);
     VECTOR headCenter = VAdd(headModelPos, m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
-    m_headCollider->SetCenter(headCenter);
-    m_headCollider->SetRadius(kHeadRadius);
+    m_pHeadCollider->SetCenter(headCenter);
+    m_pHeadCollider->SetRadius(kHeadRadius);
 
     // 攻撃範囲のコライダー（球）
     VECTOR attackRangeCenter = m_pos;
     attackRangeCenter.y += (kBodyColliderHeight * 0.5f); // 敵の高さの半分くらい
-    m_attackRangeCollider->SetCenter(attackRangeCenter);
-    m_attackRangeCollider->SetRadius(kAttackRangeRadius);
+    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+    m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
     // プレイヤーのカプセルコライダー情報を取得
-    VECTOR playerCapA, playerCapB;
-    float  playerCapRadius;
-    player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
-    CapsuleCollider playerBodyCollider(playerCapA, playerCapB, playerCapRadius);
+    //VECTOR playerCapA, playerCapB;
+    //float  playerCapRadius;
+    //player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
+    //CapsuleCollider playerBodyCollider(playerCapA, playerCapB, playerCapRadius);
+
+    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
+
 
 
     // 敵とプレイヤーの押し出し処理 (カプセル同士の衝突)
-    if (m_bodyCollider->Intersects(&playerBodyCollider))
+	if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
     {
         // 簡易的な押し出し処理 (より正確な物理演算は別途実装が必要)
-        VECTOR enemyCenter = VScale(VAdd(bodyCapA, bodyCapB), 0.5f);
-        VECTOR playerCenter = VScale(VAdd(playerCapA, playerCapB), 0.5f);
+        VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
+        VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
         VECTOR diff = VSub(enemyCenter, playerCenter);
         float distSq = VDot(diff, diff);
-        float minDist = kBodyColliderRadius + playerCapRadius;
+		float minDist = kBodyColliderRadius + playerBodyCollider->GetRadius(); // 最小距離は両方の半径の和
 
         if (distSq < minDist * minDist && distSq > 0.0001f)
         {
@@ -135,7 +142,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         }
     }
 
-    bool isPlayerInAttackRange = m_attackRangeCollider->Intersects(&playerBodyCollider);
+	bool isPlayerInAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
 
     int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
     if (attackAnimIndex != -1)
@@ -167,10 +174,10 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
                         // 攻撃ヒット用コライダーの更新
-                        m_attackHitCollider->SetSegment(handRPos, handLPos);
-                        m_attackHitCollider->SetRadius(kAttackHitRadius);
+                        m_pAttackHitCollider->SetSegment(handRPos, handLPos);
+                        m_pAttackHitCollider->SetRadius(kAttackHitRadius);
                         
-                        if (m_attackHitCollider->Intersects(&playerBodyCollider))
+                        if (m_pAttackHitCollider->Intersects(playerBodyCollider.get()))
                         {
                             const_cast<Player&>(player).TakeDamage(m_attackPower);
                             m_hasAttackHit = true;
@@ -195,7 +202,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     {
         CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
 
-        if (m_bodyCollider->Intersects(&playerTackleCollider))
+        if (m_pBodyCollider->Intersects(&playerTackleCollider))
         {
             TakeTackleDamage(tackleInfo.damage);
             m_lastTackleId = tackleInfo.tackleId;
@@ -242,13 +249,13 @@ void EnemyNormal::Draw()
 void EnemyNormal::DrawCollisionDebug() const
 {
     // 体のコライダーデバッグ描画
-    DebugUtil::DrawCapsule(m_bodyCollider->GetSegmentA(), m_bodyCollider->GetSegmentB(), m_bodyCollider->GetRadius(), 16, 0xff0000);
+    DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000);
 
     // 頭のコライダーデバッグ描画
-    DebugUtil::DrawSphere(m_headCollider->GetCenter(), m_headCollider->GetRadius(), 16, 0x00ff00);
+    DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0x00ff00);
 
     // 攻撃範囲のデバッグ描画
-    DebugUtil::DrawSphere(m_attackRangeCollider->GetCenter(), m_attackRangeCollider->GetRadius(), 24, 0xff8000);
+    DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 24, 0xff8000);
 
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
@@ -269,8 +276,8 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTO
     float hitDistSqHead = FLT_MAX;
     float hitDistSqBody = FLT_MAX;
 
-    bool headHit = m_headCollider->IntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
-    bool bodyHit = m_bodyCollider->IntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
+    bool headHit = m_pHeadCollider->IntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
+    bool bodyHit = m_pBodyCollider->IntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
 
     if (headHit && bodyHit)
     {

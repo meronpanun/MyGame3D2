@@ -18,7 +18,7 @@ public:
     // 弾の現在の位置を取得
     VECTOR GetPos() const { return m_pos; }
     // 弾の前フレームの位置を取得 (Rayの始点として使用)
-    VECTOR GetPrevPos() const { return m_prevPos; } // 追加
+    VECTOR GetPrevPos() const { return m_prevPos; }
 
     /// <summary>
     /// 弾が有効かどうか

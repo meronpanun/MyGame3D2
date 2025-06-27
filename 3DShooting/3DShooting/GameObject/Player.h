@@ -8,6 +8,7 @@ class Effect;
 class Bullet;
 class EnemyBase;
 class EnemyNormal;
+class CapsuleCollider;
 
 class Player
 {
@@ -34,7 +35,7 @@ public:
 	/// プレイヤーがダメージを受ける
 	/// </summary>
 	/// <param name="damage">受けるダメージ量</param>
-	void TakeDamage(float damage);  
+	void TakeDamage(float damage);
 
 	/// <summary>
 	/// プレイヤーの位置を取得する
@@ -124,6 +125,9 @@ public:
 	/// <param name="data">アニメーションデータ</param>
 	void UpdateAnime(AnimData& data);
 
+	// プレイヤーのカプセルコライダー取得
+	std::shared_ptr<CapsuleCollider> GetBodyCollider() const;
+
 private:
 	/// <summary>
 	/// 弾を発射する
@@ -154,7 +158,8 @@ private:
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
 	std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
-	std::shared_ptr<EnemyNormal> m_pEnemy; // 敵のポインタ
+	std::shared_ptr<EnemyNormal> m_pEnemy;       // 敵のポインタ
+	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー
 
 	// プレイヤーの位置を保持するメンバー変数
 	VECTOR m_pos;
