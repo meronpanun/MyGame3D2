@@ -156,7 +156,7 @@ private:
 private:
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
-	std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
+	//std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
 	std::shared_ptr<EnemyNormal> m_pEnemy;       // 敵のポインタ
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー

@@ -67,7 +67,7 @@ Player::Player() :
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
-	m_pEffect(std::make_shared<Effect>()),
+	//m_pEffect(std::make_shared<Effect>()),
 	m_pEnemy(std::make_shared<EnemyNormal>()),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>()),
 	m_animBlendRate(0.0f),
@@ -112,7 +112,7 @@ Player::~Player()
 void Player::Init()
 {
 	m_pCamera->Init(); // カメラの初期化
-	m_pEffect->Init(); // エフェクトの初期化
+	//m_pEffect->Init(); // エフェクトの初期化
 
 	// モデルの大きさ
 	MV1SetScale(m_modelHandle, VGet(10.0f, 10.0f, 5.0f));
@@ -129,7 +129,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	m_pCamera->SetPlayerPos(m_modelPos);
 
 	m_pCamera->Update(); // カメラの更新
-	m_pEffect->Update(); // エフェクトの更新
+	//m_pEffect->Update(); // エフェクトの更新
 
 	//UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
 	//UpdateAnime(m_nextAnimData); //	次のアニメーションデータを更新
@@ -449,7 +449,7 @@ void Player::Draw()
 
 	m_pCamera->SetCameraToDxLib();
 
-	m_pEffect->Draw(); // エフェクトの描画
+	//m_pEffect->Draw(); // エフェクトの描画
 
 	// タックルクールタイムゲージ
 	const int tackleGaugeX = 10;
@@ -631,11 +631,9 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     //}
 
     // カメラの位置とカメラが向いている方向の遠い目標点を取得
-    // m_pCameraがGetPos()メソッドを持つことを前提としています。
-    // もしコンパイルエラーが発生する場合、Cameraクラスの実装をご確認ください。
     VECTOR cameraPos = m_pCamera->GetPos();
     VECTOR cameraLookDir = GetGunRot(); // カメラの現在の向き
-    float targetDistance = 1000.0f; // 十分に遠い距離（例: 1000単位）
+    float targetDistance = 1000.0f; // 十分に遠い距離
     VECTOR targetPoint = VAdd(cameraPos, VScale(cameraLookDir, targetDistance));
 
     // 銃の発射位置から目標点への方向ベクトルを計算
