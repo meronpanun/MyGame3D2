@@ -87,13 +87,22 @@ public:
 	/// </summary>
 	/// <returns>現在の視野角(FOV)</returns>
 	float GetFOV() const;
-	void ResetFOV();             // デフォルトFOVに戻す
 
-	void ResetOffset();         // デフォルトオフセットに戻す
+	/// <summary>
+	/// カメラの視野角(FOV)をデフォルトに戻す
+	/// </summary>
+	void ResetFOV();
 
-	void SetTargetFOV(float fov); // 目標FOVをセット
+	/// <summary>
+	/// カメラのオフセットをデフォルトに戻す
+	/// </summary>
+	void ResetOffset();
 
-
+	/// <summary>
+	/// 目標FOVをセット
+	/// </summary>
+	/// <param name="fov">目標FOV</param>
+	void SetTargetFOV(float fov);
 
 private:
 	VECTOR m_pos;			// カメラの位置
@@ -102,13 +111,12 @@ private:
 	VECTOR m_defaultOffset; // デフォルトのオフセット
 	VECTOR m_playerPos;		// プレイヤーの位置
 
-	// カメラの回転角度
-	float m_yaw;
-	float m_pitch;
-	float m_sensitivity;
-	float m_fov;		// カメラの視野角
-	float m_defaultFov; // デフォルトのFOV
-	float m_targetFov; // 目標FOV
+	float m_yaw;		  // ヨー角度
+	float m_pitch;		  // ピッチ角度
+	float m_sensitivity;  // カメラの感度
+	float m_fov;		  // カメラの視野角
+	float m_defaultFov;   // デフォルトのFOV
+	float m_targetFov;    // 目標FOV
 	float m_fovLerpSpeed; // FOVの補間速度
 };
 

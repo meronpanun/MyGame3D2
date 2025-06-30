@@ -157,6 +157,7 @@
     <ClCompile Include="GameObject\EnemyRunner.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject\ItemBase.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="GameObject\Player.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="GameObject\EnemyRunner.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject\ItemBase.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="GameObject\Player.h" />
     <ClInclude Include="Scene\SceneGameOver.h" />

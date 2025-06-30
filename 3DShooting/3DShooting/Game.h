@@ -1,6 +1,9 @@
 #pragma once
 #include <vector>
 
+/// <summary>
+/// ゲームの基本情報を定義するクラス
+/// </summary>
 class Game
 {
 public:
@@ -17,6 +20,4 @@ public:
 
     // グローバルなカメラ感度
     static float g_cameraSensitivity;
-
-private:
 };
