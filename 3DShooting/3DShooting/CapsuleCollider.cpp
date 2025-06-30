@@ -64,8 +64,10 @@ bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VEC
 }
 
 
-CapsuleCollider::CapsuleCollider(const VECTOR& segmentA, const VECTOR& segmentB, float radius)
-    : m_segmentA(segmentA), m_segmentB(segmentB), m_radius(radius)
+CapsuleCollider::CapsuleCollider(const VECTOR& segmentA, const VECTOR& segmentB, float radius) : 
+    m_segmentA(segmentA), 
+    m_segmentB(segmentB), 
+    m_radius(radius)
 {
 }
 

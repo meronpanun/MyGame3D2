@@ -4,8 +4,9 @@
 #include <cmath> 
 #include <algorithm>
 
-SphereCollider::SphereCollider(const VECTOR& center, float radius)
-    : m_center(center), m_radius(radius)
+SphereCollider::SphereCollider(const VECTOR& center, float radius) :
+    m_center(center), 
+    m_radius(radius)
 {
 }
 
