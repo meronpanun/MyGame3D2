@@ -10,9 +10,6 @@ public:
     CapsuleCollider(const VECTOR& segmentA = VGet(0, 0, 0), const VECTOR& segmentB = VGet(0, 1, 0), float radius = 1.0f);
     virtual ~CapsuleCollider();
 
-    void Init() override;
-    void Update() override;
-
     bool Intersects(const Collider* other) const override;
     bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const override;
 

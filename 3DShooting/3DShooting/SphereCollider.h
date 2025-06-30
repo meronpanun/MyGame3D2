@@ -1,14 +1,14 @@
 #pragma once
 #include "Collider.h"
 
+/// <summary>
+/// 球体コライダークラス
+/// </summary>
 class SphereCollider : public Collider
 {
 public:
     SphereCollider(const VECTOR& center = VGet(0, 0, 0), float radius = 1.0f);
     virtual ~SphereCollider() = default;
-
-    void Init() override;
-    void Update() override;
 
     bool Intersects(const Collider* other) const override;
     bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const override;

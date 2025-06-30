@@ -10,9 +10,6 @@ public:
 	Collider() = default;
 	virtual ~Collider() = default;
 
-	virtual void Init() abstract;
-	virtual void Update() abstract;
-
 	// 当たり判定関数
 	virtual bool Intersects(const Collider* other) const abstract;
 

@@ -9,14 +9,6 @@ SphereCollider::SphereCollider(const VECTOR& center, float radius)
 {
 }
 
-void SphereCollider::Init()
-{
-}
-
-void SphereCollider::Update()
-{
-}
-
 bool SphereCollider::Intersects(const Collider* other) const
 {
     if (!other) return false;
@@ -109,12 +101,6 @@ bool SphereCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd,
                 return false; // どちらの交点もRayの範囲外
             }
         }
-
-        // レイが球の内部から始まり、外側へ向かう場合も考慮
-        // tが負であっても、始点が球の内部にあり、t*t*rayLengthSqが半径の二乗より小さければ、
-        // そのまま計算を進めても問題ない。
-        // ただし、Rayの線分としての衝突を正確に扱うにはtを[0,1]にクランプする必要がある。
-        // ここでは、tを[0,1]の範囲に限定し、その範囲内の最初のヒットを見つける
 
         out_hitPos = VAdd(rayStart, VScale(rayDir, t));
         out_hitDistSq = VDot(VSub(out_hitPos, rayStart), VSub(out_hitPos, rayStart));

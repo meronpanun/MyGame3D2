@@ -73,17 +73,8 @@ CapsuleCollider::~CapsuleCollider()
 {
 }
 
-void CapsuleCollider::Init()
-{
-}
-
-void CapsuleCollider::Update()
-{
-}
-
 bool CapsuleCollider::Intersects(const Collider* other) const
 {
-    // ... (SphereColliderとの判定ロジックは変更なし) ...
     if (!other) return false;
 
     // CapsuleCollider同士の判定
@@ -91,14 +82,13 @@ bool CapsuleCollider::Intersects(const Collider* other) const
     if (capsule)
     {
         // 2つの線分間の最短距離を求めるロジック
-        // ref: Real-Time Collision Detection by Christer Ericson, Chapter 5.1.8 Closest Point on Line Segments
         VECTOR d1 = VSub(m_segmentB, m_segmentA);
         VECTOR d2 = VSub(capsule->m_segmentB, capsule->m_segmentA);
         VECTOR r = VSub(m_segmentA, capsule->m_segmentA);
 
-        float a = VDot(d1, d1); // squared length of segment 1
-        float e = VDot(d2, d2); // squared length of segment 2
-        float f = VDot(d2, r);  // dot product of segment 2 with vector from segment 2 start to segment 1 start
+        float a = VDot(d1, d1);
+        float e = VDot(d2, d2);
+        float f = VDot(d2, r); 
 
         float s = 0.0f, t = 0.0f;
         float c = VDot(d1, r);
@@ -171,9 +161,9 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
     VECTOR currentHitPos;
     float currentHitDistSq;
 
-    // --- 1. カプセルの円柱部分とRayの交差判定 ---
-    // カプセルを線分ABと半径rの無限長円柱として扱う。
-    // その後、線分ABの範囲にクリッピングする。
+    // カプセルの円柱部分とRayの交差判定
+    // カプセルを線分ABと半径rの無限長円柱として扱う
+    // その後、線分ABの範囲にクリッピングする
 
     VECTOR OA = VSub(rayStart, m_segmentA); // Ray始点からカプセル軸Aへのベクトル
     VECTOR AB = VSub(m_segmentB, m_segmentA); // カプセル軸のベクトル
@@ -202,17 +192,15 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
         float t_cyl0 = (-b - sqrt_discr) / (2.0f * a);
         float t_cyl1 = (-b + sqrt_discr) / (2.0f * a);
 
-        // Cylindrical part intersection
         for (float t_cyl : {t_cyl0, t_cyl1})
         {
-            if (t_cyl >= 0.0f && t_cyl <= 1.0f) // Ray segment intersects the infinite cylinder
+            if (t_cyl >= 0.0f && t_cyl <= 1.0f) 
             {
                 VECTOR p_intersect = VAdd(rayStart, VScale(rayDir, t_cyl));
 
-                // Check if the intersection point lies within the finite capsule segment
+            
                 VECTOR proj_on_axis = VAdd(m_segmentA, VScale(u, VDot(VSub(p_intersect, m_segmentA), u)));
 
-                // t_axis represents the parameter along the capsule's segment
                 float t_axis = VDot(VSub(proj_on_axis, m_segmentA), AB) / abLenSq;
 
                 if (t_axis >= 0.0f && t_axis <= 1.0f)
@@ -231,7 +219,7 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
         }
     }
 
-    // --- 2. カプセルの両端の半球とRayの交差判定 ---
+    // カプセルの両端の半球とRayの交差判定
     // RayとA端の球の交差
     if (IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, currentHitPos, currentHitDistSq))
     {
