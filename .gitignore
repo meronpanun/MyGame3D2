@@ -43,3 +43,6 @@ Release/
 *.tmp
 *.bak
 *.lastbuildstate
+
+# ログファイル
+Log.txt

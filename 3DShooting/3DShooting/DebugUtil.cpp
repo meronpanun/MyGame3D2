@@ -2,7 +2,7 @@
 #include "DxLib.h"
 #include <cstdarg>
 
-bool DebugUtil::s_isVisible = false;
+bool DebugUtil::s_isVisible = false; // デバッグウィンドウの表示状態を管理する静的変数
 
 // 3Dカプセルのデバッグ描画関数
 void DebugUtil::DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill)
@@ -57,9 +57,9 @@ void DebugUtil::ShowDebugWindow()
     // デバッグウィンドウの背景を半透明で描画
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, NULL);
-    unsigned int bgAlphaColor = GetColor(0, 0, 0);
+
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); 
-    DrawBox(0, 0, screenW, screenH, bgAlphaColor, true);
+    DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // デバッグウィンドウの内容
@@ -67,19 +67,15 @@ void DebugUtil::ShowDebugWindow()
     const int y = 40;
     const int w = 400;
     const int h = 200;
-    unsigned int bgColor = GetColor(0, 0, 0);
-    unsigned int borderColor = GetColor(0, 0, 0);
-    unsigned int textColor = GetColor(255, 255, 255);
 
     // 背景
-    DrawBox(x, y, x + w, y + h, bgColor, true);
+    DrawBox(x, y, x + w, y + h, 0x000000, true);
     // 枠
-    DrawBox(x, y, x + w, y + h, borderColor, true);
+    DrawBox(x, y, x + w, y + h, 0x000000, true);
 
     // テキスト
-    DrawString(x + 16, y + 16, "デバッグウィンドウ (F1で切替)", textColor);
-    DrawString(x + 16, y + 48, "・ここにデバッグ情報を表示できます", textColor);
-    // 必要に応じて追加情報をここに描画
+    DrawString(x + 16, y + 16, "デバッグウィンドウ (F1で切替)", 0xffffff);
+    DrawString(x + 16, y + 48, "・ここにデバッグ情報を表示できます", 0xffffff);
 }
 
 // デバッグウィンドウが表示されているかどうかを返す
