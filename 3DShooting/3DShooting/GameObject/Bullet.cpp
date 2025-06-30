@@ -52,8 +52,8 @@ void Bullet::Draw() const
 	if (!m_isActive) return;
 
 	// Rayのデバッグ描画 (前フレーム位置から現在の位置へ)
-	DrawLine3D(m_prevPos, m_pos, GetColor(255, 255, 0)); // 黄色の線
-	DrawSphere3D(m_pos, 2.0f, 16, GetColor(255, 255, 0), GetColor(255, 255, 0), FALSE); // 仮の弾の描画
+	DrawLine3D(m_prevPos, m_pos, 0xffff00); // 黄色の線
+	DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, FALSE); // 仮の弾の描画
 #endif
 }
 

@@ -11,7 +11,7 @@ class Vec3
 public:
 	float x;
 	float y;
-	float z; // Z座標を追加
+	float z; 
 
 public:
 	// デフォルトコンストラクタ
@@ -19,7 +19,7 @@ public:
 	{
 		x = 0.0f;
 		y = 0.0f;
-		z = 0.0f; // Z座標を初期化
+		z = 0.0f; 
 	}
 
 	// 引数付きコンストラクタ

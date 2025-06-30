@@ -298,7 +298,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 移動速度の設定
 		bool isMoving = false; // 移動中かどうかのフラグ
 
-		// 移動方向の初期化s
+		// 移動方向の初期化
 		VECTOR moveDir = VGet(0, 0, 0);
 
 		// キー入力による移動方向の設定
@@ -463,8 +463,7 @@ void Player::Draw()
 	// ゲージ本体
 	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(kTackleCooldownMax));
 	int tackleFilledWidth = static_cast<int>(tackleGaugeWidth * tackleRate);
-	int tackleColor = GetColor(80, 180, 255);
-	DrawBox(tackleGaugeX, tackleGaugeY, tackleGaugeX + tackleFilledWidth, tackleGaugeY + tackleGaugeHeight, tackleColor, true);
+	DrawBox(tackleGaugeX, tackleGaugeY, tackleGaugeX + tackleFilledWidth, tackleGaugeY + tackleGaugeHeight, 0x50B4ff, true);
 
 	// テキスト
 	DrawFormatString(tackleGaugeX, tackleGaugeY - 18, 0xFFFFFF, "Tackle Cooldown");
@@ -484,8 +483,8 @@ void Player::Draw()
     const int barX      = margin;
     const int barY      = screenH - barHeight - margin;
 
-    // 最大HP（必要に応じて定数化）
-    const float maxHP = 100.0f; // 例: 100
+    // 最大HP
+    const float maxHP = 100.0f; 
     float hp = m_health;
     if (hp < 0) hp = 0;
     if (hp > maxHP) hp = maxHP;
@@ -641,7 +640,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     VECTOR bulletDirection = VNorm(VSub(targetPoint, gunPos));
 
     // 弾丸を発射
-    bullets.emplace_back(gunPos, bulletDirection); // 新しい bulletDirection を使用
+    bullets.emplace_back(gunPos, bulletDirection);
     m_ammo--;
  //   m_pEffect->PlaySound(Effect::SoundType::Shot);
 //    m_pEffect->SpawnEffect(Effect::EffectType::MuzzleFlash, gunPos, bulletDirection); // エフェクトの向きも更新
