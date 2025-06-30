@@ -15,7 +15,7 @@ VECTOR ClosestPtPointSegment(const VECTOR& c, const VECTOR& p, const VECTOR& q)
 }
 
 // Rayと球体の交差判定のヘルパー関数 (修正版)
-bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VECTOR& sphereCenter, float sphereRadius, VECTOR& out_hitPos, float& out_hitDistSq)
+bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VECTOR& sphereCenter, float sphereRadius, VECTOR& outHtPos, float& outHtDistSq)
 {
     VECTOR rayDir = VSub(rayEnd, rayStart);
     float rayLengthSq = VDot(rayDir, rayDir);
@@ -25,8 +25,8 @@ bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VEC
         float distSq = VDot(VSub(sphereCenter, rayStart), VSub(sphereCenter, rayStart));
         if (distSq <= sphereRadius * sphereRadius)
         {
-            out_hitPos = rayStart;
-            out_hitDistSq = 0.0f;
+            outHtPos = rayStart;
+            outHtDistSq = 0.0f;
             return true;
         }
         return false;
@@ -57,8 +57,8 @@ bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VEC
             }
         }
 
-        out_hitPos = VAdd(rayStart, VScale(rayDir, t));
-        out_hitDistSq = VDot(VSub(out_hitPos, rayStart), VSub(out_hitPos, rayStart));
+        outHtPos = VAdd(rayStart, VScale(rayDir, t));
+        outHtDistSq = VDot(VSub(outHtPos, rayStart), VSub(outHtPos, rayStart));
         return true;
     }
 }
@@ -138,7 +138,7 @@ bool CapsuleCollider::Intersects(const Collider* other) const
     return false; // 未知のコライダータイプ
 }
 
-bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const
+bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const
 {
     VECTOR rayDir = VSub(rayEnd, rayStart);
     float rayLengthSq = VDot(rayDir, rayDir);
@@ -149,8 +149,8 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
         float distSq = VDot(VSub(rayStart, closestPointOnCapsuleSegment), VSub(rayStart, closestPointOnCapsuleSegment));
         if (distSq <= m_radius * m_radius)
         {
-            out_hitPos = rayStart;
-            out_hitDistSq = 0.0f;
+            outHitPos = rayStart;
+            outHitDistSq = 0.0f;
             return true;
         }
         return false;
@@ -171,7 +171,7 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
     float abLenSq = VDot(AB, AB);
     if (abLenSq < 0.0001f) // カプセルが球になっている場合 (線分ABの長さがゼロに近い)
     {
-        return IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, out_hitPos, out_hitDistSq);
+        return IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, outHitPos, outHitDistSq);
     }
 
     VECTOR u = VNorm(AB); // カプセル軸の単位ベクトル
@@ -210,8 +210,8 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
                     if (currentHitDistSq < minT)
                     {
                         minT = currentHitDistSq;
-                        out_hitPos = currentHitPos;
-                        out_hitDistSq = currentHitDistSq;
+                        outHitPos = currentHitPos;
+                        outHitDistSq = currentHitDistSq;
                         hit = true;
                     }
                 }
@@ -226,8 +226,8 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
         if (currentHitDistSq < minT)
         {
             minT = currentHitDistSq;
-            out_hitPos = currentHitPos;
-            out_hitDistSq = currentHitDistSq;
+            outHitPos = currentHitPos;
+            outHitDistSq = currentHitDistSq;
             hit = true;
         }
     }
@@ -238,8 +238,8 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
         if (currentHitDistSq < minT)
         {
             minT = currentHitDistSq;
-            out_hitPos = currentHitPos;
-            out_hitDistSq = currentHitDistSq;
+            outHitPos = currentHitPos;
+            outHitDistSq = currentHitDistSq;
             hit = true;
         }
     }

@@ -35,7 +35,7 @@ public:
     /// <param name="rayStart">弾のRayの始点</param>
     /// <param name="rayEnd">弾のRayの終点</param>
     /// <returns>当たった部位</returns>
-    HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const override;
+    HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const override;
 
     /// <summary>
     /// ダメージを計算する

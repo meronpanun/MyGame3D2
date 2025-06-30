@@ -22,10 +22,10 @@ public:
     /// </summary>
 	/// <param name="rayStart">Rayの始点</param>
 	/// <param name="rayEnd">Rayの終点</param>
-    /// <param name="out_hitPos"></param>
-    /// <param name="out_hitDistSq"></param>
+    /// <param name="outHtPos"></param>
+    /// <param name="outHtDistSq"></param>
     /// <returns></returns>
-    bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const override;
+    bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const override;
 
     VECTOR GetSegmentA() const { return m_segmentA; }
     VECTOR GetSegmentB() const { return m_segmentB; }

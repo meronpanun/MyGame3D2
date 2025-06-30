@@ -76,7 +76,7 @@ public:
 	/// <param name="rayEnd">弾のRayの終点</param>
 	/// <returns>当たった部位</returns>
 	// BulletからRayの情報を直接受け取るように変更
-	virtual HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const { return HitPart::None; }
+	virtual HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const { return HitPart::None; }
 
 
 	// AABBの最小座標と最大座標を取得する

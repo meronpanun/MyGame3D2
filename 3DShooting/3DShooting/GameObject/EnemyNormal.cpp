@@ -270,7 +270,7 @@ void EnemyNormal::DrawCollisionDebug() const
     }
 }
 
-EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const
+EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
     VECTOR hitPosHead, hitPosBody;
     float hitDistSqHead = FLT_MAX;
@@ -284,32 +284,32 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTO
         // 両方にヒットした場合、より近い方を優先
         if (hitDistSqHead <= hitDistSqBody)
         {
-            out_hitPos = hitPosHead;
-            out_hitDistSq = hitDistSqHead;
+            outHtPos = hitPosHead;
+            outHtDistSq = hitDistSqHead;
             return HitPart::Head;
         }
         else
         {
-            out_hitPos = hitPosBody;
-            out_hitDistSq = hitDistSqBody;
+            outHtPos = hitPosBody;
+            outHtDistSq = hitDistSqBody;
             return HitPart::Body;
         }
     }
     else if (headHit)
     {
-        out_hitPos = hitPosHead;
-        out_hitDistSq = hitDistSqHead;
+        outHtPos = hitPosHead;
+        outHtDistSq = hitDistSqHead;
         return HitPart::Head;
     }
     else if (bodyHit)
     {
-        out_hitPos = hitPosBody;
-        out_hitDistSq = hitDistSqBody;
+        outHtPos = hitPosBody;
+        outHtDistSq = hitDistSqBody;
         return HitPart::Body;
     }
 
-    out_hitPos = VGet(0, 0, 0); // ヒットしない場合は適当な値を入れておく
-    out_hitDistSq = FLT_MAX;
+    outHtPos = VGet(0, 0, 0); // ヒットしない場合は適当な値を入れておく
+    outHtDistSq = FLT_MAX;
     return HitPart::None;
 }
 

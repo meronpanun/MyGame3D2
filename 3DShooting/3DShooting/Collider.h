@@ -18,9 +18,9 @@ public:
 	/// </summary>
 	/// <param name="rayStart">Rayの始点</param>
 	/// <param name="rayEnd">Rayの終点</param>
-	/// <param name="out_hitPos">当たった位置</param>
-	/// <param name="out_hitDistSq">当たった位置までの距離の二乗</param>
+	/// <param name="outHtPos">当たった位置</param>
+	/// <param name="outHtDistSq">当たった位置までの距離の二乗</param>
 	/// <returns></returns>
-	virtual bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const abstract;
+	virtual bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const abstract;
 };
 

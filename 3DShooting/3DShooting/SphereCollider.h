@@ -10,8 +10,22 @@ public:
     SphereCollider(const VECTOR& center = VGet(0, 0, 0), float radius = 1.0f);
     virtual ~SphereCollider() = default;
 
+    /// <summary>
+	/// 当たり判定を行う
+    /// </summary>
+	/// <param name="other">他のコライダー</param>
+	/// <returns>true: 当たっている, false: 当たっていない</returns>
     bool Intersects(const Collider* other) const override;
-    bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const override;
+
+    /// <summary>
+	/// Rayとの当たり判定を行う
+    /// </summary>
+	/// <param name="rayStart">Rayの始点</param>
+    /// <param name="rayEnd"></param>
+    /// <param name="outHtPos"></param>
+    /// <param name="outHtDistSq"></param>
+    /// <returns></returns>
+    bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const override;
 
     VECTOR GetCenter() const { return m_center; }
     float GetRadius() const { return m_radius; }

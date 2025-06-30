@@ -57,7 +57,7 @@ bool SphereCollider::Intersects(const Collider* other) const
     return false; // 未知のコライダータイプ
 }
 
-bool SphereCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& out_hitPos, float& out_hitDistSq) const
+bool SphereCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
     VECTOR rayDir = VSub(rayEnd, rayStart);
     float rayLengthSq = VDot(rayDir, rayDir);
@@ -70,8 +70,8 @@ bool SphereCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd,
         // 始点が球内部にあればヒット
         if (distSq <= m_radius * m_radius)
         {
-            out_hitPos = rayStart;
-            out_hitDistSq = 0.0f;
+            outHtPos = rayStart;
+            outHtDistSq = 0.0f;
             return true;
         }
         return false;
@@ -102,8 +102,8 @@ bool SphereCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd,
             }
         }
 
-        out_hitPos = VAdd(rayStart, VScale(rayDir, t));
-        out_hitDistSq = VDot(VSub(out_hitPos, rayStart), VSub(out_hitPos, rayStart));
+        outHtPos = VAdd(rayStart, VScale(rayDir, t));
+        outHtDistSq = VDot(VSub(outHtPos, rayStart), VSub(outHtPos, rayStart));
         return true;
     }
 }
