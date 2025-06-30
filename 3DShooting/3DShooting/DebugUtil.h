@@ -4,7 +4,7 @@
 #include <string>
 
 /// <summary>
-/// デバッグユーティリティクラス
+/// デバッグクラス
 /// </summary>
 class DebugUtil
 {
@@ -60,9 +60,13 @@ public:
     /// </summary>
     static void ShowDebugWindow();
 
+	/// <summary>
+	/// デバッグウィンドウが表示されているかどうかを返す
+	/// </summary>
+	/// <returns></returns>
 	static bool IsDebugWindowVisible();
 
 private:
-	static bool s_isVisible;
+	static bool s_isVisible; // デバッグウィンドウの表示状態
 };
 

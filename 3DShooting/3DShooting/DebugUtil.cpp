@@ -82,7 +82,8 @@ void DebugUtil::ShowDebugWindow()
     // 必要に応じて追加情報をここに描画
 }
 
-bool DebugUtil::IsDebugWindowVisible()
+// デバッグウィンドウが表示されているかどうかを返す
+bool DebugUtil::IsDebugWindowVisible() 
 {
     return s_isVisible;
 }
