@@ -1,0 +1,73 @@
+﻿  EnemyAcid.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyAcid.cpp' をコンパイルしています)
+  
+  EnemyBase.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyBase.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Bullet.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyBase.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Collider.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyBase.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(25,21): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
+  EnemyBoss.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyBoss.cpp' をコンパイルしています)
+  
+  EnemyNormal.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyNormal.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyNormal.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Bullet.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyNormal.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Collider.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyNormal.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(157,30): warning C4244: '=': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(165,35): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(166,33): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+  EnemyRunner.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyRunner.cpp' をコンパイルしています)
+  
+  Player.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Bullet.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Collider.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
+  
+  SceneMain.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\FirstAidKitItem.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\ItemBase.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Collider.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(203,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(203,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+  コードを生成中...
+  3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe
