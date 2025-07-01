@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include "Collider.h"
 
 /// <summary>
-/// ‹…‘ÌƒRƒ‰ƒCƒ_[ƒNƒ‰ƒX
+/// çƒä½“ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚¯ãƒ©ã‚¹
 /// </summary>
 class SphereCollider : public Collider
 {
@@ -11,48 +11,48 @@ public:
     virtual ~SphereCollider() = default;
 
     /// <summary>
-	/// “–‚½‚è”»’è‚ğs‚¤
+	/// å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã†
     /// </summary>
-	/// <param name="other">‘¼‚ÌƒRƒ‰ƒCƒ_[</param>
-	/// <returns>true: “–‚½‚Á‚Ä‚¢‚é, false: “–‚½‚Á‚Ä‚¢‚È‚¢</returns>
+	/// <param name="other">ä»–ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼</param>
+	/// <returns>true: å½“ãŸã£ã¦ã„ã‚‹, false: å½“ãŸã£ã¦ã„ãªã„</returns>
     bool Intersects(const Collider* other) const override;
 
     /// <summary>
-	/// Ray‚Æ‚Ì“–‚½‚è”»’è‚ğs‚¤
+	/// Rayã¨ã®å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã†
     /// </summary>
-	/// <param name="rayStart">Ray‚Ìn“_</param>
-	/// <param name="rayEnd">Ray‚ÌI“_</param>
-	/// <param name="outHtPos">“–‚½‚Á‚½ˆÊ’u</param>
-	/// <param name="outHtDistSq">“–‚½‚Á‚½ˆÊ’u‚Ü‚Å‚Ì‹——£‚Ì“ñæ</param>
+	/// <param name="rayStart">Rayã®å§‹ç‚¹</param>
+	/// <param name="rayEnd">Rayã®çµ‚ç‚¹</param>
+	/// <param name="outHtPos">å½“ãŸã£ãŸä½ç½®</param>
+	/// <param name="outHtDistSq">å½“ãŸã£ãŸä½ç½®ã¾ã§ã®è·é›¢ã®äºŒä¹—</param>
     /// <returns></returns>
     bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const override;
 
     /// <summary>
-	/// ‹…‚Ì’†S‚Æ”¼Œa‚ğæ“¾‚·‚é
+	/// çƒã®ä¸­å¿ƒã¨åŠå¾„ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-	/// <returns>‹…‚Ì’†S‚Æ”¼Œa</returns>
+	/// <returns>çƒã®ä¸­å¿ƒã¨åŠå¾„</returns>
     VECTOR GetCenter() const { return m_center; }
 
     /// <summary>
-	/// ‹…‚Ì”¼Œa‚ğæ“¾‚·‚é
+	/// çƒã®åŠå¾„ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-	/// <returns>‹…‚Ì”¼Œa</returns>
+	/// <returns>çƒã®åŠå¾„</returns>
     float GetRadius() const { return m_radius; }
 
     /// <summary>
-	/// ‹…‚Ì’†S‚Æ”¼Œa‚ğİ’è‚·‚é
+	/// çƒã®ä¸­å¿ƒã¨åŠå¾„ã‚’è¨­å®šã™ã‚‹
     /// </summary>
-	/// <param name="center">‹…‚Ì’†S</param>
+	/// <param name="center">çƒã®ä¸­å¿ƒ</param>
     void SetCenter(const VECTOR& center) { m_center = center; }
 
     /// <summary>
-	/// ‹…‚Ì”¼Œa‚ğİ’è‚·‚é  
+	/// çƒã®åŠå¾„ã‚’è¨­å®šã™ã‚‹  
     /// </summary>
-	/// <param name="radius">‹…‚Ì”¼Œa</param>
+	/// <param name="radius">çƒã®åŠå¾„</param>
     void SetRadius(float radius) { m_radius = radius; }
 
 private:
-	VECTOR m_center; // ‹…‚Ì’†S
+	VECTOR m_center; // çƒã®ä¸­å¿ƒ
 
-	float  m_radius; // ‹…‚Ì”¼Œa
+	float  m_radius; // çƒã®åŠå¾„
 };

@@ -1,7 +1,7 @@
-//#pragma once
+ï»¿//#pragma once
 //
 ///// <summary>
-///// ƒGƒtƒFƒNƒgƒNƒ‰ƒX
+///// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚¯ãƒ©ã‚¹
 ///// </summary>
 //class Effect
 //{
@@ -14,14 +14,14 @@
 //	void Draw();
 //	
 //	/// <summary>
-//	/// ƒ}ƒYƒ‹ƒtƒ‰ƒbƒVƒ…‚ğÄ¶‚·‚é
+//	/// ãƒã‚ºãƒ«ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã‚’å†ç”Ÿã™ã‚‹
 //	/// </summary>
-//	/// <param name="x">XÀ•W</param>
-//	/// <param name="y">YÀ•W</param>
-//	/// <param name="z">ZÀ•W</param>
+//	/// <param name="x">Xåº§æ¨™</param>
+//	/// <param name="y">Yåº§æ¨™</param>
+//	/// <param name="z">Zåº§æ¨™</param>
 //	void PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ);
 //
 //private:
-//	int muzzleFlashEffectHandle; // ƒ}ƒYƒ‹ƒtƒ‰ƒbƒVƒ…‚ÌƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹
+//	int muzzleFlashEffectHandle; // ãƒã‚ºãƒ«ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãƒãƒ³ãƒ‰ãƒ«
 //};
 //

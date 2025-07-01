@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "SceneBase.h"
 
 class SceneTitle;
@@ -8,7 +8,7 @@ class SceneOption;
 class SceneGameOver;
 
 /// <summary>
-/// ƒV[ƒ“ŠÇ—ƒNƒ‰ƒX
+/// ã‚·ãƒ¼ãƒ³ç®¡ç†ã‚¯ãƒ©ã‚¹
 /// </summary>
 class SceneManager
 {
@@ -24,7 +24,7 @@ private:
 	SceneBase* m_pCurrentScene;
 	SceneBase* m_pNextScene;
 
-	// SceneManager‚ÅŠÇ—‚·‚éƒV[ƒ“
+	// SceneManagerã§ç®¡ç†ã™ã‚‹ã‚·ãƒ¼ãƒ³
 	SceneTitle*    m_pTitle;
 	SceneMain*     m_pSceneMain;
 	SceneResult*   m_pResult;

@@ -1,6 +1,6 @@
-#include "Game.h"
+ï»¿#include "Game.h"
 #include "SceneMain.h"
 #include "SceneBase.h"
 
-// ƒOƒ[ƒoƒ‹‚ÈƒJƒƒ‰Š´“x
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«ãªã‚«ãƒ¡ãƒ©æ„Ÿåº¦
 float Game::g_cameraSensitivity = 0.002f;

@@ -1,10 +1,10 @@
-#pragma once
+ï»¿#pragma once
 
 #pragma once
 #include <cmath>
 
 /// <summary>
-/// 3ŸŒ³ƒxƒNƒgƒ‹ƒNƒ‰ƒX
+/// 3æ¬¡å…ƒãƒ™ã‚¯ãƒˆãƒ«ã‚¯ãƒ©ã‚¹
 /// </summary>
 class Vec3
 {
@@ -14,7 +14,7 @@ public:
 	float z; 
 
 public:
-	// ƒfƒtƒHƒ‹ƒgƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	Vec3()
 	{
 		x = 0.0f;
@@ -22,7 +22,7 @@ public:
 		z = 0.0f; 
 	}
 
-	// ˆø”•t‚«ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+	// å¼•æ•°ä»˜ãã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 	Vec3(float posX, float posY, float posZ)
 	{
 		x = posX;
@@ -30,7 +30,7 @@ public:
 		z = posZ;
 	}
 
-	// À•Wİ’èŠÖ”
+	// åº§æ¨™è¨­å®šé–¢æ•°
 	void SetPos(float a, float b, float c)
 	{
 		x = a;
@@ -38,7 +38,7 @@ public:
 		z = c;
 	}
 
-	// ‰ÁZ‘ã“ü‰‰Zq(Vec3 = (Vec3 += Vec3))
+	// åŠ ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 += Vec3))
 	Vec3 operator+=(const Vec3& vec)
 	{
 		x += vec.x;
@@ -47,14 +47,14 @@ public:
 		return *this;
 	}
 
-	// ‰ÁZ‰‰Zq(Vec3 = Vec3 + Vec3)
+	// åŠ ç®—æ¼”ç®—å­(Vec3 = Vec3 + Vec3)
 	Vec3 operator+(const Vec3& vec) const
 	{
 		Vec3 temp{ x + vec.x, y + vec.y, z + vec.z };
 		return temp;
 	}
 
-	// Œ¸Z‘ã“ü‰‰Zq(Vec3 = (Vec3 -= Vec3))
+	// æ¸›ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 -= Vec3))
 	Vec3 operator-=(const Vec3& vec)
 	{
 		x -= vec.x;
@@ -63,14 +63,14 @@ public:
 		return *this;
 	}
 
-	// Œ¸Z‰‰Zq(Vec3 = Vec3 - Vec3)
+	// æ¸›ç®—æ¼”ç®—å­(Vec3 = Vec3 - Vec3)
 	Vec3 operator-(const Vec3& vec) const
 	{
 		Vec3 temp{ x - vec.x, y - vec.y, z - vec.z };
 		return temp;
 	}
 
-	// ƒXƒJƒ‰æZ‘ã“ü‰‰Zq(Vec3 = (Vec3 *= float))
+	// ã‚¹ã‚«ãƒ©ä¹—ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 *= float))
 	Vec3 operator*=(float scale)
 	{
 		x *= scale;
@@ -79,14 +79,14 @@ public:
 		return *this;
 	}
 
-	// ƒXƒJƒ‰æZ‰‰Zq(Vec3 = Vec3 * float)
+	// ã‚¹ã‚«ãƒ©ä¹—ç®—æ¼”ç®—å­(Vec3 = Vec3 * float)
 	Vec3 operator*(float scale) const
 	{
 		Vec3 temp{ x * scale, y * scale, z * scale };
 		return temp;
 	}
 
-	// ƒXƒJƒ‰œZ‘ã“ü‰‰Zq(Vec3 = (Vec3 /= float))
+	// ã‚¹ã‚«ãƒ©é™¤ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 /= float))
 	Vec3 operator/=(float scale)
 	{
 		x /= scale;
@@ -95,28 +95,28 @@ public:
 		return *this;
 	}
 
-	// ƒXƒJƒ‰œZ‰‰Zq(Vec3 = Vec3 / float)
+	// ã‚¹ã‚«ãƒ©é™¤ç®—æ¼”ç®—å­(Vec3 = Vec3 / float)
 	Vec3 operator/(float scale) const
 	{
 		Vec3 temp{ x / scale, y / scale, z / scale };
 		return temp;
 	}
 
-	// ’·‚³‚Ìæ“¾
+	// é•·ã•ã®å–å¾—
 	float Length() const
 	{
 		return sqrtf(x * x + y * y + z * z);
 	}
 
-	// ³‹K‰»
+	// æ­£è¦åŒ–
 	Vec3 Normalize() const
 	{
-		float len = Length(); // ’·‚³‚ğæ“¾
+		float len = Length(); // é•·ã•ã‚’å–å¾—
 		if (len == 0)
 		{
-			return *this; // ’·‚³‚ª0‚Ìê‡‚Í‚»‚Ì‚Ü‚Ü•Ô‚·
+			return *this; // é•·ã•ãŒ0ã®å ´åˆã¯ãã®ã¾ã¾è¿”ã™
 		}
-		return (*this) / len; // ©g‚Ì¬•ª‚ğ’·‚³‚ÅŠ„‚Á‚Ä³‹K‰»
+		return (*this) / len; // è‡ªèº«ã®æˆåˆ†ã‚’é•·ã•ã§å‰²ã£ã¦æ­£è¦åŒ–
 	}
 };
 

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "DxLib.h"
 #include <vector>
 #include <memory>
@@ -21,174 +21,174 @@ public:
 	void Draw();
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ğæ“¾‚·‚é
+	/// ã‚«ãƒ¡ãƒ©ã‚’å–å¾—ã™ã‚‹
 	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^</returns>
+	/// <returns>ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿</returns>
 	std::shared_ptr<Camera> GetCamera() const { return m_pCamera; }
 
 	/// <summary>
-	/// ƒtƒB[ƒ‹ƒh‚ğ•`‰æ‚·‚é
+	/// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚’æç”»ã™ã‚‹
 	/// </summary>
 	void DrawField();
 
 	/// <summary>
-	/// ƒvƒŒƒCƒ„[‚ªƒ_ƒ[ƒW‚ğó‚¯‚é
+	/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹
 	/// </summary>
-	/// <param name="damage">ó‚¯‚éƒ_ƒ[ƒW—Ê</param>
+	/// <param name="damage">å—ã‘ã‚‹ãƒ€ãƒ¡ãƒ¼ã‚¸é‡</param>
 	void TakeDamage(float damage);
 
 	/// <summary>
-	/// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğæ“¾‚·‚é
+	/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’å–å¾—ã™ã‚‹
 	/// </summary>
-	/// <returns>ƒvƒŒƒCƒ„[‚ÌˆÊ’u</returns>
+	/// <returns>ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®</returns>
 	VECTOR GetPos() const { return m_pos; }
 
-	void SetPos(const VECTOR& pos) { m_pos = pos; } // ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğİ’è‚·‚é
+	void SetPos(const VECTOR& pos) { m_pos = pos; } // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’è¨­å®šã™ã‚‹
 
 	/// <summary>
-	/// ’e‚Ìæ“¾
+	/// å¼¾ã®å–å¾—
 	/// </summary>
-	/// <returns>’e‚ÌƒxƒNƒ^[</returns>
+	/// <returns>å¼¾ã®ãƒ™ã‚¯ã‚¿ãƒ¼</returns>
 	std::vector<Bullet>& GetBullets();
 
 	/// <summary>
-	///  ƒvƒŒƒCƒ„[‚ªƒVƒ‡ƒbƒg‰Â”\‚©‚Ç‚¤‚©
+	///  ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã‚·ãƒ§ãƒƒãƒˆå¯èƒ½ã‹ã©ã†ã‹
 	/// </summary>
-	/// <returns>ƒVƒ‡ƒbƒg‰Â”\‚È‚çtrue</returns>
+	/// <returns>ã‚·ãƒ§ãƒƒãƒˆå¯èƒ½ãªã‚‰true</returns>
 	bool HasShot(); 
 
 	/// <summary>
-	/// ƒ^ƒbƒNƒ‹î•ñ\‘¢‘Ì
+	/// ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±æ§‹é€ ä½“
 	/// </summary>
 	struct TackleInfo 
 	{
-		VECTOR capA		  = { 0,0,0 }; // ƒ^ƒbƒNƒ‹”»’èƒJƒvƒZƒ‹‚ÌA“_
-		VECTOR capB		  = { 0,0,0 }; // ƒ^ƒbƒNƒ‹”»’èƒJƒvƒZƒ‹‚ÌB“_
-		float  radius	  = 0.0f;      // ƒ^ƒbƒNƒ‹”»’èƒJƒvƒZƒ‹‚Ì”¼Œa
-		float  damage	  = 0.0f;	   // ƒ^ƒbƒNƒ‹‚Ìƒ_ƒ[ƒW—Ê
-		bool   isTackling = false;	   // ƒ^ƒbƒNƒ‹’†‚©‚Ç‚¤‚©
-		int    tackleId   = 0;         // ƒ^ƒbƒNƒ‹ID
+		VECTOR capA		  = { 0,0,0 }; // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šã‚«ãƒ—ã‚»ãƒ«ã®Aç‚¹
+		VECTOR capB		  = { 0,0,0 }; // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šã‚«ãƒ—ã‚»ãƒ«ã®Bç‚¹
+		float  radius	  = 0.0f;      // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„
+		float  damage	  = 0.0f;	   // ã‚¿ãƒƒã‚¯ãƒ«ã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡
+		bool   isTackling = false;	   // ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã‹ã©ã†ã‹
+		int    tackleId   = 0;         // ã‚¿ãƒƒã‚¯ãƒ«ID
 	};
 
 	/// <summary>
-	/// ƒ^ƒbƒNƒ‹î•ñ‚ğæ“¾‚·‚é
+	/// ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±ã‚’å–å¾—ã™ã‚‹
 	/// </summary>
-	/// <returns>ƒ^ƒbƒNƒ‹î•ñ</returns>
+	/// <returns>ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±</returns>
 	TackleInfo GetTackleInfo() const;
 
 	/// <summary>
-	/// ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹“–‚½‚è”»’èî•ñ‚ğæ“¾
+	/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«å½“ãŸã‚Šåˆ¤å®šæƒ…å ±ã‚’å–å¾—
 	/// </summary>
-	/// <param name="capA">ƒJƒvƒZƒ‹‚ÌA’[“_</param>
-	/// <param name="capB">ƒJƒvƒZƒ‹‚ÌB’[“_</param>
-	/// <param name="radius">ƒJƒvƒZƒ‹‚Ì”¼Œa</param>
+	/// <param name="capA">ã‚«ãƒ—ã‚»ãƒ«ã®Aç«¯ç‚¹</param>
+	/// <param name="capB">ã‚«ãƒ—ã‚»ãƒ«ã®Bç«¯ç‚¹</param>
+	/// <param name="radius">ã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„</param>
 	void GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const;
 
 	/// <summary>
-	/// ƒvƒŒƒCƒ„[‚Ì‘Ì—Í‚ğæ“¾‚·‚é
+	/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½“åŠ›ã‚’å–å¾—ã™ã‚‹
 	/// </summary>
-	/// <returns>ƒvƒŒƒCƒ„[‚Ì‘Ì—Í</returns>
+	/// <returns>ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½“åŠ›</returns>
 	float GetHealth() const { return m_health; }
 
 	/// <summary>
-	/// Å‘å‘Ì—Í‚ğæ“¾‚·‚é
+	/// æœ€å¤§ä½“åŠ›ã‚’å–å¾—ã™ã‚‹
 	/// </summary>
-	/// <returns>Å‘å‘Ì—Í</returns>
+	/// <returns>æœ€å¤§ä½“åŠ›</returns>
 	float GetMaxHealth() const { return m_maxHealth; }
 
 	void AddHp(float value);
 
-	// TODO:ƒAƒjƒ[ƒVƒ‡ƒ“ˆ—‚Í“G‚às‚¤‚Ì‚ÅŒã‚ÅƒNƒ‰ƒX‰»
+	// TODO:ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å‡¦ç†ã¯æ•µã‚‚è¡Œã†ã®ã§å¾Œã§ã‚¯ãƒ©ã‚¹åŒ–
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^\‘¢‘Ì
+	/// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿æ§‹é€ ä½“
 	/// </summary>
 	struct AnimData
 	{
-		int   attachNo = -1;    // ƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚Ì”Ô†
-		float count = 0.0f;  // ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒJƒEƒ“ƒg
-		bool  isLoop = false; // ƒ‹[ƒvƒAƒjƒ[ƒVƒ‡ƒ“‚©‚Ç‚¤‚©
-		bool  isEnd = false; // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªI—¹‚µ‚½‚©‚Ç‚¤‚©
+		int   attachNo = -1;    // ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ç•ªå·
+		float count = 0.0f;  // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚«ã‚¦ãƒ³ãƒˆ
+		bool  isLoop = false; // ãƒ«ãƒ¼ãƒ—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‹ã©ã†ã‹
+		bool  isEnd = false; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒçµ‚äº†ã—ãŸã‹ã©ã†ã‹
 	};
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“‚ğƒAƒ^ƒbƒ`‚·‚é
+	/// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ã‚¢ã‚¿ãƒƒãƒã™ã‚‹
 	/// </summary>
-	/// <param name="data">ƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^</param>
-	/// <param name="animName">ƒAƒjƒ[ƒVƒ‡ƒ“–¼</param>
-	/// <param name="isLoop">ƒ‹[ƒv‚·‚é‚©‚Ç‚¤‚©</param>
+	/// <param name="data">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿</param>
+	/// <param name="animName">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å</param>
+	/// <param name="isLoop">ãƒ«ãƒ¼ãƒ—ã™ã‚‹ã‹ã©ã†ã‹</param>
 	void AttachAnime(AnimData& data, const char* animName, bool isLoop);
 
 	/// <summary>
-	///  ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌXV
+	///  ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®æ›´æ–°
 	/// </summary>
-	/// <param name="data">ƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^</param>
+	/// <param name="data">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿</param>
 	void UpdateAnime(AnimData& data);
 
-	// ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[æ“¾
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼å–å¾—
 	std::shared_ptr<CapsuleCollider> GetBodyCollider() const;
 
 private:
 	/// <summary>
-	/// ’e‚ğ”­Ë‚·‚é
+	/// å¼¾ã‚’ç™ºå°„ã™ã‚‹
 	/// </summary>
 	void Shoot(std::vector<Bullet>& bullets);
 
 	/// <summary>
-	///  ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh‚ğXV
+	///  ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚’æ›´æ–°
 	/// </summary>
 	void UpdateAnimeBlend(); 
 
 	/// <summary>
-	/// ƒAƒjƒ[ƒVƒ‡ƒ“‚ğ•ÏX‚·‚é
+	/// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å¤‰æ›´ã™ã‚‹
 	/// </summary>
-	/// <param name="animName">ƒAƒjƒ[ƒVƒ‡ƒ“–¼</param>
-	/// <param name="isLoop">ƒ‹[ƒv‚·‚é‚©‚Ç‚¤‚©</param>
+	/// <param name="animName">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å</param>
+	/// <param name="isLoop">ãƒ«ãƒ¼ãƒ—ã™ã‚‹ã‹ã©ã†ã‹</param>
 	void ChangeAnime(const char* animName, bool isLoop); 
 
 	/// <summary>
-	/// e‚ÌˆÊ’u‚ğæ“¾‚·‚é
+	/// éŠƒã®ä½ç½®ã‚’å–å¾—ã™ã‚‹
 	/// </summary>
-	/// <returns>e‚ÌˆÊ’u</returns>
+	/// <returns>éŠƒã®ä½ç½®</returns>
 	VECTOR GetGunPos() const;
 	VECTOR GetGunRot() const;
 
 private:
-	std::shared_ptr<Camera>		 m_pCamera;		 // ƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^
-	std::shared_ptr<Camera>		 m_pDebugCamera; // ƒfƒoƒbƒO—pƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^
-	//std::shared_ptr<Effect>	     m_pEffect;		 // ƒGƒtƒFƒNƒg‚Ìƒ|ƒCƒ“ƒ^
-	std::vector<Bullet>			 m_bullets;      // ’e‚ÌŠÇ—
-	std::shared_ptr<EnemyNormal> m_pEnemy;       // “G‚Ìƒ|ƒCƒ“ƒ^
-	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[
+	std::shared_ptr<Camera>		 m_pCamera;		 // ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿
+	std::shared_ptr<Camera>		 m_pDebugCamera; // ãƒ‡ãƒãƒƒã‚°ç”¨ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿
+	//std::shared_ptr<Effect>	     m_pEffect;		 // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ãƒã‚¤ãƒ³ã‚¿
+	std::vector<Bullet>			 m_bullets;      // å¼¾ã®ç®¡ç†
+	std::shared_ptr<EnemyNormal> m_pEnemy;       // æ•µã®ãƒã‚¤ãƒ³ã‚¿
+	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼
 
-	// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğ•Û‚·‚éƒƒ“ƒo[•Ï”
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’ä¿æŒã™ã‚‹ãƒ¡ãƒ³ãƒãƒ¼å¤‰æ•°
 	VECTOR m_pos;
 	VECTOR m_modelPos;
-	VECTOR m_tackleDir; // ƒ^ƒbƒNƒ‹‚Ì•ûŒü
+	VECTOR m_tackleDir; // ã‚¿ãƒƒã‚¯ãƒ«ã®æ–¹å‘
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿
 	AnimData m_nextAnimData;
 	AnimData m_prevAnimData;
 
-	unsigned char m_prevKeyState[256]{}; // ‘O‰ñ‚ÌƒL[“ü—Íó‘Ô
+	unsigned char m_prevKeyState[256]{}; // å‰å›ã®ã‚­ãƒ¼å…¥åŠ›çŠ¶æ…‹
 	
-	float m_animBlendRate; // ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦
-	float m_health;        // Œ»İ‚Ì‘Ì—Í
-	float m_jumpVelocity;  // ƒWƒƒƒ“ƒv‚Ì‘¬“x
-	float m_maxHealth;     // Å‘å‘Ì—Í
+	float m_animBlendRate; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡
+	float m_health;        // ç¾åœ¨ã®ä½“åŠ›
+	float m_jumpVelocity;  // ã‚¸ãƒ£ãƒ³ãƒ—ã®é€Ÿåº¦
+	float m_maxHealth;     // æœ€å¤§ä½“åŠ›
 
-	int   m_modelHandle;    // ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹
-	int   m_swordHandle;    // Œ•‚Ìƒnƒ“ƒhƒ‹
-	int   m_shootSEHandle;  // ƒVƒ…[ƒg‚ÌSEƒnƒ“ƒhƒ‹
-	int   m_ammo;		    // ƒvƒŒƒCƒ„[‚Ì’e–ò”	
-	int   m_tackleFrame;    // ƒ^ƒbƒNƒ‹‚ÌƒtƒŒ[ƒ€”
-	int   m_tackleCooldown; // ƒ^ƒbƒNƒ‹‚ÌƒN[ƒ‹ƒ_ƒEƒ“ƒ^ƒCƒ}[
-	int   m_tackleId;       // ƒ^ƒbƒNƒ‹ID
+	int   m_modelHandle;    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«
+	int   m_swordHandle;    // å‰£ã®ãƒãƒ³ãƒ‰ãƒ«
+	int   m_shootSEHandle;  // ã‚·ãƒ¥ãƒ¼ãƒˆã®SEãƒãƒ³ãƒ‰ãƒ«
+	int   m_ammo;		    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å¼¾è–¬æ•°	
+	int   m_tackleFrame;    // ã‚¿ãƒƒã‚¯ãƒ«ã®ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+	int   m_tackleCooldown; // ã‚¿ãƒƒã‚¯ãƒ«ã®ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã‚¿ã‚¤ãƒãƒ¼
+	int   m_tackleId;       // ã‚¿ãƒƒã‚¯ãƒ«ID
 
-	bool  m_isMoving;	   // ƒvƒŒƒCƒ„[‚ªˆÚ“®’†‚©‚Ç‚¤‚©
-	bool  m_isJumping;	   // ƒvƒŒƒCƒ„[‚ªƒWƒƒƒ“ƒv’†‚©‚Ç‚¤‚©
-	bool  m_isWasRunning;  // ‘O‰ñ‚ÌˆÚ“®ó‘Ô‚ª‘–‚Á‚Ä‚¢‚½‚©‚Ç‚¤‚©
-	bool  m_hasShot;       // ƒvƒŒƒCƒ„[‚ªƒVƒ‡ƒbƒg‰Â”\‚©‚Ç‚¤‚©
-	bool  m_isTackling;    // ƒ^ƒbƒNƒ‹’†‚©‚Ç‚¤‚©
+	bool  m_isMoving;	   // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒç§»å‹•ä¸­ã‹ã©ã†ã‹
+	bool  m_isJumping;	   // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã‚¸ãƒ£ãƒ³ãƒ—ä¸­ã‹ã©ã†ã‹
+	bool  m_isWasRunning;  // å‰å›ã®ç§»å‹•çŠ¶æ…‹ãŒèµ°ã£ã¦ã„ãŸã‹ã©ã†ã‹
+	bool  m_hasShot;       // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã‚·ãƒ§ãƒƒãƒˆå¯èƒ½ã‹ã©ã†ã‹
+	bool  m_isTackling;    // ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã‹ã©ã†ã‹
 };
 

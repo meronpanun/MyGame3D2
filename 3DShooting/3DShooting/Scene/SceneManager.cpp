@@ -1,4 +1,4 @@
-#include "SceneManager.h"
+ï»¿#include "SceneManager.h"
 #include "SceneTitle.h"
 #include "SceneMain.h"
 #include "SceneResult.h"
@@ -49,7 +49,7 @@ SceneManager::~SceneManager()
 
 void SceneManager::Init()
 {
-	// ‰ŠúƒV[ƒ“‚ðƒ^ƒCƒgƒ‹ƒV[ƒ“‚ÉÝ’è
+	// åˆæœŸã‚·ãƒ¼ãƒ³ã‚’ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã«è¨­å®š
 	m_pTitle = new SceneTitle();
 	m_pTitle->Init();
 	m_pCurrentScene = m_pTitle;
@@ -57,18 +57,18 @@ void SceneManager::Init()
 
 void SceneManager::Update()
 {
-	// ƒ}ƒEƒX‚Ì“ü—Íó‘Ô‚ðXV
+	// ãƒžã‚¦ã‚¹ã®å…¥åŠ›çŠ¶æ…‹ã‚’æ›´æ–°
 	Mouse::Update();
 
 
 
-	// Œ»Ý‚ÌƒV[ƒ“‚ðXV
+	// ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã‚’æ›´æ–°
 	if (m_pCurrentScene != nullptr)
 	{
 		m_pNextScene = m_pCurrentScene->Update();
 	}
 
-	// ƒV[ƒ“‚ª•Ï‚í‚Á‚½ê‡A‰Šú‰»ˆ—‚ðs‚¤
+	// ã‚·ãƒ¼ãƒ³ãŒå¤‰ã‚ã£ãŸå ´åˆã€åˆæœŸåŒ–å‡¦ç†ã‚’è¡Œã†
 	if (m_pNextScene != nullptr && m_pNextScene != m_pCurrentScene)
 	{
 		m_pCurrentScene = m_pNextScene;
@@ -78,12 +78,12 @@ void SceneManager::Update()
 
 void SceneManager::Draw()
 {
-	// Œ»Ý‚ÌƒV[ƒ“‚ð•`‰æ
+	// ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã‚’æç”»
 	if (m_pCurrentScene != nullptr)
 	{
 		m_pCurrentScene->Draw();
 	}
 
-	// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ð•\Ž¦
+	// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤º
 	DebugUtil::ShowDebugWindow();
 }

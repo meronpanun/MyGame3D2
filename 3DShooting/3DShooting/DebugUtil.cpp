@@ -1,39 +1,39 @@
-#include "DebugUtil.h"
+ï»¿#include "DebugUtil.h"
 #include "DxLib.h"
 #include <cstdarg>
 
-bool DebugUtil::s_isVisible = false; // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì•\¦ó‘Ô‚ğŠÇ—‚·‚éÃ“I•Ï”
+bool DebugUtil::s_isVisible = false; // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤ºçŠ¶æ…‹ã‚’ç®¡ç†ã™ã‚‹é™çš„å¤‰æ•°
 
-// 3DƒJƒvƒZƒ‹‚ÌƒfƒoƒbƒO•`‰æŠÖ”
+// 3Dã‚«ãƒ—ã‚»ãƒ«ã®ãƒ‡ãƒãƒƒã‚°æç”»é–¢æ•°
 void DebugUtil::DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill)
 {
     DrawCapsule3D(a, b, radius, div, color, color, fill);
 }
 
-// 3D‹…‚ÌƒfƒoƒbƒO•`‰æŠÖ”
+// 3Dçƒã®ãƒ‡ãƒãƒƒã‚°æç”»é–¢æ•°
 void DebugUtil::DrawSphere(const VECTOR& center, float radius, int div, int color, bool fill)
 {
     DrawSphere3D(center, radius, div, color, color, fill);
 }
 
-// 2DƒƒbƒZ[ƒW‚ğ•`‰æ‚·‚éŠÖ”
+// 2Dãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’æç”»ã™ã‚‹é–¢æ•°
 void DebugUtil::DrawMessage(int x, int y, unsigned int color, const std::string& msg)
 {
     DrawString(x, y, msg.c_str(), color);
 }
 
-// 2DƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğ•`‰æ‚·‚éŠÖ”
+// 2Dãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—ã‚’æç”»ã™ã‚‹é–¢æ•°
 void DebugUtil::DrawFormat(int x, int y, unsigned int color, const char* format, ...)
 {
     char buf[256];
-	va_list args;                              // ‰Â•Ïˆø”ƒŠƒXƒg
-	va_start(args, format);                    // ‰Â•Ïˆø”‚Ì‰Šú‰»
-	vsnprintf(buf, sizeof(buf), format, args); // ƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğƒoƒbƒtƒ@‚É‘‚«‚Ş
-	va_end(args);                              // ‰Â•Ïˆø”‚ÌI—¹
-	DrawString(x, y, buf, color); // •`‰æ
+	va_list args;                              // å¯å¤‰å¼•æ•°ãƒªã‚¹ãƒˆ
+	va_start(args, format);                    // å¯å¤‰å¼•æ•°ã®åˆæœŸåŒ–
+	vsnprintf(buf, sizeof(buf), format, args); // ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—ã‚’ãƒãƒƒãƒ•ã‚¡ã«æ›¸ãè¾¼ã‚€
+	va_end(args);                              // å¯å¤‰å¼•æ•°ã®çµ‚äº†
+	DrawString(x, y, buf, color); // æç”»
 }
 
-// ƒƒSƒXƒLƒbƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚·‚éŠÖ”
+// ãƒ­ã‚´ã‚¹ã‚­ãƒƒãƒ—ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹é–¢æ•°
 bool DebugUtil::IsSkipLogoKeyPressed()
 {
     return CheckHitKey(KEY_INPUT_S) != 0;
@@ -43,7 +43,7 @@ void DebugUtil::ShowDebugWindow()
 {
     static bool isVisible = false;
 
-    // F1ƒL[‚ª‰Ÿ‚³‚ê‚½uŠÔ‚É•\¦/”ñ•\¦‚ğØ‚è‘Ö‚¦
+    // F1ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸç¬é–“ã«è¡¨ç¤º/éè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆ
     static int prevF1 = 0;
     int nowF1 = CheckHitKey(KEY_INPUT_F1);
     if (nowF1 && !prevF1)
@@ -54,7 +54,7 @@ void DebugUtil::ShowDebugWindow()
 
     if (!s_isVisible) return;
 
-    // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì”wŒi‚ğ”¼“§–¾‚Å•`‰æ
+    // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®èƒŒæ™¯ã‚’åŠé€æ˜ã§æç”»
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, NULL);
 
@@ -62,23 +62,23 @@ void DebugUtil::ShowDebugWindow()
     DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì“à—e
+    // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å†…å®¹
     const int x = 40;
     const int y = 40;
     const int w = 400;
     const int h = 200;
 
-    // ”wŒi
+    // èƒŒæ™¯
     DrawBox(x, y, x + w, y + h, 0x000000, true);
-    // ˜g
+    // æ 
     DrawBox(x, y, x + w, y + h, 0x000000, true);
 
-    // ƒeƒLƒXƒg
-    DrawString(x + 16, y + 16, "ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE (F1‚ÅØ‘Ö)", 0xffffff);
-    DrawString(x + 16, y + 48, "E‚±‚±‚ÉƒfƒoƒbƒOî•ñ‚ğ•\¦‚Å‚«‚Ü‚·", 0xffffff);
+    // ãƒ†ã‚­ã‚¹ãƒˆ
+    DrawString(x + 16, y + 16, "ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ (F1ã§åˆ‡æ›¿)", 0xffffff);
+    DrawString(x + 16, y + 48, "ãƒ»ã“ã“ã«ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã‚’è¡¨ç¤ºã§ãã¾ã™", 0xffffff);
 }
 
-// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ª•\¦‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·
+// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™
 bool DebugUtil::IsDebugWindowVisible() 
 {
     return s_isVisible;

@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include "DxLib.h"
 
 /// <summary>
-/// ƒJƒƒ‰ƒNƒ‰ƒX
+/// ã‚«ãƒ¡ãƒ©ã‚¯ãƒ©ã‚¹
 /// </summary>
 class Camera
 {
@@ -14,109 +14,109 @@ public:
 	void Update();
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ÌŠ´“x‚ğİ’è 
+	/// ã‚«ãƒ¡ãƒ©ã®æ„Ÿåº¦ã‚’è¨­å®š 
 	/// </summary>
-	/// <param name="sensitivity">Š´“x</param> 
+	/// <param name="sensitivity">æ„Ÿåº¦</param> 
 	void SetSensitivity(float sensitivity);
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ÌˆÊ’u‚ğæ“¾
+	/// ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’å–å¾—
 	/// </summary>
-	/// <returns>ƒJƒƒ‰‚ÌˆÊ’u</returns>
+	/// <returns>ã‚«ãƒ¡ãƒ©ã®ä½ç½®</returns>
 	VECTOR GetPos() const { return m_pos; }
 
 	/// <summary>
-	/// ƒJƒƒ‰‚Ì’‹“_‚ğæ“¾
+	/// ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹ã‚’å–å¾—
 	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ì’‹“_</returns>
+	/// <returns>ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹</returns>
 	VECTOR GetTarget() const { return m_target; }
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğæ“¾
+	/// ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å–å¾—
 	/// </summary>
-	/// <returns>ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg</returns>
+	/// <returns>ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ</returns>
 	VECTOR GetOffset() const { return m_offset; }
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğİ’è
+	/// ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’è¨­å®š
 	/// </summary>
-	/// <param name="offset">ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg</param>
+	/// <param name="offset">ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ</param>
 	void SetOffset(const VECTOR& offset) { m_offset = offset; }
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ÌˆÊ’u‚ğİ’è
+	/// ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’è¨­å®š
 	/// </summary>
-	/// <param name="pos">ƒJƒƒ‰‚ÌˆÊ’u</param>
+	/// <param name="pos">ã‚«ãƒ¡ãƒ©ã®ä½ç½®</param>
 	void SetPos(const VECTOR& pos) { m_pos = pos; }
 	/// <summary>
-	/// ƒJƒƒ‰‚Ì’‹“_‚ğİ’è
+	/// ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹ã‚’è¨­å®š
 	/// </summary>
-	/// <param name="target">ƒJƒƒ‰‚Ì’‹“_</param>
+	/// <param name="target">ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹</param>
 	void SetTarget(const VECTOR& target) { m_target = target; }
 
 	/// <summary>
-	/// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğİ’è
+	/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’è¨­å®š
 	/// </summary>
-	/// <param name="playerPos">ƒvƒŒƒCƒ„[‚ÌˆÊ’u</param>
+	/// <param name="playerPos">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®</param>
 	void SetPlayerPos(const VECTOR& playerPos) { m_playerPos = playerPos; }
 
 	/// <summary>
-	/// ƒJƒƒ‰‚Ì‰ñ“]Šp“x‚ğæ“¾
+	/// ã‚«ãƒ¡ãƒ©ã®å›è»¢è§’åº¦ã‚’å–å¾—
 	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ì‰ñ“]Šp“x</returns>
+	/// <returns>ã‚«ãƒ¡ãƒ©ã®å›è»¢è§’åº¦</returns>
 	float GetYaw()   const { return m_yaw; }
 	/// <summary>
-	/// ƒJƒƒ‰‚Ìƒsƒbƒ`Šp“x‚ğæ“¾
+	/// ã‚«ãƒ¡ãƒ©ã®ãƒ”ãƒƒãƒè§’åº¦ã‚’å–å¾—
 	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ìƒsƒbƒ`Šp“x</returns>
+	/// <returns>ã‚«ãƒ¡ãƒ©ã®ãƒ”ãƒƒãƒè§’åº¦</returns>
 	float GetPitch() const { return m_pitch; }
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ÌˆÊ’u‚Æ’‹“_‚ğDxLib‚Éİ’è
+	/// ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã¨æ³¨è¦–ç‚¹ã‚’DxLibã«è¨­å®š
 	/// </summary>
 	void SetCameraToDxLib(); 
 
 	/// <summary>
-	/// ƒJƒƒ‰‚Ì‹–ìŠp(FOV)‚ğİ’è
+	/// ã‚«ãƒ¡ãƒ©ã®è¦–é‡è§’(FOV)ã‚’è¨­å®š
 	/// </summary>
-	/// <param name="fov">‹–ìŠp</param>
+	/// <param name="fov">è¦–é‡è§’</param>
 	void SetFOV(float fov);
 
 	/// <summary>
-	/// Œ»İ‚Ì‹–ìŠp(FOV)‚ğæ“¾
+	/// ç¾åœ¨ã®è¦–é‡è§’(FOV)ã‚’å–å¾—
 	/// </summary>
-	/// <returns>Œ»İ‚Ì‹–ìŠp(FOV)</returns>
+	/// <returns>ç¾åœ¨ã®è¦–é‡è§’(FOV)</returns>
 	float GetFOV() const;
 
 	/// <summary>
-	/// ƒJƒƒ‰‚Ì‹–ìŠp(FOV)‚ğƒfƒtƒHƒ‹ƒg‚É–ß‚·
+	/// ã‚«ãƒ¡ãƒ©ã®è¦–é‡è§’(FOV)ã‚’ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã«æˆ»ã™
 	/// </summary>
 	void ResetFOV();
 
 	/// <summary>
-	/// ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğƒfƒtƒHƒ‹ƒg‚É–ß‚·
+	/// ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã«æˆ»ã™
 	/// </summary>
 	void ResetOffset();
 
 	/// <summary>
-	/// –Ú•WFOV‚ğƒZƒbƒg
+	/// ç›®æ¨™FOVã‚’ã‚»ãƒƒãƒˆ
 	/// </summary>
-	/// <param name="fov">–Ú•WFOV</param>
+	/// <param name="fov">ç›®æ¨™FOV</param>
 	void SetTargetFOV(float fov);
 
 private:
-	VECTOR m_pos;			// ƒJƒƒ‰‚ÌˆÊ’u
-	VECTOR m_target;		// ƒJƒƒ‰‚Ì’‹“_
-	VECTOR m_offset;		// ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg
-	VECTOR m_defaultOffset; // ƒfƒtƒHƒ‹ƒg‚ÌƒIƒtƒZƒbƒg
-	VECTOR m_playerPos;		// ƒvƒŒƒCƒ„[‚ÌˆÊ’u
+	VECTOR m_pos;			// ã‚«ãƒ¡ãƒ©ã®ä½ç½®
+	VECTOR m_target;		// ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹
+	VECTOR m_offset;		// ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+	VECTOR m_defaultOffset; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+	VECTOR m_playerPos;		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®
 
-	float m_yaw;		  // ƒˆ[Šp“x
-	float m_pitch;		  // ƒsƒbƒ`Šp“x
-	float m_sensitivity;  // ƒJƒƒ‰‚ÌŠ´“x
-	float m_fov;		  // ƒJƒƒ‰‚Ì‹–ìŠp
-	float m_defaultFov;   // ƒfƒtƒHƒ‹ƒg‚ÌFOV
-	float m_targetFov;    // –Ú•WFOV
-	float m_fovLerpSpeed; // FOV‚Ì•âŠÔ‘¬“x
+	float m_yaw;		  // ãƒ¨ãƒ¼è§’åº¦
+	float m_pitch;		  // ãƒ”ãƒƒãƒè§’åº¦
+	float m_sensitivity;  // ã‚«ãƒ¡ãƒ©ã®æ„Ÿåº¦
+	float m_fov;		  // ã‚«ãƒ¡ãƒ©ã®è¦–é‡è§’
+	float m_defaultFov;   // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®FOV
+	float m_targetFov;    // ç›®æ¨™FOV
+	float m_fovLerpSpeed; // FOVã®è£œé–“é€Ÿåº¦
 };
 

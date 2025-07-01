@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include "SceneBase.h"
 
 /// <summary>
-/// ƒIƒvƒVƒ‡ƒ“ƒV[ƒ“ƒNƒ‰ƒX
+/// ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚·ãƒ¼ãƒ³ã‚¯ãƒ©ã‚¹
 /// </summary>
 class SceneOption : public SceneBase
 {

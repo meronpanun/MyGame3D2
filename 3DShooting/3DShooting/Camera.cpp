@@ -1,14 +1,14 @@
-#include "Camera.h"
+ï»¿#include "Camera.h"
 #include "Mouse.h"
 
 namespace
 {
-    constexpr float kPitchLimit = DX_PI_F / 4.0f; // ƒJƒƒ‰‚ÌŠp“x‚ğ45“x‚É§ŒÀ
-    constexpr float kCameraXPos = 8.0f;           // ƒJƒƒ‰‚ÌX²
-    constexpr float kCameraYPos = 90.0f;          // ƒJƒƒ‰‚ÌY²
-    constexpr float kCameraZPos = 25.0f;          // ƒJƒƒ‰‚ÌZ²
-    constexpr float kCameraNear = 10.0f;          // ƒJƒƒ‰‚Ì‹ß‚­‚Ì‹——£
-    constexpr float kCameraFar  = 1800.0f;        // ƒJƒƒ‰‚Ì‰“‚­‚Ì‹——£
+    constexpr float kPitchLimit = DX_PI_F / 4.0f; // ã‚«ãƒ¡ãƒ©ã®è§’åº¦ã‚’45åº¦ã«åˆ¶é™
+    constexpr float kCameraXPos = 8.0f;           // ã‚«ãƒ¡ãƒ©ã®Xè»¸
+    constexpr float kCameraYPos = 90.0f;          // ã‚«ãƒ¡ãƒ©ã®Yè»¸
+    constexpr float kCameraZPos = 25.0f;          // ã‚«ãƒ¡ãƒ©ã®Zè»¸
+    constexpr float kCameraNear = 10.0f;          // ã‚«ãƒ¡ãƒ©ã®è¿‘ãã®è·é›¢
+    constexpr float kCameraFar  = 1800.0f;        // ã‚«ãƒ¡ãƒ©ã®é ãã®è·é›¢
 }
 
 Camera::Camera() :
@@ -33,7 +33,7 @@ Camera::~Camera()
 
 void Camera::Init()
 {
-    // ƒJƒƒ‰‚Ìİ’è
+    // ã‚«ãƒ¡ãƒ©ã®è¨­å®š
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
     SetupCamera_Perspective(m_fov);
     SetCameraNearFar(kCameraNear, kCameraFar);
@@ -41,10 +41,10 @@ void Camera::Init()
 
 void Camera::Update()
 {
-    // ƒ}ƒEƒX‚ÌˆÚ“®—Ê‚ÉŠî‚Ã‚¢‚ÄƒJƒƒ‰‚Ì‰ñ“]Šp“x‚ğXV
+    // ãƒã‚¦ã‚¹ã®ç§»å‹•é‡ã«åŸºã¥ã„ã¦ã‚«ãƒ¡ãƒ©ã®å›è»¢è§’åº¦ã‚’æ›´æ–°
     Mouse::UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
 
-    // ƒsƒbƒ`Šp“x‚É§ŒÀ‚ğİ‚¯‚é
+    // ãƒ”ãƒƒãƒè§’åº¦ã«åˆ¶é™ã‚’è¨­ã‘ã‚‹
     if (m_pitch > kPitchLimit)
     {
         m_pitch = kPitchLimit;
@@ -54,39 +54,39 @@ void Camera::Update()
         m_pitch = -kPitchLimit;
     }
 
-    // ƒJƒƒ‰‚Ì‰ñ“]s—ñ‚ğì¬
+    // ã‚«ãƒ¡ãƒ©ã®å›è»¢è¡Œåˆ—ã‚’ä½œæˆ
     MATRIX rotYaw    = MGetRotY(m_yaw);
     MATRIX rotPitch  = MGetRotX(-m_pitch);
     MATRIX cameraRot = MMult(rotPitch, rotYaw);
 
-    // ƒJƒƒ‰‚ÌŒü‚«‚ğŒvZ
+    // ã‚«ãƒ¡ãƒ©ã®å‘ãã‚’è¨ˆç®—
     VECTOR forward = VTransform(VGet(0.0f, 0.0f, 1.0f), cameraRot);
 
-    // ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğ‰ñ“]‚³‚¹‚é
+    // ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å›è»¢ã•ã›ã‚‹
     VECTOR rotatedOffset = VTransform(m_offset, cameraRot);
 
-    // ƒJƒƒ‰‚ÌˆÊ’u‚ğXV
+    // ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’æ›´æ–°
     m_pos    = VAdd(m_playerPos, rotatedOffset);
     m_target = VAdd(m_pos, forward);
 
-    // FOV‚ğŠŠ‚ç‚©‚É•âŠÔ
+    // FOVã‚’æ»‘ã‚‰ã‹ã«è£œé–“
     m_fov += (m_targetFov - m_fov) * m_fovLerpSpeed;
 
-    // ƒJƒƒ‰‚Ìİ’è‚ğXV
+    // ã‚«ãƒ¡ãƒ©ã®è¨­å®šã‚’æ›´æ–°
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
-    SetupCamera_Perspective(m_fov); // FOV‚ğ–ˆƒtƒŒ[ƒ€”½‰f
+    SetupCamera_Perspective(m_fov); // FOVã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ åæ˜ 
 }
 
-// ƒJƒƒ‰‚ÌŠ´“x‚ğİ’è
+// ã‚«ãƒ¡ãƒ©ã®æ„Ÿåº¦ã‚’è¨­å®š
 void Camera::SetSensitivity(float sensitivity)
 {
     m_sensitivity = sensitivity;
 }
 
-// ƒJƒƒ‰‚ÌˆÊ’u‚ğİ’è
+// ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’è¨­å®š
 void Camera::SetCameraToDxLib()
 {
-    // ƒJƒƒ‰‚ÌˆÊ’u‚Æ’‹“_‚ğİ’è
+    // ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã¨æ³¨è¦–ç‚¹ã‚’è¨­å®š
 	SetCameraPositionAndTarget_UpVecY(m_pos, m_target); 
 }
 

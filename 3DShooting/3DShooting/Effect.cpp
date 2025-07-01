@@ -1,4 +1,4 @@
-//#include "Effect.h"
+ï»¿//#include "Effect.h"
 //#include "EffekseerForDXLib.h"
 //#include "DxLib.h"
 //#include <assert.h>
@@ -6,14 +6,14 @@
 //Effect::Effect() :
 //	muzzleFlashEffectHandle(-1)
 //{
-//	// ƒGƒtƒFƒNƒg‚Ìƒnƒ“ƒhƒ‹‚ğæ“¾
+//	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«ã‚’å–å¾—
 //	muzzleFlashEffectHandle = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 0.7f);
 //	assert(muzzleFlashEffectHandle != -1);
 //}
 //
 //Effect::~Effect()
 //{
-//	// ƒGƒtƒFƒNƒg‚Ìƒnƒ“ƒhƒ‹‚ğíœ
+//	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«ã‚’å‰Šé™¤
 //	DeleteEffekseerEffect(muzzleFlashEffectHandle);
 //}
 //
@@ -24,17 +24,17 @@
 //
 //void Effect::Update()
 //{
-//	// 3DƒGƒtƒFƒNƒg‚ÌXV
+//	// 3Dã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æ›´æ–°
 //	UpdateEffekseer3D();
 //}
 //
 //void Effect::Draw()
 //{
-//	// 3DƒGƒtƒFƒNƒg‚Ì•`‰æ
+//	// 3Dã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æç”»
 //	DrawEffekseer3D();
 //}
 //
-//// ƒ}ƒYƒ‹ƒtƒ‰ƒbƒVƒ…‚ğÄ¶‚·‚é
+//// ãƒã‚ºãƒ«ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã‚’å†ç”Ÿã™ã‚‹
 //void Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ)
 //{
 //	if (muzzleFlashEffectHandle != -1)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ItemBase.h"
 #include "DxLib.h"
 #include "SphereCollider.h"

@@ -1,15 +1,15 @@
-//#include "Player.h"
+ï»¿//#include "Player.h"
 #include "EnemyBase.h"
 #include "Bullet.h"
 #include "Collider.h"
 
 namespace
 {
-	constexpr int   kDefaultHitDisplayDuration = 60;     // 1•bŠÔ•\¦
-	constexpr float kDefaultInitialHP = 100.0f; // ƒfƒtƒHƒ‹ƒg‚Ì‰Šú‘Ì—Í 
+	constexpr int   kDefaultHitDisplayDuration = 60;     // 1ç§’é–“è¡¨ç¤º
+	constexpr float kDefaultInitialHP = 100.0f; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®åˆæœŸä½“åŠ› 
 
-	constexpr float kDefaultCooldownMax = 60;     // UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ÌÅ‘å’l
-	constexpr float kDefaultAttackPower = 10.0f;  // UŒ‚—Í
+	constexpr float kDefaultCooldownMax = 60;     // æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã®æœ€å¤§å€¤
+	constexpr float kDefaultAttackPower = 10.0f;  // æ”»æ’ƒåŠ›
 }
 
 EnemyBase::EnemyBase() :
@@ -31,26 +31,26 @@ EnemyBase::EnemyBase() :
 
 void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
 {
-    // Å‚à‹ß‚¢ƒqƒbƒgî•ñ‚ğ•Û
+    // æœ€ã‚‚è¿‘ã„ãƒ’ãƒƒãƒˆæƒ…å ±ã‚’ä¿æŒ
     int hitBulletIndex = -1;
-    float minHitDistSq = FLT_MAX; // Å‚à‹ß‚¢Õ“Ë‚Ü‚Å‚Ì‹——£‚Ì2æ
-    HitPart determinedHitPart = HitPart::None; // ÅI“I‚ÉŒˆ’è‚³‚ê‚½ƒqƒbƒg•”ˆÊ
+    float minHitDistSq = FLT_MAX; // æœ€ã‚‚è¿‘ã„è¡çªã¾ã§ã®è·é›¢ã®2ä¹—
+    HitPart determinedHitPart = HitPart::None; // æœ€çµ‚çš„ã«æ±ºå®šã•ã‚ŒãŸãƒ’ãƒƒãƒˆéƒ¨ä½
 
     for (int i = 0; i < bullets.size(); ++i)
     {
         auto& bullet = bullets[i];
         if (!bullet.IsActive()) continue;
 
-        // ’e‚ÌRayî•ñ‚ğæ“¾ (‘OƒtƒŒ[ƒ€ˆÊ’u -> Œ»İˆÊ’u)
+        // å¼¾ã®Rayæƒ…å ±ã‚’å–å¾— (å‰ãƒ•ãƒ¬ãƒ¼ãƒ ä½ç½® -> ç¾åœ¨ä½ç½®)
         VECTOR rayStart = bullet.GetPrevPos();
         VECTOR rayEnd = bullet.GetPos();
 
-        // ‚Ç‚±‚É“–‚½‚Á‚½‚Ì‚©‚ğƒ`ƒFƒbƒN
-        // CheckHitPart‚ÍÅ‚à‹ß‚¢Õ“Ë“_‚ğl—¶‚µ‚ÄHitPart‚ğ•Ô‚·‚æ‚¤‚É‚·‚é
-        // ‚±‚±‚Å‚Í‹——£‚Ìî•ñ‚à“à•”‚Å—˜—p‚·‚é‚æ‚¤‚É‚·‚é
+        // ã©ã“ã«å½“ãŸã£ãŸã®ã‹ã‚’ãƒã‚§ãƒƒã‚¯
+        // CheckHitPartã¯æœ€ã‚‚è¿‘ã„è¡çªç‚¹ã‚’è€ƒæ…®ã—ã¦HitPartã‚’è¿”ã™ã‚ˆã†ã«ã™ã‚‹
+        // ã“ã“ã§ã¯è·é›¢ã®æƒ…å ±ã‚‚å†…éƒ¨ã§åˆ©ç”¨ã™ã‚‹ã‚ˆã†ã«ã™ã‚‹
         VECTOR currentHitPos;
         float currentHitDistSq;
-        HitPart part = CheckHitPart(rayStart, rayEnd, currentHitPos, currentHitDistSq); // ‹——£î•ñ‚àó‚¯æ‚é‚æ‚¤‚É•ÏX
+        HitPart part = CheckHitPart(rayStart, rayEnd, currentHitPos, currentHitDistSq); // è·é›¢æƒ…å ±ã‚‚å—ã‘å–ã‚‹ã‚ˆã†ã«å¤‰æ›´
 
         if (part != HitPart::None)
         {
@@ -58,12 +58,12 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
             {
                 minHitDistSq = currentHitDistSq;
                 hitBulletIndex = i;
-                determinedHitPart = part; // Å‚à‹ß‚¢ƒqƒbƒg‚Ì•”ˆÊ‚ğ•Û
+                determinedHitPart = part; // æœ€ã‚‚è¿‘ã„ãƒ’ãƒƒãƒˆã®éƒ¨ä½ã‚’ä¿æŒ
             }
         }
     }
 
-    // Å‚à‹ß‚¢’e‚Åƒ_ƒ[ƒWˆ—‚ğs‚¤
+    // æœ€ã‚‚è¿‘ã„å¼¾ã§ãƒ€ãƒ¡ãƒ¼ã‚¸å‡¦ç†ã‚’è¡Œã†
     if (hitBulletIndex != -1)
     {
         auto& bullet = bullets[hitBulletIndex];
@@ -73,11 +73,11 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
         m_lastHitPart = determinedHitPart;
         m_hitDisplayTimer = kDefaultHitDisplayDuration;
 
-        bullet.Deactivate(); // “G‚É“–‚½‚Á‚½’e‚Í”ñƒAƒNƒeƒBƒu‚É‚·‚é
+        bullet.Deactivate(); // æ•µã«å½“ãŸã£ãŸå¼¾ã¯éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
     }
 }
 
-// “G‚ªƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
+// æ•µãŒãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
 void EnemyBase::TakeDamage(float damage)
 {
 	m_hp -= damage;
@@ -88,12 +88,12 @@ void EnemyBase::TakeDamage(float damage)
 	}
 }
 
-// “G‚ªƒ^ƒbƒNƒ‹ƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
+// æ•µãŒã‚¿ãƒƒã‚¯ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
 void EnemyBase::TakeTackleDamage(float damage)
 {
-	TakeDamage(damage); // ƒfƒtƒHƒ‹ƒg‚Í’Êíƒ_ƒ[ƒW‚Æ“¯‚¶
+	TakeDamage(damage); // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯é€šå¸¸ãƒ€ãƒ¡ãƒ¼ã‚¸ã¨åŒã˜
 
-	// ƒqƒbƒg•\¦‚ğ‘Ìƒqƒbƒg‚Æ‚µ‚ÄXV
+	// ãƒ’ãƒƒãƒˆè¡¨ç¤ºã‚’ä½“ãƒ’ãƒƒãƒˆã¨ã—ã¦æ›´æ–°
 	m_lastHitPart = HitPart::Body;
-	m_hitDisplayTimer = kDefaultHitDisplayDuration; // 1•bŠÔ•\¦
+	m_hitDisplayTimer = kDefaultHitDisplayDuration; // 1ç§’é–“è¡¨ç¤º
 }

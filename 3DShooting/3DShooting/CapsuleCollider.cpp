@@ -1,70 +1,70 @@
-#include "DxLib.h"
+ï»¿#include "DxLib.h"
 #include "CapsuleCollider.h"
 #include "SphereCollider.h"
 #include <algorithm>
 #include <cmath>
 #include <float.h>
 
-// ü•ªpq‚Æ“_c‚ÌŠÔ‚ÌÅ’Z‹——£‚ğŒvZ‚µAü•ªpqã‚ÌÅ’Z“_‚à•Ô‚·
+// ç·šåˆ†pqã¨ç‚¹cã®é–“ã®æœ€çŸ­è·é›¢ã‚’è¨ˆç®—ã—ã€ç·šåˆ†pqä¸Šã®æœ€çŸ­ç‚¹ã‚‚è¿”ã™
 VECTOR ClosestPtPointSegment(const VECTOR& c, const VECTOR& p, const VECTOR& q)
 {
-	VECTOR ab = VSub(q, p); // ü•ªpq‚ÌƒxƒNƒgƒ‹
-	float   t = VDot(VSub(c, p), ab) / VDot(ab, ab); // ü•ªpqã‚Ì“_c‚©‚ç‚Ì“Š‰eƒpƒ‰ƒ[ƒ^
+	VECTOR ab = VSub(q, p); // ç·šåˆ†pqã®ãƒ™ã‚¯ãƒˆãƒ«
+	float   t = VDot(VSub(c, p), ab) / VDot(ab, ab); // ç·šåˆ†pqä¸Šã®ç‚¹cã‹ã‚‰ã®æŠ•å½±ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 
-	return VAdd(p, VScale(ab, std::clamp(t, 0.0f, 1.0f))); // ü•ªpqã‚ÌÅ’Z“_‚ğ•Ô‚·
+	return VAdd(p, VScale(ab, std::clamp(t, 0.0f, 1.0f))); // ç·šåˆ†pqä¸Šã®æœ€çŸ­ç‚¹ã‚’è¿”ã™
 }
 
-// Ray‚Æ‹…‘Ì‚ÌŒğ·”»’è
+// Rayã¨çƒä½“ã®äº¤å·®åˆ¤å®š
 bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VECTOR& sphereCenter, float sphereRadius, VECTOR& outHtPos, float& outHtDistSq)
 {
-	VECTOR rayDir      = VSub(rayEnd, rayStart); // Ray‚Ì•ûŒüƒxƒNƒgƒ‹
-	float  rayLengthSq = VDot(rayDir, rayDir);   // Ray‚Ì’·‚³‚Ì“ñæ
+	VECTOR rayDir      = VSub(rayEnd, rayStart); // Rayã®æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«
+	float  rayLengthSq = VDot(rayDir, rayDir);   // Rayã®é•·ã•ã®äºŒä¹—
 
-	// Ray‚Ì’·‚³‚ª0‚É‹ß‚¢ê‡A“_‚Æ‹…‘Ì‚ÌŒğ·”»’è‚ğs‚¤
+	// Rayã®é•·ã•ãŒ0ã«è¿‘ã„å ´åˆã€ç‚¹ã¨çƒä½“ã®äº¤å·®åˆ¤å®šã‚’è¡Œã†
 	if (rayLengthSq < 0.0001f)
     {
-		float distSq = VDot(VSub(sphereCenter, rayStart), VSub(sphereCenter, rayStart)); // ‹…S‚ÆRayn“_‚Ì‹——£‚Ì“ñæ
+		float distSq = VDot(VSub(sphereCenter, rayStart), VSub(sphereCenter, rayStart)); // çƒå¿ƒã¨Rayå§‹ç‚¹ã®è·é›¢ã®äºŒä¹—
 
-		// ‹…S‚ÆRayn“_‚Ì‹——£‚ª‹…‚Ì”¼ŒaˆÈ‰º‚È‚çARay‚Í‹…‚ÉÚG‚µ‚Ä‚¢‚é
+		// çƒå¿ƒã¨Rayå§‹ç‚¹ã®è·é›¢ãŒçƒã®åŠå¾„ä»¥ä¸‹ãªã‚‰ã€Rayã¯çƒã«æ¥è§¦ã—ã¦ã„ã‚‹
         if (distSq <= sphereRadius * sphereRadius)
         {
-			outHtPos    = rayStart; // Œğ“_‚ÍRay‚Ìn“_
-			outHtDistSq = 0.0f;     // Œğ“_‚Ü‚Å‚Ì‹——£‚Ì“ñæ‚Í0
+			outHtPos    = rayStart; // äº¤ç‚¹ã¯Rayã®å§‹ç‚¹
+			outHtDistSq = 0.0f;     // äº¤ç‚¹ã¾ã§ã®è·é›¢ã®äºŒä¹—ã¯0
             return true;
         }
         return false;
     }
-	VECTOR oc = VSub(rayStart, sphereCenter); // Rayn“_‚©‚ç‹…S‚Ö‚ÌƒxƒNƒgƒ‹
+	VECTOR oc = VSub(rayStart, sphereCenter); // Rayå§‹ç‚¹ã‹ã‚‰çƒå¿ƒã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
 
-	float a = rayLengthSq;                                // Ray‚Ì’·‚³‚Ì“ñæ
-	float b = 2.0f * VDot(oc, rayDir);                    // Rayn“_‚©‚ç‹…S‚Ö‚ÌƒxƒNƒgƒ‹‚ÆRay‚Ì•ûŒüƒxƒNƒgƒ‹‚Ì“àÏ‚Ì2”{
-	float c = VDot(oc, oc) - sphereRadius * sphereRadius; // ‹…S‚ÆRayn“_‚Ì‹——£‚Ì“ñæ‚©‚ç‹…‚Ì”¼Œa‚Ì“ñæ‚ğˆø‚¢‚½’l
-	float discriminant = b * b - 4 * a * c;               // ”»•Ê®
+	float a = rayLengthSq;                                // Rayã®é•·ã•ã®äºŒä¹—
+	float b = 2.0f * VDot(oc, rayDir);                    // Rayå§‹ç‚¹ã‹ã‚‰çƒå¿ƒã¸ã®ãƒ™ã‚¯ãƒˆãƒ«ã¨Rayã®æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã®å†…ç©ã®2å€
+	float c = VDot(oc, oc) - sphereRadius * sphereRadius; // çƒå¿ƒã¨Rayå§‹ç‚¹ã®è·é›¢ã®äºŒä¹—ã‹ã‚‰çƒã®åŠå¾„ã®äºŒä¹—ã‚’å¼•ã„ãŸå€¤
+	float discriminant = b * b - 4 * a * c;               // åˆ¤åˆ¥å¼
 
-	// ”»•Ê®‚ª•‰‚Ìê‡ARay‚Æ‹…‚ÍŒğ·‚µ‚È‚¢
+	// åˆ¤åˆ¥å¼ãŒè² ã®å ´åˆã€Rayã¨çƒã¯äº¤å·®ã—ãªã„
     if (discriminant < 0)
     {
         return false;
     }
     else
     {
-		float t  = (-b - std::sqrt(discriminant)) / (2.0f * a); // Ray‚Æ‹…‚ÌŒğ“_‚Ü‚Å‚Ìƒpƒ‰ƒ[ƒ^t
-		float t1 = (-b + std::sqrt(discriminant)) / (2.0f * a); // ‚à‚¤ˆê‚Â‚ÌŒğ“_‚Ü‚Å‚Ìƒpƒ‰ƒ[ƒ^t
+		float t  = (-b - std::sqrt(discriminant)) / (2.0f * a); // Rayã¨çƒã®äº¤ç‚¹ã¾ã§ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿t
+		float t1 = (-b + std::sqrt(discriminant)) / (2.0f * a); // ã‚‚ã†ä¸€ã¤ã®äº¤ç‚¹ã¾ã§ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿t
 
-        // Ray‚Ì”ÍˆÍ(0‚©‚ç1)“à‚ÅAÅ‚à‹ß‚¢Œğ“_‚ğ’T‚·
+        // Rayã®ç¯„å›²(0ã‹ã‚‰1)å†…ã§ã€æœ€ã‚‚è¿‘ã„äº¤ç‚¹ã‚’æ¢ã™
         if (t < 0.0f || t > 1.0f)
         {
             t = t1;
 
-			// ‚à‚µt1‚à”ÍˆÍŠO‚È‚çAŒğ·‚µ‚È‚¢
+			// ã‚‚ã—t1ã‚‚ç¯„å›²å¤–ãªã‚‰ã€äº¤å·®ã—ãªã„
             if (t < 0.0f || t > 1.0f)
             {
                 return false;
             }
         }
 
-		outHtPos    = VAdd(rayStart, VScale(rayDir, t)); // Œğ“_‚ÌˆÊ’u‚ğŒvZ
-		outHtDistSq = VDot(VSub(outHtPos, rayStart), VSub(outHtPos, rayStart)); // Œğ“_‚Ü‚Å‚Ì‹——£‚Ì“ñæ‚ğŒvZ
+		outHtPos    = VAdd(rayStart, VScale(rayDir, t)); // äº¤ç‚¹ã®ä½ç½®ã‚’è¨ˆç®—
+		outHtDistSq = VDot(VSub(outHtPos, rayStart), VSub(outHtPos, rayStart)); // äº¤ç‚¹ã¾ã§ã®è·é›¢ã®äºŒä¹—ã‚’è¨ˆç®—
 
         return true;
     }
@@ -82,33 +82,33 @@ CapsuleCollider::~CapsuleCollider()
 {
 }
 
-// CapsuleCollider“¯m‚ÌŒğ·”»’è
+// CapsuleCollideråŒå£«ã®äº¤å·®åˆ¤å®š
 bool CapsuleCollider::Intersects(const Collider* other) const
 {
-	// ‘¼‚ÌƒRƒ‰ƒCƒ_[‚ªnullptr‚Ìê‡‚ÍŒğ·‚µ‚È‚¢
+	// ä»–ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ãŒnullptrã®å ´åˆã¯äº¤å·®ã—ãªã„
 	if (!other) return false; 
 
-    // CapsuleCollider“¯m‚Ì”»’è
+    // CapsuleCollideråŒå£«ã®åˆ¤å®š
     const CapsuleCollider* capsule = dynamic_cast<const CapsuleCollider*>(other);
     if (capsule)
     {
-        // 2‚Â‚Ìü•ªŠÔ‚ÌÅ’Z‹——£‚ğ‹‚ß‚éƒƒWƒbƒN
+        // 2ã¤ã®ç·šåˆ†é–“ã®æœ€çŸ­è·é›¢ã‚’æ±‚ã‚ã‚‹ãƒ­ã‚¸ãƒƒã‚¯
 		VECTOR d1 = VSub(m_segmentB, m_segmentA);
 		VECTOR d2 = VSub(capsule->m_segmentB, capsule->m_segmentA);
 		VECTOR r  = VSub(m_segmentA, capsule->m_segmentA); 
 
-		// d1‚Æd2‚Ì’·‚³‚ğŒvZ
+		// d1ã¨d2ã®é•·ã•ã‚’è¨ˆç®—
         float a = VDot(d1, d1);
         float e = VDot(d2, d2);
         float f = VDot(d2, r); 
 
-		// d1‚Æd2‚Ì“àÏ‚ğŒvZ
+		// d1ã¨d2ã®å†…ç©ã‚’è¨ˆç®—
         float s = 0.0f, t = 0.0f;
         float c = VDot(d1, r);
         float b = VDot(d1, d2);
         float denom = a * e - b * b;
 
-		// •ª•ê‚ª0‚Å‚È‚¢ê‡As‚ğŒvZ
+		// åˆ†æ¯ãŒ0ã§ãªã„å ´åˆã€sã‚’è¨ˆç®—
         if (denom != 0.0f)
         {
             s = std::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
@@ -117,10 +117,10 @@ bool CapsuleCollider::Intersects(const Collider* other) const
         {
             s = 0.0f;
         }
-		// •ª•ê‚ª0‚Å‚È‚¢ê‡At‚ğŒvZ
+		// åˆ†æ¯ãŒ0ã§ãªã„å ´åˆã€tã‚’è¨ˆç®—
         t = (b * s + f) / e;
 
-		// t‚ª”ÍˆÍŠO‚Ìê‡As‚ğ’²®
+		// tãŒç¯„å›²å¤–ã®å ´åˆã€sã‚’èª¿æ•´
         if (t < 0.0f) 
         {
             t = 0.0f;
@@ -132,114 +132,114 @@ bool CapsuleCollider::Intersects(const Collider* other) const
             s = std::clamp((c + b) / a, 0.0f, 1.0f);
         }
 
-		// Å’Z“_‚ğŒvZ
+		// æœ€çŸ­ç‚¹ã‚’è¨ˆç®—
         VECTOR p1 = VAdd(m_segmentA, VScale(d1, s));
         VECTOR p2 = VAdd(capsule->m_segmentA, VScale(d2, t));
 
-		// Å’Z“_ŠÔ‚Ì‹——£‚ğŒvZ
+		// æœ€çŸ­ç‚¹é–“ã®è·é›¢ã‚’è¨ˆç®—
         float distSq    = VDot(VSub(p1, p2), VSub(p1, p2));
         float radiusSum = m_radius + capsule->m_radius;
 
-		// ”¼Œa‚Ì˜a‚Ì“ñæ‚ÆÅ’Z“_ŠÔ‚Ì‹——£‚Ì“ñæ‚ğ”äŠr
+		// åŠå¾„ã®å’Œã®äºŒä¹—ã¨æœ€çŸ­ç‚¹é–“ã®è·é›¢ã®äºŒä¹—ã‚’æ¯”è¼ƒ
         return distSq <= radiusSum * radiusSum;
     }
 
-    // SphereCollider‚Æ‚Ì”»’è(CapsuleCollider‘¤‚©‚çSphereCollider‚ğ”»’è‚·‚é)
+    // SphereColliderã¨ã®åˆ¤å®š(CapsuleColliderå´ã‹ã‚‰SphereColliderã‚’åˆ¤å®šã™ã‚‹)
     const SphereCollider* sphere = dynamic_cast<const SphereCollider*>(other);
     if (sphere)
     {
-        // SphereCollider‘¤‚ÅÀ‘•‚µ‚Ä‚¢‚é‚Ì‚ÅA‚»‚¿‚ç‚ğŒÄ‚Ño‚·
+        // SphereColliderå´ã§å®Ÿè£…ã—ã¦ã„ã‚‹ã®ã§ã€ãã¡ã‚‰ã‚’å‘¼ã³å‡ºã™
         return sphere->Intersects(this);
     }
 
-    return false; // –¢’m‚ÌƒRƒ‰ƒCƒ_[ƒ^ƒCƒv
+    return false; // æœªçŸ¥ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚¿ã‚¤ãƒ—
 }
 
-// Ray‚ÆƒJƒvƒZƒ‹‚ÌŒğ·”»’è
+// Rayã¨ã‚«ãƒ—ã‚»ãƒ«ã®äº¤å·®åˆ¤å®š
 bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const
 {
-	// Ray‚Ìn“_‚ÆI“_‚ğƒxƒNƒgƒ‹‚Æ‚µ‚Äæ“¾
+	// Rayã®å§‹ç‚¹ã¨çµ‚ç‚¹ã‚’ãƒ™ã‚¯ãƒˆãƒ«ã¨ã—ã¦å–å¾—
     VECTOR rayDir      = VSub(rayEnd, rayStart); 
     float  rayLengthSq = VDot(rayDir, rayDir);
 
-    // Ray‚Ì’·‚³‚ª0‚É‹ß‚¢ê‡A“_‚ÆƒJƒvƒZƒ‹‚ÌŒğ·”»’è‚ğs‚¤
+    // Rayã®é•·ã•ãŒ0ã«è¿‘ã„å ´åˆã€ç‚¹ã¨ã‚«ãƒ—ã‚»ãƒ«ã®äº¤å·®åˆ¤å®šã‚’è¡Œã†
     if (rayLengthSq < 0.0001f)
     {
         VECTOR closestPointOnCapsuleSegment = ClosestPtPointSegment(rayStart, m_segmentA, m_segmentB);
         float distSq = VDot(VSub(rayStart, closestPointOnCapsuleSegment), VSub(rayStart, closestPointOnCapsuleSegment));
 
-		// Rayn“_‚ÆƒJƒvƒZƒ‹‚Ìü•ªã‚ÌÅ’Z“_‚Ì‹——£‚ªƒJƒvƒZƒ‹‚Ì”¼ŒaˆÈ‰º‚È‚çARay‚ÍƒJƒvƒZƒ‹‚ÉÚG‚µ‚Ä‚¢‚é
+		// Rayå§‹ç‚¹ã¨ã‚«ãƒ—ã‚»ãƒ«ã®ç·šåˆ†ä¸Šã®æœ€çŸ­ç‚¹ã®è·é›¢ãŒã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„ä»¥ä¸‹ãªã‚‰ã€Rayã¯ã‚«ãƒ—ã‚»ãƒ«ã«æ¥è§¦ã—ã¦ã„ã‚‹
         if (distSq <= m_radius * m_radius)
         {
-			outHitPos    = rayStart; // Œğ“_‚ÍRay‚Ìn“_
-			outHitDistSq = 0.0f;     // Œğ“_‚Ü‚Å‚Ì‹——£‚Ì“ñæ‚Í0
+			outHitPos    = rayStart; // äº¤ç‚¹ã¯Rayã®å§‹ç‚¹
+			outHitDistSq = 0.0f;     // äº¤ç‚¹ã¾ã§ã®è·é›¢ã®äºŒä¹—ã¯0
             return true;
         }
         return false;
     }
 
-    float minT = FLT_MAX; // Ray‚Ìƒpƒ‰ƒ[ƒ^t‚ÌÅ¬’l
+    float minT = FLT_MAX; // Rayã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿tã®æœ€å°å€¤
     bool hit = false;
     VECTOR currentHitPos;
     float currentHitDistSq;
 
-    // ƒJƒvƒZƒ‹‚Ì‰~’Œ•”•ª‚ÆRay‚ÌŒğ·”»’è
-    // ƒJƒvƒZƒ‹‚ğü•ªAB‚Æ”¼Œar‚Ì–³ŒÀ’·‰~’Œ‚Æ‚µ‚Äˆµ‚¤
-    VECTOR OA = VSub(rayStart, m_segmentA);   // Rayn“_‚©‚çƒJƒvƒZƒ‹²A‚Ö‚ÌƒxƒNƒgƒ‹
-    VECTOR AB = VSub(m_segmentB, m_segmentA); // ƒJƒvƒZƒ‹²‚ÌƒxƒNƒgƒ‹
+    // ã‚«ãƒ—ã‚»ãƒ«ã®å††æŸ±éƒ¨åˆ†ã¨Rayã®äº¤å·®åˆ¤å®š
+    // ã‚«ãƒ—ã‚»ãƒ«ã‚’ç·šåˆ†ABã¨åŠå¾„rã®ç„¡é™é•·å††æŸ±ã¨ã—ã¦æ‰±ã†
+    VECTOR OA = VSub(rayStart, m_segmentA);   // Rayå§‹ç‚¹ã‹ã‚‰ã‚«ãƒ—ã‚»ãƒ«è»¸Aã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
+    VECTOR AB = VSub(m_segmentB, m_segmentA); // ã‚«ãƒ—ã‚»ãƒ«è»¸ã®ãƒ™ã‚¯ãƒˆãƒ«
 
     float abLenSq = VDot(AB, AB);
 
-    // ƒJƒvƒZƒ‹‚ª‹…‚É‚È‚Á‚Ä‚¢‚éê‡(ü•ªAB‚Ì’·‚³‚ªƒ[ƒ‚É‹ß‚¢)
+    // ã‚«ãƒ—ã‚»ãƒ«ãŒçƒã«ãªã£ã¦ã„ã‚‹å ´åˆ(ç·šåˆ†ABã®é•·ã•ãŒã‚¼ãƒ­ã«è¿‘ã„)
     if (abLenSq < 0.0001f) 
     {
         return IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, outHitPos, outHitDistSq);
     }
 
-    VECTOR u = VNorm(AB); // ƒJƒvƒZƒ‹²‚Ì’PˆÊƒxƒNƒgƒ‹
+    VECTOR u = VNorm(AB); // ã‚«ãƒ—ã‚»ãƒ«è»¸ã®å˜ä½ãƒ™ã‚¯ãƒˆãƒ«
 
-    // Ray‚ğƒJƒvƒZƒ‹²‚É’¼Œğ‚·‚é•½–Ê‚É“Š‰e‚µ‚½ƒxƒNƒgƒ‹‚ğl‚¦‚é
+    // Rayã‚’ã‚«ãƒ—ã‚»ãƒ«è»¸ã«ç›´äº¤ã™ã‚‹å¹³é¢ã«æŠ•å½±ã—ãŸãƒ™ã‚¯ãƒˆãƒ«ã‚’è€ƒãˆã‚‹
     VECTOR v = VSub(rayDir, VScale(u, VDot(rayDir, u)));
     VECTOR w = VSub(OA, VScale(u, VDot(OA, u)));
 
-	// ‰~’Œ‚Ì•û’ö®‚ÉŠî‚Ã‚¢‚ÄARay‚Æ‰~’Œ‚ÌŒğ·”»’è‚ğs‚¤
+	// å††æŸ±ã®æ–¹ç¨‹å¼ã«åŸºã¥ã„ã¦ã€Rayã¨å††æŸ±ã®äº¤å·®åˆ¤å®šã‚’è¡Œã†
     float a = VDot(v, v);
     float b = 2.0f * VDot(v, w);
     float c = VDot(w, w) - m_radius * m_radius;
     float discriminant = b * b - 4 * a * c;
 
-	// ”»•Ê®‚ª0ˆÈã‚Ìê‡ARay‚Æ‰~’Œ‚ÍŒğ·‚·‚é
+	// åˆ¤åˆ¥å¼ãŒ0ä»¥ä¸Šã®å ´åˆã€Rayã¨å††æŸ±ã¯äº¤å·®ã™ã‚‹
     if (discriminant >= 0)
     {
-		// Œğ·“_‚Ìt‚ğŒvZ
+		// äº¤å·®ç‚¹ã®tã‚’è¨ˆç®—
         float sqrtDiscr = std::sqrt(discriminant);
         float tCyl0 = (-b - sqrtDiscr) / (2.0f * a);
         float tCyl1 = (-b + sqrtDiscr) / (2.0f * a);
 
-		// Œğ·“_‚Ìt‚ªRay‚Ì”ÍˆÍ(0‚©‚ç1)“à‚É‚ ‚é‚©Šm”F
+		// äº¤å·®ç‚¹ã®tãŒRayã®ç¯„å›²(0ã‹ã‚‰1)å†…ã«ã‚ã‚‹ã‹ç¢ºèª
         for (float tCyl : {tCyl0, tCyl1})
         {
             if (tCyl >= 0.0f && tCyl <= 1.0f) 
             {
-				// Œğ·“_‚ÌˆÊ’u‚ğŒvZ
+				// äº¤å·®ç‚¹ã®ä½ç½®ã‚’è¨ˆç®—
                 VECTOR pIntersect  = VAdd(rayStart, VScale(rayDir, tCyl)); 
                 VECTOR projOnAxis  = VAdd(m_segmentA, VScale(u, VDot(VSub(pIntersect, m_segmentA), u)));
 
-				float t_axis = VDot(VSub(projOnAxis, m_segmentA), AB) / abLenSq; // ü•ªABã‚ÌŒğ·“_‚Ìƒpƒ‰ƒ[ƒ^t
+				float t_axis = VDot(VSub(projOnAxis, m_segmentA), AB) / abLenSq; // ç·šåˆ†ABä¸Šã®äº¤å·®ç‚¹ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿t
 
-				// Œğ·“_‚ªü•ªABã‚É‚ ‚é‚©Šm”F
+				// äº¤å·®ç‚¹ãŒç·šåˆ†ABä¸Šã«ã‚ã‚‹ã‹ç¢ºèª
                 if (t_axis >= 0.0f && t_axis <= 1.0f)
                 {
                     currentHitPos    = pIntersect;
                     currentHitDistSq = VDot(VSub(currentHitPos, rayStart), VSub(currentHitPos, rayStart));
 
-                    // Œğ·“_‚Ì‹——£‚ªÅ¬’l‚æ‚è¬‚³‚¢ê‡
+                    // äº¤å·®ç‚¹ã®è·é›¢ãŒæœ€å°å€¤ã‚ˆã‚Šå°ã•ã„å ´åˆ
 					if (currentHitDistSq < minT) 
                     {
-						// Å¬‚ÌŒğ·‹——£‚ğXV
+						// æœ€å°ã®äº¤å·®è·é›¢ã‚’æ›´æ–°
                         minT = currentHitDistSq;
 
-						// Œğ·“_‚ÌˆÊ’u‚Æ‹——£‚ğo—Í
+						// äº¤å·®ç‚¹ã®ä½ç½®ã¨è·é›¢ã‚’å‡ºåŠ›
                         outHitPos    = currentHitPos; 
                         outHitDistSq = currentHitDistSq;
                         hit = true;
@@ -249,38 +249,38 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
         }
     }
 
-    // ƒJƒvƒZƒ‹‚Ì—¼’[‚Ì”¼‹…‚ÆRay‚ÌŒğ·”»’è
-    // Ray‚ÆA’[‚Ì‹…‚ÌŒğ·
+    // ã‚«ãƒ—ã‚»ãƒ«ã®ä¸¡ç«¯ã®åŠçƒã¨Rayã®äº¤å·®åˆ¤å®š
+    // Rayã¨Aç«¯ã®çƒã®äº¤å·®
     if (IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, currentHitPos, currentHitDistSq))
     {
-		// Œğ·“_‚Ì‹——£‚ªÅ¬’l‚æ‚è¬‚³‚¢ê‡AXV
+		// äº¤å·®ç‚¹ã®è·é›¢ãŒæœ€å°å€¤ã‚ˆã‚Šå°ã•ã„å ´åˆã€æ›´æ–°
         if (currentHitDistSq < minT)
         {
-			// Å¬‚ÌŒğ·‹——£‚ğXV
+			// æœ€å°ã®äº¤å·®è·é›¢ã‚’æ›´æ–°
             minT = currentHitDistSq;
 
-			// Œğ·“_‚ÌˆÊ’u‚Æ‹——£‚ğo—Í
+			// äº¤å·®ç‚¹ã®ä½ç½®ã¨è·é›¢ã‚’å‡ºåŠ›
             outHitPos    = currentHitPos;
             outHitDistSq = currentHitDistSq;
             hit = true;
         }
     }
 
-    // Ray‚ÆB’[‚Ì‹…‚ÌŒğ·
+    // Rayã¨Bç«¯ã®çƒã®äº¤å·®
     if (IntersectsRaySphere(rayStart, rayEnd, m_segmentB, m_radius, currentHitPos, currentHitDistSq))
     {
-		// Œğ·“_‚Ì‹——£‚ªÅ¬’l‚æ‚è¬‚³‚¢ê‡AXV
+		// äº¤å·®ç‚¹ã®è·é›¢ãŒæœ€å°å€¤ã‚ˆã‚Šå°ã•ã„å ´åˆã€æ›´æ–°
         if (currentHitDistSq < minT)
         {
-			// Å¬‚ÌŒğ·‹——£‚ğXV
+			// æœ€å°ã®äº¤å·®è·é›¢ã‚’æ›´æ–°
             minT = currentHitDistSq;
 
-			// Œğ·“_‚ÌˆÊ’u‚Æ‹——£‚ğo—Í
+			// äº¤å·®ç‚¹ã®ä½ç½®ã¨è·é›¢ã‚’å‡ºåŠ›
             outHitPos    = currentHitPos;
             outHitDistSq = currentHitDistSq;
             hit = true;
         }
     }
 
-    return hit; // ÅI“I‚ÈÕ“ËŒ‹‰Ê‚ğ•Ô‚·
+    return hit; // æœ€çµ‚çš„ãªè¡çªçµæœã‚’è¿”ã™
 }

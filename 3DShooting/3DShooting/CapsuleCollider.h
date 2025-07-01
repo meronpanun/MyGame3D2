@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include "Collider.h"
 
 /// <summary>
-/// ƒJƒvƒZƒ‹Œ^ƒRƒ‰ƒCƒ_[ƒNƒ‰ƒX
+/// ã‚«ãƒ—ã‚»ãƒ«å‹ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚¯ãƒ©ã‚¹
 /// </summary>
 class CapsuleCollider : public Collider
 {
@@ -11,56 +11,56 @@ public:
     virtual ~CapsuleCollider();
 
     /// <summary>
-	/// ‘¼‚ÌƒRƒ‰ƒCƒ_[‚Æ“–‚½‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ”»’è‚·‚é
+	/// ä»–ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã¨å½“ãŸã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’åˆ¤å®šã™ã‚‹
     /// </summary>
-	/// <param name="other">‘¼‚ÌƒRƒ‰ƒCƒ_[</param>s
-	/// <returns>true‚È‚ç“–‚½‚Á‚Ä‚¢‚é</returns>
+	/// <param name="other">ä»–ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼</param>s
+	/// <returns>trueãªã‚‰å½“ãŸã£ã¦ã„ã‚‹</returns>
     bool Intersects(const Collider* other) const override; 
 
     /// <summary>
-	/// Ray‚Æ‚Ì“–‚½‚è”»’è‚ğs‚¤
+	/// Rayã¨ã®å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã†
     /// </summary>
-	/// <param name="rayStart">Ray‚Ìn“_</param>
-	/// <param name="rayEnd">Ray‚ÌI“_</param>
-	/// <param name="outHtPos">“–‚½‚Á‚½ˆÊ’u</param>
-	/// <param name="outHtDistSq">“–‚½‚Á‚½ˆÊ’u‚Ü‚Å‚Ì‹——£‚Ì“ñæ</param>
+	/// <param name="rayStart">Rayã®å§‹ç‚¹</param>
+	/// <param name="rayEnd">Rayã®çµ‚ç‚¹</param>
+	/// <param name="outHtPos">å½“ãŸã£ãŸä½ç½®</param>
+	/// <param name="outHtDistSq">å½“ãŸã£ãŸä½ç½®ã¾ã§ã®è·é›¢ã®äºŒä¹—</param>
     /// <returns></returns>
     bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const override;
 
     /// <summary>
-	/// ƒJƒvƒZƒ‹‚ÌƒZƒOƒƒ“ƒgA‚ğæ“¾‚·‚é
+	/// ã‚«ãƒ—ã‚»ãƒ«ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆAã‚’å–å¾—ã™ã‚‹
     /// </summary>
-	/// <returns>ƒZƒOƒƒ“ƒgA”¼Œa</returns>
+	/// <returns>ã‚»ã‚°ãƒ¡ãƒ³ãƒˆAåŠå¾„</returns>
     VECTOR GetSegmentA() const { return m_segmentA; }
 
     /// <summary>
-	/// ƒJƒvƒZƒ‹‚ÌƒZƒOƒƒ“ƒgB‚ğæ“¾‚·‚é
+	/// ã‚«ãƒ—ã‚»ãƒ«ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆBã‚’å–å¾—ã™ã‚‹
     /// </summary>
-	/// <returns>ƒZƒOƒƒ“ƒgB”¼Œa</returns>
+	/// <returns>ã‚»ã‚°ãƒ¡ãƒ³ãƒˆBåŠå¾„</returns>
     VECTOR GetSegmentB() const { return m_segmentB; }
 
     /// <summary>
-	/// ƒJƒvƒZƒ‹‚Ì”¼Œa‚ğæ“¾‚·‚é
+	/// ã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-	/// <returns>ƒJƒvƒZƒ‹‚Ì”¼Œa</returns>
+	/// <returns>ã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„</returns>
     float GetRadius() const { return m_radius; }
 
     /// <summary>
-	/// ƒJƒvƒZƒ‹‚ÌƒZƒOƒƒ“ƒgA‚ÆB‚ğİ’è‚·‚é
+	/// ã‚«ãƒ—ã‚»ãƒ«ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆAã¨Bã‚’è¨­å®šã™ã‚‹
     /// </summary>
-	/// <param name="a">ƒZƒOƒƒ“ƒgA</param>
-	/// <param name="b">ƒZƒOƒƒ“ƒgB</param>
+	/// <param name="a">ã‚»ã‚°ãƒ¡ãƒ³ãƒˆA</param>
+	/// <param name="b">ã‚»ã‚°ãƒ¡ãƒ³ãƒˆB</param>
     void SetSegment(const VECTOR& a, const VECTOR& b) { m_segmentA = a; m_segmentB = b; }
 
     /// <summary>
-	/// ƒJƒvƒZƒ‹‚Ì”¼Œa‚ğİ’è‚·‚é
+	/// ã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„ã‚’è¨­å®šã™ã‚‹
     /// </summary>
-	/// <param name="radius">ƒJƒvƒZƒ‹‚Ì”¼Œa</param>
+	/// <param name="radius">ã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„</param>
     void SetRadius(float radius) { m_radius = radius; }
 
 private:
-	VECTOR m_segmentA; // ƒJƒvƒZƒ‹‚ÌƒZƒOƒƒ“ƒgA
-	VECTOR m_segmentB; // ƒJƒvƒZƒ‹‚ÌƒZƒOƒƒ“ƒgB
+	VECTOR m_segmentA; // ã‚«ãƒ—ã‚»ãƒ«ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆA
+	VECTOR m_segmentB; // ã‚«ãƒ—ã‚»ãƒ«ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆB
 
-	float  m_radius; // ƒJƒvƒZƒ‹‚Ì”¼Œa
+	float  m_radius; // ã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„
 };

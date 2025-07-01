@@ -1,93 +1,93 @@
-#include "DxLib.h"
+ï»¿#include "DxLib.h"
 #include "game.h"
 #include "SceneManager.h"
 #include "SceneTitle.h"
 //#include "EffekseerForDXLib.h"
 
-// ƒvƒƒOƒ‰ƒ€‚Í WinMain ‚©‚çn‚Ü‚è‚Ü‚·
+// ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã¯ WinMain ã‹ã‚‰å§‹ã¾ã‚Šã¾ã™
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	/*ƒRƒ“ƒ\[ƒ‹Debug—p*/
+	/*ã‚³ãƒ³ã‚½ãƒ¼ãƒ«Debugç”¨*/
 #ifdef _DEBUG
 	AllocConsole();                                        
 	FILE* out = 0; freopen_s(&out, "CON", "w", stdout); // stdout
 	FILE* in  = 0; freopen_s(&in, "CON", "r", stdin);   // stdin
 #endif
 
-	// ƒtƒ‹ƒXƒNƒŠ[ƒ“‚Å‚Í‚È‚­AƒEƒCƒ“ƒhƒEƒ‚[ƒh‚ÅŠJ‚­‚æ‚¤‚É‚·‚é
+	// ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã§ã¯ãªãã€ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒ¢ãƒ¼ãƒ‰ã§é–‹ãã‚ˆã†ã«ã™ã‚‹
 	ChangeWindowMode(Game::kDefaultWindowMode);
-	// ‰æ–Ê‚ÌƒTƒCƒY‚ğ•ÏX‚·‚é
+	// ç”»é¢ã®ã‚µã‚¤ã‚ºã‚’å¤‰æ›´ã™ã‚‹
 	SetGraphMode(Game::kScreenWidth, Game::kScreenHeigth, Game:: kColorBitNum);
 
-	if (DxLib_Init() == -1)		// ‚c‚wƒ‰ƒCƒuƒ‰ƒŠ‰Šú‰»ˆ—
+	if (DxLib_Init() == -1)		// ï¼¤ï¼¸ãƒ©ã‚¤ãƒ–ãƒ©ãƒªåˆæœŸåŒ–å‡¦ç†
 	{
-		return -1;			// ƒGƒ‰[‚ª‹N‚«‚½‚ç’¼‚¿‚ÉI—¹
+		return -1;			// ã‚¨ãƒ©ãƒ¼ãŒèµ·ããŸã‚‰ç›´ã¡ã«çµ‚äº†
 	}
-	// •`‰ææ‚ğ— ‰æ–Ê‚É‚·‚é
+	// æç”»å…ˆã‚’è£ç”»é¢ã«ã™ã‚‹
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	// 3DŠÖ˜A‚Ìİ’è
-	SetUseZBuffer3D(true);	 // 3D•`‰æ‚ÅZBuffer‚ğg—p‚·‚é
-	SetWriteZBuffer3D(true); // 3D•`‰æ‚ÅZBuffer‚É‘‚«‚Ş
-	SetUseBackCulling(true); // — –ÊƒJƒŠƒ“ƒO‚ğ—LŒø‚É‚·‚é
+	// 3Dé–¢é€£ã®è¨­å®š
+	SetUseZBuffer3D(true);	 // 3Dæç”»ã§ZBufferã‚’ä½¿ç”¨ã™ã‚‹
+	SetWriteZBuffer3D(true); // 3Dæç”»ã§ZBufferã«æ›¸ãè¾¼ã‚€
+	SetUseBackCulling(true); // è£é¢ã‚«ãƒªãƒ³ã‚°ã‚’æœ‰åŠ¹ã«ã™ã‚‹
 
-	//EffekseerŠÖŒW‰Šú‰»
+	//Effekseeré–¢ä¿‚åˆæœŸåŒ–
 	SetUseDirect3DVersion(DX_DIRECT3D_11);
-	// ˆø”‚É‚Í‰æ–Ê‚É•\¦‚·‚éÅ‘åƒp[ƒeƒBƒNƒ‹”‚ğİ’è‚·‚éB
+	// å¼•æ•°ã«ã¯ç”»é¢ã«è¡¨ç¤ºã™ã‚‹æœ€å¤§ãƒ‘ãƒ¼ãƒ†ã‚£ã‚¯ãƒ«æ•°ã‚’è¨­å®šã™ã‚‹ã€‚
 	/*if (Effekseer_Init(8000) == -1)
 	{
 		DxLib_End();
 		return -1;
 	}*/
-	// ƒtƒ‹ƒXƒNƒŠ[ƒ“ƒEƒCƒ“ƒhƒE‚ÌØ‚è‘Ö‚¦‚ÅƒŠƒ\[ƒX‚ªÁ‚¦‚é‚Ì‚ğ–h‚®
+	// ãƒ•ãƒ«ã‚¹ã‚¯ãƒªãƒ¼ãƒ³ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®åˆ‡ã‚Šæ›¿ãˆã§ãƒªã‚½ãƒ¼ã‚¹ãŒæ¶ˆãˆã‚‹ã®ã‚’é˜²ã
 	SetChangeScreenModeGraphicsSystemResetFlag(FALSE);
 
-	// DXƒ‰ƒCƒuƒ‰ƒŠ‚ÌƒfƒoƒCƒXƒƒXƒg‚µ‚½‚ÌƒR[ƒ‹ƒoƒbƒN‚ğİ’è‚·‚é
+	// DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒ‡ãƒã‚¤ã‚¹ãƒ­ã‚¹ãƒˆã—ãŸæ™‚ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’è¨­å®šã™ã‚‹
 	//Effekseer_SetGraphicsDeviceLostCallbackFunctions();
 
 	SceneManager* pScene = new SceneManager();
 	pScene->Init();
 
-	// ƒQ[ƒ€ƒ‹[ƒv
-	while (ProcessMessage() == 0)	// Windows‚ªs‚¤ˆ—‚ğ‘Ò‚Â•K—v‚ª‚ ‚é
+	// ã‚²ãƒ¼ãƒ ãƒ«ãƒ¼ãƒ—
+	while (ProcessMessage() == 0)	// WindowsãŒè¡Œã†å‡¦ç†ã‚’å¾…ã¤å¿…è¦ãŒã‚ã‚‹
 	{
-		// DXƒ‰ƒCƒuƒ‰ƒŠ‚ÌƒJƒƒ‰‚ÆEffekseer‚ÌƒJƒƒ‰‚ğ“¯Šú‚·‚éB
+		// DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ã‚«ãƒ¡ãƒ©ã¨Effekseerã®ã‚«ãƒ¡ãƒ©ã‚’åŒæœŸã™ã‚‹ã€‚
 		//Effekseer_Sync3DSetting();
 
-		// ƒGƒXƒP[ƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚çƒ‹[ƒv‚ğ”²‚¯‚é
+		// ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‚‰ãƒ«ãƒ¼ãƒ—ã‚’æŠœã‘ã‚‹
 		if (CheckHitKey(KEY_INPUT_RETURN))
 		{
 			break;
 		}
 
-		// ¡‰ñ‚Ìƒ‹[ƒv‚ªn‚Ü‚Á‚½ŠÔ‚ğŠo‚¦‚Ä‚¨‚­
+		// ä»Šå›ã®ãƒ«ãƒ¼ãƒ—ãŒå§‹ã¾ã£ãŸæ™‚é–“ã‚’è¦šãˆã¦ãŠã
 		LONGLONG time = GetNowHiPerformanceCount();
 
-		// ‰æ–Ê‘S‘Ì‚ğƒNƒŠƒA‚·‚é
+		// ç”»é¢å…¨ä½“ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹
 		ClearDrawScreen();
 
 
-		// ƒQ[ƒ€‚Ìˆ—
+		// ã‚²ãƒ¼ãƒ ã®å‡¦ç†
 		pScene->Update();
 		pScene->Draw();
 
-		// ‰æ–Ê‚ÌØ‚è‘Ö‚í‚è‚ğ‘Ò‚Â•K—v‚ª‚ ‚é
-		ScreenFlip();	// 1/60•bŒo‰ß‚·‚é‚Ü‚Å‘Ò‚Â
+		// ç”»é¢ã®åˆ‡ã‚Šæ›¿ã‚ã‚Šã‚’å¾…ã¤å¿…è¦ãŒã‚ã‚‹
+		ScreenFlip();	// 1/60ç§’çµŒéã™ã‚‹ã¾ã§å¾…ã¤
 
-		// FPS(Frame Per Second)60‚ÉŒÅ’è
+		// FPS(Frame Per Second)60ã«å›ºå®š
 		while (GetNowHiPerformanceCount() - time < 16667)
 		{
 		}
 	}
 
-	// Effekseer‚ğI—¹‚·‚éB
+	// Effekseerã‚’çµ‚äº†ã™ã‚‹ã€‚
 	//Effkseer_End();
 
-	DxLib_End();				// ‚c‚wƒ‰ƒCƒuƒ‰ƒŠg—p‚ÌI—¹ˆ—
+	DxLib_End();				// ï¼¤ï¼¸ãƒ©ã‚¤ãƒ–ãƒ©ãƒªä½¿ç”¨ã®çµ‚äº†å‡¦ç†
 
-#ifdef _DEBUG//ƒRƒ“ƒ\[ƒ‹Debug—p
-	fclose(out); fclose(in); FreeConsole();//ƒRƒ“ƒ\[ƒ‹‰ğ•ú
+#ifdef _DEBUG//ã‚³ãƒ³ã‚½ãƒ¼ãƒ«Debugç”¨
+	fclose(out); fclose(in); FreeConsole();//ã‚³ãƒ³ã‚½ãƒ¼ãƒ«è§£æ”¾
 #endif
 
-	return 0;				// ƒ\ƒtƒg‚ÌI—¹ 
+	return 0;				// ã‚½ãƒ•ãƒˆã®çµ‚äº† 
 }

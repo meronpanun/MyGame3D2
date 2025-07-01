@@ -1,4 +1,4 @@
-#include "SceneTitle.h"
+ï»¿#include "SceneTitle.h"
 #include "DxLib.h"
 #include "Game.h"
 #include "SceneMain.h"
@@ -8,26 +8,26 @@
 
 namespace
 {
-    // ƒ^ƒCƒgƒ‹ƒƒS‚Ì•‚Æ‚‚³
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ã®å¹…ã¨é«˜ã•
 	constexpr int kLogoWidth  = 1920;
     constexpr int kLogoHeight = 1080;
 
-	// ƒ^ƒCƒgƒ‹ƒƒS‚Ì•\¦ˆÊ’u
+	// ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ã®è¡¨ç¤ºä½ç½®
     constexpr int kLogoX = static_cast<int>(Game::kScreenWidth * -0.5f);
     constexpr int kLogoY = static_cast<int>((Game::kScreenHeigth - kLogoHeight) * 0.5f);
 
-	constexpr int kFadeDuration = 60; // ƒtƒF[ƒhƒCƒ“EƒtƒF[ƒhƒAƒEƒg‚ÌƒtƒŒ[ƒ€”
-	constexpr int kWaitDuration = 60; // ƒtƒF[ƒhƒCƒ“Œã‚Ì‘Ò‹@ŠÔiƒtƒŒ[ƒ€”j
+	constexpr int kFadeDuration = 60; // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ãƒ»ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã®ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+	constexpr int kWaitDuration = 60; // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³å¾Œã®å¾…æ©Ÿæ™‚é–“ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ æ•°ï¼‰
 
-    // ƒpƒlƒ‹‚Ì•‚Æ‚‚³
-    constexpr int kPanelWidth  = 350; // ƒpƒlƒ‹‚Ì•
-    constexpr int kPanelHeight = 240; // ƒpƒlƒ‹‚Ì‚‚³
+    // ãƒ‘ãƒãƒ«ã®å¹…ã¨é«˜ã•
+    constexpr int kPanelWidth  = 350; // ãƒ‘ãƒãƒ«ã®å¹…
+    constexpr int kPanelHeight = 240; // ãƒ‘ãƒãƒ«ã®é«˜ã•
 
-    // ƒXƒ^[ƒgƒ{ƒ^ƒ“‚Ì”ÍˆÍ‚ğ’è”‰»
-    constexpr int kStartButtonX1 = static_cast<int>((Game::kScreenWidth - kPanelWidth) * 0.5f); // ƒXƒ^[ƒgƒ{ƒ^ƒ“‚Ì¶ãXÀ•W
-    constexpr int kStartButtonY1 = 10;                                        // ƒXƒ^[ƒgƒ{ƒ^ƒ“‚Ì¶ãYÀ•W
-    constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth;              // ƒXƒ^[ƒgƒ{ƒ^ƒ“‚Ì‰E‰ºXÀ•W
-    constexpr int kStartButtonY2 = 300;                                       // ƒXƒ^[ƒgƒ{ƒ^ƒ“‚Ì‰E‰ºYÀ•W
+    // ã‚¹ã‚¿ãƒ¼ãƒˆãƒœã‚¿ãƒ³ã®ç¯„å›²ã‚’å®šæ•°åŒ–
+    constexpr int kStartButtonX1 = static_cast<int>((Game::kScreenWidth - kPanelWidth) * 0.5f); // ã‚¹ã‚¿ãƒ¼ãƒˆãƒœã‚¿ãƒ³ã®å·¦ä¸ŠXåº§æ¨™
+    constexpr int kStartButtonY1 = 10;                                        // ã‚¹ã‚¿ãƒ¼ãƒˆãƒœã‚¿ãƒ³ã®å·¦ä¸ŠYåº§æ¨™
+    constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth;              // ã‚¹ã‚¿ãƒ¼ãƒˆãƒœã‚¿ãƒ³ã®å³ä¸‹Xåº§æ¨™
+    constexpr int kStartButtonY2 = 300;                                       // ã‚¹ã‚¿ãƒ¼ãƒˆãƒœã‚¿ãƒ³ã®å³ä¸‹Yåº§æ¨™
 }
 
 SceneTitle::SceneTitle(bool skipLogo):
@@ -41,27 +41,27 @@ SceneTitle::SceneTitle(bool skipLogo):
 	m_skipLogo(skipLogo),
 	m_isSceneFadeIn(false)
 {
-    // ƒ^ƒCƒgƒ‹ƒƒS‰æ‘œ‚ğ“Ç‚İ‚Ş
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ç”»åƒã‚’èª­ã¿è¾¼ã‚€
     m_logoHandle = LoadGraph("data/image/TitleLogo.png");
     assert(m_logoHandle != -1);
 }
 
 SceneTitle::~SceneTitle()
 {
-    // ƒ^ƒCƒgƒ‹ƒƒS‰æ‘œ‚ğ‰ğ•ú‚·‚é
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ç”»åƒã‚’è§£æ”¾ã™ã‚‹
 	DeleteGraph(m_logoHandle);
 }
 
 void SceneTitle::Init()
 {
-    // ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚ğ•\¦‚·‚é
+    // ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã‚’è¡¨ç¤ºã™ã‚‹
     SetMouseDispFlag(true);
 }
 
 SceneBase* SceneTitle::Update()
 {
 #ifdef _DEBUG
-    // SƒL[‚ÅƒƒS‚ğƒXƒLƒbƒv
+    // Sã‚­ãƒ¼ã§ãƒ­ã‚´ã‚’ã‚¹ã‚­ãƒƒãƒ—
     if (!m_isFadeOut && DebugUtil::IsSkipLogoKeyPressed())
     {
         SkipLogo();
@@ -69,7 +69,7 @@ SceneBase* SceneTitle::Update()
     }
 #endif // _DEBUG
 
-    // ƒ^ƒCƒgƒ‹ƒƒS‚ÌƒtƒF[ƒhƒCƒ“ˆ—
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ã®ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³å‡¦ç†
     if (!m_isFadeComplete)
     {
         if (m_fadeFrame < kFadeDuration)
@@ -80,20 +80,20 @@ SceneBase* SceneTitle::Update()
         else
         {
             m_fadeAlpha      = 255;
-            m_isFadeComplete = true; // ƒtƒF[ƒhƒCƒ“‚ªŠ®—¹
-            m_fadeFrame      = 0;    // ƒtƒF[ƒhƒAƒEƒg—p‚ÉƒŠƒZƒbƒg
+            m_isFadeComplete = true; // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ãŒå®Œäº†
+            m_fadeFrame      = 0;    // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆç”¨ã«ãƒªã‚»ãƒƒãƒˆ
         }
         return this;
     }
 
-    // ƒtƒF[ƒhƒCƒ“Œã‚Ì‘Ò‹@ŠÔ‚ğƒJƒEƒ“ƒg
+    // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³å¾Œã®å¾…æ©Ÿæ™‚é–“ã‚’ã‚«ã‚¦ãƒ³ãƒˆ
     if (m_waitFrame < kWaitDuration)
     {
         m_waitFrame++;
-        return this; // ‘Ò‹@ŠÔ’†‚ÍƒV[ƒ“‘JˆÚ‚µ‚È‚¢
+        return this; // å¾…æ©Ÿæ™‚é–“ä¸­ã¯ã‚·ãƒ¼ãƒ³é·ç§»ã—ãªã„
     }
 
-    // ƒ^ƒCƒgƒ‹ƒƒS‚ÌƒtƒF[ƒhƒAƒEƒgˆ—
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ã®ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆå‡¦ç†
     if (!m_isFadeOut)
     {
         if (m_fadeFrame < kFadeDuration)
@@ -104,31 +104,31 @@ SceneBase* SceneTitle::Update()
         else
         {
             m_fadeAlpha = 0;
-            m_isFadeOut = true; // ƒtƒF[ƒhƒAƒEƒg‚ªŠ®—¹
-            m_fadeFrame = 0;    // ƒtƒF[ƒhƒCƒ“—p‚ÉƒŠƒZƒbƒg
+            m_isFadeOut = true; // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆãŒå®Œäº†
+            m_fadeFrame = 0;    // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ç”¨ã«ãƒªã‚»ãƒƒãƒˆ
         }
         return this;
     }
 
-    // ƒ^ƒCƒgƒ‹ƒV[ƒ“‚ÌƒtƒF[ƒhƒCƒ“ˆ—
+    // ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã®ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³å‡¦ç†
     if (!m_isSceneFadeIn)
     {
         if (m_sceneFadeAlpha < 255)
         {
-            m_sceneFadeAlpha += 5; // ƒtƒF[ƒhƒCƒ“‚Ì‘¬“x‚ğ’²®
+            m_sceneFadeAlpha += 5; // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã®é€Ÿåº¦ã‚’èª¿æ•´
         }
         else
         {
-            m_sceneFadeAlpha = 255; // ƒtƒF[ƒhƒCƒ“Š®—¹
+            m_sceneFadeAlpha = 255; // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³å®Œäº†
             m_isSceneFadeIn  = true;
         }
         return this;
     }
 
-    // ƒ}ƒEƒX‚Ì¶ƒNƒŠƒbƒN‚ğƒ`ƒFƒbƒN
+    // ãƒã‚¦ã‚¹ã®å·¦ã‚¯ãƒªãƒƒã‚¯ã‚’ãƒã‚§ãƒƒã‚¯
     if (Mouse::IsTriggerLeft())
     {
-        // ƒ}ƒEƒX‚ÌˆÊ’u‚ğæ“¾
+        // ãƒã‚¦ã‚¹ã®ä½ç½®ã‚’å–å¾—
         Vec2 mousePos = Mouse::GetPos();
 
         if (mousePos.x >= kStartButtonX1 && mousePos.x <= kStartButtonX2 &&
@@ -136,23 +136,23 @@ SceneBase* SceneTitle::Update()
         {
             return new SceneMain();
         }
-        //// ƒ}ƒEƒX‚ªƒIƒvƒVƒ‡ƒ“ƒ{ƒ^ƒ“‚Æƒpƒlƒ‹‚ğˆÍ‚Ş”wŒi‚Ì”ÍˆÍ“à‚É‚ ‚é‚©ƒ`ƒFƒbƒN
+        //// ãƒã‚¦ã‚¹ãŒã‚ªãƒ—ã‚·ãƒ§ãƒ³ãƒœã‚¿ãƒ³ã¨ãƒ‘ãƒãƒ«ã‚’å›²ã‚€èƒŒæ™¯ã®ç¯„å›²å†…ã«ã‚ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
         //if (mousePos.x >= kBackgroundX1 && mousePos.x <= kBackgroundX2 &&
         //    mousePos.y >= kBackgroundY1 && mousePos.y <= kBackgroundY2)
         //{
         //    return new SceneOption(this, m_currentReticleType);
         //}
     }
-    // ‰½‚à‚µ‚È‚¯‚ê‚ÎƒV[ƒ“‘JˆÚ‚µ‚È‚¢(ƒ^ƒCƒgƒ‹‰æ–Ê‚Ì‚Ü‚Ü)
+    // ä½•ã‚‚ã—ãªã‘ã‚Œã°ã‚·ãƒ¼ãƒ³é·ç§»ã—ãªã„(ã‚¿ã‚¤ãƒˆãƒ«ç”»é¢ã®ã¾ã¾)
     return this;
 }
 
 void SceneTitle::Draw()
 {
-    // ƒ}ƒEƒX‚ÌˆÊ’u‚ğæ“¾
+    // ãƒã‚¦ã‚¹ã®ä½ç½®ã‚’å–å¾—
     Vec2 mousePos = Mouse::GetPos();
 
-    // ƒ^ƒCƒgƒ‹ƒƒS‚ÌƒtƒF[ƒhƒCƒ“EƒtƒF[ƒhƒAƒEƒg•`‰æ
+    // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ã®ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ãƒ»ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆæç”»
     if (!m_isFadeOut)
     {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
@@ -165,40 +165,40 @@ void SceneTitle::Draw()
         );
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-        // ƒtƒF[ƒhˆ—‚ªI‚í‚Á‚Ä‚¢‚È‚¢ê‡‚Í‚±‚±‚Å•`‰æ‚ğI—¹
+        // ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†ãŒçµ‚ã‚ã£ã¦ã„ãªã„å ´åˆã¯ã“ã“ã§æç”»ã‚’çµ‚äº†
         return;
     }
 
-    // ƒ{ƒ^ƒ“‚Ì•`‰æ
+    // ãƒœã‚¿ãƒ³ã®æç”»
     if (m_isFadeOut || m_skipLogo)
     {
-        // ƒXƒ^[ƒgƒ{ƒ^ƒ“‚Ì•`‰æ
-        unsigned int buttonColor = 0xadadad; // ’Êí‚Ìƒ{ƒ^ƒ“Fi”’j
+        // ã‚¹ã‚¿ãƒ¼ãƒˆãƒœã‚¿ãƒ³ã®æç”»
+        unsigned int buttonColor = 0xadadad; // é€šå¸¸æ™‚ã®ãƒœã‚¿ãƒ³è‰²ï¼ˆç™½ï¼‰
         if (mousePos.x >= kStartButtonX1 && mousePos.x <= kStartButtonX2 &&
             mousePos.y >= kStartButtonY1 && mousePos.y <= kStartButtonY2)
         {
-            buttonColor = 0xffffff; // ƒzƒo[‚Ìƒ{ƒ^ƒ“FiƒOƒŒ[j
+            buttonColor = 0xffffff; // ãƒ›ãƒãƒ¼æ™‚ã®ãƒœã‚¿ãƒ³è‰²ï¼ˆã‚°ãƒ¬ãƒ¼ï¼‰
         }
 
-        // ƒ{ƒ^ƒ“‚Ì”wŒi‚ğ•`‰æ
+        // ãƒœã‚¿ãƒ³ã®èƒŒæ™¯ã‚’æç”»
         DrawBox(kStartButtonX1, kStartButtonY1, kStartButtonX2, kStartButtonY2, buttonColor, true);
 
-        // ƒ{ƒ^ƒ“‚ÌƒeƒLƒXƒg‚ğ•`‰æ
+        // ãƒœã‚¿ãƒ³ã®ãƒ†ã‚­ã‚¹ãƒˆã‚’æç”»
         const char* buttonText = "START";
         int textWidth = GetDrawStringWidth(buttonText, static_cast<int>(strlen(buttonText)));
         int textX = static_cast<int>((kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f);
-        int textY = static_cast<int>((kStartButtonY1 + kStartButtonY2) * 0.5f) - 10; // ƒeƒLƒXƒg‚Ì‚‚³‚ğ’²®
-        DrawString(textX, textY, buttonText, GetColor(0, 0, 0)); // ƒeƒLƒXƒgF‚Í•
+        int textY = static_cast<int>((kStartButtonY1 + kStartButtonY2) * 0.5f) - 10; // ãƒ†ã‚­ã‚¹ãƒˆã®é«˜ã•ã‚’èª¿æ•´
+        DrawString(textX, textY, buttonText, GetColor(0, 0, 0)); // ãƒ†ã‚­ã‚¹ãƒˆè‰²ã¯é»’
     }
 }
 
-// ƒƒS‚ğƒXƒLƒbƒv‚·‚éê‡AƒtƒF[ƒhˆ—‚Æ‘Ò‹@ŠÔ‚ğƒXƒLƒbƒv‚µAƒ{ƒ^ƒ“‘€ì‚ğ—LŒø‰»
+// ãƒ­ã‚´ã‚’ã‚¹ã‚­ãƒƒãƒ—ã™ã‚‹å ´åˆã€ãƒ•ã‚§ãƒ¼ãƒ‰å‡¦ç†ã¨å¾…æ©Ÿæ™‚é–“ã‚’ã‚¹ã‚­ãƒƒãƒ—ã—ã€ãƒœã‚¿ãƒ³æ“ä½œã‚’æœ‰åŠ¹åŒ–
 void SceneTitle::SkipLogo()
 {
-	m_isFadeComplete = true;          // ƒtƒF[ƒhƒCƒ“‚ğŠ®—¹
-	m_isFadeOut      = true;          // ƒtƒF[ƒhƒAƒEƒg‚ğŠJn
-    m_waitFrame      = kWaitDuration; // ‘Ò‹@ŠÔ‚ğƒXƒLƒbƒv
-    m_fadeAlpha      = 0;             // ƒtƒF[ƒhƒAƒEƒgÏ‚İ‚Ìó‘Ô‚Éİ’è
-    m_isSceneFadeIn  = true;          // ƒ^ƒCƒgƒ‹ƒV[ƒ“‚ÌƒtƒF[ƒhƒCƒ“‚ğŠJn
-    m_sceneFadeAlpha = 255;           // ƒtƒF[ƒhƒCƒ“‚ğŠ®‘S‚É•\¦
+	m_isFadeComplete = true;          // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã‚’å®Œäº†
+	m_isFadeOut      = true;          // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆã‚’é–‹å§‹
+    m_waitFrame      = kWaitDuration; // å¾…æ©Ÿæ™‚é–“ã‚’ã‚¹ã‚­ãƒƒãƒ—
+    m_fadeAlpha      = 0;             // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆæ¸ˆã¿ã®çŠ¶æ…‹ã«è¨­å®š
+    m_isSceneFadeIn  = true;          // ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã®ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã‚’é–‹å§‹
+    m_sceneFadeAlpha = 255;           // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã‚’å®Œå…¨ã«è¡¨ç¤º
 }

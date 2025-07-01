@@ -1,4 +1,4 @@
-#include "Player.h"
+ï»¿#include "Player.h"
 #include "EnemyNormal.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
@@ -18,46 +18,46 @@
 
 namespace
 {
-	constexpr float kMoveSpeed = 3.0f; // ˆÚ“®‘¬“x
-	constexpr float kRunSpeed  = 6.0f; // ‘–‚é‘¬“x
+	constexpr float kMoveSpeed = 3.0f; // ç§»å‹•é€Ÿåº¦
+	constexpr float kRunSpeed  = 6.0f; // èµ°ã‚‹é€Ÿåº¦
 	 
-	// ƒ‚ƒfƒ‹‚ÌƒIƒtƒZƒbƒg
+	// ãƒ¢ãƒ‡ãƒ«ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
 	constexpr float kModelOffsetX = 80.0f; 
 	constexpr float kModelOffsetY = 20.0f;
 	constexpr float kModelOffsetZ = 60.0f;
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡
 	constexpr float kAnimBlendRate = 1.0f; 
 
-	// e‚ÌƒIƒtƒZƒbƒg
+	// éŠƒã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
 	constexpr float kGunOffsetX = -55.0f;
 	constexpr float kGunOffsetY = 55.0f;
 	constexpr float kGunOffsetZ = 10.0f;
 
-	// ‰Šú’e–ò”
+	// åˆæœŸå¼¾è–¬æ•°
 	constexpr int kInitialAmmo = 7000;
 
-	// UIŠÖ˜A
+	// UIé–¢é€£
 	constexpr int kMarginX    = 20; 
 	constexpr int kMarginY    = 20;
 	constexpr int kFontHeight = 20;
 
-	// d—Í‚ÆƒWƒƒƒ“ƒvŠÖ˜A
-	constexpr float kGravity   = 0.35f; // d—Í‚Ì‹­‚³
-	constexpr float kJumpPower = 7.0f;  // ƒWƒƒƒ“ƒv‚Ì‰‘¬
-	constexpr float kGroundY   = 0.0f;  // ’n–Ê‚ÌYÀ•W
+	// é‡åŠ›ã¨ã‚¸ãƒ£ãƒ³ãƒ—é–¢é€£
+	constexpr float kGravity   = 0.35f; // é‡åŠ›ã®å¼·ã•
+	constexpr float kJumpPower = 7.0f;  // ã‚¸ãƒ£ãƒ³ãƒ—ã®åˆé€Ÿ
+	constexpr float kGroundY   = 0.0f;  // åœ°é¢ã®Yåº§æ¨™
 
-	// ƒ^ƒbƒNƒ‹ŠÖ˜A
-	constexpr int   kTackleDuration    = 20;     // ƒ^ƒbƒNƒ‹‘±ƒtƒŒ[ƒ€”
-	constexpr int   kTackleCooldownMax = 120;    // ƒN[ƒ‹ƒ^ƒCƒ€Å‘å’l
-	constexpr float kTackleSpeed	   = 25.0f;  // ƒ^ƒbƒNƒ‹‚Ì‘¬“x
-	constexpr float kTackleHitRange    = 250.0f; // ƒ^ƒbƒNƒ‹‚Ì‘O•û—LŒø‹——£
-	constexpr float kTackleHitRadius   = 250.0f; // ƒ^ƒbƒNƒ‹‚Ì‰¡•(”¼Œa)
-	constexpr float kTackleHitHeight   = 100.0f; // ƒ^ƒbƒNƒ‹‚Ì‚‚³
-	constexpr float kTackleDamage      = 10.0f;  // ƒ^ƒbƒNƒ‹ƒ_ƒ[ƒW
+	// ã‚¿ãƒƒã‚¯ãƒ«é–¢é€£
+	constexpr int   kTackleDuration    = 20;     // ã‚¿ãƒƒã‚¯ãƒ«æŒç¶šãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+	constexpr int   kTackleCooldownMax = 120;    // ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ æœ€å¤§å€¤
+	constexpr float kTackleSpeed	   = 25.0f;  // ã‚¿ãƒƒã‚¯ãƒ«æ™‚ã®é€Ÿåº¦
+	constexpr float kTackleHitRange    = 250.0f; // ã‚¿ãƒƒã‚¯ãƒ«ã®å‰æ–¹æœ‰åŠ¹è·é›¢
+	constexpr float kTackleHitRadius   = 250.0f; // ã‚¿ãƒƒã‚¯ãƒ«ã®æ¨ªå¹…(åŠå¾„)
+	constexpr float kTackleHitHeight   = 100.0f; // ã‚¿ãƒƒã‚¯ãƒ«ã®é«˜ã•
+	constexpr float kTackleDamage      = 10.0f;  // ã‚¿ãƒƒã‚¯ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸
 
-	// ‘Ì—Í
-	constexpr float kMaxHealth = 100.0f; // Å‘å‘Ì—Í
+	// ä½“åŠ›
+	constexpr float kMaxHealth = 100.0f; // æœ€å¤§ä½“åŠ›
 }
 
 Player::Player() :
@@ -86,38 +86,38 @@ Player::Player() :
 	m_tackleId(0),
 	m_maxHealth(kMaxHealth)
 {
-	// ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¢ãƒ‡ãƒ«ã®èª­ã¿è¾¼ã¿
 	m_modelHandle = MV1LoadModel("data/model/M4A1.mv1");
 	assert(m_modelHandle != -1);
 
-	// Œ•‚Ì“Ç‚İ‚İ
+	// å‰£ã®èª­ã¿è¾¼ã¿
 	m_swordHandle = MV1LoadModel("data/model/Sword.mv1");
 	assert(m_swordHandle != -1);
 
-	// SE‚Ì“Ç‚İ‚İ
+	// SEã®èª­ã¿è¾¼ã¿
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
 	assert(m_shootSEHandle != -1);
 }
 
 Player::~Player()
 {
-	// ƒ‚ƒfƒ‹‚Ì‰ğ•ú
+	// ãƒ¢ãƒ‡ãƒ«ã®è§£æ”¾
 	MV1DeleteModel(m_modelHandle);
 	MV1DeleteModel(m_swordHandle);
 
-	// SE‚Ì‰ğ•ú
+	// SEã®è§£æ”¾
 	DeleteSoundMem(m_shootSEHandle);
 }
 
 void Player::Init()
 {
-	m_pCamera->Init(); // ƒJƒƒ‰‚Ì‰Šú‰»
-	//m_pEffect->Init(); // ƒGƒtƒFƒNƒg‚Ì‰Šú‰»
+	m_pCamera->Init(); // ã‚«ãƒ¡ãƒ©ã®åˆæœŸåŒ–
+	//m_pEffect->Init(); // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®åˆæœŸåŒ–
 
-	// ƒ‚ƒfƒ‹‚Ì‘å‚«‚³
+	// ãƒ¢ãƒ‡ãƒ«ã®å¤§ãã•
 	MV1SetScale(m_modelHandle, VGet(10.0f, 10.0f, 5.0f));
 
-	m_animBlendRate = kAnimBlendRate; // ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦‚ğİ’è
+	m_animBlendRate = kAnimBlendRate; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ã‚’è¨­å®š
 }
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
@@ -125,27 +125,27 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	unsigned char keyState[256];
 	GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
 
-	// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğƒJƒƒ‰‚Éİ’è
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’ã‚«ãƒ¡ãƒ©ã«è¨­å®š
 	m_pCamera->SetPlayerPos(m_modelPos);
 
-	m_pCamera->Update(); // ƒJƒƒ‰‚ÌXV
-	//m_pEffect->Update(); // ƒGƒtƒFƒNƒg‚ÌXV
+	m_pCamera->Update(); // ã‚«ãƒ¡ãƒ©ã®æ›´æ–°
+	//m_pEffect->Update(); // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æ›´æ–°
 
-	//UpdateAnime(m_prevAnimData); // ‘O‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^‚ğXV
-	//UpdateAnime(m_nextAnimData); //	Ÿ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^‚ğXV
-	//UpdateAnimeBlend();			 // ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh‚ğXV
+	//UpdateAnime(m_prevAnimData); // å‰ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°
+	//UpdateAnime(m_nextAnimData); //	æ¬¡ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿ã‚’æ›´æ–°
+	//UpdateAnimeBlend();			 // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚’æ›´æ–°
 
-	// ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[‚ğ–ˆƒtƒŒ[ƒ€XV
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°
 	constexpr float kCapsuleHeight = 100.0f;
 	constexpr float kCapsuleRadius = 80.0f;
 	VECTOR center = m_modelPos;
-	center.y += 60.0f; // ‘«Œ³‚©‚ç˜`‹¹‚ ‚½‚è‚ğ’†S‚É
+	center.y += 60.0f; // è¶³å…ƒã‹ã‚‰è…°ï½èƒ¸ã‚ãŸã‚Šã‚’ä¸­å¿ƒã«
 	VECTOR capA = VAdd(center, VGet(0, -kCapsuleHeight * 0.5f, 0));
 	VECTOR capB = VAdd(center, VGet(0, kCapsuleHeight * 0.5f, 0));
 	m_pBodyCollider->SetSegment(capA, capB);
 	m_pBodyCollider->SetRadius(kCapsuleRadius);
 
-	// ƒ‚ƒfƒ‹‚ÌˆÊ’u‚Æ‰ñ“]‚ğXV
+	// ãƒ¢ãƒ‡ãƒ«ã®ä½ç½®ã¨å›è»¢ã‚’æ›´æ–°
 	VECTOR modelOffset	  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
 	MATRIX rotYaw		  = MGetRotY(m_pCamera->GetYaw());
 	MATRIX rotPitch		  = MGetRotX(-m_pCamera->GetPitch());
@@ -153,18 +153,18 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
 	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
 
-	// ƒ‚ƒfƒ‹‚ÌˆÊ’u‚ğİ’è
+	// ãƒ¢ãƒ‡ãƒ«ã®ä½ç½®ã‚’è¨­å®š
 	MV1SetPosition(m_modelHandle, modelPos);
 
-	// ƒ‚ƒfƒ‹‚Ì‰ñ“]‚ğİ’è
+	// ãƒ¢ãƒ‡ãƒ«ã®å›è»¢ã‚’è¨­å®š
 	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f));
 
-	// ƒ^ƒbƒNƒ‹ƒN[ƒ‹ƒ^ƒCƒ€Œ¸­
+	// ã‚¿ãƒƒã‚¯ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ æ¸›å°‘
 	if (m_tackleCooldown > 0)
 	{
 		m_tackleCooldown--;
 
-		// ƒN[ƒ‹ƒ^ƒCƒ€‚ª0‚É‚È‚Á‚½uŠÔ‚É‘S“G‚Ìƒ^ƒbƒNƒ‹ƒqƒbƒgƒtƒ‰ƒO‚ğƒŠƒZƒbƒg
+		// ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ãŒ0ã«ãªã£ãŸç¬é–“ã«å…¨æ•µã®ã‚¿ãƒƒã‚¯ãƒ«ãƒ’ãƒƒãƒˆãƒ•ãƒ©ã‚°ã‚’ãƒªã‚»ãƒƒãƒˆ
 		if (m_tackleCooldown == 0)
 		{
 			for (EnemyBase* enemy : enemyList)
@@ -177,38 +177,38 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	// ƒ}ƒEƒX‚Ì¶ƒNƒŠƒbƒN‚ÅËŒ‚(ƒ^ƒbƒNƒ‹’†‚ÍËŒ‚•s‰Â)
+	// ãƒã‚¦ã‚¹ã®å·¦ã‚¯ãƒªãƒƒã‚¯ã§å°„æ’ƒ(ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã¯å°„æ’ƒä¸å¯)
 	if (!m_isTackling && Mouse::IsPressLeft() && m_ammo > 0)
 	{
-		Shoot(m_bullets); // ’e‚ğ”­Ë
-		m_ammo--; // ’e–ò‚ğŒ¸‚ç‚·
+		Shoot(m_bullets); // å¼¾ã‚’ç™ºå°„
+		m_ammo--; // å¼¾è–¬ã‚’æ¸›ã‚‰ã™
 	}
 
-	// ’n–Ê‚É‚¢‚é‚©‚Ç‚¤‚©‚Ì”»’è
+	// åœ°é¢ã«ã„ã‚‹ã‹ã©ã†ã‹ã®åˆ¤å®š
 	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f);
 
-	// ‰EƒNƒŠƒbƒN‚Åƒ^ƒbƒNƒ‹ŠJn
+	// å³ã‚¯ãƒªãƒƒã‚¯ã§ã‚¿ãƒƒã‚¯ãƒ«é–‹å§‹
 	if (!m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
 	{
 		m_isTackling = true;
 		m_tackleFrame = kTackleDuration;
-		m_tackleCooldown = kTackleCooldownMax; // ƒN[ƒ‹ƒ^ƒCƒ€ŠJn
-		m_tackleId++; // ƒ^ƒbƒNƒ‹‚²‚Æ‚ÉID‚ğXV
+		m_tackleCooldown = kTackleCooldownMax; // ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ é–‹å§‹
+		m_tackleId++; // ã‚¿ãƒƒã‚¯ãƒ«ã”ã¨ã«IDã‚’æ›´æ–°
 
-		// ƒJƒƒ‰‚ÌŒü‚«‚Å3D³‹K‰»ƒxƒNƒgƒ‹‚ğì¬
+		// ã‚«ãƒ¡ãƒ©ã®å‘ãã§3Dæ­£è¦åŒ–ãƒ™ã‚¯ãƒˆãƒ«ã‚’ä½œæˆ
 		float yaw = m_pCamera->GetYaw();
 		float pitch = m_pCamera->GetPitch();
 
-		// ƒ^ƒbƒNƒ‹•ûŒü‚ğŒvZ
+		// ã‚¿ãƒƒã‚¯ãƒ«æ–¹å‘ã‚’è¨ˆç®—
 		m_tackleDir = VGet(
 			cosf(pitch) * sinf(yaw),
 			sinf(pitch),
 			cosf(pitch) * cosf(yaw)
 		);
 
-		//	ChangeAnime(kTackleAnimName, false); // ƒ^ƒbƒNƒ‹ƒAƒjƒ[ƒVƒ‡ƒ“
+		//	ChangeAnime(kTackleAnimName, false); // ã‚¿ãƒƒã‚¯ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
 
-		// ƒ^ƒbƒNƒ‹ŠJn‚ÉFOV‚ğL‚°AƒJƒƒ‰‚ğŒã‚ë‚Éˆø‚­
+		// ã‚¿ãƒƒã‚¯ãƒ«é–‹å§‹æ™‚ã«FOVã‚’åºƒã’ã€ã‚«ãƒ¡ãƒ©ã‚’å¾Œã‚ã«å¼•ã
 		if (m_pCamera)
 		{
 			m_pCamera->SetTargetFOV(100.0f * DX_PI_F / 180.0f);
@@ -218,32 +218,32 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-		// ƒ^ƒbƒNƒ‹’†‚Ìˆ—
+		// ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã®å‡¦ç†
 		if (m_isTackling)
 		{
 			m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, kTackleSpeed));
 
-			// ’n–Ê‚æ‚è‰º‚És‚©‚È‚¢‚æ‚¤‚É§ŒÀ
+			// åœ°é¢ã‚ˆã‚Šä¸‹ã«è¡Œã‹ãªã„ã‚ˆã†ã«åˆ¶é™
 			if (m_modelPos.y < kGroundY)
 			{
 				m_modelPos.y = kGroundY;
 			}
 
-			// ƒ^ƒbƒNƒ‹”»’èî•ñ‚ğì¬
+			// ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šæƒ…å ±ã‚’ä½œæˆ
 			TackleInfo tackleInfo = GetTackleInfo();
 
-			// Še“G‚Éƒ^ƒbƒNƒ‹î•ñ‚ğ“n‚µ‚ÄUpdate
+			// å„æ•µã«ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±ã‚’æ¸¡ã—ã¦Update
 			for (EnemyBase* enemy : enemyList)
 			{
-				// “G‚ªnullptr‚Ìê‡‚ÍƒXƒLƒbƒv
+				// æ•µãŒnullptrã®å ´åˆã¯ã‚¹ã‚­ãƒƒãƒ—
 				if (!enemy) continue;
 
-				// “G‚ÌXVˆ—
+				// æ•µã®æ›´æ–°å‡¦ç†
 				enemy->Update(m_bullets, tackleInfo, *this);
 			}
 
 #ifdef _DEBUG
-			// ƒ^ƒbƒNƒ‹”»’èƒJƒvƒZƒ‹‚ÌƒfƒoƒbƒO•`‰æ
+			// ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šã‚«ãƒ—ã‚»ãƒ«ã®ãƒ‡ãƒãƒƒã‚°æç”»
 			DebugUtil::DrawCapsule(
 				tackleInfo.capA,
 				tackleInfo.capB,
@@ -254,19 +254,19 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			);
 #endif
 			m_tackleFrame--;
-			// ƒ^ƒbƒNƒ‹I—¹”»’è
+			// ã‚¿ãƒƒã‚¯ãƒ«çµ‚äº†åˆ¤å®š
 			if (m_tackleFrame <= 0)
 			{
 				m_isTackling = false;
 
-				// ƒ^ƒbƒNƒ‹I—¹‚ÉFOV‚ÆƒJƒƒ‰ƒIƒtƒZƒbƒg‚ğŒ³‚É–ß‚·
+				// ã‚¿ãƒƒã‚¯ãƒ«çµ‚äº†æ™‚ã«FOVã¨ã‚«ãƒ¡ãƒ©ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å…ƒã«æˆ»ã™
 				if (m_pCamera)
 				{
 					m_pCamera->ResetFOV();
 					m_pCamera->ResetOffset();
 				}
 
-				// ƒ^ƒbƒNƒ‹Œã‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‘JˆÚ
+				// ã‚¿ãƒƒã‚¯ãƒ«å¾Œã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é·ç§»
 				/*if (m_isMoving)
 				{
 					ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
@@ -276,11 +276,11 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 					ChangeAnime(kIdleAnimName, true);
 				}*/
 			}
-			// ƒ^ƒbƒNƒ‹’†‚Í‘¼‚ÌˆÚ“®EƒWƒƒƒ“ƒv‚ğ–³Œø‰»
+			// ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã¯ä»–ã®ç§»å‹•ãƒ»ã‚¸ãƒ£ãƒ³ãƒ—ã‚’ç„¡åŠ¹åŒ–
 			return;
 		}
 
-		// ƒ^ƒbƒNƒ‹’†‚Å‚È‚¯‚ê‚Î bullets ‚Ì‚İ“n‚·
+		// ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã§ãªã‘ã‚Œã° bullets ã®ã¿æ¸¡ã™
 		TackleInfo tackleInfo{};
 		for (EnemyBase* enemy : enemyList)
 		{
@@ -288,20 +288,20 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			enemy->Update(m_bullets, tackleInfo, *this);
 		}
 	
-		// ’e‚ÌXV
+		// å¼¾ã®æ›´æ–°
 		Bullet::UpdateBullets(m_bullets);
 
-		// ‘–‚éƒL[“ü—Í
+		// èµ°ã‚‹ã‚­ãƒ¼å…¥åŠ›
 		const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
-		bool isRunning = wantRun; // ‘–‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+		bool isRunning = wantRun; // èµ°ã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°
 
-		float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // ˆÚ“®‘¬“x‚Ìİ’è
-		bool isMoving = false; // ˆÚ“®’†‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+		float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // ç§»å‹•é€Ÿåº¦ã®è¨­å®š
+		bool isMoving = false; // ç§»å‹•ä¸­ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°
 
-		// ˆÚ“®•ûŒü‚Ì‰Šú‰»
+		// ç§»å‹•æ–¹å‘ã®åˆæœŸåŒ–
 		VECTOR moveDir = VGet(0, 0, 0);
 
-		// ƒL[“ü—Í‚É‚æ‚éˆÚ“®•ûŒü‚Ìİ’è
+		// ã‚­ãƒ¼å…¥åŠ›ã«ã‚ˆã‚‹ç§»å‹•æ–¹å‘ã®è¨­å®š
 		if (CheckHitKey(KEY_INPUT_W))
 		{
 			moveDir.x += sinf(m_pCamera->GetYaw());
@@ -323,7 +323,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
 		}
 
-		// ƒXƒy[ƒXƒL[‚ğ‰Ÿ‚µ‚½uŠÔ‚Ì‚İƒWƒƒƒ“ƒv
+		// ã‚¹ãƒšãƒ¼ã‚¹ã‚­ãƒ¼ã‚’æŠ¼ã—ãŸç¬é–“ã®ã¿ã‚¸ãƒ£ãƒ³ãƒ—
 		if (keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
 		{
 			m_jumpVelocity = kJumpPower;
@@ -331,25 +331,25 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			//ChangeAnime(kJumpAnimName, false);
 		}
 
-		// ƒWƒƒƒ“ƒv’†‚Ü‚½‚Í‹ó’†‚È‚çd—Í“K—p
+		// ã‚¸ãƒ£ãƒ³ãƒ—ä¸­ã¾ãŸã¯ç©ºä¸­ãªã‚‰é‡åŠ›é©ç”¨
 		if (m_isJumping || !isOnGround)
 		{
-			m_modelPos.y += m_jumpVelocity; // ƒWƒƒƒ“ƒv‚Ì‘¬“x‚ğ“K—p
-			m_jumpVelocity -= kGravity;     // d—Í‚ğ“K—p
+			m_modelPos.y += m_jumpVelocity; // ã‚¸ãƒ£ãƒ³ãƒ—ã®é€Ÿåº¦ã‚’é©ç”¨
+			m_jumpVelocity -= kGravity;     // é‡åŠ›ã‚’é©ç”¨
 
-			// ’…’n”»’è
+			// ç€åœ°åˆ¤å®š
 			if (m_modelPos.y <= kGroundY)
 			{
-				m_modelPos.y = kGroundY; // ’n–Ê‚É’…’n
-				m_jumpVelocity = 0.0f;   // ƒWƒƒƒ“ƒv‘¬“x‚ğƒŠƒZƒbƒg
-				m_isJumping = false;     // ƒWƒƒƒ“ƒvó‘Ô‚ğ‰ğœ
+				m_modelPos.y = kGroundY; // åœ°é¢ã«ç€åœ°
+				m_jumpVelocity = 0.0f;   // ã‚¸ãƒ£ãƒ³ãƒ—é€Ÿåº¦ã‚’ãƒªã‚»ãƒƒãƒˆ
+				m_isJumping = false;     // ã‚¸ãƒ£ãƒ³ãƒ—çŠ¶æ…‹ã‚’è§£é™¤
 			}
 		}
 
-		// ˆÚ“®•ûŒü‚ª‚ ‚éê‡
+		// ç§»å‹•æ–¹å‘ãŒã‚ã‚‹å ´åˆ
 		if (moveDir.x != 0.0f || moveDir.z != 0.0f)
 		{
-			// ˆÚ“®•ûŒü‚Ì’·‚³‚ğŒvZ
+			// ç§»å‹•æ–¹å‘ã®é•·ã•ã‚’è¨ˆç®—
 			float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
 			moveDir.x /= len;
 			moveDir.z /= len;
@@ -357,22 +357,22 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			isMoving = true;
 		}
 
-		//// ƒAƒjƒ[ƒVƒ‡ƒ“‚ªI—¹‚µ‚½‚ç
+		//// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒçµ‚äº†ã—ãŸã‚‰
 		//if (m_nextAnimData.isEnd)
 		//{
 		//	if (m_isMoving)
 		//	{
-		//		// ˆÚ“®ƒAƒjƒ[ƒVƒ‡ƒ“‚É•ÏX
+		//		// ç§»å‹•ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã«å¤‰æ›´
 		//		ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
 		//	}
 		//	else
 		//	{
-		//		// ‘Ò‹@ƒAƒjƒ[ƒVƒ‡ƒ“‚É•ÏX
+		//		// å¾…æ©Ÿã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã«å¤‰æ›´
 		//		ChangeAnime(kIdleAnimName, true);
 		//	}
 		//}
 
-		// ˆÚ“®’†‚Å‘O‰ñ‚ÍˆÚ“®‚µ‚Ä‚¢‚È‚©‚Á‚½ê‡
+		// ç§»å‹•ä¸­ã§å‰å›ã¯ç§»å‹•ã—ã¦ã„ãªã‹ã£ãŸå ´åˆ
 		//if (isMoving && !m_isMoving)
 		//{
 		//	ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
@@ -386,16 +386,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		//	ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
 		//}
 
-		m_isMoving = isMoving;  // ˆÚ“®’†‚Ìó‘Ô‚ğXV
-		m_isWasRunning = isRunning; // ‘–‚Á‚Ä‚¢‚éó‘Ô‚ğXV
+		m_isMoving = isMoving;  // ç§»å‹•ä¸­ã®çŠ¶æ…‹ã‚’æ›´æ–°
+		m_isWasRunning = isRunning; // èµ°ã£ã¦ã„ã‚‹çŠ¶æ…‹ã‚’æ›´æ–°
 
 		std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 
-		// ƒvƒŒƒCƒ„[‚ÌÎ‚ßŒã•ûã‹ó‚©‚çƒvƒŒƒCƒ„[‚ğŒ©‚é
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ–œã‚å¾Œæ–¹ä¸Šç©ºã‹ã‚‰ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’è¦‹ã‚‹
 		if (m_pDebugCamera) 
 		{
 			VECTOR target = m_modelPos;
-			VECTOR offset = VGet(-200.0f, 150.0f, -200.0f); // Î‚ßŒã•ûã‹ó
+			VECTOR offset = VGet(-200.0f, 150.0f, -200.0f); // æ–œã‚å¾Œæ–¹ä¸Šç©º
 
 			m_pDebugCamera->SetPos(VAdd(target, offset));
 			m_pDebugCamera->SetTarget(target);
@@ -406,19 +406,19 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 void Player::Draw()
 {
-	DrawField(); // ƒtƒB[ƒ‹ƒh‚Ì•`‰æ
+	DrawField(); // ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®æç”»
 
-	// ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚Ì•`‰æ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¢ãƒ‡ãƒ«ã®æç”»
 	MV1DrawModel(m_modelHandle); 
 
-	// ’e‚Ì•`‰æ
+	// å¼¾ã®æç”»
 	Bullet::DrawBullets(m_bullets);
 
 	int screenW = Game::kScreenWidth;
 	int screenH = Game::kScreenHeigth;
 	GetScreenState(&screenW, &screenH, NULL);
 
-	// c’e”‚Ì•\¦
+	// æ®‹å¼¾æ•°ã®è¡¨ç¤º
 	int ammoFontSize = 32;
 	int ammoX = screenW - 200;
 	int ammoY = screenH - 60;
@@ -426,46 +426,46 @@ void Player::Draw()
 
 	SetFontSize(ammoFontSize);
 	DrawFormatString(ammoX, ammoY, ammoColor, "AMMO: %d", m_ammo);
-	SetFontSize(16); // ƒtƒHƒ“ƒgƒTƒCƒY‚ğŒ³‚É–ß‚·
+	SetFontSize(16); // ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºã‚’å…ƒã«æˆ»ã™
 
 
-	/*Œ•‚Ì•`‰æ*/
+	/*å‰£ã®æç”»*/
 	float swordScreenX = -25.0f;
 	float swordScreenY = -30;
 	float swordScreenZ = 35.0f;
 
-	VECTOR camPos = VGet(0, 0, -swordScreenZ); // ƒJƒƒ‰‚ÌˆÊ’u
-	VECTOR camTgt = VGet(0, 0, 0);			    // ƒJƒƒ‰‚Ìƒ^[ƒQƒbƒgˆÊ’u
+	VECTOR camPos = VGet(0, 0, -swordScreenZ); // ã‚«ãƒ¡ãƒ©ã®ä½ç½®
+	VECTOR camTgt = VGet(0, 0, 0);			    // ã‚«ãƒ¡ãƒ©ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä½ç½®
 	SetCameraPositionAndTarget_UpVecY(camPos, camTgt); 
 
-	// Œ•‚ÌˆÊ’u
+	// å‰£ã®ä½ç½®
 	MV1SetPosition(m_swordHandle, VGet(swordScreenX, swordScreenY, 0.0f));
 
-	MV1SetRotationXYZ(m_swordHandle, VGet(0.0f, 200.0f, 0.0f)); // Œ•‚Ì‰ñ“]
-	MV1SetScale(m_swordHandle, VGet(0.5f, 0.5f, 0.5f));		    // Œ•‚ÌƒXƒP[ƒ‹
+	MV1SetRotationXYZ(m_swordHandle, VGet(0.0f, 200.0f, 0.0f)); // å‰£ã®å›è»¢
+	MV1SetScale(m_swordHandle, VGet(0.5f, 0.5f, 0.5f));		    // å‰£ã®ã‚¹ã‚±ãƒ¼ãƒ«
 
-	// Œ•‚Ì•`‰æ
+	// å‰£ã®æç”»
 	MV1DrawModel(m_swordHandle);
 
 	m_pCamera->SetCameraToDxLib();
 
-	//m_pEffect->Draw(); // ƒGƒtƒFƒNƒg‚Ì•`‰æ
+	//m_pEffect->Draw(); // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æç”»
 
-	// ƒ^ƒbƒNƒ‹ƒN[ƒ‹ƒ^ƒCƒ€ƒQ[ƒW
+	// ã‚¿ãƒƒã‚¯ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã‚²ãƒ¼ã‚¸
 	const int tackleGaugeX = 10;
 	const int tackleGaugeY = 50;
 	const int tackleGaugeWidth = 200;
 	const int tackleGaugeHeight = 16;
 
-	// ˜g
+	// æ 
 	DrawBox(tackleGaugeX - 1, tackleGaugeY - 1, tackleGaugeX + tackleGaugeWidth + 1, tackleGaugeY + tackleGaugeHeight + 1, GetColor(80, 80, 200), false);
 
-	// ƒQ[ƒW–{‘Ì
+	// ã‚²ãƒ¼ã‚¸æœ¬ä½“
 	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(kTackleCooldownMax));
 	int tackleFilledWidth = static_cast<int>(tackleGaugeWidth * tackleRate);
 	DrawBox(tackleGaugeX, tackleGaugeY, tackleGaugeX + tackleFilledWidth, tackleGaugeY + tackleGaugeHeight, 0x50B4ff, true);
 
-	// ƒeƒLƒXƒg
+	// ãƒ†ã‚­ã‚¹ãƒˆ
 	DrawFormatString(tackleGaugeX, tackleGaugeY - 18, 0xFFFFFF, "Tackle Cooldown");
 	if (m_tackleCooldown > 0) 
 	{
@@ -476,60 +476,60 @@ void Player::Draw()
 		DrawFormatString(tackleGaugeX + tackleGaugeWidth + 10, tackleGaugeY, 0x80FF80, "READY");
 	}
 
-	// HPƒo[‚Ìƒpƒ‰ƒ[ƒ^
+	// HPãƒãƒ¼ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
     const int barWidth  = 200;
     const int barHeight = 24;
     const int margin    = 30;
     const int barX      = margin;
     const int barY      = screenH - barHeight - margin;
 
-    // Å‘åHP
+    // æœ€å¤§HP
     const float maxHP = 100.0f; 
     float hp = m_health;
     if (hp < 0) hp = 0;
     if (hp > maxHP) hp = maxHP;
 
-    // HPŠ„‡
+    // HPå‰²åˆ
     float hpRate = hp / maxHP;
 
-    // ”wŒi
+    // èƒŒæ™¯
     DrawBox(barX, barY, barX + barWidth, barY + barHeight, GetColor(80, 80, 80), TRUE);
 
-    // HPƒo[–{‘Ì
+    // HPãƒãƒ¼æœ¬ä½“
     DrawBox(barX, barY, barX + static_cast<int>(barWidth * hpRate), barY + barHeight, GetColor(255, 64, 64), TRUE);
 
-    // ˜g
+    // æ 
     DrawBox(barX, barY, barX + barWidth, barY + barHeight, GetColor(0, 0, 0), FALSE);
 
-    // HP”’l
+    // HPæ•°å€¤
     DrawFormatString(barX + 8, barY + 2, GetColor(255,255,255), "HP: %.0f / %.0f", hp, maxHP);
 
 #ifdef _DEBUG
 	if (m_pCamera)
 	{
-		// ƒfƒoƒbƒOƒJƒƒ‰‚ÌˆÊ’u‚Æƒ^[ƒQƒbƒg‚ğæ“¾
+		// ãƒ‡ãƒãƒƒã‚°ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã¨ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’å–å¾—
 		const VECTOR pos = m_pCamera->GetPos();
 		const VECTOR tgt = m_pCamera->GetTarget();
 		float fov = m_pCamera->GetFOV();
 
-		// ƒTƒuƒJƒƒ‰—p•`‰æ—Ìˆæ
-		int subW = 320, subH = 180; // ƒTƒuƒEƒBƒ“ƒhƒEƒTƒCƒY
+		// ã‚µãƒ–ã‚«ãƒ¡ãƒ©ç”¨æç”»é ˜åŸŸ
+		int subW = 320, subH = 180; // ã‚µãƒ–ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚º
 		int subX = Game::kScreenWidth - subW;
 		int subY = Game::kScreenHeigth - subH;
 
-		// ƒTƒuƒJƒƒ‰—p•`‰ææƒT[ƒtƒFƒXì¬
+		// ã‚µãƒ–ã‚«ãƒ¡ãƒ©ç”¨æç”»å…ˆã‚µãƒ¼ãƒ•ã‚§ã‚¹ä½œæˆ
 		int subScreen = MakeScreen(subW, subH, true);
 		SetDrawScreen(subScreen);
 		ClearDrawScreen();
 
-		// ƒTƒuƒJƒƒ‰‚Å•`‰æ
+		// ã‚µãƒ–ã‚«ãƒ¡ãƒ©ã§æç”»
 		m_pDebugCamera->SetCameraToDxLib();
 
-		// ‚±‚±‚ÅƒtƒB[ƒ‹ƒhEƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹E“–‚½‚è”»’è‚ğ•`‰æ 
-		DrawField(); // ƒtƒB[ƒ‹ƒh•`‰æ
-		MV1DrawModel(m_modelHandle); // ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹•`‰æ
+		// ã“ã“ã§ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ãƒ»ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¢ãƒ‡ãƒ«ãƒ»å½“ãŸã‚Šåˆ¤å®šã‚’æç”» 
+		DrawField(); // ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰æç”»
+		MV1DrawModel(m_modelHandle); // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¢ãƒ‡ãƒ«æç”»
 
-		// ƒvƒŒƒCƒ„[ƒJƒvƒZƒ‹“–‚½‚è”»’è‚ÌƒfƒoƒbƒO•\¦
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚«ãƒ—ã‚»ãƒ«å½“ãŸã‚Šåˆ¤å®šã®ãƒ‡ãƒãƒƒã‚°è¡¨ç¤º
 		auto playerCol = GetBodyCollider();
 		DebugUtil::DrawCapsule(
 			playerCol->GetSegmentA(),
@@ -540,16 +540,16 @@ void Player::Draw()
 			false
 		);
 
-		// ƒƒCƒ“‰æ–Ê‚É–ß‚·
+		// ãƒ¡ã‚¤ãƒ³ç”»é¢ã«æˆ»ã™
 		SetDrawScreen(DX_SCREEN_BACK);
 
-		// ƒTƒu‰æ–Ê‚ğ‰E‰º‚É“]‘—
+		// ã‚µãƒ–ç”»é¢ã‚’å³ä¸‹ã«è»¢é€
 		DrawGraph(subX, subY, subScreen, false);
 
-		// ƒT[ƒtƒFƒX‰ğ•ú
+		// ã‚µãƒ¼ãƒ•ã‚§ã‚¹è§£æ”¾
 		DeleteGraph(subScreen);
 
-		// •W€o—Í
+		// æ¨™æº–å‡ºåŠ›
 		printf("[DebugCamera] Pos:(%.1f, %.1f, %.1f)  Target:(%.1f, %.1f, %.1f)  FOV:%.1f\n",
 			pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
 	}
@@ -557,7 +557,7 @@ void Player::Draw()
 
 }
 
-// ƒtƒB[ƒ‹ƒh‚Ì•`‰æ
+// ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã®æç”»
 void Player::DrawField()
 {
 	SetUseLighting(false);
@@ -591,179 +591,179 @@ void Player::DrawField()
 	SetUseLighting(true);
 }
 
-// ƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
+// ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
 void Player::TakeDamage(float damage)
 {
-	m_health -= damage; // ƒ_ƒ[ƒW‚ğ“K—p
+	m_health -= damage; // ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’é©ç”¨
 	if (m_health < 0.0f)
 	{
-		m_health = 0.0f; // ‘Ì—Í‚ª•‰‚É‚È‚ç‚È‚¢‚æ‚¤‚É§ŒÀ
+		m_health = 0.0f; // ä½“åŠ›ãŒè² ã«ãªã‚‰ãªã„ã‚ˆã†ã«åˆ¶é™
 	}
 }
 
-// ’e‚Ìæ“¾
+// å¼¾ã®å–å¾—
 std::vector<Bullet>& Player::GetBullets()
 {
 	return m_bullets;
 }
 
-// ƒvƒŒƒCƒ„[‚ªƒVƒ‡ƒbƒg‰Â”\‚©‚Ç‚¤‚©
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã‚·ãƒ§ãƒƒãƒˆå¯èƒ½ã‹ã©ã†ã‹
 bool Player::HasShot()
 {
 	bool shot = m_hasShot;
-	m_hasShot = false; // ó‘Ô‚ğƒŠƒZƒbƒg
-	return shot; // Œ‚‚Á‚½‚©‚Ç‚¤‚©‚ğ•Ô‚·
+	m_hasShot = false; // çŠ¶æ…‹ã‚’ãƒªã‚»ãƒƒãƒˆ
+	return shot; // æ’ƒã£ãŸã‹ã©ã†ã‹ã‚’è¿”ã™
 }
 
 void Player::Shoot(std::vector<Bullet>& bullets)
 {
-    //// ƒN[ƒ‹ƒ_ƒEƒ“’†‚È‚ç”­Ë‚µ‚È‚¢
+    //// ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ä¸­ãªã‚‰ç™ºå°„ã—ãªã„
     //if (m_shotCooldownTimer > 0)
     //{
     //    return;
     //}
 
-    //// ’e–ò‚ª‚È‚¢‚È‚ç”­Ë‚µ‚È‚¢
+    //// å¼¾è–¬ãŒãªã„ãªã‚‰ç™ºå°„ã—ãªã„
     //if (m_ammoCount <= 0)
     //{
     //    return;
     //}
 
-    // ƒJƒƒ‰‚ÌˆÊ’u‚ÆƒJƒƒ‰‚ªŒü‚¢‚Ä‚¢‚é•ûŒü‚Ì‰“‚¢–Ú•W“_‚ğæ“¾
+    // ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã¨ã‚«ãƒ¡ãƒ©ãŒå‘ã„ã¦ã„ã‚‹æ–¹å‘ã®é ã„ç›®æ¨™ç‚¹ã‚’å–å¾—
     VECTOR cameraPos = m_pCamera->GetPos();
-    VECTOR cameraLookDir = GetGunRot(); // ƒJƒƒ‰‚ÌŒ»İ‚ÌŒü‚«
-    float targetDistance = 1000.0f; // \•ª‚É‰“‚¢‹——£
+    VECTOR cameraLookDir = GetGunRot(); // ã‚«ãƒ¡ãƒ©ã®ç¾åœ¨ã®å‘ã
+    float targetDistance = 1000.0f; // ååˆ†ã«é ã„è·é›¢
     VECTOR targetPoint = VAdd(cameraPos, VScale(cameraLookDir, targetDistance));
 
-    // e‚Ì”­ËˆÊ’u‚©‚ç–Ú•W“_‚Ö‚Ì•ûŒüƒxƒNƒgƒ‹‚ğŒvZ
+    // éŠƒã®ç™ºå°„ä½ç½®ã‹ã‚‰ç›®æ¨™ç‚¹ã¸ã®æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã‚’è¨ˆç®—
     VECTOR gunPos = GetGunPos();
     VECTOR bulletDirection = VNorm(VSub(targetPoint, gunPos));
 
-    // ’eŠÛ‚ğ”­Ë
+    // å¼¾ä¸¸ã‚’ç™ºå°„
     bullets.emplace_back(gunPos, bulletDirection);
     m_ammo--;
  //   m_pEffect->PlaySound(Effect::SoundType::Shot);
-//    m_pEffect->SpawnEffect(Effect::EffectType::MuzzleFlash, gunPos, bulletDirection); // ƒGƒtƒFƒNƒg‚ÌŒü‚«‚àXV
+//    m_pEffect->SpawnEffect(Effect::EffectType::MuzzleFlash, gunPos, bulletDirection); // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®å‘ãã‚‚æ›´æ–°
 
-    // ”­ËƒN[ƒ‹ƒ_ƒEƒ“‚ğİ’è
+    // ç™ºå°„ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã‚’è¨­å®š
     //m_shotCooldownTimer = kShotCooldown;
 
-    // ƒAƒjƒ[ƒVƒ‡ƒ“ŠÖ˜A
-    ChangeAnime("Shoot", false); // ËŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
+    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–¢é€£
+    ChangeAnime("Shoot", false); // å°„æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿ
   //  SetAnimSpeed(kShotAnimSpeed);
 }
 
-// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒAƒ^ƒbƒ`
+// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚¢ã‚¿ãƒƒãƒ
 void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop) 
 {
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğæ“¾
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å–å¾—
 	int index = MV1GetAnimIndex(m_modelHandle, animName); 
 
-	// ƒ‚ƒfƒ‹ƒAƒjƒ[ƒVƒ‡ƒ“‚ğƒAƒ^ƒbƒ`
+	// ãƒ¢ãƒ‡ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ã‚¢ã‚¿ãƒƒãƒ
 	data.attachNo = MV1AttachAnim(m_modelHandle, index, -1, false); 
-	data.count  = 0.0f;	  // ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒJƒEƒ“ƒg‚ğ‰Šú‰»
-	data.isLoop = isLoop; // ƒ‹[ƒvƒtƒ‰ƒO‚ğİ’è
-	data.isEnd  = false;  // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªI—¹‚µ‚½‚©
+	data.count  = 0.0f;	  // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚«ã‚¦ãƒ³ãƒˆã‚’åˆæœŸåŒ–
+	data.isLoop = isLoop; // ãƒ«ãƒ¼ãƒ—ãƒ•ãƒ©ã‚°ã‚’è¨­å®š
+	data.isEnd  = false;  // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒçµ‚äº†ã—ãŸã‹
 }
 
-// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌXV
+// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®æ›´æ–°
 void Player::UpdateAnime(AnimData& data) 
 {
-	if (data.attachNo == -1) return; // ƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Í‰½‚à‚µ‚È‚¢
+	if (data.attachNo == -1) return; // ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ãªã„å ´åˆã¯ä½•ã‚‚ã—ãªã„
 
 	float animSpeed = 1.0f;
 
 	data.count += animSpeed;
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‘ŠÔ‚ğæ“¾
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ç·æ™‚é–“ã‚’å–å¾—
 	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo); 
 	
-	// ƒ‹[ƒvƒAƒjƒ[ƒVƒ‡ƒ“‚Ìê‡
+	// ãƒ«ãƒ¼ãƒ—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®å ´åˆ
 	if (data.isLoop)
 	{
-		// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒJƒEƒ“ƒg‚ª‘ŠÔ‚ğ’´‚¦‚½ê‡Aƒ‹[ƒv‚³‚¹‚é
+		// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚«ã‚¦ãƒ³ãƒˆãŒç·æ™‚é–“ã‚’è¶…ãˆãŸå ´åˆã€ãƒ«ãƒ¼ãƒ—ã•ã›ã‚‹
 		while (data.count > totalTime)  
 		{
-			data.count -= totalTime; // ‘ŠÔ‚ğˆø‚¢‚Äƒ‹[ƒv
+			data.count -= totalTime; // ç·æ™‚é–“ã‚’å¼•ã„ã¦ãƒ«ãƒ¼ãƒ—
 		}
 	}
 	else
 	{
 		if (data.count > totalTime)
 		{
-			data.count = totalTime; // ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒJƒEƒ“ƒg‚ğ‘ŠÔ‚É§ŒÀ
-			data.isEnd = true;      // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªI—¹‚µ‚½ƒtƒ‰ƒO‚ğ—§‚Ä‚é
+			data.count = totalTime; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ã‚«ã‚¦ãƒ³ãƒˆã‚’ç·æ™‚é–“ã«åˆ¶é™
+			data.isEnd = true;      // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒçµ‚äº†ã—ãŸãƒ•ãƒ©ã‚°ã‚’ç«‹ã¦ã‚‹
 		}
 	}
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌŠÔ‚ğİ’è
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®æ™‚é–“ã‚’è¨­å®š
 	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count); 
 }
 
-// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh‚ğXV
+// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚’æ›´æ–°
 void Player::UpdateAnimeBlend() 
 {
-	// ƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚È‚¢ê‡‚Í‰½‚à‚µ‚È‚¢
+	// ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ãªã„å ´åˆã¯ä½•ã‚‚ã—ãªã„
 	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return; 
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦‚ğXV
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ã‚’æ›´æ–°
 	m_animBlendRate += 1.0f / 8.0f; 
 
-	// ƒuƒŒƒ“ƒh—¦‚ª1.0‚ğ’´‚¦‚½‚ç
+	// ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ãŒ1.0ã‚’è¶…ãˆãŸã‚‰
 	if (m_animBlendRate > 1.0f)
 	{
-		m_animBlendRate = 1.0f; // 1.0‚É§ŒÀ
+		m_animBlendRate = 1.0f; // 1.0ã«åˆ¶é™
 	}
 
-	// ‘O‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦‚ğİ’è
+	// å‰ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ã‚’è¨­å®š
 	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-	// Ÿ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦‚ğİ’è
+	// æ¬¡ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ã‚’è¨­å®š
 	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate); 
 }
 
-// ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì•ÏX
+// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®å¤‰æ›´
 void Player::ChangeAnime(const char* animName, bool isLoop) 
 {
-	// ‘O‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğ‰ğœ
+	// å‰ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’è§£é™¤
 	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
 
-	// ‘O‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒf[ƒ^‚ğ•Û‘¶
+	// å‰ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿ã‚’ä¿å­˜
 	m_prevAnimData = m_nextAnimData; 
 
-	// Ÿ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğƒAƒ^ƒbƒ`
+	// æ¬¡ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ã‚¢ã‚¿ãƒƒãƒ
 	AttachAnime(m_nextAnimData, animName, isLoop); 
 
-	// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦‚ğƒŠƒZƒbƒg
+	// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ã‚’ãƒªã‚»ãƒƒãƒˆ
 	m_animBlendRate = 0.0f; 
 
-	// ‘O‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦‚ğİ’è
+	// å‰ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ã‚’è¨­å®š
 	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-	// Ÿ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ÌƒuƒŒƒ“ƒh—¦‚ğİ’è
+	// æ¬¡ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ–ãƒ¬ãƒ³ãƒ‰ç‡ã‚’è¨­å®š
 	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
 }
 
-// e‚ÌˆÊ’u‚ğæ“¾
+// éŠƒã®ä½ç½®ã‚’å–å¾—
 VECTOR Player::GetGunPos() const 
 {
-	// ƒ‚ƒfƒ‹‚ÌƒIƒtƒZƒbƒg‚Æ‰ñ“]‚ğŒvZ
-	VECTOR modelOffset		  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ); // ƒ‚ƒfƒ‹‚ÌƒIƒtƒZƒbƒg
-	MATRIX rotYaw			  = MGetRotY(m_pCamera->GetYaw());                     // ƒJƒƒ‰‚Ìƒˆ[‰ñ“]
-	MATRIX rotPitch			  = MGetRotX(-m_pCamera->GetPitch());	               // ƒJƒƒ‰‚Ìƒsƒbƒ`‰ñ“]
-	MATRIX modelRot			  = MMult(rotPitch, rotYaw);						   // ƒ‚ƒfƒ‹‚Ì‰ñ“]s—ñ‚ğŒvZ
-	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);				   // ƒIƒtƒZƒbƒg‚ğ‰ñ“]
-	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);			   // ƒ‚ƒfƒ‹‚ÌˆÊ’u‚ÆƒIƒtƒZƒbƒg‚ğ‘g‚İ‡‚í‚¹‚Äe‚ÌˆÊ’u‚ğŒvZ
+	// ãƒ¢ãƒ‡ãƒ«ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã¨å›è»¢ã‚’è¨ˆç®—
+	VECTOR modelOffset		  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ); // ãƒ¢ãƒ‡ãƒ«ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+	MATRIX rotYaw			  = MGetRotY(m_pCamera->GetYaw());                     // ã‚«ãƒ¡ãƒ©ã®ãƒ¨ãƒ¼å›è»¢
+	MATRIX rotPitch			  = MGetRotX(-m_pCamera->GetPitch());	               // ã‚«ãƒ¡ãƒ©ã®ãƒ”ãƒƒãƒå›è»¢
+	MATRIX modelRot			  = MMult(rotPitch, rotYaw);						   // ãƒ¢ãƒ‡ãƒ«ã®å›è»¢è¡Œåˆ—ã‚’è¨ˆç®—
+	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);				   // ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å›è»¢
+	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);			   // ãƒ¢ãƒ‡ãƒ«ã®ä½ç½®ã¨ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’çµ„ã¿åˆã‚ã›ã¦éŠƒã®ä½ç½®ã‚’è¨ˆç®—
 
-	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ); // e‚ÌƒIƒtƒZƒbƒg
-	VECTOR gunPos    = VTransform(gunOffset, modelRot);			    // e‚ÌƒIƒtƒZƒbƒg‚ğ‰ñ“]
+	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ); // éŠƒã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+	VECTOR gunPos    = VTransform(gunOffset, modelRot);			    // éŠƒã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å›è»¢
 
-	// e‚ÌˆÊ’u‚ğŒvZ‚µ‚Ä•Ô‚·
+	// éŠƒã®ä½ç½®ã‚’è¨ˆç®—ã—ã¦è¿”ã™
 	return VAdd(modelPosition, gunPos); 
 }
 
-// e‚ÌŒü‚«‚ğæ“¾
+// éŠƒã®å‘ãã‚’å–å¾—
 VECTOR Player::GetGunRot() const
 {
-	// ‚±‚ÌŠÖ”‚ÍƒJƒƒ‰‚Ìƒˆ‚ÈŒü‚«‚ğ•Ô‚·‚à‚Ì‚Æ‚µ‚ÄˆÛ‚µ‚Ü‚·
+	// ã“ã®é–¢æ•°ã¯ã‚«ãƒ¡ãƒ©ã®ç´”ç²‹ãªå‘ãã‚’è¿”ã™ã‚‚ã®ã¨ã—ã¦ç¶­æŒã—ã¾ã™
 	return VGet(
 		cosf(m_pCamera->GetPitch()) * sinf(m_pCamera->GetYaw()),
 		sinf(m_pCamera->GetPitch()),
@@ -776,7 +776,7 @@ std::shared_ptr<CapsuleCollider> Player::GetBodyCollider() const
 	return m_pBodyCollider;
 }
 
-// ƒ^ƒbƒNƒ‹î•ñ‚ğæ“¾
+// ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±ã‚’å–å¾—
 Player::TackleInfo Player::GetTackleInfo() const
 {
 	TackleInfo info;
@@ -784,16 +784,16 @@ Player::TackleInfo Player::GetTackleInfo() const
 	if (m_isTackling)
 	{
 		float tackleHeight = kTackleHitHeight;
-		info.tackleId = m_tackleId; // ƒ^ƒbƒNƒ‹ID‚ğƒZƒbƒg
+		info.tackleId = m_tackleId; // ã‚¿ãƒƒã‚¯ãƒ«IDã‚’ã‚»ãƒƒãƒˆ
 
-		// ƒvƒŒƒCƒ„[‚Ì‘Ì‚Ì’†SˆÊ’u
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½“ã®ä¸­å¿ƒä½ç½®
 		VECTOR bodyCenter = m_modelPos;
 		bodyCenter.y += kModelOffsetY;
 
-		// ƒvƒŒƒCƒ„[‚Ì‘O–Ê’†Si‘Ì‚Ì’†S‚©‚ç‘O•û‚ÖkTackleHitRange‚¾‚¯i‚ß‚éj
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‰é¢ä¸­å¿ƒï¼ˆä½“ã®ä¸­å¿ƒã‹ã‚‰å‰æ–¹ã¸kTackleHitRangeã ã‘é€²ã‚ã‚‹ï¼‰
 		VECTOR frontCenter = VAdd(bodyCenter, VScale(m_tackleDir, kTackleHitRange));
 
-		// ƒJƒvƒZƒ‹‚Ì’†S²‚ğ‘O–Ê’†S‚Ìã‰º‚ÉL‚Î‚·
+		// ã‚«ãƒ—ã‚»ãƒ«ã®ä¸­å¿ƒè»¸ã‚’å‰é¢ä¸­å¿ƒã®ä¸Šä¸‹ã«ä¼¸ã°ã™
 		VECTOR capA = VAdd(frontCenter, VGet(0, -tackleHeight * 0.5f, 0));
 		VECTOR capB = VAdd(frontCenter, VGet(0, tackleHeight * 0.5f, 0));
 
@@ -805,10 +805,10 @@ Player::TackleInfo Player::GetTackleInfo() const
 	return info;
 }
 
-// ƒJƒvƒZƒ‹î•ñ‚ğæ“¾
+// ã‚«ãƒ—ã‚»ãƒ«æƒ…å ±ã‚’å–å¾—
 void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
 {
-	// m_pBodyCollider ‚©‚ç’¼Úæ“¾
+	// m_pBodyCollider ã‹ã‚‰ç›´æ¥å–å¾—
 	capA   = m_pBodyCollider->GetSegmentA();
 	capB   = m_pBodyCollider->GetSegmentB();
 	radius = m_pBodyCollider->GetRadius();
@@ -816,14 +816,14 @@ void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
 
 void Player::AddHp(float value)
 {
-	m_health += value; // ‘Ì—Í‚ğ‰ÁZ
+	m_health += value; // ä½“åŠ›ã‚’åŠ ç®—
 	if (m_health > m_maxHealth)
 	{
-		m_health = m_maxHealth; // Å‘å‘Ì—Í‚ğ’´‚¦‚È‚¢‚æ‚¤‚É§ŒÀ
+		m_health = m_maxHealth; // æœ€å¤§ä½“åŠ›ã‚’è¶…ãˆãªã„ã‚ˆã†ã«åˆ¶é™
 	}
 
 	if (m_health < 0.0f)
 	{
-		m_health = 0.0f; // ‘Ì—Í‚ª•‰‚É‚È‚ç‚È‚¢‚æ‚¤‚É§ŒÀ
+		m_health = 0.0f; // ä½“åŠ›ãŒè² ã«ãªã‚‰ãªã„ã‚ˆã†ã«åˆ¶é™
 	}
 }

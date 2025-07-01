@@ -1,13 +1,13 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 
 /// <summary>
-/// ƒQ[ƒ€‚ÌŠî–{î•ñ‚ğ’è‹`‚·‚éƒNƒ‰ƒX
+/// ã‚²ãƒ¼ãƒ ã®åŸºæœ¬æƒ…å ±ã‚’å®šç¾©ã™ã‚‹ã‚¯ãƒ©ã‚¹
 /// </summary>
 class Game
 {
 public:
-    // ‰æ–Êî•ñ‚ğ’è”’è‹`
+    // ç”»é¢æƒ…å ±ã‚’å®šæ•°å®šç¾©
     //static constexpr int kScreenWidth  = 1920;
     //static constexpr int kScreenHeigth = 1080;
     //static constexpr int kScreenWidth  = 1280;
@@ -18,6 +18,6 @@ public:
 
     static constexpr bool kDefaultWindowMode = true;
 
-    // ƒOƒ[ƒoƒ‹‚ÈƒJƒƒ‰Š´“x
+    // ã‚°ãƒ­ãƒ¼ãƒãƒ«ãªã‚«ãƒ¡ãƒ©æ„Ÿåº¦
     static float g_cameraSensitivity;
 };

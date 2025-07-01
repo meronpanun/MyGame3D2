@@ -1,4 +1,4 @@
-#include "SceneGameOver.h"
+﻿#include "SceneGameOver.h"
 #include "DxLib.h"
 
 SceneGameOver::SceneGameOver()

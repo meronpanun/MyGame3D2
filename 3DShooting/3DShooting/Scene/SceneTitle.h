@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include "SceneBase.h"
 
 /// <summary>
-/// ƒ^ƒCƒgƒ‹ƒV[ƒ“ƒNƒ‰ƒX
+/// ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã‚¯ãƒ©ã‚¹
 /// </summary>
 class SceneTitle : public SceneBase
 {
@@ -17,14 +17,14 @@ public:
 	void SkipLogo();
 
 private:
-	int m_logoHandle;	   // ƒ^ƒCƒgƒ‹ƒƒS‚Ìƒnƒ“ƒhƒ‹
-	int m_fadeAlpha;	   // ƒtƒF[ƒh‚ÌƒAƒ‹ƒtƒ@’l
-	int m_fadeFrame;	   // ƒtƒF[ƒh‚ÌƒtƒŒ[ƒ€ƒJƒEƒ“ƒg
-	int m_sceneFadeAlpha;  // ƒV[ƒ“ƒtƒF[ƒh‚ÌƒAƒ‹ƒtƒ@’l
-	int m_waitFrame;	   // ‘Ò‹@ƒtƒŒ[ƒ€
-	bool m_isFadeComplete; // ƒtƒF[ƒhŠ®—¹ƒtƒ‰ƒO
-	bool m_isFadeOut;	   // ƒtƒF[ƒhƒAƒEƒgƒtƒ‰ƒO
-	bool m_skipLogo;       // ƒƒSƒXƒLƒbƒv—p‚Ìƒtƒ‰ƒO
-	bool m_isSceneFadeIn;  // ƒV[ƒ“ƒtƒF[ƒhƒCƒ“ƒtƒ‰ƒO
+	int m_logoHandle;	   // ã‚¿ã‚¤ãƒˆãƒ«ãƒ­ã‚´ã®ãƒãƒ³ãƒ‰ãƒ«
+	int m_fadeAlpha;	   // ãƒ•ã‚§ãƒ¼ãƒ‰ã®ã‚¢ãƒ«ãƒ•ã‚¡å€¤
+	int m_fadeFrame;	   // ãƒ•ã‚§ãƒ¼ãƒ‰ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‚«ã‚¦ãƒ³ãƒˆ
+	int m_sceneFadeAlpha;  // ã‚·ãƒ¼ãƒ³ãƒ•ã‚§ãƒ¼ãƒ‰ã®ã‚¢ãƒ«ãƒ•ã‚¡å€¤
+	int m_waitFrame;	   // å¾…æ©Ÿãƒ•ãƒ¬ãƒ¼ãƒ 
+	bool m_isFadeComplete; // ãƒ•ã‚§ãƒ¼ãƒ‰å®Œäº†ãƒ•ãƒ©ã‚°
+	bool m_isFadeOut;	   // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆãƒ•ãƒ©ã‚°
+	bool m_skipLogo;       // ãƒ­ã‚´ã‚¹ã‚­ãƒƒãƒ—ç”¨ã®ãƒ•ãƒ©ã‚°
+	bool m_isSceneFadeIn;  // ã‚·ãƒ¼ãƒ³ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ãƒ•ãƒ©ã‚°
 };
 

@@ -1,33 +1,33 @@
-#include "Mouse.h"
+ï»¿#include "Mouse.h"
 #include "DxLib.h"
 #include "Game.h"
 
 namespace
 {
-    // ƒ}ƒEƒX‚Ì“ü—ÍƒƒO‚Ì”
+    // ãƒžã‚¦ã‚¹ã®å…¥åŠ›ãƒ­ã‚°ã®æ•°
     constexpr int kLogNum = 16;
-    // “ü—ÍƒƒO0‚ªÅV‚Ìó‘Ô
+    // å…¥åŠ›ãƒ­ã‚°0ãŒæœ€æ–°ã®çŠ¶æ…‹
     int mouseLog[kLogNum];
     int mouseRightLog[kLogNum];
 }
 
 namespace Mouse
 {
-    // ƒ}ƒEƒX‚Ì“ü—Íó‘Ô‚ðŽæ“¾
+    // ãƒžã‚¦ã‚¹ã®å…¥åŠ›çŠ¶æ…‹ã‚’å–å¾—
     void Mouse::Update()
     {
-        // ƒƒO‚ÌXV
+        // ãƒ­ã‚°ã®æ›´æ–°
         for (int i = kLogNum - 1; i >= 1; i--)
         {
             mouseLog[i] = mouseLog[i - 1];
-            mouseRightLog[i] = mouseRightLog[i - 1]; // ‰Eƒ{ƒ^ƒ“‚à
+            mouseRightLog[i] = mouseRightLog[i - 1]; // å³ãƒœã‚¿ãƒ³ã‚‚
         }
-        // ÅV‚Ìó‘Ô‚ðŽæ“¾
+        // æœ€æ–°ã®çŠ¶æ…‹ã‚’å–å¾—
         mouseLog[0]      = (GetMouseInput() & MOUSE_INPUT_LEFT) ? 1 : 0;
         mouseRightLog[0] = (GetMouseInput() & MOUSE_INPUT_RIGHT) ? 1 : 0; 
     }
 
-    // Œ»Ý‚Ìƒ}ƒEƒX‚ÌˆÊ’u‚ðŽæ“¾
+    // ç¾åœ¨ã®ãƒžã‚¦ã‚¹ã®ä½ç½®ã‚’å–å¾—
     Vec2 GetPos()
     {
         Vec2 mousePos{ 0,0 };
@@ -42,27 +42,27 @@ namespace Mouse
         return mousePos;
     }
 
-    // ‰Ÿ‚µ‰º‚°”»’è
+    // æŠ¼ã—ä¸‹ã’åˆ¤å®š
     bool IsPressLeft()
     {
         return (mouseLog[0]);
     }
-    // ƒgƒŠƒK[”»’è
+    // ãƒˆãƒªã‚¬ãƒ¼åˆ¤å®š
     bool IsTriggerLeft()
     {
-        bool isNow  = mouseLog[0]; // Œ»Ý‚Ìó‘Ô
-        bool isLast = mouseLog[1]; // 1ƒtƒŒ[ƒ€‘O‚Ìó‘Ô
+        bool isNow  = mouseLog[0]; // ç¾åœ¨ã®çŠ¶æ…‹
+        bool isLast = mouseLog[1]; // 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®çŠ¶æ…‹
         return (isNow && !isLast);
     }
-    // —£‚µ‚½uŠÔ”»’è
+    // é›¢ã—ãŸçž¬é–“åˆ¤å®š
     bool IsReleaseLeft()
     {
-        bool isNow  = mouseLog[0]; // Œ»Ý‚Ìó‘Ô
-        bool isLast = mouseLog[1]; // 1ƒtƒŒ[ƒ€‘O‚Ìó‘Ô
+        bool isNow  = mouseLog[0]; // ç¾åœ¨ã®çŠ¶æ…‹
+        bool isLast = mouseLog[1]; // 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®çŠ¶æ…‹
         return (!isNow && isLast);
     }
 
-	// ‰EƒNƒŠƒbƒN‚ÌƒgƒŠƒK[”»’è
+	// å³ã‚¯ãƒªãƒƒã‚¯ã®ãƒˆãƒªã‚¬ãƒ¼åˆ¤å®š
     bool IsTriggerRight()
     {
         bool isNow = mouseRightLog[0];
@@ -70,27 +70,27 @@ namespace Mouse
         return (isNow && !isLast);
     }
 
-	// ‰EƒNƒŠƒbƒN‚Ì‰Ÿ‚µ‰º‚°”»’è
+	// å³ã‚¯ãƒªãƒƒã‚¯ã®æŠ¼ã—ä¸‹ã’åˆ¤å®š
     bool IsPressRight()
     {
         return (mouseRightLog[0]);
     }
 
-    // ƒJƒƒ‰‚Ì‰ñ“]Šp“x‚ðXV
+    // ã‚«ãƒ¡ãƒ©ã®å›žè»¢è§’åº¦ã‚’æ›´æ–°
     void UpdateCameraRotation(float& cameraYaw, float& cameraPitch, float sensitivity)
     {
-        // ƒ}ƒEƒX‚ÌˆÚ“®—Ê‚ðŽæ“¾
+        // ãƒžã‚¦ã‚¹ã®ç§»å‹•é‡ã‚’å–å¾—
         Vec2 mousePos = GetPos();
 
-        // ƒ}ƒEƒX‚ÌˆÚ“®—Ê‚ÉŠî‚Ã‚¢‚ÄƒJƒƒ‰‚Ì‰ñ“]Šp“x‚ðXV
+        // ãƒžã‚¦ã‚¹ã®ç§»å‹•é‡ã«åŸºã¥ã„ã¦ã‚«ãƒ¡ãƒ©ã®å›žè»¢è§’åº¦ã‚’æ›´æ–°
         cameraYaw   += (mousePos.x - Game::kScreenWidth  * 0.5f) * sensitivity;
         cameraPitch -= (mousePos.y - Game::kScreenHeigth * 0.5f) * sensitivity;
 
-        // ƒJƒƒ‰‚Ìƒsƒbƒ`Šp“x‚ð§ŒÀ
+        // ã‚«ãƒ¡ãƒ©ã®ãƒ”ãƒƒãƒè§’åº¦ã‚’åˆ¶é™
         if (cameraPitch >  DX_PI_F * 0.5f) cameraPitch = DX_PI_F * 0.5f;
         if (cameraPitch < -DX_PI_F * 0.5f) cameraPitch = -DX_PI_F * 0.5f;
 
-        // ƒ}ƒEƒX‚ÌˆÊ’u‚ð’†‰›‚É–ß‚·
+        // ãƒžã‚¦ã‚¹ã®ä½ç½®ã‚’ä¸­å¤®ã«æˆ»ã™
         SetMousePoint(static_cast<int>(Game::kScreenWidth * 0.5f), static_cast<int>(Game::kScreenHeigth * 0.5f));
     }
 }

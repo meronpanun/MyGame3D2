@@ -1,53 +1,53 @@
-#pragma once
+﻿#pragma once
 #include "Vec2.h"
 
-/* �}�E�X�̓��͏����擾���� */
+/* マウスの入力情報を取得する */
 namespace Mouse
 {
-	// �}�E�X�̓��͏�Ԏ擾
+	// マウスの入力状態取得
 	void Update();
 
 	/// <summary>
-	/// �}�E�X�̈ʒu���擾
+	/// マウスの位置を取得
 	/// </summary>
-	/// <returns>�}�E�X�̈ʒu</returns>
+	/// <returns>マウスの位置</returns>
 	Vec2 GetPos();
 
 	/// <summary>
-	/// �}�E�X�̍��{�^����������Ă��邩�̔���
+	/// マウスの左ボタンが押されているかの判定
 	/// </summary>
-	/// <returns>������Ă���Ȃ�true</returns>
+	/// <returns>押されているならtrue</returns>
 	bool IsPressLeft();
 
 	/// <summary>
-	/// �}�E�X�̍��{�^�����g���K�[���ꂽ�u�Ԃ̔���
+	/// マウスの左ボタンがトリガーされた瞬間の判定
 	/// </summary>
-	/// <returns>�g���K�[���ꂽ�u�ԂȂ�true</returns>
+	/// <returns>トリガーされた瞬間ならtrue</returns>
 	bool IsTriggerLeft();
 
 	/// <summary>
-	/// �}�E�X�̍��{�^���������ꂽ�u�Ԃ̔���
+	/// マウスの左ボタンが離された瞬間の判定
 	/// </summary>
-	/// <returns>�����ꂽ�u�ԂȂ�true</returns>
+	/// <returns>離された瞬間ならtrue</returns>
 	bool IsReleaseLeft();
 
 	/// <summary>
-	/// �}�E�X�̉E�{�^����������Ă��邩�̔���
+	/// マウスの右ボタンが押されているかの判定
 	/// </summary>
-	/// <returns>������Ă���Ȃ�true</returns>
+	/// <returns>押されているならtrue</returns>
 	bool IsTriggerRight();
 
 	/// <summary>
-	/// �}�E�X�̉E�{�^���������ꂽ�u�Ԃ̔���
+	/// マウスの右ボタンが離された瞬間の判定
 	/// </summary>
-    /// <returns>�����ꂽ�u�ԂȂ�true</returns>
+    /// <returns>離された瞬間ならtrue</returns>
 	bool IsPressRight(); 
 
 	/// <summary>
-	/// �J�����̉�]�p�x���X�V
+	/// カメラの回転角度を更新
 	/// </summary>
-	/// <param name="cameraYaw">�J�����̃��[�p�x</param>
-	/// <param name="cameraPitch">�J�����̃s�b�`�p�x</param>
+	/// <param name="cameraYaw">カメラのヨー角度</param>
+	/// <param name="cameraPitch">カメラのピッチ角度</param>
 	void UpdateCameraRotation(float& cameraYaw, float& cameraPitch, float sensitivity);
 }
 
