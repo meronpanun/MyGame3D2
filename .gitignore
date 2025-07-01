@@ -8,7 +8,7 @@
 *.pch
 *.so
 *.dylib
-*.dll
+!*.dll
 *.mod
 *.smod
 *.lai
@@ -29,8 +29,6 @@
 
 # ビルドディレクトリ
 x64/
-Debug/
-Release/
 
 # デバッグ・一時ファイル
 *.pdb
@@ -46,3 +44,16 @@ Release/
 
 # ログファイル
 Log.txt
+
+# リソースファイルは除外しない
+!*.png
+!*.jpg
+!*.wav
+!*.mp3
+!*.ttf
+!*.csv
+!*.json
+
+# Debug/Releaseは中のリソースのみ許可
+!Debug/data/**
+!Release/data/**

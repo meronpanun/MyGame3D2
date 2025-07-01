@@ -2,9 +2,10 @@
 #include "DxLib.h"
 #include <memory>
 #include <vector>
+#include "Player.h"
 
 class Bullet;
-class Player;
+//class Player;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
@@ -75,14 +76,7 @@ public:
 	/// <param name="rayStart">弾のRayの始点</param>
 	/// <param name="rayEnd">弾のRayの終点</param>
 	/// <returns>当たった部位</returns>
-	// BulletからRayの情報を直接受け取るように変更
 	virtual HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const { return HitPart::None; }
-
-
-	// AABBの最小座標と最大座標を取得する
-	// AABBは個別のコライダーで表現するため、ここでは不要。必要であれば派生クラスで持つ。
-	// virtual VECTOR GetAABBMinWorld() const abstract;
-	// virtual VECTOR GetAABBMaxWorld() const abstract;
 
 	/// <summary>
 	/// タックルでダメージを受けたかどうかのフラグを取得
@@ -91,7 +85,7 @@ public:
 
 protected:
 	// ダメージ計算用
-	virtual float CalcDamage(float bulletDamage, HitPart part) const abstract; // bulletDamageを受け取るように変更
+	virtual float CalcDamage(float bulletDamage, HitPart part) const abstract;
 
 
 protected:

@@ -20,7 +20,7 @@ namespace
 {
 	constexpr float kMoveSpeed = 3.0f; // 移動速度
 	constexpr float kRunSpeed  = 6.0f; // 走る速度
-
+	 
 	// モデルのオフセット
 	constexpr float kModelOffsetX = 80.0f; 
 	constexpr float kModelOffsetY = 20.0f;
