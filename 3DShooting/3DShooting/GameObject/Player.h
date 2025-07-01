@@ -41,7 +41,7 @@ public:
 	/// プレイヤーの位置を取得する
 	/// </summary>
 	/// <returns>プレイヤーの位置</returns>
-	VECTOR GetPos() const { return m_pos; }
+	VECTOR GetPos() const { return m_modelPos; }
 
 	void SetPos(const VECTOR& pos) { m_pos = pos; } // プレイヤーの位置を設定する
 

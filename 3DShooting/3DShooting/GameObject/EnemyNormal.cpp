@@ -14,7 +14,9 @@
 namespace
 {
     // アニメーション関連
-	constexpr char kAttackAnimName[] = "ATK"; // 攻撃アニメーション
+	constexpr char kAttackAnimName[] = "ATK";  // 攻撃アニメーション
+	constexpr char kWalkAnimName[]   = "WALK"; // 歩行アニメーション
+	constexpr char kDeadAnimName[]   = "DEAD"; // 死亡アニメーション
 
 	constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 300.0f };
 	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
@@ -32,6 +34,9 @@ namespace
 	constexpr float kAttackHitRadius   = 20.0f;  // 攻撃の当たり判定半径
     constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
 
+	// 追跡関連
+	constexpr float kChaseSpeed = 2.0f; // 追跡速度
+	constexpr float kChaseStopDistance = 50.0f; // プレイヤーに近づきすぎない停止距離
 }
 
 EnemyNormal::EnemyNormal() :
@@ -83,40 +88,66 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
     MV1SetPosition(m_modelHandle, m_pos);
 
+    // プレイヤー追跡処理 
+	VECTOR playerPos = player.GetPos();
+	VECTOR toPlayer = VSub(playerPos, m_pos);
+	toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
+
+	// プレイヤーとの距離を計算
+	float disToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
+
+    // プレイヤーの方向を常に向く
+    float yaw = 0.0f;
+    if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
+    {
+        yaw = atan2f(toPlayer.x, toPlayer.z);
+        // 攻撃アニメーション中は180度回転
+        if (m_currentAnimIndex != -1)
+        {
+            yaw += DX_PI_F;
+        }
+    }
+    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
+
+
+    // 攻撃範囲外 かつ 攻撃アニメーション中でない場合のみ追尾
+    if (!m_pAttackRangeCollider->Intersects(player.GetBodyCollider().get()) && m_currentAnimIndex == -1)
+    {
+        if (disToPlayer > kChaseStopDistance)
+        {
+            VECTOR dir = VNorm(toPlayer);
+            m_pos.x += dir.x * kChaseSpeed;
+            m_pos.z += dir.z * kChaseSpeed;
+        }
+    }
+
     // コライダーの更新
-    // 体のコライダー（カプセル）
+    // 体のコライダー(カプセル)
     VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
     VECTOR bodyCapB = VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
     m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
     m_pBodyCollider->SetRadius(kBodyColliderRadius);
 
-    // 頭のコライダー（球）
+    // 頭のコライダー(球)
     int headIndex = MV1SearchFrame(m_modelHandle, "Head");
     VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0,0,0);
     VECTOR headCenter = VAdd(headModelPos, m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
     m_pHeadCollider->SetCenter(headCenter);
     m_pHeadCollider->SetRadius(kHeadRadius);
 
-    // 攻撃範囲のコライダー（球）
+    // 攻撃範囲のコライダー(球)
     VECTOR attackRangeCenter = m_pos;
     attackRangeCenter.y += (kBodyColliderHeight * 0.5f); // 敵の高さの半分くらい
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
     m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
     // プレイヤーのカプセルコライダー情報を取得
-    //VECTOR playerCapA, playerCapB;
-    //float  playerCapRadius;
-    //player.GetCapsuleInfo(playerCapA, playerCapB, playerCapRadius);
-    //CapsuleCollider playerBodyCollider(playerCapA, playerCapB, playerCapRadius);
-
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
 
-
-
-    // 敵とプレイヤーの押し出し処理 (カプセル同士の衝突)
+    // 敵とプレイヤーの押し出し処理(カプセル同士の衝突)
 	if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
     {
-        // 簡易的な押し出し処理 (より正確な物理演算は別途実装が必要)
+        // 押し出し処理
         VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
         VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
         VECTOR diff = VSub(enemyCenter, playerCenter);
@@ -232,10 +263,17 @@ void EnemyNormal::Draw()
 
     switch (m_lastHitPart)
     {
-    case HitPart::Head: hitMsg = "HeadShot!"; break;
-    case HitPart::Body: hitMsg = "BodyHit!"; break;
-    default: break;
+    case HitPart::Head: 
+        hitMsg = "HeadShot!"; 
+        break;
+    case HitPart::Body: 
+        hitMsg = "BodyHit!"; 
+        break;
+    default: 
+        break;
     }
+
+
     if (*hitMsg)
     {
         DrawFormatString(20, 100, 0xff0000, "%s", hitMsg); 

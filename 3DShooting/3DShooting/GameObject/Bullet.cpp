@@ -9,7 +9,6 @@ namespace
 
 	// 画面外に出たら非アクティブにする範囲
 	constexpr int kScreenBoundary = 1000;
-
 }
 
 Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
@@ -51,9 +50,9 @@ void Bullet::Draw() const
 #ifdef _DEBUG
 	if (!m_isActive) return;
 
-	// Rayのデバッグ描画 (前フレーム位置から現在の位置へ)
+	// Rayのデバッグ描画
 	DrawLine3D(m_prevPos, m_pos, 0xffff00); // 黄色の線
-	DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, FALSE); // 仮の弾の描画
+	DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, false); // 仮の弾の描画
 #endif
 }
 

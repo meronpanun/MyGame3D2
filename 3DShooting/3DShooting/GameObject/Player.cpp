@@ -58,6 +58,9 @@ namespace
 
 	// 体力
 	constexpr float kMaxHealth = 100.0f; // 最大体力
+
+	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
+	constexpr float kCapsuleRadius = 80.0f;  // カプセルコライダーの半径
 }
 
 Player::Player() :
@@ -132,12 +135,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	//m_pEffect->Update(); // エフェクトの更新
 
 	//UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
-	//UpdateAnime(m_nextAnimData); //	次のアニメーションデータを更新
-	//UpdateAnimeBlend();			 // アニメーションのブレンドを更新
+	//UpdateAnime(m_nextAnimData); // 次のアニメーションデータを更新
+	//UpdateAnimeBlend();		   // アニメーションのブレンドを更新
 
 	// プレイヤーのカプセルコライダーを毎フレーム更新
-	constexpr float kCapsuleHeight = 100.0f;
-	constexpr float kCapsuleRadius = 80.0f;
 	VECTOR center = m_modelPos;
 	center.y += 60.0f; // 足元から腰～胸あたりを中心に
 	VECTOR capA = VAdd(center, VGet(0, -kCapsuleHeight * 0.5f, 0));

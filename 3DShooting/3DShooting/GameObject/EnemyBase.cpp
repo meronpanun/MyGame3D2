@@ -6,10 +6,9 @@
 namespace
 {
 	constexpr int   kDefaultHitDisplayDuration = 60;     // 1秒間表示
-	constexpr float kDefaultInitialHP = 100.0f; // デフォルトの初期体力 
-
-	constexpr float kDefaultCooldownMax = 60;     // 攻撃クールダウンの最大値
-	constexpr float kDefaultAttackPower = 10.0f;  // 攻撃力
+	constexpr float kDefaultInitialHP          = 100.0f; // デフォルトの初期体力 
+	constexpr float kDefaultCooldownMax        = 60;     // 攻撃クールダウンの最大値
+	constexpr float kDefaultAttackPower        = 10.0f;  // 攻撃力
 }
 
 EnemyBase::EnemyBase() :
@@ -41,7 +40,7 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
         auto& bullet = bullets[i];
         if (!bullet.IsActive()) continue;
 
-        // 弾のRay情報を取得 (前フレーム位置 -> 現在位置)
+        // 弾のRay情報を取得
         VECTOR rayStart = bullet.GetPrevPos();
         VECTOR rayEnd = bullet.GetPos();
 
