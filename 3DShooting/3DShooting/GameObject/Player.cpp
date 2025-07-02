@@ -59,8 +59,9 @@ namespace
 	// 体力
 	constexpr float kMaxHealth = 100.0f; // 最大体力
 
+	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
-	constexpr float kCapsuleRadius = 80.0f;  // カプセルコライダーの半径
+	constexpr float kCapsuleRadius = 50.0f;  // カプセルコライダーの半径
 }
 
 Player::Player() :

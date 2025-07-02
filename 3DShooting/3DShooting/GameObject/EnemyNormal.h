@@ -57,26 +57,36 @@ public:
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
 private:
+    // アニメーションの状態
+    enum class AnimState
+    {
+        Walk,   // 常に歩行状態が基本
+        Attack,
+        Dead
+    };
+
+    void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数
+
     VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
-    std::shared_ptr<SphereCollider> m_pHeadCollider;  // 頭のコライダー
-
-    // 攻撃範囲のコライダー
-    std::shared_ptr<SphereCollider> m_pAttackRangeCollider;
-
-    // 攻撃ヒット判定用のコライダー
-    std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;
+    std::shared_ptr<SphereCollider>  m_pHeadCollider;  // 頭のコライダー
+    std::shared_ptr<SphereCollider>  m_pAttackRangeCollider; // 攻撃範囲のコライダー
+    std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;   // 攻撃ヒット判定用のコライダー
 
     // アイテムドロップ時のコールバック関数
     std::function<void(const VECTOR&)> m_onDropItem;
 
+    AnimState m_currentAnimState; // 現在のアニメーション状態
+
     int m_lastTackleId;     // 最後にタックルを受けたID
-    int m_currentAnimIndex; // 現在再生中のアニメーションインデックス
+    int m_attackEndDelayTimer;
 
     float m_animTime;   // アニメーションの経過時間
 
     bool m_isTackleHit;     // 1フレームで複数回ダメージを受けないためのフラグ
-    bool m_currentAnimLoop; // 現在のアニメーションがループするかどうか 
     bool m_hasAttackHit;    // 攻撃がヒットしたかどうか
+
+    int m_currentAnimHandle;      // 現在アタッチされているアニメーションハンドル
+    double m_currentAnimTotalTime; // 現在のアニメーションの総時間
 };

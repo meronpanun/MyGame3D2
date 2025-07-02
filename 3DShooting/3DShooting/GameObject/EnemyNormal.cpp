@@ -14,111 +14,265 @@
 namespace
 {
     // アニメーション関連
-	constexpr char kAttackAnimName[] = "ATK";  // 攻撃アニメーション
-	constexpr char kWalkAnimName[]   = "WALK"; // 歩行アニメーション
-	constexpr char kDeadAnimName[]   = "DEAD"; // 死亡アニメーション
+    constexpr char kAttackAnimName[] = "ATK";  // 攻撃アニメーション
+    constexpr char kWalkAnimName[]   = "WALK"; // 歩行アニメーション
+    constexpr char kDeadAnimName[]   = "DEAD"; // 死亡アニメーション
 
-	constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 300.0f };
-	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
+    constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 300.0f };
+    constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 
-	// カプセルコライダーのサイズを定義
-	constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
-	constexpr float kBodyColliderHeight = 135.0f; // 体のコライダー高さ
-	constexpr float kHeadRadius         = 18.0f;  // 頭のコライダー半径
+    // カプセルコライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 135.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius         = 18.0f;  // 頭のコライダー半径
 
-	constexpr float kInitialHP = 200.0f; // 初期HP
+    constexpr float kInitialHP = 200.0f; // 初期HP
 
-	// 攻撃関連
-	constexpr int   kAttackCooldownMax = 45;     // 攻撃クールダウン時間
-	constexpr float kAttackPower       = 20.0f;  // 攻撃力
-	constexpr float kAttackHitRadius   = 20.0f;  // 攻撃の当たり判定半径
+    // 攻撃関連
+    constexpr int   kAttackCooldownMax = 45;     // 攻撃クールダウン時間
+    constexpr float kAttackPower       = 20.0f;  // 攻撃力
+    constexpr float kAttackHitRadius   = 45.0f;  // 攻撃の当たり判定半径
     constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
 
-	// 追跡関連
-	constexpr float kChaseSpeed = 2.0f; // 追跡速度
-	constexpr float kChaseStopDistance = 50.0f; // プレイヤーに近づきすぎない停止距離
+    // 追跡関連
+    constexpr float kChaseSpeed        = 2.0f; // 追跡速度
+    constexpr float kChaseStopDistance = 50;   // 追跡停止距離
+	constexpr int kAttackEndDelay      = 55;
 }
 
 EnemyNormal::EnemyNormal() :
     m_headPosOffset{ kHeadShotPositionOffset },
     m_isTackleHit(false),
     m_lastTackleId(-1),
-	m_currentAnimLoop(false),
-	m_currentAnimIndex(-1),
-	m_animTime(0.0f),
-	m_hasAttackHit(false),
-    m_onDropItem(nullptr)
+    m_animTime(0.0f),
+    m_hasAttackHit(false),
+    m_onDropItem(nullptr),
+    m_currentAnimState(AnimState::Walk),
+    m_currentAnimHandle(-1),
+    m_currentAnimTotalTime(0.0f),
+	m_attackEndDelayTimer(0)
 {
-	// モデルの読み込み
+    // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
     assert(m_modelHandle != -1);
 
     // コライダーの初期化
-    m_pBodyCollider        = std::make_shared<CapsuleCollider>();
-    m_pHeadCollider        = std::make_shared<SphereCollider>();
+    m_pBodyCollider = std::make_shared<CapsuleCollider>();
+    m_pHeadCollider = std::make_shared<SphereCollider>();
     m_pAttackRangeCollider = std::make_shared<SphereCollider>();
-    m_pAttackHitCollider   = std::make_shared<CapsuleCollider>();
+    m_pAttackHitCollider = std::make_shared<CapsuleCollider>();
 }
 
 EnemyNormal::~EnemyNormal()
 {
 
-	MV1DeleteModel(m_modelHandle); 
+    MV1DeleteModel(m_modelHandle);
 }
 
 void EnemyNormal::Init()
 {
-    m_hp                = kInitialHP;
-    m_pos               = kInitialPosition;
-	m_attackPower       = kAttackPower;
-	m_attackCooldownMax = kAttackCooldownMax;
+    m_hp = kInitialHP;
+    m_pos = kInitialPosition;
+    m_attackPower = kAttackPower;
+    m_attackCooldownMax = kAttackCooldownMax;
+    ChangeAnimation(AnimState::Walk, true); // 初期化時に歩行アニメーションを開始
+}
+
+void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
+{
+    if (m_currentAnimState == newAnimState) 
+    {
+        if (newAnimState == AnimState::Attack) 
+        {
+            // アニメーションをリセット
+            if (m_currentAnimHandle != -1) 
+            {
+                MV1DetachAnim(m_modelHandle, 0);
+                m_currentAnimHandle = -1;
+            }
+        }
+        else
+        {
+            return; // 攻撃以外は何もしない
+        }
+    }
+
+    // 古いアニメーションをデタッチ
+    // 新しいアニメーションをアタッチする直前にデタッチすることで、
+    // アニメーションがアタッチされていないフレームをなくす
+    if (m_currentAnimHandle != -1)
+    {
+        MV1DetachAnim(m_modelHandle, 0);
+        m_currentAnimHandle = -1; // ハンドルを無効化
+    }
+
+    int animIndex = -1;
+    const char* animName = nullptr;
+
+    switch (newAnimState)
+    {
+    case AnimState::Walk:
+        animName = kWalkAnimName;
+        break;
+    case AnimState::Attack:
+        animName = kAttackAnimName;
+        break;
+    case AnimState::Dead:
+        animName = kDeadAnimName;
+        break;
+    }
+
+    if (animName)
+    {
+        animIndex = MV1GetAnimIndex(m_modelHandle, animName);
+    }
+
+    if (animIndex != -1)
+    {
+        m_currentAnimHandle = MV1AttachAnim(m_modelHandle, animIndex, -1, loop);
+        m_currentAnimTotalTime = MV1GetAnimTotalTime(m_modelHandle, m_currentAnimHandle);
+        m_animTime = 0.0f; // アニメーション切り替え時に時間をリセット
+        MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
+    }
+    else
+    {
+        m_currentAnimHandle = -1; // アニメーションが見つからない場合は無効なハンドルを設定
+    }
+
+    m_currentAnimState = newAnimState;
 }
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
     if (m_hp <= 0.0f)
     {
-        if (m_onDropItem)
+        // 死亡アニメーション
+        if (m_currentAnimState != AnimState::Dead)
         {
-            m_onDropItem(m_pos);    // アイテムドロップコールバックを呼び出す
-            m_onDropItem = nullptr; // アイテムドロップ後はコールバックを無効化
+            ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションは非ループ
         }
-        return;
-    }
-
-    MV1SetPosition(m_modelHandle, m_pos);
-
-    // プレイヤー追跡処理 
-	VECTOR playerPos = player.GetPos();
-	VECTOR toPlayer = VSub(playerPos, m_pos);
-	toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
-
-	// プレイヤーとの距離を計算
-	float disToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
-
-    // プレイヤーの方向を常に向く
-    float yaw = 0.0f;
-    if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
-    {
-        yaw = atan2f(toPlayer.x, toPlayer.z);
-        // 攻撃アニメーション中は180度回転
-        if (m_currentAnimIndex != -1)
+        // 死亡アニメーションが終了したら何もしない
+        if (m_animTime >= m_currentAnimTotalTime && m_currentAnimHandle == -1)
         {
-            yaw += DX_PI_F;
+            if (m_onDropItem)
+            {
+                m_onDropItem(m_pos);    // アイテムドロップコールバックを呼び出す
+                m_onDropItem = nullptr; // アイテムドロップ後はコールバックを無効化
+            }
+            return;
         }
     }
-    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
 
+    MV1SetPosition(m_modelHandle, m_pos); // モデルの位置は常に反映する
 
-    // 攻撃範囲外 かつ 攻撃アニメーション中でない場合のみ追尾
-    if (!m_pAttackRangeCollider->Intersects(player.GetBodyCollider().get()) && m_currentAnimIndex == -1)
+    // 攻撃アニメーション中は追尾しない
+    if (m_currentAnimState == AnimState::Walk) // 追尾はWalk状態でのみ行う
     {
+        VECTOR playerPos = player.GetPos();
+        VECTOR toPlayer = VSub(playerPos, m_pos);
+        toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
+
+        // プレイヤーとの距離を計算
+        float disToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
+
+        // プレイヤーの方向を常に向く
+        float yaw = 0.0f;
+        if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
+        {
+            yaw = atan2f(toPlayer.x, toPlayer.z);
+            yaw += DX_PI_F; // モデルの向きに合わせて調整
+        }
+        MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
+
+        // 移動処理
         if (disToPlayer > kChaseStopDistance)
         {
             VECTOR dir = VNorm(toPlayer);
-            m_pos.x += dir.x * kChaseSpeed;
-            m_pos.z += dir.z * kChaseSpeed;
+            float moveDist = disToPlayer - kChaseStopDistance;
+            float step = (std::min)(moveDist, kChaseSpeed); // 1フレームで進みすぎない
+            m_pos.x += dir.x * step;
+            m_pos.z += dir.z * step;
         }
+
+    }
+
+    // プレイヤーのカプセルコライダー情報を取得
+    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
+    bool isPlayerInAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
+
+    // アニメーションの状態管理
+    // アニメーション終了時の状態遷移は、アニメーション時間更新ブロック内で直接 ChangeAnimation を呼び出すことで行う
+    if (m_currentAnimState == AnimState::Attack)
+    {
+        // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
+        if (m_animTime > m_currentAnimTotalTime)
+        {
+            if (m_attackEndDelayTimer <= 0) 
+            {
+                m_attackEndDelayTimer = kAttackEndDelay; // ディレイ開始
+            }
+        }
+        // ディレイタイマーが動作中ならカウントダウン
+        if (m_attackEndDelayTimer > 0)
+        {
+            --m_attackEndDelayTimer;
+            if (m_attackEndDelayTimer == 0)
+            {
+                m_hasAttackHit = false; // 攻撃ヒットフラグをリセット
+                if (isPlayerInAttackRange) 
+                {
+                    ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
+                }
+                else
+                {
+                    ChangeAnimation(AnimState::Walk, true);    // 範囲外なら歩行
+                }
+            }
+        }
+    }
+    else if (m_currentAnimState == AnimState::Dead)
+    {
+        // 死亡アニメーション中は移動や攻撃を行わない
+        // MV1SetAttachAnimTime の更新は引き続き行う
+    }
+    else // Walk 状態 (常に歩行アニメーションが基本)
+    {
+        if (isPlayerInAttackRange)
+        {
+            // 攻撃範囲内にプレイヤーがいたら攻撃アニメーションに切り替え
+			m_hasAttackHit = false; // 攻撃ヒットフラグをリセット
+            ChangeAnimation(AnimState::Attack, false); 
+        }
+    }
+    
+    // アニメーション時間の更新
+    if (m_currentAnimHandle != -1)
+    {
+        m_animTime += 1.0f;
+
+        if (m_currentAnimState == AnimState::Attack)
+        {
+            // ここは何もしない（歩行アニメーションへの遷移はディレイタイマーでのみ行う）
+            // if (m_animTime >= m_currentAnimTotalTime) { ... } を削除
+        }
+        else if (m_currentAnimState == AnimState::Dead)
+        {
+            if (m_animTime >= m_currentAnimTotalTime)
+            {
+                m_animTime = m_currentAnimTotalTime;
+                MV1DetachAnim(m_modelHandle, 0);
+                m_currentAnimHandle = -1;
+            }
+        }
+        else if (m_currentAnimState == AnimState::Walk)
+        {
+            if (m_animTime >= m_currentAnimTotalTime)
+            {
+                m_animTime = fmodf(m_animTime, m_currentAnimTotalTime);
+            }
+        }
+
+        MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
     }
 
     // コライダーの更新
@@ -130,7 +284,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
     // 頭のコライダー(球)
     int headIndex = MV1SearchFrame(m_modelHandle, "Head");
-    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0,0,0);
+    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0, 0, 0);
     VECTOR headCenter = VAdd(headModelPos, m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
     m_pHeadCollider->SetCenter(headCenter);
     m_pHeadCollider->SetRadius(kHeadRadius);
@@ -141,18 +295,15 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
     m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
-    // プレイヤーのカプセルコライダー情報を取得
-    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
-
     // 敵とプレイヤーの押し出し処理(カプセル同士の衝突)
-	if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
+    if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
     {
         // 押し出し処理
         VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
         VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
         VECTOR diff = VSub(enemyCenter, playerCenter);
         float distSq = VDot(diff, diff);
-		float minDist = kBodyColliderRadius + playerBodyCollider->GetRadius(); // 最小距離は両方の半径の和
+        float minDist = kBodyColliderRadius + playerBodyCollider->GetRadius(); // 最小距離は両方の半径の和
 
         if (distSq < minDist * minDist && distSq > 0.0001f)
         {
@@ -173,61 +324,37 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         }
     }
 
-	bool isPlayerInAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
-
-    int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
-    if (attackAnimIndex != -1)
+    if (m_currentAnimState == AnimState::Attack) // 攻撃アニメーションが再生中の場合のみ攻撃判定を行う
     {
-        double animTotalTime = MV1GetAnimTotalTime(m_modelHandle, attackAnimIndex);
-
-        if (m_currentAnimIndex != -1)
+        int attackAnimIndex = MV1GetAnimIndex(m_modelHandle, kAttackAnimName);
+        if (attackAnimIndex != -1)
         {
-            m_animTime += 1.0f;
-            if (m_animTime >= animTotalTime)
+			float attackStart = m_currentAnimTotalTime * 0.5f; // 攻撃開始時間
+			float attackEnd = m_currentAnimTotalTime * 0.7f;   // 攻撃終了時間
+            if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
             {
-                m_animTime = animTotalTime;
-                m_currentAnimIndex = -1;
-                m_hasAttackHit = false;
-            }
-            else
-            {
-                MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
-
-                float attackStart = animTotalTime * 0.3f;
-                float attackEnd = animTotalTime * 0.7f;
-                if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+                int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+                int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+                if (handRIndex != -1 && handLIndex != -1)
                 {
-                    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
-                    int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
-                    if (handRIndex != -1 && handLIndex != -1)
-                    {
-                        VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
-                        VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+                    VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+                    VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
-                        // 攻撃ヒット用コライダーの更新
-                        m_pAttackHitCollider->SetSegment(handRPos, handLPos);
-                        m_pAttackHitCollider->SetRadius(kAttackHitRadius);
-                        
-                        if (m_pAttackHitCollider->Intersects(playerBodyCollider.get()))
-                        {
-                            const_cast<Player&>(player).TakeDamage(m_attackPower);
-                            m_hasAttackHit = true;
-                        }
+                    // 攻撃ヒット用コライダーの更新
+                    m_pAttackHitCollider->SetSegment(handRPos, handLPos);
+                    m_pAttackHitCollider->SetRadius(kAttackHitRadius);
+
+                    if (m_pAttackHitCollider->Intersects(playerBodyCollider.get()))
+                    {
+                        const_cast<Player&>(player).TakeDamage(m_attackPower);
+                        m_hasAttackHit = true;
                     }
                 }
             }
         }
-        else if (isPlayerInAttackRange)
-        {
-            MV1DetachAnim(m_modelHandle, 0);
-            m_currentAnimIndex = MV1AttachAnim(m_modelHandle, attackAnimIndex, -1, false);
-            m_currentAnimLoop = false;
-            m_animTime = 0.0f;
-            MV1SetAttachAnimTime(m_modelHandle, 0, m_animTime);
-        }
     }
-    
-	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
+
+    CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
 
     if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
@@ -240,10 +367,10 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         }
     }
 
-    if (m_hitDisplayTimer > 0) 
+    if (m_hitDisplayTimer > 0)
     {
         --m_hitDisplayTimer;
-        if (m_hitDisplayTimer == 0) 
+        if (m_hitDisplayTimer == 0)
         {
             m_lastHitPart = HitPart::None;
         }
@@ -252,7 +379,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
 void EnemyNormal::Draw()
 {
-    if (m_hp <= 0.0f) return;
+    if (m_hp <= 0.0f && m_currentAnimHandle == -1) return; // 死亡アニメーション終了後も描画しない
 
     MV1DrawModel(m_modelHandle);
 
@@ -263,25 +390,25 @@ void EnemyNormal::Draw()
 
     switch (m_lastHitPart)
     {
-    case HitPart::Head: 
-        hitMsg = "HeadShot!"; 
+    case HitPart::Head:
+        hitMsg = "HeadShot!";
         break;
-    case HitPart::Body: 
-        hitMsg = "BodyHit!"; 
+    case HitPart::Body:
+        hitMsg = "BodyHit!";
         break;
-    default: 
+    default:
         break;
     }
 
 
     if (*hitMsg)
     {
-        DrawFormatString(20, 100, 0xff0000, "%s", hitMsg); 
+        DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
     }
 
     DebugUtil::DrawFormat(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
 #endif
-    
+
 }
 
 void EnemyNormal::DrawCollisionDebug() const
@@ -298,11 +425,11 @@ void EnemyNormal::DrawCollisionDebug() const
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
 
-    if (handRIndex != -1 && handLIndex != -1) 
+    if (handRIndex != -1 && handLIndex != -1)
     {
         VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
-        
+
         // 攻撃ヒット用コライダーのデバッグ描画
         DebugUtil::DrawCapsule(handRPos, handLPos, kAttackHitRadius, 16, 0x0000ff);
     }
@@ -365,7 +492,7 @@ float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
 }
 
 // アイテムドロップ時のコールバック関数を設定する
-void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb) 
+void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
