@@ -82,10 +82,10 @@ private:
     int m_lastTackleId;     // 最後にタックルを受けたID
     int m_attackEndDelayTimer;
 
-    float m_animTime;   // アニメーションの経過時間
+    float m_animTime; // アニメーションの経過時間
 
-    bool m_isTackleHit;     // 1フレームで複数回ダメージを受けないためのフラグ
-    bool m_hasAttackHit;    // 攻撃がヒットしたかどうか
+    bool m_isTackleHit;  // 1フレームで複数回ダメージを受けないためのフラグ
+    bool m_hasAttackHit; // 攻撃がヒットしたかどうか
 
     int m_currentAnimHandle;      // 現在アタッチされているアニメーションハンドル
     double m_currentAnimTotalTime; // 現在のアニメーションの総時間

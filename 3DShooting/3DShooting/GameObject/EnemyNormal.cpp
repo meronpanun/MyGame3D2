@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include <float.h>
 
 namespace
 {

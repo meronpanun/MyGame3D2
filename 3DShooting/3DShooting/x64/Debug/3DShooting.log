@@ -1,2 +1,8 @@
-﻿  EnemyRunner.cpp
+﻿  EnemyNormal.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(262,30): warning C4244: '=': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(271,48): warning C4244: '引数': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(332,22): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(333,20): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+  EnemyRunner.cpp
+  コードを生成中...
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

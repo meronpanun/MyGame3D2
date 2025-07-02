@@ -3,6 +3,12 @@
 #include <vector>
 #include <memory>
 
+class Bullet;
+class Player;
+class Collider;
+class CapsuleCollider;
+class SphereCollider;
+
 /// <summary>
 /// 走る敵クラス
 /// </summary>
