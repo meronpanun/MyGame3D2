@@ -1,62 +1,99 @@
 #include "AnimationManager.h"
-#include "DxLib.h"
 #include <cassert>
-#include <cmath>
 
-void AnimationManager::Attach(int modelHandle, AnimData& data, const char* animName, bool isLoop)
+AnimationManager::AnimationManager()
 {
-    int index = MV1GetAnimIndex(modelHandle, animName);
-    assert(index != -1);
-    data.attachNo = MV1AttachAnim(modelHandle, index, -1, false);
-    data.count = 0.0f;
-    data.isLoop = isLoop;
-    data.isEnd = false;
-    data.animName = animName;
-    data.blendRate = 0.0f;
 }
 
-void AnimationManager::Update(int modelHandle, AnimData& data, float animSpeed)
+AnimationManager::~AnimationManager()
 {
-    if (data.attachNo == -1) return;
-    data.count += animSpeed;
-    float totalTime = MV1GetAttachAnimTotalTime(modelHandle, data.attachNo);
-    if (data.isLoop)
+    // マネージャーが破棄される際に全てのアニメーションをデタッチ
+    for (const auto& pair : m_attachedAnimHandles)
     {
-        while (data.count > totalTime)
+        MV1DetachAnim(pair.first, 0);
+    }
+}
+
+int AnimationManager::GetAnimIndexInternal(int modelHandle, const std::string& animName)
+{
+    // キャッシュをチェック
+    if (m_animIndexesCache.count(modelHandle) && m_animIndexesCache[modelHandle].count(animName))
+    {
+        return m_animIndexesCache[modelHandle][animName];
+    }
+
+    // キャッシュになければDxLibから取得し、キャッシュする
+    int animIndex = MV1GetAnimIndex(modelHandle, animName.c_str());
+    if (animIndex != -1)
+    {
+        m_animIndexesCache[modelHandle][animName] = animIndex;
+    }
+    return animIndex;
+}
+
+float AnimationManager::PlayAnimation(int modelHandle, const std::string& animName, bool loop)
+{
+    // 既に何かアタッチされている場合はデタッチ
+    if (m_attachedAnimHandles.count(modelHandle) && m_attachedAnimHandles[modelHandle] != -1)
+    {
+        MV1DetachAnim(modelHandle, 0);
+        m_attachedAnimHandles[modelHandle] = -1;
+    }
+
+    int animIndex = GetAnimIndexInternal(modelHandle, animName);
+
+    if (animIndex != -1)
+    {
+        int attachedHandle = MV1AttachAnim(modelHandle, animIndex, -1, loop);
+        m_attachedAnimHandles[modelHandle] = attachedHandle;
+        if (attachedHandle != -1)
         {
-            data.count -= totalTime;
+            float totalTime = MV1GetAnimTotalTime(modelHandle, attachedHandle);
+            m_currentAnimTotalTimes[modelHandle] = totalTime;
+            MV1SetAttachAnimTime(modelHandle, 0, 0.0f); // アニメーション開始時間をリセット
+            return totalTime;
         }
     }
-    else
-    {
-        if (data.count > totalTime)
-        {
-            data.count = totalTime;
-            data.isEnd = true;
-        }
-    }
-    MV1SetAttachAnimTime(modelHandle, data.attachNo, data.count);
+
+    m_attachedAnimHandles[modelHandle] = -1; // アニメーションが見つからない場合は無効なハンドルを設定
+    m_currentAnimTotalTimes[modelHandle] = 0.0f;
+    return 0.0f;
 }
 
-void AnimationManager::Change(int modelHandle, AnimData& prev, AnimData& next, const char* animName, bool isLoop)
+void AnimationManager::UpdateAnimationTime(int modelHandle, float animTime)
 {
-    if (prev.attachNo != -1)
+    if (m_attachedAnimHandles.count(modelHandle) && m_attachedAnimHandles[modelHandle] != -1)
     {
-        MV1DetachAnim(modelHandle, prev.attachNo);
+        MV1SetAttachAnimTime(modelHandle, 0, animTime);
     }
-    prev = next;
-    Attach(modelHandle, next, animName, isLoop);
-    next.blendRate = 0.0f;
-    // ブレンド率は外部で管理する場合はここで初期化しない
 }
 
-void AnimationManager::UpdateBlend(int modelHandle, AnimData& prev, AnimData& next, float& blendRate, float blendStep)
+float AnimationManager::GetAnimationTotalTime(int modelHandle, const std::string& animName)
 {
-    if (next.attachNo == -1 && prev.attachNo == -1) return;
-    blendRate += blendStep;
-    if (blendRate > 1.0f) blendRate = 1.0f;
-    if (prev.attachNo != -1)
-        MV1SetAttachAnimBlendRate(modelHandle, prev.attachNo, 1.0f - blendRate);
-    if (next.attachNo != -1)
-        MV1SetAttachAnimBlendRate(modelHandle, next.attachNo, blendRate);
+    // まずキャッシュをチェックし、現在アタッチされているアニメーションの総時間を返す
+    if (m_currentAnimTotalTimes.count(modelHandle) &&
+        m_attachedAnimHandles.count(modelHandle) &&
+        m_attachedAnimHandles[modelHandle] != -1)
+    {
+        return m_currentAnimTotalTimes[modelHandle];
+    }
+    // 現在アタッチされていない、またはキャッシュにない場合は0を返す（事前にPlayAnimationでロードしておくべき）
+    return 0.0f;
+}
+
+int AnimationManager::GetCurrentAttachedAnimHandle(int modelHandle) const
+{
+    if (m_attachedAnimHandles.count(modelHandle))
+    {
+        return m_attachedAnimHandles.at(modelHandle);
+    }
+    return -1;
+}
+
+void AnimationManager::ResetAttachedAnimHandle(int modelHandle)
+{
+    if (m_attachedAnimHandles.count(modelHandle))
+    {
+        m_attachedAnimHandles[modelHandle] = -1;
+    }
 }

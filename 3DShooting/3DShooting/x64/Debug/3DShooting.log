@@ -1,40 +1,21 @@
 ﻿  AnimationManager.cpp
-  CapsuleCollider.cpp
-  Collider.cpp
-  DebugUtil.cpp
-  FirstAidKitItem.cpp
-  Bullet.cpp
-  Camera.cpp
-  Effect.cpp
-  EnemyAcid.cpp
-  EnemyBase.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(24,21): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
-  EnemyBoss.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.cpp(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'AnimationManager.cpp' をコンパイルしています)
+  
   EnemyNormal.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(261,30): warning C4244: '=': 'double' から 'float' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(270,48): warning C4244: '引数': 'double' から 'float' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(331,22): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyNormal.cpp(332,20): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
-  EnemyRunner.cpp
-  Game.cpp
-  ItemBase.cpp
-  InputManager.cpp
-  main.cpp
-  Mouse.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyNormal.cpp' をコンパイルしています)
+  
   Player.cpp
-  SceneGameOver.cpp
-  コードを生成中...
-  コンパイル中...
-  SceneBase.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
+  
   SceneMain.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
+  
 C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(203,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(203,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-  SceneManager.cpp
-  SceneOption.cpp
-  SceneResult.cpp
-  SceneTitle.cpp
-  SphereCollider.cpp
-  Vec2.cpp
-  Vec3.cpp
   コードを生成中...
   3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

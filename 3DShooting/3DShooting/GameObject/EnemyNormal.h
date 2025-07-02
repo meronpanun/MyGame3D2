@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <memory>
+#include "AnimationManager.h" // このインクルードを追加
 
 class Bullet;
 class Player;
@@ -87,6 +88,6 @@ private:
     bool m_isTackleHit;  // 1フレームで複数回ダメージを受けないためのフラグ
     bool m_hasAttackHit; // 攻撃がヒットしたかどうか
 
-    int m_currentAnimHandle;      // 現在アタッチされているアニメーションハンドル
-    double m_currentAnimTotalTime; // 現在のアニメーションの総時間
+    // AnimationManagerのインスタンスを追加
+    AnimationManager m_animationManager; // EnemyNormalがアニメーションマネージャーを所有
 };
