@@ -1,4 +1,4 @@
-#include "AnimationManager.h"
+﻿#include "AnimationManager.h"
 #include <cassert>
 
 AnimationManager::AnimationManager()
@@ -70,12 +70,11 @@ void AnimationManager::UpdateAnimationTime(int modelHandle, float animTime)
 
 float AnimationManager::GetAnimationTotalTime(int modelHandle, const std::string& animName)
 {
-    // まずキャッシュをチェックし、現在アタッチされているアニメーションの総時間を返す
-    if (m_currentAnimTotalTimes.count(modelHandle) &&
-        m_attachedAnimHandles.count(modelHandle) &&
-        m_attachedAnimHandles[modelHandle] != -1)
+    // 指定アニメーション名のインデックスを取得
+    int animIndex = MV1GetAnimIndex(modelHandle, animName.c_str());
+    if (animIndex != -1)
     {
-        return m_currentAnimTotalTimes[modelHandle];
+        return MV1GetAnimTotalTime(modelHandle, animIndex);
     }
     // 現在アタッチされていない、またはキャッシュにない場合は0を返す（事前にPlayAnimationでロードしておくべき）
     return 0.0f;

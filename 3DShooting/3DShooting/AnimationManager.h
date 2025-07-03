@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "DxLib.h"
 #include <string>
 #include <map> // To store animation handles by name/enum
@@ -14,7 +14,7 @@ public:
 
     // モデルにアニメーションをアタッチし、再生を開始する
     // modelHandle: アニメーションを適用するモデルのハンドル
-    // animName: 再生するアニメーションの名前 (例: "WALK", "ATK", "DEAD")
+    // animName: 再生するアニメーションの名前 
     // loop: ループ再生するかどうか
     // Returns: アニメーションの総時間 (秒)。アニメーションが見つからない場合は0。
     float PlayAnimation(int modelHandle, const std::string& animName, bool loop);

@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 #include <memory>
-#include "AnimationManager.h" // このインクルードを追加
+#include "AnimationManager.h"
 
 class Bullet;
 class Player;
@@ -68,6 +68,10 @@ private:
 
     void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数
 
+	// プレイヤーに攻撃可能かどうかを判定する
+    bool CanAttackPlayer(const Player& player);
+
+private:   
     VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
@@ -79,6 +83,7 @@ private:
     std::function<void(const VECTOR&)> m_onDropItem;
 
     AnimState m_currentAnimState; // 現在のアニメーション状態
+    AnimationManager m_animationManager; // EnemyNormalがアニメーションマネージャーを所有
 
     int m_lastTackleId;     // 最後にタックルを受けたID
     int m_attackEndDelayTimer;
@@ -87,7 +92,4 @@ private:
 
     bool m_isTackleHit;  // 1フレームで複数回ダメージを受けないためのフラグ
     bool m_hasAttackHit; // 攻撃がヒットしたかどうか
-
-    // AnimationManagerのインスタンスを追加
-    AnimationManager m_animationManager; // EnemyNormalがアニメーションマネージャーを所有
 };

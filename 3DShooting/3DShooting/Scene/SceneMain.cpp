@@ -9,6 +9,7 @@
 #include "Game.h"
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
+#include "EnemyRunner.h"
 #include "DebugUtil.h"
 #include "Camera.h"
 #include "FirstAidKitItem.h"
@@ -77,6 +78,9 @@ void SceneMain::Init()
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();
 	m_pEnemyNormal->Init();
 
+	m_pEnemyRunner = std::make_shared<EnemyRunner>();
+	m_pEnemyRunner->Init();
+
     if (m_pPlayer->GetCamera())
     {
         m_pPlayer->GetCamera()->SetSensitivity(m_cameraSensitivity);
@@ -101,6 +105,15 @@ void SceneMain::Init()
         dropItem->SetPos(dropPos);
         m_items.push_back(dropItem);
     });
+
+	m_pEnemyRunner->SetOnDropItemCallback([this](const VECTOR& pos) {
+		auto dropItem = std::make_shared<FirstAidKitItem>();
+		dropItem->Init();
+		VECTOR dropPos = pos;
+		dropPos.y += kDropInitialHeight;
+		dropItem->SetPos(dropPos);
+		m_items.push_back(dropItem);
+	});
 }
 
 SceneBase* SceneMain::Update()
@@ -168,6 +181,8 @@ SceneBase* SceneMain::Update()
 
 	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
+	m_pEnemyRunner->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+
     for (auto& item : m_items)
     {
         item->Update(m_pPlayer.get());
@@ -195,7 +210,9 @@ void SceneMain::Draw()
         item->Draw();
     }
 
-	m_pEnemyNormal->Draw();
+    m_pEnemyNormal->Draw();
+
+	m_pEnemyRunner->Draw();
 
     m_pPlayer->Draw();
 

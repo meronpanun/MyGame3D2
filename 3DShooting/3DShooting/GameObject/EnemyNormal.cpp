@@ -47,8 +47,6 @@ EnemyNormal::EnemyNormal() :
     m_hasAttackHit(false),
     m_onDropItem(nullptr),
     m_currentAnimState(AnimState::Walk),
-    // m_currentAnimHandle(-1), // 削除
-    // m_currentAnimTotalTime(0.0f), // 削除
     m_attackEndDelayTimer(0)
 {
     // モデルの読み込み
@@ -73,6 +71,10 @@ void EnemyNormal::Init()
     m_pos = kInitialPosition;
     m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
+
+    // ここで一度「絶対にWalkでない値」にリセット
+    m_currentAnimState = AnimState::Dead;
+
     ChangeAnimation(AnimState::Walk, true); // 初期化時に歩行アニメーションを開始
 }
 
@@ -112,10 +114,26 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
         m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
         m_animTime = 0.0f; // アニメーション切り替え時に時間をリセット
     }
-    // AnimationManagerで管理するため、DetatchAnimationの直接呼び出しは不要
 
     m_currentAnimState = newAnimState;
 }
+
+bool EnemyNormal::CanAttackPlayer(const Player& player)
+{
+    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+    int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+    if (handRIndex == -1 || handLIndex == -1) return false;
+
+    VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+    VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+
+    m_pAttackHitCollider->SetSegment(handRPos, handLPos);
+    m_pAttackHitCollider->SetRadius(kAttackHitRadius);
+
+    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
+    return m_pAttackHitCollider->Intersects(playerBodyCollider.get());
+}
+
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
@@ -221,10 +239,10 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     }
     else // Walk 状態 (常に歩行アニメーションが基本)
     {
-        if (isPlayerInAttackRange)
+        // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
+        if (CanAttackPlayer(player))
         {
-            // 攻撃範囲内にプレイヤーがいたら攻撃アニメーションに切り替え
-            m_hasAttackHit = false; // 攻撃ヒットフラグをリセット
+            m_hasAttackHit = false;
             ChangeAnimation(AnimState::Attack, false);
         }
     }
@@ -390,8 +408,6 @@ void EnemyNormal::Draw()
     {
         DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
     }
-
-    DebugUtil::DrawFormat(20, 80, 0x000000, "Enemy HP: %.1f", m_hp);
 #endif
 
 }

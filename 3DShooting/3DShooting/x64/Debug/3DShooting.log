@@ -1,21 +1,2 @@
-﻿  AnimationManager.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.cpp(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'AnimationManager.cpp' をコンパイルしています)
-  
-  EnemyNormal.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'GameObject/EnemyNormal.cpp' をコンパイルしています)
-  
-  Player.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
-  
-  SceneMain.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\AnimationManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
-  
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(203,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(203,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-  コードを生成中...
+﻿  EnemyRunner.cpp
   3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe
