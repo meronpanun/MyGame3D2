@@ -270,7 +270,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		}
 		else if (m_currentAnimState == AnimState::Run)
 		{
-			// ループ切れ目で必ず0に戻す（28カウントで0に戻る）
+			// ループ切れ目で必ず0に戻す
 			if (m_animTime >= currentAnimTotalTime)
 			{
 				m_animTime = 0.0f;

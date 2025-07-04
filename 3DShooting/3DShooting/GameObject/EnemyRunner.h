@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "EnemyBase.h"
+#include "AnimationManager.h" 
 #include <vector>
 #include <memory>
-#include <functional> // for std::function
-#include "AnimationManager.h" // Include AnimationManager
+#include <functional>
 
 class Bullet;
 class Player;
@@ -57,17 +57,9 @@ public:
 	void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
 private:
-	// アニメーションの状態
-	enum class AnimState
-	{
-		Run,   // 常に走行状態が基本
-		Attack,
-		Dead
-	};
-
 	void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数
 
-	  bool CanAttackPlayer(const Player& player);
+	bool CanAttackPlayer(const Player& player);
 
 private:
 	VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標

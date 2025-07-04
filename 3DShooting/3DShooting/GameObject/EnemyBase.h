@@ -70,6 +70,15 @@ public:
 		Dead        // 死亡状態
 	};
 
+	// アニメーション状態（全敵共通）
+	enum class AnimState {
+		Idle,    // 待機
+		Walk,    // 歩行
+		Run,     // 走行
+		Attack,  // 攻撃
+		Dead     // 死亡
+	};
+
 	/// <summary>
 	/// 派生クラスでどこに当たったか判定する仮想関数
 	/// </summary>
