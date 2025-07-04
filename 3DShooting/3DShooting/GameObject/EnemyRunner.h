@@ -62,7 +62,7 @@ private:
 	bool CanAttackPlayer(const Player& player);
 
 private:
-	VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
+	VECTOR m_headPosOffset; // ヘッドショット判定用座標
 
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
 	std::shared_ptr<SphereCollider>  m_pHeadCollider;  // 頭のコライダー

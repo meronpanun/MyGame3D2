@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "DxLib.h"
+#include "EnemyBase.h"
 #include <string>
 #include <map>
-#include "GameObject/EnemyBase.h"
 
 /// <summary>
 /// アニメーション管理クラス
@@ -63,7 +63,7 @@ private:
     // モデルハンドルと現在アタッチされているアニメーションの総時間
     std::map<int, float> m_currentAnimTotalTimes;
 
-    // 状態→アニメ名マッピング
+    // 状態→アニメーション名マッピング
     std::map<EnemyBase::AnimState, std::string> m_animStateToAnimName;
     // モデルごとの現在のAnimState
     std::map<int, EnemyBase::AnimState> m_modelCurrentState;

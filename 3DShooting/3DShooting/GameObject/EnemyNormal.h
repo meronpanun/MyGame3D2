@@ -58,7 +58,8 @@ public:
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
 private:
-    void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数
+    // アニメーション切り替え関数
+    void ChangeAnimation(AnimState newAnimState, bool loop); 
 
 	// プレイヤーに攻撃可能かどうかを判定する
     bool CanAttackPlayer(const Player& player);

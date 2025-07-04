@@ -14,29 +14,30 @@ namespace
 {
     // アニメーション関連
     constexpr char kAttackAnimName[] = "ATK";  // 攻撃アニメーション
-    constexpr char kWalkAnimName[] = "WALK"; // 歩行アニメーション
-    constexpr char kDeadAnimName[] = "DEAD"; // 死亡アニメーション
+    constexpr char kWalkAnimName[]   = "WALK"; // 歩行アニメーション
+    constexpr char kDeadAnimName[]   = "DEAD"; // 死亡アニメーション
 
-    constexpr VECTOR kInitialPosition = { 0.0f, -30.0f, 300.0f };
+    constexpr VECTOR kInitialPosition        = { 0.0f, -30.0f, 300.0f };
     constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 
     // カプセルコライダーのサイズを定義
     constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
     constexpr float kBodyColliderHeight = 135.0f; // 体のコライダー高さ
-    constexpr float kHeadRadius = 18.0f;  // 頭のコライダー半径
+    constexpr float kHeadRadius         = 18.0f;  // 頭のコライダー半径
 
+	// 体力
     constexpr float kInitialHP = 200.0f; // 初期HP
 
     // 攻撃関連
     constexpr int   kAttackCooldownMax = 45;     // 攻撃クールダウン時間
-    constexpr float kAttackPower = 20.0f;  // 攻撃力
-    constexpr float kAttackHitRadius = 45.0f;  // 攻撃の当たり判定半径
+    constexpr float kAttackPower       = 20.0f;  // 攻撃力
+    constexpr float kAttackHitRadius   = 45.0f;  // 攻撃の当たり判定半径
     constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
 
     // 追跡関連
-    constexpr float kChaseSpeed = 2.0f; // 追跡速度
+    constexpr float kChaseSpeed        = 2.0f; // 追跡速度
     constexpr float kChaseStopDistance = 50;   // 追跡停止距離
-    constexpr int kAttackEndDelay = 55;
+    constexpr int kAttackEndDelay      = 55;
 }
 
 EnemyNormal::EnemyNormal() :
@@ -196,7 +197,6 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             m_pos.x += dir.x * step;
             m_pos.z += dir.z * step;
         }
-
     }
 
     // プレイヤーのカプセルコライダー情報を取得
@@ -248,7 +248,6 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     }
 
     // アニメーション時間の更新
-    // m_currentAnimHandle は AnimationManager 内部で管理されるため、ここでは不要
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) // アニメーションがアタッチされている場合のみ時間を更新
     {
         m_animTime += 1.0f;

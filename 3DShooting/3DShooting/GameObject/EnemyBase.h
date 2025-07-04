@@ -24,6 +24,30 @@ public:
 	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player) abstract;
 	virtual void Draw() abstract;
 
+	// 当たり判定の部位
+	enum class HitPart {
+		None,
+		Body,
+		Head
+	};
+
+	// 敵の状態管理
+	enum class EnemyState {
+		Idle,       // 待機状態
+		Moving,     // 移動状態
+		Attacking,  // 攻撃状態
+		Damaged,    // ダメージを受けた状態
+		Dead        // 死亡状態
+	};
+
+	// アニメーション状態
+	enum class AnimState {
+		Idle,    // 待機
+		Walk,    // 歩行
+		Run,     // 走行
+		Attack,  // 攻撃
+		Dead     // 死亡
+	};
 
 	/// <summary>
 	/// 弾や攻撃を受ける処理(基底で共通処理) 
@@ -53,31 +77,6 @@ public:
 
 	// 位置取得
 	virtual VECTOR GetPos() const { return m_pos; }
-
-	// 当たり判定の部位
-	enum class HitPart {
-		None,
-		Body,
-		Head
-	};
-
-	// 敵の状態管理
-	enum class EnemyState {
-		Idle,       // 待機状態
-		Moving,     // 移動状態
-		Attacking,  // 攻撃状態
-		Damaged,    // ダメージを受けた状態
-		Dead        // 死亡状態
-	};
-
-	// アニメーション状態（全敵共通）
-	enum class AnimState {
-		Idle,    // 待機
-		Walk,    // 歩行
-		Run,     // 走行
-		Attack,  // 攻撃
-		Dead     // 死亡
-	};
 
 	/// <summary>
 	/// 派生クラスでどこに当たったか判定する仮想関数

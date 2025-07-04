@@ -14,27 +14,28 @@ namespace
 {
 	// アニメーション関連
 	constexpr char kAttackAnimName[] = "Armature|Attack"; // 攻撃アニメーション
-	constexpr char kRunAnimName[] = "Armature|Run";    // 走るアニメーション
-	constexpr char kDeadAnimName[] = "Armature|Death";  // 死亡アニメーション
+	constexpr char kRunAnimName[]    = "Armature|Run";    // 走るアニメーション
+	constexpr char kDeadAnimName[]   = "Armature|Death";  // 死亡アニメーション
 
 	constexpr VECTOR kInitialPosition = { 50.0f, -30.0f, 300.0f }; // 初期位置をNormalと変える
 	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 
 	// カプセルコライダーのサイズを定義
-	constexpr float kBodyColliderRadius = 15.0f;  // 体のコライダー半径 (Normalより小さめ)
-	constexpr float kBodyColliderHeight = 120.0f; // 体のコライダー高さ (Normalより小さめ)
-	constexpr float kHeadRadius = 15.0f;  // 頭のコライダー半径 (Normalより小さめ)
+	constexpr float kBodyColliderRadius = 15.0f;  // 体のコライダー半径(Normalより小さめ)
+	constexpr float kBodyColliderHeight = 120.0f; // 体のコライダー高さ(Normalより小さめ)
+	constexpr float kHeadRadius		    = 15.0f;  // 頭のコライダー半径(Normalより小さめ)
 
-	constexpr float kInitialHP = 100.0f; // 初期HP (Normalより小さめ)
+	// 体力
+	constexpr float kInitialHP = 100.0f; // 初期HP(Normalより小さめ)
 
 	// 攻撃関連
-	constexpr int   kAttackCooldownMax = 30;     // 攻撃クールダウン時間 (Normalより短め)
-	constexpr float kAttackPower = 15.0f;  // 攻撃力 (Normalより小さめ)
-	constexpr float kAttackHitRadius = 50.0f;  // 攻撃の当たり判定半径 
-	constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径 (Normalより小さめ)
+	constexpr int   kAttackCooldownMax = 30;     // 攻撃クールダウン時間(Normalより短め)
+	constexpr float kAttackPower       = 15.0f;  // 攻撃力(Normalより小さめ)
+	constexpr float kAttackHitRadius   = 50.0f;  // 攻撃の当たり判定半径 
+	constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径(Normalより小さめ)
 
 	// 追跡関連
-	constexpr float kChaseSpeed = 4.0f; // 追跡速度 
+	constexpr float kChaseSpeed   = 4.0f; // 追跡速度 
 	constexpr int kAttackEndDelay = 10; 
 }
 

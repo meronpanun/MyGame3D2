@@ -1,6 +1,6 @@
 ﻿#include "AnimationManager.h"
+#include "EnemyBase.h"
 #include <cassert>
-#include "GameObject/EnemyBase.h"
 
 AnimationManager::AnimationManager()
 {
@@ -77,7 +77,8 @@ float AnimationManager::GetAnimationTotalTime(int modelHandle, const std::string
     {
         return MV1GetAnimTotalTime(modelHandle, animIndex);
     }
-    // 現在アタッチされていない、またはキャッシュにない場合は0を返す（事前にPlayAnimationでロードしておくべき）
+
+    // 現在アタッチされていない、またはキャッシュにない場合は0を返す
     return 0.0f;
 }
 
@@ -100,7 +101,7 @@ void AnimationManager::ResetAttachedAnimHandle(int modelHandle)
 
 float AnimationManager::PlayState(int modelHandle, EnemyBase::AnimState state, bool loop)
 {
-    // 状態→アニメ名
+    // 状態→アニメーション   名
     auto it = m_animStateToAnimName.find(state);
     if (it == m_animStateToAnimName.end()) return 0.0f;
     float total = PlayAnimation(modelHandle, it->second, loop);
@@ -111,7 +112,8 @@ float AnimationManager::PlayState(int modelHandle, EnemyBase::AnimState state, b
 
 void AnimationManager::Update(int modelHandle, float delta)
 {
-    if (m_modelAnimTime.count(modelHandle)) {
+    if (m_modelAnimTime.count(modelHandle)) 
+    {
         m_modelAnimTime[modelHandle] += delta;
         UpdateAnimationTime(modelHandle, m_modelAnimTime[modelHandle]);
     }
@@ -120,11 +122,15 @@ void AnimationManager::Update(int modelHandle, float delta)
 bool AnimationManager::IsAnimationFinished(int modelHandle) const
 {
     if (!m_modelCurrentState.count(modelHandle)) return false;
+
     EnemyBase::AnimState state = m_modelCurrentState.at(modelHandle);
     auto it = m_animStateToAnimName.find(state);
+
     if (it == m_animStateToAnimName.end()) return false;
     float total = 0.0f;
-    if (m_currentAnimTotalTimes.count(modelHandle)) {
+
+    if (m_currentAnimTotalTimes.count(modelHandle))
+    {
         total = m_currentAnimTotalTimes.at(modelHandle);
     }
     if (!m_modelAnimTime.count(modelHandle)) return false;

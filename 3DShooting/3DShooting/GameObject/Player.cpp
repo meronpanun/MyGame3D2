@@ -424,10 +424,9 @@ void Player::Draw()
 	int ammoFontSize = 32;
 	int ammoX = screenW - 200;
 	int ammoY = screenH - 60;
-	int ammoColor = GetColor(255, 255, 80);
 
 	SetFontSize(ammoFontSize);
-	DrawFormatString(ammoX, ammoY, ammoColor, "AMMO: %d", m_ammo);
+	DrawFormatString(ammoX, ammoY, 0xffff50, "AMMO: %d", m_ammo);
 	SetFontSize(16); // フォントサイズを元に戻す
 
 
@@ -460,7 +459,7 @@ void Player::Draw()
 	const int tackleGaugeHeight = 16;
 
 	// 枠
-	DrawBox(tackleGaugeX - 1, tackleGaugeY - 1, tackleGaugeX + tackleGaugeWidth + 1, tackleGaugeY + tackleGaugeHeight + 1, GetColor(80, 80, 200), false);
+	DrawBox(tackleGaugeX - 1, tackleGaugeY - 1, tackleGaugeX + tackleGaugeWidth + 1, tackleGaugeY + tackleGaugeHeight + 1, 0x5050C8, false);
 
 	// ゲージ本体
 	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(kTackleCooldownMax));
@@ -495,16 +494,16 @@ void Player::Draw()
     float hpRate = hp / maxHP;
 
     // 背景
-    DrawBox(barX, barY, barX + barWidth, barY + barHeight, GetColor(80, 80, 80), TRUE);
+    DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x505050, true);
 
     // HPバー本体
-    DrawBox(barX, barY, barX + static_cast<int>(barWidth * hpRate), barY + barHeight, GetColor(255, 64, 64), TRUE);
+    DrawBox(barX, barY, barX + static_cast<int>(barWidth * hpRate), barY + barHeight, 0xff4040, true);
 
     // 枠
-    DrawBox(barX, barY, barX + barWidth, barY + barHeight, GetColor(0, 0, 0), FALSE);
+    DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x000000, false);
 
     // HP数値
-    DrawFormatString(barX + 8, barY + 2, GetColor(255,255,255), "HP: %.0f / %.0f", hp, maxHP);
+    DrawFormatString(barX + 8, barY + 2, 0xffffff, "HP: %.0f / %.0f", hp, maxHP);
 
 #ifdef _DEBUG
 	if (m_pCamera)
@@ -556,7 +555,6 @@ void Player::Draw()
 			pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
 	}
 #endif
-
 }
 
 // フィールドの描画
@@ -567,9 +565,6 @@ void Player::DrawField()
 	const int gridSize = 100;
 	const int fieldSize = 800;
 
-	unsigned int color1 = GetColor(80, 80, 80);
-	unsigned int color2 = GetColor(100, 100, 100);
-
 	for (int z = static_cast<int>(-fieldSize * 0.5f); z < static_cast<int>(fieldSize * 0.5f); z += gridSize)
 	{
 		for (int x = static_cast<int>(-fieldSize * 0.5f); x < static_cast<int>(fieldSize * 0.5f); x += gridSize)
@@ -578,7 +573,7 @@ void Player::DrawField()
 
 			VECTOR cubeSize = VGet(gridSize, 10, gridSize);
 
-			unsigned int color = ((x / gridSize + z / gridSize) % 2 == 0) ? color1 : color2;
+			unsigned int color = ((x / gridSize + z / gridSize) % 2 == 0) ? 0x505050 : 0x646464;
 
 			DrawCube3D(
 				VGet(cubeCenter.x - cubeSize.x * 0.5f, cubeCenter.y - 80, cubeCenter.z - cubeSize.z * 0.5f),
