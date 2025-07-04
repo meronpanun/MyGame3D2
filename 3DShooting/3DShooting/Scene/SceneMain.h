@@ -9,6 +9,7 @@ class Player;
 class Camera;
 class EnemyNormal;
 class EnemyRunner;
+class EnemyAcid;
 class EnemyBase;
 class FirstAidKitItem;
 class ItemBase;
@@ -37,6 +38,7 @@ private:
 	std::shared_ptr<Camera> m_pCamera;
 	std::shared_ptr<EnemyNormal> m_pEnemyNormal;
 	std::shared_ptr<EnemyRunner> m_pEnemyRunner;
+	std::shared_ptr<EnemyAcid> m_pEnemyAcid;
 	std::vector<EnemyBase*> m_enemyList;
 	std::vector<std::shared_ptr<ItemBase>> m_items;
 

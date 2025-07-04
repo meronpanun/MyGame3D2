@@ -10,6 +10,7 @@
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
+#include "EnemyAcid.h"
 #include "DebugUtil.h"
 #include "Camera.h"
 #include "FirstAidKitItem.h"
@@ -81,6 +82,9 @@ void SceneMain::Init()
 	m_pEnemyRunner = std::make_shared<EnemyRunner>();
 	m_pEnemyRunner->Init();
 
+	m_pEnemyAcid = std::make_shared<EnemyAcid>();
+	m_pEnemyAcid->Init();
+
     if (m_pPlayer->GetCamera())
     {
         m_pPlayer->GetCamera()->SetSensitivity(m_cameraSensitivity);
@@ -107,6 +111,15 @@ void SceneMain::Init()
     });
 
 	m_pEnemyRunner->SetOnDropItemCallback([this](const VECTOR& pos) {
+		auto dropItem = std::make_shared<FirstAidKitItem>();
+		dropItem->Init();
+		VECTOR dropPos = pos;
+		dropPos.y += kDropInitialHeight;
+		dropItem->SetPos(dropPos);
+		m_items.push_back(dropItem);
+	});
+
+	m_pEnemyAcid->SetOnDropItemCallback([this](const VECTOR& pos) {
 		auto dropItem = std::make_shared<FirstAidKitItem>();
 		dropItem->Init();
 		VECTOR dropPos = pos;
@@ -179,9 +192,11 @@ SceneBase* SceneMain::Update()
         return new SceneGameOver();
     }
 
-	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+//	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
-	m_pEnemyRunner->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+//	m_pEnemyRunner->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+
+	m_pEnemyAcid->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
     for (auto& item : m_items)
     {
@@ -210,9 +225,11 @@ void SceneMain::Draw()
         item->Draw();
     }
 
-    m_pEnemyNormal->Draw();
+//  m_pEnemyNormal->Draw();
 
-	m_pEnemyRunner->Draw();
+//	m_pEnemyRunner->Draw();
+
+	m_pEnemyAcid->Draw();
 
     m_pPlayer->Draw();
 
