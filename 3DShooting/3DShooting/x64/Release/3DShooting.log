@@ -8,7 +8,7 @@
   Effect.cpp
   EnemyAcid.cpp
   EnemyBase.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(24,21): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(24,21): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
   EnemyBoss.cpp
   EnemyNormal.cpp
   EnemyRunner.cpp
@@ -22,8 +22,8 @@ C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\E
   コンパイル中...
   SceneBase.cpp
   SceneMain.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(220,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(220,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(237,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(237,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
   SceneManager.cpp
   SceneOption.cpp
   SceneResult.cpp
@@ -33,6 +33,6 @@ C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneM
   Vec3.cpp
   コード生成しています。
   Previous IPDB was built with incompatible compiler, fall back to full compilation.
-  All 1059 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 1305 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   コード生成が終了しました。
-  3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Release\3DShooting.exe
+  3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Release\3DShooting.exe

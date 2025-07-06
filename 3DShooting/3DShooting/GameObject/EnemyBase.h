@@ -44,6 +44,7 @@ public:
 	enum class AnimState {
 		Idle,    // 待機
 		Walk,    // 歩行
+		Back,    // 後退
 		Run,     // 走行
 		Attack,  // 攻撃
 		Dead     // 死亡

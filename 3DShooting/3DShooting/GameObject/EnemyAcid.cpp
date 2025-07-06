@@ -13,8 +13,8 @@ namespace
 {
     // アニメーション関連
     constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
-    constexpr char kRunAnimName[] = "Armature|WALE";    // 歩くアニメーション (RunnerではRun, NormalではWalk)
-    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション (新しく追加)
+    constexpr char kRunAnimName[] = "Armature|WALE";    // 歩くアニメーション
+    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
     constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
 
     constexpr VECTOR kInitialPosition = { -50.0f, -30.0f, 300.0f }; // 初期位置
@@ -29,9 +29,9 @@ namespace
     constexpr float kInitialHP = 150.0f; // 初期HP
 
     // 攻撃関連 (遠距離攻撃に特化)
-    constexpr int   kAttackCooldownMax = 90;     // 攻撃クールダウン時間
+    constexpr int   kAttackCooldownMax = 160;     // 攻撃クールダウン時間
     constexpr float kAttackPower = 30.0f;  // 攻撃力 (酸のダメージ)
-    constexpr float kAttackRangeRadius = 900.0f; // 攻撃範囲の半径 (広め)
+    constexpr float kAttackRangeRadius = 500.0f; // 攻撃範囲の半径 (広め)
     constexpr float kAcidBulletSpeed = 10.0f;  // 酸弾の速度
     constexpr float kAcidBulletRadius = 10.0f;  // 酸弾の半径
     constexpr int   kAttackEndDelay = 30;     // 攻撃後の硬直時間
@@ -267,14 +267,16 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     // プレイヤーが攻撃範囲内か
     bool inAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
 
-    if (inAttackRange)
-    {
+    // 攻撃アニメーション中・硬直中は移動や状態遷移を行わない（攻撃を中断しない）
+    if (m_currentAnimState == AnimState::Attack || m_attackEndDelayTimer > 0) {
+        // 攻撃アニメーション・硬直中は移動・状態遷移を行わない
+    } else if (inAttackRange) {
         if (disToPlayer < kOptimalAttackDistanceMin)
         {
-            // 最小攻撃距離未満なら後退
-            if (m_currentAnimState != AnimState::Walk)
+            // 最小攻撃距離未満なら後退（Backアニメーション）
+            if (m_currentAnimState != AnimState::Back)
             {
-                ChangeAnimation(AnimState::Walk, true);
+                ChangeAnimation(AnimState::Back, true);
             }
             VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
             m_pos.x += dirAway.x * kChaseSpeed;
@@ -283,18 +285,15 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         else
         {
             // 攻撃可能距離なら攻撃
-            if (m_currentAnimState != AnimState::Attack && m_attackEndDelayTimer == 0 && m_attackCooldown == 0)
+            if (m_attackCooldown == 0)
             {
                 ChangeAnimation(AnimState::Attack, false);
                 m_hasAttacked = false;
                 m_attackCooldown = m_attackCooldownMax;
             }
-            // 攻撃中や硬直中は移動しない
         }
-    }
-    else
-    {
-        // 攻撃範囲外なら追跡
+    } else {
+        // 攻撃範囲外なら追跡（Runアニメーション）
         if (m_currentAnimState != AnimState::Run)
         {
             ChangeAnimation(AnimState::Run, true);
@@ -308,7 +307,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     if (m_currentAnimState == AnimState::Attack)
     {
         float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kAttackAnimName);
-        if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.5f)
+        if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.3f)
         {
             ShootAcidBullet(bullets, player);
             m_hasAttacked = true;
@@ -316,6 +315,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         if (m_animTime >= totalAttackAnimTime)
         {
             m_attackEndDelayTimer = 20;
+            m_animTime = 0.0f; // ここでアニメーション時間をリセット
             if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
             {
                 MV1DetachAnim(m_modelHandle, 0);
@@ -365,6 +365,17 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         if (acidCol.Intersects(playerCol.get())) {
             const_cast<Player&>(player).TakeDamage(ball.damage);
             ball.active = false;
+        }
+    }
+
+    // 攻撃クールダウンと攻撃後硬直の減算処理を追加
+    if (m_attackCooldown > 0) {
+        m_attackCooldown--;
+    }
+    if (m_attackEndDelayTimer > 0) {
+        m_attackEndDelayTimer--;
+        if (m_attackEndDelayTimer == 0 && m_currentAnimState != AnimState::Run) {
+            ChangeAnimation(AnimState::Run, true);
         }
     }
 }
