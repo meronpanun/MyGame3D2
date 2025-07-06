@@ -21,9 +21,9 @@ namespace
     constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
 
     // コライダーのサイズを定義
-    constexpr float kBodyColliderRadius = 18.0f;  // 体のコライダー半径
-    constexpr float kBodyColliderHeight = 130.0f; // 体のコライダー高さ
-    constexpr float kHeadRadius = 16.0f;  // 頭のコライダー半径
+    constexpr float kBodyColliderRadius = 40.0f;  // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 18.0f;  // 頭のコライダー半径
 
     // 体力
     constexpr float kInitialHP = 150.0f; // 初期HP
@@ -31,15 +31,14 @@ namespace
     // 攻撃関連 (遠距離攻撃に特化)
     constexpr int   kAttackCooldownMax = 90;     // 攻撃クールダウン時間
     constexpr float kAttackPower = 30.0f;  // 攻撃力 (酸のダメージ)
-    constexpr float kAttackRangeRadius = 400.0f; // 攻撃範囲の半径 (広め)
+    constexpr float kAttackRangeRadius = 900.0f; // 攻撃範囲の半径 (広め)
     constexpr float kAcidBulletSpeed = 10.0f;  // 酸弾の速度
     constexpr float kAcidBulletRadius = 10.0f;  // 酸弾の半径
     constexpr int   kAttackEndDelay = 30;     // 攻撃後の硬直時間
 
     // 追跡関連 (遠距離型なので、近づきすぎたら離れる)
     constexpr float kChaseSpeed = 1.5f;   // 追跡速度
-    constexpr float kOptimalAttackDistanceMin = 200.0f; // 攻撃可能最小距離
-    constexpr float kOptimalAttackDistanceMax = 350.0f; // 攻撃可能最大距離
+    constexpr float kOptimalAttackDistanceMin = 100.0f; // 攻撃可能最小距離
 }
 
 EnemyAcid::EnemyAcid() :
@@ -140,13 +139,8 @@ bool EnemyAcid::CanAttackPlayer(const Player& player)
     // プレイヤーのボディコライダーを取得
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
 
-    // プレイヤーとの距離が攻撃範囲内か、かつ最適攻撃距離の範囲内かをチェック
-    VECTOR toPlayer = VSub(playerPos, m_pos);
-    float disToPlayer = sqrtf(VSquareSize(toPlayer)); // Modified: Replaced VLen with sqrtf(VSquareSize)
-
-    return m_pAttackRangeCollider->Intersects(playerBodyCollider.get()) &&
-        disToPlayer >= kOptimalAttackDistanceMin &&
-        disToPlayer <= kOptimalAttackDistanceMax;
+    // プレイヤーが攻撃範囲内にいるかどうかのみ判定
+    return m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
 }
 
 void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player)
@@ -182,172 +176,190 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
 
 void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
-    if (m_hp <= 0.0f)
+    if (!m_isAlive) // 死亡時は死亡アニメーションとアイテムドロップのみ進行
     {
-        // 死亡アニメーション
         if (m_currentAnimState != AnimState::Dead)
         {
-            ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションは非ループ
+            ChangeAnimation(AnimState::Dead, false);
         }
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
-
-        // 死亡アニメーションが終了したら
+        m_animTime += 1.0f; // 死亡中もアニメーション時間を進める
+        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
         if (m_animTime >= currentAnimTotalTime)
         {
-            // アニメーションが完全に終了したらモデルを非表示にするためにデタッチ
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-            {
-                MV1DetachAnim(m_modelHandle, 0); // 死亡アニメーションが終了したらデタッチ
-                m_animationManager.ResetAttachedAnimHandle(m_modelHandle); // AnimationManagerの内部状態も更新
-            }
-
-            if (m_onDropItem)
-            {
-                m_onDropItem(m_pos);    // アイテムドロップコールバックを呼び出す
-                m_onDropItem = nullptr; // アイテムドロップ後はコールバックを無効化
-            }
-            return; // 死亡アニメーション終了後は更新しない
-        }
-    }
-
-    MV1SetPosition(m_modelHandle, m_pos); // モデルの位置は常に反映する
-
-    // プレイヤーの方向を常に向く
-    VECTOR playerPos = player.GetPos();
-    VECTOR toPlayer = VSub(playerPos, m_pos);
-    toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
-    float disToPlayer = sqrtf(VSquareSize(toPlayer)); // Modified: Replaced VLen with sqrtf(VSquareSize)
-
-    float yaw = 0.0f;
-    if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
-    {
-        yaw = atan2f(toPlayer.x, toPlayer.z);
-        yaw += DX_PI_F; // モデルの向きに合わせて調整
-    }
-    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
-
-    // 攻撃クールダウンの更新
-    if (m_attackCooldown > 0)
-    {
-        m_attackCooldown--;
-    }
-
-    // 攻撃後の硬直タイマーの更新
-    if (m_attackEndDelayTimer > 0)
-    {
-        m_attackEndDelayTimer--;
-        if (m_attackEndDelayTimer == 0)
-        {
-            // 硬直が終わったらRunアニメーションに戻す
-            ChangeAnimation(AnimState::Run, true);
-        }
-    }
-
-    // 状態遷移ロジック
-    if (m_currentAnimState != AnimState::Attack && m_attackEndDelayTimer == 0)
-    {
-        if (CanAttackPlayer(player) && m_attackCooldown == 0)
-        {
-            // 攻撃可能範囲内でクールダウンも終わっていたら攻撃
-            ChangeAnimation(AnimState::Attack, false); // 攻撃アニメーションは非ループ
-            m_hasAttacked = false; // 攻撃フラグをリセット
-            m_attackCooldown = m_attackCooldownMax; // クールダウン開始
-        }
-        else if (disToPlayer < kOptimalAttackDistanceMin)
-        {
-            // プレイヤーが近すぎたら後退
-            if (m_currentAnimState != AnimState::Walk) // Walkを後退として使用
-            {
-                ChangeAnimation(AnimState::Walk, true);
-            }
-            VECTOR dirAway = VNorm(VSub(m_pos, playerPos)); // プレイヤーから離れる方向
-            m_pos.x += dirAway.x * kChaseSpeed;
-            m_pos.z += dirAway.z * kChaseSpeed;
-        }
-        else if (disToPlayer > kOptimalAttackDistanceMax)
-        {
-            // プレイヤーが遠すぎたら近づく
-            if (m_currentAnimState != AnimState::Run)
-            {
-                ChangeAnimation(AnimState::Run, true);
-            }
-            VECTOR dirTowards = VNorm(toPlayer); // プレイヤーに向かう方向
-            m_pos.x += dirTowards.x * kChaseSpeed;
-            m_pos.z += dirTowards.z * kChaseSpeed;
-        }
-        else
-        {
-            // 最適な攻撃距離にいる場合は待機 (Runアニメーションを継続)
-            if (m_currentAnimState != AnimState::Run)
-            {
-                ChangeAnimation(AnimState::Run, true);
-            }
-        }
-    }
-
-    // 攻撃アニメーション中の弾の発射タイミング
-    if (m_currentAnimState == AnimState::Attack)
-    {
-        // 攻撃アニメーションの特定のフレームで弾を発射 (例: アニメーション時間の半分くらい)
-        float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kAttackAnimName);
-        if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.5f) // アニメーションの半分の時間で発射
-        {
-            ShootAcidBullet(bullets, player);
-            m_hasAttacked = true;
-        }
-
-        // 攻撃アニメーションが終了したら硬直タイマーをセット
-        if (m_animTime >= totalAttackAnimTime)
-        {
-            m_attackEndDelayTimer = kAttackEndDelay;
-            // 攻撃アニメーションが終了したら、次の状態は硬直なのでアニメーションをデタッチ
             if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
             {
                 MV1DetachAnim(m_modelHandle, 0);
                 m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
             }
-            // その後、UpdateAnimationTimeが呼ばれないようにする（硬直中はアニメーション停止）
+            if (m_onDropItem)
+            {
+                m_onDropItem(m_pos);
+                m_onDropItem = nullptr;
+            }
+        }
+        // 死亡中は以降の処理を一切行わない
+        return;
+    }
+
+    MV1SetPosition(m_modelHandle, m_pos);
+
+    // プレイヤーの方向を向く
+    VECTOR playerPos = player.GetPos();
+    VECTOR toPlayer = VSub(playerPos, m_pos);
+    toPlayer.y = 0.0f;
+    float disToPlayer = sqrtf(VSquareSize(toPlayer));
+    float yaw = 0.0f;
+    if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
+    {
+        yaw = atan2f(toPlayer.x, toPlayer.z);
+        yaw += DX_PI_F;
+    }
+    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
+
+    // コライダーの更新
+    // 変更: モデルのHipsフレームの位置を取得してボディコライダーの基点とする
+    int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
+    VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
+
+    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight / 2.0f, 0));
+    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight / 2.0f, 0));
+    m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
+    m_pBodyCollider->SetRadius(::kBodyColliderRadius);
+
+    int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0, 0, 0);
+    VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
+    m_pHeadCollider->SetCenter(headCenter);
+    m_pHeadCollider->SetRadius(kHeadRadius);
+    VECTOR attackRangeCenter = m_pos;
+    attackRangeCenter.y += (::kBodyColliderHeight * 0.5f);
+    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+    m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
+
+    // プレイヤーとの物理衝突判定（押し戻し）
+    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
+    if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
+    {
+        VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
+        VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
+        VECTOR diff = VSub(enemyCenter, playerCenter);
+        float distSq = VDot(diff, diff);
+        float minDist = ::kBodyColliderRadius + playerBodyCollider->GetRadius();
+        if (distSq < minDist * minDist && distSq > 0.0001f)
+        {
+            float dist = std::sqrt(distSq);
+            float pushBack = minDist - dist;
+            if (dist > 0)
+            {
+                VECTOR pushDir = VSub(enemyCenter, playerCenter);
+                pushDir.y = 0.0f;
+                float horizontalDistSq = VDot(pushDir, pushDir);
+                if (horizontalDistSq > 0.0001f)
+                {
+                    pushDir = VNorm(pushDir);
+                    m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
+                }
+            }
+        }
+    }
+
+    // プレイヤーが攻撃範囲内か
+    bool inAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
+
+    if (inAttackRange)
+    {
+        if (disToPlayer < kOptimalAttackDistanceMin)
+        {
+            // 最小攻撃距離未満なら後退
+            if (m_currentAnimState != AnimState::Walk)
+            {
+                ChangeAnimation(AnimState::Walk, true);
+            }
+            VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
+            m_pos.x += dirAway.x * kChaseSpeed;
+            m_pos.z += dirAway.z * kChaseSpeed;
+        }
+        else
+        {
+            // 攻撃可能距離なら攻撃
+            if (m_currentAnimState != AnimState::Attack && m_attackEndDelayTimer == 0 && m_attackCooldown == 0)
+            {
+                ChangeAnimation(AnimState::Attack, false);
+                m_hasAttacked = false;
+                m_attackCooldown = m_attackCooldownMax;
+            }
+            // 攻撃中や硬直中は移動しない
+        }
+    }
+    else
+    {
+        // 攻撃範囲外なら追跡
+        if (m_currentAnimState != AnimState::Run)
+        {
+            ChangeAnimation(AnimState::Run, true);
+        }
+        VECTOR dirTowards = VNorm(VSub(playerPos, m_pos));
+        m_pos.x += dirTowards.x * kChaseSpeed;
+        m_pos.z += dirTowards.z * kChaseSpeed;
+    }
+
+    // 攻撃アニメーション中の酸弾発射タイミング
+    if (m_currentAnimState == AnimState::Attack)
+    {
+        float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kAttackAnimName);
+        if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.5f)
+        {
+            ShootAcidBullet(bullets, player);
+            m_hasAttacked = true;
+        }
+        if (m_animTime >= totalAttackAnimTime)
+        {
+            m_attackEndDelayTimer = 20;
+            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+            {
+                MV1DetachAnim(m_modelHandle, 0);
+                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
+            }
         }
     }
 
     // アニメーション時間の更新
-    if (m_attackEndDelayTimer == 0) // 硬直中でない場合のみアニメーションを更新
+    if (m_attackEndDelayTimer == 0)
     {
-        m_animTime += 1.0f; // 1フレームごとに時間を進める (DxLibのアニメーション時間単位に合わせて調整)
+        m_animTime += 1.0f;
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
     }
 
-    // 弾との当たり判定とダメージ処理は基底クラスで共通
+    // 弾との当たり判定・ダメージ処理
     CheckHitAndDamage(bullets);
 
     // タックルダメージ処理
     if (tackleInfo.isTackling && tackleInfo.tackleId != m_lastTackleId)
     {
-        // タックルを受けた場合の処理
-        TakeTackleDamage(tackleInfo.damage);
-        m_lastTackleId = tackleInfo.tackleId; // 最新のタックルIDを記録
-        m_isTackleHit = true;
+        CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
+        if (m_pBodyCollider->Intersects(&playerTackleCollider))
+        {
+            TakeTackleDamage(tackleInfo.damage);
+            m_lastTackleId = tackleInfo.tackleId;
+        }
     }
     else if (!tackleInfo.isTackling)
     {
-        // タックルヒットが継続していない場合はフラグをリセット
         ResetTackleHitFlag();
         m_lastTackleId = -1;
     }
 
-    // ヒット表示タイマーの更新
     if (m_hitDisplayTimer > 0)
     {
         m_hitDisplayTimer--;
     }
 
-    // AcidBallの更新と当たり判定
+    // AcidBallの更新とプレイヤーへの当たり判定
     for (auto& ball : m_acidBalls)
     {
         if (!ball.active) continue;
         ball.Update();
-
-        // プレイヤーとの当たり判定
         std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
         SphereCollider acidCol(ball.pos, ball.radius);
         if (acidCol.Intersects(playerCol.get())) {
@@ -359,6 +371,17 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
 
 void EnemyAcid::Draw()
 {
+    // 死亡時も死亡アニメーションが終わるまでは描画する
+    if (!m_isAlive)
+    {
+        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
+        if (m_animTime < currentAnimTotalTime)
+        {
+            MV1DrawModel(m_modelHandle);
+        }
+        return;
+    }
+
     if (m_hp <= 0.0f && m_animationManager.IsAnimationFinished(m_modelHandle))
     {
         // 死亡アニメーションが完全に終了したらモデルを描画しない
@@ -372,11 +395,15 @@ void EnemyAcid::Draw()
         DrawSphere3D(ball.pos, ball.radius, 8, 0x00ff00, 0x008800, true);
     }
 
-
     MV1DrawModel(m_modelHandle);
 
     // デバッグ用の当たり判定描画
     DrawCollisionDebug();
+
+#ifdef _DEBUG
+    // 体力デバッグ表示
+    DebugUtil::DrawFormat(20, 100, 0x008800, "Acid HP: %.1f", m_hp);
+#endif
 }
 
 void EnemyAcid::DrawCollisionDebug() const
@@ -409,11 +436,15 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     m_pHeadCollider->SetCenter(headCenter);
     m_pHeadCollider->SetRadius(kHeadRadius);
 
-    // 体のコライダーはカプセルなので、適当なオフセットで上下の端点を設定
-    VECTOR bodySegmentP1 = VAdd(m_pos, VGet(0, kBodyColliderHeight / 2.0f, 0));
-    VECTOR bodySegmentP2 = VAdd(m_pos, VGet(0, -kBodyColliderHeight / 2.0f, 0));
+    // 体のコライダーはカプセルなので、m_posの上下にオフセットした端点を設定
+    // 変更: モデルのHipsフレームの位置を取得してボディコライダーの基点とする
+    int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
+    VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
+
+    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight / 2.0f, 0));
+    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight / 2.0f, 0));
     m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
-    m_pBodyCollider->SetRadius(kBodyColliderRadius);
+    m_pBodyCollider->SetRadius(::kBodyColliderRadius);
 
     bool headHit = m_pHeadCollider->IntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
     bool bodyHit = m_pBodyCollider->IntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
