@@ -12,10 +12,10 @@
 namespace
 {
     // アニメーション関連
-    constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
-    constexpr char kRunAnimName[] = "Armature|WALE";    // 歩くアニメーション
-    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
-    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+    constexpr char kAttackAnimName[] = "Armature|ATK";  // 攻撃アニメーション
+    constexpr char kWalkAnimName[]   = "Armature|WALK"; // 歩くアニメーション
+    constexpr char kBackAnimName[]   = "Armature|BACK"; // 後退アニメーション
+    constexpr char kDeadAnimName[]   = "Armature|DEAD"; // 死亡アニメーション
 
     constexpr VECTOR kInitialPosition = { -50.0f, -30.0f, 300.0f }; // 初期位置
     constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
@@ -28,27 +28,28 @@ namespace
     // 体力
     constexpr float kInitialHP = 150.0f; // 初期HP
 
-    // 攻撃関連 (遠距離攻撃に特化)
-    constexpr int   kAttackCooldownMax = 160;     // 攻撃クールダウン時間
-    constexpr float kAttackPower = 30.0f;  // 攻撃力 (酸のダメージ)
-    constexpr float kAttackRangeRadius = 500.0f; // 攻撃範囲の半径 (広め)
-    constexpr float kAcidBulletSpeed = 10.0f;  // 酸弾の速度
-    constexpr float kAcidBulletRadius = 10.0f;  // 酸弾の半径
-    constexpr int   kAttackEndDelay = 30;     // 攻撃後の硬直時間
+    // 攻撃関連(遠距離攻撃に特化)
+    constexpr int   kAttackCooldownMax = 160;    // 攻撃クールダウン時間
+    constexpr float kAttackPower       = 30.0f;  // 攻撃力
+    constexpr float kAttackRangeRadius = 1000.0f; // 攻撃範囲の半径
+    constexpr float kAcidBulletSpeed   = 10.0f;  // 酸弾の速度
+    constexpr float kAcidBulletRadius  = 10.0f;  // 酸弾の半径
+    constexpr int   kAttackEndDelay    = 30;     // 攻撃後の硬直時間
 
-    // 追跡関連 (遠距離型なので、近づきすぎたら離れる)
-    constexpr float kChaseSpeed = 1.5f;   // 追跡速度
-    constexpr float kOptimalAttackDistanceMin = 100.0f; // 攻撃可能最小距離
+    // 追跡関連(遠距離型なので、近づきすぎたら離れる)
+    constexpr float kChaseSpeed = 2.0f;   // 追跡速度
+    constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 }
 
 EnemyAcid::EnemyAcid() :
     m_headPosOffset{ kHeadShotPositionOffset },
     m_animTime(0.0f),
-    m_currentAnimState(AnimState::Run),
+    m_currentAnimState(AnimState::Walk),
     m_onDropItem(nullptr),
     m_hasAttacked(false),
     m_attackEndDelayTimer(0),
-    m_acidBulletSpawnOffset({ 0.0f, 100.0f, 0.0f })
+    m_acidBulletSpawnOffset({ 0.0f, 100.0f, 0.0f }),
+	m_backAnimCount(0)
 {
     m_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
     assert(m_modelHandle != -1);
@@ -60,9 +61,9 @@ EnemyAcid::EnemyAcid() :
 
     // AnimationManagerにアニメーション名を登録
     m_animationManager.SetAnimName(AnimState::Attack, kAttackAnimName);
-    m_animationManager.SetAnimName(AnimState::Run, kRunAnimName);
+    m_animationManager.SetAnimName(AnimState::Walk, kWalkAnimName);
     m_animationManager.SetAnimName(AnimState::Dead, kDeadAnimName);
-    m_animationManager.SetAnimName(AnimState::Walk, kBackAnimName); // BackアニメーションをWalkとして登録
+    m_animationManager.SetAnimName(AnimState::Back, kBackAnimName);
 }
 
 EnemyAcid::~EnemyAcid()
@@ -81,41 +82,43 @@ void EnemyAcid::Init()
     // ここで一度「絶対にRunでない値」にリセット
     m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため
 
-    ChangeAnimation(AnimState::Run, true); // 初期化時に走行アニメーションを開始
+    // 初期化時に歩行アニメーションを開始
+    ChangeAnimation(AnimState::Walk, true); 
 }
 
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
 {
+    // 後退アニメーションは同じ状態でも必ず再生し直す
     if (m_currentAnimState == newAnimState)
     {
-        // 攻撃アニメーションは同じ状態でもリセットして再生し直す
-        if (newAnimState == AnimState::Attack)
+        if (newAnimState == AnimState::Attack || newAnimState == AnimState::Back)
         {
-            m_animationManager.PlayAnimation(m_modelHandle, kAttackAnimName, loop);
+            m_animationManager.PlayAnimation(m_modelHandle,
+                (newAnimState == AnimState::Attack) ? kAttackAnimName : kBackAnimName,
+                loop);
             m_animTime = 0.0f;
-            m_hasAttacked = false;
+            if (newAnimState == AnimState::Attack) m_hasAttacked = false;
+            if (newAnimState == AnimState::Back) m_backAnimCount = 0;
         }
         return;
     }
 
     const char* animName = nullptr;
-
     switch (newAnimState)
     {
-    case AnimState::Run:
-        animName = kRunAnimName;
+    case AnimState::Walk:   
+        animName = kWalkAnimName; 
         break;
-    case AnimState::Attack:
-        animName = kAttackAnimName;
+    case AnimState::Attack: 
+        animName = kAttackAnimName; 
         break;
-    case AnimState::Dead:
-        animName = kDeadAnimName;
+    case AnimState::Dead:   
+        animName = kDeadAnimName; 
         break;
-    case AnimState::Walk: // 後退アニメーション用
-        animName = kBackAnimName;
+    case AnimState::Back:   
+        animName = kBackAnimName; 
         break;
     default:
-        // 未定義のアニメーション状態
         return;
     }
 
@@ -123,8 +126,8 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
     {
         m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
         m_animTime = 0.0f;
-        if (newAnimState == AnimState::Attack)
-            m_hasAttacked = false;
+        if (newAnimState == AnimState::Attack) m_hasAttacked = false;
+        if (newAnimState == AnimState::Back) m_backAnimCount = 0; 
     }
 
     m_currentAnimState = newAnimState;
@@ -148,7 +151,8 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     // 発射位置
     int mouthIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
     VECTOR spawnPos = m_pos;
-    if (mouthIndex != -1) {
+    if (mouthIndex != -1) 
+    {
         spawnPos = MV1GetFramePosition(m_modelHandle, mouthIndex);
     }
     spawnPos = VAdd(spawnPos, m_acidBulletSpawnOffset);
@@ -160,7 +164,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     VECTOR toTarget = VSub(target, spawnPos);
     VECTOR flat = toTarget; flat.y = 0.0f;
     float dist = VSize(flat);
-    float speed = 10.0f; // kAcidBulletSpeed
+    float speed = 10.0f; 
     float t = dist / speed;
     float gravity = 0.4f;
     float vy = (toTarget.y + 0.5f * gravity * t * t) / t;
@@ -218,7 +222,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
 
     // コライダーの更新
-    // 変更: モデルのHipsフレームの位置を取得してボディコライダーの基点とする
     int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
     VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
 
@@ -227,17 +230,22 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
     m_pBodyCollider->SetRadius(::kBodyColliderRadius);
 
+	// ヘッドの位置を取得
     int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+
+	// 頭の位置を取得してヘッドコライダーの中心を設定
     VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0, 0, 0);
     VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
     m_pHeadCollider->SetCenter(headCenter);
     m_pHeadCollider->SetRadius(kHeadRadius);
+
+	// 攻撃範囲のコライダーを更新
     VECTOR attackRangeCenter = m_pos;
     attackRangeCenter.y += (::kBodyColliderHeight * 0.5f);
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
     m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
-    // プレイヤーとの物理衝突判定（押し戻し）
+    // プレイヤーとの物理衝突判定
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
     if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
     {
@@ -267,13 +275,16 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     // プレイヤーが攻撃範囲内か
     bool inAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
 
-    // 攻撃アニメーション中・硬直中は移動や状態遷移を行わない（攻撃を中断しない）
-    if (m_currentAnimState == AnimState::Attack || m_attackEndDelayTimer > 0) {
+    // 攻撃アニメーション中・硬直中は移動や状態遷移を行わない
+    if (m_currentAnimState == AnimState::Attack || m_attackEndDelayTimer > 0) 
+    {
         // 攻撃アニメーション・硬直中は移動・状態遷移を行わない
-    } else if (inAttackRange) {
+    }
+    else if (inAttackRange) 
+    {
         if (disToPlayer < kOptimalAttackDistanceMin)
         {
-            // 最小攻撃距離未満なら後退（Backアニメーション）
+            // 最小攻撃距離未満なら後退
             if (m_currentAnimState != AnimState::Back)
             {
                 ChangeAnimation(AnimState::Back, true);
@@ -292,11 +303,13 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 m_attackCooldown = m_attackCooldownMax;
             }
         }
-    } else {
-        // 攻撃範囲外なら追跡（Runアニメーション）
-        if (m_currentAnimState != AnimState::Run)
+    }
+    else 
+    {
+        // 攻撃範囲外なら追跡
+        if (m_currentAnimState != AnimState::Walk)
         {
-            ChangeAnimation(AnimState::Run, true);
+            ChangeAnimation(AnimState::Walk, true);
         }
         VECTOR dirTowards = VNorm(VSub(playerPos, m_pos));
         m_pos.x += dirTowards.x * kChaseSpeed;
@@ -328,6 +341,32 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     if (m_attackEndDelayTimer == 0)
     {
         m_animTime += 1.0f;
+        float animTotal = 0.0f;
+        if (m_currentAnimState == AnimState::Back)
+        {
+            animTotal = m_animationManager.GetAnimationTotalTime(m_modelHandle, kBackAnimName);
+        }
+        else if (m_currentAnimState == AnimState::Walk)
+        {
+            animTotal = m_animationManager.GetAnimationTotalTime(m_modelHandle, kWalkAnimName);
+        }
+        else if (m_currentAnimState == AnimState::Attack)
+        {
+            animTotal = m_animationManager.GetAnimationTotalTime(m_modelHandle, kAttackAnimName);
+        }
+        else if (m_currentAnimState == AnimState::Dead)
+        {
+            animTotal = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
+        }
+
+        // Back・Walkアニメーションはループ
+        if ((m_currentAnimState == AnimState::Back || m_currentAnimState == AnimState::Walk) && animTotal > 0.0f)
+        {
+            if (m_animTime >= animTotal)
+            {
+                m_animTime = 0.0f;
+            }
+        }
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
     }
 
@@ -362,20 +401,24 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         ball.Update();
         std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
         SphereCollider acidCol(ball.pos, ball.radius);
-        if (acidCol.Intersects(playerCol.get())) {
+        if (acidCol.Intersects(playerCol.get()))
+        {
             const_cast<Player&>(player).TakeDamage(ball.damage);
             ball.active = false;
         }
     }
 
     // 攻撃クールダウンと攻撃後硬直の減算処理を追加
-    if (m_attackCooldown > 0) {
+    if (m_attackCooldown > 0)
+    {
         m_attackCooldown--;
     }
-    if (m_attackEndDelayTimer > 0) {
+    if (m_attackEndDelayTimer > 0) 
+    {
         m_attackEndDelayTimer--;
-        if (m_attackEndDelayTimer == 0 && m_currentAnimState != AnimState::Run) {
-            ChangeAnimation(AnimState::Run, true);
+        if (m_attackEndDelayTimer == 0 && m_currentAnimState != AnimState::Walk)
+        {
+            ChangeAnimation(AnimState::Walk, true);
         }
     }
 }
@@ -408,10 +451,11 @@ void EnemyAcid::Draw()
 
     MV1DrawModel(m_modelHandle);
 
+
+#ifdef _DEBUG
     // デバッグ用の当たり判定描画
     DrawCollisionDebug();
 
-#ifdef _DEBUG
     // 体力デバッグ表示
     DebugUtil::DrawFormat(20, 100, 0x008800, "Acid HP: %.1f", m_hp);
 #endif

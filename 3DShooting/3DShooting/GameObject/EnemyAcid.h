@@ -101,5 +101,5 @@ private:
     bool m_hasAttacked; // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
     int m_attackEndDelayTimer; // 攻撃後の硬直時間
     int m_lastTackleId; // 最後にタックルを受けたID
-
+    int m_backAnimCount;
 };
