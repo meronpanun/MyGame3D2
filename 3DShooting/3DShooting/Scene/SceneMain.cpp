@@ -192,9 +192,9 @@ SceneBase* SceneMain::Update()
         return new SceneGameOver();
     }
 
-//	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
-//	m_pEnemyRunner->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+	m_pEnemyRunner->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
 	m_pEnemyAcid->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
@@ -225,9 +225,9 @@ void SceneMain::Draw()
         item->Draw();
     }
 
-//  m_pEnemyNormal->Draw();
+    m_pEnemyNormal->Draw();
 
-//	m_pEnemyRunner->Draw();
+	m_pEnemyRunner->Draw();
 
 	m_pEnemyAcid->Draw();
 

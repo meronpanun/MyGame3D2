@@ -82,4 +82,6 @@ private:
 
 	bool m_isTackleHit;  // 1フレームで複数回ダメージを受けないためのフラグ
 	bool m_hasAttackHit; // 攻撃がヒットしたかどうか
+
+	float m_chaseSpeed = 4.0f; // 追跡速度（デフォルト値）
 };

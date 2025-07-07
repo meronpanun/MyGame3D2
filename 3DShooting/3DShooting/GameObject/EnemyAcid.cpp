@@ -8,17 +8,17 @@
 #include <algorithm>     
 #include <cmath> 
 #include <functional>    
+#include "../TransformDataLoader.h"
 
 namespace
 {
+    constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
+
     // アニメーション関連
     constexpr char kAttackAnimName[] = "Armature|ATK";  // 攻撃アニメーション
     constexpr char kWalkAnimName[]   = "Armature|WALK"; // 歩くアニメーション
     constexpr char kBackAnimName[]   = "Armature|BACK"; // 後退アニメーション
     constexpr char kDeadAnimName[]   = "Armature|DEAD"; // 死亡アニメーション
-
-    constexpr VECTOR kInitialPosition = { -50.0f, -30.0f, 300.0f }; // 初期位置
-    constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
 
     // コライダーのサイズを定義
     constexpr float kBodyColliderRadius = 40.0f;  // 体のコライダー半径
@@ -37,7 +37,6 @@ namespace
     constexpr int   kAttackEndDelay    = 30;     // 攻撃後の硬直時間
 
     // 追跡関連(遠距離型なので、近づきすぎたら離れる)
-    constexpr float kChaseSpeed = 2.0f;   // 追跡速度
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 }
 
@@ -74,16 +73,28 @@ EnemyAcid::~EnemyAcid()
 void EnemyAcid::Init()
 {
     m_hp = kInitialHP;
-    m_pos = kInitialPosition;
     m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
     m_attackCooldown = 0; // 最初は攻撃可能にしておく
 
-    // ここで一度「絶対にRunでない値」にリセット
-    m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため
+    // CSVからAcidEnemyのTransform情報を取得
+    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+    for (const auto& data : dataList)
+    {
+        if (data.name == "AcidEnemy") 
+        {
+            m_pos = data.pos;
+            MV1SetRotationXYZ(m_modelHandle, data.rot);
+            MV1SetScale(m_modelHandle, data.scale);
+            m_attackPower = data.attack;
+            m_hp = data.hp;
+            m_chaseSpeed = data.speed;
+            break;
+        }
+    }
 
-    // 初期化時に歩行アニメーションを開始
-    ChangeAnimation(AnimState::Walk, true); 
+    m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため
+    ChangeAnimation(AnimState::Walk, true); // 初期化時に歩行アニメーションを開始
 }
 
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
@@ -290,8 +301,8 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 ChangeAnimation(AnimState::Back, true);
             }
             VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
-            m_pos.x += dirAway.x * kChaseSpeed;
-            m_pos.z += dirAway.z * kChaseSpeed;
+            m_pos.x += dirAway.x * m_chaseSpeed;
+            m_pos.z += dirAway.z * m_chaseSpeed;
         }
         else
         {
@@ -312,8 +323,8 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             ChangeAnimation(AnimState::Walk, true);
         }
         VECTOR dirTowards = VNorm(VSub(playerPos, m_pos));
-        m_pos.x += dirTowards.x * kChaseSpeed;
-        m_pos.z += dirTowards.z * kChaseSpeed;
+        m_pos.x += dirTowards.x * m_chaseSpeed;
+        m_pos.z += dirTowards.z * m_chaseSpeed;
     }
 
     // 攻撃アニメーション中の酸弾発射タイミング

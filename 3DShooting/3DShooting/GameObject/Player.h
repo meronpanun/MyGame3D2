@@ -176,6 +176,15 @@ private:
 	float m_health;        // 現在の体力
 	float m_jumpVelocity;  // ジャンプの速度
 	float m_maxHealth;     // 最大体力
+	float m_attackPower = 20.0f; // 攻撃力
+	float m_moveSpeed = 3.0f;    // 移動速度（追跡速度）
+	float m_runSpeed = 6.0f;      // 走る速度
+	float m_bulletPower = 10.0f; // 弾の威力
+	VECTOR m_scale = {1.0f, 1.0f, 1.0f}; // スケール
+	float m_tackleCooldownMax = 120.0f; // タックルクールタイム
+	float m_tackleSpeed = 25.0f;        // タックル時の速度
+	float m_tackleDamage = 10.0f;       // タックルダメージ
+	int m_initialAmmo = 7000;     // 初期弾薬数
 
 	int   m_modelHandle;    // プレイヤーモデルのハンドル
 	int   m_swordHandle;    // 剣のハンドル

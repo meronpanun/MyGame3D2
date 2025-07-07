@@ -12,15 +12,13 @@
 #include "SceneGameOver.h"
 #include "DebugUtil.h"	
 #include "CapsuleCollider.h"
+#include "TransformDataLoader.h"
 #include <cmath>
 #include <cassert>
 #include <algorithm>
 
 namespace
 {
-	constexpr float kMoveSpeed = 3.0f; // 移動速度
-	constexpr float kRunSpeed  = 6.0f; // 走る速度
-	 
 	// モデルのオフセット
 	constexpr float kModelOffsetX = 80.0f; 
 	constexpr float kModelOffsetY = 20.0f;
@@ -34,9 +32,6 @@ namespace
 	constexpr float kGunOffsetY = 55.0f;
 	constexpr float kGunOffsetZ = 10.0f;
 
-	// 初期弾薬数
-	constexpr int kInitialAmmo = 7000;
-
 	// UI関連
 	constexpr int kMarginX    = 20; 
 	constexpr int kMarginY    = 20;
@@ -49,15 +44,9 @@ namespace
 
 	// タックル関連
 	constexpr int   kTackleDuration    = 20;     // タックル持続フレーム数
-	constexpr int   kTackleCooldownMax = 120;    // クールタイム最大値
-	constexpr float kTackleSpeed	   = 25.0f;  // タックル時の速度
 	constexpr float kTackleHitRange    = 250.0f; // タックルの前方有効距離
 	constexpr float kTackleHitRadius   = 250.0f; // タックルの横幅(半径)
 	constexpr float kTackleHitHeight   = 100.0f; // タックルの高さ
-	constexpr float kTackleDamage      = 10.0f;  // タックルダメージ
-
-	// 体力
-	constexpr float kMaxHealth = 100.0f; // 最大体力
 
 	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
@@ -77,7 +66,6 @@ Player::Player() :
 	m_animBlendRate(0.0f),
 	m_isMoving(false),
 	m_isWasRunning(false),
-	m_ammo(kInitialAmmo),
 	m_pos(VGet(0, 0, 0)),
 	m_health(100.0f),
 	m_isJumping(false),
@@ -87,8 +75,7 @@ Player::Player() :
 	m_tackleDir(VGet(0, 0, 0)),
 	m_isTackling(false),
 	m_tackleCooldown(0),
-	m_tackleId(0),
-	m_maxHealth(kMaxHealth)
+	m_tackleId(0)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/M4A1.mv1");
@@ -115,11 +102,32 @@ Player::~Player()
 
 void Player::Init()
 {
+	// CSVからPlayerのTransform情報を取得
+	auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+	for (const auto& data : dataList) 
+	{
+		if (data.name == "Player") 
+		{
+			m_pos = data.pos;
+			m_modelPos = data.pos;
+			m_scale = data.scale;
+			m_attackPower = data.attack;
+			m_health = data.hp;
+			m_maxHealth = data.hp;
+			m_moveSpeed = data.speed;
+			m_tackleCooldownMax = data.tackleCooldown;
+			m_tackleSpeed = data.tackleSpeed;
+			m_tackleDamage = data.tackleDamage;
+			m_runSpeed = data.runSpeed;
+			m_initialAmmo = data.initialAmmo;
+			m_bulletPower = data.bulletPower;
+			MV1SetScale(m_modelHandle, data.scale);
+			MV1SetRotationXYZ(m_modelHandle, data.rot);
+			break;
+		}
+	}
 	m_pCamera->Init(); // カメラの初期化
 	//m_pEffect->Init(); // エフェクトの初期化
-
-	// モデルの大きさ
-	MV1SetScale(m_modelHandle, VGet(10.0f, 10.0f, 5.0f));
 
 	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
 }
@@ -194,7 +202,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_isTackling = true;
 		m_tackleFrame = kTackleDuration;
-		m_tackleCooldown = kTackleCooldownMax; // クールタイム開始
+		m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
 		m_tackleId++; // タックルごとにIDを更新
 
 		// カメラの向きで3D正規化ベクトルを作成
@@ -223,7 +231,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		// タックル中の処理
 		if (m_isTackling)
 		{
-			m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, kTackleSpeed));
+			m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
 
 			// 地面より下に行かないように制限
 			if (m_modelPos.y < kGroundY)
@@ -297,7 +305,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
 		bool isRunning = wantRun; // 走っているかどうかのフラグ
 
-		float moveSpeed = isRunning ? kRunSpeed : kMoveSpeed; // 移動速度の設定
+		float moveSpeed = isRunning ? m_runSpeed : m_moveSpeed; // 移動速度の設定
 		bool isMoving = false; // 移動中かどうかのフラグ
 
 		// 移動方向の初期化
@@ -462,7 +470,7 @@ void Player::Draw()
 	DrawBox(tackleGaugeX - 1, tackleGaugeY - 1, tackleGaugeX + tackleGaugeWidth + 1, tackleGaugeY + tackleGaugeHeight + 1, 0x5050C8, false);
 
 	// ゲージ本体
-	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(kTackleCooldownMax));
+	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
 	int tackleFilledWidth = static_cast<int>(tackleGaugeWidth * tackleRate);
 	DrawBox(tackleGaugeX, tackleGaugeY, tackleGaugeX + tackleFilledWidth, tackleGaugeY + tackleGaugeHeight, 0x50B4ff, true);
 
@@ -797,7 +805,7 @@ Player::TackleInfo Player::GetTackleInfo() const
 		info.capA = capA;
 		info.capB = capB;
 		info.radius = kTackleHitRadius;
-		info.damage = kTackleDamage;
+		info.damage = m_tackleDamage;
 	}
 	return info;
 }

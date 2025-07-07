@@ -1,48 +1,48 @@
-#include "TransformDataLoader.h"
+ï»¿#include "TransformDataLoader.h"
 #include <fstream>
 #include <sstream>
 
 namespace
 {
-	// –¼‘OAˆÊ’uA‰ñ“]AƒXƒP[ƒ‹‚Ì—v‘f”
-	constexpr int kElementNum = 10; 
+	// åå‰ã€ä½ç½®ã€å›è»¢ã€ã‚¹ã‚±ãƒ¼ãƒ«ã€æ”»æ’ƒåŠ›ã€ä½“åŠ›ã€è¿½è·¡é€Ÿåº¦ã€ã‚¿ãƒƒã‚¯ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã€ã‚¿ãƒƒã‚¯ãƒ«é€Ÿåº¦ã€ã‚¿ãƒƒã‚¯ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸ã®è¦ç´ æ•°
+	constexpr int kElementNum = 16; 
 
-	// Unity‚ÌÀ•WŒn‚©‚çDxLib‚ÌÀ•WŒn‚Ö‚Ì•ÏŠ·ŒW”
+	// Unityã®åº§æ¨™ç³»ã‹ã‚‰DxLibã®åº§æ¨™ç³»ã¸ã®å¤‰æ›ä¿‚æ•°
 	constexpr float kUnityToDxPos = 100.0f; 
 }
 
 std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fileName)
 {
-	// ƒf[ƒ^‚ğŠi”[‚·‚é”z—ñ
+	// ãƒ‡ãƒ¼ã‚¿ã‚’æ ¼ç´ã™ã‚‹é…åˆ—
 	std::vector<ObjectTransformData> Object;
 
-	// ƒtƒ@ƒCƒ‹‚ğŠJ‚­
+	// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã
 	std::ifstream file(fileName);
 
-	// ‚à‚µ‚àƒtƒ@ƒCƒ‹‚ğŠJ‚¯‚È‚©‚Á‚½‚ç
+	// ã‚‚ã—ã‚‚ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã‘ãªã‹ã£ãŸã‚‰
 	if (!file.is_open())
 	{
-		return Object; // ‹ó‚Ì”z—ñ‚ğ•Ô‚·
+		return Object; // ç©ºã®é…åˆ—ã‚’è¿”ã™
 	}
 
-	// 1s‚¸‚Â“Ç‚İ‚Ş
+	// 1è¡Œãšã¤èª­ã¿è¾¼ã‚€
 	std::string line;
-	//Å‰‚Ìƒwƒbƒ_[‚ÍƒXƒLƒbƒv
+	//æœ€åˆã®ãƒ˜ãƒƒãƒ€ãƒ¼ã¯ã‚¹ã‚­ãƒƒãƒ—
 	bool isHeader = true;
 
-	// CSVƒtƒ@ƒCƒ‹‚ÌŠes‚ğ“Ç‚İ‚Ş
+	// CSVãƒ•ã‚¡ã‚¤ãƒ«ã®å„è¡Œã‚’èª­ã¿è¾¼ã‚€
 	while (std::getline(file, line))
 	{
 		if (isHeader)
 		{
-			isHeader = false; // ƒwƒbƒ_[s‚ğƒXƒLƒbƒv
+			isHeader = false; // ãƒ˜ãƒƒãƒ€ãƒ¼è¡Œã‚’ã‚¹ã‚­ãƒƒãƒ—
 			continue;
 		}
 
 		std::stringstream ss(line);
 		ObjectTransformData data;
 
-		// ƒJƒ“ƒ}‚Å•ªŠ„‚µ‚ÄŠe—v‘f‚ğ“Ç‚İ‚Ş
+		// ã‚«ãƒ³ãƒã§åˆ†å‰²ã—ã¦å„è¦ç´ ã‚’èª­ã¿è¾¼ã‚€
 		std::string element;
 		int index = 0;
 
@@ -50,45 +50,87 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 		{
 			switch (index)
 			{
-			case 0: // –¼‘O
+			case 0: // åå‰
 				data.name = element;
 				break;
-			case 1: // ˆÊ’uX
+			case 1: // ä½ç½®X
 				data.pos.x = std::stof(element) * kUnityToDxPos;
 				break;
-			case 2: // ˆÊ’uY
+			case 2: // ä½ç½®Y
 				data.pos.y = std::stof(element) * kUnityToDxPos;
 				break;
-			case 3: // ˆÊ’uZ
+			case 3: // ä½ç½®Z
 				data.pos.z = std::stof(element) * kUnityToDxPos;
 				break;
-			case 4: // ‰ñ“]X
+			case 4: // å›è»¢X
 				data.rot.x = std::stof(element);
 				break;
-			case 5: // ‰ñ“]Y
+			case 5: // å›è»¢Y
 				data.rot.y = std::stof(element);
 				break;
-			case 6: // ‰ñ“]Z
+			case 6: // å›è»¢Z
 				data.rot.z = std::stof(element);
 				break;
-			case 7: // ƒXƒP[ƒ‹X
+			case 7: // ã‚¹ã‚±ãƒ¼ãƒ«X
 				data.scale.x = std::stof(element);
 				break;
-			case 8: // ƒXƒP[ƒ‹Y
+			case 8: // ã‚¹ã‚±ãƒ¼ãƒ«Y
 				data.scale.y = std::stof(element);
 				break;
-			case 9: // ƒXƒP[ƒ‹Z
+			case 9: // ã‚¹ã‚±ãƒ¼ãƒ«Z
 				data.scale.z = std::stof(element);
 				break;
+			case 10: // æ”»æ’ƒåŠ›
+				data.attack = std::stof(element);
+				break;
+			case 11: // ä½“åŠ›
+				data.hp = std::stof(element);
+				break;
+			case 12: // speedï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ï¼‰ã¾ãŸã¯chaseSpeedï¼ˆæ•µç”¨ï¼‰
+				if (data.name == "Player") 
+				{
+					data.speed = std::stof(element);
+				}
+				else 
+				{
+					data.chaseSpeed = std::stof(element);
+				}
+				break;
+			case 13: // ã‚¿ãƒƒã‚¯ãƒ«ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ 
+				data.tackleCooldown = element.empty() ? 0.0f : std::stof(element);
+				break;
+			case 14: // ã‚¿ãƒƒã‚¯ãƒ«é€Ÿåº¦
+				data.tackleSpeed = element.empty() ? 0.0f : std::stof(element);
+				break;
+			case 15: // ã‚¿ãƒƒã‚¯ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸
+				data.tackleDamage = element.empty() ? 0.0f : std::stof(element);
+				break;
+			case 16: // RunSpeedï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ï¼‰
+				if (data.name == "Player") 
+				{
+					data.runSpeed = std::stof(element);
+				}
+				break;
+			case 17: // InitialAmmoï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ï¼‰
+				if (data.name == "Player") 
+				{
+					data.initialAmmo = std::stoi(element);
+				}
+				break;
+			case 18: // BulletPowerï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ç”¨ï¼‰
+				if (data.name == "Player") {
+					data.bulletPower = std::stof(element);
+				}
+				break;
 			default:
-				break; // •s–¾‚È—v‘f‚Í–³‹
+				break; // ä¸æ˜ãªè¦ç´ ã¯ç„¡è¦–
 			}
 			index++;
 		}
-		Object.push_back(data); // “Ç‚İ‚ñ‚¾ƒf[ƒ^‚ğ”z—ñ‚É’Ç‰Á
+		Object.push_back(data); // èª­ã¿è¾¼ã‚“ã ãƒ‡ãƒ¼ã‚¿ã‚’é…åˆ—ã«è¿½åŠ 
 	}
 
-	// ƒtƒ@ƒCƒ‹‚ğ•Â‚¶‚é
+	// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‰ã˜ã‚‹
 	file.close();
-	return Object; // “Ç‚İ‚ñ‚¾ƒf[ƒ^‚Ì”z—ñ‚ğ•Ô‚·
+	return Object; // èª­ã¿è¾¼ã‚“ã ãƒ‡ãƒ¼ã‚¿ã®é…åˆ—ã‚’è¿”ã™
 }

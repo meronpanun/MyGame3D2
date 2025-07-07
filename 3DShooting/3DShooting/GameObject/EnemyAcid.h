@@ -102,4 +102,5 @@ private:
     int m_attackEndDelayTimer; // 攻撃後の硬直時間
     int m_lastTackleId; // 最後にタックルを受けたID
     int m_backAnimCount;
+    float m_chaseSpeed = 2.0f; // 追跡速度（デフォルト値）
 };
