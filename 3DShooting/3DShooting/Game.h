@@ -18,6 +18,9 @@ public:
 
     static constexpr bool kDefaultWindowMode = true;
 
+	// ウインドウのタイトル
+	static constexpr const char* kWindowTitle = "3DShootingGame";
+
     // グローバルなカメラ感度
     static float g_cameraSensitivity;
 };
