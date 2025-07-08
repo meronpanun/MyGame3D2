@@ -25,9 +25,9 @@ namespace
 
     // スタートボタンの範囲を定数化
     constexpr int kStartButtonX1 = static_cast<int>((Game::kScreenWidth - kPanelWidth) * 0.5f); // スタートボタンの左上X座標
-    constexpr int kStartButtonY1 = 10;                                        // スタートボタンの左上Y座標
-    constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth;              // スタートボタンの右下X座標
-    constexpr int kStartButtonY2 = 300;                                       // スタートボタンの右下Y座標
+    constexpr int kStartButtonY1 = 10;                           // スタートボタンの左上Y座標
+    constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth; // スタートボタンの右下X座標
+    constexpr int kStartButtonY2 = 300;                          // スタートボタンの右下Y座標
 }
 
 SceneTitle::SceneTitle(bool skipLogo):
@@ -173,7 +173,7 @@ void SceneTitle::Draw()
     if (m_isFadeOut || m_skipLogo)
     {
         // スタートボタンの描画
-        unsigned int buttonColor = 0xadadad; // 通常時のボタン色（白）
+        unsigned int buttonColor = 0xadadad; // 通常時のボタン色
         if (mousePos.x >= kStartButtonX1 && mousePos.x <= kStartButtonX2 &&
             mousePos.y >= kStartButtonY1 && mousePos.y <= kStartButtonY2)
         {
@@ -188,7 +188,7 @@ void SceneTitle::Draw()
         int textWidth = GetDrawStringWidth(buttonText, static_cast<int>(strlen(buttonText)));
         int textX = static_cast<int>((kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f);
         int textY = static_cast<int>((kStartButtonY1 + kStartButtonY2) * 0.5f) - 10; // テキストの高さを調整
-        DrawString(textX, textY, buttonText, GetColor(0, 0, 0)); // テキスト色は黒
+        DrawString(textX, textY, buttonText, 0x000000); // テキスト色は黒
     }
 }
 

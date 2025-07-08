@@ -19,8 +19,6 @@
 
 namespace
 {
-    constexpr int	kInitialCountdownValue = 3;	  
-    constexpr int	kMainCountdownValue    = 10;  
     constexpr int	kButtonWidth           = 200; 
     constexpr int	kButtonHeight          = 50;   
     constexpr int	kFontSize              = 48;   
@@ -54,20 +52,19 @@ SceneMain::SceneMain() :
     m_skyDomeHandle(-1),
     m_dotHandle(-1)
 {
-
+	// モデルの読み込み
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
     assert(m_skyDomeHandle != -1);
 
-
+	// レティクル画像の読み込み
     m_dotHandle = LoadGraph("data/image/Dot.png");
 	assert(m_dotHandle != -1);
 }
 
 SceneMain::~SceneMain()
 {
-
+	// モデルやリソースの解放
     MV1DeleteModel(m_skyDomeHandle);    
-
 	DeleteGraph(m_dotHandle);
 }
 

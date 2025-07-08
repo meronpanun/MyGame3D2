@@ -14,6 +14,9 @@ class EnemyBase;
 class FirstAidKitItem;
 class ItemBase;
 
+/// <summary>
+/// メインシーンクラス
+/// </summary>
 class SceneMain : public SceneBase
 {
 public:

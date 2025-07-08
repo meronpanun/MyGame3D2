@@ -14,6 +14,9 @@ public:
 	SceneBase* Update() override;
 	void Draw() override;
 
+	/// <summary>
+	/// タイトルロゴをスキップする
+	/// </summary>
 	void SkipLogo();
 
 private:
@@ -22,6 +25,7 @@ private:
 	int m_fadeFrame;	   // フェードのフレームカウント
 	int m_sceneFadeAlpha;  // シーンフェードのアルファ値
 	int m_waitFrame;	   // 待機フレーム
+
 	bool m_isFadeComplete; // フェード完了フラグ
 	bool m_isFadeOut;	   // フェードアウトフラグ
 	bool m_skipLogo;       // ロゴスキップ用のフラグ

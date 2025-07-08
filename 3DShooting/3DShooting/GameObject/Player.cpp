@@ -111,7 +111,6 @@ void Player::Init()
 			m_pos = data.pos;
 			m_modelPos = data.pos;
 			m_scale = data.scale;
-			m_attackPower = data.attack;
 			m_health = data.hp;
 			m_maxHealth = data.hp;
 			m_moveSpeed = data.speed;
@@ -130,6 +129,9 @@ void Player::Init()
 	//m_pEffect->Init(); // エフェクトの初期化
 
 	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
+
+	// CSVの初期弾薬数を反映
+	m_ammo = m_initialAmmo;
 }
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
@@ -645,7 +647,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     VECTOR bulletDirection = VNorm(VSub(targetPoint, gunPos));
 
     // 弾丸を発射
-    bullets.emplace_back(gunPos, bulletDirection);
+    bullets.emplace_back(gunPos, bulletDirection, m_bulletPower);
     m_ammo--;
  //   m_pEffect->PlaySound(Effect::SoundType::Shot);
 //    m_pEffect->SpawnEffect(Effect::EffectType::MuzzleFlash, gunPos, bulletDirection); // エフェクトの向きも更新
