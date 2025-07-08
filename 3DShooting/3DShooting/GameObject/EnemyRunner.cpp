@@ -74,7 +74,7 @@ void EnemyRunner::Init()
 			MV1SetScale(m_modelHandle, data.scale);
 			m_attackPower = data.attack;
 			m_hp = data.hp;
-			m_chaseSpeed = data.speed;
+			m_chaseSpeed = data.chaseSpeed;
 			break;
 		}
 	}

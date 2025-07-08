@@ -5,7 +5,7 @@
 namespace
 {
 	// 名前、位置、回転、スケール、攻撃力、体力、追跡速度、タックルクールタイム、タックル速度、タックルダメージの要素数
-	constexpr int kElementNum = 16; 
+	constexpr int kElementNum = 22; 
 
 	// Unityの座標系からDxLibの座標系への変換係数
 	constexpr float kUnityToDxPos = 100.0f; 
@@ -48,78 +48,256 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 
 		while (std::getline(ss, element, ',') && index < kElementNum)
 		{
+			// 空のセルをチェック
+			if (element.empty())
+			{
+				index++;
+				continue;
+			}
+
 			switch (index)
 			{
 			case 0: // 名前
 				data.name = element;
 				break;
 			case 1: // 位置X
-				data.pos.x = std::stof(element) * kUnityToDxPos;
+				try 
+				{
+					data.pos.x = std::stof(element) * kUnityToDxPos;
+				}
+				catch (const std::exception&) 
+				{
+					data.pos.x = 0.0f;
+				}
 				break;
 			case 2: // 位置Y
-				data.pos.y = std::stof(element) * kUnityToDxPos;
+				try 
+				{
+					data.pos.y = std::stof(element) * kUnityToDxPos;
+				}
+				catch (const std::exception&) 
+				{
+					data.pos.y = 0.0f;
+				}
 				break;
 			case 3: // 位置Z
-				data.pos.z = std::stof(element) * kUnityToDxPos;
+				try 
+				{
+					data.pos.z = std::stof(element) * kUnityToDxPos;
+				}
+				catch (const std::exception&) 
+				{
+					data.pos.z = 0.0f;
+				}
 				break;
 			case 4: // 回転X
-				data.rot.x = std::stof(element);
+				try 
+				{
+					data.rot.x = std::stof(element);
+				}
+				catch (const std::exception&) 
+				{
+					data.rot.x = 0.0f;
+				}
 				break;
 			case 5: // 回転Y
-				data.rot.y = std::stof(element);
+				try 
+				{
+					data.rot.y = std::stof(element);
+				} 
+				catch (const std::exception&) 
+				{
+					data.rot.y = 0.0f;
+				}
 				break;
 			case 6: // 回転Z
-				data.rot.z = std::stof(element);
+				try
+				{
+					data.rot.z = std::stof(element);
+				}
+				catch (const std::exception&) 
+				{
+					data.rot.z = 0.0f;
+				}
 				break;
 			case 7: // スケールX
-				data.scale.x = std::stof(element);
+				try 
+				{
+					data.scale.x = std::stof(element);
+				}
+				catch (const std::exception&) 
+				{
+					data.scale.x = 1.0f;
+				}
 				break;
 			case 8: // スケールY
-				data.scale.y = std::stof(element);
+				try 
+				{
+					data.scale.y = std::stof(element);
+				}
+				catch (const std::exception&) 
+				{
+					data.scale.y = 1.0f;
+				}
 				break;
 			case 9: // スケールZ
-				data.scale.z = std::stof(element);
+				try
+				{
+					data.scale.z = std::stof(element);
+				}
+				catch (const std::exception&) 
+				{
+					data.scale.z = 1.0f;
+				}
 				break;
 			case 10: // 攻撃力
-				data.attack = std::stof(element);
+				try 
+				{
+					data.attack = std::stof(element);
+				}
+				catch (const std::exception&) 
+				{
+					data.attack = 0.0f;
+				}
 				break;
 			case 11: // 体力
-				data.hp = std::stof(element);
-				break;
-			case 12: // speed（プレイヤー用）またはchaseSpeed（敵用）
-				if (data.name == "Player") 
+				try 
 				{
-					data.speed = std::stof(element);
-				}
-				else 
+					data.hp = std::stof(element);
+				} 
+				catch (const std::exception&) 
 				{
-					data.chaseSpeed = std::stof(element);
+					data.hp = 0.0f;
 				}
 				break;
-			case 13: // タックルクールタイム
-				data.tackleCooldown = element.empty() ? 0.0f : std::stof(element);
-				break;
-			case 14: // タックル速度
-				data.tackleSpeed = element.empty() ? 0.0f : std::stof(element);
-				break;
-			case 15: // タックルダメージ
-				data.tackleDamage = element.empty() ? 0.0f : std::stof(element);
-				break;
-			case 16: // RunSpeed（プレイヤー用）
-				if (data.name == "Player") 
+			case 12: // NormalChaseSpeed
+				try 
 				{
-					data.runSpeed = std::stof(element);
+					if (!element.empty()) 
+					{
+						data.chaseSpeed = std::stof(element);
+					}
+				}
+				catch (const std::exception&) 
+				{
+					data.chaseSpeed = 0.0f;
 				}
 				break;
-			case 17: // InitialAmmo（プレイヤー用）
-				if (data.name == "Player") 
+			case 13: // RunnerChaseSpeed
+				try
 				{
-					data.initialAmmo = std::stoi(element);
+					if (!element.empty()) 
+					{
+						data.chaseSpeed = std::stof(element);
+					}
+				}
+				catch (const std::exception&) 
+				{
+					// 既に設定されている場合は変更しない
 				}
 				break;
-			case 18: // BulletPower（プレイヤー用）
-				if (data.name == "Player") {
-					data.bulletPower = std::stof(element);
+			case 14: // AcidChaseSpeed
+				try 
+				{
+					if (!element.empty()) 
+					{
+						data.chaseSpeed = std::stof(element);
+					}
+				} 
+				catch (const std::exception&) 
+				{
+					// 既に設定されている場合は変更しない
+				}
+				break;
+			case 15: // Speed(プレイヤー用)
+				try
+				{
+					if (!element.empty()) 
+					{
+						data.speed = std::stof(element);
+					}
+				}
+				catch (const std::exception&) 
+				{
+					data.speed = 0.0f;
+				}
+				break;
+			case 16: // RunSpeed(プレイヤー用)
+				try 
+				{
+					if (!element.empty()) 
+					{
+						data.runSpeed = std::stof(element);
+					}
+				} 
+				catch (const std::exception&) 
+				{
+					data.runSpeed = 0.0f;
+				}
+				break;
+			case 17: // InitialAmmo(プレイヤー用)
+				try
+				{
+					if (!element.empty()) 
+					{
+						data.initialAmmo = std::stoi(element);
+					}
+				} 
+				catch (const std::exception&) 
+				{
+					data.initialAmmo = 0;
+				}
+				break;
+			case 18: // BulletPower(プレイヤー用)
+				try
+				{
+					if (!element.empty()) 
+					{
+						data.bulletPower = std::stof(element);
+					}
+				} 
+				catch (const std::exception&) 
+				{
+					data.bulletPower = 0.0f;
+				}
+				break;
+			case 19: // TackleCooldown
+				try 
+				{
+					if (!element.empty()) 
+					{
+						data.tackleCooldown = std::stof(element);
+					}
+				}
+				catch (const std::exception&) 
+				{
+					data.tackleCooldown = 0.0f;
+				}
+				break;
+			case 20: // TackleSpeed
+				try 
+				{
+					if (!element.empty()) 
+					{
+						data.tackleSpeed = std::stof(element);
+					}
+				} 
+				catch (const std::exception&) 
+				{
+					data.tackleSpeed = 0.0f;
+				}
+				break;
+			case 21: // TackleDamage
+				try 
+				{
+					if (!element.empty()) 
+					{
+						data.tackleDamage = std::stof(element);
+					}
+				} 
+				catch (const std::exception&) 
+				{
+					data.tackleDamage = 0.0f;
 				}
 				break;
 			default:

@@ -9,28 +9,34 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include "../TransformDataLoader.h"
 
 namespace
 {
-    constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
-
     // アニメーション関連
     constexpr char kAttackAnimName[] = "ATK";  // 攻撃アニメーション
     constexpr char kWalkAnimName[]   = "WALK"; // 歩行アニメーション
     constexpr char kDeadAnimName[]   = "DEAD"; // 死亡アニメーション
+
+    constexpr VECTOR kInitialPosition        = { 0.0f, -30.0f, 300.0f };
+    constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 
     // カプセルコライダーのサイズを定義
     constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
     constexpr float kBodyColliderHeight = 135.0f; // 体のコライダー高さ
     constexpr float kHeadRadius         = 18.0f;  // 頭のコライダー半径
 
+	// 体力
+    constexpr float kInitialHP = 200.0f; // 初期HP
+
     // 攻撃関連
     constexpr int   kAttackCooldownMax = 45;     // 攻撃クールダウン時間
+    constexpr float kAttackPower       = 20.0f;  // 攻撃力
     constexpr float kAttackHitRadius   = 45.0f;  // 攻撃の当たり判定半径
     constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
 
     // 追跡関連
+    constexpr float kChaseSpeed        = 2.0f; // 追跡速度
+    constexpr float kChaseStopDistance = 50;   // 追跡停止距離
     constexpr int kAttackEndDelay      = 55;
 }
 
@@ -62,25 +68,14 @@ EnemyNormal::~EnemyNormal()
 
 void EnemyNormal::Init()
 {
+    m_hp = kInitialHP;
+    m_pos = kInitialPosition;
+    m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
 
-    // CSVからNormalEnemyのTransform情報を取得
-    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-    for (const auto& data : dataList) 
-    {
-        if (data.name == "NormalEnemy") 
-        {
-            m_pos = data.pos;
-            MV1SetRotationXYZ(m_modelHandle, data.rot);
-            MV1SetScale(m_modelHandle, data.scale);
-            m_attackPower = data.attack;
-            m_hp = data.hp;
-            m_chaseSpeed = data.speed;
-            break;
-        }
-    }
-
+    // ここで一度「絶対にWalkでない値」にリセット
     m_currentAnimState = AnimState::Dead;
+
     ChangeAnimation(AnimState::Walk, true); // 初期化時に歩行アニメーションを開始
 }
 
@@ -194,11 +189,11 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
 
         // 移動処理
-        if (disToPlayer > m_chaseSpeed)
+        if (disToPlayer > kChaseStopDistance)
         {
             VECTOR dir = VNorm(toPlayer);
-            float moveDist = disToPlayer - m_chaseSpeed;
-            float step = (std::min)(moveDist, m_chaseSpeed); // 1フレームで進みすぎない
+            float moveDist = disToPlayer - kChaseStopDistance;
+            float step = (std::min)(moveDist, kChaseSpeed); // 1フレームで進みすぎない
             m_pos.x += dir.x * step;
             m_pos.z += dir.z * step;
         }
@@ -406,6 +401,7 @@ void EnemyNormal::Draw()
     default:
         break;
     }
+
 
     if (*hitMsg)
     {
