@@ -1,39 +1,11 @@
-﻿  AnimationManager.cpp
-  FirstAidKitItem.cpp
-  EnemyAcid.cpp
-  EnemyBase.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(24,21): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
-  EnemyBoss.cpp
-  EnemyNormal.cpp
-  EnemyRunner.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'GameObject/EnemyRunner.cpp' をコンパイルしています)
-  
-  Game.cpp
-  main.cpp
-  Player.cpp
+﻿  Player.cpp
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
   (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
   
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(207,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
-  SceneMain.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(240,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(240,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-  SceneManager.cpp
-  SceneTitle.cpp
-  Stage.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'Stage.cpp' をコンパイルしています)
-  
-  StageObject.cpp
-  TransformDataLoader.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'TransformDataLoader.cpp' をコンパイルしています)
-  
-  Vec3.cpp
   コード生成しています。
-  118 of 1786 functions ( 6.6%) were compiled, the rest were copied from previous compilation.
-    90 functions were new in current compilation
-    200 functions had inline decision re-evaluated but remain unchanged
+  2 of 1786 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Release\3DShooting.exe

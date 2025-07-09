@@ -28,7 +28,7 @@ namespace
 	constexpr float kAnimBlendRate = 1.0f; 
 
 	// 銃のオフセット
-	constexpr float kGunOffsetX = -55.0f;
+	constexpr float kGunOffsetX = -35.0f;
 	constexpr float kGunOffsetY = 55.0f;
 	constexpr float kGunOffsetZ = 10.0f;
 
@@ -78,7 +78,7 @@ Player::Player() :
 	m_tackleId(0)
 {
 	// プレイヤーモデルの読み込み
-	m_modelHandle = MV1LoadModel("data/model/M4A1.mv1");
+	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
 	assert(m_modelHandle != -1);
 
 	// 剣の読み込み
