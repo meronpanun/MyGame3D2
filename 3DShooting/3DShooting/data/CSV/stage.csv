@@ -1,2 +1,5 @@
-Name,ModelFile,PosX,PosY,PosZ,RotY,ScaleX,ScaleY,ScaleZ
-Terrain,terrain.x,-0.80,-0.11,-0.13,0.00,1.00,1.00,1.00
+Name,PosX,PosY,PosZ,RotX,RotY,RotZ,ScaleX,ScaleY,ScaleZ
+Crossroads_1_lines_2_walk,0,-0.5,0,0,0,0,100,100,100
+Crossroads_1_lines_circ,0,-0.5,4.99,0,0,0,100,100,100
+Road_1_line,0,-0.5,7.49,0,0,0,100,100,100
+Road_1_line_turn,0,-0.5,-4.99,0,0,0,100,100,100

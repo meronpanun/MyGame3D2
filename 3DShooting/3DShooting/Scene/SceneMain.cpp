@@ -14,6 +14,7 @@
 #include "DebugUtil.h"
 #include "Camera.h"
 #include "FirstAidKitItem.h"
+#include "Stage.h"
 #include <cassert>
 #include <algorithm>
 
@@ -81,6 +82,9 @@ void SceneMain::Init()
 
 	m_pEnemyAcid = std::make_shared<EnemyAcid>();
 	m_pEnemyAcid->Init();
+
+	m_pStage = std::make_shared<Stage>();
+	m_pStage->Init();
 
     if (m_pPlayer->GetCamera())
     {
@@ -214,6 +218,8 @@ void SceneMain::Draw()
 {
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
+
+	m_pStage->Draw();
 
 	MV1DrawModel(m_skyDomeHandle); 
 

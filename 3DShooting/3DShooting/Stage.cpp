@@ -5,20 +5,28 @@
 void Stage::Init()
 {
 	TransformDataLoader loader;
-	auto objectDataList = loader.LoadDataCSV("Data/CSV/StageTransformData.csv");
+	auto objectDataList = loader.LoadDataCSV("Data/CSV/stage.csv");
 
 	for (const auto& data : objectDataList)
 	{
 		std::string modelPath;
 
 		// オブジェクト名に応じてモデルファイルを決める
-		if (data.name == "Mountain")
+		if (data.name == "Road_1_line_turn")
 		{
-			modelPath = "Data/Model/Stage/Mountain/Mountain.mv1";
+			modelPath = "Data/Model/Road_1_line_turn.mv1";
 		}
-		else if (data.name == "Meadow")
+		else if (data.name == "Road_1_line")
 		{
-			modelPath = "Data/Model/Stage/Meadow/Meadow.mv1";
+			modelPath = "Data/Model/Road_1_line.mv1";
+		}
+		else if (data.name == "Crossroads_1_lines_2_walk")
+		{
+			modelPath = "Data/Model/Crossroads_1_lines_2_walk.mv1";
+		}
+		else if (data.name == "Crossroads_1_lines_circ")
+		{
+			modelPath = "Data/Model/Crossroads_1_lines_circ.mv1";
 		}
 		else
 		{
@@ -28,7 +36,7 @@ void Stage::Init()
 		StageObject obj;
 		Vec3 pos = { data.pos.x, data.pos.y, data.pos.z };
 		Vec3 rot = { data.rot.x, data.rot.y, data.rot.z };
-		Vec3 scale = { data.scale.x, data.scale.y * 0.5f, data.scale.z };
+		Vec3 scale = { data.scale.x, data.scale.y, data.scale.z };
 		obj.Init(modelPath, pos, rot, scale);
 		m_objects.emplace_back(obj);
 	}

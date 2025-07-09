@@ -1,5 +1,4 @@
 #pragma once
-
 #include "StageObject.h"
 #include <vector>
 #include <memory>

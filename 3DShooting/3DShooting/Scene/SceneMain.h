@@ -13,6 +13,7 @@ class EnemyAcid;
 class EnemyBase;
 class FirstAidKitItem;
 class ItemBase;
+class Stage;
 
 /// <summary>
 /// メインシーンクラス
@@ -42,6 +43,7 @@ private:
 	std::shared_ptr<EnemyNormal> m_pEnemyNormal;
 	std::shared_ptr<EnemyRunner> m_pEnemyRunner;
 	std::shared_ptr<EnemyAcid> m_pEnemyAcid;
+	std::shared_ptr<Stage> m_pStage;
 	std::vector<EnemyBase*> m_enemyList;
 	std::vector<std::shared_ptr<ItemBase>> m_items;
 

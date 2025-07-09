@@ -418,7 +418,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 void Player::Draw()
 {
-	DrawField(); // フィールドの描画
+	//DrawField(); // フィールドの描画
 
 	// プレイヤーモデルの描画
 	MV1DrawModel(m_modelHandle); 

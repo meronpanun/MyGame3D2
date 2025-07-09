@@ -25,6 +25,8 @@ C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneO
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\SceneResult.obj
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneTitle.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\SceneTitle.obj
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\SphereCollider.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\SphereCollider.obj
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Stage.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\Stage.obj
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\StageObject.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\StageObject.obj
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\TransformDataLoader.obj
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Vec2.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\Vec2.obj
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Vec3.cpp;C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\x64\Release\Vec3.obj
