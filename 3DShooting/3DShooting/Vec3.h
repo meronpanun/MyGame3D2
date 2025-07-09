@@ -1,6 +1,5 @@
 ﻿#pragma once
-
-#pragma once
+#include "DxLib.h"
 #include <cmath>
 
 /// <summary>
@@ -117,6 +116,18 @@ public:
 			return *this; // 長さが0の場合はそのまま返す
 		}
 		return (*this) / len; // 自身の成分を長さで割って正規化
+	}
+
+    // DxライブラリのVECTORにキャストする
+	VECTOR ToDxVECTOR()
+	{
+		VECTOR dxVec;
+
+		dxVec.x = x;
+		dxVec.y = y;
+		dxVec.z = z;
+
+		return dxVec;
 	}
 };
 
