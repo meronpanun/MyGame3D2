@@ -12,22 +12,26 @@ void Stage::Init()
 		std::string modelPath;
 
 		
-		if (data.name == "Road_bend_2")
+		if (data.name == "UNIConcrete")
 		{
-			modelPath = "Data/Model/Road_bend_2.mv1";
+			modelPath = "Data/Model/UNIConcrete.mv1";
 		}
 		else if (data.name == "Road_floor")
 		{
 			modelPath = "Data/Model/Road_floor.mv1";
 		}
-		else if (data.name == "Road_tile_2")
+		else if (data.name == "Hangar_v3")
 		{
-			modelPath = "Data/Model/Road_tile_2.mv1";
+			modelPath = "Data/Model/Hangar_v3.mv1";
+		}	
+		else if (data.name == "Hangar")
+		{
+			modelPath = "Data/Model/Hangar.mv1";
+		}	
+		else if (data.name == "container")
+		{
+			modelPath = "Data/Model/container.mv1";
 		}
-		//else if (data.name == "Crossroads_1_lines_circ")
-		//{
-		//	modelPath = "Data/Model/Crossroads_1_lines_circ.mv1";
-		//}
 		else
 		{
 			continue;

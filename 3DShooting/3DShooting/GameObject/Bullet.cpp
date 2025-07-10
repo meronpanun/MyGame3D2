@@ -8,7 +8,7 @@ namespace
 	constexpr float kBulletSpeed = 50.0f;
 
 	// プレイヤーからの画面外判定距離
-	constexpr float kPlayerBoundaryDistance = 1000.0f;
+	constexpr float kPlayerBoundaryDistance = 2000.0f;
 }
 
 Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :

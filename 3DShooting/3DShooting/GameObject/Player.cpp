@@ -29,7 +29,7 @@ namespace
 
 	// 銃のオフセット
 	constexpr float kGunOffsetX = -50.0f;
-	constexpr float kGunOffsetY = 0;
+	constexpr float kGunOffsetY = 30;
 	constexpr float kGunOffsetZ = 0;
 
 	// UI関連
