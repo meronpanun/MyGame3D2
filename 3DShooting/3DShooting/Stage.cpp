@@ -20,6 +20,7 @@ void Stage::Init()
 		{
 			modelPath = "Data/Model/Road_floor.mv1";
 		}
+
 		else if (data.name == "Hangar_v3")
 		{
 			modelPath = "Data/Model/Hangar_v3.mv1";
