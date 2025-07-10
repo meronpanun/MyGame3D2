@@ -39,7 +39,7 @@ namespace
 	constexpr float kSkyDomePosY = 200.0f; 
 
    
-	constexpr float kSkyDomeScale = 10.0f; 
+	constexpr float kSkyDomeScale = 100.0f; 
 
     constexpr float kDropInitialHeight = 140.0f; // アイテムドロップ時の初期上昇量
 }

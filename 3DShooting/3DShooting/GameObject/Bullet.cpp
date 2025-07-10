@@ -7,8 +7,8 @@ namespace
 	// 弾の速度
 	constexpr float kBulletSpeed = 50.0f;
 
-	// 画面外に出たら非アクティブにする範囲
-	constexpr int kScreenBoundary = 1000;
+	// プレイヤーからの画面外判定距離
+	constexpr float kPlayerBoundaryDistance = 1000.0f;
 }
 
 Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
@@ -29,17 +29,19 @@ void Bullet::Init()
 {
 }
 
-void Bullet::Update()
+void Bullet::Update(const VECTOR& playerPos)
 {
 	if (!m_isActive) return;
 
 	m_prevPos = m_pos; // 現在の位置を前フレームの位置として保存
 	m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // 新しい位置を計算
 
-	// 画面外に出たら非アクティブにする
-	if (m_pos.x < -kScreenBoundary || m_pos.x > kScreenBoundary ||
-		m_pos.y < -kScreenBoundary || m_pos.y > kScreenBoundary ||
-		m_pos.z < -kScreenBoundary || m_pos.z > kScreenBoundary)
+	// プレイヤーからの距離を計算
+	VECTOR toPlayer = VSub(m_pos, playerPos);
+	float distanceToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
+
+	// プレイヤーから一定距離以上離れたら非アクティブにする
+	if (distanceToPlayer > kPlayerBoundaryDistance)
 	{
 		m_isActive = false;
 	}
@@ -56,11 +58,11 @@ void Bullet::Draw() const
 #endif
 }
 
-void Bullet::UpdateBullets(std::vector<Bullet>& bullets)
+void Bullet::UpdateBullets(std::vector<Bullet>& bullets, const VECTOR& playerPos)
 {
 	for (auto& bullet : bullets)
 	{
-		bullet.Update();
+		bullet.Update(playerPos);
 	}
 
 	// 非アクティブな弾を削除

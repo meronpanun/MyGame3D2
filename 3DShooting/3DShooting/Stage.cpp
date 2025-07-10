@@ -11,23 +11,23 @@ void Stage::Init()
 	{
 		std::string modelPath;
 
-		// オブジェクト名に応じてモデルファイルを決める
-		if (data.name == "Road_1_line_turn")
+		
+		if (data.name == "Road_bend_2")
 		{
-			modelPath = "Data/Model/Road_1_line_turn.mv1";
+			modelPath = "Data/Model/Road_bend_2.mv1";
 		}
-		else if (data.name == "Road_1_line")
+		else if (data.name == "Road_floor")
 		{
-			modelPath = "Data/Model/Road_1_line.mv1";
+			modelPath = "Data/Model/Road_floor.mv1";
 		}
-		else if (data.name == "Crossroads_1_lines_2_walk")
+		else if (data.name == "Road_tile_2")
 		{
-			modelPath = "Data/Model/Crossroads_1_lines_2_walk.mv1";
+			modelPath = "Data/Model/Road_tile_2.mv1";
 		}
-		else if (data.name == "Crossroads_1_lines_circ")
-		{
-			modelPath = "Data/Model/Crossroads_1_lines_circ.mv1";
-		}
+		//else if (data.name == "Crossroads_1_lines_circ")
+		//{
+		//	modelPath = "Data/Model/Crossroads_1_lines_circ.mv1";
+		//}
 		else
 		{
 			continue;

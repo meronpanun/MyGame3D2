@@ -27,11 +27,6 @@ public:
 	std::shared_ptr<Camera> GetCamera() const { return m_pCamera; }
 
 	/// <summary>
-	/// フィールドを描画する
-	/// </summary>
-	void DrawField();
-
-	/// <summary>
 	/// プレイヤーがダメージを受ける
 	/// </summary>
 	/// <param name="damage">受けるダメージ量</param>

@@ -12,7 +12,7 @@ public:
     virtual ~Bullet();
 
     void Init();
-    void Update();
+    void Update(const VECTOR& playerPos);
     void Draw() const;
 
     // 弾の現在の位置を取得
@@ -30,7 +30,8 @@ public:
     /// 弾の更新
     /// </summary>
     /// <param name="bullets">弾の配列</param>
-    static void UpdateBullets(std::vector<Bullet>& bullets);
+    /// <param name="playerPos">プレイヤーの位置</param>
+    static void UpdateBullets(std::vector<Bullet>& bullets, const VECTOR& playerPos);
 
     /// <summary>
     /// 弾の描画

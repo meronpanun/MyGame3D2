@@ -28,9 +28,9 @@ namespace
 	constexpr float kAnimBlendRate = 1.0f; 
 
 	// 銃のオフセット
-	constexpr float kGunOffsetX = -35.0f;
-	constexpr float kGunOffsetY = 55.0f;
-	constexpr float kGunOffsetZ = 10.0f;
+	constexpr float kGunOffsetX = -50.0f;
+	constexpr float kGunOffsetY = 0;
+	constexpr float kGunOffsetZ = 0;
 
 	// UI関連
 	constexpr int kMarginX    = 20; 
@@ -301,7 +301,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	
 		// 弾の更新
-		Bullet::UpdateBullets(m_bullets);
+		Bullet::UpdateBullets(m_bullets, m_modelPos);
 
 		// 走るキー入力
 		const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
@@ -418,8 +418,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 void Player::Draw()
 {
-	//DrawField(); // フィールドの描画
-
 	// プレイヤーモデルの描画
 	MV1DrawModel(m_modelHandle); 
 
@@ -537,7 +535,6 @@ void Player::Draw()
 		m_pDebugCamera->SetCameraToDxLib();
 
 		// ここでフィールド・プレイヤーモデル・当たり判定を描画 
-		DrawField(); // フィールド描画
 		MV1DrawModel(m_modelHandle); // プレイヤーモデル描画
 
 		// プレイヤーカプセル当たり判定のデバッグ表示
@@ -567,37 +564,6 @@ void Player::Draw()
 #endif
 }
 
-// フィールドの描画
-void Player::DrawField()
-{
-	SetUseLighting(false);
-
-	const int gridSize = 100;
-	const int fieldSize = 800;
-
-	for (int z = static_cast<int>(-fieldSize * 0.5f); z < static_cast<int>(fieldSize * 0.5f); z += gridSize)
-	{
-		for (int x = static_cast<int>(-fieldSize * 0.5f); x < static_cast<int>(fieldSize * 0.5f); x += gridSize)
-		{
-			VECTOR cubeCenter = VGet(x + gridSize * 0.5f, 0, z + gridSize * 0.5f);
-
-			VECTOR cubeSize = VGet(gridSize, 10, gridSize);
-
-			unsigned int color = ((x / gridSize + z / gridSize) % 2 == 0) ? 0x505050 : 0x646464;
-
-			DrawCube3D(
-				VGet(cubeCenter.x - cubeSize.x * 0.5f, cubeCenter.y - 80, cubeCenter.z - cubeSize.z * 0.5f),
-				VGet(cubeCenter.x + cubeSize.x * 0.5f, cubeCenter.y - 80 + cubeSize.y, cubeCenter.z + cubeSize.z * 0.5f),
-				color,
-				color,
-				true
-			);
-		}
-	}
-
-	SetUseLighting(true);
-}
-
 // ダメージを受ける処理
 void Player::TakeDamage(float damage)
 {
@@ -624,40 +590,28 @@ bool Player::HasShot()
 
 void Player::Shoot(std::vector<Bullet>& bullets)
 {
-    //// クールダウン中なら発射しない
-    //if (m_shotCooldownTimer > 0)
-    //{
-    //    return;
-    //}
-
-    //// 弾薬がないなら発射しない
-    //if (m_ammoCount <= 0)
-    //{
-    //    return;
-    //}
-
-    // カメラの位置とカメラが向いている方向の遠い目標点を取得
+    // 画面中央の座標を取得
+    float screenCenterX, screenCenterY;
+    GetCameraScreenCenter(&screenCenterX, &screenCenterY);
+    
+    // 画面中央の3D座標を計算（カメラから一定距離の点）
     VECTOR cameraPos = m_pCamera->GetPos();
-    VECTOR cameraLookDir = GetGunRot(); // カメラの現在の向き
-    float targetDistance = 1000.0f; // 十分に遠い距離
-    VECTOR targetPoint = VAdd(cameraPos, VScale(cameraLookDir, targetDistance));
-
-    // 銃の発射位置から目標点への方向ベクトルを計算
+    VECTOR cameraForward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
+    float rayDistance = 1000.0f; // 十分に遠い距離
+    VECTOR screenCenter3D = VAdd(cameraPos, VScale(cameraForward, rayDistance));
+    
+    // 銃の発射位置を取得
     VECTOR gunPos = GetGunPos();
-    VECTOR bulletDirection = VNorm(VSub(targetPoint, gunPos));
-
+    
+    // 銃の位置から画面中央の3D座標への方向ベクトルを計算
+    VECTOR bulletDirection = VNorm(VSub(screenCenter3D, gunPos));
+    
     // 弾丸を発射
     bullets.emplace_back(gunPos, bulletDirection, m_bulletPower);
     m_ammo--;
- //   m_pEffect->PlaySound(Effect::SoundType::Shot);
-//    m_pEffect->SpawnEffect(Effect::EffectType::MuzzleFlash, gunPos, bulletDirection); // エフェクトの向きも更新
-
-    // 発射クールダウンを設定
-    //m_shotCooldownTimer = kShotCooldown;
-
+    
     // アニメーション関連
     ChangeAnime("Shoot", false); // 射撃アニメーションを再生
-  //  SetAnimSpeed(kShotAnimSpeed);
 }
 
 // アニメーションのアタッチ
