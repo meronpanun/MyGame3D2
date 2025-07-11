@@ -248,6 +248,17 @@ void SceneMain::Draw()
     }
 }
 
+void SceneMain::DrawShadowCasters()
+{
+    // 影を落とすものだけ描画
+    m_pStage->Draw();
+    m_pEnemyNormal->Draw();
+    m_pEnemyRunner->Draw();
+    m_pEnemyAcid->Draw();
+    m_pPlayer->Draw();
+    // アイテムや空（スカイドーム）は影を落とさないので描画しない
+}
+
 void SceneMain::DrawPauseMenu()
 {
     Vec2 mousePos = Mouse::GetPos();
