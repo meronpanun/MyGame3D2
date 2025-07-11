@@ -104,12 +104,20 @@ public:
 	/// <param name="fov">目標FOV</param>
 	void SetTargetFOV(float fov);
 
+	/// <summary>
+	/// シェイク効果を適用
+	/// </summary>
+	/// <param name="intensity">シェイクの強度</param>
+	/// <param name="duration">シェイクの持続時間</param>
+	void Shake(float intensity, float duration);
+
 private:
 	VECTOR m_pos;			// カメラの位置
 	VECTOR m_target;		// カメラの注視点
 	VECTOR m_offset;		// カメラのオフセット
 	VECTOR m_defaultOffset; // デフォルトのオフセット
 	VECTOR m_playerPos;		// プレイヤーの位置
+	VECTOR m_shakeOffset;	// シェイクオフセット
 
 	float m_yaw;		  // ヨー角度
 	float m_pitch;		  // ピッチ角度
@@ -118,5 +126,8 @@ private:
 	float m_defaultFov;   // デフォルトのFOV
 	float m_targetFov;    // 目標FOV
 	float m_fovLerpSpeed; // FOVの補間速度
+	float m_shakeIntensity; // シェイクの強度
+
+	int m_shakeDuration; // シェイクの持続時間
 };
 

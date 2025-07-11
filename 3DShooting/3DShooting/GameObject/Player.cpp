@@ -609,6 +609,12 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     // 弾丸を発射
     bullets.emplace_back(gunPos, bulletDirection, m_bulletPower);
     m_ammo--;
+
+	// カメラシェイクを発生
+	if (m_pCamera)
+	{
+		m_pCamera->Shake(8.0f, 8); // 強さ・フレーム数
+	}
     
     // アニメーション関連
     ChangeAnime("Shoot", false); // 射撃アニメーションを再生

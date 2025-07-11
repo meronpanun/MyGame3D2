@@ -44,6 +44,19 @@ void Camera::Update()
     // マウスの移動量に基づいてカメラの回転角度を更新
     Mouse::UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
 
+    // シェイク処理
+    if (m_shakeDuration > 0)
+    {
+       // m_shakeOffset.x = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
+        m_shakeOffset.y = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
+        m_shakeOffset.z = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
+        m_shakeDuration--;
+    }
+    else
+    {
+        m_shakeOffset = VGet(0, 0, 0);
+    }
+
     // ピッチ角度に制限を設ける
     if (m_pitch > kPitchLimit)
     {
@@ -67,6 +80,7 @@ void Camera::Update()
 
     // カメラの位置を更新
     m_pos    = VAdd(m_playerPos, rotatedOffset);
+	m_pos = VAdd(m_pos, m_shakeOffset); // シェイクオフセットを適用
     m_target = VAdd(m_pos, forward);
 
     // FOVを滑らかに補間
@@ -113,4 +127,10 @@ void Camera::ResetOffset()
 void Camera::SetTargetFOV(float fov)
 {
 	m_targetFov = fov;
+}
+
+void Camera::Shake(float intensity, float duration)
+{
+    m_shakeIntensity = intensity;
+    m_shakeDuration = duration;
 }
