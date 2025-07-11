@@ -8,7 +8,7 @@ namespace
     constexpr float kCameraYPos = 90.0f;          // カメラのY軸
     constexpr float kCameraZPos = 25.0f;          // カメラのZ軸
     constexpr float kCameraNear = 0.1f;           // カメラの近くの距離
-    constexpr float kCameraFar  = 2000.0f;        // カメラの遠くの距離
+    constexpr float kCameraFar  = 15000.0f;       // カメラの遠くの距離
 }
 
 Camera::Camera() :

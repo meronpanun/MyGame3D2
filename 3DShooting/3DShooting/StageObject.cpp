@@ -1,6 +1,12 @@
 #include "StageObject.h"
 #include "DxLib.h"
 #include <cassert>
+#include <cmath> // For M_PI or equivalent constant
+
+// Define M_PI if not already defined (common in C++)
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 void StageObject::Init(const std::string& modelPath, Vec3 pos, Vec3 rot, Vec3 scale)
 {
@@ -8,17 +14,13 @@ void StageObject::Init(const std::string& modelPath, Vec3 pos, Vec3 rot, Vec3 sc
 	assert(m_modelHandle >= 0);
 
 	MV1SetPosition(m_modelHandle, pos.ToDxVECTOR());
-	MV1SetRotationXYZ(m_modelHandle, rot.ToDxVECTOR());
-	MV1SetScale(m_modelHandle, VGet(scale.x * 0.01f, scale.y * 0.01f, scale.z * 0.01f));
 
-	if (modelPath.find("Hangar_v3") != std::string::npos) {
-		int materialNum = MV1GetMaterialNum(m_modelHandle);
-		for (int i = 0; i < materialNum; ++i) {
-			MV1SetMaterialDifColor(m_modelHandle, i, GetColorF(0.5f, 0.5f, 0.5f, 1.0f)); // ディフューズ色を暗く
-			MV1SetMaterialAmbColor(m_modelHandle, i, GetColorF(0.5f, 0.5f, 0.5f, 1.0f)); // アンビエント色も強く
-			MV1SetMaterialSpcColor(m_modelHandle, i, GetColorF(0.0f, 0.0f, 0.0f, 1.0f)); // スペキュラを消す
-		}
-	}
+	float rotXRad = rot.x * (M_PI / 180.0f);
+	float rotYRad = rot.y * (M_PI / 180.0f);
+	float rotZRad = rot.z * (M_PI / 180.0f);
+
+	MV1SetRotationXYZ(m_modelHandle, VGet(rotXRad, rotYRad, rotZRad)); 
+	MV1SetScale(m_modelHandle, VGet(scale.x * 0.01f, scale.y * 0.01f, scale.z * 0.01f));
 }
 
 void StageObject::Draw()

@@ -128,6 +128,9 @@ void SceneMain::Init()
 		dropItem->SetPos(dropPos);
 		m_items.push_back(dropItem);
 	});
+
+	// 環境光の設定
+    SetLightAmbColor(GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
 }
 
 SceneBase* SceneMain::Update()
