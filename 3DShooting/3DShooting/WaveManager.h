@@ -1,7 +1,7 @@
 #pragma once
 
 /// <summary>
-///@ƒEƒF[ƒuŠÇ—ƒNƒ‰ƒX
+///ï¿½@ï¿½Eï¿½Fï¿½[ï¿½uï¿½Ç—ï¿½ï¿½Nï¿½ï¿½ï¿½X
 /// </summary>
 class WaveManager
 {
