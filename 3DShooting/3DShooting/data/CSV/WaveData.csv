@@ -1,7 +1,8 @@
 ﻿Wave,Type,Count,SpawnInterval,delay
-1,NormalZombie,3,0,0
-1,NormalZombie,4,0.5,5
-2,NormalZombie,2,0,0
-2,RunnerZombie,4,0.5,5
-3,NormalZombie,3,0,0
-3,RunnerZombie,3,0,0
+1,NormalEnemy,3,0,0
+1,NormalEnemy,4,0.5,5
+2,NormalEnemy,2,0,0
+2,RunnerEnemy,4,0.5,5
+3,NormalEnemy,3,0,0
+3,RunnerEnemy,3,0.5,0
+3,AcidEnemy,3,0.5,2

@@ -56,6 +56,9 @@ public:
 	/// <param name="cb">コールバック関数</param>
 	void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
+	void SetModelHandle(int handle);
+	int GetModelHandle() const { return m_modelHandle; }
+
 private:
 	void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数
 
@@ -82,6 +85,7 @@ private:
 
 	bool m_isTackleHit;  // 1フレームで複数回ダメージを受けないためのフラグ
 	bool m_hasAttackHit; // 攻撃がヒットしたかどうか
+	bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
 
 	float m_chaseSpeed = 4.0f; // 追跡速度（デフォルト値）
 };

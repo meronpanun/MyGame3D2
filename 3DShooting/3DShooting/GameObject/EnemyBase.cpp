@@ -73,6 +73,9 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
         m_hitDisplayTimer = kDefaultHitDisplayDuration;
 
         bullet.Deactivate(); // 敵に当たった弾は非アクティブにする
+
+        // ヒット時コールバック（ヒットマーク用）
+        if (m_onHitCallback) m_onHitCallback(determinedHitPart);
     }
 }
 

@@ -42,7 +42,8 @@ EnemyRunner::EnemyRunner() :
 	m_hasAttackHit(false),
 	m_onDropItem(nullptr),
 	m_currentAnimState(AnimState::Run),
-	m_attackEndDelayTimer(0)
+	m_attackEndDelayTimer(0),
+	m_isDeadAnimPlaying(false)
 {
 	m_modelHandle = MV1LoadModel("data/model/RunnerZombie.mv1");
 	assert(m_modelHandle != -1);
@@ -149,30 +150,46 @@ bool EnemyRunner::CanAttackPlayer(const Player& player)
 
 void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
-	if (m_hp <= 0.0f)
-	{
-		if (m_currentAnimState != AnimState::Dead)
-		{
-			ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションは非ループ
-		}
-		float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
-
-		if (m_animTime >= currentAnimTotalTime)
-		{
-			if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-			{
-				MV1DetachAnim(m_modelHandle, 0);
-				m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
-			}
-
-			if (m_onDropItem)
-			{
-				m_onDropItem(m_pos);
-				m_onDropItem = nullptr;
-			}
-			return;
-		}
-	}
+    if (m_hp <= 0.0f) 
+    {
+        if (!m_isDeadAnimPlaying) 
+        {
+            ChangeAnimation(AnimState::Dead, false);
+            m_isDeadAnimPlaying = true;
+            m_animTime = 0.0f; // アニメーション時間をリセット
+        }
+        
+        // 死亡アニメーション中もアニメーション時間を更新
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+        {
+            m_animTime += 1.0f;
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+        
+        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
+        if (m_animTime >= currentAnimTotalTime) 
+        {
+            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
+            {
+                MV1DetachAnim(m_modelHandle, 0);
+                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
+            }
+            // アイテムドロップと死亡コールバックを呼び出し
+            if (m_onDropItem) {
+                m_onDropItem(m_pos);
+                m_onDropItem = nullptr;
+            }
+            if (m_onDeathCallback) {
+                m_onDeathCallback(m_pos);
+                m_onDeathCallback = nullptr; // 一度だけ呼び出す
+            }
+            m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+            SetActive(false); // プールに戻す
+        } else {
+            m_isAlive = true; // 死亡アニメーション中はtrueのまま
+        }
+        return;
+    }
 
 	MV1SetPosition(m_modelHandle, m_pos);
 
@@ -495,4 +512,10 @@ float EnemyRunner::CalcDamage(float bulletDamage, HitPart part) const
 void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
 	m_onDropItem = cb;
+}
+
+void EnemyRunner::SetModelHandle(int handle)
+{
+    if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
+    m_modelHandle = MV1DuplicateModel(handle);
 }

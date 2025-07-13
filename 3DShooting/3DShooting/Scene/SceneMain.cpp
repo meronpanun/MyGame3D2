@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "FirstAidKitItem.h"
 #include "Stage.h"
+#include "WaveManager.h"
 #include <cassert>
 #include <algorithm>
 
@@ -51,15 +52,16 @@ SceneMain::SceneMain() :
     m_cameraSensitivity(Game::g_cameraSensitivity),
     m_pCamera(std::make_unique<Camera>()),
     m_skyDomeHandle(-1),
-    m_dotHandle(-1)
+    m_dotHandle(-1),
+    m_hitMarkTimer(0)
 {
-	// モデルの読み込み
+    // モデルの読み込み
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
     assert(m_skyDomeHandle != -1);
 
-	// レティクル画像の読み込み
+    // レティクル画像の読み込み
     m_dotHandle = LoadGraph("data/image/Dot.png");
-	assert(m_dotHandle != -1);
+    assert(m_dotHandle != -1);
 }
 
 SceneMain::~SceneMain()
@@ -71,6 +73,7 @@ SceneMain::~SceneMain()
 
 void SceneMain::Init()
 {
+    SetWaitVSyncFlag(TRUE); // VSync有効化で描画負荷を安定化
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
 
@@ -85,6 +88,13 @@ void SceneMain::Init()
 
 	m_pStage = std::make_shared<Stage>();
 	m_pStage->Init();
+
+	// WaveManagerを初期化
+	m_pWaveManager = std::make_shared<WaveManager>();
+	m_pWaveManager->Init();
+	
+	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
+	m_pWaveManager->SetRoadFloorBounds(VGet(-500.0f, 0.0f, -500.0f), VGet(500.0f, 0.0f, 500.0f));
 
     if (m_pPlayer->GetCamera())
     {
@@ -101,8 +111,9 @@ void SceneMain::Init()
 
     m_items.clear();
 
-    // 敵の死亡時にアイテムをドロップするコールバックを設定
-    m_pEnemyNormal->SetOnDropItemCallback([this](const VECTOR& pos) {
+    // WaveManagerの敵の死亡時にアイテムをドロップするコールバックを設定
+    m_pWaveManager->SetOnEnemyDeathCallback([this](const VECTOR& pos) {
+        printf("Creating item at position: (%.2f, %.2f, %.2f)\n", pos.x, pos.y, pos.z);
         auto dropItem = std::make_shared<FirstAidKitItem>();
         dropItem->Init();
         VECTOR dropPos = pos;
@@ -111,23 +122,8 @@ void SceneMain::Init()
         m_items.push_back(dropItem);
     });
 
-	m_pEnemyRunner->SetOnDropItemCallback([this](const VECTOR& pos) {
-		auto dropItem = std::make_shared<FirstAidKitItem>();
-		dropItem->Init();
-		VECTOR dropPos = pos;
-		dropPos.y += kDropInitialHeight;
-		dropItem->SetPos(dropPos);
-		m_items.push_back(dropItem);
-	});
-
-	m_pEnemyAcid->SetOnDropItemCallback([this](const VECTOR& pos) {
-		auto dropItem = std::make_shared<FirstAidKitItem>();
-		dropItem->Init();
-		VECTOR dropPos = pos;
-		dropPos.y += kDropInitialHeight;
-		dropItem->SetPos(dropPos);
-		m_items.push_back(dropItem);
-	});
+    // ヒットマーク用コールバックをWaveManagerに設定
+    m_pWaveManager->SetOnEnemyHitCallback([this](EnemyBase::HitPart part) { OnPlayerBulletHitEnemy(part); });
 
 	// 環境光の設定
     SetLightAmbColor(GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
@@ -189,20 +185,28 @@ SceneBase* SceneMain::Update()
         return this;
     }
 
-    m_pPlayer->Update(m_enemyList);
+    // WaveManagerの敵リストを取得してプレイヤーに渡す
+    std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
+    std::vector<EnemyBase*> enemyPtrList;
+    for (std::shared_ptr<EnemyBase>& enemy : enemyList)
+    {
+        enemyPtrList.push_back(enemy.get());
+    }
+    
+    m_pPlayer->Update(enemyPtrList);
 
     if (m_pPlayer->GetHealth() <= 0.0f)
     {
         return new SceneGameOver();
     }
 
-	m_pEnemyNormal->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+    // WaveManagerの更新（敵の生成と管理）
+    m_pWaveManager->Update();
 
-	m_pEnemyRunner->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+    // WaveManagerの敵を一括更新
+    m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
 
-	m_pEnemyAcid->Update(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
-
-    for (auto& item : m_items)
+    for (std::shared_ptr<ItemBase>& item : m_items)
     {
         item->Update(m_pPlayer.get());
     }
@@ -214,6 +218,8 @@ SceneBase* SceneMain::Update()
         m_items.end()
     );
 
+    if (m_hitMarkTimer > 0) --m_hitMarkTimer;
+
     return this;
 }
 
@@ -222,25 +228,42 @@ void SceneMain::Draw()
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
 
-	m_pStage->Draw();
+    m_pStage->Draw();
 
-	MV1DrawModel(m_skyDomeHandle); 
+    MV1DrawModel(m_skyDomeHandle); 
 
-    for (auto& item : m_items) 
+    for (std::shared_ptr<ItemBase>& item : m_items) 
     {
         item->Draw();
     }
 
-    m_pEnemyNormal->Draw();
-
-	m_pEnemyRunner->Draw();
-
-	m_pEnemyAcid->Draw();
+    // WaveManagerの敵を一括描画
+    m_pWaveManager->DrawEnemies();
 
     m_pPlayer->Draw();
 
     constexpr int kDotSize = 64;
-    DrawGraph(screenW * 0.5f - kDotSize * 0.5f, screenH * 0.5f - kDotSize * 0.5f, m_dotHandle, true);
+    int cx = screenW / 2;
+    int cy = screenH / 2;
+    DrawGraph(cx - kDotSize / 2, cy - kDotSize / 2, m_dotHandle, true);
+
+    // ヒットマーク描画
+    if (m_hitMarkTimer > 0) {
+        // 赤 or 黄色
+        unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? GetColor(255, 255, 64) : GetColor(255, 32, 32);
+        int len = 8; // ラインの長さ（端から中心までの距離）
+        int gap = 4; // 中央の空白幅
+        int thick = 2; // ラインの太さ
+        // 左上→右下
+        DrawLine(cx - len, cy - len, cx - gap, cy - gap, color, thick);
+        DrawLine(cx + gap, cy + gap, cx + len, cy + len, color, thick);
+        // 左下→右上
+        DrawLine(cx - len, cy + len, cx - gap, cy + gap, color, thick);
+        DrawLine(cx + gap, cy - gap, cx + len, cy - len, color, thick);
+    }
+
+    // デバッグ情報を表示
+    m_pWaveManager->DrawDebugInfo();
 
     if (m_isPaused)
     {
@@ -252,9 +275,7 @@ void SceneMain::DrawShadowCasters()
 {
     // 影を落とすものだけ描画
     m_pStage->Draw();
-    m_pEnemyNormal->Draw();
-    m_pEnemyRunner->Draw();
-    m_pEnemyAcid->Draw();
+    m_pWaveManager->Draw();
     m_pPlayer->Draw();
     // アイテムや空（スカイドーム）は影を落とさないので描画しない
 }
@@ -282,4 +303,10 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
     {
         m_pCamera->SetSensitivity(sensitivity);
     }
+}
+
+void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part)
+{
+    m_hitMarkTimer = kHitMarkDuration;
+    m_hitMarkType = part;
 }

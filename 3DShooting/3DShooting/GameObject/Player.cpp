@@ -538,21 +538,21 @@ void Player::Draw()
 		MV1DrawModel(m_modelHandle); // プレイヤーモデル描画
 
 		// プレイヤーカプセル当たり判定のデバッグ表示
-		auto playerCol = GetBodyCollider();
-		DebugUtil::DrawCapsule(
-			playerCol->GetSegmentA(),
-			playerCol->GetSegmentB(),
-			playerCol->GetRadius(),
-			16,
-			0xff00ff,
-			false
-		);
+		//auto playerCol = GetBodyCollider();
+		//DebugUtil::DrawCapsule(
+		//	playerCol->GetSegmentA(),
+		//	playerCol->GetSegmentB(),
+		//	playerCol->GetRadius(),
+		//	16,
+		//	0xff00ff,
+		//	false
+		//);
 
 		// メイン画面に戻す
 		SetDrawScreen(DX_SCREEN_BACK);
 
 		// サブ画面を右下に転送
-		DrawGraph(subX, subY, subScreen, false);
+		//DrawGraph(subX, subY, subScreen, false);
 
 		// サーフェス解放
 		DeleteGraph(subScreen);

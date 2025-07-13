@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "SceneBase.h"
+#include "EnemyBase.h"
 #include "DxLib.h"
 #include <memory>
 #include <chrono>
@@ -10,10 +11,11 @@ class Camera;
 class EnemyNormal;
 class EnemyRunner;
 class EnemyAcid;
-class EnemyBase;
+//class EnemyBase;
 class FirstAidKitItem;
 class ItemBase;
 class Stage;
+class WaveManager;
 
 /// <summary>
 /// メインシーンクラス
@@ -45,6 +47,7 @@ private:
 	std::shared_ptr<EnemyRunner> m_pEnemyRunner;
 	std::shared_ptr<EnemyAcid> m_pEnemyAcid;
 	std::shared_ptr<Stage> m_pStage;
+	std::shared_ptr<WaveManager> m_pWaveManager;
 	std::vector<EnemyBase*> m_enemyList;
 	std::vector<std::shared_ptr<ItemBase>> m_items;
 
@@ -57,5 +60,11 @@ private:
 	int   m_dotHandle;            
 
 	float m_cameraSensitivity;
+    int m_hitMarkTimer = 0;
+    static constexpr int kHitMarkDuration = 10;
+    EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
+public:
+    // プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
+    void OnPlayerBulletHitEnemy(EnemyBase::HitPart part);
 };
 

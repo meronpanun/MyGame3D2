@@ -2,6 +2,7 @@
 #include "DxLib.h"
 #include <memory>
 #include <vector>
+#include <functional>
 #include "Player.h"
 
 class Bullet;
@@ -23,6 +24,9 @@ public:
 	virtual void Init() abstract;
 	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player) abstract;
 	virtual void Draw() abstract;
+
+	virtual void SetModelHandle(int handle) {}
+	virtual int GetModelHandle() const { return -1; }
 
 	// 当たり判定の部位
 	enum class HitPart {
@@ -79,6 +83,12 @@ public:
 	// 位置取得
 	virtual VECTOR GetPos() const { return m_pos; }
 
+	// 位置設定
+	virtual void SetPos(const VECTOR& pos) { m_pos = pos; }
+
+	// 死亡コールバック設定
+	virtual void SetOnDeathCallback(std::function<void(const VECTOR&)> callback) { m_onDeathCallback = callback; }
+
 	/// <summary>
 	/// 派生クラスでどこに当たったか判定する仮想関数
 	/// </summary>
@@ -91,6 +101,14 @@ public:
 	/// タックルでダメージを受けたかどうかのフラグを取得
 	/// </summary>
 	virtual void ResetTackleHitFlag() abstract;
+
+	// アイテムドロップコールバック設定
+	virtual void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb) {}
+
+	void SetActive(bool active) { m_isActive = active; }
+	bool IsActive() const { return m_isActive; }
+
+	void SetOnHitCallback(std::function<void(HitPart)> cb) { m_onHitCallback = cb; }
 
 protected:
 	// ダメージ計算用
@@ -116,4 +134,8 @@ protected:
 	bool  m_isAlive;         // 生存状態フラグ
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか
 	bool  m_isAttacking;     // 攻撃中かどうか
+	bool  m_isActive = true; // デフォルトはアクティブ
+
+	std::function<void(const VECTOR&)> m_onDeathCallback; // 死亡コールバック
+	std::function<void(HitPart)> m_onHitCallback; // 部位情報付き
 };

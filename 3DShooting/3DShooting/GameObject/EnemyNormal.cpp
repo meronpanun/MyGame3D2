@@ -48,7 +48,8 @@ EnemyNormal::EnemyNormal() :
     m_hasAttackHit(false),
     m_onDropItem(nullptr),
     m_currentAnimState(AnimState::Walk),
-    m_attackEndDelayTimer(0)
+    m_attackEndDelayTimer(0),
+    m_isDeadAnimPlaying(false)
 {
     // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
@@ -135,36 +136,53 @@ bool EnemyNormal::CanAttackPlayer(const Player& player)
     return m_pAttackHitCollider->Intersects(playerBodyCollider.get());
 }
 
+void EnemyNormal::SetModelHandle(int handle)
+{
+    if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
+    m_modelHandle = MV1DuplicateModel(handle);
+}
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
-    if (m_hp <= 0.0f)
+    if (m_hp <= 0.0f) 
     {
-        // 死亡アニメーション
-        if (m_currentAnimState != AnimState::Dead)
+        if (!m_isDeadAnimPlaying) 
         {
-            ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションは非ループ
+            ChangeAnimation(AnimState::Dead, false);
+            m_isDeadAnimPlaying = true;
+            m_animTime = 0.0f; // アニメーション時間をリセット
         }
-        // m_currentAnimTotalTime を AnimationManager から取得
+        
+        // 死亡アニメーション中もアニメーション時間を更新
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+        {
+            m_animTime += 1.0f;
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+        
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
-
-        // 死亡アニメーションが終了したら
-        if (m_animTime >= currentAnimTotalTime)
+        if (m_animTime >= currentAnimTotalTime) 
         {
-            // アニメーションが完全に終了したらモデルを非表示にするためにデタッチ
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
             {
-                MV1DetachAnim(m_modelHandle, 0); // 死亡アニメーションが終了したらデタッチ
-                m_animationManager.ResetAttachedAnimHandle(m_modelHandle); // AnimationManagerの内部状態も更新
+                MV1DetachAnim(m_modelHandle, 0);
+                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
             }
-
-            if (m_onDropItem)
-            {
-                m_onDropItem(m_pos);    // アイテムドロップコールバックを呼び出す
-                m_onDropItem = nullptr; // アイテムドロップ後はコールバックを無効化
+            // アイテムドロップと死亡コールバックを呼び出し
+            if (m_onDropItem) {
+                m_onDropItem(m_pos);
+                m_onDropItem = nullptr;
             }
-            return; // 死亡アニメーション終了後は更新しない
+            if (m_onDeathCallback) {
+                m_onDeathCallback(m_pos);
+                m_onDeathCallback = nullptr; // 一度だけ呼び出す
+            }
+            m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+            SetActive(false); // プールに戻す
+        } else {
+            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
+        return;
     }
 
     MV1SetPosition(m_modelHandle, m_pos); // モデルの位置は常に反映する

@@ -57,14 +57,17 @@ public:
     /// <param name="cb">コールバック関数</param>
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
+    void SetModelHandle(int handle);
+    int GetModelHandle() const { return m_modelHandle; }
+
 private:
     // アニメーション切り替え関数
-    void ChangeAnimation(AnimState newAnimState, bool loop); 
+    void ChangeAnimation(AnimState newAnimState, bool loop);
 
-	// プレイヤーに攻撃可能かどうかを判定する
+    // プレイヤーに攻撃可能かどうかを判定する
     bool CanAttackPlayer(const Player& player);
 
-private:   
+private:
     VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
@@ -85,6 +88,7 @@ private:
 
     bool m_isTackleHit;  // 1フレームで複数回ダメージを受けないためのフラグ
     bool m_hasAttackHit; // 攻撃がヒットしたかどうか
+    bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
 
     float m_chaseSpeed = 2.0f; // 追跡速度（デフォルト値）
 };

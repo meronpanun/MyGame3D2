@@ -26,7 +26,7 @@ namespace
     constexpr float kHeadRadius = 18.0f;  // 頭のコライダー半径
 
     // 体力
-    constexpr float kInitialHP = 150.0f; // 初期HP
+    constexpr float kInitialHP = 150.0f; // 初期HP 
 
     // 攻撃関連(遠距離攻撃に特化)
     constexpr int   kAttackCooldownMax = 160;    // 攻撃クールダウン時間
@@ -180,29 +180,43 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
 
 void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
-    if (!m_isAlive) // 死亡時は死亡アニメーションとアイテムドロップのみ進行
+    if (m_hp <= 0.0f) 
     {
-        if (m_currentAnimState != AnimState::Dead)
+        if (!m_isDeadAnimPlaying) 
         {
             ChangeAnimation(AnimState::Dead, false);
+            m_isDeadAnimPlaying = true;
+            m_animTime = 0.0f; // アニメーション時間をリセット
         }
-        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
-        m_animTime += 1.0f; // 死亡中もアニメーション時間を進める
-        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
-        if (m_animTime >= currentAnimTotalTime)
+        
+        // 死亡アニメーション中もアニメーション時間を更新
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
         {
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+            m_animTime += 1.0f;
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+        
+        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
+        if (m_animTime >= currentAnimTotalTime) 
+        {
+            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
             {
                 MV1DetachAnim(m_modelHandle, 0);
                 m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
             }
-            if (m_onDropItem)
-            {
+            // アイテムドロップと死亡コールバックを呼び出し
+            if (m_onDropItem) {
                 m_onDropItem(m_pos);
                 m_onDropItem = nullptr;
             }
+            if (m_onDeathCallback) {
+                m_onDeathCallback(m_pos);
+                m_onDeathCallback = nullptr; // 一度だけ呼び出す
+            }
+            m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+        } else {
+            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
-        // 死亡中は以降の処理を一切行わない
         return;
     }
 
@@ -234,7 +248,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
 
 	// 頭の位置を取得してヘッドコライダーの中心を設定
-    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0, 0, 0);
+    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
     VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
     m_pHeadCollider->SetCenter(headCenter);
     m_pHeadCollider->SetRadius(kHeadRadius);
@@ -557,4 +571,10 @@ float EnemyAcid::CalcDamage(float bulletDamage, HitPart part) const
 void EnemyAcid::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
+}
+
+void EnemyAcid::SetModelHandle(int handle)
+{
+    if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
+    m_modelHandle = MV1DuplicateModel(handle);
 }

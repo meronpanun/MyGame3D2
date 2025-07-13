@@ -57,6 +57,9 @@ public:
     /// <param name="cb">コールバック関数</param>
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
+    void SetModelHandle(int handle);
+    int GetModelHandle() const { return m_modelHandle; }
+
 private:
 	struct AcidBall
 	{
@@ -102,5 +105,6 @@ private:
     int m_attackEndDelayTimer; // 攻撃後の硬直時間
     int m_lastTackleId; // 最後にタックルを受けたID
     int m_backAnimCount;
+    bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
     float m_chaseSpeed = 2.0f; // 追跡速度（デフォルト値）
 };
