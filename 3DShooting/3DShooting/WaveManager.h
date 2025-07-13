@@ -1,8 +1,4 @@
-#pragma once
-
-/// <summary>
-///�@�E�F�[�u�Ǘ��N���X
-/// </summary>
+﻿#pragma once
 class WaveManager
 {
 };

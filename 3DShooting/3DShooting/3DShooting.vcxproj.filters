@@ -225,7 +225,4 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="テキスト.txt" />
-  </ItemGroup>
 </Project>

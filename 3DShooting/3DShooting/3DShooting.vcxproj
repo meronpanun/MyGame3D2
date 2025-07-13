@@ -177,6 +177,7 @@
     <ClCompile Include="TransformDataLoader.cpp" />
     <ClCompile Include="Vec2.cpp" />
     <ClCompile Include="Vec3.cpp" />
+    <ClCompile Include="WaveManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimationManager.h" />
@@ -210,9 +211,7 @@
     <ClInclude Include="TransformDataLoader.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Vec3.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="テキスト.txt" />
+    <ClInclude Include="WaveManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
