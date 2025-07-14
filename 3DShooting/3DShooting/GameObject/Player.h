@@ -92,6 +92,7 @@ public:
 	float GetMaxHealth() const { return m_maxHealth; }
 
 	void AddHp(float value);
+	void AddAmmo(int value); // 弾薬回復用関数（上限なし）
 
 	// TODO:アニメーション処理は敵も行うので後でクラス化
 

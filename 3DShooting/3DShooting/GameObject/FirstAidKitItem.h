@@ -27,8 +27,11 @@ private:
 
 	SphereCollider m_collider;
 
+	int m_modelHandle; // モデルハンドル
+
 	float m_radius;
 	float m_velocityY; // 落下速度
+	float m_rotY;      // Y軸回転角度
 
 	bool m_isHit;
 	bool m_isUsed; // アイテムが使用されたかどうか

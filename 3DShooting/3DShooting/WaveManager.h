@@ -169,4 +169,6 @@ private:
 	VECTOR m_roadFloorMin;       // 最小位置
 	VECTOR m_roadFloorMax;       // 最大位置
 	bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
+
+    int m_waveImages[3]; // 1,2,3ウェーブ用画像ハンドル
 };

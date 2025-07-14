@@ -18,18 +18,25 @@ namespace
 }
 
 FirstAidKitItem::FirstAidKitItem():
+	m_modelHandle(-1),
 	m_radius(kInitialRadius),
 	m_pos(VGet(0.0f, 0.0f, 0.0f)),
 	m_collider(m_pos, m_radius),
 	m_isHit(false),
 	m_isUsed(false),
 	m_isDropping(true),
-	m_velocityY(0.0f) 
+	m_velocityY(0.0f),
+	m_rotY(0.0f)
 {
+	// モデルの読み込み
+	m_modelHandle = MV1LoadModel("data/model/FirstAidKit.mv1");
+	assert(m_modelHandle != -1);
 }
 
 FirstAidKitItem::~FirstAidKitItem()
 {
+	// モデルの解放
+	MV1DeleteModel(m_modelHandle);
 }
 
 void FirstAidKitItem::Init()
@@ -38,6 +45,9 @@ void FirstAidKitItem::Init()
 	m_velocityY = 0.0f;
 	m_collider.SetCenter(m_pos);
 	m_collider.SetRadius(m_radius);
+
+	// モデルのスケール調整
+	MV1SetScale(m_modelHandle, VGet(0.5f, 0.5f, 0.5f));
 }
 
 void FirstAidKitItem::Update(Player* player)
@@ -56,6 +66,13 @@ void FirstAidKitItem::Update(Player* player)
 			m_isDropping = false;
 		}
 	}
+	else
+	{
+		// 落下しきった後は回転
+		const float kRotateSpeed = 0.05f; // 回転速度
+		m_rotY += kRotateSpeed;
+		if (m_rotY > DX_TWO_PI) m_rotY -= DX_TWO_PI;
+	}
 
 	// コライダーの位置を更新
 	m_collider.SetCenter(m_pos);
@@ -63,7 +80,6 @@ void FirstAidKitItem::Update(Player* player)
 
 	// プレイヤーのカプセルコライダーを取得
 	const Collider* playerCollider = dynamic_cast<const Collider*>(player->GetBodyCollider().get());
-
 
 	// オブジェクト指向的な当たり判定
 	m_isHit = m_collider.Intersects(playerCollider);
@@ -80,5 +96,8 @@ void FirstAidKitItem::Draw()
 {
 	if (IsUsed()) return; 
 
-    DrawSphere3D(m_pos, m_radius, 16, 0xff0000, 0xff8080, true);
+	// モデルを描画
+	MV1SetPosition(m_modelHandle, m_pos);
+	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, m_rotY, 0.0f));
+	MV1DrawModel(m_modelHandle);
 }

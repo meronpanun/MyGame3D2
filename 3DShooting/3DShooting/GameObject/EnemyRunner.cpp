@@ -19,14 +19,14 @@ namespace
 	constexpr char kDeadAnimName[]   = "Armature|Death";  // 死亡アニメーション
 
 	// カプセルコライダーのサイズを定義
-	constexpr float kBodyColliderRadius = 15.0f;  // 体のコライダー半径(Normalより小さめ)
-	constexpr float kBodyColliderHeight = 120.0f; // 体のコライダー高さ(Normalより小さめ)
-	constexpr float kHeadRadius		    = 15.0f;  // 頭のコライダー半径(Normalより小さめ)
+	constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
+	constexpr float kBodyColliderHeight = 120.0f; // 体のコライダー高さ
+	constexpr float kHeadRadius		    = 15.0f;  // 頭のコライダー半径
 
 	// 攻撃関連
-	constexpr int   kAttackCooldownMax = 30;     // 攻撃クールダウン時間(Normalより短め)
+	constexpr int   kAttackCooldownMax = 30;     // 攻撃クールダウン時間
 	constexpr float kAttackHitRadius   = 50.0f;  // 攻撃の当たり判定半径
-	constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径(Normalより小さめ)
+	constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径
 
 	// 追跡関連
 	constexpr int kAttackEndDelay = 10; 

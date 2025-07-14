@@ -794,3 +794,9 @@ void Player::AddHp(float value)
 		m_health = 0.0f; // 体力が負にならないように制限
 	}
 }
+
+void Player::AddAmmo(int value)
+{
+    m_ammo += value;
+    if (m_ammo < 0) m_ammo = 0;
+}

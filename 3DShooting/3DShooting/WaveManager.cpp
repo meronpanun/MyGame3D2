@@ -12,6 +12,7 @@
 #include <random>
 #include <chrono>
 #include <map>
+#include <cassert>
 
 namespace
 {
@@ -26,7 +27,10 @@ namespace
 	constexpr float kMinSpawnDistance = 400.0f;
 
     // 出現位置の最大試行回数
-	constexpr int kMaxSpawnAttempts = 100; 
+	constexpr int kMaxSpawnAttempts = 100;
+
+    // ウェーブ画像の描画幅
+    constexpr int kWaveImageDrawWidth = 100;
 }
 
 WaveManager::WaveManager() :
@@ -50,10 +54,24 @@ WaveManager::WaveManager() :
 
     m_pEnemyAcidTemplate = std::make_shared<EnemyAcid>();
     m_pEnemyAcidTemplate->Init();
+
+    // ウェーブ画像の読み込み
+    m_waveImages[0] = LoadGraph("data/image/wave1.png");
+    m_waveImages[1] = LoadGraph("data/image/wave2.png");
+    m_waveImages[2] = LoadGraph("data/image/wave3.png");
 }
 
 WaveManager::~WaveManager()
 {
+	// 画像の解放
+	for (int i = 0; i < 3; ++i)
+	{
+		if (m_waveImages[i] >= 0)
+		{
+			DeleteGraph(m_waveImages[i]);
+			m_waveImages[i] = -1;
+		}
+	}
 }
 
 void WaveManager::Init()
@@ -210,6 +228,23 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
 // 敵の一括描画
 void WaveManager::DrawEnemies()
 {
+    // ウェーブ中は常に画像を表示
+    if (!m_isAllWavesCompleted && m_currentWave >= 1 && m_currentWave <= 3)
+    {
+        int img = m_waveImages[m_currentWave - 1];
+        int imgW = 0, imgH = 0;
+        GetGraphSize(img, &imgW, &imgH);
+        int screenW = 0, screenH = 0;
+        GetScreenState(&screenW, &screenH, NULL);
+        // 定数で指定した幅、高さは縦横比維持で計算
+        int drawW = kWaveImageDrawWidth;
+        int drawH = imgH * drawW / imgW;
+        int x = (screenW - drawW) / 2;
+        int y = 0; // 画面上部中央
+        DrawExtendGraph(x, y, x + drawW, y + drawH, img, true);
+    }
+
+	// 敵の描画
     for (auto& pEnemy : m_enemyNormalPool) 
     {
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
