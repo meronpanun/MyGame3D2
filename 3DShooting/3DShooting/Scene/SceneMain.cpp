@@ -21,28 +21,46 @@
 
 namespace
 {
-    constexpr int	kButtonWidth           = 200; 
-    constexpr int	kButtonHeight          = 50;   
-    constexpr int	kFontSize              = 48;   
-    constexpr float kScreenCenterOffset    = 0.5f; 
-    constexpr int   kButtonYOffset         = 70;   
-    constexpr int   kButtonSpacing         = 20;   
+	// UI関連の定数
+	constexpr int	kButtonWidth        = 200;  // ボタンの幅 
+	constexpr int	kButtonHeight       = 50;   // ボタンの高さ
+	constexpr int	kFontSize           = 48;   // フォントサイズ
+	constexpr float kScreenCenterOffset = 0.5f; // 画面中央のオフセット
+	constexpr int   kButtonYOffset      = 70;   // ボタンのY座標オフセット
+	constexpr int   kButtonSpacing      = 20;   // ボタン間のスペース
 
-    constexpr int kReturnButtonX = 210; 
-    constexpr int kReturnButtonY = 290; 
-    constexpr int kOptionButtonX = 210; 
-    constexpr int kOptionButtonY = 120; 
+	// 戻るボタンとオプションボタンの座標
+	constexpr int kReturnButtonX = 210; // 戻るボタンのX座標
+	constexpr int kReturnButtonY = 290; // 戻るボタンのY座標
+	constexpr int kOptionButtonX = 210; // オプションボタンのX座標
+	constexpr int kOptionButtonY = 120; // オプションボタンのY座標
 
-   
-    constexpr float kCameraRotaSpeed = 0.001f;
+    // カメラの回転速度
+	constexpr float kCameraRotaSpeed = 0.001f; 
 
-   
-	constexpr float kSkyDomePosY = 200.0f; 
+    // スカイドームのY座標
+	constexpr float kSkyDomePosY = 200.0f;  
 
-   
+    // スカイドームのスケール
 	constexpr float kSkyDomeScale = 100.0f; 
 
-    constexpr float kDropInitialHeight = 140.0f; // アイテムドロップ時の初期上昇量
+    // アイテムドロップ時の初期上昇量
+    constexpr float kDropInitialHeight = 140.0f; 
+
+	// Road_floorオブジェトの範囲
+	constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // 床の最小座標
+	constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
+
+    // 環境光設定
+	constexpr float kAmbientLightR = 0.5f; // 環境光の赤成分
+	constexpr float kAmbientLightG = 0.5f; // 環境光の緑成分
+	constexpr float kAmbientLightB = 0.5f; // 環境光の青成分
+	constexpr float kAmbientLightA = 1.0f; // 環境光のアルファ成分
+
+    // ヒットマーク関連
+	constexpr int kHitMarkLineLength    = 8; // ラインの長さ
+	constexpr int kHitMarkCenterSpacing = 4; // 中央の間隔幅
+	constexpr int kHitMarkLineThickness = 2; // ラインの太さ
 }
 
 SceneMain::SceneMain() :
@@ -73,7 +91,7 @@ SceneMain::~SceneMain()
 
 void SceneMain::Init()
 {
-    SetWaitVSyncFlag(TRUE); // VSync有効化で描画負荷を安定化
+    SetWaitVSyncFlag(true); // VSync有効化で描画負荷を安定化
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
 
@@ -89,23 +107,26 @@ void SceneMain::Init()
 	m_pStage = std::make_shared<Stage>();
 	m_pStage->Init();
 
-	// WaveManagerを初期化
 	m_pWaveManager = std::make_shared<WaveManager>();
 	m_pWaveManager->Init();
 	
-	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
-	m_pWaveManager->SetRoadFloorBounds(VGet(-500.0f, 0.0f, -500.0f), VGet(500.0f, 0.0f, 500.0f));
+	// Road_floorオブジェクトの範囲を設定(マップ全体の範囲)
+	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
 
+	// カメラの初期化
     if (m_pPlayer->GetCamera())
     {
         m_pPlayer->GetCamera()->SetSensitivity(m_cameraSensitivity);
     }
 
-    SetMouseDispFlag(m_isPaused);
+    // マウスカーソルの表示/非表示を設定
+	SetMouseDispFlag(m_isPaused); 
 
-    MV1SetPosition(m_skyDomeHandle, VGet(0, kSkyDomePosY, 0));
+    // スカイドームのY座標を設定
+	MV1SetPosition(m_skyDomeHandle, VGet(0, kSkyDomePosY, 0)); 
 
-    MV1SetScale(m_skyDomeHandle, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
+    // スカイドームのスケールを設定
+	MV1SetScale(m_skyDomeHandle, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale)); 
 
     m_isReturningFromOption = false;
 
@@ -113,7 +134,6 @@ void SceneMain::Init()
 
     // WaveManagerの敵の死亡時にアイテムをドロップするコールバックを設定
     m_pWaveManager->SetOnEnemyDeathCallback([this](const VECTOR& pos) {
-        printf("Creating item at position: (%.2f, %.2f, %.2f)\n", pos.x, pos.y, pos.z);
         auto dropItem = std::make_shared<FirstAidKitItem>();
         dropItem->Init();
         VECTOR dropPos = pos;
@@ -126,19 +146,22 @@ void SceneMain::Init()
     m_pWaveManager->SetOnEnemyHitCallback([this](EnemyBase::HitPart part) { OnPlayerBulletHitEnemy(part); });
 
 	// 環境光の設定
-    SetLightAmbColor(GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
+    SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
 }
 
 SceneBase* SceneMain::Update()
 {
+	// デバックウィンドウが表示されている場合は、更新をスキップ
     if (DebugUtil::IsDebugWindowVisible())
     {
         return this;
     }
 
-    MV1SetRotationXYZ(m_skyDomeHandle, VGet(0, MV1GetRotationXYZ(m_skyDomeHandle).y + kCameraRotaSpeed, 0));
+    // スカイドームの回転
+	MV1SetRotationXYZ(m_skyDomeHandle, VGet(0, MV1GetRotationXYZ(m_skyDomeHandle).y + kCameraRotaSpeed, 0)); 
 
-    if (CheckHitKey(KEY_INPUT_ESCAPE))
+    // エスケープキーが押されたかチェック
+	if (CheckHitKey(KEY_INPUT_ESCAPE)) 
     {
         if (!m_isEscapePressed)
         {
@@ -188,6 +211,8 @@ SceneBase* SceneMain::Update()
     // WaveManagerの敵リストを取得してプレイヤーに渡す
     std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
     std::vector<EnemyBase*> enemyPtrList;
+
+	// 敵のポインタをプレイヤーに渡すためのリストを作成
     for (std::shared_ptr<EnemyBase>& enemy : enemyList)
     {
         enemyPtrList.push_back(enemy.get());
@@ -200,7 +225,7 @@ SceneBase* SceneMain::Update()
         return new SceneGameOver();
     }
 
-    // WaveManagerの更新（敵の生成と管理）
+    // WaveManagerの更新
     m_pWaveManager->Update();
 
     // WaveManagerの敵を一括更新
@@ -248,18 +273,28 @@ void SceneMain::Draw()
     DrawGraph(cx - kDotSize / 2, cy - kDotSize / 2, m_dotHandle, true);
 
     // ヒットマーク描画
-    if (m_hitMarkTimer > 0) {
+    if (m_hitMarkTimer > 0)
+    {
         // 赤 or 黄色
-        unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? GetColor(255, 255, 64) : GetColor(255, 32, 32);
-        int len = 8; // ラインの長さ（端から中心までの距離）
-        int gap = 4; // 中央の空白幅
-        int thick = 2; // ラインの太さ
+        unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffff40 : 0xff2020;
+
         // 左上→右下
-        DrawLine(cx - len, cy - len, cx - gap, cy - gap, color, thick);
-        DrawLine(cx + gap, cy + gap, cx + len, cy + len, color, thick);
+        DrawLine(cx - kHitMarkLineLength, cy - kHitMarkLineLength, 
+            cx - kHitMarkCenterSpacing, cy - kHitMarkCenterSpacing, 
+            color, kHitMarkLineThickness);
+
+        DrawLine(cx + kHitMarkCenterSpacing, cy + kHitMarkCenterSpacing, 
+            cx + kHitMarkLineLength, cy + kHitMarkLineLength, 
+            color, kHitMarkLineThickness);
+
         // 左下→右上
-        DrawLine(cx - len, cy + len, cx - gap, cy + gap, color, thick);
-        DrawLine(cx + gap, cy - gap, cx + len, cy - len, color, thick);
+        DrawLine(cx - kHitMarkLineLength, cy + kHitMarkLineLength, 
+            cx - kHitMarkCenterSpacing, cy + kHitMarkCenterSpacing, 
+            color, kHitMarkLineThickness);
+
+        DrawLine(cx + kHitMarkCenterSpacing, cy - kHitMarkCenterSpacing,
+            cx + kHitMarkLineLength, cy - kHitMarkLineLength, 
+            color, kHitMarkLineThickness);
     }
 
     // デバッグ情報を表示
@@ -275,9 +310,7 @@ void SceneMain::DrawShadowCasters()
 {
     // 影を落とすものだけ描画
     m_pStage->Draw();
-    m_pWaveManager->Draw();
     m_pPlayer->Draw();
-    // アイテムや空（スカイドーム）は影を落とさないので描画しない
 }
 
 void SceneMain::DrawPauseMenu()

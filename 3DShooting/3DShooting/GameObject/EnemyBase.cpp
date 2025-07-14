@@ -1,5 +1,4 @@
-﻿//#include "Player.h"
-#include "EnemyBase.h"
+﻿#include "EnemyBase.h"
 #include "Bullet.h"
 #include "Collider.h"
 
@@ -74,7 +73,7 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
 
         bullet.Deactivate(); // 敵に当たった弾は非アクティブにする
 
-        // ヒット時コールバック（ヒットマーク用）
+        // ヒット時コールバック(ヒットマーク用)
         if (m_onHitCallback) m_onHitCallback(determinedHitPart);
     }
 }

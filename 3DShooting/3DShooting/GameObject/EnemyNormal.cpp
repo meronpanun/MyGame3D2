@@ -49,7 +49,8 @@ EnemyNormal::EnemyNormal() :
     m_onDropItem(nullptr),
     m_currentAnimState(AnimState::Walk),
     m_attackEndDelayTimer(0),
-    m_isDeadAnimPlaying(false)
+    m_isDeadAnimPlaying(false),
+	m_chaseSpeed(kChaseSpeed)
 {
     // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
@@ -64,6 +65,7 @@ EnemyNormal::EnemyNormal() :
 
 EnemyNormal::~EnemyNormal()
 {
+	// モデルの解放
     MV1DeleteModel(m_modelHandle);
 }
 
@@ -255,7 +257,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     {
         // 死亡アニメーション中は移動や攻撃を行わない
     }
-    else // Walk 状態 (常に歩行アニメーションが基本)
+    else // Walk 状態(常に歩行アニメーションが基本)
     {
         // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
         if (CanAttackPlayer(player))
@@ -276,7 +278,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
         if (m_currentAnimState == AnimState::Attack)
         {
-            // ここは何もしない（歩行アニメーションへの遷移はディレイタイマーでのみ行う）
+            // ここは何もしない(歩行アニメーションへの遷移はディレイタイマーでのみ行う)
         }
         else if (m_currentAnimState == AnimState::Dead)
         {
@@ -351,6 +353,8 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kAttackAnimName);
         float attackStart = currentAnimTotalTime * 0.5f; // 攻撃開始時間
         float attackEnd = currentAnimTotalTime * 0.7f;   // 攻撃終了時間
+
+		// 攻撃アニメーションの範囲内でのみ攻撃判定を行う
         if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
         {
             int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
@@ -429,6 +433,7 @@ void EnemyNormal::Draw()
 
 }
 
+// デバック用の当たり判定を描画する
 void EnemyNormal::DrawCollisionDebug() const
 {
     // 体のコライダーデバッグ描画
@@ -453,15 +458,19 @@ void EnemyNormal::DrawCollisionDebug() const
     }
 }
 
+// どこに当たったのか判定する
 EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
+	// ヘッドとボディのコライダーをそれぞれチェック
     VECTOR hitPosHead, hitPosBody;
     float hitDistSqHead = FLT_MAX;
     float hitDistSqBody = FLT_MAX;
 
+	// ヘッドとボディのコライダーに対してRayをチェック
     bool headHit = m_pHeadCollider->IntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
     bool bodyHit = m_pBodyCollider->IntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
 
+	// ヒットした部位を判定
     if (headHit && bodyHit)
     {
         // 両方にヒットした場合、より近い方を優先
@@ -496,6 +505,7 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTO
     return HitPart::None;
 }
 
+// ダメージ計算処理
 float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
 {
     if (part == HitPart::Head)

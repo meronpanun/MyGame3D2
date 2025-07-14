@@ -1,16 +1,14 @@
 ﻿#pragma once
+#include "Player.h"
 #include "DxLib.h"
 #include <memory>
 #include <vector>
 #include <functional>
-#include "Player.h"
 
 class Bullet;
-//class Player;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
-
 
 /// <summary>
 /// 敵の基底クラス
@@ -29,14 +27,16 @@ public:
 	virtual int GetModelHandle() const { return -1; }
 
 	// 当たり判定の部位
-	enum class HitPart {
+	enum class HitPart
+	{
 		None,
 		Body,
 		Head
 	};
 
 	// 敵の状態管理
-	enum class EnemyState {
+	enum class EnemyState 
+	{
 		Idle,       // 待機状態
 		Moving,     // 移動状態
 		Attacking,  // 攻撃状態
@@ -45,7 +45,8 @@ public:
 	};
 
 	// アニメーション状態
-	enum class AnimState {
+	enum class AnimState 
+	{
 		Idle,    // 待機
 		Walk,    // 歩行
 		Back,    // 後退
@@ -77,16 +78,28 @@ public:
 	/// </summary>
 	virtual void DrawCollisionDebug() const {}
 
-	// 生存判定
+	/// <summary>
+	/// 生存判定
+	/// </summary>
+	/// <returns>生存しているならtrue</returns>
 	virtual bool IsAlive() const { return m_isAlive; }
 
-	// 位置取得
+	/// <summary>
+	/// 位置取得
+	/// </summary>
+	/// <returns>敵の位置</returns>
 	virtual VECTOR GetPos() const { return m_pos; }
 
-	// 位置設定
+	/// <summary>
+	/// 位置設定
+	/// </summary>
+	/// <param name="pos">敵の位置</param>
 	virtual void SetPos(const VECTOR& pos) { m_pos = pos; }
 
-	// 死亡コールバック設定
+	/// <summary>
+	///	死亡コールバックを設定する
+	/// </summary>
+	/// <param name="callback">死亡時に呼ばれるコールバック関数</param>
 	virtual void SetOnDeathCallback(std::function<void(const VECTOR&)> callback) { m_onDeathCallback = callback; }
 
 	/// <summary>
@@ -102,23 +115,46 @@ public:
 	/// </summary>
 	virtual void ResetTackleHitFlag() abstract;
 
-	// アイテムドロップコールバック設定
+	/// <summary>
+	/// アイテムドロップ時のコールバックを設定する
+	/// </summary>
+	/// <param name="cb">アイテムドロップ時に呼ばれるコールバック関数</param>
 	virtual void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb) {}
 
+	/// <summary>
+	/// 敵の状態を設定する
+	/// </summary>
+	/// <param name="active">アクティブ状態かどうか</param>
 	void SetActive(bool active) { m_isActive = active; }
+
+	/// <summary>
+	/// 敵がアクティブかどうかを取得する
+	/// </summary>
+	/// <returns>アクティブならtrue</returns>
 	bool IsActive() const { return m_isActive; }
 
+
+	/// <summary>
+	/// ヒット時のコールバックを設定する
+	/// </summary>
+	/// <param name="cb">ヒット時に呼ばれるコールバック関数</param>
 	void SetOnHitCallback(std::function<void(HitPart)> cb) { m_onHitCallback = cb; }
 
 protected:
-	// ダメージ計算用
+	/// <summary>
+	/// 弾のダメージを計算する
+	/// </summary>
+	/// <param name="bulletDamage">弾のダメージ量</param>
+	/// <param name="part">当たった部位</param>
+	/// <returns>計算されたダメージ量</returns>
 	virtual float CalcDamage(float bulletDamage, HitPart part) const abstract;
-
 
 protected:
 	VECTOR m_pos; // 位置
 
 	std::shared_ptr<Player> m_pTargetPlayer;  // ターゲットプレイヤー
+	std::function<void(const VECTOR&)> m_onDeathCallback; // 死亡コールバック
+	std::function<void(HitPart)> m_onHitCallback; // 部位情報付き
 
 	HitPart m_lastHitPart; // 最後に当たった部位
 
@@ -135,7 +171,4 @@ protected:
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか
 	bool  m_isAttacking;     // 攻撃中かどうか
 	bool  m_isActive = true; // デフォルトはアクティブ
-
-	std::function<void(const VECTOR&)> m_onDeathCallback; // 死亡コールバック
-	std::function<void(HitPart)> m_onHitCallback; // 部位情報付き
 };
