@@ -107,4 +107,5 @@ private:
     int m_backAnimCount;
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
     float m_chaseSpeed; // 追跡速度
+    bool m_isItemDropped = false; // アイテムドロップ済みフラグ
 };

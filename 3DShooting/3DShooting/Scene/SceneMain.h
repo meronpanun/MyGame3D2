@@ -66,5 +66,8 @@ private:
 public:
     // プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
     void OnPlayerBulletHitEnemy(EnemyBase::HitPart part);
+    bool m_wave1FirstAidDropped = false;
+    bool m_wave1AmmoDropped = false;
+    int m_wave1DropCount = 0;
 };
 

@@ -205,9 +205,10 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
             }
             // アイテムドロップと死亡コールバックを呼び出し
-            if (m_onDropItem) {
+            if (!m_isItemDropped && m_onDropItem) {
                 m_onDropItem(m_pos);
                 m_onDropItem = nullptr;
+                m_isItemDropped = true;
             }
             if (m_onDeathCallback) {
                 m_onDeathCallback(m_pos);

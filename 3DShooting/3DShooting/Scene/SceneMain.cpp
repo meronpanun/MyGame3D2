@@ -14,6 +14,7 @@
 #include "DebugUtil.h"
 #include "Camera.h"
 #include "FirstAidKitItem.h"
+#include "AmmoItem.h"
 #include "Stage.h"
 #include "WaveManager.h"
 #include <cassert>
@@ -132,14 +133,87 @@ void SceneMain::Init()
 
     m_items.clear();
 
+    // wave1開始時にフラグとカウントをリセット
+    m_wave1FirstAidDropped = false;
+    m_wave1AmmoDropped = false;
+    m_wave1DropCount = 0;
+
     // WaveManagerの敵の死亡時にアイテムをドロップするコールバックを設定
     m_pWaveManager->SetOnEnemyDeathCallback([this](const VECTOR& pos) {
-        auto dropItem = std::make_shared<FirstAidKitItem>();
-        dropItem->Init();
-        VECTOR dropPos = pos;
-        dropPos.y += kDropInitialHeight;
-        dropItem->SetPos(dropPos);
-        m_items.push_back(dropItem);
+        static VECTOR lastDropPos = { -99999, -99999, -99999 };
+        // 直前と同じ座標なら何もしない
+        if (pos.x == lastDropPos.x && pos.y == lastDropPos.y && pos.z == lastDropPos.z) return;
+        lastDropPos = pos;
+        if (m_pWaveManager->GetCurrentWave() == 1) {
+            if (m_wave1DropCount >= 2) return; // 2体分だけドロップ
+
+            if (!m_wave1FirstAidDropped && !m_wave1AmmoDropped) 
+            {
+                int randValue = GetRand(99);
+                if (randValue < 50) 
+                {
+                    auto firstAid = std::make_shared<FirstAidKitItem>();
+                    firstAid->Init();
+                    VECTOR dropPos = pos;
+                    dropPos.y += kDropInitialHeight;
+                    firstAid->SetPos(dropPos);
+                    m_items.push_back(firstAid);
+                    m_wave1FirstAidDropped = true;
+                } else 
+                {
+                    auto ammo = std::make_shared<AmmoItem>();
+                    ammo->Init();
+                    VECTOR dropPos = pos;
+                    dropPos.y += kDropInitialHeight;
+                    ammo->SetPos(dropPos);
+                    m_items.push_back(ammo);
+                    m_wave1AmmoDropped = true;
+                }
+                m_wave1DropCount++;
+            }
+            else if (!m_wave1FirstAidDropped) 
+            {
+                auto firstAid = std::make_shared<FirstAidKitItem>();
+                firstAid->Init();
+                VECTOR dropPos = pos;
+                dropPos.y += kDropInitialHeight;
+                firstAid->SetPos(dropPos);
+                m_items.push_back(firstAid);
+                m_wave1FirstAidDropped = true;
+                m_wave1DropCount++;
+            }
+            else if (!m_wave1AmmoDropped) 
+            {
+                auto ammo = std::make_shared<AmmoItem>();
+                ammo->Init();
+                VECTOR dropPos = pos;
+                dropPos.y += kDropInitialHeight;
+                ammo->SetPos(dropPos);
+                m_items.push_back(ammo);
+                m_wave1AmmoDropped = true;
+                m_wave1DropCount++;
+            }
+            // 両方ドロップ済み or 2体分超えたら何も落とさない
+        } 
+        else
+        {
+            // wave2以降はどちらか一方のみドロップ
+            int randValue = GetRand(99); // 0-99
+            std::shared_ptr<ItemBase> dropItem;
+            if (randValue < 50) 
+            {
+                dropItem = std::make_shared<FirstAidKitItem>();
+            }
+            else
+            {
+                dropItem = std::make_shared<AmmoItem>();
+            }
+            dropItem->Init();
+            VECTOR dropPos = pos;
+            dropPos.y += kDropInitialHeight;
+            dropItem->SetPos(dropPos);
+            m_items.push_back(dropItem);
+        }
     });
 
     // ヒットマーク用コールバックをWaveManagerに設定

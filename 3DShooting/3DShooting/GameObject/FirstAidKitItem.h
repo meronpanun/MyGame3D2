@@ -19,7 +19,7 @@ public:
 	void Update(Player* player) override;
 	void Draw() override;
 
-	void SetPos(const VECTOR& pos) { m_pos = pos; }
+	void SetPos(const VECTOR& pos) override { m_pos = pos; }
 	bool IsUsed() const override { return m_isUsed; }
 
 private:

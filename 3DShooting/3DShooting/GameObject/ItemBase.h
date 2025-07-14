@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "DxLib.h"
+
 class Player;
 
 /// <summary>
@@ -16,4 +18,7 @@ public:
 	virtual void Draw()   abstract;
 
 	virtual bool IsUsed() const abstract;
+
+	// 位置設定用の純粋仮想関数を追加
+	virtual void SetPos(const VECTOR& pos) abstract;
 };
