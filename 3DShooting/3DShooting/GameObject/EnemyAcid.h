@@ -106,5 +106,5 @@ private:
     int m_lastTackleId; // 最後にタックルを受けたID
     int m_backAnimCount;
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-    float m_chaseSpeed = 2.0f; // 追跡速度（デフォルト値）
+    float m_chaseSpeed; // 追跡速度
 };

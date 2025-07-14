@@ -297,9 +297,11 @@ void SceneMain::Draw()
             color, kHitMarkLineThickness);
     }
 
+#ifdef _DEBUG
     // デバッグ情報を表示
     m_pWaveManager->DrawDebugInfo();
-
+#endif // DEBUG
+    
     if (m_isPaused)
     {
         DrawPauseMenu();

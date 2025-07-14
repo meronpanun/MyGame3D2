@@ -30,6 +30,8 @@ namespace
 
 	// 追跡関連
 	constexpr int kAttackEndDelay = 10; 
+	// 追跡速度
+	constexpr float kChaseSpeed = 4.0f; // 走る敵の追跡速度
 
 	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 }
@@ -43,8 +45,10 @@ EnemyRunner::EnemyRunner() :
 	m_onDropItem(nullptr),
 	m_currentAnimState(AnimState::Run),
 	m_attackEndDelayTimer(0),
-	m_isDeadAnimPlaying(false)
+	m_isDeadAnimPlaying(false),
+	m_chaseSpeed(kChaseSpeed)
 {
+	// モデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/RunnerZombie.mv1");
 	assert(m_modelHandle != -1);
 
@@ -57,6 +61,7 @@ EnemyRunner::EnemyRunner() :
 
 EnemyRunner::~EnemyRunner()
 {
+	// モデルの解放
 	MV1DeleteModel(m_modelHandle);
 }
 
@@ -175,11 +180,13 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                 m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
             }
             // アイテムドロップと死亡コールバックを呼び出し
-            if (m_onDropItem) {
+            if (m_onDropItem) 
+			{
                 m_onDropItem(m_pos);
                 m_onDropItem = nullptr;
             }
-            if (m_onDeathCallback) {
+            if (m_onDeathCallback) 
+			{
                 m_onDeathCallback(m_pos);
                 m_onDeathCallback = nullptr; // 一度だけ呼び出す
             }
@@ -303,17 +310,20 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 	}
 
 	// コライダーの更新
+	// 体のコライダーの位置を設定
 	VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
 	VECTOR bodyCapB = VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
 	m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
 	m_pBodyCollider->SetRadius(kBodyColliderRadius);
 
+	// 頭のコライダーの位置を取得
 	int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
 	VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0, 0, 0);
 	VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
 	m_pHeadCollider->SetCenter(headCenter);
 	m_pHeadCollider->SetRadius(kHeadRadius);
 
+	// 攻撃範囲のコライダーの位置と半径を設定
 	VECTOR attackRangeCenter = m_pos;
 	attackRangeCenter.y += (kBodyColliderHeight * 0.5f);
 	m_pAttackRangeCollider->SetCenter(attackRangeCenter);
@@ -454,6 +464,7 @@ void EnemyRunner::DrawCollisionDebug() const
 	}
 }
 
+// どこに当たったのか判定する
 EnemyBase::HitPart EnemyRunner::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
 	VECTOR hitPosHead, hitPosBody;

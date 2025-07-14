@@ -531,6 +531,7 @@ void WaveManager::OnEnemyDeath(const VECTOR& position)
     }
 }
 
+// デバッグ情報の表示
 void WaveManager::DrawDebugInfo()
 {
     // デバッグ情報の表示位置

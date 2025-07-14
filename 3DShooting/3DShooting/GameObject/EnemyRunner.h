@@ -75,17 +75,16 @@ private:
 	// アイテムドロップ時のコールバック関数
 	std::function<void(const VECTOR&)> m_onDropItem;
 
-	AnimState m_currentAnimState; // 現在のアニメーション状態
+	AnimState m_currentAnimState;	     // 現在のアニメーション状態
 	AnimationManager m_animationManager; // EnemyRunnerがアニメーションマネージャーを所有
 
-	int m_lastTackleId;     // 最後にタックルを受けたID
-	int m_attackEndDelayTimer;
+	int m_lastTackleId;        // 最後にタックルを受けたID
+	int m_attackEndDelayTimer; // 攻撃終了までの遅延タイマー
 
-	float m_animTime; // アニメーションの経過時間
+	float m_animTime;   // アニメーションの経過時間
+	float m_chaseSpeed; // 追跡速度
 
-	bool m_isTackleHit;  // 1フレームで複数回ダメージを受けないためのフラグ
-	bool m_hasAttackHit; // 攻撃がヒットしたかどうか
+	bool m_isTackleHit;		  // 1フレームで複数回ダメージを受けないためのフラグ
+	bool m_hasAttackHit;	  // 攻撃がヒットしたかどうか
 	bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-
-	float m_chaseSpeed = 4.0f; // 追跡速度（デフォルト値）
 };

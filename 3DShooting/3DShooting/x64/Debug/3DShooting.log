@@ -1,23 +1,6 @@
-﻿  AnimationManager.cpp
-  Game.cpp
-  EnemyAcid.cpp
-  EnemyBase.cpp
-  EnemyBoss.cpp
-  EnemyNormal.cpp
-  EnemyRunner.cpp
-  Player.cpp
+﻿  FirstAidKitItem.cpp
   SceneMain.cpp
-  SceneManager.cpp
-  SceneTitle.cpp
   WaveManager.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(23,21): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'GameObject/EnemyRunner.cpp' をコンパイルしています)
-  
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
-  
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(207,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(90,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(98,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(106,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
@@ -26,12 +9,12 @@ C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(300,19): warning C4244:         [
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(300,19): warning C4244:             _Rep=std::chrono::system_clock::rep
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(300,19): warning C4244:         ]
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(557,26): warning C4477: 'sprintf_s' : 書式文字列 '%d' には、型 'int' の引数が必要ですが、可変個引数 2 は型 'unsigned __int64' です
-      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(557,26):
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(558,26): warning C4477: 'sprintf_s' : 書式文字列 '%d' には、型 'int' の引数が必要ですが、可変個引数 2 は型 'unsigned __int64' です
+      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(558,26):
       書式文字列に '%zd' を使用することをお勧めします
   
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(575,31): warning C4477: 'sprintf_s' : 書式文字列 '%d' には、型 'int' の引数が必要ですが、可変個引数 1 は型 'unsigned __int64' です
-      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(575,31):
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(576,31): warning C4477: 'sprintf_s' : 書式文字列 '%d' には、型 'int' の引数が必要ですが、可変個引数 1 は型 'unsigned __int64' です
+      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(576,31):
       書式文字列に '%zd' を使用することをお勧めします
   
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

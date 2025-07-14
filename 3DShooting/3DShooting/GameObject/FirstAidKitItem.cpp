@@ -9,13 +9,12 @@
 
 namespace
 {
-	
+	// 初期半径
 	constexpr float kInitialRadius = 20.0f; 
 
-	
-	constexpr float kHealAmount = 30.0f; 
+	constexpr float kHealAmount = 30.0f; // 回復量
 	constexpr float kDropGravity = 0.5f; // 落下重力加速度
-	constexpr float kGroundY = 0.0f; // 地面の高さ
+	constexpr float kGroundY = 0.0f;     // 地面の高さ
 }
 
 FirstAidKitItem::FirstAidKitItem():
@@ -45,7 +44,7 @@ void FirstAidKitItem::Update(Player* player)
 {
 	if (IsUsed()) return;
 
-	// ドロップ演出（落下処理）
+	// ドロップ演出(落下処理)
 	if (m_isDropping) 
 	{
 		m_velocityY -= kDropGravity;
