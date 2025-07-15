@@ -62,6 +62,8 @@ namespace
 	constexpr int kHitMarkLineLength    = 8; // ラインの長さ
 	constexpr int kHitMarkCenterSpacing = 4; // 中央の間隔幅
 	constexpr int kHitMarkLineThickness = 2; // ラインの太さ
+
+    constexpr int kHitMarkDuration = 10;
 }
 
 SceneMain::SceneMain() :
@@ -72,7 +74,10 @@ SceneMain::SceneMain() :
     m_pCamera(std::make_unique<Camera>()),
     m_skyDomeHandle(-1),
     m_dotHandle(-1),
-    m_hitMarkTimer(0)
+    m_hitMarkTimer(0),
+	m_wave1FirstAidDropped(false),
+	m_wave1AmmoDropped(false),
+	m_wave1DropCount(0)
 {
     // モデルの読み込み
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
@@ -144,7 +149,8 @@ void SceneMain::Init()
         // 直前と同じ座標なら何もしない
         if (pos.x == lastDropPos.x && pos.y == lastDropPos.y && pos.z == lastDropPos.z) return;
         lastDropPos = pos;
-        if (m_pWaveManager->GetCurrentWave() == 1) {
+        if (m_pWaveManager->GetCurrentWave() == 1) 
+        {
             if (m_wave1DropCount >= 2) return; // 2体分だけドロップ
 
             if (!m_wave1FirstAidDropped && !m_wave1AmmoDropped) 
@@ -159,7 +165,8 @@ void SceneMain::Init()
                     firstAid->SetPos(dropPos);
                     m_items.push_back(firstAid);
                     m_wave1FirstAidDropped = true;
-                } else 
+                } 
+                else 
                 {
                     auto ammo = std::make_shared<AmmoItem>();
                     ammo->Init();

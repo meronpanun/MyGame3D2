@@ -75,7 +75,6 @@ void EnemyRunner::Init()
 	{
 		if (data.name == "RunnerEnemy") 
 		{
-			m_pos = data.pos;
 			MV1SetRotationXYZ(m_modelHandle, data.rot);
 			MV1SetScale(m_modelHandle, data.scale);
 			m_attackPower = data.attack;
@@ -153,7 +152,7 @@ bool EnemyRunner::CanAttackPlayer(const Player& player)
 	return m_pAttackHitCollider->Intersects(playerBodyCollider.get());
 }
 
-void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
+void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList)
 {
     if (m_hp <= 0.0f) 
     {
@@ -357,6 +356,31 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 			}
 		}
 	}
+
+    // --- 敵同士の押し出し処理（横方向への広がり） ---
+    for (EnemyBase* other : enemyList) {
+        if (!other) continue;
+        if (other == this) continue;
+        VECTOR otherPos = other->GetPos();
+        VECTOR diff = VSub(m_pos, otherPos);
+        diff.y = 0.0f;
+        float distSq = VDot(diff, diff);
+        float minDist = kBodyColliderRadius * 2.0f;
+        if (distSq < minDist * minDist && distSq > 0.0001f) {
+            float dist = std::sqrt(distSq);
+            float pushBack = minDist - dist;
+            if (dist > 0) {
+                VECTOR pushDir = VNorm(diff);
+                VECTOR playerDir = VNorm(VSub(player.GetPos(), m_pos));
+                VECTOR up = VGet(0, 1, 0);
+                VECTOR side = VNorm(VCross(playerDir, up));
+                float sign = (reinterpret_cast<size_t>(this) % 2 == 0) ? 1.0f : -1.0f;
+                side = VScale(side, sign * 0.5f);
+                pushDir = VNorm(VAdd(pushDir, side));
+                m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
+            }
+        }
+    }
 
 	if (m_currentAnimState == AnimState::Attack)
 	{

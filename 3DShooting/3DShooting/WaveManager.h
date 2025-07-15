@@ -15,11 +15,12 @@ class Player;
 // Waveデータの構造体
 struct WaveData
 {
-	std::string enemyType; // 敵の種類
-	int wave;              // Wave番号
-	int count;             // 出現数
-	float spawnInterval;   // 出現間隔
-	float delay;           // 出現までの遅延時間
+    int wave;              // Wave番号
+    std::string enemyType; // 敵の種類
+    int count;             // 出現数
+    float spawnInterval;   // 同じ敵タイプ内での出現間隔
+    float startTime;       // このエネミータイプの開始時間
+    float waveInterval;    // ウェーブ間インターバル
 };
 
 // 敵の出現情報
@@ -110,7 +111,7 @@ private:
     /// </summary>
 	/// <param name="enemyType">敵の種類</param>
 	/// <returns>生成された敵のポインタ</returns>
-    std::shared_ptr<EnemyBase> CreateEnemy(const std::string& enemyType);
+	std::shared_ptr<EnemyBase> CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos);
 
     /// <summary>
 	/// 次のウェーブに進む
@@ -162,6 +163,8 @@ private:
 	float m_waveTimer;         // ウェーブのタイマー
 	float m_spawnTimer;        // 敵の出現タイマー
 
+	float m_waveIntervalTimer; // ウェーブ間インターバル用タイマー
+
 	bool m_isWaveActive;        // 現在のウェーブがアクティブかどうか
 	bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
 
@@ -171,4 +174,6 @@ private:
 	bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
 
     int m_waveImages[3]; // 1,2,3ウェーブ用画像ハンドル
+
+    int m_totalSpawnedCount = 0; // 累計出現数
 };

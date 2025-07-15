@@ -74,7 +74,6 @@ EnemyAcid::~EnemyAcid()
 void EnemyAcid::Init()
 {
     m_hp = kInitialHP;
-    m_pos = kInitialPosition;
     m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
     m_attackCooldown = 0; // 最初は攻撃可能にしておく
@@ -178,7 +177,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     m_acidBalls.push_back(ball);
 }
 
-void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
+void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList)
 {
     if (m_hp <= 0.0f) 
     {

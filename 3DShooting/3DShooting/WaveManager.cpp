@@ -24,7 +24,7 @@ namespace
 	constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
 
     // プレイヤーからの最小距離
-	constexpr float kMinSpawnDistance = 400.0f;
+	constexpr float kMinSpawnDistance = 200.0f;
 
     // 出現位置の最大試行回数
 	constexpr int kMaxSpawnAttempts = 100;
@@ -43,7 +43,9 @@ WaveManager::WaveManager() :
     m_roadFloorMin(kRoadFloorMin),
     m_roadFloorMax(kRoadFloorMax),
     m_isRoadFloorBoundsSet(false),
-    m_onEnemyDeathCallback(nullptr)
+    m_onEnemyDeathCallback(nullptr),
+    m_waveIntervalTimer(0.0f),
+    m_totalSpawnedCount(0)
 {
     // 敵のテンプレートを作成
     m_pEnemyNormalTemplate = std::make_shared<EnemyNormal>();
@@ -78,6 +80,7 @@ void WaveManager::Init()
 {
     m_enemyList.clear();
     m_spawnInfoList.clear();
+    m_totalSpawnedCount = 0;
 
     // 敵のテンプレートを初期化
     if (m_pEnemyNormalTemplate)
@@ -95,16 +98,19 @@ void WaveManager::Init()
 
     LoadWaveData();
 
-    // 各敵種ごとの最大同時出現数を計算
-    int maxNormal = 0, maxRunner = 0, maxAcid = 0;
-    for (const auto& wave : m_waveDataList)
-    {
-        if (wave.enemyType == "NormalEnemy") maxNormal = (std::max)(maxNormal, wave.count);
-        if (wave.enemyType == "RunnerEnemy") maxRunner = (std::max)(maxRunner, wave.count);
-        if (wave.enemyType == "AcidEnemy")   maxAcid = (std::max)(maxAcid, wave.count);
+    // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
+    std::map<int, int> normalPerWave, runnerPerWave, acidPerWave;
+    for (const auto& wave : m_waveDataList) {
+        if (wave.enemyType == "NormalEnemy") normalPerWave[wave.wave] += wave.count;
+        if (wave.enemyType == "RunnerEnemy") runnerPerWave[wave.wave] += wave.count;
+        if (wave.enemyType == "AcidEnemy")   acidPerWave[wave.wave]   += wave.count;
     }
+    int maxNormal = 0, maxRunner = 0, maxAcid = 0;
+    for (const auto& [wave, cnt] : normalPerWave) maxNormal = (std::max)(maxNormal, cnt);
+    for (const auto& [wave, cnt] : runnerPerWave) maxRunner = (std::max)(maxRunner, cnt);
+    for (const auto& [wave, cnt] : acidPerWave)   maxAcid   = (std::max)(maxAcid, cnt);
 
-    // その数だけ事前にプール
+    // その数だけ各プールを確保
     for (int i = m_enemyNormalPool.size(); i < maxNormal; ++i) 
     {
         auto pEnemy = std::make_shared<EnemyNormal>();
@@ -139,6 +145,20 @@ void WaveManager::Update()
         return;
     }
 
+    // ウェーブ間インターバル中ならタイマーを進める
+    if (m_waveIntervalTimer > 0.0f) 
+    {
+        m_waveIntervalTimer -= 1.0f / 60.0f;
+        if (m_waveIntervalTimer <= 0.0f) 
+        {
+            m_waveIntervalTimer = 0.0f;
+        }
+        else
+        {
+            return; // インターバル中は何もしない
+        }
+    }
+
     // 現在のウェーブが終了しているかチェック
     if (m_isWaveActive && IsCurrentWaveCleared())
     {
@@ -146,7 +166,7 @@ void WaveManager::Update()
     }
 
     // ウェーブが開始されていない場合は開始
-    if (!m_isWaveActive && m_currentWave <= 3)
+    if (!m_isWaveActive && m_currentWave <= 3 && m_waveIntervalTimer <= 0.0f)
     {
         // プレイヤーの位置を取得
         VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f);
@@ -157,19 +177,24 @@ void WaveManager::Update()
     if (m_isWaveActive && m_currentSpawnIndex < m_spawnInfoList.size())
     {
         m_spawnTimer += 1.0f / 60.0f;
-
-        // 1フレームに1体だけ生成
-        EnemySpawnInfo& spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
-        if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned)
+        // spawnTimeを満たす限り何体でも出現
+        while (m_currentSpawnIndex < m_spawnInfoList.size())
         {
-            std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(spawnInfo.enemyType);
-            if (pEnemy)
+            EnemySpawnInfo& spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
+            if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned)
             {
-                pEnemy->SetPos(spawnInfo.spawnPos);
-                m_enemyList.push_back(pEnemy);
-                spawnInfo.isSpawned = true;
+                std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos);
+                if (pEnemy)
+                {
+                    m_enemyList.push_back(pEnemy);
+                    spawnInfo.isSpawned = true;
+                }
+                m_currentSpawnIndex++;
             }
-            m_currentSpawnIndex++;
+            else
+            {
+                break; // まだspawnTimeに達していない敵が出てきたら終了
+            }
         }
     }
 
@@ -187,41 +212,40 @@ void WaveManager::Update()
 void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
     VECTOR playerPos = player.GetPos();
-    for (auto& pEnemy : m_enemyNormalPool)
+    // アクティブな敵リストを作成
+    std::vector<EnemyBase*> activeEnemies;
+    for (auto& pEnemy : m_enemyNormalPool) 
     {
-		// 敵がアクティブで生存しているかチェック
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
-
-        VECTOR toPlayer = VSub(pEnemy->GetPos(), playerPos); // プレイヤーとの距離を計算
-		float distSq = toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z; // 距離の二乗を計算
-
-		// プレイヤーからの距離が最大アクティブ距離を超えている場合は更新しない
-        if (distSq > kMaxActiveDistance * kMaxActiveDistance) continue;
-        pEnemy->Update(bullets, tackleInfo, player); 
+        if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
     }
     for (auto& pEnemy : m_enemyRunnerPool) 
     {
-		// 敵がアクティブで生存しているかチェック
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
-
-		VECTOR toPlayer = VSub(pEnemy->GetPos(), playerPos); // プレイヤーとの距離を計算
-		float distSq = toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z; // 距離の二乗を計算
-
-		// プレイヤーからの距離が最大アクティブ距離を超えている場合は更新しない
-        if (distSq > kMaxActiveDistance * kMaxActiveDistance) continue;
-        pEnemy->Update(bullets, tackleInfo, player);
+        if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
     }
-    for (auto& pEnemy : m_enemyAcidPool) 
+    // NormalEnemy
+    for (auto& pEnemy : m_enemyNormalPool)
     {
-		// 敵がアクティブで生存しているかチェック
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
-
-		VECTOR toPlayer = VSub(pEnemy->GetPos(), playerPos); // プレイヤーとの距離を計算
-		float distSq = toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z; // 距離の二乗を計算
-
-		// プレイヤーからの距離が最大アクティブ距離を超えている場合は更新しない
-        if (distSq > kMaxActiveDistance * kMaxActiveDistance) continue;
-        pEnemy->Update(bullets, tackleInfo, player);
+        // 自分以外の敵リストを作成
+        std::vector<EnemyBase*> others;
+        for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
+        pEnemy->Update(bullets, tackleInfo, player, others);
+    }
+    // RunnerEnemy
+    for (auto& pEnemy : m_enemyRunnerPool)
+    {
+        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        std::vector<EnemyBase*> others;
+        for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
+        pEnemy->Update(bullets, tackleInfo, player, others);
+    }
+    // AcidEnemy
+    for (auto& pEnemy : m_enemyAcidPool)
+    {
+        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        std::vector<EnemyBase*> others;
+        for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
+        pEnemy->Update(bullets, tackleInfo, player, others);
     }
 }
 
@@ -284,6 +308,7 @@ void WaveManager::LoadWaveData()
     std::ifstream file("data/CSV/WaveData.csv");
     if (!file.is_open())
     {
+        printf("Error: Cannot open WaveData.csv\n");
         return;
     }
 
@@ -291,7 +316,7 @@ void WaveManager::LoadWaveData()
     // ヘッダー行をスキップ
     std::getline(file, line);
 
-	// CSVファイルの各行を読み込む
+    // CSVファイルの各行を読み込む
     while (std::getline(file, line))
     {
         std::stringstream ss(line);
@@ -299,46 +324,56 @@ void WaveManager::LoadWaveData()
         WaveData waveData;
 
         // Wave
-        std::getline(ss, token, ',');
+        if (!std::getline(ss, token, ',')) continue;
         waveData.wave = std::stoi(token);
 
-        // Type
-        std::getline(ss, token, ',');
+        // EnemyType
+        if (!std::getline(ss, token, ',')) continue;
         waveData.enemyType = token;
 
         // Count
-        std::getline(ss, token, ',');
+        if (!std::getline(ss, token, ',')) continue;
         waveData.count = std::stoi(token);
 
         // SpawnInterval
-        std::getline(ss, token, ',');
+        if (!std::getline(ss, token, ',')) continue;
         waveData.spawnInterval = std::stof(token);
 
-        // delay
-        std::getline(ss, token, ',');
-        waveData.delay = std::stof(token);
+        // StartTime
+        if (!std::getline(ss, token, ',')) continue;
+        waveData.startTime = std::stof(token);
+
+        // WaveInterval
+        if (std::getline(ss, token, ',')) {
+            waveData.waveInterval = std::stof(token);
+        }
+        else {
+            waveData.waveInterval = 0.0f;
+        }
 
         m_waveDataList.push_back(waveData);
+
+        // デバッグ出力
+        printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f\n",
+            waveData.wave, waveData.enemyType.c_str(), waveData.count,
+            waveData.spawnInterval, waveData.startTime);
     }
 }
 
 // ランダムな出現位置を生成
 VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
 {
-	// Road_floorの範囲が設定されていない場合はデフォルト位置を返す
     if (!m_isRoadFloorBoundsSet)
     {
         return VGet(0.0f, -0.5f, 3.0f);
     }
 
-	// 乱数生成器の初期化
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 gen(seed);
 
     VECTOR spawnPos;
     int attempts = 0;
-
-	// プレイヤーからの最小距離を確保するためのループ
+    bool found = false;
     do {
         std::uniform_real_distribution<float> xDist(m_roadFloorMin.x, m_roadFloorMax.x);
         std::uniform_real_distribution<float> zDist(m_roadFloorMin.z, m_roadFloorMax.z);
@@ -352,17 +387,29 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
         toPlayer.y = 0.0f;
         float distanceToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
 
-		if (distanceToPlayer >= kMinSpawnDistance) 
-            break; 
+        if (distanceToPlayer >= kMinSpawnDistance) 
+        {
+            found = true;
+            break;
+        }
 
         attempts++;
     } while (attempts < kMaxSpawnAttempts);
 
+    if (!found) 
+    {
+        // 条件を満たさなかった場合は範囲内のランダムな点を返す
+        std::uniform_real_distribution<float> xDist(m_roadFloorMin.x, m_roadFloorMax.x);
+        std::uniform_real_distribution<float> zDist(m_roadFloorMin.z, m_roadFloorMax.z);
+        float x = xDist(gen);
+        float z = zDist(gen);
+        spawnPos = VGet(x, 0.0f, z);
+    }
     return spawnPos;
 }
 
 // 敵を生成
-std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType)
+std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos)
 {
     std::shared_ptr<EnemyBase> pEnemy = nullptr;
 
@@ -372,6 +419,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         auto pPooled = GetPooledNormalEnemy();
         pPooled->SetActive(true);
         pPooled->Init();
+        pPooled->SetPos(spawnPos); // Initの後にSetPos
         pEnemy = pPooled;
     }
     else if (enemyType == "RunnerEnemy")
@@ -379,6 +427,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         auto pPooled = GetPooledRunnerEnemy();
         pPooled->SetActive(true);
         pPooled->Init();
+        pPooled->SetPos(spawnPos);
         pEnemy = pPooled;
     }
     else if (enemyType == "AcidEnemy")
@@ -386,6 +435,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         auto pPooled = GetPooledAcidEnemy();
         pPooled->SetActive(true);
         pPooled->Init();
+        pPooled->SetPos(spawnPos);
         pEnemy = pPooled;
     }
     else
@@ -397,9 +447,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
     if (pEnemy)
     {
         // 死亡コールバック
-        pEnemy->SetOnDeathCallback([this](const VECTOR& pos) {
-            OnEnemyDeath(pos);
-            });
+        pEnemy->SetOnDeathCallback([this](const VECTOR& pos) { OnEnemyDeath(pos); });
 
         // アイテムドロップコールバック
         if (m_onEnemyDeathCallback) 
@@ -414,6 +462,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         }
         printf("Created enemy: %s at position (%.2f, %.2f, %.2f)\n",
             enemyType.c_str(), pEnemy->GetPos().x, pEnemy->GetPos().y, pEnemy->GetPos().z);
+        m_totalSpawnedCount++;
     }
 
     return pEnemy;
@@ -462,6 +511,7 @@ std::shared_ptr<EnemyRunner> WaveManager::GetPooledRunnerEnemy()
     m_enemyRunnerPool.push_back(pEnemy);
     return pEnemy;
 }
+
 std::shared_ptr<EnemyAcid> WaveManager::GetPooledAcidEnemy() 
 {
 	// プールから空きのある敵を探す
@@ -492,6 +542,8 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
     m_spawnTimer = 0.0f;
     m_isWaveActive = true;
 
+    printf("Starting Wave %d\n", m_currentWave);
+
     // 現在のwaveのデータを取得
     std::vector<WaveData> currentWaveData;
     for (const WaveData& waveData : m_waveDataList)
@@ -502,33 +554,56 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
         }
     }
 
+    printf("Found %d enemy types for Wave %d\n", static_cast<int>(currentWaveData.size()), m_currentWave);
+
     // 出現情報を作成
-    float currentTime = 0.0f;
     for (const WaveData& waveData : currentWaveData)
     {
+        printf("Processing %s: Count %d, StartTime %.1f, Interval %.1f\n",
+            waveData.enemyType.c_str(), waveData.count, waveData.startTime, waveData.spawnInterval);
+
         for (int i = 0; i < waveData.count; ++i)
         {
             EnemySpawnInfo spawnInfo;
             spawnInfo.enemyType = waveData.enemyType;
             spawnInfo.spawnPos = GenerateRandomSpawnPos(playerPos);
-            spawnInfo.spawnTime = currentTime + waveData.delay + (i * waveData.spawnInterval);
+            spawnInfo.spawnTime = waveData.startTime + (i * waveData.spawnInterval);
             spawnInfo.isSpawned = false;
 
             m_spawnInfoList.push_back(spawnInfo);
         }
     }
 
-    // デバッグ出力
-    printf("Starting Wave %d with %zu enemies\n", m_currentWave, m_spawnInfoList.size());
+    // spawnTimeで昇順ソート
+    std::sort(m_spawnInfoList.begin(), m_spawnInfoList.end(), [](const EnemySpawnInfo& a, const EnemySpawnInfo& b) {
+        return a.spawnTime < b.spawnTime;
+        });
+
+    // デバッグ出力：スポーンスケジュール
+    printf("Wave %d spawn schedule (%d enemies total):\n", m_currentWave, static_cast<int>(m_spawnInfoList.size()));
+    for (size_t i = 0; i < m_spawnInfoList.size(); ++i) {
+        const auto& info = m_spawnInfoList[i];
+        printf("  [%d] %s at %.2fs (%.2f, %.2f, %.2f)\n",
+            static_cast<int>(i), info.enemyType.c_str(), info.spawnTime,
+            info.spawnPos.x, info.spawnPos.y, info.spawnPos.z);
+    }
 }
 
 // 次のウェーブに進む
 void WaveManager::NextWave()
 {
-    printf("Wave %d completed, moving to Wave %d\n", m_currentWave, m_currentWave + 1);
-
+    // 現在のウェーブのインターバルを取得
+    float interval = 0.0f;
+    for (const auto& wave : m_waveDataList) 
+    {
+        if (wave.wave == m_currentWave)
+        {
+            interval = (std::max)(interval, wave.waveInterval);
+        }
+    }
     m_currentWave++;
     m_isWaveActive = false;
+    m_waveIntervalTimer = interval;
 
     if (m_currentWave > 3)
     {
@@ -552,7 +627,6 @@ bool WaveManager::IsCurrentWaveCleared()
         }
         return true;
     }
-
     return false;
 }
 
@@ -581,17 +655,17 @@ void WaveManager::DrawDebugInfo()
     // 現在のwave情報
     char waveInfo[256];
     sprintf_s(waveInfo, "Wave:%d/3", m_currentWave);
-    DrawString(startX, y, waveInfo, GetColor(255, 255, 255));
+    DrawString(startX, y, waveInfo, 0xffffff);
 
     // 経過時間
     char timeInfo[256];
     sprintf_s(timeInfo, "Timer:%.1fs", m_spawnTimer);
-    DrawString(startX + itemSpacing, y, timeInfo, GetColor(255, 255, 255));
+    DrawString(startX + itemSpacing, y, timeInfo, 0xffffff);
 
     // 敵の出現情報
     char spawnInfo[256];
     sprintf_s(spawnInfo, "Spawn:%d/%d", m_currentSpawnIndex, m_spawnInfoList.size());
-    DrawString(startX + itemSpacing * 2, y, spawnInfo, GetColor(255, 255, 255));
+    DrawString(startX + itemSpacing * 2, y, spawnInfo, 0xffffff);
 
     // 生存している敵の数
     int aliveEnemies = 0;
@@ -604,10 +678,10 @@ void WaveManager::DrawDebugInfo()
     }
     char enemyInfo[256];
     sprintf_s(enemyInfo, "Alive:%d", aliveEnemies);
-    DrawString(startX + itemSpacing * 3, y, enemyInfo, GetColor(255, 255, 255));
+    DrawString(startX + itemSpacing * 3, y, enemyInfo, 0xffffff);
 
     // 総敵数
     char totalEnemyInfo[256];
-    sprintf_s(totalEnemyInfo, "Total:%d", m_enemyList.size());
-    DrawString(startX + itemSpacing * 4, y, totalEnemyInfo, GetColor(255, 255, 255));
+    sprintf_s(totalEnemyInfo, "Total:%d", m_totalSpawnedCount);
+    DrawString(startX + itemSpacing * 4, y, totalEnemyInfo, 0xffffff);
 }

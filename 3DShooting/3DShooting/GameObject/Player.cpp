@@ -251,7 +251,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 				if (!enemy) continue;
 
 				// 敵の更新処理
-				enemy->Update(m_bullets, tackleInfo, *this);
+				enemy->Update(m_bullets, tackleInfo, *this, enemyList);
 			}
 
 #ifdef _DEBUG
@@ -297,7 +297,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		for (EnemyBase* enemy : enemyList)
 		{
 			if (!enemy) continue;
-			enemy->Update(m_bullets, tackleInfo, *this);
+			enemy->Update(m_bullets, tackleInfo, *this, enemyList);
 		}
 	
 		// 弾の更新
@@ -558,8 +558,8 @@ void Player::Draw()
 		DeleteGraph(subScreen);
 
 		// 標準出力
-		printf("[DebugCamera] Pos:(%.1f, %.1f, %.1f)  Target:(%.1f, %.1f, %.1f)  FOV:%.1f\n",
-			pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
+		//printf("[DebugCamera] Pos:(%.1f, %.1f, %.1f)  Target:(%.1f, %.1f, %.1f)  FOV:%.1f\n",
+			//pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
 	}
 #endif
 }

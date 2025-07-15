@@ -37,6 +37,14 @@ public:
 	
 	void SetCameraSensitivity(float sensitivity);
 
+	// プレイヤーの弾が敵にヒットした際に呼ばれる(ヒットマーク表示用)
+	void OnPlayerBulletHitEnemy(EnemyBase::HitPart part);
+
+public:
+	bool m_wave1FirstAidDropped;
+	bool m_wave1AmmoDropped;
+	int m_wave1DropCount;
+
 private:
 	void DrawPauseMenu();
 
@@ -60,14 +68,7 @@ private:
 	int   m_dotHandle;            
 
 	float m_cameraSensitivity;
-    int m_hitMarkTimer = 0;
-    static constexpr int kHitMarkDuration = 10;
+    int m_hitMarkTimer;
     EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
-public:
-    // プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
-    void OnPlayerBulletHitEnemy(EnemyBase::HitPart part);
-    bool m_wave1FirstAidDropped = false;
-    bool m_wave1AmmoDropped = false;
-    int m_wave1DropCount = 0;
 };
 

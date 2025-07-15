@@ -20,7 +20,7 @@ public:
 	virtual ~EnemyBase() = default;
 
 	virtual void Init() abstract;
-	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player) abstract;
+	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList) abstract;
 	virtual void Draw() abstract;
 
 	virtual void SetModelHandle(int handle) {}
