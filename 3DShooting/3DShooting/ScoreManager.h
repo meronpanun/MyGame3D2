@@ -18,6 +18,9 @@ public:
     // スコア取得
     int GetScore() const;
 
+    // ゲーム全体の累計スコア取得
+    int GetTotalScore() const { return m_totalScore; }
+
     // 現在のコンボ数取得
     int GetCombo() const;
 
@@ -30,12 +33,12 @@ public:
 
 private:
     ScoreManager();
-    int m_score = 0;
-    int m_combo = 0;
-    int m_comboTimer = 0; // コンボ継続猶予タイマー（フレーム単位）
-    static constexpr int kComboGraceFrame = 90; // 1.5秒（60fps換算）
-    int m_bodyKillCount = 0;
-    int m_headKillCount = 0;
-    float m_lastComboRate = 1.0f;
+    int m_score;
+    int m_totalScore; // ゲーム全体の累計スコア
+    int m_combo;
+    int m_comboTimer; // コンボ継続猶予タイマー（フレーム単位）
+    int m_bodyKillCount;
+    int m_headKillCount;
+    float m_lastComboRate;
 };
 

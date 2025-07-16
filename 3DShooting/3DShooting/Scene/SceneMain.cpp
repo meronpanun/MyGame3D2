@@ -85,6 +85,9 @@ SceneMain* SceneMain::Instance()
     return g_sceneMainInstance;
 }
 
+// static変数の定義
+float SceneMain::s_elapsedTime = 0.0f;
+
 SceneMain::SceneMain() :
     m_isPaused(false),
     m_isEscapePressed(false),
@@ -121,6 +124,9 @@ void SceneMain::Init()
 {
     SetUseASyncLoadFlag(true); // 非同期読み込みを有効化
     SetWaitVSyncFlag(true); // VSync有効化で描画負荷を安定化
+
+    // 経過時間リセット
+    s_elapsedTime = 0.0f;
 
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
@@ -279,6 +285,9 @@ SceneBase* SceneMain::Update()
 		return this;
     }
 
+    // 経過時間を加算
+    s_elapsedTime += 1.0f / 60.0f;
+
 	// デバックウィンドウが表示されている場合は、更新をスキップ
     if (DebugUtil::IsDebugWindowVisible())
     {
@@ -355,6 +364,11 @@ SceneBase* SceneMain::Update()
 
     // WaveManagerの更新
     m_pWaveManager->Update();
+
+    // すべてのウェーブが完了していたらリザルトシーンへ遷移
+    if (m_pWaveManager->GetCurrentWave() > 3) {
+        return new SceneResult();
+    }
 
     // WaveManagerの敵を一括更新
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);

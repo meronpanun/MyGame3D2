@@ -55,6 +55,10 @@ public:
 private:
 	void DrawPauseMenu();
 
+public:
+	// ゲーム経過時間（秒）を取得
+	static float GetElapsedTime() { return s_elapsedTime; }
+
 private:
 	std::unique_ptr<Player> m_pPlayer;
 	std::shared_ptr<Camera> m_pCamera;
@@ -89,5 +93,7 @@ private:
 	std::deque<ScorePopup> m_scorePopups;
 	int m_totalScorePopupTimer; // 合計スコア表示用タイマー
 	int m_lastTotalScorePopupValue; // 合計スコアポップアップ用の一時保存値
+
+	static float s_elapsedTime;
 };
 
