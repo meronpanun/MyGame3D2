@@ -75,7 +75,11 @@ Player::Player() :
 	m_tackleDir(VGet(0, 0, 0)),
 	m_isTackling(false),
 	m_tackleCooldown(0),
-	m_tackleId(0)
+	m_tackleId(0),
+	m_damageEffectAlpha(0.0f),
+	m_damageEffectTimer(0.0f),
+	m_healEffectAlpha(0.0f),
+	m_healEffectTimer(0.0f)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -562,6 +566,53 @@ void Player::Draw()
 			//pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
 	}
 #endif
+
+	// ダメージエフェクト描画（赤）
+	DrawEffectFeedback(m_damageEffect);
+
+	// 回復エフェクト描画(緑)
+	DrawEffectFeedback(m_healEffect);
+
+    // 弾薬エフェクト描画(オレンジ)
+    DrawEffectFeedback(m_ammoEffect);
+}
+
+void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
+{
+    if (effect.timer > 0.0f && effect.alpha > 0.0f)
+    {
+        int screenW, screenH;
+        GetScreenState(&screenW, &screenH, nullptr);
+        int centerX = screenW / 2;
+        int centerY = screenH / 2;
+        float maxDistance = sqrtf((float)(screenW * screenW + screenH * screenH)) * 0.5f;
+        float edgeWidth = maxDistance * 0.4f;
+        const int stepSize = 8;
+        for (int y = 0; y < screenH; y += stepSize)
+        {
+            for (int x = 0; x < screenW; x += stepSize)
+            {
+                float distanceFromCenter = sqrtf((float)((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)));
+                float distanceFromEdge = maxDistance - distanceFromCenter;
+                float edgeIntensity = 0.0f;
+                if (distanceFromEdge < edgeWidth)
+                {
+                    edgeIntensity = 1.0f - (distanceFromEdge / edgeWidth);
+                }
+                int alpha = static_cast<int>(effect.alpha * 180 * edgeIntensity);
+                if (alpha > 0)
+                {
+                    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+                    DrawBox(x, y, x + stepSize, y + stepSize, GetColor(effect.colorR, effect.colorG, effect.colorB), TRUE);
+                }
+            }
+        }
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+        // エフェクトの減衰処理
+        effect.alpha -= 1.0f / effect.duration;
+        if (effect.alpha < 0.0f) effect.alpha = 0.0f;
+        effect.timer -= 1.0f;
+    }
 }
 
 // ダメージを受ける処理
@@ -572,6 +623,8 @@ void Player::TakeDamage(float damage)
 	{
 		m_health = 0.0f; // 体力が負にならないように制限
 	}
+	// ダメージエフェクトを発動
+	m_damageEffect.Trigger(30.0f, 255, 0, 0); // 赤
 }
 
 // 弾の取得
@@ -783,20 +836,23 @@ void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
 
 void Player::AddHp(float value)
 {
-	m_health += value; // 体力を加算
-	if (m_health > m_maxHealth)
-	{
-		m_health = m_maxHealth; // 最大体力を超えないように制限
-	}
-
-	if (m_health < 0.0f)
-	{
-		m_health = 0.0f; // 体力が負にならないように制限
-	}
+    m_health += value; // 体力を加算
+    if (m_health > m_maxHealth)
+    {
+        m_health = m_maxHealth; // 最大体力を超えないように制限
+    }
+    if (m_health < 0.0f)
+    {
+        m_health = 0.0f; // 体力が負にならないように制限
+    }
+    // 回復時にエフェクトを発動
+    m_healEffect.Trigger(45.0f, 0, 255, 0); // 緑
 }
 
 void Player::AddAmmo(int value)
 {
     m_ammo += value;
     if (m_ammo < 0) m_ammo = 0;
+    // 弾薬取得時にエフェクトを発動
+    m_ammoEffect.Trigger(45.0f, 255, 128, 0); // オレンジ
 }

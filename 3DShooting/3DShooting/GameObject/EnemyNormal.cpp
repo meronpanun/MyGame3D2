@@ -75,6 +75,12 @@ void EnemyNormal::Init()
     m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
 
+    m_isAlive = true;
+    m_isDeadAnimPlaying = false;
+    m_isItemDropped = false;
+    m_hasAttackHit = false;
+    m_attackEndDelayTimer = 0;
+
     // ここで一度「絶対にWalkでない値」にリセット
     m_currentAnimState = AnimState::Dead;
 

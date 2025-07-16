@@ -1,4 +1,7 @@
 ﻿Wave,EnemyType,Count,SpawnInterval,StartTime,WaveInterval
-1,NormalEnemy,7,0.5,0,0
-2,NormalEnemy,2,0.5,0,5
-3,NormalEnemy,3,0.5,0,5
+1,NormalEnemy,7,0,0,0
+2,NormalEnemy,2,0,0,5
+2,RunnerEnemy,4,0.5,2,0
+3,NormalEnemy,3,0,0,5
+3,RunnerEnemy,3,0.5,1,0
+3,AcidEnemy,3,0.5,2,0

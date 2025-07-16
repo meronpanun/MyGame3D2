@@ -124,6 +124,12 @@ public:
 	// プレイヤーのカプセルコライダー取得
 	std::shared_ptr<CapsuleCollider> GetBodyCollider() const;
 
+	// 回復エフェクトを発動する関数
+	void TriggerHealEffect();
+
+	// 弾薬エフェクトを発動する関数
+	void TriggerAmmoEffect();
+
 private:
 	/// <summary>
 	/// 弾を発射する
@@ -194,5 +200,30 @@ private:
 	bool  m_isWasRunning;  // 前回の移動状態が走っていたかどうか
 	bool  m_hasShot;       // プレイヤーがショット可能かどうか
 	bool  m_isTackling;    // タックル中かどうか
+	float m_damageEffectTimer; // ダメージエフェクト用タイマー
+	float m_damageEffectAlpha; // ダメージエフェクト用アルファ値
+	float m_healEffectTimer;
+	float m_healEffectAlpha; // ヒールエフェクト用アルファ値
+	float m_ammoEffectTimer = 0.0f; // 弾薬エフェクト用タイマー
+	float m_ammoEffectAlpha = 0.0f; // 弾薬エフェクト用アルファ値
+
+    struct EffectFeedback {
+        float timer = 0.0f;
+        float alpha = 0.0f;
+        int colorR = 255;
+        int colorG = 0;
+        int colorB = 0;
+        float duration = 45.0f;
+        void Trigger(float d, int r, int g, int b) {
+            timer = d;
+            alpha = 1.0f;
+            duration = d;
+            colorR = r; colorG = g; colorB = b;
+        }
+    };
+    EffectFeedback m_damageEffect;
+    EffectFeedback m_healEffect;
+    EffectFeedback m_ammoEffect;
+    void DrawEffectFeedback(EffectFeedback& effect);
 };
 

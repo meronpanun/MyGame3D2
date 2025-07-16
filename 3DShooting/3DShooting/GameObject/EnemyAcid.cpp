@@ -78,6 +78,12 @@ void EnemyAcid::Init()
     m_attackCooldownMax = kAttackCooldownMax;
     m_attackCooldown = 0; // 最初は攻撃可能にしておく
 
+    m_isAlive = true;
+    m_isDeadAnimPlaying = false;
+    m_isItemDropped = false;
+    m_hasAttacked = false;
+    m_attackEndDelayTimer = 0;
+
     // ここで一度「絶対にRunでない値」にリセット
     m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため
 

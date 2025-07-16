@@ -67,25 +67,31 @@ EnemyRunner::~EnemyRunner()
 
 void EnemyRunner::Init()
 {
-	m_attackCooldownMax = kAttackCooldownMax;
+    m_attackCooldownMax = kAttackCooldownMax;
 
-	// CSVからRunnerEnemyのTransform情報を取得
-	auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-	for (const auto& data : dataList)
-	{
-		if (data.name == "RunnerEnemy") 
-		{
-			MV1SetRotationXYZ(m_modelHandle, data.rot);
-			MV1SetScale(m_modelHandle, data.scale);
-			m_attackPower = data.attack;
-			m_hp = data.hp;
-			m_chaseSpeed = data.chaseSpeed;
-			break;
-		}
-	}
+    m_isAlive = true;
+    m_isDeadAnimPlaying = false;
+    m_isItemDropped = false;
+    m_hasAttackHit = false;
+    m_attackEndDelayTimer = 0;
 
-	m_currentAnimState = AnimState::Dead;
-	ChangeAnimation(AnimState::Run, true);
+    // CSVからRunnerEnemyのTransform情報を取得
+    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+    for (const auto& data : dataList)
+    {
+        if (data.name == "RunnerEnemy") 
+        {
+            MV1SetRotationXYZ(m_modelHandle, data.rot);
+            MV1SetScale(m_modelHandle, data.scale);
+            m_attackPower = data.attack;
+            m_hp = data.hp;
+            m_chaseSpeed = data.chaseSpeed;
+            break;
+        }
+    }
+
+    m_currentAnimState = AnimState::Dead;
+    ChangeAnimation(AnimState::Run, true);
 }
 
 void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
