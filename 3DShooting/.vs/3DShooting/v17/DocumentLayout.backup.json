@@ -7,16 +7,56 @@
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\USERS\\\u7531\u7559\u90E8 \u745B\u4EBA\\DOCUMENTS\\MYGAME3D2\\3DSHOOTING\\DXLIB_VC\\DXLIB.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:DXLIB_VC\\DXLIB.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneTitle.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneTitle.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyNormal.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBoss.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyBoss.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyBase.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyRunner.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyAcid.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyAcid.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyAcid.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyAcid.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyBase.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyNormal.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyRunner.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneMain.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\WaveManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\WaveManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\USERS\\\u7531\u7559\u90E8 \u745B\u4EBA\\DOCUMENTS\\MYGAME3D2\\3DSHOOTING\\DXLIB_VC\\DXLIB.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:DXLIB_VC\\DXLIB.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneResult.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -41,22 +81,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\Player.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\Player.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyNormal.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyBase.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyRunner.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\GameObject\\EnemyNormal.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneManager.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -92,7 +116,7 @@
         },
         {
           "DockedWidth": 295,
-          "SelectedChildIndex": 11,
+          "SelectedChildIndex": 17,
           "Children": [
             {
               "$type": "Bookmark",
@@ -100,20 +124,98 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "DxLib.h",
-              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\DxLib_VC\\DxLib.h",
-              "RelativeDocumentMoniker": "DxLib_VC\\DxLib.h",
-              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\DxLib_VC\\DxLib.h",
-              "RelativeToolTip": "DxLib_VC\\DxLib.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "SceneTitle.cpp",
+              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneTitle.cpp",
+              "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneTitle.cpp",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneTitle.cpp",
+              "RelativeToolTip": "3DShooting\\Scene\\SceneTitle.cpp",
+              "ViewState": "AgIAAB8AAAAAAAAAAAAAADcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-07-16T06:48:55.756Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "EnemyBoss.h",
+              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBoss.h",
+              "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyBoss.h",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBoss.h",
+              "RelativeToolTip": "3DShooting\\GameObject\\EnemyBoss.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-16T05:25:38.953Z",
+              "WhenOpened": "2025-07-16T06:44:26.582Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "EnemyBase.h",
+              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.h",
+              "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyBase.h",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.h",
+              "RelativeToolTip": "3DShooting\\GameObject\\EnemyBase.h",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAUwEMAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-07-16T06:01:47.159Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
+              "Title": "EnemyRunner.cpp",
+              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.cpp",
+              "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyRunner.cpp",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.cpp",
+              "RelativeToolTip": "3DShooting\\GameObject\\EnemyRunner.cpp",
+              "ViewState": "AgIAACkCAAAAAAAAAAAowDYCAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-07-16T06:01:29.159Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "EnemyAcid.h",
+              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyAcid.h",
+              "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyAcid.h",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyAcid.h",
+              "RelativeToolTip": "3DShooting\\GameObject\\EnemyAcid.h",
+              "ViewState": "AgIAAFQAAAAAAAAAAAAAACAAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-07-16T05:59:32.142Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "EnemyAcid.cpp",
+              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyAcid.cpp",
+              "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyAcid.cpp",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyAcid.cpp",
+              "RelativeToolTip": "3DShooting\\GameObject\\EnemyAcid.cpp",
+              "ViewState": "AgIAAEYCAAAAAAAAAADwv1wCAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-07-16T05:59:13.361Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DxLib.h",
+              "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\DxLib_VC\\DxLib.h",
+              "RelativeDocumentMoniker": "DxLib_VC\\DxLib.h",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\DxLib_VC\\DxLib.h",
+              "RelativeToolTip": "DxLib_VC\\DxLib.h",
+              "ViewState": "AgIAAEAKAAAAAAAAAAAUwFUKAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-07-16T05:53:16.842Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
               "Title": "ScoreManager.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\ScoreManager.cpp",
               "RelativeDocumentMoniker": "3DShooting\\ScoreManager.cpp",
@@ -121,12 +223,11 @@
               "RelativeToolTip": "3DShooting\\ScoreManager.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-16T02:37:31.579Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-16T02:37:31.579Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 15,
               "Title": "ScoreManager.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\ScoreManager.h",
               "RelativeDocumentMoniker": "3DShooting\\ScoreManager.h",
@@ -134,38 +235,37 @@
               "RelativeToolTip": "3DShooting\\ScoreManager.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-16T02:36:58.763Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-16T02:36:58.763Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 11,
               "Title": "EnemyRunner.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.h",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyRunner.h",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.h",
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyRunner.h",
-              "ViewState": "AgIAAA8AAAAAAAAAAADwvxgAAAAKAAAAAAAAAA==",
+              "ViewState": "AgIAADwAAAAAAAAAAAAUwF0AAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-07-15T07:39:08.135Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 10,
               "Title": "EnemyNormal.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.h",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyNormal.h",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.h",
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyNormal.h",
-              "ViewState": "AgIAAAkAAAAAAAAAAADwvxkAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAADMAAAAAAAAAAADwvxkAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-07-15T07:39:00.981Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 17,
               "Title": "TransformDataLoader.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\TransformDataLoader.cpp",
               "RelativeDocumentMoniker": "3DShooting\\TransformDataLoader.cpp",
@@ -173,12 +273,11 @@
               "RelativeToolTip": "3DShooting\\TransformDataLoader.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-15T07:24:18.259Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-15T07:24:18.259Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 18,
               "Title": "TransformDataLoader.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\TransformDataLoader.h",
               "RelativeDocumentMoniker": "3DShooting\\TransformDataLoader.h",
@@ -186,12 +285,11 @@
               "RelativeToolTip": "3DShooting\\TransformDataLoader.h",
               "ViewState": "AgIAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-15T07:24:14.511Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-15T07:24:14.511Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 19,
               "Title": "Player.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\Player.h",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\Player.h",
@@ -199,12 +297,11 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.h",
               "ViewState": "AgIAAL8AAAAAAAAAAAAowOIAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-15T07:18:04.548Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-15T07:18:04.548Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 20,
               "Title": "SceneManager.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneManager.h",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneManager.h",
@@ -216,15 +313,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 3,
               "Title": "EnemyNormal.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.cpp",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyNormal.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyNormal.cpp",
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyNormal.cpp",
-              "ViewState": "AgIAACUAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAACUCAAAAAAAAAAAUwEECAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-14T07:29:04.27Z"
+              "WhenOpened": "2025-07-14T07:29:04.27Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -232,16 +330,16 @@
               "Title": "SceneMain.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.cpp",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneMain.cpp",
-              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.cpp",
-              "RelativeToolTip": "3DShooting\\Scene\\SceneMain.cpp",
-              "ViewState": "AgIAAO4AAAAAAAAAAAAowAQBAAAeAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.cpp*",
+              "RelativeToolTip": "3DShooting\\Scene\\SceneMain.cpp*",
+              "ViewState": "AgIAANwBAAAAAAAAAAAcwPIBAABYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-07-14T07:09:48.521Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 23,
               "Title": "AmmoItem.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\AmmoItem.cpp",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\AmmoItem.cpp",
@@ -253,7 +351,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 21,
               "Title": "AmmoItem.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\AmmoItem.h",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\AmmoItem.h",
@@ -261,12 +359,11 @@
               "RelativeToolTip": "3DShooting\\GameObject\\AmmoItem.h",
               "ViewState": "AgIAAAIAAAAAAAAAAAAlwBQAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-14T07:06:38.728Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-14T07:06:38.728Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 14,
               "Title": "SceneResult.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneResult.cpp",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneResult.cpp",
@@ -274,12 +371,11 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneResult.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-14T05:56:44.182Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-14T05:56:44.182Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 22,
               "Title": "ItemBase.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\ItemBase.h",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\ItemBase.h",
@@ -291,19 +387,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 5,
               "Title": "EnemyBase.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.cpp",
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyBase.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.cpp",
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyBase.cpp",
-              "ViewState": "AgIAAEgAAAAAAAAAAAAowB0AAAAhAAAAAAAAAA==",
+              "ViewState": "AgIAAD8AAAAAAAAAAAAUwE4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-14T02:21:57.497Z"
+              "WhenOpened": "2025-07-14T02:21:57.497Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 13,
               "Title": "WaveManager.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\WaveManager.cpp",
               "RelativeDocumentMoniker": "3DShooting\\WaveManager.cpp",
@@ -311,12 +408,11 @@
               "RelativeToolTip": "3DShooting\\WaveManager.cpp",
               "ViewState": "AgIAAMYAAAAAAAAAAAAAAFAAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-13T10:08:45.837Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-13T10:08:45.837Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 12,
               "Title": "SceneMain.h",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA\\Documents\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.h",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneMain.h",
@@ -324,8 +420,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.h",
               "ViewState": "AgIAAEUAAAAAAAAAAAAUwFgAAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-08T03:29:43.782Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-08T03:29:43.782Z"
             }
           ]
         }

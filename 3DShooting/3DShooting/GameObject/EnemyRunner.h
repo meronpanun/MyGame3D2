@@ -59,6 +59,9 @@ public:
 	void SetModelHandle(int handle);
 	int GetModelHandle() const { return m_modelHandle; }
 
+	// ダメージ処理
+	void TakeDamage(float damage) override;
+
 private:
 	void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数
 

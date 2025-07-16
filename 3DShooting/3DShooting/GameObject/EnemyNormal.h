@@ -69,6 +69,9 @@ public:
 	/// <returns>モデルハンドル</returns>
     int GetModelHandle() const { return m_modelHandle; }
 
+    // ダメージ処理
+    void TakeDamage(float damage) override;
+
 private:
     /// <summary>
 	/// アニメーションを変更する

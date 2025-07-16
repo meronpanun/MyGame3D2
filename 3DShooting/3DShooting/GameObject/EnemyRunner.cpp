@@ -165,13 +165,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     {
         if (!m_isDeadAnimPlaying) 
         {
-            // スコア加算処理（死亡時に一度だけ）
-            bool isHeadShot = (m_lastHitPart == HitPart::Head);
-            int addScore = ScoreManager::Instance().AddScore(isHeadShot);
-            if (SceneMain::Instance()) {
-                SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
-            }
-            // ここまで
+            // スコア加算処理はTakeDamageで行うのでここでは不要
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
@@ -568,4 +562,21 @@ void EnemyRunner::SetModelHandle(int handle)
 {
     if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
     m_modelHandle = MV1DuplicateModel(handle);
+}
+
+void EnemyRunner::TakeDamage(float damage)
+{
+    m_hp -= damage;
+    if (m_hp <= 0.0f) // 死亡時一度だけ
+    {
+        m_hp = 0.0f;
+        m_isAlive = false;
+        if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
+        bool isHeadShot = (m_lastHitPart == HitPart::Head);
+        int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+        if (SceneMain::Instance())
+		{
+            SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
+        }
+    }
 }

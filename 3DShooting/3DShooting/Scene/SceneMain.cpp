@@ -40,11 +40,9 @@ namespace
     // カメラの回転速度
 	constexpr float kCameraRotaSpeed = 0.001f; 
 
-    // スカイドームのY座標
-	constexpr float kSkyDomePosY = 200.0f;  
-
-    // スカイドームのスケール
-	constexpr float kSkyDomeScale = 100.0f; 
+    // スカイドーム関連
+	constexpr float kSkyDomePosY  = 200.0f; // スカイドームのY座標
+	constexpr float kSkyDomeScale = 100.0f; // スカイドームのスケール
 
     // アイテムドロップ時の初期上昇量
     constexpr float kDropInitialHeight = 140.0f; 
@@ -60,17 +58,24 @@ namespace
 	constexpr float kAmbientLightA = 1.0f; // 環境光のアルファ成分
 
     // ヒットマーク関連
-	constexpr int kHitMarkLineLength    = 8; // ラインの長さ
-	constexpr int kHitMarkCenterSpacing = 4; // 中央の間隔幅
-	constexpr int kHitMarkLineThickness = 2; // ラインの太さ
-    constexpr int kHitMarkDuration = 10;     // 表示時間
+	constexpr int kHitMarkLineLength    = 8;  // ラインの長さ
+	constexpr int kHitMarkCenterSpacing = 4;  // 中央の間隔幅
+	constexpr int kHitMarkLineThickness = 2;  // ラインの太さ
+    constexpr int kHitMarkDuration      = 10; // 表示時間
 
 	// スコアポップアップ関連
 	constexpr int kScorePopupX        = 80;  // スコアポップアップのX座標
 	constexpr int kScorePopupY        = 60;  // スコアポップアップのY座標
 	constexpr int kPopupOffsetY       = 32;  // ポップアップのYオフセット
-    constexpr int kPopupDuration      = 60;  // 1秒間表示
-    constexpr int kTotalScoreDuration = 120; 
+    constexpr int kPopupDuration      = 60;  // 表示時間
+    constexpr int kTotalScoreDuration = 120; // 合計スコアの表示時間
+
+	// レティクルサイズ
+	constexpr int kDotSize = 64; 
+
+    // 画面中央サイズ
+	constexpr int kScreenCenterX = Game::kScreenWidth * 0.5f;  // 画面中央のX座標
+	constexpr int kScreenCenterY = Game::kScreenHeigth * 0.5f; // 画面中央のY座標
 }
 
 SceneMain* g_sceneMainInstance = nullptr;
@@ -114,8 +119,9 @@ SceneMain::~SceneMain()
 
 void SceneMain::Init()
 {
-    //SetUseASyncLoadFlag(TRUE); // 非同期読み込みを有効化
+    SetUseASyncLoadFlag(true); // 非同期読み込みを有効化
     SetWaitVSyncFlag(true); // VSync有効化で描画負荷を安定化
+
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
 
@@ -246,6 +252,8 @@ void SceneMain::Init()
 
 	// 環境光の設定
     SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
+
+	SetUseASyncLoadFlag(false); // 非同期読み込みを無効化
 }
 
 // スコアポップアップを追加する
@@ -263,6 +271,14 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 
 SceneBase* SceneMain::Update()
 {
+    // 非同期読み込みが終わるまではupdateの処理を行わない
+    if (GetASyncLoadNum() > 0)
+    {
+        // グラフィックを使った処理が行われる可能性があるので
+        // 最初にチェックしてロードが終わっていなければここでupdate終了
+		return this;
+    }
+
 	// デバックウィンドウが表示されている場合は、更新をスキップ
     if (DebugUtil::IsDebugWindowVisible())
     {
@@ -379,15 +395,16 @@ void SceneMain::Draw()
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
 
-    //// 非同期ロード中はローディング表示
-    //if (GetASyncLoadNum() > 0) {
-    //    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    //    SetFontSize(48);
-    //    DrawFormatString(screenW/2-150, screenH/2, 0xffffff, "Now Loading...");
-    //    SetFontSize(16);
-    //    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    //    return;
-    //}
+    // 非同期ロード中はローディング表示
+    if (GetASyncLoadNum() > 0)
+    {
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+        SetFontSize(48);
+        DrawFormatString(screenW * 0.5f, screenH * 0.5f, 0xffffff, "Now Loading...");
+        SetFontSize(16);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+        return;
+    }
 
     m_pStage->Draw();
 
@@ -403,18 +420,15 @@ void SceneMain::Draw()
 
     m_pPlayer->Draw();
 
-    constexpr int kDotSize = 64;
-    int cx = screenW * 0.5f;
-    int cy = screenH * 0.5f;
-    DrawGraph(cx - kDotSize * 0.5f, cy - kDotSize * 0.5f, m_dotHandle, true);
+    DrawGraph(kScreenCenterX - kDotSize * 0.5f, kScreenCenterY - kDotSize * 0.5f, m_dotHandle, true);
 
     // スコアポップアップ描画
     bool showScorePopup = !m_scorePopups.empty();
     bool showTotalScoreOnly = (m_totalScorePopupTimer > 0);
     if (showScorePopup || showTotalScoreOnly) 
     {
-        int popupBaseX = cx + kScorePopupX; 
-        int popupBaseY = cy + kScorePopupY;
+        int popupBaseX = kScreenCenterX + kScorePopupX;
+        int popupBaseY = kScreenCenterY + kScorePopupY;
         int idx = 0;
         int totalScore = ScoreManager::Instance().GetScore();
         int combo      = ScoreManager::Instance().GetCombo();
@@ -482,24 +496,24 @@ void SceneMain::Draw()
     if (m_hitMarkTimer > 0)
     {
         // 赤 or 黄色
-        unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffff40 : 0xff2020;
+        unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffd700 : 0xff4500;
 
         // 左上→右下
-        DrawLine(cx - kHitMarkLineLength, cy - kHitMarkLineLength, 
-            cx - kHitMarkCenterSpacing, cy - kHitMarkCenterSpacing, 
+        DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength, 
+            kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY - kHitMarkCenterSpacing, 
             color, kHitMarkLineThickness);
 
-        DrawLine(cx + kHitMarkCenterSpacing, cy + kHitMarkCenterSpacing, 
-            cx + kHitMarkLineLength, cy + kHitMarkLineLength, 
+        DrawLine(kScreenCenterX + kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing, 
+            kScreenCenterX + kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength, 
             color, kHitMarkLineThickness);
 
         // 左下→右上
-        DrawLine(cx - kHitMarkLineLength, cy + kHitMarkLineLength, 
-            cx - kHitMarkCenterSpacing, cy + kHitMarkCenterSpacing, 
+        DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength, 
+            kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing, 
             color, kHitMarkLineThickness);
 
-        DrawLine(cx + kHitMarkCenterSpacing, cy - kHitMarkCenterSpacing,
-            cx + kHitMarkLineLength, cy - kHitMarkLineLength, 
+        DrawLine(kScreenCenterX + kHitMarkCenterSpacing, kScreenCenterY - kHitMarkCenterSpacing,
+            kScreenCenterX + kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength, 
             color, kHitMarkLineThickness);
     }
 

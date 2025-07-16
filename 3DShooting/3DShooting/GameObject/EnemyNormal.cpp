@@ -77,10 +77,11 @@ void EnemyNormal::Init()
     m_attackCooldownMax = kAttackCooldownMax;
 
     m_isAlive = true;
-    m_isDeadAnimPlaying = false;
     m_isItemDropped = false;
-    m_hasAttackHit = false;
-    m_attackEndDelayTimer = 0;
+    m_isDeadAnimPlaying = false; // 死亡アニメーションフラグをリセット
+    m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
+    m_hitDisplayTimer = 0; // ヒット表示タイマーもリセット
+    m_lastTackleId = -1; // タックルIDもリセット
 
     // ここで一度「絶対にWalkでない値」にリセット
     m_currentAnimState = AnimState::Dead;
@@ -156,13 +157,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     {
         if (!m_isDeadAnimPlaying) 
         {
-            // スコア加算処理（死亡時に一度だけ）
-            bool isHeadShot = (m_lastHitPart == HitPart::Head);
-            int addScore = ScoreManager::Instance().AddScore(isHeadShot);
-            if (SceneMain::Instance()) {
-                SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
-            }
-            // ここまで
+            // スコア加算処理はTakeDamageで行うのでここでは不要
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
@@ -184,18 +179,22 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                 m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
             }
             // アイテムドロップと死亡コールバックを呼び出し
-            if (!m_isItemDropped && m_onDropItem) {
+            if (!m_isItemDropped && m_onDropItem) 
+            {
                 m_onDropItem(m_pos);
                 m_onDropItem = nullptr;
                 m_isItemDropped = true;
             }
-            if (m_onDeathCallback) {
+            if (m_onDeathCallback) 
+            {
                 m_onDeathCallback(m_pos);
                 m_onDeathCallback = nullptr; // 一度だけ呼び出す
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
             SetActive(false); // プールに戻す
-        } else {
+        } 
+        else 
+        {
             m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         return;
@@ -361,26 +360,31 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         }
     }
 
-    // --- 敵同士の押し出し処理（横方向への広がり） ---
-    for (EnemyBase* other : enemyList) {
+    // 敵同士の押し出し処理(横方向への広がり)
+    for (EnemyBase* other : enemyList)
+    {
         if (!other) continue;
         // 自分自身は除外
         if (other == this) continue;
+
         // 位置取得
         VECTOR otherPos = other->GetPos();
         VECTOR diff = VSub(m_pos, otherPos);
+
         diff.y = 0.0f;
         float distSq = VDot(diff, diff);
         float minDist = kBodyColliderRadius * 2.0f; // 体の半径×2
-        if (distSq < minDist * minDist && distSq > 0.0001f) {
+        if (distSq < minDist * minDist && distSq > 0.0001f) 
+        {
             float dist = std::sqrt(distSq);
             float pushBack = minDist - dist;
-            if (dist > 0) {
+            if (dist > 0) 
+            {
                 VECTOR pushDir = VNorm(diff);
                 // 横方向に広がるように、プレイヤー方向ベクトルと直交する方向に少し加算
                 VECTOR playerDir = VNorm(VSub(player.GetPos(), m_pos));
-                VECTOR up = VGet(0, 1, 0);
-                VECTOR side = VNorm(VCross(playerDir, up));
+                VECTOR up        = VGet(0, 1, 0);
+                VECTOR side      = VNorm(VCross(playerDir, up));
                 // 直交方向にランダム性を加える（左右どちらか）
                 float sign = (reinterpret_cast<size_t>(this) % 2 == 0) ? 1.0f : -1.0f;
                 side = VScale(side, sign * 0.5f); // 横成分を少し加える
@@ -413,7 +417,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
                 if (m_pAttackHitCollider->Intersects(playerBodyCollider.get()))
                 {
-                    const_cast<Player&>(player).TakeDamage(m_attackPower);
+                    const_cast<Player&>(player).TakeDamage(m_attackPower); // プレイヤーにダメージ
                     m_hasAttackHit = true;
                 }
             }
@@ -566,4 +570,21 @@ float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
 void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
+}
+
+void EnemyNormal::TakeDamage(float damage)
+{
+    m_hp -= damage;
+    if (m_hp <= 0.0f) // 死亡時一度だけ
+    {
+        m_hp = 0.0f;
+        m_isAlive = false;
+        if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
+        bool isHeadShot = (m_lastHitPart == HitPart::Head);
+        int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+        if (SceneMain::Instance()) 
+        {
+            SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
+        }
+    }
 }

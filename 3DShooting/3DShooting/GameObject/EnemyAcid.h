@@ -60,6 +60,9 @@ public:
     void SetModelHandle(int handle);
     int GetModelHandle() const { return m_modelHandle; }
 
+    // ダメージ処理
+    void TakeDamage(float damage) override;
+
 private:
 	struct AcidBall
 	{
@@ -100,12 +103,14 @@ private:
     VECTOR m_acidBulletSpawnOffset;
     AnimState m_currentAnimState; // 現在のアニメーション状態
 
-    float m_animTime; // 現在のアニメーション再生時間
-    bool m_hasAttacked; // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
     int m_attackEndDelayTimer; // 攻撃後の硬直時間
-    int m_lastTackleId; // 最後にタックルを受けたID
     int m_backAnimCount;
-    bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
+    int m_lastTackleId; // 最後にタックルを受けたID
+
+    float m_animTime;   // 現在のアニメーション再生時間
     float m_chaseSpeed; // 追跡速度
-    bool m_isItemDropped = false; // アイテムドロップ済みフラグ
+
+    bool m_hasAttacked;           // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
+    bool m_isDeadAnimPlaying;     // 死亡アニメーション再生中フラグ
+    bool m_isItemDropped; // アイテムドロップ済みフラグ
 };

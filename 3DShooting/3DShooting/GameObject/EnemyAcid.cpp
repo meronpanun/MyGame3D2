@@ -50,7 +50,8 @@ EnemyAcid::EnemyAcid() :
     m_hasAttacked(false),
     m_attackEndDelayTimer(0),
     m_acidBulletSpawnOffset({ 0.0f, 100.0f, 0.0f }),
-	m_backAnimCount(0)
+	m_backAnimCount(0),
+	m_isItemDropped(false)
 {
     m_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
     assert(m_modelHandle != -1);
@@ -82,8 +83,6 @@ void EnemyAcid::Init()
     m_isAlive = true;
     m_isDeadAnimPlaying = false;
     m_isItemDropped = false;
-    m_hasAttacked = false;
-    m_attackEndDelayTimer = 0;
 
     // ここで一度「絶対にRunでない値」にリセット
     m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため
@@ -190,13 +189,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     {
         if (!m_isDeadAnimPlaying) 
         {
-            // スコア加算処理（死亡時に一度だけ）
-            bool isHeadShot = (m_lastHitPart == HitPart::Head);
-            int addScore = ScoreManager::Instance().AddScore(isHeadShot);
-            if (SceneMain::Instance()) {
-                SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
-            }
-            // ここまで
+            // スコア加算処理はTakeDamageで行うのでここでは不要
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
@@ -218,17 +211,21 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
             }
             // アイテムドロップと死亡コールバックを呼び出し
-            if (!m_isItemDropped && m_onDropItem) {
+            if (!m_isItemDropped && m_onDropItem)
+            {
                 m_onDropItem(m_pos);
                 m_onDropItem = nullptr;
                 m_isItemDropped = true;
             }
-            if (m_onDeathCallback) {
+            if (m_onDeathCallback) 
+            {
                 m_onDeathCallback(m_pos);
                 m_onDeathCallback = nullptr; // 一度だけ呼び出す
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
-        } else {
+        } 
+        else 
+        {
             m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         return;
@@ -591,4 +588,20 @@ void EnemyAcid::SetModelHandle(int handle)
 {
     if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
     m_modelHandle = MV1DuplicateModel(handle);
+}
+
+void EnemyAcid::TakeDamage(float damage)
+{
+    m_hp -= damage;
+    if (m_hp <= 0.0f) // 死亡時一度だけ
+    {
+        m_hp = 0.0f;
+        m_isAlive = false;
+        if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
+        bool isHeadShot = (m_lastHitPart == HitPart::Head);
+        int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+        if (SceneMain::Instance()) {
+            SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
+        }
+    }
 }
