@@ -19,6 +19,7 @@
 #include "WaveManager.h"
 #include <cassert>
 #include <algorithm>
+#include "ScoreManager.h"
 
 namespace
 {
@@ -62,8 +63,21 @@ namespace
 	constexpr int kHitMarkLineLength    = 8; // ラインの長さ
 	constexpr int kHitMarkCenterSpacing = 4; // 中央の間隔幅
 	constexpr int kHitMarkLineThickness = 2; // ラインの太さ
+    constexpr int kHitMarkDuration = 10;     // 表示時間
 
-    constexpr int kHitMarkDuration = 10;
+	// スコアポップアップ関連
+	constexpr int kScorePopupX        = 80;  // スコアポップアップのX座標
+	constexpr int kScorePopupY        = 60;  // スコアポップアップのY座標
+	constexpr int kPopupOffsetY       = 32;  // ポップアップのYオフセット
+    constexpr int kPopupDuration      = 60;  // 1秒間表示
+    constexpr int kTotalScoreDuration = 120; 
+}
+
+SceneMain* g_sceneMainInstance = nullptr;
+
+SceneMain* SceneMain::Instance() 
+{
+    return g_sceneMainInstance;
 }
 
 SceneMain::SceneMain() :
@@ -77,8 +91,11 @@ SceneMain::SceneMain() :
     m_hitMarkTimer(0),
 	m_wave1FirstAidDropped(false),
 	m_wave1AmmoDropped(false),
-	m_wave1DropCount(0)
+	m_wave1DropCount(0),
+	m_totalScorePopupTimer(0),
+	m_lastTotalScorePopupValue(0)
 {
+    g_sceneMainInstance = this;
     // モデルの読み込み
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
     assert(m_skyDomeHandle != -1);
@@ -97,6 +114,7 @@ SceneMain::~SceneMain()
 
 void SceneMain::Init()
 {
+    //SetUseASyncLoadFlag(TRUE); // 非同期読み込みを有効化
     SetWaitVSyncFlag(true); // VSync有効化で描画負荷を安定化
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
@@ -230,6 +248,19 @@ void SceneMain::Init()
     SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
 }
 
+// スコアポップアップを追加する
+void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
+{
+    m_scorePopups.push_back({ score, combo, kPopupDuration, static_cast<bool>(isHeadShot) });
+
+    if (m_scorePopups.size() > 5) m_scorePopups.pop_front(); // 最大5件まで
+    m_totalScorePopupTimer = kTotalScoreDuration; // 合計スコアタイマーリセット
+    // 直近の倍率適用済みスコアを保存
+    int totalScore = ScoreManager::Instance().GetScore();
+    float lastComboRate = ScoreManager::Instance().GetLastComboRate();
+    m_lastTotalScorePopupValue = static_cast<int>(totalScore * lastComboRate);
+}
+
 SceneBase* SceneMain::Update()
 {
 	// デバックウィンドウが表示されている場合は、更新をスキップ
@@ -326,6 +357,20 @@ SceneBase* SceneMain::Update()
 
     if (m_hitMarkTimer > 0) --m_hitMarkTimer;
 
+    // スコアポップアップのタイマー更新
+    for (auto& popup : m_scorePopups)
+    {
+        popup.timer--;
+    }
+    while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) 
+    {
+        m_scorePopups.pop_front();
+    }
+
+    if (m_totalScorePopupTimer > 0) m_totalScorePopupTimer--;
+
+    ScoreManager::Instance().Update(); // コンボ猶予管理
+
     return this;
 }
 
@@ -333,6 +378,16 @@ void SceneMain::Draw()
 {
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
+
+    //// 非同期ロード中はローディング表示
+    //if (GetASyncLoadNum() > 0) {
+    //    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    //    SetFontSize(48);
+    //    DrawFormatString(screenW/2-150, screenH/2, 0xffffff, "Now Loading...");
+    //    SetFontSize(16);
+    //    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    //    return;
+    //}
 
     m_pStage->Draw();
 
@@ -349,9 +404,79 @@ void SceneMain::Draw()
     m_pPlayer->Draw();
 
     constexpr int kDotSize = 64;
-    int cx = screenW / 2;
-    int cy = screenH / 2;
-    DrawGraph(cx - kDotSize / 2, cy - kDotSize / 2, m_dotHandle, true);
+    int cx = screenW * 0.5f;
+    int cy = screenH * 0.5f;
+    DrawGraph(cx - kDotSize * 0.5f, cy - kDotSize * 0.5f, m_dotHandle, true);
+
+    // スコアポップアップ描画
+    bool showScorePopup = !m_scorePopups.empty();
+    bool showTotalScoreOnly = (m_totalScorePopupTimer > 0);
+    if (showScorePopup || showTotalScoreOnly) 
+    {
+        int popupBaseX = cx + kScorePopupX; 
+        int popupBaseY = cy + kScorePopupY;
+        int idx = 0;
+        int totalScore = ScoreManager::Instance().GetScore();
+        int combo      = ScoreManager::Instance().GetCombo();
+        float comboRate = std::pow(1.1f, combo > 0 ? combo - 1 : 0);
+        int comboScore  = static_cast<int>(totalScore * comboRate);
+        float lastComboRate = ScoreManager::Instance().GetLastComboRate();
+        int displayCombo    = (ScoreManager::Instance().GetCombo() > 1) ? ScoreManager::Instance().GetCombo() : 1;
+
+        // フェードアウト用アルファ値(最も古いポップアップのtimer値を利用)
+        int fadeTimer = showScorePopup ? m_scorePopups.front().timer : m_totalScorePopupTimer;
+        int alpha = 255;
+        if (fadeTimer < 30) 
+        {
+            alpha = 128 + (127 * fadeTimer / 30);
+        }
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+        // 合計スコアのみ
+        if (showTotalScoreOnly && !showScorePopup)
+        {
+            float lastComboRate = ScoreManager::Instance().GetLastComboRate();
+            if (lastComboRate > 1.0f)
+            {
+                DrawFormatString(popupBaseX, popupBaseY, 0x00ffcc, "%d *%.2f", m_lastTotalScorePopupValue, lastComboRate);
+            }
+            else 
+            {
+                DrawFormatString(popupBaseX, popupBaseY, 0x00ffcc, "%d", m_lastTotalScorePopupValue);
+            }
+        }
+        else if (showScorePopup) 
+        {
+            // 合計スコア
+            if (lastComboRate > 1.0f) 
+            {
+                DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0x00ffcc, "%d *%.2f", comboScore, lastComboRate);
+            }
+            else 
+            {
+                DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0x00ffcc, "%d", comboScore);
+            }
+            idx++;
+            int lastIsHeadShot = -1;
+            for (const auto& popup : m_scorePopups) 
+            {
+                if (lastIsHeadShot == -1 || lastIsHeadShot != static_cast<int>(popup.isHeadShot)) 
+                {
+                    if (popup.isHeadShot) 
+                    {
+                        DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffe000, "%dpt ヘッドショットキル*%d", 200, displayCombo);
+                    }
+                    else 
+                    {
+                        DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffffff, "%dpt ゾンビキル*%d", 100, displayCombo);
+                    }
+                    idx++;
+                }
+                lastIsHeadShot = static_cast<int>(popup.isHeadShot);
+            }
+        }
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
 
     // ヒットマーク描画
     if (m_hitMarkTimer > 0)

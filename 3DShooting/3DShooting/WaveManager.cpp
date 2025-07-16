@@ -80,7 +80,6 @@ void WaveManager::Init()
 {
     m_enemyList.clear();
     m_spawnInfoList.clear();
-    m_totalSpawnedCount = 0;
 
     // 敵のテンプレートを初期化
     if (m_pEnemyNormalTemplate)
@@ -100,7 +99,8 @@ void WaveManager::Init()
 
     // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
     std::map<int, int> normalPerWave, runnerPerWave, acidPerWave;
-    for (const auto& wave : m_waveDataList) {
+    for (const auto& wave : m_waveDataList) 
+    {
         if (wave.enemyType == "NormalEnemy") normalPerWave[wave.wave] += wave.count;
         if (wave.enemyType == "RunnerEnemy") runnerPerWave[wave.wave] += wave.count;
         if (wave.enemyType == "AcidEnemy")   acidPerWave[wave.wave]   += wave.count;

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include "Scene/SceneMain.h"
 
 namespace
 {
@@ -164,6 +165,13 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     {
         if (!m_isDeadAnimPlaying) 
         {
+            // スコア加算処理（死亡時に一度だけ）
+            bool isHeadShot = (m_lastHitPart == HitPart::Head);
+            int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+            if (SceneMain::Instance()) {
+                SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
+            }
+            // ここまで
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
