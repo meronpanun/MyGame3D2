@@ -4,11 +4,11 @@
 #include "DebugUtil.h"   
 #include "SphereCollider.h" 
 #include "CapsuleCollider.h" 
+#include "SceneMain.h"
 #include <cassert>       
 #include <algorithm>     
 #include <cmath> 
 #include <functional>    
-#include "Scene/SceneMain.h"
 
 namespace
 {
@@ -18,26 +18,26 @@ namespace
     constexpr char kBackAnimName[]   = "Armature|BACK"; // 後退アニメーション
     constexpr char kDeadAnimName[]   = "Armature|DEAD"; // 死亡アニメーション
 
-    constexpr VECTOR kInitialPosition = { -50.0f, -30.0f, 300.0f }; // 初期位置
+    constexpr VECTOR kInitialPosition = { -50.0f, -30.0f, 300.0f };  // 初期位置
     constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
 
     // コライダーのサイズを定義
     constexpr float kBodyColliderRadius = 40.0f;  // 体のコライダー半径
-    constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
-    constexpr float kHeadRadius = 18.0f;  // 頭のコライダー半径
+    constexpr float kBodyColliderHeight = 50.0f;  // 体のコライダー高さ
+    constexpr float kHeadRadius = 18.0f;          // 頭のコライダー半径
 
     // 体力
     constexpr float kInitialHP = 150.0f; // 初期HP 
 
-    // 攻撃関連(遠距離攻撃に特化)
-    constexpr int   kAttackCooldownMax = 160;    // 攻撃クールダウン時間
-    constexpr float kAttackPower       = 30.0f;  // 攻撃力
+    // 攻撃関連（遠距離攻撃に特化）
+    constexpr int   kAttackCooldownMax = 160;     // 攻撃クールダウン時間
+    constexpr float kAttackPower       = 30.0f;   // 攻撃力
     constexpr float kAttackRangeRadius = 1000.0f; // 攻撃範囲の半径
-    constexpr float kAcidBulletSpeed   = 10.0f;  // 酸弾の速度
-    constexpr float kAcidBulletRadius  = 10.0f;  // 酸弾の半径
-    constexpr int   kAttackEndDelay    = 30;     // 攻撃後の硬直時間
+    constexpr float kAcidBulletSpeed   = 10.0f;   // 酸弾の速度
+    constexpr float kAcidBulletRadius  = 10.0f;   // 酸弾の半径
+    constexpr int   kAttackEndDelay    = 30;      // 攻撃後の硬直時間
 
-    // 追跡関連(遠距離型なので、近づきすぎたら離れる)
+    // 追跡関連（遠距離型なので、近づきすぎたら離れる）
     constexpr float kChaseSpeed = 2.0f;   // 追跡速度
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 }
@@ -91,6 +91,7 @@ void EnemyAcid::Init()
     ChangeAnimation(AnimState::Walk, true); 
 }
 
+// アニメーションを変更する
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
 {
     // 後退アニメーションは同じ状態でも必ず再生し直す
@@ -138,6 +139,7 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
     m_currentAnimState = newAnimState;
 }
 
+// プレイヤーに攻撃可能かどうかを判定
 bool EnemyAcid::CanAttackPlayer(const Player& player)
 {
     VECTOR playerPos = player.GetPos();
@@ -151,6 +153,7 @@ bool EnemyAcid::CanAttackPlayer(const Player& player)
     return m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
 }
 
+// 酸を吐く攻撃を行う
 void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player)
 {
     // 発射位置
@@ -274,15 +277,19 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
     if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
     {
-        VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
+        VECTOR enemyCenter  = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
         VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
-        VECTOR diff = VSub(enemyCenter, playerCenter);
-        float distSq = VDot(diff, diff);
+        VECTOR diff         = VSub(enemyCenter, playerCenter);
+
+        float distSq  = VDot(diff, diff);
         float minDist = ::kBodyColliderRadius + playerBodyCollider->GetRadius();
-        if (distSq < minDist * minDist && distSq > 0.0001f)
+
+        // 0.0001fはゼロ除算回避のための閾値
+		if (distSq < minDist * minDist && distSq > 0.0001f) 
         {
             float dist = std::sqrt(distSq);
             float pushBack = minDist - dist;
+
             if (dist > 0)
             {
                 VECTOR pushDir = VSub(enemyCenter, playerCenter);
@@ -517,7 +524,7 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     m_pHeadCollider->SetRadius(kHeadRadius);
 
     // 体のコライダーはカプセルなので、m_posの上下にオフセットした端点を設定
-    // 変更: モデルのHipsフレームの位置を取得してボディコライダーの基点とする
+    // モデルのHipsフレームの位置を取得してボディコライダーの基点とする
     int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
     VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
 

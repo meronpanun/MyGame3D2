@@ -49,7 +49,7 @@ void AmmoItem::Update(Player* player)
 {
 	if (IsUsed()) return;
 
-	// ドロップ演出(落下処理)
+	// ドロップ演出（落下処理）
 	if (m_isDropping)
 	{
 		m_velocityY -= kDropGravity;

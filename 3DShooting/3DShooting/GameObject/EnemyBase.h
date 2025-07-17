@@ -23,9 +23,6 @@ public:
 	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList) abstract;
 	virtual void Draw() abstract;
 
-	virtual void SetModelHandle(int handle) {}
-	virtual int GetModelHandle() const { return -1; }
-
 	// 当たり判定の部位
 	enum class HitPart
 	{
@@ -35,7 +32,7 @@ public:
 	};
 
 	// 敵の状態管理
-	enum class EnemyState 
+	enum class EnemyState
 	{
 		Idle,       // 待機状態
 		Moving,     // 移動状態
@@ -45,7 +42,7 @@ public:
 	};
 
 	// アニメーション状態
-	enum class AnimState 
+	enum class AnimState
 	{
 		Idle,    // 待機
 		Walk,    // 歩行
@@ -54,6 +51,9 @@ public:
 		Attack,  // 攻撃
 		Dead     // 死亡
 	};
+
+	virtual void SetModelHandle(int handle) {}
+	virtual int GetModelHandle() const { return -1; }
 
 	/// <summary>
 	/// 弾や攻撃を受ける処理(基底で共通処理) 
@@ -170,5 +170,5 @@ protected:
 	bool  m_isAlive;         // 生存状態フラグ
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか
 	bool  m_isAttacking;     // 攻撃中かどうか
-	bool  m_isActive = true; // デフォルトはアクティブ
+	bool  m_isActive;		 // デフォルトはアクティブ
 };

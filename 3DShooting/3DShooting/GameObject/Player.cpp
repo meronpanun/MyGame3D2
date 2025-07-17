@@ -43,14 +43,24 @@ namespace
 	constexpr float kGroundY   = 0.0f;  // 地面のY座標
 
 	// タックル関連
-	constexpr int   kTackleDuration    = 20;     // タックル持続フレーム数
-	constexpr float kTackleHitRange    = 250.0f; // タックルの前方有効距離
-	constexpr float kTackleHitRadius   = 250.0f; // タックルの横幅(半径)
-	constexpr float kTackleHitHeight   = 100.0f; // タックルの高さ
+	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
+	constexpr float kTackleHitRange  = 250.0f; // タックルの前方有効距離
+	constexpr float kTackleHitRadius  = 250.0f; // タックルの横幅（半径）
+	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
 
 	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
 	constexpr float kCapsuleRadius = 50.0f;  // カプセルコライダーの半径
+
+	// 集中線関連
+	constexpr int   kNumLines			 = 18;    // 集中線の本数
+	constexpr float kMaxScreenRadiusRate = 0.95f; // 集中線の最大長さ（画面対角の何割まで伸ばすか）
+	constexpr float kLenRatio			 = 0.75f; // 集中線の標準長さ（0.0〜1.0、1.0で最大）
+	constexpr int   kBaseThickness		 = 200;   // 集中線の根元（外側）の太さ
+	constexpr int   kTipThickness		 = 4;     // 集中線の先端（中心側）の太さ
+	constexpr float kAppear			     = 0.2f;  // 集中線が伸びるアニメーションの比率（0.0〜1.0）
+	constexpr float kVanish				 = 0.2f;  // 集中線が消えるアニメーションの比率（0.0〜1.0）
+	constexpr float kOverRatioScale		 = 1.2f;  // 消える時の根元の外側へのスケール（1.0で画面端、1.2で完全に外）
 }
 
 Player::Player() :
@@ -575,6 +585,80 @@ void Player::Draw()
 
     // 弾薬エフェクト描画(オレンジ)
     DrawEffectFeedback(m_ammoEffect);
+
+	// タックル中は集中線エフェクトを描画
+	if (m_isTackling)
+	{
+		DrawTackleLines();
+	}
+}
+
+void Player::DrawTackleLines()
+{
+    int screenW = Game::kScreenWidth;
+    int screenH = Game::kScreenHeigth;
+    int centerX = screenW / 2;
+    int centerY = screenH / 2;
+    // 画面中心から端までの最大半径を計算
+    float maxScreenRadius = sqrtf((float)(screenW * screenW + screenH * screenH)) * kMaxScreenRadiusRate;
+    // タックル進行度（0.0:開始→1.0:終了）
+    float progress = 1.0f - (float)m_tackleFrame / (float)kTackleDuration;
+    // 集中線の明るさ（進行度に応じて変化）
+    float intensity = 0.3f + progress * 0.7f;
+    for (int i = 0; i < kNumLines; ++i)
+    {
+        // 放射状に等間隔で角度を決定
+        float baseAngle = (float)i / kNumLines * 2.0f * DX_PI_F;
+        float angle = baseAngle;
+        // 線の長さ（全て同じ）
+        float lenRatio = kLenRatio;
+        // 描画範囲（根元・先端の進行度）
+        float drawStart = 0.0f;
+        float drawEnd = 1.0f;
+        // 根元・先端の半径を計算
+        float startRadius = maxScreenRadius * (1.0f - lenRatio * drawStart);
+        float endRadius = maxScreenRadius * (1.0f - lenRatio * drawEnd);
+        // 伸びるアニメーション
+        if (progress < kAppear)
+        {
+            drawEnd = progress / kAppear;
+            endRadius = maxScreenRadius * (1.0f - lenRatio * drawEnd);
+        }
+        // 消えるアニメーション（根元が外側に抜けていく）
+        else if (progress > 1.0f - kVanish)
+        {
+            drawStart = (progress - (1.0f - kVanish)) / kVanish;
+            float overRatio = drawStart * kOverRatioScale;
+            startRadius = maxScreenRadius * (1.0f - lenRatio * drawStart + overRatio * lenRatio);
+        }
+        // 根元・先端の座標を計算
+        int x1 = centerX + (int)(startRadius * cosf(angle));
+        int y1 = centerY + (int)(startRadius * sinf(angle));
+        int x2 = centerX + (int)(endRadius * cosf(angle));
+        int y2 = centerY + (int)(endRadius * sinf(angle));
+        // 太さ（根元が太く、先端が細い）
+        int baseThickness = kBaseThickness;
+        int tipThickness = kTipThickness;
+        float perpAngle = angle + DX_PI_F * 0.5f;
+        float baseHalf = baseThickness * 0.5f;
+        float tipHalf = tipThickness * 0.5f;
+        // 四隅の座標を計算（台形/三角形のため）
+        int bx1 = x1 + (int)(baseHalf * cosf(perpAngle));
+        int by1 = y1 + (int)(baseHalf * sinf(perpAngle));
+        int bx2 = x1 - (int)(baseHalf * cosf(perpAngle));
+        int by2 = y1 - (int)(baseHalf * sinf(perpAngle));
+        int tx1 = x2 + (int)(tipHalf * cosf(perpAngle));
+        int ty1 = y2 + (int)(tipHalf * sinf(perpAngle));
+        int tx2 = x2 - (int)(tipHalf * cosf(perpAngle));
+        int ty2 = y2 - (int)(tipHalf * sinf(perpAngle));
+        // アルファブレンドで白色の集中線を描画
+        int alpha = (int)(255 * intensity);
+        SetDrawBlendMode(DX_BLENDMODE_ADD, alpha);
+        DrawTriangle(bx1, by1, bx2, by2, tx1, ty1, 0xffffff, true);
+        DrawTriangle(bx2, by2, tx1, ty1, tx2, ty2, 0xffffff, true);
+    }
+    // ブレンドモードを元に戻す
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 void Player::DrawEffectFeedback(Player::EffectFeedback& effect)

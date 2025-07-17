@@ -23,7 +23,8 @@ EnemyBase::EnemyBase() :
 	m_attackCooldownMax(kDefaultCooldownMax),
 	m_attackPower(kDefaultAttackPower),
 	m_attackHitFrame(0),
-	m_isAttacking(false)
+	m_isAttacking(false),
+	m_isActive(true)
 {
 }
 
@@ -73,7 +74,7 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
 
         bullet.Deactivate(); // 敵に当たった弾は非アクティブにする
 
-        // ヒット時コールバック(ヒットマーク用)
+        // ヒット時コールバック（ヒットマーク用）
         if (m_onHitCallback) m_onHitCallback(determinedHitPart);
     }
 }

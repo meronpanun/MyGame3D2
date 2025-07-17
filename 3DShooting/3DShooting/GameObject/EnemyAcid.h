@@ -57,10 +57,22 @@ public:
     /// <param name="cb">コールバック関数</param>
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
+    /// <summary>
+	/// モデルハンドルを設定する
+    /// </summary>
+	/// <param name="handle">モデルハンドル</param>
     void SetModelHandle(int handle);
+
+    /// <summary>
+	/// モデルハンドルを取得する
+    /// </summary>
+	/// <returns>モデルハンドル</returns>
     int GetModelHandle() const { return m_modelHandle; }
 
-    // ダメージ処理
+    /// <summary>
+	/// 敵がダメージを受ける処理
+    /// </summary>
+	/// <param name="damage">受けるダメージ量</param>
     void TakeDamage(float damage) override;
 
 private:
@@ -82,35 +94,46 @@ private:
         }
 	};
 
-    // アニメーション切り替え関数
+    /// <summary>
+	/// アニメーションを変更する
+    /// </summary>
+	/// <param name="newAnimState">新しいアニメーション状態</param>
+	/// <param name="loop">ループ再生するかどうか</param>
     void ChangeAnimation(AnimState newAnimState, bool loop);
 
-    // プレイヤーに攻撃可能かどうかを判定する
+    /// <summary>
+	/// プレイヤーに攻撃可能かどうかを判定する
+    /// </summary>
+	/// <param name="player">プレイヤーオブジェクト</param>
+	/// <returns>攻撃可能ならtrue</returns>
     bool CanAttackPlayer(const Player& player);
 
-    // 酸を吐く攻撃処理
+    /// <summary>
+	/// 酸を吐く攻撃を行う
+    /// </summary>
+	/// <param name="bullets">弾のリスト</param>
+	/// <param name="player">プレイヤーオブジェクト</param>
     void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player);
 
 private:
-    VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
+    VECTOR m_headPosOffset;              // ヘッドショット判定用オフセット座標
+    VECTOR m_acidBulletSpawnOffset;      // 酸を吐く場所のオフセット
     AnimationManager m_animationManager; // アニメーション管理
-    std::shared_ptr<CapsuleCollider> m_pBodyCollider;      // 体のコライダー
-    std::shared_ptr<SphereCollider>  m_pHeadCollider;      // 頭のコライダー
+    AnimState m_currentAnimState;        // 現在のアニメーション状態
+    std::shared_ptr<CapsuleCollider> m_pBodyCollider;        // 体のコライダー
+    std::shared_ptr<SphereCollider>  m_pHeadCollider;        // 頭のコライダー
     std::shared_ptr<SphereCollider>  m_pAttackRangeCollider; // 攻撃範囲のコライダー
     std::vector<AcidBall> m_acidBalls;
     std::function<void(const VECTOR&)> m_onDropItem; // アイテムドロップコールバック
-    // 酸を吐く場所のオフセット
-    VECTOR m_acidBulletSpawnOffset;
-    AnimState m_currentAnimState; // 現在のアニメーション状態
 
     int m_attackEndDelayTimer; // 攻撃後の硬直時間
-    int m_backAnimCount;
-    int m_lastTackleId; // 最後にタックルを受けたID
+	int m_backAnimCount;       // 後退アニメーションのカウント
+    int m_lastTackleId;        // 最後にタックルを受けたID
 
     float m_animTime;   // 現在のアニメーション再生時間
     float m_chaseSpeed; // 追跡速度
 
-    bool m_hasAttacked;           // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
-    bool m_isDeadAnimPlaying;     // 死亡アニメーション再生中フラグ
-    bool m_isItemDropped; // アイテムドロップ済みフラグ
+    bool m_hasAttacked;       // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
+    bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
+    bool m_isItemDropped;     // アイテムドロップ済みフラグ
 };

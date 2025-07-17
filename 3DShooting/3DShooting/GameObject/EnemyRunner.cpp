@@ -5,12 +5,12 @@
 #include "DebugUtil.h"
 #include "CapsuleCollider.h"
 #include "SphereCollider.h"
-#include "../TransformDataLoader.h"
+#include "TransformDataLoader.h"
+#include "SceneMain.h"
 #include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include "Scene/SceneMain.h"
 
 namespace
 {
@@ -365,7 +365,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		}
 	}
 
-    // --- 敵同士の押し出し処理（横方向への広がり） ---
+    // 敵同士の押し出し処理（横方向への広がり）
     for (EnemyBase* other : enemyList) {
         if (!other) continue;
         if (other == this) continue;

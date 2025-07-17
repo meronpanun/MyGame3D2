@@ -110,6 +110,6 @@ private:
     bool m_isTackleHit;       // 1フレームで複数回ダメージを受けないためのフラグ
     bool m_hasAttackHit;      // 攻撃がヒットしたかどうか
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-    bool m_isItemDropped = false; // アイテムドロップ済みフラグ
+    bool m_isItemDropped; // アイテムドロップ済みフラグ
 
 };

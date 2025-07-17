@@ -5,11 +5,11 @@
 #include "DebugUtil.h"
 #include "SphereCollider.h" 
 #include "CapsuleCollider.h" 
+#include "SceneMain.h"
 #include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include "Scene/SceneMain.h"
 
 namespace
 {
@@ -38,7 +38,7 @@ namespace
     // 追跡関連
     constexpr float kChaseSpeed        = 2.0f; // 追跡速度
     constexpr float kChaseStopDistance = 50;   // 追跡停止距離
-    constexpr int kAttackEndDelay      = 55;
+	constexpr int   kAttackEndDelay    = 55;   // 攻撃後の硬直時間
 }
 
 EnemyNormal::EnemyNormal() :
@@ -51,7 +51,8 @@ EnemyNormal::EnemyNormal() :
     m_currentAnimState(AnimState::Walk),
     m_attackEndDelayTimer(0),
     m_isDeadAnimPlaying(false),
-	m_chaseSpeed(kChaseSpeed)
+	m_chaseSpeed(kChaseSpeed),
+	m_isItemDropped(false)
 {
     // モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
@@ -78,10 +79,8 @@ void EnemyNormal::Init()
 
     m_isAlive = true;
     m_isItemDropped = false;
-    m_isDeadAnimPlaying = false; // 死亡アニメーションフラグをリセット
     m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
     m_hitDisplayTimer = 0; // ヒット表示タイマーもリセット
-    m_lastTackleId = -1; // タックルIDもリセット
 
     // ここで一度「絶対にWalkでない値」にリセット
     m_currentAnimState = AnimState::Dead;
@@ -89,6 +88,7 @@ void EnemyNormal::Init()
     ChangeAnimation(AnimState::Walk, true); // 初期化時に歩行アニメーションを開始
 }
 
+// アニメーションを変更する
 void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
 {
     if (m_currentAnimState == newAnimState)
@@ -129,6 +129,7 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
     m_currentAnimState = newAnimState;
 }
 
+// プレイヤーに攻撃可能かどうかを判定
 bool EnemyNormal::CanAttackPlayer(const Player& player)
 {
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
@@ -145,6 +146,7 @@ bool EnemyNormal::CanAttackPlayer(const Player& player)
     return m_pAttackHitCollider->Intersects(playerBodyCollider.get());
 }
 
+// モデルハンドルを設定する
 void EnemyNormal::SetModelHandle(int handle)
 {
     if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
@@ -191,7 +193,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                 m_onDeathCallback = nullptr; // 一度だけ呼び出す
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
-            SetActive(false); // プールに戻す
+            SetActive(false);  // プールに戻す
         } 
         else 
         {
@@ -291,7 +293,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
         if (m_currentAnimState == AnimState::Attack)
         {
-            // ここは何もしない(歩行アニメーションへの遷移はディレイタイマーでのみ行う)
+            // ここは何もしない（歩行アニメーションへの遷移はディレイタイマーでのみ行う）
         }
         else if (m_currentAnimState == AnimState::Dead)
         {
@@ -312,26 +314,26 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     }
 
     // コライダーの更新
-    // 体のコライダー(カプセル)
+    // 体のコライダー（カプセル）
     VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
     VECTOR bodyCapB = VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
     m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
     m_pBodyCollider->SetRadius(kBodyColliderRadius);
 
-    // 頭のコライダー(球)
+    // 頭のコライダー（球）
     int headIndex = MV1SearchFrame(m_modelHandle, "Head");
     VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0, 0, 0);
     VECTOR headCenter = VAdd(headModelPos, m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
     m_pHeadCollider->SetCenter(headCenter);
     m_pHeadCollider->SetRadius(kHeadRadius);
 
-    // 攻撃範囲のコライダー(球)
+    // 攻撃範囲のコライダー（球）
     VECTOR attackRangeCenter = m_pos;
     attackRangeCenter.y += (kBodyColliderHeight * 0.5f); // 敵の高さの半分くらい
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
     m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
-    // 敵とプレイヤーの押し出し処理(カプセル同士の衝突)
+    // 敵とプレイヤーの押し出し処理（カプセル同士の衝突）
     if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
     {
         // 押し出し処理
@@ -360,7 +362,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         }
     }
 
-    // 敵同士の押し出し処理(横方向への広がり)
+    // 敵同士の押し出し処理（横方向への広がり）
     for (EnemyBase* other : enemyList)
     {
         if (!other) continue;
