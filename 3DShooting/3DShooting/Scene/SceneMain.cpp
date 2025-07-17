@@ -123,7 +123,7 @@ SceneMain::~SceneMain()
 void SceneMain::Init()
 {
     SetUseASyncLoadFlag(true); // 非同期読み込みを有効化
-    SetWaitVSyncFlag(true); // VSync有効化で描画負荷を安定化
+    SetWaitVSyncFlag(true);    // VSync有効化で描画負荷を安定化
 
     // 経過時間リセット
     s_elapsedTime = 0.0f;
@@ -359,14 +359,18 @@ SceneBase* SceneMain::Update()
 
     if (m_pPlayer->GetHealth() <= 0.0f)
     {
-        return new SceneGameOver();
+        int wave = m_pWaveManager->GetCurrentWave();
+        int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+        int score = ScoreManager::Instance().GetTotalScore();
+		return new SceneGameOver(wave, killCount, score);
     }
 
     // WaveManagerの更新
     m_pWaveManager->Update();
 
     // すべてのウェーブが完了していたらリザルトシーンへ遷移
-    if (m_pWaveManager->GetCurrentWave() > 3) {
+    if (m_pWaveManager->GetCurrentWave() > 3) 
+    {
         return new SceneResult();
     }
 
@@ -385,7 +389,10 @@ SceneBase* SceneMain::Update()
         m_items.end()
     );
 
-    if (m_hitMarkTimer > 0) --m_hitMarkTimer;
+    if (m_hitMarkTimer > 0)
+    {
+        --m_hitMarkTimer;
+    }
 
     // スコアポップアップのタイマー更新
     for (auto& popup : m_scorePopups)
@@ -397,7 +404,10 @@ SceneBase* SceneMain::Update()
         m_scorePopups.pop_front();
     }
 
-    if (m_totalScorePopupTimer > 0) m_totalScorePopupTimer--;
+    if (m_totalScorePopupTimer > 0)
+    {
+        m_totalScorePopupTimer--;
+    }
 
     ScoreManager::Instance().Update(); // コンボ猶予管理
 

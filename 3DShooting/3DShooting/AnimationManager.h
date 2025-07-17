@@ -37,7 +37,11 @@ public:
 	/// <returns>アニメーションの総時間。見つからない場合は0</returns>
     float GetAnimationTotalTime(int modelHandle, const std::string& animName);
 
-    // 現在アタッチされているアニメーションのハンドルを取得
+    /// <summary>
+    /// 現在アタッチされているアニメーションのハンドルを取得
+    /// </summary>
+	/// <param name="modelHandle">アニメーションを取得するモデルのハンドル</param>
+	/// <returns>現在アタッチされているアニメーションのハンドル。見つからない場合は-1</returns>
     int GetCurrentAttachedAnimHandle(int modelHandle) const;
 
     // 現在アタッチされているアニメーションのハンドルをリセットする
