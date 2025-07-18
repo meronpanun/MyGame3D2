@@ -16,7 +16,10 @@ public:
         None,
         Move,
         View,
-        Completed
+		Completed,
+		Jump,
+		Run,
+		CompletedDisplay // チュートリアル完了後の待機中
     };
 
     void Init();
@@ -44,5 +47,14 @@ private:
     float m_moveCheckAnimTime = 0.0f;
     bool m_viewCheckAnim = false;
     float m_viewCheckAnimTime = 0.0f;
+    // ジャンプ・走るチュートリアル用
+    bool m_jumpDone = false;
+    bool m_runDone = false;
+    float m_jumpAccumTime = 0.0f;
+    float m_runAccumTime = 0.0f;
+    bool m_jumpCheckAnim = false;
+    float m_jumpCheckAnimTime = 0.0f;
+    bool m_runCheckAnim = false;
+    float m_runCheckAnimTime = 0.0f;
 };
 

@@ -1,9 +1,17 @@
-﻿  Game.cpp
+﻿  EnemyAcid.cpp
+  EnemyNormal.cpp
+  EnemyRunner.cpp
+  Game.cpp
   Player.cpp
-  Mouse.cpp
+  SceneGameOver.cpp
   SceneMain.cpp
+  SceneManager.cpp
+  SceneResult.cpp
   SceneTitle.cpp
-  main.cpp
+  TutorialManager.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyRunner.cpp' をコンパイルしています)
+  
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
   (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
   
