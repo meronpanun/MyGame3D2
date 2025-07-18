@@ -20,6 +20,7 @@
 #include <cassert>
 #include <algorithm>
 #include "ScoreManager.h"
+#include "TutorialManager.h"
 
 namespace
 {
@@ -101,7 +102,8 @@ SceneMain::SceneMain() :
 	m_wave1AmmoDropped(false),
 	m_wave1DropCount(0),
 	m_totalScorePopupTimer(0),
-	m_lastTotalScorePopupValue(0)
+	m_lastTotalScorePopupValue(0),
+	m_pTutorialManager(std::make_unique<TutorialManager>())
 {
     g_sceneMainInstance = this;
     // モデルの読み込み
@@ -260,6 +262,9 @@ void SceneMain::Init()
     SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
 
 	SetUseASyncLoadFlag(false); // 非同期読み込みを無効化
+
+    m_pTutorialManager = std::make_unique<TutorialManager>();
+    m_pTutorialManager->Init();
 }
 
 // スコアポップアップを追加する
@@ -345,72 +350,42 @@ SceneBase* SceneMain::Update()
         return this;
     }
 
-    // WaveManagerの敵リストを取得してプレイヤーに渡す
+    // チュートリアル有効時または完了演出中はチュートリアルのみ進行（敵出現・更新・描画も完全スキップ）
+    if (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
+        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) {
+        m_pTutorialManager->Update();
+        m_pPlayer->Update({}); // 敵なしでプレイヤーのみ更新
+        // WaveManagerのUpdate/UpdateEnemies/DrawEnemiesは呼ばない
+        return this;
+    }
+    // ↓ここから通常進行
     std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
     std::vector<EnemyBase*> enemyPtrList;
-
-	// 敵のポインタをプレイヤーに渡すためのリストを作成
-    for (std::shared_ptr<EnemyBase>& enemy : enemyList)
-    {
+    for (std::shared_ptr<EnemyBase>& enemy : enemyList) {
         enemyPtrList.push_back(enemy.get());
     }
-    
     m_pPlayer->Update(enemyPtrList);
-
-    if (m_pPlayer->GetHealth() <= 0.0f)
-    {
+    if (m_pPlayer->GetHealth() <= 0.0f) {
         int wave = m_pWaveManager->GetCurrentWave();
         int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
         int score = ScoreManager::Instance().GetTotalScore();
 		return new SceneGameOver(wave, killCount, score);
     }
-
-    // WaveManagerの更新
     m_pWaveManager->Update();
-
-    // すべてのウェーブが完了していたらリザルトシーンへ遷移
-    if (m_pWaveManager->GetCurrentWave() > 3) 
-    {
+    if (m_pWaveManager->GetCurrentWave() > 3) {
         return new SceneResult();
     }
-
-    // WaveManagerの敵を一括更新
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
-
-    for (std::shared_ptr<ItemBase>& item : m_items)
-    {
-        item->Update(m_pPlayer.get());
-    }
-    // 取得済みアイテムを削除
+    for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
     m_items.erase(
-        std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) {
-            return item->IsUsed();
-        }),
+        std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }),
         m_items.end()
     );
-
-    if (m_hitMarkTimer > 0)
-    {
-        --m_hitMarkTimer;
-    }
-
-    // スコアポップアップのタイマー更新
-    for (auto& popup : m_scorePopups)
-    {
-        popup.timer--;
-    }
-    while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) 
-    {
-        m_scorePopups.pop_front();
-    }
-
-    if (m_totalScorePopupTimer > 0)
-    {
-        m_totalScorePopupTimer--;
-    }
-
-    ScoreManager::Instance().Update(); // コンボ猶予管理
-
+    if (m_hitMarkTimer > 0) { --m_hitMarkTimer; }
+    for (auto& popup : m_scorePopups) { popup.timer--; }
+    while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) { m_scorePopups.pop_front(); }
+    if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; }
+    ScoreManager::Instance().Update();
     return this;
 }
 
@@ -439,8 +414,11 @@ void SceneMain::Draw()
         item->Draw();
     }
 
-    // WaveManagerの敵を一括描画
-    m_pWaveManager->DrawEnemies();
+    // チュートリアル中または完了演出中は敵描画もスキップ
+    if (!(m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
+          (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()))) {
+        m_pWaveManager->DrawEnemies();
+    }
 
     m_pPlayer->Draw();
 
@@ -549,6 +527,12 @@ void SceneMain::Draw()
     if (m_isPaused)
     {
         DrawPauseMenu();
+    }
+
+    // チュートリアルUI描画
+    if (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
+        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) {
+        m_pTutorialManager->Draw(screenW, screenH);
     }
 }
 

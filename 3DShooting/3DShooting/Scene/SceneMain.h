@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 #include "ScoreManager.h"
+#include "TutorialManager.h"
 
 class Player;
 class Camera;
@@ -69,6 +70,7 @@ private:
 	std::shared_ptr<WaveManager> m_pWaveManager;
 	std::vector<EnemyBase*> m_enemyList;
 	std::vector<std::shared_ptr<ItemBase>> m_items;
+	std::unique_ptr<TutorialManager> m_pTutorialManager;
 
 	std::chrono::steady_clock::time_point m_pauseStartTime;
 

@@ -177,6 +177,7 @@
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="StageObject.cpp" />
     <ClCompile Include="TransformDataLoader.cpp" />
+    <ClCompile Include="TutorialManager.cpp" />
     <ClCompile Include="Vec2.cpp" />
     <ClCompile Include="Vec3.cpp" />
     <ClCompile Include="WaveManager.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="Stage.h" />
     <ClInclude Include="StageObject.h" />
     <ClInclude Include="TransformDataLoader.h" />
+    <ClInclude Include="TutorialManager.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="WaveManager.h" />

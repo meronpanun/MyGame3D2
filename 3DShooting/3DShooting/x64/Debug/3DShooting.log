@@ -1,2 +1,18 @@
-﻿  EnemyNormal.cpp
+﻿  Game.cpp
+  Player.cpp
+  Mouse.cpp
+  SceneMain.cpp
+  SceneTitle.cpp
+  main.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TransformDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(221,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(78,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(79,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(402,50): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(402,34): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(425,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(425,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(437,25): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe
