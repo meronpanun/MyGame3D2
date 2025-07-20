@@ -71,6 +71,7 @@ public:
 
     // ダメージ処理
     void TakeDamage(float damage) override;
+    void TakeTackleDamage(float damage) override;
 
 private:
     /// <summary>

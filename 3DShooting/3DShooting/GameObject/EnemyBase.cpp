@@ -67,6 +67,7 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
     {
         auto& bullet = bullets[hitBulletIndex];
         float damage = CalcDamage(bullet.GetDamage(), determinedHitPart);
+        m_lastDamageType = LastDamageType::Shot; // ここでのみShotにセット
         TakeDamage(damage);
 
         m_lastHitPart = determinedHitPart;
@@ -82,20 +83,21 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
 // 敵がダメージを受ける処理
 void EnemyBase::TakeDamage(float damage)
 {
-	m_hp -= damage;
-	if (m_hp <= 0.0f)
-	{
-		m_hp = 0.0f;
-		m_isAlive = false;
-	}
+    // m_lastDamageTypeはここで上書きしない
+    m_hp -= damage;
+    if (m_hp <= 0.0f)
+    {
+        m_hp = 0.0f;
+        m_isAlive = false;
+        if (m_onDeathWithTypeCallback) m_onDeathWithTypeCallback(m_pos, m_lastDamageType);
+    }
 }
 
 // 敵がタックルダメージを受ける処理
 void EnemyBase::TakeTackleDamage(float damage)
 {
-	TakeDamage(damage); // デフォルトは通常ダメージと同じ
-
-	// ヒット表示を体ヒットとして更新
-	m_lastHitPart = HitPart::Body;
-	m_hitDisplayTimer = kDefaultHitDisplayDuration; // 1秒間表示
+    m_lastDamageType = LastDamageType::Tackle;
+    TakeDamage(damage);
+    m_lastHitPart = HitPart::Body;
+    m_hitDisplayTimer = kDefaultHitDisplayDuration;
 }

@@ -566,6 +566,7 @@ void EnemyRunner::SetModelHandle(int handle)
 
 void EnemyRunner::TakeDamage(float damage)
 {
+    EnemyBase::TakeDamage(damage);
     m_hp -= damage;
     if (m_hp <= 0.0f) // 死亡時一度だけ
     {
@@ -575,8 +576,14 @@ void EnemyRunner::TakeDamage(float damage)
         bool isHeadShot = (m_lastHitPart == HitPart::Head);
         int addScore = ScoreManager::Instance().AddScore(isHeadShot);
         if (SceneMain::Instance())
-		{
+        {
             SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
         }
     }
+}
+
+void EnemyRunner::TakeTackleDamage(float damage)
+{
+    EnemyBase::TakeTackleDamage(damage);
+    // 体ヒット表示や他の処理は既存のまま
 }

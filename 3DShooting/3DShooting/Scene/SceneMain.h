@@ -52,13 +52,12 @@ public:
 	int m_wave1DropCount;
 
 	static SceneMain* Instance();
+	WaveManager* GetWaveManager() const { return m_pWaveManager.get(); }
 
-private:
-	void DrawPauseMenu();
-
-public:
 	// ゲーム経過時間（秒）を取得
 	static float GetElapsedTime() { return s_elapsedTime; }
+private:
+	void DrawPauseMenu();
 
 private:
 	std::unique_ptr<Player> m_pPlayer;
@@ -97,5 +96,6 @@ private:
 	int m_lastTotalScorePopupValue; // 合計スコアポップアップ用の一時保存値
 
 	static float s_elapsedTime;
+
 };
 

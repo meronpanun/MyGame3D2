@@ -415,9 +415,39 @@ void SceneMain::Draw()
     }
 
     // チュートリアル中または完了演出中は敵描画もスキップ
-    if (!(m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-          (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()))) {
+    bool isWave1Tutorial = (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
+          (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()));
+    if (!isWave1Tutorial) {
         m_pWaveManager->DrawEnemies();
+        // ウェーブ1画像が表示されるタイミングで右上にチュートリアル画像を表示
+        if (!m_pWaveManager->IsAllWavesCompleted() && m_pWaveManager->GetCurrentWave() == 1) {
+            int shotImg = m_pWaveManager->GetShotTutorialImg();
+            int tackleImg = m_pWaveManager->GetTackleTutorialImg();
+            int checkImg = m_pWaveManager->GetCheckMarkImg();
+            bool shotCleared = m_pWaveManager->IsShotTutorialCleared();
+            bool tackleCleared = m_pWaveManager->IsTackleTutorialCleared();
+            int screenW, screenH;
+            GetScreenState(&screenW, &screenH, nullptr);
+            int x = screenW - 220;
+            int y = 20;
+            // Shot画像のサイズ: 176x80, Tackle画像のサイズ: 176x60
+            int shotW = 176, shotH = 80;
+            int tackleW = 176, tackleH = 60;
+            int checkSize = 40;
+            int imgBaseX = x - 60; // 画像をさらに左にずらす
+            int shotY = y;
+            int tackleY = y + shotH + 20;
+            // Shot画像
+            if (shotImg >= 0) DrawGraph(imgBaseX, shotY, shotImg, true);
+            // 射撃達成時は射撃画像の右側にチェック
+            if (shotCleared && checkImg >= 0)
+                DrawExtendGraph(imgBaseX + shotW + 10, shotY + shotH/2 - checkSize/2, imgBaseX + shotW + 10 + checkSize, shotY + shotH/2 + checkSize/2, checkImg, true);
+            // Tackle画像
+            if (tackleImg >= 0) DrawGraph(imgBaseX, tackleY, tackleImg, true);
+            // タックル達成時はタックル画像の右側にチェック
+            if (tackleCleared && checkImg >= 0)
+                DrawExtendGraph(imgBaseX + tackleW + 10, tackleY + tackleH/2 - checkSize/2, imgBaseX + tackleW + 10 + checkSize, tackleY + tackleH/2 + checkSize/2, checkImg, true);
+        }
     }
 
     m_pPlayer->Draw();

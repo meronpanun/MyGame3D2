@@ -599,6 +599,7 @@ void EnemyAcid::SetModelHandle(int handle)
 
 void EnemyAcid::TakeDamage(float damage)
 {
+    EnemyBase::TakeDamage(damage);
     m_hp -= damage;
     if (m_hp <= 0.0f) // 死亡時一度だけ
     {
@@ -607,8 +608,15 @@ void EnemyAcid::TakeDamage(float damage)
         if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
         bool isHeadShot = (m_lastHitPart == HitPart::Head);
         int addScore = ScoreManager::Instance().AddScore(isHeadShot);
-        if (SceneMain::Instance()) {
+        if (SceneMain::Instance())
+        {
             SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
         }
     }
+}
+
+void EnemyAcid::TakeTackleDamage(float damage)
+{
+    EnemyBase::TakeTackleDamage(damage);
+    // 体ヒット表示や他の処理は既存のまま
 }

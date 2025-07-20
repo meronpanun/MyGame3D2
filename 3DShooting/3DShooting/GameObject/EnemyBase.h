@@ -140,6 +140,12 @@ public:
 	/// <param name="cb">ヒット時に呼ばれるコールバック関数</param>
 	void SetOnHitCallback(std::function<void(HitPart)> cb) { m_onHitCallback = cb; }
 
+	enum class LastDamageType { None, Shot, Tackle };
+	LastDamageType GetLastDamageType() const { return m_lastDamageType; }
+	void SetLastDamageType(LastDamageType type) { m_lastDamageType = type; }
+
+	void SetOnDeathWithTypeCallback(std::function<void(const VECTOR&, LastDamageType)> cb) { m_onDeathWithTypeCallback = cb; }
+
 protected:
 	/// <summary>
 	/// 弾のダメージを計算する
@@ -155,6 +161,7 @@ protected:
 	std::shared_ptr<Player> m_pTargetPlayer;  // ターゲットプレイヤー
 	std::function<void(const VECTOR&)> m_onDeathCallback; // 死亡コールバック
 	std::function<void(HitPart)> m_onHitCallback; // 部位情報付き
+	std::function<void(const VECTOR&, LastDamageType)> m_onDeathWithTypeCallback;
 
 	HitPart m_lastHitPart; // 最後に当たった部位
 
@@ -171,4 +178,6 @@ protected:
 	bool  m_isTackleHit;     // タックルで既にダメージを受けたか
 	bool  m_isAttacking;     // 攻撃中かどうか
 	bool  m_isActive;		 // デフォルトはアクティブ
+
+	LastDamageType m_lastDamageType = LastDamageType::None;
 };

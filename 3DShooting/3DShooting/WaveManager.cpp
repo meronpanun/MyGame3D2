@@ -45,7 +45,10 @@ WaveManager::WaveManager() :
     m_isRoadFloorBoundsSet(false),
     m_onEnemyDeathCallback(nullptr),
     m_waveIntervalTimer(0.0f),
-    m_totalSpawnedCount(0)
+    m_totalSpawnedCount(0),
+    m_shotTutorialImg(-1),
+    m_tackleTutorialImg(-1),
+    m_checkMarkImg(-1)
 {
     // 敵のテンプレートを作成
     m_pEnemyNormalTemplate = std::make_shared<EnemyNormal>();
@@ -61,6 +64,11 @@ WaveManager::WaveManager() :
     m_waveImages[0] = LoadGraph("data/image/wave1.png");
     m_waveImages[1] = LoadGraph("data/image/wave2.png");
     m_waveImages[2] = LoadGraph("data/image/wave3.png");
+
+    // チュートリアル画像の読み込み
+    m_shotTutorialImg = LoadGraph("data/image/ShotTutorial.png");
+    m_tackleTutorialImg = LoadGraph("data/image/TackleTutorial.png");
+    m_checkMarkImg = LoadGraph("data/image/CheckMark.png");
 }
 
 WaveManager::~WaveManager()
@@ -74,6 +82,9 @@ WaveManager::~WaveManager()
 			m_waveImages[i] = -1;
 		}
 	}
+    if (m_shotTutorialImg >= 0) { DeleteGraph(m_shotTutorialImg); m_shotTutorialImg = -1; }
+    if (m_tackleTutorialImg >= 0) { DeleteGraph(m_tackleTutorialImg); m_tackleTutorialImg = -1; }
+    if (m_checkMarkImg >= 0) { DeleteGraph(m_checkMarkImg); m_checkMarkImg = -1; }
 }
 
 void WaveManager::Init()
@@ -135,6 +146,44 @@ void WaveManager::Init()
         pEnemy->SetActive(false);
         m_enemyAcidPool.push_back(pEnemy);
     }
+
+    // チュートリアル達成判定用コールバック
+    auto deathTypeCallback = [this](const VECTOR& pos, EnemyBase::LastDamageType type) {
+        if (m_currentWave == 1) {
+            if (type == EnemyBase::LastDamageType::Shot) m_shotTutorialCleared = true;
+            if (type == EnemyBase::LastDamageType::Tackle) m_tackleTutorialCleared = true;
+        }
+    };
+    for (auto& enemy : m_enemyNormalPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+    for (auto& enemy : m_enemyRunnerPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+    for (auto& enemy : m_enemyAcidPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+
+    SetOnEnemyDeathCallback([this](const VECTOR& pos) {
+        // 死亡した敵を特定
+        auto checkAndSet = [this](EnemyBase* enemy) {
+            if (!enemy) return false;
+            if (m_currentWave == 1) {
+                if (enemy->GetLastDamageType() == EnemyBase::LastDamageType::Shot) m_shotTutorialCleared = true;
+                if (enemy->GetLastDamageType() == EnemyBase::LastDamageType::Tackle) m_tackleTutorialCleared = true;
+            }
+            return true;
+        };
+        for (auto& enemy : m_enemyNormalPool) {
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) {
+                if (checkAndSet(enemy.get())) break;
+            }
+        }
+        for (auto& enemy : m_enemyRunnerPool) {
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) {
+                if (checkAndSet(enemy.get())) break;
+            }
+        }
+        for (auto& enemy : m_enemyAcidPool) {
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) {
+                if (checkAndSet(enemy.get())) break;
+            }
+        }
+    });
 }
 
 void WaveManager::Update()
@@ -211,6 +260,17 @@ void WaveManager::Update()
 // GetEnemyListをアクティブな敵のみ返すようにする
 void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
 {
+    // 死亡時コールバックを毎フレーム再設定（プール再利用対策）
+    auto deathTypeCallback = [this](const VECTOR& pos, EnemyBase::LastDamageType type) {
+        if (m_currentWave == 1) {
+            if (type == EnemyBase::LastDamageType::Shot) m_shotTutorialCleared = true;
+            if (type == EnemyBase::LastDamageType::Tackle) m_tackleTutorialCleared = true;
+        }
+    };
+    for (auto& enemy : m_enemyNormalPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+    for (auto& enemy : m_enemyRunnerPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+    for (auto& enemy : m_enemyAcidPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+
     VECTOR playerPos = player.GetPos();
     // アクティブな敵リストを作成
     std::vector<EnemyBase*> activeEnemies;
@@ -411,6 +471,10 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
 // 敵を生成
 std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos)
 {
+    // ウェーブ1の敵が初めて出現したタイミングでフラグを立てる
+    if (m_currentWave == 1 && !m_wave1EnemySpawned) m_wave1EnemySpawned = true;
+    else if (m_currentWave != 1) m_wave1EnemySpawned = false;
+
     std::shared_ptr<EnemyBase> pEnemy = nullptr;
 
 	// 敵の種類に応じてプールから取得または新規生成
@@ -541,6 +605,10 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
     m_currentSpawnIndex = 0;
     m_spawnTimer = 0.0f;
     m_isWaveActive = true;
+
+    // ウェーブ1の敵ロードフラグ
+    if (m_currentWave == 1) m_wave1Loaded = true;
+    else m_wave1Loaded = false;
 
     printf("Starting Wave %d\n", m_currentWave);
 

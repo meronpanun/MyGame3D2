@@ -61,6 +61,7 @@ public:
 
 	// ダメージ処理
 	void TakeDamage(float damage) override;
+	void TakeTackleDamage(float damage) override;
 
 private:
 	void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数

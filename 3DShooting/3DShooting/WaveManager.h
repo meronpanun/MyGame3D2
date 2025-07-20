@@ -93,6 +93,19 @@ public:
     /// </summary>
     void DrawEnemies();
 
+    bool IsWaveActive() const { return m_isWaveActive; }
+    bool IsAllWavesCompleted() const { return m_isAllWavesCompleted; }
+    bool IsWave1Loaded() const { return m_wave1Loaded; }
+    bool IsWave1EnemySpawned() const { return m_wave1EnemySpawned; }
+
+    float GetSpawnTimer() const { return m_spawnTimer; }
+
+    int GetShotTutorialImg() const { return m_shotTutorialImg; }
+    int GetTackleTutorialImg() const { return m_tackleTutorialImg; }
+    bool IsShotTutorialCleared() const { return m_shotTutorialCleared; }
+    bool IsTackleTutorialCleared() const { return m_tackleTutorialCleared; }
+    int GetCheckMarkImg() const { return m_checkMarkImg; }
+
 private:
     /// <summary>
 	/// ウェーブデータを読み込む
@@ -167,6 +180,8 @@ private:
 
 	bool m_isWaveActive;        // 現在のウェーブがアクティブかどうか
 	bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
+	bool m_wave1Loaded = false; // ウェーブ1の敵がロードされたかどうか
+	bool m_wave1EnemySpawned = false; // ウェーブ1の敵が実際に出現したかどうか
 
     // Road_floorオブジェクトの範囲
 	VECTOR m_roadFloorMin;       // 最小位置
@@ -176,4 +191,10 @@ private:
     int m_waveImages[3]; // 1,2,3ウェーブ用画像ハンドル
 
     int m_totalSpawnedCount = 0; // 累計出現数
+
+    int m_shotTutorialImg = -1;
+    int m_tackleTutorialImg = -1;
+    bool m_shotTutorialCleared = false;
+    bool m_tackleTutorialCleared = false;
+    int m_checkMarkImg = -1;
 };

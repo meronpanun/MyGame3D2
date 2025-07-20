@@ -2,6 +2,8 @@
 #include "DxLib.h"
 #include <cmath>
 #include <cassert>
+#include "SceneMain.h" // 追加
+#include "WaveManager.h" // 追加
 
 TutorialManager::TutorialManager() : 
     m_step(Step::None),

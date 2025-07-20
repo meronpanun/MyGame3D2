@@ -576,11 +576,10 @@ void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 
 void EnemyNormal::TakeDamage(float damage)
 {
-    m_hp -= damage;
+    EnemyBase::TakeDamage(damage);
+    // HP減算・死亡判定は基底クラスで行う
     if (m_hp <= 0.0f) // 死亡時一度だけ
     {
-        m_hp = 0.0f;
-        m_isAlive = false;
         if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
         bool isHeadShot = (m_lastHitPart == HitPart::Head);
         int addScore = ScoreManager::Instance().AddScore(isHeadShot);
@@ -589,4 +588,10 @@ void EnemyNormal::TakeDamage(float damage)
             SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
         }
     }
+}
+
+void EnemyNormal::TakeTackleDamage(float damage)
+{
+    EnemyBase::TakeTackleDamage(damage);
+    // 体ヒット表示や他の処理は既存のまま
 }
