@@ -48,18 +48,21 @@ SceneBase* SceneResult::Update()
     {
         int screenW, screenH;
         GetScreenState(&screenW, &screenH, nullptr);
+        int btnY = screenH - 80;
+        int btnW = 120;
+        int btnH = 36;
+        int btnSpacing = 24;
         int centerX = screenW / 2;
-        int baseY = screenH / 2 + 180;
-        // タイトルに戻るボタン
-        int titleBtnX1 = centerX - kButtonWidth - kButtonSpacing/2;
-        int titleBtnY1 = baseY;
-        int titleBtnX2 = centerX - kButtonSpacing/2;
-        int titleBtnY2 = baseY + kButtonHeight;
+        // タイトルボタン
+        int titleBtnX1 = centerX - btnW - btnSpacing/2;
+        int titleBtnY1 = btnY;
+        int titleBtnX2 = centerX - btnSpacing/2;
+        int titleBtnY2 = btnY + btnH;
         // リトライボタン
-        int retryBtnX1 = centerX + kButtonSpacing/2;
-        int retryBtnY1 = baseY;
-        int retryBtnX2 = centerX + kButtonWidth + kButtonSpacing/2;
-        int retryBtnY2 = baseY + kButtonHeight;
+        int retryBtnX1 = centerX + btnSpacing/2;
+        int retryBtnY1 = btnY;
+        int retryBtnX2 = centerX + btnW + btnSpacing/2;
+        int retryBtnY2 = btnY + btnH;
         Vec2 mousePos = Mouse::GetPos();
         if (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 && mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2)
         {
