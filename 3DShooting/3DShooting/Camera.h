@@ -111,6 +111,12 @@ public:
 	/// <param name="duration">シェイクの持続時間</param>
 	void Shake(float intensity, float duration);
 
+	/// <summary>
+	/// シェイクオフセットを取得
+	/// </summary>
+	/// <returns>シェイクオフセット</returns>
+	VECTOR GetShakeOffset() const { return m_shakeOffset; }
+
 private:
 	VECTOR m_pos;			// カメラの位置
 	VECTOR m_target;		// カメラの注視点

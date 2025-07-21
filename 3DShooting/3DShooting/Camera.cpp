@@ -6,8 +6,8 @@ namespace
     constexpr float kPitchLimit = DX_PI_F / 4.0f; // カメラの角度を45度に制限
     constexpr float kCameraXPos = 8.0f;           // カメラのX軸
     constexpr float kCameraYPos = 90.0f;          // カメラのY軸
-    constexpr float kCameraZPos = 25.0f;          // カメラのZ軸
-    constexpr float kCameraNear = 0.1f;           // カメラの近くの距離
+    constexpr float kCameraZPos = 20.0f;          // カメラのZ軸
+    constexpr float kCameraNear = 1.0f;           // カメラの近くの距離
     constexpr float kCameraFar  = 15000.0f;       // カメラの遠くの距離
 }
 
@@ -89,6 +89,7 @@ void Camera::Update()
     // カメラの設定を更新
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
     SetupCamera_Perspective(m_fov); // FOVを毎フレーム反映
+    SetCameraNearFar(kCameraNear, kCameraFar);
 }
 
 // カメラの感度を設定

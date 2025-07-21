@@ -457,19 +457,32 @@ void Player::Draw()
 
 
 	/*剣の描画*/
-	float swordScreenX = -25.0f;
-	float swordScreenY = -30;
-	float swordScreenZ = 35.0f;
+	// 画面サイズに応じてスケーリング
+	float baseScreenW = 640.0f;
+	float baseScreenH = 480.0f;
+	float scaleW = screenW / baseScreenW;
+	float scaleH = screenH / baseScreenH;
+	float scaleAvg = (scaleW + scaleH) * 0.5f;
+
+	// 剣の位置（画面サイズに応じて調整）
+	float swordScreenX = -25.0f * scaleW;
+	float swordScreenY = -30.0f * scaleH;
+	float swordScreenZ = 35.0f * scaleAvg;
 
 	VECTOR camPos = VGet(0, 0, -swordScreenZ); // カメラの位置
-	VECTOR camTgt = VGet(0, 0, 0);			    // カメラのターゲット位置
-	SetCameraPositionAndTarget_UpVecY(camPos, camTgt); 
+	// メインカメラからシェイク量を取得して適用
+	if (m_pCamera)
+	{
+		camPos = VAdd(camPos, m_pCamera->GetShakeOffset());
+	}
+	VECTOR camTgt = VGet(0, 0, 0);             // カメラのターゲット位置
+	SetCameraPositionAndTarget_UpVecY(camPos, camTgt);
 
 	// 剣の位置
 	MV1SetPosition(m_swordHandle, VGet(swordScreenX, swordScreenY, 0.0f));
 
 	MV1SetRotationXYZ(m_swordHandle, VGet(0.0f, 200.0f, 0.0f)); // 剣の回転
-	MV1SetScale(m_swordHandle, VGet(0.5f, 0.5f, 0.5f));		    // 剣のスケール
+	MV1SetScale(m_swordHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg)); // 剣のスケール
 
 	// 剣の描画
 	MV1DrawModel(m_swordHandle);
