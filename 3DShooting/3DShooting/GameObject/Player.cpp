@@ -383,6 +383,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			isMoving = true;
 		}
 
+		// X,Z座標の移動範囲制限
+		m_modelPos.x = std::clamp(m_modelPos.x, -2800.0f, 2800.0f);
+		m_modelPos.z = std::clamp(m_modelPos.z, -2800.0f, 2800.0f);
+
 		//// アニメーションが終了したら
 		//if (m_nextAnimData.isEnd)
 		//{
