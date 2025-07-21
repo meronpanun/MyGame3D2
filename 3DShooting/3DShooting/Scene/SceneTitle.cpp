@@ -49,6 +49,8 @@ SceneTitle::SceneTitle(bool skipLogo):
     // タイトルBGMを読み込む
     m_bgmHandle = LoadSoundMem("data/sound/BGM/TitleBGM.wav");
     assert(m_bgmHandle != -1);
+    m_confirmSEHandle = LoadSoundMem("data/sound/SE/ConfirmButton.mp3");
+    assert(m_confirmSEHandle != -1);
 }
 
 SceneTitle::~SceneTitle()
@@ -57,6 +59,7 @@ SceneTitle::~SceneTitle()
 	DeleteGraph(m_logoHandle);
     // タイトルBGMを解放する
     DeleteSoundMem(m_bgmHandle);
+    DeleteSoundMem(m_confirmSEHandle);
 }
 
 void SceneTitle::Init()
@@ -154,6 +157,7 @@ SceneBase* SceneTitle::Update()
         {
             // BGMを停止
             StopSoundMem(m_bgmHandle);
+            PlaySoundMem(m_confirmSEHandle, DX_PLAYTYPE_BACK); // 決定ボタンSE再生
             return new SceneMain();
         }
         //// マウスがオプションボタンとパネルを囲む背景の範囲内にあるかチェック

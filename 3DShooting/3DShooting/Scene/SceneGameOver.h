@@ -19,6 +19,7 @@ private:
     float m_scrollX;        // 背景のスクロールX座標
     float m_scrollY;        // 背景のスクロールY座標
     int m_bgmHandle;       // ゲームオーバーBGMのハンドル
+    int m_returnSEHandle;  // 戻るボタンSEのハンドル
     bool m_bgmStarted;     // BGM再生済みフラグ
     int m_wave;
     int m_killCount;

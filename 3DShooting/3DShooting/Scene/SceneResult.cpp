@@ -21,6 +21,8 @@ SceneResult::SceneResult()
     // BGMのロード
     m_bgmHandle = LoadSoundMem("data/sound/BGM/GameClearBGM.mp3");
     assert(m_bgmHandle != -1);
+    m_returnSEHandle = LoadSoundMem("data/sound/SE/ButtonReturn.mp3");
+    assert(m_returnSEHandle != -1);
     // 背景画像のロード
     m_backgroundHandle = LoadGraph("data/image/GameClearBackGrand.png");
     assert(m_backgroundHandle != -1);
@@ -30,6 +32,7 @@ SceneResult::~SceneResult()
 {
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
+    DeleteSoundMem(m_returnSEHandle);
     // 背景画像の解放
     DeleteGraph(m_backgroundHandle);
 }
@@ -81,12 +84,14 @@ SceneBase* SceneResult::Update()
         {
             // BGMを停止
             StopSoundMem(m_bgmHandle);
+            PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
             return new SceneTitle(true);
         }
         if (mousePos.x >= retryBtnX1 && mousePos.x <= retryBtnX2 && mousePos.y >= retryBtnY1 && mousePos.y <= retryBtnY2)
         {
             // BGMを停止
             StopSoundMem(m_bgmHandle);
+            PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
             return new SceneMain();
         }
     }
