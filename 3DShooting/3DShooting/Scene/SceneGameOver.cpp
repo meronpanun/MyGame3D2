@@ -10,20 +10,35 @@ namespace
     constexpr int kButtonWidth = 220;
     constexpr int kButtonHeight = 60;
     constexpr int kButtonSpacing = 40;
+    constexpr float kScrollSpeed = 1.0f; // 背景のスクロール速度
+    constexpr int kBgImageSize = 1024;   // 背景画像のサイズ
 }
 
-SceneGameOver::SceneGameOver(int wave, int killCount, int score)
-	: m_wave(wave), m_killCount(killCount), m_score(score), m_bgmHandle(-1), m_bgmStarted(false)
+SceneGameOver::SceneGameOver(int wave, int killCount, int score) : 
+    m_wave(wave),
+    m_killCount(killCount),
+    m_score(score), 
+    m_bgmHandle(-1), 
+    m_bgmStarted(false), 
+    m_backgroundHandle(-1), 
+    m_scrollX(0.0f), 
+    m_scrollY(0.0f)
 {
     // BGMのロード
     m_bgmHandle = LoadSoundMem("data/sound/BGM/GameOverBGM.mp3");
     assert(m_bgmHandle != -1);
+
+    // 背景画像のロード
+    m_backgroundHandle = LoadGraph("data/image/BackGrand.png");
+    assert(m_backgroundHandle != -1);
 }
 
 SceneGameOver::~SceneGameOver()
 {
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
+    // 背景画像の解放
+    DeleteGraph(m_backgroundHandle);
 }
 
 void SceneGameOver::Init()
@@ -41,6 +56,12 @@ void SceneGameOver::Init()
 
 SceneBase* SceneGameOver::Update()
 {
+    // 背景をスクロール
+    m_scrollX += kScrollSpeed;
+    m_scrollY += kScrollSpeed;
+    if (m_scrollX > kBgImageSize) m_scrollX -= kBgImageSize;
+    if (m_scrollY > kBgImageSize) m_scrollY -= kBgImageSize;
+
     if (Mouse::IsTriggerLeft())
     {
         int screenW, screenH;
@@ -76,7 +97,14 @@ SceneBase* SceneGameOver::Update()
 
 void SceneGameOver::Draw()
 {
+    // 背景を描画
     int screenW, screenH;
+    GetScreenState(&screenW, &screenH, nullptr);
+    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX, (int)m_scrollY, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
+    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX - kBgImageSize, (int)m_scrollY, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
+    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX, (int)m_scrollY - kBgImageSize, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
+    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX - kBgImageSize, (int)m_scrollY - kBgImageSize, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
+
     GetScreenState(&screenW, &screenH, nullptr);
     SetFontSize(48);
     DrawString(screenW / 2 - 200, screenH / 2 - 100, "Game Over", 0xff0000);
