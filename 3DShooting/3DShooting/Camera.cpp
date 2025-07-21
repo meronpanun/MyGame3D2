@@ -47,7 +47,6 @@ void Camera::Update()
     // シェイク処理
     if (m_shakeDuration > 0)
     {
-       // m_shakeOffset.x = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeOffset.y = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeOffset.z = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeDuration--;

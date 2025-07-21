@@ -180,8 +180,8 @@ private:
 
 	bool m_isWaveActive;        // 現在のウェーブがアクティブかどうか
 	bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
-	bool m_wave1Loaded = false; // ウェーブ1の敵がロードされたかどうか
-	bool m_wave1EnemySpawned = false; // ウェーブ1の敵が実際に出現したかどうか
+	bool m_wave1Loaded; // ウェーブ1の敵がロードされたかどうか
+	bool m_wave1EnemySpawned; // ウェーブ1の敵が実際に出現したかどうか
 
     // Road_floorオブジェクトの範囲
 	VECTOR m_roadFloorMin;       // 最小位置
@@ -190,11 +190,11 @@ private:
 
     int m_waveImages[3]; // 1,2,3ウェーブ用画像ハンドル
 
-    int m_totalSpawnedCount = 0; // 累計出現数
+    int m_totalSpawnedCount; // 累計出現数
 
-    int m_shotTutorialImg = -1;
-    int m_tackleTutorialImg = -1;
-    bool m_shotTutorialCleared = false;
-    bool m_tackleTutorialCleared = false;
-    int m_checkMarkImg = -1;
+    int m_shotTutorialImg;
+    int m_tackleTutorialImg;
+    bool m_shotTutorialCleared;
+    bool m_tackleTutorialCleared;
+    int m_checkMarkImg;
 };

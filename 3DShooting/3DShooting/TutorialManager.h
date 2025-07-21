@@ -38,23 +38,23 @@ private:
     bool m_viewDone;
     int m_checkMarkHandle;
     Vec2 m_prevMousePos;
-    float m_moveAccumTime = 0.0f; // WASD操作累積時間
-    float m_viewAccumTime = 0.0f; // 視点操作累積時間
-    float m_completeWaitTime = 0.0f; // チュートリアル完了後の待機タイマー
-    bool m_isCompletedDisplay = false; // 完了演出表示中フラグ
+    float m_moveAccumTime; // WASD操作累積時間
+    float m_viewAccumTime; // 視点操作累積時間
+    float m_completeWaitTime; // チュートリアル完了後の待機タイマー
+    bool m_isCompletedDisplay; // 完了演出表示中フラグ
     // チェックマークアニメーション用
-    bool m_moveCheckAnim = false;
-    float m_moveCheckAnimTime = 0.0f;
-    bool m_viewCheckAnim = false;
-    float m_viewCheckAnimTime = 0.0f;
+    bool m_moveCheckAnim;
+    float m_moveCheckAnimTime;
+    bool m_viewCheckAnim;
+    float m_viewCheckAnimTime;
     // ジャンプ・走るチュートリアル用
-    bool m_jumpDone = false;
-    bool m_runDone = false;
-    float m_jumpAccumTime = 0.0f;
-    float m_runAccumTime = 0.0f;
-    bool m_jumpCheckAnim = false;
-    float m_jumpCheckAnimTime = 0.0f;
-    bool m_runCheckAnim = false;
-    float m_runCheckAnimTime = 0.0f;
+    bool m_jumpDone;
+    bool m_runDone;
+    float m_jumpAccumTime;
+    float m_runAccumTime;
+    bool m_jumpCheckAnim;
+    float m_jumpCheckAnimTime;
+    bool m_runCheckAnim;
+    float m_runCheckAnimTime;
 };
 

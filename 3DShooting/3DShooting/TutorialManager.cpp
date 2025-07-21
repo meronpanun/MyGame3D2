@@ -12,7 +12,21 @@ TutorialManager::TutorialManager() :
     m_checkMarkHandle(-1),
     m_prevMousePos{0,0},
     m_moveAccumTime(0.0f),
-    m_viewAccumTime(0.0f)
+    m_viewAccumTime(0.0f),
+    m_completeWaitTime(0.0f),
+    m_isCompletedDisplay(false),
+    m_moveCheckAnim(false),
+    m_moveCheckAnimTime(0.0f),
+    m_viewCheckAnim(false),
+    m_viewCheckAnimTime(0.0f),
+    m_jumpDone(false),
+    m_runDone(false),
+    m_jumpAccumTime(0.0f),
+    m_runAccumTime(0.0f),
+    m_jumpCheckAnim(false),
+    m_jumpCheckAnimTime(0.0f),
+    m_runCheckAnim(false),
+    m_runCheckAnimTime(0.0f)
 {
     m_checkMarkHandle = LoadGraph("data/image/CheckMark.png");
     assert(m_checkMarkHandle != -1);
@@ -34,17 +48,6 @@ void TutorialManager::Init()
     m_viewAccumTime = 0.0f;
     m_jumpAccumTime = 0.0f;
     m_runAccumTime = 0.0f;
-    m_completeWaitTime = 0.0f;
-    m_isCompletedDisplay = false;
-    m_prevMousePos = Mouse::GetPos();
-    m_moveCheckAnim = false;
-    m_moveCheckAnimTime = 0.0f;
-    m_viewCheckAnim = false;
-    m_viewCheckAnimTime = 0.0f;
-    m_jumpCheckAnim = false;
-    m_jumpCheckAnimTime = 0.0f;
-    m_runCheckAnim = false;
-    m_runCheckAnimTime = 0.0f;
 }
 
 void TutorialManager::Update()

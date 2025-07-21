@@ -20,8 +20,8 @@ namespace
 	constexpr float kMaxActiveDistance = 1200.0f; 
 
     // 地面の最小最大値座標
-	constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // 床の最小座標
-	constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
+	constexpr VECTOR kRoadFloorMin = { -1000.0f, 0.0f, -1000.0f }; // 床の最小座標
+	constexpr VECTOR kRoadFloorMax = { 1000.0f, 0.0f, 1000.0f };   // 床の最大座標
 
     // プレイヤーからの最小距離
 	constexpr float kMinSpawnDistance = 200.0f;
@@ -40,6 +40,8 @@ WaveManager::WaveManager() :
     m_currentSpawnIndex(0),
     m_isWaveActive(false),
     m_isAllWavesCompleted(false),
+    m_wave1Loaded(false),
+    m_wave1EnemySpawned(false),
     m_roadFloorMin(kRoadFloorMin),
     m_roadFloorMax(kRoadFloorMax),
     m_isRoadFloorBoundsSet(false),
@@ -48,6 +50,8 @@ WaveManager::WaveManager() :
     m_totalSpawnedCount(0),
     m_shotTutorialImg(-1),
     m_tackleTutorialImg(-1),
+    m_shotTutorialCleared(false),
+    m_tackleTutorialCleared(false),
     m_checkMarkImg(-1)
 {
     // 敵のテンプレートを作成
