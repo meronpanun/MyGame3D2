@@ -77,6 +77,7 @@ void AmmoItem::Update(Player* player)
 	// 弾薬が満タンかどうかは問わず、当たれば回復
 	if (m_isHit)
 	{
+		PlaySoundMem(player->GetAmmoItemSEHandle(), DX_PLAYTYPE_BACK); // 弾薬アイテムSE再生
 		player->AddAmmo(kAmmoAmount); // プレイヤーに弾薬を加算
 		m_isUsed = true;
 	}

@@ -69,6 +69,8 @@ Player::Player() :
 	m_shootSEHandle(-1),
 	m_playerHitSEHandle(-1),
 	m_tackleSEHandle(-1),
+	m_recoverySEHandle(-1),
+	m_ammoItemSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
@@ -108,6 +110,10 @@ Player::Player() :
 	assert(m_playerHitSEHandle != -1);
 	m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
 	assert(m_tackleSEHandle != -1);
+	m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
+	assert(m_recoverySEHandle != -1);
+	m_ammoItemSEHandle = LoadSoundMem("data/sound/SE/AmmoItem.mp3");
+	assert(m_ammoItemSEHandle != -1);
 }
 
 Player::~Player()
@@ -120,6 +126,8 @@ Player::~Player()
 	DeleteSoundMem(m_shootSEHandle);
 	DeleteSoundMem(m_playerHitSEHandle);
 	DeleteSoundMem(m_tackleSEHandle);
+	DeleteSoundMem(m_recoverySEHandle);
+	DeleteSoundMem(m_ammoItemSEHandle);
 }
 
 void Player::Init()

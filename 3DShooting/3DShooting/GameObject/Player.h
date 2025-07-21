@@ -141,6 +141,16 @@ public:
 	// プレイヤーのカプセルコライダー取得
 	std::shared_ptr<CapsuleCollider> GetBodyCollider() const;
 
+	/// <summary>
+	/// 回復SEハンドルを取得する
+	/// </summary>
+	int GetRecoverySEHandle() const { return m_recoverySEHandle; }
+
+	/// <summary>
+	/// 弾薬アイテムSEハンドルを取得する
+	/// </summary>
+	int GetAmmoItemSEHandle() const { return m_ammoItemSEHandle; }
+
 private:
 	/// <summary>
 	/// 弾を発射する
@@ -211,10 +221,12 @@ private:
 	int   m_shootSEHandle;  // シュートのSEハンドル
 	int   m_playerHitSEHandle;   // 被弾SEのハンドル
 	int   m_tackleSEHandle;      // タックルSEのハンドル
+	int   m_recoverySEHandle;   // 回復アイテムSEのハンドル
 	int   m_ammo;		    // プレイヤーの弾薬数	
 	int   m_tackleFrame;    // タックルのフレーム数
 	int   m_tackleCooldown; // タックルのクールダウンタイマー
 	int   m_tackleId;       // タックルID
+	int   m_ammoItemSEHandle;   // 弾薬アイテムSEのハンドル
 
 	bool  m_isMoving;	   // プレイヤーが移動中かどうか
 	bool  m_isJumping;	   // プレイヤーがジャンプ中かどうか
