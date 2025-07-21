@@ -67,6 +67,7 @@ Player::Player() :
 	m_modelHandle(-1),
 	m_swordHandle(-1),
 	m_shootSEHandle(-1),
+	m_playerHitSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
@@ -102,6 +103,8 @@ Player::Player() :
 	// SEの読み込み
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
 	assert(m_shootSEHandle != -1);
+	m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
+	assert(m_playerHitSEHandle != -1);
 }
 
 Player::~Player()
@@ -112,6 +115,7 @@ Player::~Player()
 
 	// SEの解放
 	DeleteSoundMem(m_shootSEHandle);
+	DeleteSoundMem(m_playerHitSEHandle);
 }
 
 void Player::Init()
@@ -726,6 +730,8 @@ void Player::TakeDamage(float damage)
 	}
 	// ダメージエフェクトを発動
 	m_damageEffect.Trigger(30.0f, 255, 0, 0); // 赤
+	// 被弾SEを再生
+	PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 }
 
 // 弾の取得

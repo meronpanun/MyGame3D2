@@ -100,12 +100,28 @@ void SceneGameOver::Draw()
     // 背景を描画
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
-    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX, (int)m_scrollY, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
-    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX - kBgImageSize, (int)m_scrollY, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
-    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX, (int)m_scrollY - kBgImageSize, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
-    DrawRectExtendGraph(0, 0, screenW, screenH, (int)m_scrollX - kBgImageSize, (int)m_scrollY - kBgImageSize, kBgImageSize, kBgImageSize, m_backgroundHandle, TRUE);
 
-    GetScreenState(&screenW, &screenH, nullptr);
+    // スクロール位置を画像サイズで割った余りを計算
+    int offsetX = (int)m_scrollX % kBgImageSize;
+    int offsetY = (int)m_scrollY % kBgImageSize;
+    
+    // 負の値になった場合、正の値に補正
+    if (offsetX < 0) offsetX += kBgImageSize;
+    if (offsetY < 0) offsetY += kBgImageSize;
+
+    // 2x2のタイル状に背景を描画（画面全体を覆うように）
+    for (int y = -1; y < 2; y++)
+    {
+        for (int x = -1; x < 2; x++)
+        {
+            int drawX = x * kBgImageSize + offsetX;
+            int drawY = y * kBgImageSize + offsetY;
+            DrawExtendGraph(drawX, drawY, 
+                          drawX + kBgImageSize, drawY + kBgImageSize, 
+                          m_backgroundHandle, TRUE);
+        }
+    }
+
     SetFontSize(48);
     DrawString(screenW / 2 - 200, screenH / 2 - 100, "Game Over", 0xff0000);
     SetFontSize(36);

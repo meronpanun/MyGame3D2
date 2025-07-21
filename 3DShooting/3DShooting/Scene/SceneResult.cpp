@@ -11,20 +11,27 @@ namespace
     constexpr int kButtonWidth = 220;
     constexpr int kButtonHeight = 60;
     constexpr int kButtonSpacing = 40;
+    constexpr float kScrollSpeed = 1.0f; // 背景のスクロール速度
+    constexpr int kBgImageSize = 1024;   // 背景画像のサイズ
 }
 
 SceneResult::SceneResult()
-    : m_bgmHandle(-1), m_bgmStarted(false)
+    : m_bgmHandle(-1), m_bgmStarted(false), m_backgroundHandle(-1), m_scrollX(0.0f), m_scrollY(0.0f)
 {
     // BGMのロード
     m_bgmHandle = LoadSoundMem("data/sound/BGM/GameClearBGM.mp3");
     assert(m_bgmHandle != -1);
+    // 背景画像のロード
+    m_backgroundHandle = LoadGraph("data/image/GameClearBackGrand.png");
+    assert(m_backgroundHandle != -1);
 }
 
 SceneResult::~SceneResult()
 {
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
+    // 背景画像の解放
+    DeleteGraph(m_backgroundHandle);
 }
 
 void SceneResult::Init()
@@ -44,6 +51,12 @@ void SceneResult::Init()
 
 SceneBase* SceneResult::Update()
 {
+    // 背景をスクロール
+    m_scrollX += kScrollSpeed;
+    m_scrollY += kScrollSpeed;
+    if (m_scrollX > kBgImageSize) m_scrollX -= kBgImageSize;
+    if (m_scrollY > kBgImageSize) m_scrollY -= kBgImageSize;
+
     if (Mouse::IsTriggerLeft())
     {
         int screenW, screenH;
@@ -82,8 +95,31 @@ SceneBase* SceneResult::Update()
 
 void SceneResult::Draw()
 {
+    // 背景を描画
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
+
+    // スクロール位置を画像サイズで割った余りを計算
+    int offsetX = (int)m_scrollX % kBgImageSize;
+    int offsetY = (int)m_scrollY % kBgImageSize;
+    
+    // 負の値になった場合、正の値に補正
+    if (offsetX < 0) offsetX += kBgImageSize;
+    if (offsetY < 0) offsetY += kBgImageSize;
+
+    // 2x2のタイル状に背景を描画（画面全体を覆うように）
+    for (int y = -1; y < 2; y++)
+    {
+        for (int x = -1; x < 2; x++)
+        {
+            int drawX = x * kBgImageSize + offsetX;
+            int drawY = y * kBgImageSize + offsetY;
+            DrawExtendGraph(drawX, drawY, 
+                          drawX + kBgImageSize, drawY + kBgImageSize, 
+                          m_backgroundHandle, TRUE);
+        }
+    }
+
     // タイトル
     SetFontSize(32);
     DrawString(screenW / 2 - 100, 30, "ゲームクリア！", 0x00ff00);
