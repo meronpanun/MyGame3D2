@@ -3,6 +3,7 @@
 #include "SceneTitle.h"
 #include "SceneMain.h"
 #include "Mouse.h"
+#include <cassert>
 
 namespace
 {
@@ -12,18 +13,30 @@ namespace
 }
 
 SceneGameOver::SceneGameOver(int wave, int killCount, int score)
-	: m_wave(wave), m_killCount(killCount), m_score(score)
+	: m_wave(wave), m_killCount(killCount), m_score(score), m_bgmHandle(-1), m_bgmStarted(false)
 {
+    // BGMのロード
+    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameOverBGM.mp3");
+    assert(m_bgmHandle != -1);
 }
 
 SceneGameOver::~SceneGameOver()
 {
+    // BGMの解放
+    DeleteSoundMem(m_bgmHandle);
 }
 
 void SceneGameOver::Init()
 {
     // マウスカーソルの表示/非表示を設定
     SetMouseDispFlag(true);
+    m_bgmStarted = false;
+    // BGM再生（既に再生中でなければ）
+    if (CheckSoundMem(m_bgmHandle) == 0)
+    {
+        PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
+        m_bgmStarted = true;
+    }
 }
 
 SceneBase* SceneGameOver::Update()
@@ -47,10 +60,14 @@ SceneBase* SceneGameOver::Update()
         Vec2 mousePos = Mouse::GetPos();
         if (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 && mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2)
         {
+            // BGMを停止
+            StopSoundMem(m_bgmHandle);
             return new SceneTitle(true);
         }
         if (mousePos.x >= retryBtnX1 && mousePos.x <= retryBtnX2 && mousePos.y >= retryBtnY1 && mousePos.y <= retryBtnY2)
         {
+            // BGMを停止
+            StopSoundMem(m_bgmHandle);
             return new SceneMain();
         }
     }

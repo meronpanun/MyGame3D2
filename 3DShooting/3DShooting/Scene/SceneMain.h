@@ -97,5 +97,8 @@ private:
 
 	static float s_elapsedTime;
 
+	int m_bgmHandle;       // ゲームシーンBGMのハンドル
+	bool m_bgmStarted;     // BGM再生済みフラグ
+
 };
 

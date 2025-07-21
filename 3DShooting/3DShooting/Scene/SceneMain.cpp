@@ -103,7 +103,9 @@ SceneMain::SceneMain() :
 	m_wave1DropCount(0),
 	m_totalScorePopupTimer(0),
 	m_lastTotalScorePopupValue(0),
-	m_pTutorialManager(std::make_unique<TutorialManager>())
+	m_pTutorialManager(std::make_unique<TutorialManager>()),
+    m_bgmHandle(-1),
+    m_bgmStarted(false)
 {
     g_sceneMainInstance = this;
     // モデルの読み込み
@@ -113,6 +115,10 @@ SceneMain::SceneMain() :
     // レティクル画像の読み込み
     m_dotHandle = LoadGraph("data/image/Dot.png");
     assert(m_dotHandle != -1);
+
+    // BGMのロード
+    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
+    assert(m_bgmHandle != -1);
 }
 
 SceneMain::~SceneMain()
@@ -120,6 +126,8 @@ SceneMain::~SceneMain()
 	// モデルやリソースの解放
     MV1DeleteModel(m_skyDomeHandle);    
 	DeleteGraph(m_dotHandle);
+    // BGMの解放
+    DeleteSoundMem(m_bgmHandle);
 }
 
 void SceneMain::Init()
@@ -265,6 +273,9 @@ void SceneMain::Init()
 
     m_pTutorialManager = std::make_unique<TutorialManager>();
     m_pTutorialManager->Init();
+
+    // BGM再生フラグをリセット（Initでは再生しない）
+    m_bgmStarted = false;
 }
 
 // スコアポップアップを追加する
@@ -288,6 +299,16 @@ SceneBase* SceneMain::Update()
         // グラフィックを使った処理が行われる可能性があるので
         // 最初にチェックしてロードが終わっていなければここでupdate終了
 		return this;
+    }
+
+    // BGM再生（非同期ロード完了直後に一度だけ）
+    if (!m_bgmStarted)
+    {
+        if (CheckSoundMem(m_bgmHandle) == 0)
+        {
+            PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
+        }
+        m_bgmStarted = true;
     }
 
     // 経過時間を加算
@@ -337,6 +358,8 @@ SceneBase* SceneMain::Update()
             if (mousePos.x >= kReturnButtonX && mousePos.x <= kReturnButtonX + kButtonWidth &&
                 mousePos.y >= kReturnButtonY && mousePos.y <= kReturnButtonY + kButtonHeight)
             {
+                // BGMを停止
+                StopSoundMem(m_bgmHandle);
                 return new SceneTitle(true);
             }
 
@@ -369,10 +392,14 @@ SceneBase* SceneMain::Update()
         int wave = m_pWaveManager->GetCurrentWave();
         int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
         int score = ScoreManager::Instance().GetTotalScore();
+		// BGMを停止
+        StopSoundMem(m_bgmHandle);
 		return new SceneGameOver(wave, killCount, score);
     }
     m_pWaveManager->Update();
     if (m_pWaveManager->GetCurrentWave() > 3) {
+        // BGMを停止
+        StopSoundMem(m_bgmHandle);
         return new SceneResult();
     }
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);

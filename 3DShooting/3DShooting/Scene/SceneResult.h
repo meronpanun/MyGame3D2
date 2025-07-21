@@ -13,5 +13,9 @@ public:
 	void Init() override;
 	SceneBase* Update() override;
 	void Draw() override;
+
+private:
+    int m_bgmHandle;       // ゲームクリアBGMのハンドル
+    bool m_bgmStarted;     // BGM再生済みフラグ
 };
 

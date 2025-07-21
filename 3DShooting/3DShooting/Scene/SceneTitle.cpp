@@ -32,6 +32,7 @@ namespace
 
 SceneTitle::SceneTitle(bool skipLogo):
     m_logoHandle(-1),
+    m_bgmHandle(-1),
 	m_fadeAlpha(0),
 	m_fadeFrame(0),
 	m_sceneFadeAlpha(0),
@@ -39,23 +40,30 @@ SceneTitle::SceneTitle(bool skipLogo):
 	m_isFadeComplete(false),
 	m_isFadeOut(false),
 	m_skipLogo(skipLogo),
-	m_isSceneFadeIn(false)
+	m_isSceneFadeIn(false),
+	m_bgmStarted(false)
 {
     // タイトルロゴ画像を読み込む
     m_logoHandle = LoadGraph("data/image/TitleLogo.png");
     assert(m_logoHandle != -1);
+    // タイトルBGMを読み込む
+    m_bgmHandle = LoadSoundMem("data/sound/BGM/TitleBGM.wav");
+    assert(m_bgmHandle != -1);
 }
 
 SceneTitle::~SceneTitle()
 {
     // タイトルロゴ画像を解放する
 	DeleteGraph(m_logoHandle);
+    // タイトルBGMを解放する
+    DeleteSoundMem(m_bgmHandle);
 }
 
 void SceneTitle::Init()
 {
     // マウスカーソルを表示する
     SetMouseDispFlag(true);
+    m_bgmStarted = false;
 }
 
 SceneBase* SceneTitle::Update()
@@ -125,6 +133,16 @@ SceneBase* SceneTitle::Update()
         return this;
     }
 
+    // BGM再生（ロゴ演出が終わった直後に一度だけ）
+    if (!m_bgmStarted)
+    {
+        if (CheckSoundMem(m_bgmHandle) == 0)
+        {
+            PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
+        }
+        m_bgmStarted = true;
+    }
+
     // マウスの左クリックをチェック
     if (Mouse::IsTriggerLeft())
     {
@@ -134,6 +152,8 @@ SceneBase* SceneTitle::Update()
         if (mousePos.x >= kStartButtonX1 && mousePos.x <= kStartButtonX2 &&
             mousePos.y >= kStartButtonY1 && mousePos.y <= kStartButtonY2)
         {
+            // BGMを停止
+            StopSoundMem(m_bgmHandle);
             return new SceneMain();
         }
         //// マウスがオプションボタンとパネルを囲む背景の範囲内にあるかチェック

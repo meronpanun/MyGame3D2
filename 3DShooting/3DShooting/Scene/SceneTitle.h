@@ -21,6 +21,8 @@ public:
 
 private:
 	int m_logoHandle;	   // タイトルロゴのハンドル
+	int m_bgmHandle;	   // タイトルBGMのハンドル
+	bool m_bgmStarted;     // BGM再生済みフラグ
 	int m_fadeAlpha;	   // フェードのアルファ値
 	int m_fadeFrame;	   // フェードのフレームカウント
 	int m_sceneFadeAlpha;  // シーンフェードのアルファ値

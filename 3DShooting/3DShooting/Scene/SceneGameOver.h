@@ -15,8 +15,10 @@ public:
 	void Draw() override;
 
 private:
-	int m_wave;
-	int m_killCount;
-	int m_score;
+    int m_bgmHandle;       // ゲームオーバーBGMのハンドル
+    bool m_bgmStarted;     // BGM再生済みフラグ
+    int m_wave;
+    int m_killCount;
+    int m_score;
 };
 
