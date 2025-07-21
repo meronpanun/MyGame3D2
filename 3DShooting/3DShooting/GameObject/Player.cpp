@@ -68,6 +68,7 @@ Player::Player() :
 	m_swordHandle(-1),
 	m_shootSEHandle(-1),
 	m_playerHitSEHandle(-1),
+	m_tackleSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
@@ -105,6 +106,8 @@ Player::Player() :
 	assert(m_shootSEHandle != -1);
 	m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
 	assert(m_playerHitSEHandle != -1);
+	m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
+	assert(m_tackleSEHandle != -1);
 }
 
 Player::~Player()
@@ -116,6 +119,7 @@ Player::~Player()
 	// SEの解放
 	DeleteSoundMem(m_shootSEHandle);
 	DeleteSoundMem(m_playerHitSEHandle);
+	DeleteSoundMem(m_tackleSEHandle);
 }
 
 void Player::Init()
@@ -221,6 +225,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	if (!m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
 	{
 		m_isTackling = true;
+		PlaySoundMem(m_tackleSEHandle, DX_PLAYTYPE_BACK); // タックルSE再生
 		m_tackleFrame = kTackleDuration;
 		m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
 		m_tackleId++; // タックルごとにIDを更新

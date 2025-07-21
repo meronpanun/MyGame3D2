@@ -210,6 +210,7 @@ private:
 	int   m_swordHandle;    // 剣のハンドル
 	int   m_shootSEHandle;  // シュートのSEハンドル
 	int   m_playerHitSEHandle;   // 被弾SEのハンドル
+	int   m_tackleSEHandle;      // タックルSEのハンドル
 	int   m_ammo;		    // プレイヤーの弾薬数	
 	int   m_tackleFrame;    // タックルのフレーム数
 	int   m_tackleCooldown; // タックルのクールダウンタイマー
