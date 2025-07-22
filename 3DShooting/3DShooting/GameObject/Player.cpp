@@ -61,6 +61,8 @@ namespace
 	constexpr float kAppear			     = 0.2f;  // 集中線が伸びるアニメーションの比率（0.0〜1.0）
 	constexpr float kVanish				 = 0.2f;  // 集中線が消えるアニメーションの比率（0.0〜1.0）
 	constexpr float kOverRatioScale		 = 1.2f;  // 消える時の根元の外側へのスケール（1.0で画面端、1.2で完全に外）
+
+	constexpr float kShootRate = 10.0f; // 1秒あたりの発射回数
 }
 
 Player::Player() :
@@ -95,7 +97,12 @@ Player::Player() :
 	m_damageEffectAlpha(0.0f),
 	m_damageEffectTimer(0.0f),
 	m_healEffectAlpha(0.0f),
-	m_healEffectTimer(0.0f)
+	m_healEffectTimer(0.0f),
+	m_ammoEffectAlpha(0.0f),
+	m_ammoEffectTimer(0.0f),
+	m_shootCooldown(0.0f),
+	m_shootCooldownTimer(0.0f),
+	m_shootRate(kShootRate)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -140,18 +147,18 @@ void Player::Init()
 	{
 		if (data.name == "Player") 
 		{
-			m_pos = data.pos;
-			m_modelPos = data.pos;
-			m_scale = data.scale;
-			m_health = data.hp;
-			m_maxHealth = data.hp;
-			m_moveSpeed = data.speed;
+			m_pos				= data.pos;
+			m_modelPos			= data.pos;
+			m_scale				= data.scale;
+			m_health			= data.hp;
+			m_maxHealth			= data.hp;
+			m_moveSpeed		    = data.speed;
 			m_tackleCooldownMax = data.tackleCooldown;
-			m_tackleSpeed = data.tackleSpeed;
-			m_tackleDamage = data.tackleDamage;
-			m_runSpeed = data.runSpeed;
-			m_initialAmmo = data.initialAmmo;
-			m_bulletPower = data.bulletPower;
+			m_tackleSpeed		= data.tackleSpeed;
+			m_tackleDamage		= data.tackleDamage;
+			m_runSpeed			= data.runSpeed;
+			m_initialAmmo		= data.initialAmmo;
+			m_bulletPower		= data.bulletPower;
 			MV1SetScale(m_modelHandle, data.scale);
 			MV1SetRotationXYZ(m_modelHandle, data.rot);
 			break;
@@ -159,6 +166,8 @@ void Player::Init()
 	}
 	m_pEffect->Init(); // エフェクトの初期化
 	m_pCamera->Init(); // カメラの初期化
+
+	m_shootCooldown = 1.0f / m_shootRate; // 発射クールタイムを設定
 
 	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
 
@@ -170,6 +179,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
 	unsigned char keyState[256];
 	GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+
+	// クールタイムタイマー減算
+	if (m_shootCooldownTimer > 0.0f) 
+	{
+		m_shootCooldownTimer -= 1.0f / 60.0f;
+		if (m_shootCooldownTimer < 0.0f) m_shootCooldownTimer = 0.0f;
+	}
 
 	// プレイヤーの位置をカメラに設定
 	m_pCamera->SetPlayerPos(m_modelPos);
@@ -222,10 +238,11 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃(タックル中は射撃不可)
-	if (!m_isTackling && Mouse::IsPressLeft() && m_ammo > 0)
+	if (!m_isTackling && Mouse::IsPressLeft() && m_ammo > 0 && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 		m_ammo--; // 弾薬を減らす
+		m_shootCooldownTimer = m_shootCooldown; // クールタイムリセット
 	}
 
 	// 地面にいるかどうかの判定
@@ -804,7 +821,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     
     // 弾丸を発射
     bullets.emplace_back(gunPos, bulletDirection, m_bulletPower);
-    m_ammo--;
+    //m_ammo--;
 
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();

@@ -218,8 +218,17 @@ private:
 	float m_tackleCooldownMax; // タックルクールタイム
 	float m_tackleSpeed;        // タックル時の速度
 	float m_tackleDamage;       // タックルダメージ
+	float m_damageEffectTimer; // ダメージエフェクト用タイマー
+	float m_damageEffectAlpha; // ダメージエフェクト用アルファ値
+	float m_healEffectTimer;
+	float m_healEffectAlpha; // ヒールエフェクト用アルファ値
+	float m_ammoEffectTimer; // 弾薬エフェクト用タイマー
+	float m_ammoEffectAlpha; // 弾薬エフェクト用アルファ値
+	float m_shootCooldown;      // 発射クールタイム
+	float m_shootCooldownTimer; // クールタイムタイマー
+	float m_shootRate;          // 1秒あたりの発射回数
 
-	int m_initialAmmo;     // 初期弾薬数
+	int   m_initialAmmo;     // 初期弾薬数
 	int   m_modelHandle;    // プレイヤーモデルのハンドル
 	int   m_swordHandle;    // 剣のハンドル
 	int   m_shootSEHandle;  // シュートのSEハンドル
@@ -237,11 +246,7 @@ private:
 	bool  m_isWasRunning;  // 前回の移動状態が走っていたかどうか
 	bool  m_hasShot;       // プレイヤーがショット可能かどうか
 	bool  m_isTackling;    // タックル中かどうか
-	float m_damageEffectTimer; // ダメージエフェクト用タイマー
-	float m_damageEffectAlpha; // ダメージエフェクト用アルファ値
-	float m_healEffectTimer;
-	float m_healEffectAlpha; // ヒールエフェクト用アルファ値
-	float m_ammoEffectTimer = 0.0f; // 弾薬エフェクト用タイマー
-	float m_ammoEffectAlpha = 0.0f; // 弾薬エフェクト用アルファ値
+
+
 };
 
