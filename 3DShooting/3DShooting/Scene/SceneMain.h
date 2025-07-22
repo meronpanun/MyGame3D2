@@ -50,6 +50,7 @@ public:
 	bool m_wave1FirstAidDropped;
 	bool m_wave1AmmoDropped;
 	int m_wave1DropCount;
+	bool m_isLoading = true;
 
 	static SceneMain* Instance();
 	WaveManager* GetWaveManager() const { return m_pWaveManager.get(); }
@@ -84,7 +85,7 @@ private:
 	EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
 
 	// スコアポップアップ情報
-	struct ScorePopup 
+	struct ScorePopup
 	{
 		int value;
 		int combo;

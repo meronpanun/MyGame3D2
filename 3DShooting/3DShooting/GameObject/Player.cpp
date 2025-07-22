@@ -787,11 +787,10 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	float rotY = m_pCamera->GetYaw();
 	float rotZ = 0.0f;
 
-
-	if (m_pEffect)
-	{
-		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
-	}
+	//if (m_pEffect)
+	//{
+	//	m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
+	//}
 
 	// カメラシェイクを発生
 	if (m_pCamera)

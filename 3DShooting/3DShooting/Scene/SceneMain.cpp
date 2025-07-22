@@ -105,7 +105,8 @@ SceneMain::SceneMain() :
 	m_lastTotalScorePopupValue(0),
 	m_pTutorialManager(std::make_unique<TutorialManager>()),
     m_bgmHandle(-1),
-    m_bgmStarted(false)
+    m_bgmStarted(false),
+    m_isLoading(false)
 {
     g_sceneMainInstance = this;
     // モデルの読み込み
@@ -156,7 +157,7 @@ void SceneMain::Init()
 	m_pWaveManager = std::make_shared<WaveManager>();
 	m_pWaveManager->Init();
 	
-	// Road_floorオブジェクトの範囲を設定(マップ全体の範囲)
+	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
 	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
 
 	// カメラの初期化
@@ -276,6 +277,7 @@ void SceneMain::Init()
 
     // BGM再生フラグをリセット（Initでは再生しない）
     m_bgmStarted = false;
+    m_isLoading = true; // 追加
 }
 
 // スコアポップアップを追加する
@@ -293,6 +295,15 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 
 SceneBase* SceneMain::Update()
 {
+    // ローディング中は他の処理を行わない
+    if (m_isLoading) {
+        if (GetASyncLoadNum() == 0) {
+            m_isLoading = false;
+        } else {
+            return this;
+        }
+    }
+
     // 非同期読み込みが終わるまではupdateの処理を行わない
     if (GetASyncLoadNum() > 0)
     {
@@ -375,20 +386,22 @@ SceneBase* SceneMain::Update()
 
     // チュートリアル有効時または完了演出中はチュートリアルのみ進行（敵出現・更新・描画も完全スキップ）
     if (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) {
+        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) 
+    {
         m_pTutorialManager->Update();
         m_pPlayer->Update({}); // 敵なしでプレイヤーのみ更新
-        // WaveManagerのUpdate/UpdateEnemies/DrawEnemiesは呼ばない
         return this;
     }
     // ↓ここから通常進行
     std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
     std::vector<EnemyBase*> enemyPtrList;
-    for (std::shared_ptr<EnemyBase>& enemy : enemyList) {
+    for (std::shared_ptr<EnemyBase>& enemy : enemyList) 
+    {
         enemyPtrList.push_back(enemy.get());
     }
     m_pPlayer->Update(enemyPtrList);
-    if (m_pPlayer->GetHealth() <= 0.0f) {
+    if (m_pPlayer->GetHealth() <= 0.0f) 
+    {
         int wave = m_pWaveManager->GetCurrentWave();
         int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
         int score = ScoreManager::Instance().GetTotalScore();
@@ -397,7 +410,8 @@ SceneBase* SceneMain::Update()
 		return new SceneGameOver(wave, killCount, score);
     }
     m_pWaveManager->Update();
-    if (m_pWaveManager->GetCurrentWave() > 3) {
+    if (m_pWaveManager->GetCurrentWave() > 3) 
+    {
         // BGMを停止
         StopSoundMem(m_bgmHandle);
         return new SceneResult();
@@ -420,9 +434,8 @@ void SceneMain::Draw()
 {
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
-
-    // 非同期ロード中はローディング表示
-    if (GetASyncLoadNum() > 0)
+    // ローディング中はローディング画面を表示
+    if (m_isLoading) 
     {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
         SetFontSize(48);
@@ -444,14 +457,16 @@ void SceneMain::Draw()
     // チュートリアル中または完了演出中は敵描画もスキップ
     bool isWave1Tutorial = (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
           (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()));
-    if (!isWave1Tutorial) {
+    if (!isWave1Tutorial) 
+    {
         m_pWaveManager->DrawEnemies();
         // ウェーブ1画像が表示されるタイミングで右上にチュートリアル画像を表示
-        if (!m_pWaveManager->IsAllWavesCompleted() && m_pWaveManager->GetCurrentWave() == 1) {
-            int shotImg = m_pWaveManager->GetShotTutorialImg();
-            int tackleImg = m_pWaveManager->GetTackleTutorialImg();
-            int checkImg = m_pWaveManager->GetCheckMarkImg();
-            bool shotCleared = m_pWaveManager->IsShotTutorialCleared();
+        if (!m_pWaveManager->IsAllWavesCompleted() && m_pWaveManager->GetCurrentWave() == 1) 
+        {
+            int shotImg        = m_pWaveManager->GetShotTutorialImg();
+            int tackleImg      = m_pWaveManager->GetTackleTutorialImg();
+            int checkImg       = m_pWaveManager->GetCheckMarkImg();
+            bool shotCleared   = m_pWaveManager->IsShotTutorialCleared();
             bool tackleCleared = m_pWaveManager->IsTackleTutorialCleared();
             int screenW, screenH;
             GetScreenState(&screenW, &screenH, nullptr);
@@ -588,7 +603,8 @@ void SceneMain::Draw()
 
     // チュートリアルUI描画
     if (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) {
+        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) 
+    {
         m_pTutorialManager->Draw(screenW, screenH);
     }
 }
