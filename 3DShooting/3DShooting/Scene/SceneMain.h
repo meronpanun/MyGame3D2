@@ -32,7 +32,6 @@ public:
 	void Init() override;
 	SceneBase* Update() override;
 	void Draw() override;
-	void DrawShadowCasters(); // 影用描画
 
 	void SetPaused(bool paused);
 

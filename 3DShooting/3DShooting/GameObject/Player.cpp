@@ -82,6 +82,8 @@ Player::Player() :
 	m_isWasRunning(false),
 	m_pos(VGet(0, 0, 0)),
 	m_health(100.0f),
+	m_healthBarAnim(100.0f),
+	m_healthBarAnimTimer(0.0f),
 	m_isJumping(false),
 	m_jumpVelocity(0.0f),
 	m_hasShot(false),
@@ -448,7 +450,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			m_pDebugCamera->SetTarget(target);
 			m_pDebugCamera->SetFOV(60.0f * DX_PI_F / 180.0f);
 		}
-	}
+
+		// HPバーアニメーション（ダメージ分を徐々に減らす）
+		if (m_healthBarAnim > m_health) {
+			float animSpeed = 1.5f; // 減少速度（大きいほど速い）
+			m_healthBarAnim -= animSpeed;
+			if (m_healthBarAnim < m_health) m_healthBarAnim = m_health;
+		} else {
+			m_healthBarAnim = m_health;
+		}
+}
 
 
 void Player::Draw()
@@ -545,13 +556,23 @@ void Player::Draw()
     float hp = m_health;
     if (hp < 0) hp = 0;
     if (hp > maxHP) hp = maxHP;
+    float hpAnim = m_healthBarAnim;
+    if (hpAnim < 0) hpAnim = 0;
+    if (hpAnim > maxHP) hpAnim = maxHP;
 
     // HP割合
     float hpRate = hp / maxHP;
+    float hpAnimRate = hpAnim / maxHP;
 
     // 背景
     DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x505050, true);
 
+    // ダメージ分（アニメーション中の減少分）
+    if (hpAnim > hp) {
+        int animStart = barX + static_cast<int>(barWidth * hpRate);
+        int animEnd   = barX + static_cast<int>(barWidth * hpAnimRate);
+        DrawBox(animStart, barY, animEnd, barY + barHeight, 0xFFD700, true); // 黄色
+    }
     // HPバー本体
     DrawBox(barX, barY, barX + static_cast<int>(barWidth * hpRate), barY + barHeight, 0xff4040, true);
 
@@ -741,6 +762,8 @@ void Player::TakeDamage(float damage)
 	{
 		m_health = 0.0f; // 体力が負にならないように制限
 	}
+	// HPバーアニメーション用タイマーをリセット
+	m_healthBarAnimTimer = 0.0f;
 	// ダメージエフェクトを発動
 	m_damageEffect.Trigger(30.0f, 255, 0, 0); // 赤
 	// 被弾SEを再生

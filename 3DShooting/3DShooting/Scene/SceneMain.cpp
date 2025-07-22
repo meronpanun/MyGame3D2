@@ -609,13 +609,6 @@ void SceneMain::Draw()
     }
 }
 
-void SceneMain::DrawShadowCasters()
-{
-    // 影を落とすものだけ描画
-    m_pStage->Draw();
-    m_pPlayer->Draw();
-}
-
 void SceneMain::DrawPauseMenu()
 {
     Vec2 mousePos = Mouse::GetPos();

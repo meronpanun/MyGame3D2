@@ -208,6 +208,8 @@ private:
 	
 	float m_animBlendRate; // アニメーションのブレンド率
 	float m_health;        // 現在の体力
+	float m_healthBarAnim; // HPバーのアニメーション用体力値
+	float m_healthBarAnimTimer; // HPバーアニメーション用タイマー
 	float m_jumpVelocity;  // ジャンプの速度
 	float m_maxHealth;     // 最大体力
 	float m_moveSpeed;    // 移動速度

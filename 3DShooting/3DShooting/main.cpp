@@ -32,12 +32,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetWriteZBuffer3D(true); // 3D描画でZBufferに書き込む
 	SetUseBackCulling(true); // 裏面カリングを有効にする
 
-	//int shadowH = MakeShadowMap(1024, 1024); // シャドウマップのグラフを作成
-	//auto lightDir = VNorm(VGet(1.0f, -1.0f, 1.0f)); // ライトの方向を設定
-	//SetLightDirection(lightDir); // ライトの方向を設定
-	//SetShadowMapDrawArea(shadowH, VGet(-100.0f, -100.0f, -100.0f), VGet(100.0f, 100.0f, 100.0f)); // シャドウマップの描画範囲を設定
-	//SetShadowMapLightDirection(shadowH, lightDir); // シャドウマップのライト方向を設定
-
 	//Effekseer関係初期化
 	SetUseDirect3DVersion(DX_DIRECT3D_11);
 	// 引数には画面に表示する最大パーティクル数を設定する。
@@ -46,8 +40,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DxLib_End();
 		return -1;
 	}
+
 	// フルスクリーンウインドウの切り替えでリソースが消えるのを防ぐ
-	SetChangeScreenModeGraphicsSystemResetFlag(FALSE);
+	SetChangeScreenModeGraphicsSystemResetFlag(false);
 
 	// DXライブラリのデバイスロストした時のコールバックを設定する
 	Effekseer_SetGraphicsDeviceLostCallbackFunctions();
@@ -73,12 +68,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		// 画面全体をクリアする
 		ClearDrawScreen();
 
-		//ShadowMap_DrawSetup(shadowH); // シャドウマップの描画設定
-
 		// ゲームの処理
 		pScene->Update();
 		pScene->Draw();
-		//ShadowMap_DrawEnd(); // シャドウマップの描画終了
 
 		// 画面の切り替わりを待つ必要がある
 		ScreenFlip();	// 1/60秒経過するまで待つ
@@ -89,10 +81,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 	}
 
-	// Effekseerを終了する。
+	// Effekseerを終了する
 	Effkseer_End();
 
-	DxLib_End();				// ＤＸライブラリ使用の終了処理
+	// Dxライブラリ使用の終了処理
+	DxLib_End(); 		
 
 #ifdef _DEBUG//コンソールDebug用
 	fclose(out); fclose(in); FreeConsole();//コンソール解放
