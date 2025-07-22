@@ -89,7 +89,7 @@ SceneMain* SceneMain::Instance()
 // static変数の定義
 float SceneMain::s_elapsedTime = 0.0f;
 
-SceneMain::SceneMain() :
+SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_isPaused(false),
     m_isEscapePressed(false),
     m_isReturningFromOption(false),
@@ -106,7 +106,8 @@ SceneMain::SceneMain() :
 	m_pTutorialManager(std::make_unique<TutorialManager>()),
     m_bgmHandle(-1),
     m_bgmStarted(false),
-    m_isLoading(false)
+    m_isLoading(false),
+	m_isReturningFromOtherScene(isReturningFromOtherScene)
 {
     g_sceneMainInstance = this;
     // モデルの読み込み
@@ -264,6 +265,17 @@ void SceneMain::Init()
         }
     });
 
+    // チュートリアルマネージャ生成・初期化（他シーンから戻った場合はスキップ）
+    if (!m_isReturningFromOption && !m_isReturningFromOtherScene)
+    {
+        m_pTutorialManager = std::make_unique<TutorialManager>();
+        m_pTutorialManager->Init();
+    }
+    else
+    {
+        m_pTutorialManager = nullptr;
+    }
+
     // ヒットマーク用コールバックをWaveManagerに設定
     m_pWaveManager->SetOnEnemyHitCallback([this](EnemyBase::HitPart part) { OnPlayerBulletHitEnemy(part); });
 
@@ -272,8 +284,8 @@ void SceneMain::Init()
 
 	SetUseASyncLoadFlag(false); // 非同期読み込みを無効化
 
-    m_pTutorialManager = std::make_unique<TutorialManager>();
-    m_pTutorialManager->Init();
+    //m_pTutorialManager = std::make_unique<TutorialManager>();
+    //m_pTutorialManager->Init();
 
     // BGM再生フラグをリセット（Initでは再生しない）
     m_bgmStarted = false;
@@ -385,11 +397,12 @@ SceneBase* SceneMain::Update()
     }
 
     // チュートリアル有効時または完了演出中はチュートリアルのみ進行（敵出現・更新・描画も完全スキップ）
-    if (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) 
+    if (!m_isReturningFromOption && !m_isReturningFromOtherScene &&
+        m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
+        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()))
     {
         m_pTutorialManager->Update();
-        m_pPlayer->Update({}); // 敵なしでプレイヤーのみ更新
+        m_pPlayer->Update({});
         return this;
     }
     // ↓ここから通常進行
@@ -455,13 +468,15 @@ void SceneMain::Draw()
     }
 
     // チュートリアル中または完了演出中は敵描画もスキップ
-    bool isWave1Tutorial = (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-          (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()));
-    if (!isWave1Tutorial) 
+    bool isWave1Tutorial = (!m_isReturningFromOption && !m_isReturningFromOtherScene &&
+        m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
+        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()));
+    if (!isWave1Tutorial)
     {
         m_pWaveManager->DrawEnemies();
         // ウェーブ1画像が表示されるタイミングで右上にチュートリアル画像を表示
-        if (!m_pWaveManager->IsAllWavesCompleted() && m_pWaveManager->GetCurrentWave() == 1) 
+        if (!m_pWaveManager->IsAllWavesCompleted() && m_pWaveManager->GetCurrentWave() == 1
+            && !m_isReturningFromOption && !m_isReturningFromOtherScene)
         {
             int shotImg        = m_pWaveManager->GetShotTutorialImg();
             int tackleImg      = m_pWaveManager->GetTackleTutorialImg();
@@ -602,8 +617,9 @@ void SceneMain::Draw()
     }
 
     // チュートリアルUI描画
-    if (m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay())) 
+    if (!m_isReturningFromOption && !m_isReturningFromOtherScene &&
+        m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
+        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()))
     {
         m_pTutorialManager->Draw(screenW, screenH);
     }

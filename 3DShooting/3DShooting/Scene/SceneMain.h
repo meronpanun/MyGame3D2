@@ -26,7 +26,7 @@ class WaveManager;
 class SceneMain : public SceneBase
 {
 public:
-	SceneMain();
+	SceneMain(bool isReturningFromOtherScene = false);
 	virtual~SceneMain();
 
 	void Init() override;
@@ -99,6 +99,8 @@ private:
 
 	int m_bgmHandle;       // ゲームシーンBGMのハンドル
 	bool m_bgmStarted;     // BGM再生済みフラグ
+
+	bool m_isReturningFromOtherScene; // 他のシーンから戻ってきたかどうか
 
 };
 

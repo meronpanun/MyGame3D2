@@ -94,7 +94,7 @@ SceneBase* SceneGameOver::Update()
             // BGMを停止
             StopSoundMem(m_bgmHandle);
             PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
-            return new SceneMain();
+            return new SceneMain(true);
         }
     }
     return nullptr;
