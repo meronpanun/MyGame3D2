@@ -1,5 +1,5 @@
 ﻿#include "SceneGameOver.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "SceneTitle.h"
 #include "SceneMain.h"
 #include "Mouse.h"

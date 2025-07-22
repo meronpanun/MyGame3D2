@@ -1,4 +1,4 @@
-﻿#include "DxLib.h"
+﻿#include "EffekseerForDXLib.h"
 #include "CapsuleCollider.h"
 #include "SphereCollider.h"
 #include <algorithm>

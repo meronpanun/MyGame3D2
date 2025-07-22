@@ -1,4 +1,4 @@
-﻿#include "DxLib.h"
+﻿#include "EffekseerForDXLib.h"
 #include "AmmoItem.h"
 #include "CapsuleCollider.h"
 #include "Player.h"

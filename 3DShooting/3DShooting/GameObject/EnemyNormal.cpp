@@ -1,7 +1,7 @@
 ﻿#include "Player.h"
 #include "EnemyNormal.h"
 #include "Bullet.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "DebugUtil.h"
 #include "SphereCollider.h" 
 #include "CapsuleCollider.h" 

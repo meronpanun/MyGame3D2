@@ -1,5 +1,5 @@
 ﻿#include "Mouse.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "Game.h"
 
 namespace

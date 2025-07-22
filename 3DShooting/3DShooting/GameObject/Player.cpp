@@ -1,7 +1,7 @@
 ﻿#include "Player.h"
 #include "EnemyNormal.h"
 #include "EnemyBase.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "Game.h" 
 #include "Mouse.h"
 #include "Camera.h"
@@ -72,9 +72,9 @@ Player::Player() :
 	m_recoverySEHandle(-1),
 	m_ammoItemSEHandle(-1),
 	m_modelPos(VGet(0, 0, 0)),
+	m_pEffect(std::make_shared<Effect>()),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
-	//m_pEffect(std::make_shared<Effect>()),
 	m_pEnemy(std::make_shared<EnemyNormal>()),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>()),
 	m_animBlendRate(0.0f),
@@ -155,8 +155,8 @@ void Player::Init()
 			break;
 		}
 	}
+	m_pEffect->Init(); // エフェクトの初期化
 	m_pCamera->Init(); // カメラの初期化
-	//m_pEffect->Init(); // エフェクトの初期化
 
 	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
 
@@ -173,7 +173,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	m_pCamera->SetPlayerPos(m_modelPos);
 
 	m_pCamera->Update(); // カメラの更新
-	//m_pEffect->Update(); // エフェクトの更新
+	m_pEffect->Update(); // エフェクトの更新
 
 	//UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
 	//UpdateAnime(m_nextAnimData); // 次のアニメーションデータを更新
@@ -239,7 +239,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_tackleId++; // タックルごとにIDを更新
 
 		// カメラの向きで3D正規化ベクトルを作成
-		float yaw = m_pCamera->GetYaw();
+		float yaw   = m_pCamera->GetYaw();
 		float pitch = m_pCamera->GetPitch();
 
 		// タックル方向を計算
@@ -506,7 +506,7 @@ void Player::Draw()
 
 	m_pCamera->SetCameraToDxLib();
 
-	//m_pEffect->Draw(); // エフェクトの描画
+	m_pEffect->Draw(); // エフェクトの描画
 
 	// タックルクールタイムゲージ
 	const int tackleGaugeX = 10;
@@ -721,7 +721,7 @@ void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
                 if (alpha > 0)
                 {
                     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-                    DrawBox(x, y, x + stepSize, y + stepSize, GetColor(effect.colorR, effect.colorG, effect.colorB), TRUE);
+                    DrawBox(x, y, x + stepSize, y + stepSize, GetColor(effect.colorR, effect.colorG, effect.colorB), true);
                 }
             }
         }
@@ -783,6 +783,16 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     bullets.emplace_back(gunPos, bulletDirection, m_bulletPower);
     m_ammo--;
 
+	float rotX = -m_pCamera->GetPitch();
+	float rotY = m_pCamera->GetYaw();
+	float rotZ = 0.0f;
+
+
+	if (m_pEffect)
+	{
+		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
+	}
+
 	// カメラシェイクを発生
 	if (m_pCamera)
 	{
@@ -790,7 +800,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	}
     
     // アニメーション関連
-    ChangeAnime("Shoot", false); // 射撃アニメーションを再生
+    //ChangeAnime("Shoot", false); // 射撃アニメーションを再生
 }
 
 // アニメーションのアタッチ

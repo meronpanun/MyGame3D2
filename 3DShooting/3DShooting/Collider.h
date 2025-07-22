@@ -1,4 +1,4 @@
-﻿#include "DxLib.h"
+﻿#include "EffekseerForDXLib.h"
 #pragma once
 
 /// <summary>

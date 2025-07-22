@@ -1,5 +1,5 @@
-#include "StageObject.h"
-#include "DxLib.h"
+ï»¿#include "StageObject.h"
+#include "EffekseerForDXLib.h"
 #include <cassert>
 #include <cmath>
 
@@ -17,15 +17,15 @@ void StageObject::Init(const std::string& modelPath, Vec3 pos, Vec3 rot, Vec3 sc
 	m_modelHandle = MV1LoadModel(modelPath.c_str());
 	assert(m_modelHandle >= 0);
 
-	MV1SetPosition(m_modelHandle, pos.ToDxVECTOR()); // ˆÊ’uİ’è
+	MV1SetPosition(m_modelHandle, pos.ToDxVECTOR()); // ä½ç½®è¨­å®š
 
-	// ‰ñ“]‚ğƒ‰ƒWƒAƒ“‚É•ÏŠ·
+	// å›è»¢ã‚’ãƒ©ã‚¸ã‚¢ãƒ³ã«å¤‰æ›
 	float rotXRad = rot.x * (M_PI / 180.0f);
 	float rotYRad = rot.y * (M_PI / 180.0f);
 	float rotZRad = rot.z * (M_PI / 180.0f);
 
-	MV1SetRotationXYZ(m_modelHandle, VGet(rotXRad, rotYRad, rotZRad)); // ‰ñ“]İ’è
-	MV1SetScale(m_modelHandle, VGet(scale.x * 0.01f, scale.y * 0.01f, scale.z * 0.01f)); // ƒXƒP[ƒ‹İ’è
+	MV1SetRotationXYZ(m_modelHandle, VGet(rotXRad, rotYRad, rotZRad)); // å›è»¢è¨­å®š
+	MV1SetScale(m_modelHandle, VGet(scale.x * 0.01f, scale.y * 0.01f, scale.z * 0.01f)); // ã‚¹ã‚±ãƒ¼ãƒ«è¨­å®š
 }
 
 void StageObject::Draw()

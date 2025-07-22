@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "EnemyBase.h"
 #include <string>
 #include <map>

@@ -1,6 +1,6 @@
 ﻿#include "SceneResult.h"
 #include "ScoreManager.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "SceneMain.h"
 #include "SceneTitle.h"
 #include "Mouse.h"

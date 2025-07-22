@@ -1,5 +1,5 @@
 ﻿#include "DebugUtil.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include <cstdarg>
 
 bool DebugUtil::s_isVisible = false; // デバッグウィンドウの表示状態を管理する静的変数

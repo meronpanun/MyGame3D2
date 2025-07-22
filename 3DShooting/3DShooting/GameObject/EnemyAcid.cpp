@@ -1,6 +1,6 @@
 ﻿#include "EnemyAcid.h"    
 #include "Player.h"      
-#include "DxLib.h"       
+#include "EffekseerForDXLib.h"       
 #include "DebugUtil.h"   
 #include "SphereCollider.h" 
 #include "CapsuleCollider.h" 

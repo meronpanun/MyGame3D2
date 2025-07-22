@@ -3,7 +3,7 @@
 #include "SceneOption.h"
 #include "SceneResult.h"
 #include "SceneGameOver.h" 
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "Player.h"
 #include "Mouse.h"
 #include "Game.h"

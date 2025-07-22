@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Player.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include <memory>
 #include <vector>
 #include <functional>

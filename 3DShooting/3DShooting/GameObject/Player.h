@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include <vector>
 #include <memory>
 
@@ -20,7 +20,10 @@ public:
 	void Update(const std::vector<EnemyBase*>& enemyList);
 	void Draw();
 
-	struct EffectFeedback
+	/// <summary>
+	/// エフェクトフィードバック構造体
+	/// </summary>
+	struct EffectFeedback 
 	{
 		float timer = 0.0f;
 		float alpha = 0.0f;
@@ -111,7 +114,6 @@ public:
 	void AddHp(float value);
 	void AddAmmo(int value); // 弾薬回復用関数（上限なし）
 
-	// TODO:アニメーション処理は敵も行うので後でクラス化
 
 	/// <summary>
 	/// アニメーションデータ構造体
@@ -183,7 +185,7 @@ private:
 private:
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
-	//std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
+	std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
 	std::shared_ptr<EnemyNormal> m_pEnemy;       // 敵のポインタ
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー

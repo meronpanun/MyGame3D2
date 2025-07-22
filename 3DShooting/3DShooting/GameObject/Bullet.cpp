@@ -1,5 +1,5 @@
 ﻿#include "Bullet.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include <algorithm>
 
 namespace

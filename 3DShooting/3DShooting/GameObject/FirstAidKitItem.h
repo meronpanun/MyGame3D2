@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "ItemBase.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "SphereCollider.h"
 
 class Player;

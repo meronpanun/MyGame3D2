@@ -5,7 +5,7 @@
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
 #include "EnemyAcid.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include <fstream>
 #include <sstream>
 #include <algorithm>

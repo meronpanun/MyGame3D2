@@ -1,13 +1,13 @@
 ﻿#pragma once
 #include "SceneBase.h"
 #include "EnemyBase.h"
-#include "DxLib.h"
+#include "EffekseerForDXLib.h"
+#include "ScoreManager.h"
+#include "TutorialManager.h"
 #include <memory>
 #include <chrono>
 #include <vector>
 #include <deque>
-#include "ScoreManager.h"
-#include "TutorialManager.h"
 
 class Player;
 class Camera;

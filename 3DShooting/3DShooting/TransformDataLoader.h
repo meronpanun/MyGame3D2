@@ -1,5 +1,5 @@
-#pragma once
-#include "DxLib.h" 
+﻿#pragma once
+#include "EffekseerForDXLib.h" 
 #include <string>
 #include <vector>
 
