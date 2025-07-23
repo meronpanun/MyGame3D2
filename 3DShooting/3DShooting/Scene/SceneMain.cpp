@@ -17,10 +17,10 @@
 #include "AmmoItem.h"
 #include "Stage.h"
 #include "WaveManager.h"
-#include <cassert>
-#include <algorithm>
 #include "ScoreManager.h"
 #include "TutorialManager.h"
+#include <cassert>
+#include <algorithm>
 
 namespace
 {
