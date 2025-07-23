@@ -54,10 +54,10 @@ EnemyRunner::EnemyRunner() :
 	assert(m_modelHandle != -1);
 
 	// コライダーの初期化
-	m_pBodyCollider = std::make_shared<CapsuleCollider>();
-	m_pHeadCollider = std::make_shared<SphereCollider>();
+	m_pBodyCollider		   = std::make_shared<CapsuleCollider>();
+	m_pHeadCollider		   = std::make_shared<SphereCollider>();
 	m_pAttackRangeCollider = std::make_shared<SphereCollider>();
-	m_pAttackHitCollider = std::make_shared<CapsuleCollider>();
+	m_pAttackHitCollider   = std::make_shared<CapsuleCollider>();
 }
 
 EnemyRunner::~EnemyRunner()
@@ -69,12 +69,10 @@ EnemyRunner::~EnemyRunner()
 void EnemyRunner::Init()
 {
     m_attackCooldownMax = kAttackCooldownMax;
-
-    m_isAlive = true;
+    m_isAlive           = true;
     m_isDeadAnimPlaying = false;
-    m_isItemDropped = false;
-    m_hasAttackHit = false;
-    m_attackEndDelayTimer = 0;
+    m_isItemDropped     = false;
+    m_hasAttackHit      = false;
 
     // CSVからRunnerEnemyのTransform情報を取得
     auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -199,8 +197,10 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                 m_onDeathCallback = nullptr; // 一度だけ呼び出す
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
-            SetActive(false); // プールに戻す
-        } else {
+            SetActive(false);  // プールに戻す
+        }
+		else 
+		{
             m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         return;
@@ -365,28 +365,21 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		}
 	}
 
-    // 敵同士の押し出し処理（横方向への広がり）
+    // 敵同士の押し出し処理（簡略版）
     for (EnemyBase* other : enemyList) {
-        if (!other) continue;
-        if (other == this) continue;
+        if (!other || other == this) continue;
+
         VECTOR otherPos = other->GetPos();
         VECTOR diff = VSub(m_pos, otherPos);
-        diff.y = 0.0f;
+        diff.y = 0.0f; // Y軸は無視
         float distSq = VDot(diff, diff);
         float minDist = kBodyColliderRadius * 2.0f;
+
         if (distSq < minDist * minDist && distSq > 0.0001f) {
             float dist = std::sqrt(distSq);
-            float pushBack = minDist - dist;
-            if (dist > 0) {
-                VECTOR pushDir = VNorm(diff);
-                VECTOR playerDir = VNorm(VSub(player.GetPos(), m_pos));
-                VECTOR up = VGet(0, 1, 0);
-                VECTOR side = VNorm(VCross(playerDir, up));
-                float sign = (reinterpret_cast<size_t>(this) % 2 == 0) ? 1.0f : -1.0f;
-                side = VScale(side, sign * 0.5f);
-                pushDir = VNorm(VAdd(pushDir, side));
-                m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
-            }
+            float pushBack = (minDist - dist) * 0.5f; // 押し出す量を半分にする
+            VECTOR pushDir = VNorm(diff);
+            m_pos = VAdd(m_pos, VScale(pushDir, pushBack));
         }
     }
 

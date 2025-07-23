@@ -24,10 +24,7 @@ namespace
     // コライダーのサイズを定義
     constexpr float kBodyColliderRadius = 40.0f;  // 体のコライダー半径
     constexpr float kBodyColliderHeight = 50.0f;  // 体のコライダー高さ
-    constexpr float kHeadRadius = 18.0f;          // 頭のコライダー半径
-
-    // 体力
-    constexpr float kInitialHP = 150.0f; // 初期HP 
+    constexpr float kHeadRadius         = 18.0f;  // 頭のコライダー半径
 
     // 攻撃関連（遠距離攻撃に特化）
     constexpr int   kAttackCooldownMax = 160;     // 攻撃クールダウン時間
@@ -38,7 +35,7 @@ namespace
     constexpr int   kAttackEndDelay    = 30;      // 攻撃後の硬直時間
 
     // 追跡関連（遠距離型なので、近づきすぎたら離れる）
-    constexpr float kChaseSpeed = 2.0f;   // 追跡速度
+    constexpr float kChaseSpeed = 2.0f; // 追跡速度
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 }
 
@@ -53,12 +50,13 @@ EnemyAcid::EnemyAcid() :
 	m_backAnimCount(0),
 	m_isItemDropped(false)
 {
+	// モデルの読み込み
     m_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
     assert(m_modelHandle != -1);
 
     // コライダーの初期化
-    m_pBodyCollider = std::make_shared<CapsuleCollider>();
-    m_pHeadCollider = std::make_shared<SphereCollider>();
+    m_pBodyCollider        = std::make_shared<CapsuleCollider>();
+    m_pHeadCollider        = std::make_shared<SphereCollider>();
     m_pAttackRangeCollider = std::make_shared<SphereCollider>();
 
     // AnimationManagerにアニメーション名を登録
@@ -70,12 +68,12 @@ EnemyAcid::EnemyAcid() :
 
 EnemyAcid::~EnemyAcid()
 {
+	// モデルの解放
     MV1DeleteModel(m_modelHandle);
 }
 
 void EnemyAcid::Init()
 {
-    m_hp = kInitialHP;
     m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
     m_attackCooldown = 0; // 最初は攻撃可能にしておく

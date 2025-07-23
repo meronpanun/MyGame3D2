@@ -26,9 +26,6 @@ namespace
     constexpr float kBodyColliderHeight = 135.0f; // 体のコライダー高さ
     constexpr float kHeadRadius         = 18.0f;  // 頭のコライダー半径
 
-	// 体力
-    constexpr float kInitialHP = 200.0f; // 初期HP
-
     // 攻撃関連
     constexpr int   kAttackCooldownMax = 45;     // 攻撃クールダウン時間
     constexpr float kAttackPower       = 20.0f;  // 攻撃力
@@ -59,10 +56,10 @@ EnemyNormal::EnemyNormal() :
     assert(m_modelHandle != -1);
 
     // コライダーの初期化
-    m_pBodyCollider = std::make_shared<CapsuleCollider>();
-    m_pHeadCollider = std::make_shared<SphereCollider>();
+    m_pBodyCollider        = std::make_shared<CapsuleCollider>();
+    m_pHeadCollider        = std::make_shared<SphereCollider>();
     m_pAttackRangeCollider = std::make_shared<SphereCollider>();
-    m_pAttackHitCollider = std::make_shared<CapsuleCollider>();
+    m_pAttackHitCollider   = std::make_shared<CapsuleCollider>();
 }
 
 EnemyNormal::~EnemyNormal()
@@ -73,12 +70,12 @@ EnemyNormal::~EnemyNormal()
 
 void EnemyNormal::Init()
 {
-   m_attackPower = kAttackPower;
+    m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
 
-    m_isAlive = true;
+    m_isAlive       = true;
     m_isItemDropped = false;
-    m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
+    m_lastHitPart   = HitPart::None; // 最後のヒット部位をリセット
     m_hitDisplayTimer = 0; // ヒット表示タイマーもリセット
 
     // ここで一度「絶対にWalkでない値」にリセット

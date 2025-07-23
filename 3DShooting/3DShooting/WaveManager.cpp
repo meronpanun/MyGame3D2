@@ -41,6 +41,7 @@ namespace
 	constexpr int kDebugInfoPosX    = 10;  // 左端からのX座標
 	constexpr int kFontSize         = 16;  // フォントサイズ
 
+	constexpr float kFrameTime = 1.0f / 60.0f; // フレーム時間
 }
 
 WaveManager::WaveManager() :
@@ -217,69 +218,66 @@ void WaveManager::Init()
 
 void WaveManager::Update()
 {
-	// すべてのウェーブが終了している場合は何もしない
     if (m_isAllWavesCompleted)
     {
         return;
     }
 
-    // ウェーブ間インターバル中ならタイマーを進める
-    if (m_waveIntervalTimer > 0.0f) 
+    // State: In an active wave
+    if (m_isWaveActive)
     {
-        m_waveIntervalTimer -= 1.0f / 60.0f;
-        if (m_waveIntervalTimer <= 0.0f) 
+        if (IsCurrentWaveCleared())
         {
-            m_waveIntervalTimer = 0.0f;
+            // Wave just ended. Transition to interval state for the next frame.
+            NextWave();
         }
         else
         {
-            return; // インターバル中は何もしない
-        }
-    }
-
-    // 現在のウェーブが終了しているかチェック
-    if (m_isWaveActive && IsCurrentWaveCleared())
-    {
-		// 次のウェーブへ移行
-        NextWave();
-    }
-
-    // ウェーブが開始されていない場合は開始
-    if (!m_isWaveActive && m_currentWave <= 3 && m_waveIntervalTimer <= 0.0f)
-    {
-        // プレイヤーの位置を取得
-        VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f);
-        StartCurrentWave(playerPos);
-    }
-
-    // 敵の出現処理
-    if (m_isWaveActive && m_currentSpawnIndex < m_spawnInfoList.size())
-    {
-        m_spawnTimer += 1.0f / 60.0f;
-        // spawnTimeを満たす限り何体でも出現
-        while (m_currentSpawnIndex < m_spawnInfoList.size())
-        {
-            EnemySpawnInfo& spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
-
-			// spawnTimeに達していて、まだ出現していない敵のみ出現
-            if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned)
+            // Wave is ongoing, so spawn enemies based on time.
+            if (m_currentSpawnIndex < m_spawnInfoList.size())
             {
-                std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos);
-                if (pEnemy)
+                m_spawnTimer += 1.0f / 60.0f;
+                while (m_currentSpawnIndex < m_spawnInfoList.size())
                 {
-                    m_enemyList.push_back(pEnemy);
-                    spawnInfo.isSpawned = true;
+                    EnemySpawnInfo& spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
+                    if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned)
+                    {
+                        std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos);
+                        if (pEnemy)
+                        {
+                            m_enemyList.push_back(pEnemy);
+                            spawnInfo.isSpawned = true;
+                        }
+                        m_currentSpawnIndex++;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                m_currentSpawnIndex++;
             }
-            else
+        }
+    }
+    // State: In a break between waves (or before the first wave)
+    else
+    {
+        if (m_waveIntervalTimer > 0.0f)
+        {
+            m_waveIntervalTimer -= 1.0f / 60.0f;
+        }
+        else
+        {
+            // Interval is over (or it's the start of the game), start the next wave.
+            if (m_currentWave <= 3) // Assuming 3 is the max wave number
             {
-                break; // まだspawnTimeに達していない敵が出てきたら終了
+                VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f); // This might need to get the actual player pos
+                StartCurrentWave(playerPos);
             }
         }
     }
 
-    // 死亡した敵をリストから削除
+    // This part is independent of the state machine above
+    // Clean up dead enemies from the active list
     m_enemyList.erase(
         std::remove_if(m_enemyList.begin(), m_enemyList.end(),
             [](const std::shared_ptr<EnemyBase>& pEnemy) {
@@ -717,26 +715,38 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
     }
 }
 
-// 次のウェーブに進む
 void WaveManager::NextWave()
 {
-    // 現在のウェーブのインターバルを取得
-    float interval = 0.0f;
-    for (const auto& wave : m_waveDataList) 
+    // 現在完了したウェーブのインターバル値の中から最大値を取得する
+    float maxInterval = 0.0f;
+    for (const auto& waveData : m_waveDataList)
     {
-        if (wave.wave == m_currentWave)
+        if (waveData.wave == m_currentWave)
         {
-            interval = (std::max)(interval, wave.waveInterval);
+            if (waveData.waveInterval > maxInterval)
+            {
+                maxInterval = waveData.waveInterval;
+            }
         }
     }
-    m_currentWave++;
+
+    printf("[DEBUG] Wave %d finished. Max interval found: %.2f\n", m_currentWave, maxInterval);
+
+    // 次のウェーブへの移行準備
     m_isWaveActive = false;
-    m_waveIntervalTimer = interval;
+    m_waveIntervalTimer = maxInterval;
+
+    // ウェーブ番号を更新
+    m_currentWave++;
 
     if (m_currentWave > 3)
     {
         m_isAllWavesCompleted = true;
-        printf("All waves completed!\n");
+        printf("[DEBUG] All waves completed!\n");
+    }
+    else
+    {
+        printf("[DEBUG] Next wave is %d. Interval timer started.\n", m_currentWave);
     }
 }
 

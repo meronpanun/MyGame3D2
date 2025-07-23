@@ -209,7 +209,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					// 既に設定されている場合は変更しない
 				}
 				break;
-			case 15: // Speed(プレイヤー用)
+			case 15: // Speed（プレイヤー用）
 				try
 				{
 					if (!element.empty()) 
@@ -222,7 +222,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.speed = 0.0f;
 				}
 				break;
-			case 16: // RunSpeed(プレイヤー用)
+			case 16: // RunSpeed（プレイヤー用）
 				try 
 				{
 					if (!element.empty()) 
@@ -235,7 +235,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.runSpeed = 0.0f;
 				}
 				break;
-			case 17: // InitialAmmo(プレイヤー用)
+			case 17: // InitialAmmo（プレイヤー用）
 				try
 				{
 					if (!element.empty()) 
@@ -248,7 +248,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.initialAmmo = 0;
 				}
 				break;
-			case 18: // BulletPower(プレイヤー用)
+			case 18: // BulletPower（プレイヤー用）
 				try
 				{
 					if (!element.empty()) 

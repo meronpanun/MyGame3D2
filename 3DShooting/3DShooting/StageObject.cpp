@@ -30,8 +30,5 @@ void StageObject::Init(const std::string& modelPath, Vec3 pos, Vec3 rot, Vec3 sc
 
 void StageObject::Draw()
 {
-	if (m_modelHandle >= 0)
-	{
-		MV1DrawModel(m_modelHandle);
-	}
+	MV1DrawModel(m_modelHandle);
 }

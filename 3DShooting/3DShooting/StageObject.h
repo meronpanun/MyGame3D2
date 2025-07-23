@@ -1,6 +1,9 @@
-#include "Vec3.h"
+﻿#include "Vec3.h"
 #include <string>
 
+/// <summary>
+/// ステージオブジェクトクラス
+/// </summary>
 class StageObject
 {
 public:

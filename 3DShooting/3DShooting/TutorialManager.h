@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include <memory>
 #include "Mouse.h"
+#include <memory>
 
 /// <summary>
 /// チュートリアル管理クラス
@@ -11,14 +11,17 @@ public:
     TutorialManager();
 	~TutorialManager();
 
+    /// <summary>
+	/// チュートリアルのステップ
+    /// </summary>
     enum class Step 
     {
         None,
-        Move,
-        View,
-		Completed,
-		Jump,
-		Run,
+		Move,			 // WASD操作
+		View,		     // 視点操作
+		Completed,		 // チュートリアル完了
+		Jump,			 // ジャンプ操作
+		Run,             // 走る操作
 		CompletedDisplay // チュートリアル完了後の待機中
     };
 
@@ -48,28 +51,26 @@ private:
     Vec2 m_prevMousePos;
     Step m_step;
 
-    bool m_moveDone;
-    bool m_viewDone;
-    int m_checkMarkHandle;
-    float m_moveAccumTime; // WASD操作累積時間
-    float m_viewAccumTime; // 視点操作累積時間
-    float m_completeWaitTime; // チュートリアル完了後の待機タイマー
+	int m_checkMarkHandle; // チェックマーク画像のハンドル
+
+    float m_moveAccumTime;     // WASD操作累積時間
+    float m_viewAccumTime;     // 視点操作累積時間
+    float m_completeWaitTime;  // チュートリアル完了後の待機タイマー
+	float m_isMoveCheckAnimTime; // WASD操作のアニメーションタイマー
+	float m_isViewCheckAnimTime; // 視点操作のアニメーションタイマー
+	float m_jumpAccumTime;     // ジャンプ操作累積時間
+	float m_runAccumTime;      // 走る操作累積時間
+	float m_isRunCheckAnimTime;  // 走る操作のアニメーションタイマー
+	float m_isJumpCheckAnimTime; // ジャンプ操作のアニメーションタイマー
+
     bool m_isCompletedDisplay; // 完了演出表示中フラグ
-
-    // チェックマークアニメーション用
-    bool m_moveCheckAnim;
-    float m_moveCheckAnimTime;
-    bool m_viewCheckAnim;
-    float m_viewCheckAnimTime;
-
-    // ジャンプ・走るチュートリアル用
-    bool m_jumpDone;
-    bool m_runDone;
-    float m_jumpAccumTime;
-    float m_runAccumTime;
-    bool m_jumpCheckAnim;
-    float m_jumpCheckAnimTime;
-    bool m_runCheckAnim;
-    float m_runCheckAnimTime;
+	bool m_isMoveDone;		   // WASD操作が完了したか
+	bool m_isViewDone;		   // 視点操作が完了したか
+	bool m_isMoveCheckAnim;	   // WASD操作のアニメーションが進行中か
+	bool m_isViewCheckAnim;    // 視点操作のアニメーションが進行中か
+	bool m_isJumpDone;         // ジャンプ操作が完了したか
+	bool m_isRunDone;          // 走る操作が完了したか
+	bool m_isJumpCheckAnim;    // ジャンプ操作のアニメーションが進行中か
+	bool m_isRunCheckAnim;     // 走る操作のアニメーションが進行中か
 };
 
