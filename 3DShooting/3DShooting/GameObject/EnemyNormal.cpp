@@ -73,8 +73,7 @@ EnemyNormal::~EnemyNormal()
 
 void EnemyNormal::Init()
 {
-    m_hp = kInitialHP;
-    m_attackPower = kAttackPower;
+   m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
 
     m_isAlive = true;

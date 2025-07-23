@@ -97,6 +97,12 @@ public:
 	virtual void SetPos(const VECTOR& pos) { m_pos = pos; }
 
 	/// <summary>
+	/// 体力設定
+	/// </summary>
+	/// <param name="hp">体力</param>
+	virtual void SetHp(float hp) { m_hp = hp; }
+
+	/// <summary>
 	///	死亡コールバックを設定する
 	/// </summary>
 	/// <param name="callback">死亡時に呼ばれるコールバック関数</param>

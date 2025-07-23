@@ -34,6 +34,8 @@ struct EnemySpawnInfo
 /// <summary>
 /// ウェーブ管理クラス
 /// </summary>
+#include "TransformDataLoader.h"
+
 class WaveManager
 {
 public:
@@ -242,5 +244,6 @@ private:
     // Road_floorオブジェクトの範囲
 	VECTOR m_roadFloorMin;       // 最小位置
 	VECTOR m_roadFloorMax;       // 最大位置
-	bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
+	    bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
+    std::vector<ObjectTransformData> m_enemyData; // 敵のパラメータを保持
 };

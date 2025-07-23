@@ -26,27 +26,42 @@ public:
     void Update();
     void Draw(int screenW, int screenH);
 
-    bool IsActive() const;
-    bool IsCompleted() const;
+    /// <summary>
+    /// チュートリアルがアクティブかどうか
+    /// </summary>
+	/// <returns>アクティブならtrue</returns>
+	bool IsActive() const; 
 
-    // チュートリアル完了後の待機中かどうか
+    /// <summary>
+	/// チュートリアルが完了したかどうか
+    /// </summary>
+	/// <returns>完了していればtrue</returns>
+	bool IsCompleted() const; 
+
+    /// <summary>
+    /// チュートリアル完了後の待機中かどうか 
+    /// </summary>
+	/// <returns>完了演出表示中ならtrue</returns>
     bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
 
 private:
+    Vec2 m_prevMousePos;
     Step m_step;
+
     bool m_moveDone;
     bool m_viewDone;
     int m_checkMarkHandle;
-    Vec2 m_prevMousePos;
     float m_moveAccumTime; // WASD操作累積時間
     float m_viewAccumTime; // 視点操作累積時間
     float m_completeWaitTime; // チュートリアル完了後の待機タイマー
     bool m_isCompletedDisplay; // 完了演出表示中フラグ
+
     // チェックマークアニメーション用
     bool m_moveCheckAnim;
     float m_moveCheckAnimTime;
     bool m_viewCheckAnim;
     float m_viewCheckAnimTime;
+
     // ジャンプ・走るチュートリアル用
     bool m_jumpDone;
     bool m_runDone;

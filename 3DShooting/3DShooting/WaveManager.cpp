@@ -103,6 +103,7 @@ WaveManager::~WaveManager()
 
 void WaveManager::Init()
 {
+    m_enemyData = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
     m_enemyList.clear();
     m_spawnInfoList.clear();
 
@@ -518,12 +519,24 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
 
     std::shared_ptr<EnemyBase> pEnemy = nullptr;
 
+    // CSVデータから該当する敵のデータを検索
+    ObjectTransformData* enemyData = nullptr;
+    for (auto& data : m_enemyData)
+    {
+        if (data.name == enemyType)
+        {
+            enemyData = &data;
+            break;
+        }
+    }
+
 	// 敵の種類に応じてプールから取得または新規生成
     if (enemyType == "NormalEnemy")
     {
         auto pPooled = GetPooledNormalEnemy();
         pPooled->SetActive(true);
         pPooled->Init();
+        if (enemyData) pPooled->SetHp(enemyData->hp);
         pPooled->SetPos(spawnPos); // Initの後にSetPos
         pEnemy = pPooled;
     }
@@ -532,6 +545,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         auto pPooled = GetPooledRunnerEnemy();
         pPooled->SetActive(true);
         pPooled->Init();
+        if (enemyData) pPooled->SetHp(enemyData->hp);
         pPooled->SetPos(spawnPos);
         pEnemy = pPooled;
     }
@@ -540,6 +554,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         auto pPooled = GetPooledAcidEnemy();
         pPooled->SetActive(true);
         pPooled->Init();
+        if (enemyData) pPooled->SetHp(enemyData->hp);
         pPooled->SetPos(spawnPos);
         pEnemy = pPooled;
     }
