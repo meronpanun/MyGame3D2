@@ -640,13 +640,14 @@ void SceneMain::DrawPauseMenu()
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); 
 }
 
+
 void SceneMain::SetPaused(bool paused)
 {
     m_isPaused = paused;
     SetMouseDispFlag(m_isPaused); 
 }
 
-
+// カメラの感度を設定
 void SceneMain::SetCameraSensitivity(float sensitivity)
 {
     m_cameraSensitivity = sensitivity;
@@ -656,6 +657,7 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
     }
 }
 
+// プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
 void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part)
 {
     m_hitMarkTimer = kHitMarkDuration;

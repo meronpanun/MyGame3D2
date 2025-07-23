@@ -8,13 +8,13 @@
 class TutorialManager
 {
 public:
-    TutorialManager();
+	TutorialManager();
 	~TutorialManager();
 
-    /// <summary>
+	/// <summary>
 	/// チュートリアルのステップ
-    /// </summary>
-    enum class Step 
+	/// </summary>
+	enum class Step 
     {
         None,
 		Move,			 // WASD操作
@@ -25,37 +25,37 @@ public:
 		CompletedDisplay // チュートリアル完了後の待機中
     };
 
-    void Init();
-    void Update();
-    void Draw(int screenW, int screenH);
+	void Init();
+	void Update();
+	void Draw(int screenW, int screenH);
 
-    /// <summary>
-    /// チュートリアルがアクティブかどうか
-    /// </summary>
+	/// <summary>
+	/// チュートリアルがアクティブかどうか
+	/// </summary>
 	/// <returns>アクティブならtrue</returns>
-	bool IsActive() const; 
+	bool IsActive() const;
 
-    /// <summary>
+	/// <summary>
 	/// チュートリアルが完了したかどうか
-    /// </summary>
+	/// </summary>
 	/// <returns>完了していればtrue</returns>
-	bool IsCompleted() const; 
+	bool IsCompleted() const;
 
-    /// <summary>
-    /// チュートリアル完了後の待機中かどうか 
-    /// </summary>
+	/// <summary>
+	/// チュートリアル完了後の待機中かどうか 
+	/// </summary>
 	/// <returns>完了演出表示中ならtrue</returns>
-    bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
+	bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
 
 private:
-    Vec2 m_prevMousePos;
-    Step m_step;
+	Vec2 m_prevMousePos;
+	Step m_step;
 
 	int m_checkMarkHandle; // チェックマーク画像のハンドル
 
-    float m_moveAccumTime;     // WASD操作累積時間
-    float m_viewAccumTime;     // 視点操作累積時間
-    float m_completeWaitTime;  // チュートリアル完了後の待機タイマー
+	float m_moveAccumTime;     // WASD操作累積時間
+	float m_viewAccumTime;     // 視点操作累積時間
+	float m_completeWaitTime;  // チュートリアル完了後の待機タイマー
 	float m_isMoveCheckAnimTime; // WASD操作のアニメーションタイマー
 	float m_isViewCheckAnimTime; // 視点操作のアニメーションタイマー
 	float m_jumpAccumTime;     // ジャンプ操作累積時間

@@ -9,10 +9,10 @@
 
 namespace
 {
-	constexpr float kInitialRadius = 20.0f;
-	constexpr int kAmmoAmount = 30; // 回復する弾薬数
-	constexpr float kDropGravity = 0.5f;
-	constexpr float kGroundY = 0.0f;
+	constexpr int   kAmmoAmount    = 30;    // 回復する弾薬数
+	constexpr float kInitialRadius = 20.0f; // 初期の半径
+	constexpr float kDropGravity   = 0.5f;  // ドロップ時の重力加速度
+	constexpr float kGroundY       = 0.0f;  // 地面のY座標
 }
 
 AmmoItem::AmmoItem() :
@@ -33,6 +33,7 @@ AmmoItem::AmmoItem() :
 
 AmmoItem::~AmmoItem()
 {
+	// モデルの解放
 	MV1DeleteModel(m_modelHandle);
 }
 

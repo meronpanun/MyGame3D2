@@ -14,7 +14,6 @@ class Camera;
 class EnemyNormal;
 class EnemyRunner;
 class EnemyAcid;
-//class EnemyBase;
 class FirstAidKitItem;
 class ItemBase;
 class Stage;
@@ -33,10 +32,22 @@ public:
 	SceneBase* Update() override;
 	void Draw() override;
 
-	void SetPaused(bool paused);
+	/// <summary>
+	/// 一時停止状態を設定
+	/// </summary>
+	/// <param name="paused">一時停止状態</param>
+	void SetPaused(bool paused); 
 
-	Camera* GetCamera() const { return m_pCamera.get(); }
+	/// <summary>
+	/// カメラを取得
+	/// </summary>
+	/// <returns>カメラのポインタ</returns>
+	Camera* GetCamera() const { return m_pCamera.get(); } 
 
+	/// <summary>
+	/// カメラ感度を設定
+	/// </summary>
+	/// <param name="sensitivity">感度</param>
 	void SetCameraSensitivity(float sensitivity);
 
 	// プレイヤーの弾が敵にヒットした際に呼ばれる(ヒットマーク表示用)

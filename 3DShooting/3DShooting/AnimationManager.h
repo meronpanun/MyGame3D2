@@ -13,6 +13,8 @@ public:
     AnimationManager();
     ~AnimationManager();
 
+    void Update(int modelHandle, float delta);
+
     /// <summary>
 	/// モデルにアニメーションをアタッチし、再生を開始する
     /// </summary>
@@ -44,20 +46,43 @@ public:
 	/// <returns>現在アタッチされているアニメーションのハンドル。見つからない場合は-1</returns>
     int GetCurrentAttachedAnimHandle(int modelHandle) const;
 
-    // 現在アタッチされているアニメーションのハンドルをリセットする
+    /// <summary>
+	/// 現在アタッチされているアニメーションのハンドルをリセットする
+    /// </summary>
+	/// <param name="modelHandle">アニメーションをリセットするモデルのハンドル</param>
     void ResetAttachedAnimHandle(int modelHandle);
 
-    // 状態→アニメ名の登録
+    /// <summary>
+	/// 指定した状態に対応するアニメーション名を設定する
+    /// </summary>
+	/// <param name="state">アニメーションの状態</param>
+	/// <param name="animName">アニメーションの名前</param>
     void SetAnimName(EnemyBase::AnimState state, const std::string& animName);
 
-    // 状態指定で再生
+    /// <summary>
+	/// 指定したモデルのアニメーションを再生する
+    /// </summary>
+	/// <param name="modelHandle">モデルのハンドル</param>
+	/// <param name="state">アニメーションの状態</param>
+	/// <param name="loop">ループ再生するかどうか</param>
+	/// <returns>>アニメーションの総時間。アニメーションが見つからない場合は0</returns>
     float PlayState(int modelHandle, EnemyBase::AnimState state, bool loop);
 
-    // アニメーション進行
-    void Update(int modelHandle, float delta);
-
-    // アニメーション終了判定
+    /// <summary>
+	/// 指定したモデルのアニメーションが終了しているかどうかを判定する
+    /// </summary>
+	/// <param name="modelHandle">モデルのハンドル</param>
+	/// <returns>trueならアニメーションが終了している</returns>
     bool IsAnimationFinished(int modelHandle) const;
+
+private:
+    /// <summary>
+	/// モデルハンドルとアニメーション名からDxLibのアニメーションインデックスを取得
+    /// </summary>
+	/// <param name="modelHandle">モデルのハンドル</param>
+	/// <param name="animName">アニメーションの名前</param>
+	/// <returns>DxLibのアニメーションインデックス。見つからない場合は-1</returns>
+    int GetAnimIndexInternal(int modelHandle, const std::string& animName);
 
 private:
     // モデルハンドルとアニメーション名ごとのDxLibアニメーションインデックスをキャッシュ
@@ -73,7 +98,4 @@ private:
     std::map<int, EnemyBase::AnimState> m_modelCurrentState;
     // モデルごとの現在のアニメーション経過時間
     std::map<int, float> m_modelAnimTime;
-
-    // 内部ヘルパー関数：アニメーションインデックスを取得し、キャッシュする
-    int GetAnimIndexInternal(int modelHandle, const std::string& animName);
 };

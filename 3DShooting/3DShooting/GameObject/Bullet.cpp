@@ -58,6 +58,7 @@ void Bullet::Draw() const
 #endif
 }
 
+// 弾の更新
 void Bullet::UpdateBullets(std::vector<Bullet>& bullets, const VECTOR& playerPos)
 {
 	for (auto& bullet : bullets)
@@ -69,6 +70,7 @@ void Bullet::UpdateBullets(std::vector<Bullet>& bullets, const VECTOR& playerPos
 	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) { return !b.IsActive(); }), bullets.end());
 }
 
+// 弾の描画
 void Bullet::DrawBullets(const std::vector<Bullet>& bullets)
 {
 	for (const auto& bullet : bullets)
@@ -77,6 +79,7 @@ void Bullet::DrawBullets(const std::vector<Bullet>& bullets)
 	}
 }
 
+// 弾を非アクティブ化
 void Bullet::Deactivate()
 {
 	m_isActive = false;

@@ -8,9 +8,47 @@
 
 namespace
 {
-	constexpr float kFrameTime = 1.0f / 60.0f; // フレーム時間
-	constexpr int kFontSize = 22; // チュートリアルメッセージのフォントサイズ
-	constexpr int kMessageOffsetX = 420; // メッセージのXオフセット
+    // 時間関連
+    constexpr float kFrameTime         = 1.0f / 60.0f; // 1フレームの時間
+    constexpr float kCompleteWaitTime  = 1.0f; // チュートリアル完了後の待機時間
+    constexpr float kMoveAccumGoalTime = 2.0f; // 移動チュートリアルの目標累積時間
+    constexpr float kViewAccumGoalTime = 1.0f; // 視点チュートリアルの目標累積時間
+    constexpr float kJumpAccumGoalTime = 0.2f; // ジャンプチュートリアルの目標累積時間
+    constexpr float kRunAccumGoalTime  = 1.0f; // 走行チュートリアルの目標累積時間
+    constexpr float kCheckAnimDuration = 0.3f; // チェックマークのアニメーション時間
+
+    // UI関連
+    constexpr int kFontSize               = 22;   // チュートリアルメッセージのフォントサイズ
+    constexpr int kDefaultFontSize        = 16;   // デフォルトのフォントサイズ
+    constexpr int kMessageOffsetX         = 420;  // メッセージのXオフセット
+    constexpr int kInitialYPos            = 40;   // メッセージの初期Y座標
+    constexpr int kLineSpacing            = 40;   // メッセージの行間
+    constexpr int kCheckMarkBaseSize      = 40;   // チェックマークの基本サイズ
+    constexpr int kCheckMarkOffsetXMove   = 280;  // 移動チェックマークのXオフセット
+    constexpr int kCheckMarkOffsetXOthers = 340;  // それ以外のチェックマークのXオフセット
+    constexpr int kCheckMarkOffsetY       = 20;   // チェックマークのYオフセット
+    constexpr float kCheckMarkAnimScale   = 2.0f; // チェックマークアニメーションの最大スケール
+
+    // UIボックス関連
+    constexpr int kBoxPaddingX = 20;  // ボックスの左右パディング
+    constexpr int kBoxPaddingY = 40;  // ボックスの上下パディング
+    constexpr int kBoxAlpha    = 180; // ボックスのアルファ値
+    constexpr unsigned int kBoxColor = 0x000000; // ボックスの色
+
+    // タイトル関連
+    constexpr int kTitleFontSize = 28;       // タイトルのフォントサイズ
+    constexpr int kTitleOffsetY  = 10;       // タイトルのYオフセット
+    constexpr int kTitleColor    = 0xFFFFFF; // タイトルの色
+    constexpr char kTitleText[]  = "[チュートリアル]"; // タイトルテキスト
+
+    // 各メッセージの長さ（ピクセル）
+    constexpr int kMsgWidthWASD  = 260; // "WASDで移動しよう!" の幅
+    constexpr int kMsgWidthMouse = 320; // "マウスで視点を動かそう!" の幅
+    constexpr int kMsgWidthJump  = 320; // "スペースキーでジャンプ!" の幅
+    constexpr int kMsgWidthRun   = 320; // "Shift+Wで走ろう!" の幅
+
+	// マウスの移動量しきい値
+	constexpr float kMouseMovementThreshold = 5.0f; // マウスの移動量しきい値
 }
 
 TutorialManager::TutorialManager() : 
@@ -58,7 +96,7 @@ void TutorialManager::Update()
     if (m_isCompletedDisplay)
     {
         m_completeWaitTime += kFrameTime;
-        if (m_completeWaitTime >= 1.0f) 
+        if (m_completeWaitTime >= kCompleteWaitTime) 
         {
             m_isCompletedDisplay = false;
             m_step = Step::Completed;
@@ -81,7 +119,7 @@ void TutorialManager::Update()
         {
             m_moveAccumTime += kFrameTime;
         }
-        if (m_moveAccumTime >= 2.0f) 
+        if (m_moveAccumTime >= kMoveAccumGoalTime) 
         {
             m_isMoveDone          = true;
             m_isMoveCheckAnim     = true;
@@ -95,12 +133,12 @@ void TutorialManager::Update()
         Vec2 now = Mouse::GetPos();
         float dx = now.x - m_prevMousePos.x;
         float dy = now.y - m_prevMousePos.y;
-        bool isViewing = (std::abs(dx) > 2 || std::abs(dy) > 2);
+        bool isViewing = (std::abs(dx) > kMouseMovementThreshold || std::abs(dy) > kMouseMovementThreshold);
         if (isViewing) 
         {
             m_viewAccumTime += kFrameTime;
         }
-        if (m_viewAccumTime >= 1.0f) 
+        if (m_viewAccumTime >= kViewAccumGoalTime) 
         {
             m_isViewDone          = true;
             m_isViewCheckAnim     = true;
@@ -116,7 +154,7 @@ void TutorialManager::Update()
         {
             m_jumpAccumTime += kFrameTime;
         }
-        if (m_jumpAccumTime >= 0.2f) // 0.2秒間押下でOK
+        if (m_jumpAccumTime >= kJumpAccumGoalTime) 
         {
             m_isJumpDone          = true;
             m_isJumpCheckAnim     = true;
@@ -131,7 +169,7 @@ void TutorialManager::Update()
         {
             m_runAccumTime += kFrameTime;
         }
-        if (m_runAccumTime >= 1.0f) 
+        if (m_runAccumTime >= kRunAccumGoalTime) 
         {
             m_isRunDone          = true;
             m_isRunCheckAnim     = true;
@@ -140,11 +178,6 @@ void TutorialManager::Update()
             m_completeWaitTime   = 0.0f;
         }
     }
-    // アニメタイマー進行
-    if (m_isMoveCheckAnim) m_isMoveCheckAnimTime += kFrameTime;
-    if (m_isViewCheckAnim) m_isViewCheckAnimTime += kFrameTime;
-    if (m_isJumpCheckAnim) m_isJumpCheckAnimTime += kFrameTime;
-    if (m_isRunCheckAnim)  m_isRunCheckAnimTime  += kFrameTime;
 }
 
 void TutorialManager::Draw(int screenW, int screenH)
@@ -152,84 +185,123 @@ void TutorialManager::Draw(int screenW, int screenH)
     // 完了演出中も含めて表示
     if (m_step == Step::None) return;
     if (m_step == Step::Completed && !m_isCompletedDisplay) return;
-	int x = screenW - kMessageOffsetX;
-	int y = 40;
+
+    // UIボックスの描画範囲を計算
+    int boxX1 = screenW - kMessageOffsetX - kBoxPaddingX;
+    int boxY1 = kInitialYPos - kBoxPaddingY;
+    int boxX2 = screenW - kBoxPaddingX;
+    int boxY2 = kInitialYPos + kLineSpacing * 4 + kBoxPaddingY + kTitleFontSize + kTitleOffsetY; // タイトル分も考慮
+
+    // 半透明の背景ボックスを描画
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
+    DrawBox(boxX1, boxY1, boxX2, boxY2, kBoxColor, TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+    // タイトル表示
+    SetFontSize(kTitleFontSize);
+    DrawFormatString(screenW - kMessageOffsetX, kInitialYPos - kTitleFontSize - kTitleOffsetY, kTitleColor, kTitleText);
+
+    int x = screenW - kMessageOffsetX;
+    int y = kInitialYPos;
     SetFontSize(kFontSize);
+
     // 1. WASD
-    DrawFormatString(x, y, 0xffffff, "WASDで移動してください");
-    if (m_isMoveDone && m_checkMarkHandle >= 0) {
+    DrawFormatString(x, y, 0xffffff, "WASDで移動しよう!");
+    if (m_isMoveDone && m_checkMarkHandle >= 0)
+    {
         float scale = 1.0f;
-        if (m_isMoveCheckAnim && m_isMoveCheckAnimTime < 0.3f) {
-            float t = m_isMoveCheckAnimTime / 0.3f;
-            scale = 2.0f - t;
+        if (m_isMoveCheckAnim && m_isMoveCheckAnimTime < kCheckAnimDuration)
+        {
+            float t = m_isMoveCheckAnimTime / kCheckAnimDuration;
+            scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
-        } else {
+        }
+        else 
+        {
             m_isMoveCheckAnim = false;
         }
-        int size = static_cast<int>(40 * scale);
-        int cx = x + 260 + 20;
-        int cy = y + 20;
-        DrawExtendGraph(cx - size/2, cy - size/2, cx + size/2, cy + size/2, m_checkMarkHandle, true);
+        int size = static_cast<int>(kCheckMarkBaseSize * scale);
+        int cx = x + kMsgWidthWASD + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cy = y + kCheckMarkOffsetY;
+        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
-    y += 40;
+    y += kLineSpacing;
+
     // 2. 視点
-    DrawFormatString(x, y, 0xffffff, "マウスで視点を動かしてください");
-    if (m_isViewDone && m_checkMarkHandle >= 0) {
+    DrawFormatString(x, y, 0xffffff, "マウスで視点を動かそう!");
+    if (m_isViewDone && m_checkMarkHandle >= 0) 
+    {
         float scale = 1.0f;
-        if (m_isViewCheckAnim && m_isViewCheckAnimTime < 0.3f) {
-            float t = m_isViewCheckAnimTime / 0.3f;
-            scale = 2.0f - t;
+        if (m_isViewCheckAnim && m_isViewCheckAnimTime < kCheckAnimDuration) 
+        {
+            float t = m_isViewCheckAnimTime / kCheckAnimDuration;
+            scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
-        } else {
+        }
+        else 
+        {
             m_isViewCheckAnim = false;
         }
-        int size = static_cast<int>(40 * scale);
-        int cx = x + 320 + 20;
-        int cy = y + 20;
-        DrawExtendGraph(cx - size/2, cy - size/2, cx + size/2, cy + size/2, m_checkMarkHandle, true);
+        int size = static_cast<int>(kCheckMarkBaseSize * scale);
+        int cx = x + kMsgWidthMouse + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cy = y + kCheckMarkOffsetY;
+        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
-    y += 40;
+    y += kLineSpacing;
+
     // 3. ジャンプ
-    DrawFormatString(x, y, 0xffffff, "スペースキーでジャンプしてください");
-    if (m_isJumpDone && m_checkMarkHandle >= 0) {
+    DrawFormatString(x, y, 0xffffff, "スペースキーでジャンプ!");
+    if (m_isJumpDone && m_checkMarkHandle >= 0) 
+    {
         float scale = 1.0f;
-        if (m_isJumpCheckAnim && m_isJumpCheckAnimTime < 0.3f) {
-            float t = m_isJumpCheckAnimTime / 0.3f;
-            scale = 2.0f - t;
+        if (m_isJumpCheckAnim && m_isJumpCheckAnimTime < kCheckAnimDuration) 
+        {
+            float t = m_isJumpCheckAnimTime / kCheckAnimDuration;
+            scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
-        } else {
+        }
+        else 
+        {
             m_isJumpCheckAnim = false;
         }
-        int size = static_cast<int>(40 * scale);
-        int cx = x + 320 + 20;
-        int cy = y + 20;
-        DrawExtendGraph(cx - size/2, cy - size/2, cx + size/2, cy + size/2, m_checkMarkHandle, true);
+        int size = static_cast<int>(kCheckMarkBaseSize * scale);
+        int cx = x + kMsgWidthJump + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cy = y + kCheckMarkOffsetY;
+        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
-    y += 40;
+    y += kLineSpacing;
+
     // 4. 走る
-    DrawFormatString(x, y, 0xffffff, "Shift+Wで走ってください");
-    if (m_isRunDone && m_checkMarkHandle >= 0) {
+    DrawFormatString(x, y, 0xffffff, "Shift+Wで走ろう!");
+    if (m_isRunDone && m_checkMarkHandle >= 0)
+    {
         float scale = 1.0f;
-        if (m_isRunCheckAnim && m_isRunCheckAnimTime < 0.3f) {
-            float t = m_isRunCheckAnimTime / 0.3f;
-            scale = 2.0f - t;
+        if (m_isRunCheckAnim && m_isRunCheckAnimTime < kCheckAnimDuration) 
+        {
+            float t = m_isRunCheckAnimTime / kCheckAnimDuration;
+            scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
-        } else {
+        }
+        else
+        {
             m_isRunCheckAnim = false;
         }
-        int size = static_cast<int>(40 * scale);
-        int cx = x + 320 + 20;
-        int cy = y + 20;
-        DrawExtendGraph(cx - size/2, cy - size/2, cx + size/2, cy + size/2, m_checkMarkHandle, true);
+        int size = static_cast<int>(kCheckMarkBaseSize * scale);
+        int cx = x + kMsgWidthRun + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cy = y + kCheckMarkOffsetY;
+        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
-    SetFontSize(16);
+
+    SetFontSize(kDefaultFontSize);
 }
 
+// チュートリアルがアクティブかどうか
 bool TutorialManager::IsActive() const
 {
     return m_step != Step::None && m_step != Step::Completed;
 }
 
+// チュートリアルが完了したかどうか
 bool TutorialManager::IsCompleted() const
 {
     return m_step == Step::Completed;
