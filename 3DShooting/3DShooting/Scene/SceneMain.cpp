@@ -487,23 +487,29 @@ void SceneMain::Draw()
             GetScreenState(&screenW, &screenH, nullptr);
             int x = screenW - 220;
             int y = 20;
-            // Shot画像のサイズ: 176x80, Tackle画像のサイズ: 176x60
-            int shotW = 176, shotH = 80;
-            int tackleW = 176, tackleH = 60;
-            int checkSize = 40;
-            int imgBaseX = x - 60; // 画像をさらに左にずらす
+            // チュートリアル画像の描画サイズを調整
+            int newWidth = 220; 
+            int origW = 176, origH = 60; // 両方の画像の元サイズ
+
+            // アスペクト比を維持して高さを計算
+            int newHeight = origH * newWidth / origW;
+
+            int checkSize = 50; // チェックマークも少し大きく
+            int imgBaseX = x - 100; // 画像をさらに左にずらす
             int shotY = y;
-            int tackleY = y + shotH + 20;
+            int tackleY = y + newHeight + 20; // 修正後の高さでY座標を計算
+
             // Shot画像
-            if (shotImg >= 0) DrawGraph(imgBaseX, shotY, shotImg, true);
+            if (shotImg >= 0) DrawExtendGraph(imgBaseX, shotY, imgBaseX + newWidth, shotY + newHeight, shotImg, true);
             // 射撃達成時は射撃画像の右側にチェック
             if (shotCleared && checkImg >= 0)
-                DrawExtendGraph(imgBaseX + shotW + 10, shotY + shotH/2 - checkSize/2, imgBaseX + shotW + 10 + checkSize, shotY + shotH/2 + checkSize/2, checkImg, true);
+                DrawExtendGraph(imgBaseX + newWidth + 10, shotY + newHeight/2 - checkSize/2, imgBaseX + newWidth + 10 + checkSize, shotY + newHeight/2 + checkSize/2, checkImg, true);
+            
             // Tackle画像
-            if (tackleImg >= 0) DrawGraph(imgBaseX, tackleY, tackleImg, true);
+            if (tackleImg >= 0) DrawExtendGraph(imgBaseX, tackleY, imgBaseX + newWidth, tackleY + newHeight, tackleImg, true);
             // タックル達成時はタックル画像の右側にチェック
             if (tackleCleared && checkImg >= 0)
-                DrawExtendGraph(imgBaseX + tackleW + 10, tackleY + tackleH/2 - checkSize/2, imgBaseX + tackleW + 10 + checkSize, tackleY + tackleH/2 + checkSize/2, checkImg, true);
+                DrawExtendGraph(imgBaseX + newWidth + 10, tackleY + newHeight/2 - checkSize/2, imgBaseX + newWidth + 10 + checkSize, tackleY + newHeight/2 + checkSize/2, checkImg, true);
         }
     }
 

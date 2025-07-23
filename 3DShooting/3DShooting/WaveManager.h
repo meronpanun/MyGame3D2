@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "EffekseerForDXLib.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -93,17 +92,64 @@ public:
     /// </summary>
     void DrawEnemies();
 
+    /// <summary>
+	/// 現在のウェーブがアクティブかどうかを取得
+    /// </summary>
+	/// <returns>現在のウェーブがアクティブならtrue</returns>
     bool IsWaveActive() const { return m_isWaveActive; }
-    bool IsAllWavesCompleted() const { return m_isAllWavesCompleted; }
-    bool IsWave1Loaded() const { return m_wave1Loaded; }
-    bool IsWave1EnemySpawned() const { return m_wave1EnemySpawned; }
 
+    /// <summary>
+	/// すべてのウェーブが完了したかどうかを取得
+    /// </summary>
+	/// <returns>すべてのウェーブが完了していればtrue</returns>
+    bool IsAllWavesCompleted() const { return m_isAllWavesCompleted; }
+
+    /// <summary>
+	/// ウェーブ1の敵がロードされたかどうかを取得
+    /// </summary>
+	/// <returns>ウェーブ1の敵がロードされていればtrue</returns>
+    bool IsWave1Loaded() const { return m_isWave1Loaded; }
+
+    /// <summary>
+	/// ウェーブ1の敵が実際に出現したかどうかを取得
+    /// </summary>
+	/// <returns>ウェーブ1の敵が出現していればtrue</returns>
+    bool IsWave1EnemySpawned() const { return m_isWave1EnemySpawned; }
+
+    /// <summary>
+	/// 現在のウェーブの画像ハンドルを取得
+    /// </summary>
+	/// <returns>現在のウェーブの画像ハンドル</returns>
     float GetSpawnTimer() const { return m_spawnTimer; }
 
+    /// <summary>
+	/// 現在のウェーブの画像ハンドルを取得
+    /// </summary>
+	/// <returns>現在のウェーブの画像ハンドル</returns>
     int GetShotTutorialImg() const { return m_shotTutorialImg; }
+
+    /// <summary>
+	/// タックルチュートリアル画像のハンドルを取得
+    /// </summary>
+	/// <returns>タックルチュートリアル画像のハンドル</returns>
     int GetTackleTutorialImg() const { return m_tackleTutorialImg; }
-    bool IsShotTutorialCleared() const { return m_shotTutorialCleared; }
-    bool IsTackleTutorialCleared() const { return m_tackleTutorialCleared; }
+
+    /// <summary>
+	/// チュートリアルがクリアされたかどうかを取得
+    /// </summary>
+	/// <returns>ショットチュートリアルがクリアされていればtrue</returns>
+    bool IsShotTutorialCleared() const { return m_isShotTutorialCleared; }
+
+    /// <summary>
+	/// タックルチュートリアルがクリアされたかどうかを取得
+    /// </summary>
+	/// <returns>タックルチュートリアルがクリアされていればtrue</returns>
+    bool IsTackleTutorialCleared() const { return m_isTackleTutorialCleared; }
+
+    /// <summary>
+	/// チェックマーク画像のハンドルを取得
+    /// </summary>
+	/// <returns>チェックマーク画像のハンドル</returns>
     int GetCheckMarkImg() const { return m_checkMarkImg; }
 
 private:
@@ -150,6 +196,7 @@ private:
     void OnEnemyDeath(const VECTOR& pos);
 
 private:
+	// 敵のリストとテンプレート
     std::vector<WaveData> m_waveDataList;
     std::vector<EnemySpawnInfo> m_spawnInfoList;
     std::vector<std::shared_ptr<EnemyBase>> m_enemyList;
@@ -157,44 +204,43 @@ private:
     // 敵のテンプレート
     std::shared_ptr<EnemyNormal> m_pEnemyNormalTemplate;
     std::shared_ptr<EnemyRunner> m_pEnemyRunnerTemplate;
-    std::shared_ptr<EnemyAcid> m_pEnemyAcidTemplate;
+    std::shared_ptr<EnemyAcid>   m_pEnemyAcidTemplate;
 
+	// 敵のプール
     std::vector<std::shared_ptr<EnemyNormal>> m_enemyNormalPool;
     std::vector<std::shared_ptr<EnemyRunner>> m_enemyRunnerPool;
     std::vector<std::shared_ptr<EnemyAcid>>   m_enemyAcidPool;
 
+	// 敵のプールから取得
     std::shared_ptr<EnemyNormal> GetPooledNormalEnemy();
     std::shared_ptr<EnemyRunner> GetPooledRunnerEnemy();
     std::shared_ptr<EnemyAcid>   GetPooledAcidEnemy();
 
     // コールバック
-    std::function<void(const VECTOR&)> m_onEnemyDeathCallback;    // 敵の死亡時コールバック
-    std::function<void(EnemyBase::HitPart)> m_onEnemyHitCallback; // 部位情報付き
+    std::function<void(const VECTOR&)>      m_onEnemyDeathCallback; // 敵の死亡時コールバック
+    std::function<void(EnemyBase::HitPart)> m_onEnemyHitCallback;   // 部位情報付き
 
-	int   m_currentWave;       // 現在のWave番号
-	int   m_currentSpawnIndex; // 現在の出現インデックス
+	int m_currentWave;       // 現在のWave番号
+	int m_currentSpawnIndex; // 現在の出現インデックス
+    int m_waveImages[3];     // 1,2,3ウェーブ用画像ハンドル
+    int m_totalSpawnedCount; // 累計出現数
+	int m_shotTutorialImg;   // ショットチュートリアル画像ハンドル
+	int m_tackleTutorialImg; // タックルチュートリアル画像ハンドル
+	int m_checkMarkImg;      // チェックマーク画像ハンドル
+
 	float m_waveTimer;         // ウェーブのタイマー
 	float m_spawnTimer;        // 敵の出現タイマー
-
 	float m_waveIntervalTimer; // ウェーブ間インターバル用タイマー
 
-	bool m_isWaveActive;        // 現在のウェーブがアクティブかどうか
-	bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
-	bool m_wave1Loaded; // ウェーブ1の敵がロードされたかどうか
-	bool m_wave1EnemySpawned; // ウェーブ1の敵が実際に出現したかどうか
+	bool m_isWaveActive;            // 現在のウェーブがアクティブかどうか
+	bool m_isAllWavesCompleted;     // すべてのウェーブが完了したかどうか
+	bool m_isWave1Loaded;           // ウェーブ1の敵がロードされたかどうか
+	bool m_isWave1EnemySpawned;     // ウェーブ1の敵が実際に出現したかどうか
+	bool m_isShotTutorialCleared;   // ショットチュートリアルがクリアされたかどうか
+	bool m_isTackleTutorialCleared; // タックルチュートリアルがクリアされたかどうか
 
     // Road_floorオブジェクトの範囲
 	VECTOR m_roadFloorMin;       // 最小位置
 	VECTOR m_roadFloorMax;       // 最大位置
 	bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
-
-    int m_waveImages[3]; // 1,2,3ウェーブ用画像ハンドル
-
-    int m_totalSpawnedCount; // 累計出現数
-
-    int m_shotTutorialImg;
-    int m_tackleTutorialImg;
-    bool m_shotTutorialCleared;
-    bool m_tackleTutorialCleared;
-    int m_checkMarkImg;
 };
