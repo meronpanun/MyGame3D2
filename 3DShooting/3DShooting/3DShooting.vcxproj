@@ -145,6 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DebugMenu.cpp" />
     <ClCompile Include="GameObject\AmmoItem.cpp" />
     <ClCompile Include="AnimationManager.cpp" />
     <ClCompile Include="CapsuleCollider.cpp" />
@@ -183,6 +184,7 @@
     <ClCompile Include="WaveManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugMenu.h" />
     <ClInclude Include="GameObject\AmmoItem.h" />
     <ClInclude Include="AnimationManager.h" />
     <ClInclude Include="CapsuleCollider.h" />

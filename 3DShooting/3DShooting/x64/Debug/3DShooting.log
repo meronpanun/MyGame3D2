@@ -1,47 +1,7 @@
-﻿  AmmoItem.cpp
-  EnemyRunner.cpp
-  Player.cpp
-  SceneMain.cpp
-  Stage.cpp
-  TransformDataLoader.cpp
-  TutorialManager.cpp
-  WaveManager.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\AmmoItem.cpp(69,37): warning C4305: '-=': 'double' から 'float' へ切り詰めます。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(228,82): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(228,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(228,46): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(228,28): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(250,82): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(250,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(250,46): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(250,28): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(272,82): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(272,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(272,46): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(272,28): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(294,82): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(294,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(294,46): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(294,28): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(257,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(78,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(79,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(455,50): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(455,34): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(518,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(518,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(530,25): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(143,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(151,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(159,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(359,15): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(468,19): warning C4244: '初期化中': '_Rep' から 'unsigned int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(468,19): warning C4244:         with
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(468,19): warning C4244:         [
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(468,19): warning C4244:             _Rep=std::chrono::system_clock::rep
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(468,19): warning C4244:         ]
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(799,26): warning C4477: 'sprintf_s' : 書式文字列 '%d' には、型 'int' の引数が必要ですが、可変個引数 2 は型 'unsigned __int64' です
-      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(799,26):
-      書式文字列に '%zd' を使用することをお勧めします
-  
+﻿  DebugMenu.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\DebugMenu.cpp(74,32): warning C4267: '=': 'size_t' から '_Ty' に変換しました。データが失われているかもしれません。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\DebugMenu.cpp(74,32): warning C4267:         with
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\DebugMenu.cpp(74,32): warning C4267:         [
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\DebugMenu.cpp(74,32): warning C4267:             _Ty=int
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\DebugMenu.cpp(74,32): warning C4267:         ]
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

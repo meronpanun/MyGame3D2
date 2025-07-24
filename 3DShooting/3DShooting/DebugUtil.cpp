@@ -1,8 +1,10 @@
 ﻿#include "DebugUtil.h"
 #include "EffekseerForDXLib.h"
+#include "DebugMenu.h"
 #include <cstdarg>
 
 bool DebugUtil::s_isVisible = false; // デバッグウィンドウの表示状態を管理する静的変数
+DebugMenu DebugUtil::s_debugMenu;
 
 // 3Dカプセルのデバッグ描画関数
 void DebugUtil::DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill)
@@ -62,24 +64,12 @@ void DebugUtil::ShowDebugWindow()
     DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // デバッグウィンドウの内容
-    const int x = 40;
-    const int y = 40;
-    const int w = 400;
-    const int h = 200;
-
-    // 背景
-    DrawBox(x, y, x + w, y + h, 0x000000, true);
-    // 枠
-    DrawBox(x, y, x + w, y + h, 0x000000, true);
-
-    // テキスト
-    DrawString(x + 16, y + 16, "デバッグウィンドウ (F1で切替)", 0xffffff);
-    DrawString(x + 16, y + 48, "・ここにデバッグ情報を表示できます", 0xffffff);
+    s_debugMenu.Update();
+    s_debugMenu.Draw(40, 40);
 }
 
-// デバッグウィンドウが表示されているかどうかを返す
 bool DebugUtil::IsDebugWindowVisible() 
 {
     return s_isVisible;
 }
+
