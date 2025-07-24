@@ -48,7 +48,7 @@ namespace
     constexpr int kMsgWidthRun   = 320; // "Shift+Wで走ろう!" の幅
 
 	// マウスの移動量しきい値
-	constexpr float kMouseMovementThreshold = 5.0f; // マウスの移動量しきい値
+	constexpr float kMouseMovementThreshold = 5.0f; // マウスの移動量閾値
 }
 
 TutorialManager::TutorialManager() : 
@@ -96,18 +96,20 @@ void TutorialManager::Update()
     if (m_isCompletedDisplay)
     {
         m_completeWaitTime += kFrameTime;
-        if (m_completeWaitTime >= kCompleteWaitTime) 
+        if (m_completeWaitTime >= kCompleteWaitTime)
         {
             m_isCompletedDisplay = false;
             m_step = Step::Completed;
         }
-        // アニメタイマーも進める
-        if (m_isMoveCheckAnim) m_isMoveCheckAnimTime += kFrameTime;
-        if (m_isViewCheckAnim) m_isViewCheckAnimTime += kFrameTime;
-        if (m_isJumpCheckAnim) m_isJumpCheckAnimTime += kFrameTime;
-        if (m_isRunCheckAnim)  m_isRunCheckAnimTime  += kFrameTime;
-        return;
     }
+
+    // アニメタイマーを進める
+    if (m_isMoveCheckAnim) m_isMoveCheckAnimTime += kFrameTime;
+    if (m_isViewCheckAnim) m_isViewCheckAnimTime += kFrameTime;
+    if (m_isJumpCheckAnim) m_isJumpCheckAnimTime += kFrameTime;
+    if (m_isRunCheckAnim)  m_isRunCheckAnimTime  += kFrameTime;
+
+    if (m_isCompletedDisplay) return;
     if (m_step == Step::Completed) return;
 
     // 1.WASD移動

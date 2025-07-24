@@ -19,7 +19,7 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score) :
     m_killCount(killCount),
     m_score(score), 
     m_bgmHandle(-1), 
-    m_bgmStarted(false), 
+    m_isBGMStarted(false), 
     m_backgroundHandle(-1), 
     m_scrollX(0.0f), 
     m_scrollY(0.0f)
@@ -48,12 +48,12 @@ void SceneGameOver::Init()
 {
     // マウスカーソルの表示/非表示を設定
     SetMouseDispFlag(true);
-    m_bgmStarted = false;
+    m_isBGMStarted = false;
     // BGM再生（既に再生中でなければ）
     if (CheckSoundMem(m_bgmHandle) == 0)
     {
         PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
-        m_bgmStarted = true;
+        m_isBGMStarted = true;
     }
 }
 

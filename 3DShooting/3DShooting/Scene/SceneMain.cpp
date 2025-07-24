@@ -105,7 +105,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_lastTotalScorePopupValue(0),
 	m_pTutorialManager(std::make_unique<TutorialManager>()),
     m_bgmHandle(-1),
-    m_bgmStarted(false),
+    m_isBGMStarted(false),
     m_isLoading(false),
 	m_isReturningFromOtherScene(isReturningFromOtherScene)
 {
@@ -288,7 +288,7 @@ void SceneMain::Init()
     //m_pTutorialManager->Init();
 
     // BGM再生フラグをリセット（Initでは再生しない）
-    m_bgmStarted = false;
+    m_isBGMStarted = false;
     m_isLoading = true; // 追加
 }
 
@@ -325,13 +325,13 @@ SceneBase* SceneMain::Update()
     }
 
     // BGM再生（非同期ロード完了直後に一度だけ）
-    if (!m_bgmStarted)
+    if (!m_isBGMStarted)
     {
         if (CheckSoundMem(m_bgmHandle) == 0)
         {
             PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
         }
-        m_bgmStarted = true;
+        m_isBGMStarted = true;
     }
 
     // 経過時間を加算

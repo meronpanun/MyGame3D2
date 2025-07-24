@@ -109,7 +109,7 @@ private:
 	static float s_elapsedTime;
 
 	int m_bgmHandle;       // ゲームシーンBGMのハンドル
-	bool m_bgmStarted;     // BGM再生済みフラグ
+	bool m_isBGMStarted;   // BGM再生済みフラグ
 
 	bool m_isReturningFromOtherScene; // 他のシーンから戻ってきたかどうか
 

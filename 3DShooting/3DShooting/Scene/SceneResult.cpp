@@ -16,7 +16,7 @@ namespace
 }
 
 SceneResult::SceneResult()
-    : m_bgmHandle(-1), m_bgmStarted(false), m_backgroundHandle(-1), m_scrollX(0.0f), m_scrollY(0.0f)
+    : m_bgmHandle(-1), m_isBGMStarted(false), m_backgroundHandle(-1), m_scrollX(0.0f), m_scrollY(0.0f)
 {
     // BGMのロード
     m_bgmHandle = LoadSoundMem("data/sound/BGM/GameClearBGM.mp3");
@@ -43,12 +43,12 @@ void SceneResult::Init()
     SetMouseDispFlag(true);
     // スコア保存
     ScoreManager::Instance().SaveScore(ScoreManager::Instance().GetTotalScore());
-    m_bgmStarted = false;
+    m_isBGMStarted = false;
     // BGM再生（既に再生中でなければ）
     if (CheckSoundMem(m_bgmHandle) == 0)
     {
         PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
-        m_bgmStarted = true;
+        m_isBGMStarted = true;
     }
 }
 

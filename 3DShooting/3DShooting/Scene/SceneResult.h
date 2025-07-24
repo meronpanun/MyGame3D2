@@ -20,6 +20,6 @@ private:
     float m_scrollY;        // 背景のスクロールY座標
     int m_bgmHandle;       // ゲームクリアBGMのハンドル
     int m_returnSEHandle;  // 戻るボタンSEのハンドル
-    bool m_bgmStarted;     // BGM再生済みフラグ
+    bool m_isBGMStarted;     // BGM再生済みフラグ
 };
 

@@ -41,7 +41,7 @@ SceneTitle::SceneTitle(bool skipLogo):
 	m_isFadeOut(false),
 	m_skipLogo(skipLogo),
 	m_isSceneFadeIn(false),
-	m_bgmStarted(false)
+	m_isBGMStarted(false)
 {
     // タイトルロゴ画像を読み込む
     m_logoHandle = LoadGraph("data/image/TitleLogo.png");
@@ -66,7 +66,7 @@ void SceneTitle::Init()
 {
     // マウスカーソルを表示する
     SetMouseDispFlag(true);
-    m_bgmStarted = false;
+    m_isBGMStarted = false;
 }
 
 SceneBase* SceneTitle::Update()
@@ -137,13 +137,13 @@ SceneBase* SceneTitle::Update()
     }
 
     // BGM再生（ロゴ演出が終わった直後に一度だけ）
-    if (!m_bgmStarted)
+    if (!m_isBGMStarted)
     {
         if (CheckSoundMem(m_bgmHandle) == 0)
         {
             PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
         }
-        m_bgmStarted = true;
+        m_isBGMStarted = true;
     }
 
     // マウスの左クリックをチェック
