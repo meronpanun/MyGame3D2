@@ -51,6 +51,7 @@ void DebugUtil::ShowDebugWindow()
     if (nowF1 && !prevF1)
     {
         s_isVisible = !s_isVisible;
+        SetMouseDispFlag(s_isVisible);
     }
     prevF1 = nowF1;
 

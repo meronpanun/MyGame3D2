@@ -16,6 +16,13 @@ namespace
     constexpr int kLogoX = static_cast<int>(Game::kScreenWidth * -0.5f);
     constexpr int kLogoY = static_cast<int>((Game::kScreenHeigth - kLogoHeight) * 0.5f);
 
+	// タイトルバナー関連
+	constexpr int kBannerWidth  = 640;  // バナーの幅
+	constexpr int kBannerHeight = 360;  // バナーの高さ
+	constexpr int kBannerX      = -30;  // バナーのX座標
+	constexpr int kBannerY      = -100; // バナーのY座標
+
+    // フェード関連
 	constexpr int kFadeDuration = 60; // フェードイン・フェードアウトのフレーム数
 	constexpr int kWaitDuration = 60; // フェードイン後の待機時間（フレーム数）
 
@@ -25,13 +32,14 @@ namespace
 
     // スタートボタンの範囲を定数化
     constexpr int kStartButtonX1 = static_cast<int>((Game::kScreenWidth - kPanelWidth) * 0.5f); // スタートボタンの左上X座標
-    constexpr int kStartButtonY1 = 10;                           // スタートボタンの左上Y座標
+    constexpr int kStartButtonY1 = 300;                          // スタートボタンの左上Y座標
     constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth; // スタートボタンの右下X座標
-    constexpr int kStartButtonY2 = 300;                          // スタートボタンの右下Y座標
+    constexpr int kStartButtonY2 = 500;                          // スタートボタンの右下Y座標
 }
 
 SceneTitle::SceneTitle(bool skipLogo):
     m_logoHandle(-1),
+    m_bannerHandle(-1),
     m_bgmHandle(-1),
 	m_fadeAlpha(0),
 	m_fadeFrame(0),
@@ -46,9 +54,14 @@ SceneTitle::SceneTitle(bool skipLogo):
     // タイトルロゴ画像を読み込む
     m_logoHandle = LoadGraph("data/image/TitleLogo.png");
     assert(m_logoHandle != -1);
+    m_bannerHandle = LoadGraph("data/image/TitleBanner.png");
+    assert(m_bannerHandle != -1);
+
     // タイトルBGMを読み込む
     m_bgmHandle = LoadSoundMem("data/sound/BGM/TitleBGM.wav");
     assert(m_bgmHandle != -1);
+
+	// 決定ボタンSEを読み込む
     m_confirmSEHandle = LoadSoundMem("data/sound/SE/ConfirmButton.mp3");
     assert(m_confirmSEHandle != -1);
 }
@@ -57,8 +70,12 @@ SceneTitle::~SceneTitle()
 {
     // タイトルロゴ画像を解放する
 	DeleteGraph(m_logoHandle);
+	DeleteGraph(m_bannerHandle);
+
     // タイトルBGMを解放する
     DeleteSoundMem(m_bgmHandle);
+
+	// 決定ボタンSEを解放する
     DeleteSoundMem(m_confirmSEHandle);
 }
 
@@ -196,6 +213,9 @@ void SceneTitle::Draw()
     // ボタンの描画
     if (m_isFadeOut || m_skipLogo)
     {
+        // バナーの描画
+        DrawExtendGraph(kBannerX, kBannerY, kBannerWidth, kBannerHeight, m_bannerHandle, true);
+
         // スタートボタンの描画
         unsigned int buttonColor = 0xadadad; // 通常時のボタン色
         if (mousePos.x >= kStartButtonX1 && mousePos.x <= kStartButtonX2 &&

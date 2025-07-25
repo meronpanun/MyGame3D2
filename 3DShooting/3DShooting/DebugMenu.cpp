@@ -1,5 +1,7 @@
 ﻿#include "DebugMenu.h"
 #include "DxLib.h"
+#include "Game.h"
+#include "Player.h"
 
 DebugMenu::DebugMenu()
 {
@@ -7,7 +9,19 @@ DebugMenu::DebugMenu()
     m_root.name = "Root";
     m_root.children = {
         {"Character", {
-            {"Player", {}, nullptr},
+            {"Player", {
+                {"Invincible", {}, [this](){
+                    if (Game::m_pPlayer) {
+                        bool isInvincible = !Game::m_pPlayer->IsInvincible();
+                        Game::m_pPlayer->SetInvincible(isInvincible);
+                    }
+                }, [](){
+                    if (Game::m_pPlayer) {
+                        return Game::m_pPlayer->IsInvincible() ? "[ON]" : "[OFF]";
+                    }
+                    return "[N/A]";
+                }}
+            }, nullptr},
             {"Enemy", {}, nullptr}
         }},
         {"Scene", {}, nullptr},
@@ -57,13 +71,22 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
     {
         m_selectedPath = currentPath;
         isSelected = true;
-        if (!item.children.empty()) {
+        if (item.action)
+        {
+            item.action();
+        }
+        else if (!item.children.empty())
+        {
             item.isOpen = !item.isOpen;
         }
     }
 
     int color = isHovered ? 0x0000ff : 0xffffff;
-    DrawString(itemX, itemY, item.name.c_str(), color);
+    std::string text = item.name;
+    if (item.stateTextGetter) {
+        text += " " + item.stateTextGetter();
+    }
+    DrawString(itemX, itemY, text.c_str(), color);
     y += 20;
 
     if (item.isOpen && !item.children.empty())
@@ -84,10 +107,12 @@ void DebugMenu::HandleInput()
 
     if (nowRightClick && !prevRightClick)
     {
-        if (m_selectedPath.size() > 1) {
+        if (m_selectedPath.size() > 1) 
+        {
             m_selectedPath.pop_back();
             MenuItem* selected = GetSelectedItem();
-            if (selected) {
+            if (selected) 
+            {
                 selected->isOpen = false;
             }
         }

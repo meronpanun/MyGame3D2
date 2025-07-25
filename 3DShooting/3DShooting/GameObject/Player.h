@@ -153,6 +153,18 @@ public:
 	/// </summary>
 	int GetAmmoItemSEHandle() const { return m_ammoItemSEHandle; }
 
+	/// <summary>
+	/// 無敵モードを設定する
+	/// </summary>
+	/// <param name="isInvincible">無敵にするかどうか</param>
+	void SetInvincible(bool isInvincible) { m_isInvincible = isInvincible; }
+
+	/// <summary>
+	/// 無敵モードかどうかを取得する
+	/// </summary>
+	/// <returns>無敵モードならtrue</returns>
+	bool IsInvincible() const { return m_isInvincible; }
+
 private:
 	/// <summary>
 	/// 弾を発射する
@@ -246,7 +258,6 @@ private:
 	bool  m_isWasRunning;  // 前回の移動状態が走っていたかどうか
 	bool  m_hasShot;       // プレイヤーがショット可能かどうか
 	bool  m_isTackling;    // タックル中かどうか
-
-
+	bool  m_isInvincible; // 無敵モードかどうか
 };
 

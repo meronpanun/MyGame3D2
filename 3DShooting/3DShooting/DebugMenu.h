@@ -3,6 +3,9 @@
 #include <vector>
 #include <functional>
 
+/// <summary>
+/// デバッグメニューを管理するクラス
+/// </summary>
 class DebugMenu
 {
 public:
@@ -11,10 +14,12 @@ public:
         std::string name;
         std::vector<MenuItem> children;
         std::function<void()> action;
+        std::function<std::string()> stateTextGetter; // 状態表示用のテキストを取得する関数
         bool isOpen = false;
     };
 
     DebugMenu();
+
     void Update();
     void Draw(int x, int y);
 

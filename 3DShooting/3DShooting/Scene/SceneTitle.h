@@ -21,14 +21,15 @@ public:
 
 private:
 	int m_logoHandle;	   // タイトルロゴのハンドル
+	int m_bannerHandle;	   // バナー画像のハンドル
 	int m_bgmHandle;	   // タイトルBGMのハンドル
 	int m_confirmSEHandle; // 決定ボタンSEのハンドル
-	bool m_isBGMStarted;     // BGM再生済みフラグ
 	int m_fadeAlpha;	   // フェードのアルファ値
 	int m_fadeFrame;	   // フェードのフレームカウント
 	int m_sceneFadeAlpha;  // シーンフェードのアルファ値
 	int m_waitFrame;	   // 待機フレーム
 
+	bool m_isBGMStarted;   // BGM再生済みフラグ
 	bool m_isFadeComplete; // フェード完了フラグ
 	bool m_isFadeOut;	   // フェードアウトフラグ
 	bool m_skipLogo;       // ロゴスキップ用のフラグ

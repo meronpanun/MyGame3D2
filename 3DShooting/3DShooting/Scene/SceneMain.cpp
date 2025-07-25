@@ -142,6 +142,7 @@ void SceneMain::Init()
 
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
+    Game::m_pPlayer = m_pPlayer.get();
 
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();
 	m_pEnemyNormal->Init();

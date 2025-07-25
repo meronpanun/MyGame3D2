@@ -102,7 +102,8 @@ Player::Player() :
 	m_ammoEffectTimer(0.0f),
 	m_shootCooldown(0.0f),
 	m_shootCooldownTimer(0.0f),
-	m_shootRate(kShootRate)
+	m_shootRate(kShootRate),
+	m_isInvincible(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -774,6 +775,8 @@ void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
 // ダメージを受ける処理
 void Player::TakeDamage(float damage)
 {
+	if (m_isInvincible) return; // 無敵モード中はダメージを受けない
+
 	m_health -= damage; // ダメージを適用
 	if (m_health < 0.0f)
 	{
