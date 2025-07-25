@@ -22,6 +22,10 @@
 #include <cassert>
 #include <algorithm>
 
+// static変数の定義
+float SceneMain::s_elapsedTime = 0.0f;
+bool  SceneMain::s_isSkipTutorial = false;
+
 namespace
 {
 	// UI関連の定数
@@ -86,9 +90,6 @@ SceneMain* SceneMain::Instance()
     return g_sceneMainInstance;
 }
 
-// static変数の定義
-float SceneMain::s_elapsedTime = 0.0f;
-
 SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_isPaused(false),
     m_isEscapePressed(false),
@@ -98,8 +99,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_skyDomeHandle(-1),
     m_dotHandle(-1),
     m_hitMarkTimer(0),
-	m_wave1FirstAidDropped(false),
-	m_wave1AmmoDropped(false),
+	m_isWave1FirstAidDropped(false),
+	m_isWave1AmmoDropped(false),
 	m_wave1DropCount(0),
 	m_totalScorePopupTimer(0),
 	m_lastTotalScorePopupValue(0),
@@ -128,6 +129,7 @@ SceneMain::~SceneMain()
 	// モデルやリソースの解放
     MV1DeleteModel(m_skyDomeHandle);    
 	DeleteGraph(m_dotHandle);
+
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
 }
@@ -182,8 +184,8 @@ void SceneMain::Init()
     m_items.clear();
 
     // wave1開始時にフラグとカウントをリセット
-    m_wave1FirstAidDropped = false;
-    m_wave1AmmoDropped = false;
+    m_isWave1FirstAidDropped = false;
+    m_isWave1AmmoDropped = false;
     m_wave1DropCount = 0;
 
     // WaveManagerの敵の死亡時にアイテムをドロップするコールバックを設定
@@ -196,7 +198,7 @@ void SceneMain::Init()
         {
             if (m_wave1DropCount >= 2) return; // 2体分だけドロップ
 
-            if (!m_wave1FirstAidDropped && !m_wave1AmmoDropped) 
+            if (!m_isWave1FirstAidDropped && !m_isWave1AmmoDropped) 
             {
                 int randValue = GetRand(99);
                 if (randValue < 50) 
@@ -207,7 +209,7 @@ void SceneMain::Init()
                     dropPos.y += kDropInitialHeight;
                     firstAid->SetPos(dropPos);
                     m_items.push_back(firstAid);
-                    m_wave1FirstAidDropped = true;
+                    m_isWave1FirstAidDropped = true;
                 } 
                 else 
                 {
@@ -217,11 +219,11 @@ void SceneMain::Init()
                     dropPos.y += kDropInitialHeight;
                     ammo->SetPos(dropPos);
                     m_items.push_back(ammo);
-                    m_wave1AmmoDropped = true;
+                    m_isWave1AmmoDropped = true;
                 }
                 m_wave1DropCount++;
             }
-            else if (!m_wave1FirstAidDropped) 
+            else if (!m_isWave1FirstAidDropped) 
             {
                 auto firstAid = std::make_shared<FirstAidKitItem>();
                 firstAid->Init();
@@ -229,10 +231,10 @@ void SceneMain::Init()
                 dropPos.y += kDropInitialHeight;
                 firstAid->SetPos(dropPos);
                 m_items.push_back(firstAid);
-                m_wave1FirstAidDropped = true;
+                m_isWave1FirstAidDropped = true;
                 m_wave1DropCount++;
             }
-            else if (!m_wave1AmmoDropped) 
+            else if (!m_isWave1AmmoDropped) 
             {
                 auto ammo = std::make_shared<AmmoItem>();
                 ammo->Init();
@@ -240,7 +242,7 @@ void SceneMain::Init()
                 dropPos.y += kDropInitialHeight;
                 ammo->SetPos(dropPos);
                 m_items.push_back(ammo);
-                m_wave1AmmoDropped = true;
+                m_isWave1AmmoDropped = true;
                 m_wave1DropCount++;
             }
             // 両方ドロップ済み or 2体分超えたら何も落とさない
@@ -266,8 +268,8 @@ void SceneMain::Init()
         }
     });
 
-    // チュートリアルマネージャ生成・初期化（他シーンから戻った場合はスキップ）
-    if (!m_isReturningFromOption && !m_isReturningFromOtherScene)
+    // チュートリアルマネージャ生成・初期化（他シーンから戻った場合、またはデバッグフラグがtrueの場合はスキップ）
+    if (!m_isReturningFromOption && !m_isReturningFromOtherScene && !s_isSkipTutorial)
     {
         m_pTutorialManager = std::make_unique<TutorialManager>();
         m_pTutorialManager->Init();

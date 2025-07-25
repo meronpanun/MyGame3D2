@@ -19,10 +19,18 @@ public:
 	void Init();
 	void Update();
 	void Draw();
+	
+	/// <summary>
+	/// シーンを変更するリクエストを行う
+	/// </summary>
+	/// <param name="newScene">新しいシーンのポインタ</param>
+	void RequestChangeScene(SceneBase* newScene);
 
 private:
 	SceneBase* m_pCurrentScene;
 	SceneBase* m_pNextScene;
+
+	bool m_isExternalSceneChange; // 外部からのシーン変更要求フラグ
 
 	// SceneManagerで管理するシーン
 	SceneTitle*    m_pTitle;

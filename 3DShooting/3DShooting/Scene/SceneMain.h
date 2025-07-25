@@ -57,10 +57,11 @@ public:
 	void AddScorePopup(int score, bool isHeadShot, int combo);
 
 public:
-	bool m_wave1FirstAidDropped;
-	bool m_wave1AmmoDropped;
+	static bool s_isSkipTutorial; // チュートリアルスキップ用デバッグフラグ
+	bool m_isWave1FirstAidDropped;
+	bool m_isWave1AmmoDropped;
+	bool m_isLoading;
 	int m_wave1DropCount;
-	bool m_isLoading = true;
 
 	static SceneMain* Instance();
 	WaveManager* GetWaveManager() const { return m_pWaveManager.get(); }
@@ -84,15 +85,15 @@ private:
 
 	std::chrono::steady_clock::time_point m_pauseStartTime;
 
+	EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
 	bool  m_isPaused;
 	bool  m_isReturningFromOption;
 	bool  m_isEscapePressed;
 	int   m_skyDomeHandle;
 	int   m_dotHandle;
+	int m_hitMarkTimer;
 
 	float m_cameraSensitivity;
-	int m_hitMarkTimer;
-	EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
 
 	// スコアポップアップ情報
 	struct ScorePopup
@@ -110,8 +111,7 @@ private:
 
 	int m_bgmHandle;       // ゲームシーンBGMのハンドル
 	bool m_isBGMStarted;   // BGM再生済みフラグ
-
 	bool m_isReturningFromOtherScene; // 他のシーンから戻ってきたかどうか
-
 };
+
 

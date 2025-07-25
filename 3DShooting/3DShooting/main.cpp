@@ -22,7 +22,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if (DxLib_Init() == -1)		// ＤＸライブラリ初期化処理
 	{
-		return -1;			// エラーが起きたら直ちに終了
+				return -1;			// エラーが起きたら直ちに終了
 	}
 	// 描画先を裏画面にする
 	SetDrawScreen(DX_SCREEN_BACK);
@@ -49,6 +49,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	SceneManager* pScene = new SceneManager();
 	pScene->Init();
+
+    Game::m_pSceneManager = pScene; // 追加: Gameクラスの静的メンバにSceneManagerのポインタを設定
 
 	// ゲームループ
 	while (ProcessMessage() == 0)	// Windowsが行う処理を待つ必要がある

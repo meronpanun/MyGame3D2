@@ -2,6 +2,13 @@
 #include "DxLib.h"
 #include "Game.h"
 #include "Player.h"
+#include "SceneMain.h"
+#include "SceneManager.h"
+#include "SceneResult.h"
+#include "SceneTitle.h"
+#include "SceneOption.h"
+#include "SceneGameOver.h"
+#include <cassert>
 
 DebugMenu::DebugMenu()
 {
@@ -11,12 +18,14 @@ DebugMenu::DebugMenu()
         {"Character", {
             {"Player", {
                 {"Invincible", {}, [this](){
-                    if (Game::m_pPlayer) {
+                    if (Game::m_pPlayer) 
+                    {
                         bool isInvincible = !Game::m_pPlayer->IsInvincible();
                         Game::m_pPlayer->SetInvincible(isInvincible);
                     }
                 }, [](){
-                    if (Game::m_pPlayer) {
+                    if (Game::m_pPlayer) 
+                    {
                         return Game::m_pPlayer->IsInvincible() ? "[ON]" : "[OFF]";
                     }
                     return "[N/A]";
@@ -24,10 +33,52 @@ DebugMenu::DebugMenu()
             }, nullptr},
             {"Enemy", {}, nullptr}
         }},
-        {"Scene", {}, nullptr},
+        {"Scene", {
+            {"Skip Tutorial", {}, [](){
+                SceneMain::s_isSkipTutorial = !SceneMain::s_isSkipTutorial;
+            }, [](){
+                return SceneMain::s_isSkipTutorial ? "[ON]" : "[OFF]";
+            }},
+            {"Go to Title", {}, [](){
+                if (Game::m_pSceneManager) 
+                {
+                    Game::m_pSceneManager->RequestChangeScene(new SceneTitle(false));
+                }
+            }},
+            {"Go to Main", {}, [](){
+                if (Game::m_pSceneManager) 
+                {
+                    Game::m_pSceneManager->RequestChangeScene(new SceneMain(false));
+                }
+            }},
+            {"Go to Result", {}, [](){
+                if (Game::m_pSceneManager) 
+                {
+                    Game::m_pSceneManager->RequestChangeScene(new SceneResult());
+                }
+            }},
+            {"Go to Option", {}, [](){
+                if (Game::m_pSceneManager) 
+                {
+                    // オプション画面は現在のシーンを引数に取るが、デバッグ遷移なのでnullptrを渡す
+                    Game::m_pSceneManager->RequestChangeScene(new SceneOption(nullptr));
+                }
+            }},
+            {"Go to Game Over", {}, [](){
+                if (Game::m_pSceneManager) 
+                {
+                    // ゲームオーバー画面はwave, killCount, scoreを引数に取るので、適当な値を渡す
+                    Game::m_pSceneManager->RequestChangeScene(new SceneGameOver(0, 0, 0));
+                }
+            }}
+        }},
         {"Item", {}, nullptr}
     };
     m_selectedPath = {};
+}
+
+DebugMenu::~DebugMenu()
+{
 }
 
 void DebugMenu::Update()
@@ -61,8 +112,8 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
 
     int itemX = x + depth * 20;
     int itemY = y;
-    int itemWidth = 150;
-    int itemHeight = 20;
+    int itemWidth = 200;
+    int itemHeight = 15;
 
     bool isHovered = (mouseX >= itemX && mouseX <= itemX + itemWidth &&
                       mouseY >= itemY && mouseY <= itemY + itemHeight);
@@ -82,11 +133,50 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
     }
 
     int color = isHovered ? 0x0000ff : 0xffffff;
-    std::string text = item.name;
-    if (item.stateTextGetter) {
-        text += " " + item.stateTextGetter();
+    // 子項目がある場合、開閉状態に応じたインジケータを描画
+    if (!item.children.empty())
+    {
+        const TCHAR* indicatorChar = _T("▼");// 下向きの三角形文字を使用
+        float rotationAngle = 0.0f; // 閉じた状態: 右向き
+
+        if (!item.isOpen)  // 閉じた状態の場合、右向きに回転
+        {
+            rotationAngle = -DX_PI_F / 2.0f; // 90度時計回り
+        }
+
+        // 文字のサイズを取得して、回転の中心と描画位置を調整
+        int charWidth = GetDrawStringWidth(indicatorChar, 1); // '▼' の幅を取得
+        int charHeight = GetFontSize(); // 現在のフォントの高さ
+
+        // 回転の中心を文字の中心に設定
+        double rotCenterX = charWidth * 0.5f;
+        double rotCenterY = charHeight * 0.5f;
+
+        // 描画位置を計算
+        int indicatorDrawX = itemX - 10;
+        int indicatorDrawY = itemY + (itemHeight * 0.5f) - (charHeight * 0.5f) + 14;
+
+        // DrawRotaString で回転して描画
+        DrawRotaString(indicatorDrawX, indicatorDrawY,
+                       1.0, 1.0, 
+                       rotCenterX, rotCenterY, 
+                       rotationAngle, color, 0, false, indicatorChar);
     }
-    DrawString(itemX, itemY, text.c_str(), color);
+
+    // テキストの描画
+    int textStartX = itemX;
+    if (!item.children.empty()) 
+    {
+        textStartX += 10; // インジケータの分だけテキストを右にずらす
+    }
+
+    std::string displayText = item.name;
+    if (item.stateTextGetter) 
+    {
+        displayText += " " + item.stateTextGetter();
+    }
+
+    DrawString(textStartX, itemY, displayText.c_str(), color);
     y += 20;
 
     if (item.isOpen && !item.children.empty())

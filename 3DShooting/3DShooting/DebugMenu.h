@@ -19,6 +19,7 @@ public:
     };
 
     DebugMenu();
+    ~DebugMenu();
 
     void Update();
     void Draw(int x, int y);

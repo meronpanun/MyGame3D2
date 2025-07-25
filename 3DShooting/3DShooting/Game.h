@@ -2,6 +2,7 @@
 #include <vector>
 
 class Player;
+class SceneManager;
 
 /// <summary>
 /// ゲームの基本情報を定義するクラス
@@ -28,4 +29,6 @@ public:
 
     // プレイヤーへのポインタ
     static Player* m_pPlayer;
+
+    static SceneManager* m_pSceneManager; 
 };

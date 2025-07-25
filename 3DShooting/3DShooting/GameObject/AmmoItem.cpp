@@ -13,6 +13,7 @@ namespace
 	constexpr float kInitialRadius = 20.0f; // 初期の半径
 	constexpr float kDropGravity   = 0.5f;  // ドロップ時の重力加速度
 	constexpr float kGroundY       = 0.0f;  // 地面のY座標
+	constexpr float kRotateSpeed   = 0.05f; // 回転速度
 }
 
 AmmoItem::AmmoItem() :
@@ -64,7 +65,6 @@ void AmmoItem::Update(Player* player)
 	}
 	else
 	{
-		const float kRotateSpeed = 0.05f;
 		m_rotY += kRotateSpeed;
 		if (m_rotY > DX_TWO_PI) m_rotY -= DX_TWO_PI;
 	}

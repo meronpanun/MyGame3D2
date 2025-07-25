@@ -785,9 +785,15 @@ void Player::TakeDamage(float damage)
 	// HPバーアニメーション用タイマーをリセット
 	m_healthBarAnimTimer = 0.0f;
 	// ダメージエフェクトを発動
-	m_damageEffect.Trigger(30.0f, 255, 0, 0); // 赤
+	m_damageEffect.Trigger(30.0f, 255, 0, 0); 
 	// 被弾SEを再生
 	PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+
+	// カメラシェイクを発生
+	if (m_pCamera)
+	{
+		m_pCamera->Shake(5.0f, 15);
+	}
 }
 
 // 弾の取得
@@ -838,7 +844,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	// カメラシェイクを発生
 	if (m_pCamera)
 	{
-		m_pCamera->Shake(8.0f, 8); // 強さ・フレーム数
+		m_pCamera->Shake(6.0f, 8); // 強さ・フレーム数
 	}
     
     // アニメーション関連
