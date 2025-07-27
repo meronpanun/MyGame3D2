@@ -9,7 +9,7 @@
 namespace
 {
     // タイトルロゴの幅と高さ
-	constexpr int kLogoWidth  = 1920;
+	constexpr int kLogoWidth  = 1050;
     constexpr int kLogoHeight = 1080;
 
 	// タイトルロゴの表示位置
