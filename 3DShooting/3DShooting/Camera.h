@@ -74,7 +74,7 @@ public:
 	/// <summary>
 	/// カメラの位置と注視点をDxLibに設定
 	/// </summary>
-	void SetCameraToDxLib(); 
+	void SetCameraToDxLib();
 
 	/// <summary>
 	/// カメラの視野角(FOV)を設定
@@ -117,6 +117,34 @@ public:
 	/// <returns>シェイクオフセット</returns>
 	VECTOR GetShakeOffset() const { return m_shakeOffset; }
 
+	/// <summary>
+	/// Head Bobbingオフセットを取得
+	/// </summary>
+	/// <returns>Head Bobbingオフセット</returns>
+	VECTOR GetHeadBobOffset() const { return m_headBobOffset; }
+
+	/// <summary>
+	/// Head Bobbin（歩行時の画面揺れ）の状態を設定
+	/// </summary>
+	/// <param name="isMoving">移動中かどうか</param>
+	/// <param name="isRunning">走行中かどうか</param>
+	void SetHeadBobbingState(bool isMoving, bool isRunning);
+
+private:
+	/// <summary>
+	/// Head Bobbin効果を更新
+	/// </summary>
+	void UpdateHeadBobbing();
+
+	/// <summary>
+	/// 値を滑らかに補間する
+	/// </summary>
+	/// <param name="current">現在の値</param>
+	/// <param name="target">目標値</param>
+	/// <param name="speed">補間速度</param>
+	/// <returns>補間された値</returns>
+	float Lerp(float current, float target, float speed);
+
 private:
 	VECTOR m_pos;			// カメラの位置
 	VECTOR m_target;		// カメラの注視点
@@ -135,5 +163,14 @@ private:
 	float m_shakeIntensity; // シェイクの強度
 
 	int m_shakeDuration; // シェイクの持続時間
-};
 
+	// Head Bobbing関連のメンバー変数
+	VECTOR m_headBobOffset;       // Head Bobbingによるオフセット
+	float  m_headBobTimer;        // Head Bobbingのタイマー
+	float  m_headBobIntensity;    // 現在のHead Bobbing強度
+	float  m_targetBobIntensity;  // 目標のHead Bobbing強度
+	float  m_headBobSpeed;        // 現在のHead Bobbing速度
+	float  m_targetBobSpeed;      // 目標のHead Bobbing速度
+	bool   m_isMoving;            // 移動中かどうか
+	bool   m_isRunning;           // 走行中かどうか
+};

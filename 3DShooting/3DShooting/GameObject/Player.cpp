@@ -456,6 +456,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_isMoving = isMoving;  // 移動中の状態を更新
 		m_isWasRunning = isRunning; // 走っている状態を更新
 
+		// Head Bobbing状態をカメラに設定
+		if (m_pCamera)
+		{
+			m_pCamera->SetHeadBobbingState(isMoving, isRunning);
+		}
+
 		std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 
 		// プレイヤーの斜め後方上空からプレイヤーを見る
@@ -510,29 +516,45 @@ void Player::Draw()
 	float scaleH = screenH / baseScreenH;
 	float scaleAvg = (scaleW + scaleH) * 0.5f;
 
-	// 剣の位置（画面サイズに応じて調整）
-	float swordScreenX = -25.0f * scaleW;
-	float swordScreenY = -30.0f * scaleH;
+	// 剣の基本位置（画面サイズに応じて調整）
+	float baseSwordScreenX = -25.0f * scaleW;
+	float baseSwordScreenY = -30.0f * scaleH;
 	float swordScreenZ = 35.0f * scaleAvg;
 
-	VECTOR camPos = VGet(0, 0, -swordScreenZ); // カメラの位置
-	// メインカメラからシェイク量を取得して適用
+	// メインカメラから全てのオフセットを取得
+	VECTOR totalCameraOffset = VGet(0, 0, 0);
 	if (m_pCamera)
 	{
-		camPos = VAdd(camPos, m_pCamera->GetShakeOffset());
+		VECTOR shakeOffset = m_pCamera->GetShakeOffset();
+		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
+		totalCameraOffset = VAdd(shakeOffset, headBobOffset);
 	}
-	VECTOR camTgt = VGet(0, 0, 0);             // カメラのターゲット位置
-	SetCameraPositionAndTarget_UpVecY(camPos, camTgt);
 
-	// 剣の位置
-	MV1SetPosition(m_swordHandle, VGet(swordScreenX, swordScreenY, 0.0f));
+	// 剣専用カメラの設定（メインカメラと同じオフセットを適用）
+	VECTOR swordCamPos = VGet(0, 0, -swordScreenZ);
+	VECTOR swordCamTarget = VGet(0, 0, 0);
 
+	// メインカメラのオフセットを剣カメラにも適用
+	// ただし、剣は画面固定なので座標系を調整
+	swordCamPos.x += totalCameraOffset.x;
+	swordCamPos.y += totalCameraOffset.y;
+	swordCamTarget.x += totalCameraOffset.x * 0.3f; // ターゲットには軽減して適用
+	swordCamTarget.y += totalCameraOffset.y * 0.3f;
+
+	SetCameraPositionAndTarget_UpVecY(swordCamPos, swordCamTarget);
+
+	// 剣の位置（基本位置のみ使用、カメラで揺れを表現）
+	float swordPosX = baseSwordScreenX;
+	float swordPosY = baseSwordScreenY;
+
+	MV1SetPosition(m_swordHandle, VGet(swordPosX, swordPosY, 0.0f));
 	MV1SetRotationXYZ(m_swordHandle, VGet(0.0f, 200.0f, 0.0f)); // 剣の回転
 	MV1SetScale(m_swordHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg)); // 剣のスケール
 
 	// 剣の描画
 	MV1DrawModel(m_swordHandle);
 
+	// メインカメラに戻す
 	m_pCamera->SetCameraToDxLib();
 
 	m_pEffect->Draw(); // エフェクトの描画
@@ -941,21 +963,36 @@ void Player::ChangeAnime(const char* animName, bool isLoop)
 }
 
 // 銃の位置を取得
-VECTOR Player::GetGunPos() const 
+VECTOR Player::GetGunPos() const
 {
 	// モデルのオフセットと回転を計算
-	VECTOR modelOffset		  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ); // モデルのオフセット
-	MATRIX rotYaw			  = MGetRotY(m_pCamera->GetYaw());                     // カメラのヨー回転
-	MATRIX rotPitch			  = MGetRotX(-m_pCamera->GetPitch());	               // カメラのピッチ回転
-	MATRIX modelRot			  = MMult(rotPitch, rotYaw);						   // モデルの回転行列を計算
+	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ); // モデルのオフセット
+	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());                     // カメラのヨー回転
+	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());	               // カメラのピッチ回転
+	MATRIX modelRot = MMult(rotPitch, rotYaw);						   // モデルの回転行列を計算
 	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);				   // オフセットを回転
-	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset);			   // モデルの位置とオフセットを組み合わせて銃の位置を計算
+	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);			   // モデルの位置とオフセットを組み合わせて銃の位置を計算
 
 	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ); // 銃のオフセット
-	VECTOR gunPos    = VTransform(gunOffset, modelRot);			    // 銃のオフセットを回転
+	VECTOR gunPos = VTransform(gunOffset, modelRot);			    // 銃のオフセットを回転
+
+	// 基本的な銃の位置を計算
+	VECTOR finalGunPos = VAdd(modelPosition, gunPos);
+
+	// メインカメラのオフセット（シェイク + Head Bobbing）を銃位置にも適用
+	// これにより銃と剣の揺れが一致する
+	if (m_pCamera)
+	{
+		VECTOR shakeOffset = m_pCamera->GetShakeOffset();
+		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
+		VECTOR totalOffset = VAdd(shakeOffset, headBobOffset);
+
+		// 銃の位置にもカメラオフセットを適用（ワールド座標なので直接加算）
+		finalGunPos = VAdd(finalGunPos, totalOffset);
+	}
 
 	// 銃の位置を計算して返す
-	return VAdd(modelPosition, gunPos); 
+	return finalGunPos;
 }
 
 // 銃の向きを取得
