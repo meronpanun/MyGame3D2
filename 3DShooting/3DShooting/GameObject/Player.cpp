@@ -103,7 +103,8 @@ Player::Player() :
 	m_shootCooldown(0.0f),
 	m_shootCooldownTimer(0.0f),
 	m_shootRate(kShootRate),
-	m_isInvincible(false)
+	m_isInvincible(false),
+	m_isInfiniteAmmo(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -239,10 +240,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃(タックル中は射撃不可)
-	if (!m_isTackling && Mouse::IsPressLeft() && m_ammo > 0 && m_shootCooldownTimer <= 0.0f)
+	if (!m_isTackling && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
-		m_ammo--; // 弾薬を減らす
+
+		// 弾薬無限モードでない場合のみ弾薬を減らす
+		if (!m_isInfiniteAmmo)
+		{
+			m_ammo--; // 弾薬を減らす
+		}
+
 		m_shootCooldownTimer = m_shootCooldown; // クールタイムリセット
 	}
 
@@ -504,8 +511,19 @@ void Player::Draw()
 	int ammoY = screenH - 60;
 
 	SetFontSize(ammoFontSize);
-	DrawFormatString(ammoX, ammoY, 0xffff50, "AMMO: %d", m_ammo);
+
+	// 弾薬無限モードの場合は「∞」を表示
+	if (m_isInfiniteAmmo)
+	{
+		DrawFormatString(ammoX, ammoY, 0xffff50, "AMMO: ∞");
+	}
+	else
+	{
+		DrawFormatString(ammoX, ammoY, 0xffff50, "AMMO: %d", m_ammo);
+	}
+
 	SetFontSize(16); // フォントサイズを元に戻す
+
 
 
 	/*剣の描画*/

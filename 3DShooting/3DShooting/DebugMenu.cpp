@@ -17,16 +17,29 @@ DebugMenu::DebugMenu()
     m_root.children = {
         {"Character", {
             {"Player", {
-                {"Invincible", {}, [this](){
-                    if (Game::m_pPlayer) 
+                {"Invincible", {}, [this]() {
+                    if (Game::m_pPlayer)
                     {
                         bool isInvincible = !Game::m_pPlayer->IsInvincible();
                         Game::m_pPlayer->SetInvincible(isInvincible);
                     }
-                }, [](){
-                    if (Game::m_pPlayer) 
+                }, []() {
+                    if (Game::m_pPlayer)
                     {
                         return Game::m_pPlayer->IsInvincible() ? "[ON]" : "[OFF]";
+                    }
+                    return "[N/A]";
+                }},
+                {"Infinite Ammo", {}, [this]() {
+                    if (Game::m_pPlayer)
+                    {
+                        bool isInfiniteAmmo = !Game::m_pPlayer->IsInfiniteAmmo();
+                        Game::m_pPlayer->SetInfiniteAmmo(isInfiniteAmmo);
+                    }
+                }, []() {
+                    if (Game::m_pPlayer)
+                    {
+                        return Game::m_pPlayer->IsInfiniteAmmo() ? "[ON]" : "[OFF]";
                     }
                     return "[N/A]";
                 }}
@@ -34,38 +47,38 @@ DebugMenu::DebugMenu()
             {"Enemy", {}, nullptr}
         }},
         {"Scene", {
-            {"Skip Tutorial", {}, [](){
+            {"Skip Tutorial", {}, []() {
                 SceneMain::s_isSkipTutorial = !SceneMain::s_isSkipTutorial;
-            }, [](){
+            }, []() {
                 return SceneMain::s_isSkipTutorial ? "[ON]" : "[OFF]";
             }},
-            {"Go to Title", {}, [](){
-                if (Game::m_pSceneManager) 
+            {"Go to Title", {}, []() {
+                if (Game::m_pSceneManager)
                 {
                     Game::m_pSceneManager->RequestChangeScene(new SceneTitle(false));
                 }
             }},
-            {"Go to Main", {}, [](){
-                if (Game::m_pSceneManager) 
+            {"Go to Main", {}, []() {
+                if (Game::m_pSceneManager)
                 {
                     Game::m_pSceneManager->RequestChangeScene(new SceneMain(false));
                 }
             }},
-            {"Go to Result", {}, [](){
-                if (Game::m_pSceneManager) 
+            {"Go to Result", {}, []() {
+                if (Game::m_pSceneManager)
                 {
                     Game::m_pSceneManager->RequestChangeScene(new SceneResult());
                 }
             }},
-            {"Go to Option", {}, [](){
-                if (Game::m_pSceneManager) 
+            {"Go to Option", {}, []() {
+                if (Game::m_pSceneManager)
                 {
                     // オプション画面は現在のシーンを引数に取るが、デバッグ遷移なのでnullptrを渡す
                     Game::m_pSceneManager->RequestChangeScene(new SceneOption(nullptr));
                 }
             }},
-            {"Go to Game Over", {}, [](){
-                if (Game::m_pSceneManager) 
+            {"Go to Game Over", {}, []() {
+                if (Game::m_pSceneManager)
                 {
                     // ゲームオーバー画面はwave, killCount, scoreを引数に取るので、適当な値を渡す
                     Game::m_pSceneManager->RequestChangeScene(new SceneGameOver(0, 0, 0));
@@ -99,7 +112,7 @@ void DebugMenu::Draw(int x, int y)
 
     for (size_t i = 0; i < m_root.children.size(); ++i)
     {
-        currentPath = {(int)i};
+        currentPath = { (int)i };
         DrawItem(m_root.children[i], x, currentY, 0, currentPath, m_selectedPath, mouseX, mouseY, leftClicked);
     }
 
@@ -116,7 +129,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
     int itemHeight = 15;
 
     bool isHovered = (mouseX >= itemX && mouseX <= itemX + itemWidth &&
-                      mouseY >= itemY && mouseY <= itemY + itemHeight);
+        mouseY >= itemY && mouseY <= itemY + itemHeight);
 
     if (isHovered && leftClicked)
     {
@@ -158,20 +171,20 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
 
         // DrawRotaString で回転して描画
         DrawRotaString(indicatorDrawX, indicatorDrawY,
-                       1.0, 1.0, 
-                       rotCenterX, rotCenterY, 
-                       rotationAngle, color, 0, false, indicatorChar);
+            1.0, 1.0,
+            rotCenterX, rotCenterY,
+            rotationAngle, color, 0, false, indicatorChar);
     }
 
     // テキストの描画
     int textStartX = itemX;
-    if (!item.children.empty()) 
+    if (!item.children.empty())
     {
         textStartX += 10; // インジケータの分だけテキストを右にずらす
     }
 
     std::string displayText = item.name;
-    if (item.stateTextGetter) 
+    if (item.stateTextGetter)
     {
         displayText += " " + item.stateTextGetter();
     }
@@ -180,7 +193,8 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
     y += 20;
 
     if (item.isOpen && !item.children.empty())
-    {        std::vector<int> childPath = currentPath;
+    {
+        std::vector<int> childPath = currentPath;
         childPath.push_back(0);
         for (size_t i = 0; i < item.children.size(); ++i)
         {
@@ -197,11 +211,11 @@ void DebugMenu::HandleInput()
 
     if (nowRightClick && !prevRightClick)
     {
-        if (m_selectedPath.size() > 1) 
+        if (m_selectedPath.size() > 1)
         {
             m_selectedPath.pop_back();
             MenuItem* selected = GetSelectedItem();
-            if (selected) 
+            if (selected)
             {
                 selected->isOpen = false;
             }

@@ -16,10 +16,10 @@ public:
     static void DrawFormat(int x, int y, unsigned int color, const char* format, ...);
     static bool IsSkipLogoKeyPressed();
     static void ShowDebugWindow();
-	static bool IsDebugWindowVisible();
+    static bool IsDebugWindowVisible();
 
 private:
-	static bool s_isVisible; // デバッグウィンドウの表示状態
+    static bool s_isVisible; // デバッグウィンドウの表示状態
+    static bool s_prevMouseVisible; // デバッグウィンドウを開く前のマウス表示状態
     static DebugMenu s_debugMenu;
 };
-

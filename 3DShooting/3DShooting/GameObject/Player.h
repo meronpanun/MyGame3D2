@@ -23,7 +23,7 @@ public:
 	/// <summary>
 	/// エフェクトフィードバック構造体
 	/// </summary>
-	struct EffectFeedback 
+	struct EffectFeedback
 	{
 		float timer = 0.0f;
 		float alpha = 0.0f;
@@ -83,7 +83,7 @@ public:
 	///  プレイヤーがショット可能かどうか
 	/// </summary>
 	/// <returns>ショット可能ならtrue</returns>
-	bool HasShot(); 
+	bool HasShot();
 
 	/// <summary>
 	/// タックル情報を取得する
@@ -114,6 +114,17 @@ public:
 	void AddHp(float value);
 	void AddAmmo(int value); // 弾薬回復用関数（上限なし）
 
+	/// <summary>
+	/// 弾薬無限モードを設定する
+	/// </summary>
+	/// <param name="isInfinite">無限にするかどうか</param>
+	void SetInfiniteAmmo(bool isInfinite) { m_isInfiniteAmmo = isInfinite; }
+
+	/// <summary>
+	/// 弾薬無限モードかどうかを取得する
+	/// </summary>
+	/// <returns>弾薬無限モードならtrue</returns>
+	bool IsInfiniteAmmo() const { return m_isInfiniteAmmo; }
 
 	/// <summary>
 	/// アニメーションデータ構造体
@@ -174,14 +185,14 @@ private:
 	/// <summary>
 	///  アニメーションのブレンドを更新
 	/// </summary>
-	void UpdateAnimeBlend(); 
+	void UpdateAnimeBlend();
 
 	/// <summary>
 	/// アニメーションを変更する
 	/// </summary>
 	/// <param name="animName">アニメーション名</param>
 	/// <param name="isLoop">ループするかどうか</param>
-	void ChangeAnime(const char* animName, bool isLoop); 
+	void ChangeAnime(const char* animName, bool isLoop);
 
 	/// <summary>
 	/// 銃の位置を取得する
@@ -217,7 +228,7 @@ private:
 	EffectFeedback m_ammoEffect;
 
 	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
-	
+
 	float m_animBlendRate; // アニメーションのブレンド率
 	float m_health;        // 現在の体力
 	float m_healthBarAnim; // HPバーのアニメーション用体力値
@@ -259,5 +270,5 @@ private:
 	bool  m_hasShot;       // プレイヤーがショット可能かどうか
 	bool  m_isTackling;    // タックル中かどうか
 	bool  m_isInvincible; // 無敵モードかどうか
+	bool  m_isInfiniteAmmo; // 弾薬無限モードかどうか
 };
-

@@ -4,6 +4,7 @@
 #include <cstdarg>
 
 bool DebugUtil::s_isVisible = false; // デバッグウィンドウの表示状態を管理する静的変数
+bool DebugUtil::s_prevMouseVisible = false; // デバッグウィンドウを開く前のマウス表示状態を保存
 DebugMenu DebugUtil::s_debugMenu;
 
 // 3Dカプセルのデバッグ描画関数
@@ -28,11 +29,11 @@ void DebugUtil::DrawMessage(int x, int y, unsigned int color, const std::string&
 void DebugUtil::DrawFormat(int x, int y, unsigned int color, const char* format, ...)
 {
     char buf[256];
-	va_list args;                              // 可変引数リスト
-	va_start(args, format);                    // 可変引数の初期化
-	vsnprintf(buf, sizeof(buf), format, args); // フォーマット文字列をバッファに書き込む
-	va_end(args);                              // 可変引数の終了
-	DrawString(x, y, buf, color); // 描画
+    va_list args;                              // 可変引数リスト
+    va_start(args, format);                    // 可変引数の初期化
+    vsnprintf(buf, sizeof(buf), format, args); // フォーマット文字列をバッファに書き込む
+    va_end(args);                              // 可変引数の終了
+    DrawString(x, y, buf, color); // 描画
 }
 
 // ロゴスキップキーが押されたかどうかをチェックする関数
@@ -43,15 +44,24 @@ bool DebugUtil::IsSkipLogoKeyPressed()
 
 void DebugUtil::ShowDebugWindow()
 {
-    static bool isVisible = false;
-
     // F1キーが押された瞬間に表示/非表示を切り替え
     static int prevF1 = 0;
     int nowF1 = CheckHitKey(KEY_INPUT_F1);
     if (nowF1 && !prevF1)
     {
-        s_isVisible = !s_isVisible;
-        SetMouseDispFlag(s_isVisible);
+        if (!s_isVisible)
+        {
+            // デバッグウィンドウを開く前に現在のマウス表示状態を保存
+            s_prevMouseVisible = (GetMouseDispFlag() == true);
+            s_isVisible = true;
+            SetMouseDispFlag(true); // デバッグウィンドウを開く時は必ずマウスを表示
+        }
+        else
+        {
+            // デバッグウィンドウを閉じる時は元の状態に戻す
+            s_isVisible = false;
+            SetMouseDispFlag(s_prevMouseVisible ? true : false);
+        }
     }
     prevF1 = nowF1;
 
@@ -61,7 +71,7 @@ void DebugUtil::ShowDebugWindow()
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, NULL);
 
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); 
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
     DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -69,8 +79,7 @@ void DebugUtil::ShowDebugWindow()
     s_debugMenu.Draw(40, 40);
 }
 
-bool DebugUtil::IsDebugWindowVisible() 
+bool DebugUtil::IsDebugWindowVisible()
 {
     return s_isVisible;
 }
-
