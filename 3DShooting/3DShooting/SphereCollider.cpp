@@ -11,7 +11,7 @@ SphereCollider::SphereCollider(const VECTOR& center, float radius) :
 }
 
 // 当たり判定を行う
-bool SphereCollider::Intersects(const Collider* other) const
+bool SphereCollider::IsIntersects(const Collider* other) const
 {
 	// 他のコライダーがnullptrの場合は交差しない
     if (!other) return false;
@@ -68,7 +68,7 @@ bool SphereCollider::Intersects(const Collider* other) const
 }
 
 // Rayとの当たり判定を行う
-bool SphereCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
+bool SphereCollider::IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
 	// Rayの始点と終点をベクトルとして取得
     VECTOR rayDir = VSub(rayEnd, rayStart);

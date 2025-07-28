@@ -62,17 +62,17 @@ TutorialManager::TutorialManager() :
     m_completeWaitTime(0.0f),
     m_isCompletedDisplay(false),
     m_isMoveCheckAnim(false),
-    m_isMoveCheckAnimTime(0.0f),
+    m_moveCheckAnimTime(0.0f),
     m_isViewCheckAnim(false),
-    m_isViewCheckAnimTime(0.0f),
+    m_viewCheckAnimTime(0.0f),
     m_isJumpDone(false),
     m_isRunDone(false),
     m_jumpAccumTime(0.0f),
     m_runAccumTime(0.0f),
     m_isJumpCheckAnim(false),
-    m_isJumpCheckAnimTime(0.0f),
+    m_jumpCheckAnimTime(0.0f),
     m_isRunCheckAnim(false),
-    m_isRunCheckAnimTime(0.0f)
+    m_runCheckAnimTime(0.0f)
 {
 	// チェックマーク画像の読み込み
     m_checkMarkHandle = LoadGraph("data/image/CheckMark.png");
@@ -104,10 +104,10 @@ void TutorialManager::Update()
     }
 
     // アニメタイマーを進める
-    if (m_isMoveCheckAnim) m_isMoveCheckAnimTime += kFrameTime;
-    if (m_isViewCheckAnim) m_isViewCheckAnimTime += kFrameTime;
-    if (m_isJumpCheckAnim) m_isJumpCheckAnimTime += kFrameTime;
-    if (m_isRunCheckAnim)  m_isRunCheckAnimTime  += kFrameTime;
+    if (m_isMoveCheckAnim) m_moveCheckAnimTime += kFrameTime;
+    if (m_isViewCheckAnim) m_viewCheckAnimTime += kFrameTime;
+    if (m_isJumpCheckAnim) m_jumpCheckAnimTime += kFrameTime;
+    if (m_isRunCheckAnim)  m_runCheckAnimTime  += kFrameTime;
 
     if (m_isCompletedDisplay) return;
     if (m_step == Step::Completed) return;
@@ -125,7 +125,7 @@ void TutorialManager::Update()
         {
             m_isMoveDone          = true;
             m_isMoveCheckAnim     = true;
-            m_isMoveCheckAnimTime = 0.0f;
+            m_moveCheckAnimTime = 0.0f;
             m_step = Step::View;
         }
     }
@@ -144,7 +144,7 @@ void TutorialManager::Update()
         {
             m_isViewDone          = true;
             m_isViewCheckAnim     = true;
-            m_isViewCheckAnimTime = 0.0f;
+            m_viewCheckAnimTime = 0.0f;
             m_step = Step::Jump;
         }
         m_prevMousePos = now;
@@ -160,7 +160,7 @@ void TutorialManager::Update()
         {
             m_isJumpDone          = true;
             m_isJumpCheckAnim     = true;
-            m_isJumpCheckAnimTime = 0.0f;
+            m_jumpCheckAnimTime = 0.0f;
             m_step = Step::Run;
         }
     }
@@ -175,7 +175,7 @@ void TutorialManager::Update()
         {
             m_isRunDone          = true;
             m_isRunCheckAnim     = true;
-            m_isRunCheckAnimTime = 0.0f;
+            m_runCheckAnimTime = 0.0f;
             m_isCompletedDisplay = true;
             m_completeWaitTime   = 0.0f;
         }
@@ -196,7 +196,7 @@ void TutorialManager::Draw(int screenW, int screenH)
 
     // 半透明の背景ボックスを描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-    DrawBox(boxX1, boxY1, boxX2, boxY2, kBoxColor, TRUE);
+    DrawBox(boxX1, boxY1, boxX2, boxY2, kBoxColor, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // タイトル表示
@@ -212,9 +212,9 @@ void TutorialManager::Draw(int screenW, int screenH)
     if (m_isMoveDone && m_checkMarkHandle >= 0)
     {
         float scale = 1.0f;
-        if (m_isMoveCheckAnim && m_isMoveCheckAnimTime < kCheckAnimDuration)
+        if (m_isMoveCheckAnim && m_moveCheckAnimTime < kCheckAnimDuration)
         {
-            float t = m_isMoveCheckAnimTime / kCheckAnimDuration;
+            float t = m_moveCheckAnimTime / kCheckAnimDuration;
             scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
         }
@@ -234,9 +234,9 @@ void TutorialManager::Draw(int screenW, int screenH)
     if (m_isViewDone && m_checkMarkHandle >= 0) 
     {
         float scale = 1.0f;
-        if (m_isViewCheckAnim && m_isViewCheckAnimTime < kCheckAnimDuration) 
+        if (m_isViewCheckAnim && m_viewCheckAnimTime < kCheckAnimDuration) 
         {
-            float t = m_isViewCheckAnimTime / kCheckAnimDuration;
+            float t = m_viewCheckAnimTime / kCheckAnimDuration;
             scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
         }
@@ -256,9 +256,9 @@ void TutorialManager::Draw(int screenW, int screenH)
     if (m_isJumpDone && m_checkMarkHandle >= 0) 
     {
         float scale = 1.0f;
-        if (m_isJumpCheckAnim && m_isJumpCheckAnimTime < kCheckAnimDuration) 
+        if (m_isJumpCheckAnim && m_jumpCheckAnimTime < kCheckAnimDuration) 
         {
-            float t = m_isJumpCheckAnimTime / kCheckAnimDuration;
+            float t = m_jumpCheckAnimTime / kCheckAnimDuration;
             scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
         }
@@ -278,9 +278,9 @@ void TutorialManager::Draw(int screenW, int screenH)
     if (m_isRunDone && m_checkMarkHandle >= 0)
     {
         float scale = 1.0f;
-        if (m_isRunCheckAnim && m_isRunCheckAnimTime < kCheckAnimDuration) 
+        if (m_isRunCheckAnim && m_runCheckAnimTime < kCheckAnimDuration) 
         {
-            float t = m_isRunCheckAnimTime / kCheckAnimDuration;
+            float t = m_runCheckAnimTime / kCheckAnimDuration;
             scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
         }

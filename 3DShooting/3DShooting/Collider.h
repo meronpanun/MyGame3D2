@@ -11,7 +11,7 @@ public:
 	virtual ~Collider() = default;
 
 	// 当たり判定関数
-	virtual bool Intersects(const Collider* other) const abstract;
+	virtual bool IsIntersects(const Collider* other) const abstract;
 
 	/// <summary>
 	/// Rayとの当たり判定を行う
@@ -21,6 +21,6 @@ public:
 	/// <param name="outHtPos">当たった位置</param>
 	/// <param name="outHtDistSq">当たった位置までの距離の二乗</param>
 	/// <returns></returns>
-	virtual bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const abstract;
+	virtual bool IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const abstract;
 };
 

@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TransformDataLoader.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -34,8 +35,6 @@ struct EnemySpawnInfo
 /// <summary>
 /// ウェーブ管理クラス
 /// </summary>
-#include "TransformDataLoader.h"
-
 class WaveManager
 {
 public:
@@ -203,6 +202,9 @@ private:
     std::vector<EnemySpawnInfo> m_spawnInfoList;
     std::vector<std::shared_ptr<EnemyBase>> m_enemyList;
 
+    // 敵のパラメータを保持
+    std::vector<ObjectTransformData> m_enemyData; 
+
     // 敵のテンプレート
     std::shared_ptr<EnemyNormal> m_pEnemyNormalTemplate;
     std::shared_ptr<EnemyRunner> m_pEnemyRunnerTemplate;
@@ -222,6 +224,10 @@ private:
     std::function<void(const VECTOR&)>      m_onEnemyDeathCallback; // 敵の死亡時コールバック
     std::function<void(EnemyBase::HitPart)> m_onEnemyHitCallback;   // 部位情報付き
 
+    // Road_floorオブジェクトの範囲
+    VECTOR m_roadFloorMin; // 最小位置
+    VECTOR m_roadFloorMax; // 最大位置
+
 	int m_currentWave;       // 現在のWave番号
 	int m_currentSpawnIndex; // 現在の出現インデックス
     int m_waveImages[3];     // 1,2,3ウェーブ用画像ハンドル
@@ -240,10 +246,5 @@ private:
 	bool m_isWave1EnemySpawned;     // ウェーブ1の敵が実際に出現したかどうか
 	bool m_isShotTutorialCleared;   // ショットチュートリアルがクリアされたかどうか
 	bool m_isTackleTutorialCleared; // タックルチュートリアルがクリアされたかどうか
-
-    // Road_floorオブジェクトの範囲
-	VECTOR m_roadFloorMin;       // 最小位置
-	VECTOR m_roadFloorMax;       // 最大位置
-	    bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
-    std::vector<ObjectTransformData> m_enemyData; // 敵のパラメータを保持
+	bool m_isRoadFloorBoundsSet;    // 範囲が設定されているかどうか
 };

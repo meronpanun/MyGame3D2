@@ -15,7 +15,7 @@ VECTOR ClosestPtPointSegment(const VECTOR& c, const VECTOR& p, const VECTOR& q)
 }
 
 // Rayと球体の交差判定
-bool IntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VECTOR& sphereCenter, float sphereRadius, VECTOR& outHtPos, float& outHtDistSq)
+bool IsIsIntersectsRaySphere(const VECTOR& rayStart, const VECTOR& rayEnd, const VECTOR& sphereCenter, float sphereRadius, VECTOR& outHtPos, float& outHtDistSq)
 {
 	VECTOR rayDir      = VSub(rayEnd, rayStart); // Rayの方向ベクトル
 	float  rayLengthSq = VDot(rayDir, rayDir);   // Rayの長さの二乗
@@ -83,7 +83,7 @@ CapsuleCollider::~CapsuleCollider()
 }
 
 // CapsuleCollider同士の交差判定
-bool CapsuleCollider::Intersects(const Collider* other) const
+bool CapsuleCollider::IsIntersects(const Collider* other) const
 {
 	// 他のコライダーがnullptrの場合は交差しない
 	if (!other) return false; 
@@ -149,14 +149,14 @@ bool CapsuleCollider::Intersects(const Collider* other) const
     if (sphere)
     {
         // SphereCollider側で実装しているので、そちらを呼び出す
-        return sphere->Intersects(this);
+        return sphere->IsIntersects(this);
     }
 
     return false; // 未知のコライダータイプ
 }
 
 // Rayとカプセルの交差判定
-bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const
+bool CapsuleCollider::IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const
 {
 	// Rayの始点と終点をベクトルとして取得
     VECTOR rayDir      = VSub(rayEnd, rayStart); 
@@ -193,7 +193,7 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
     // カプセルが球になっている場合(線分ABの長さがゼロに近い)
     if (abLenSq < 0.0001f) 
     {
-        return IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, outHitPos, outHitDistSq);
+        return IsIsIntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, outHitPos, outHitDistSq);
     }
 
     VECTOR u = VNorm(AB); // カプセル軸の単位ベクトル
@@ -251,7 +251,7 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
 
     // カプセルの両端の半球とRayの交差判定
     // RayとA端の球の交差
-    if (IntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, currentHitPos, currentHitDistSq))
+    if (IsIsIntersectsRaySphere(rayStart, rayEnd, m_segmentA, m_radius, currentHitPos, currentHitDistSq))
     {
 		// 交差点の距離が最小値より小さい場合、更新
         if (currentHitDistSq < minT)
@@ -267,7 +267,7 @@ bool CapsuleCollider::IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd
     }
 
     // RayとB端の球の交差
-    if (IntersectsRaySphere(rayStart, rayEnd, m_segmentB, m_radius, currentHitPos, currentHitDistSq))
+    if (IsIsIntersectsRaySphere(rayStart, rayEnd, m_segmentB, m_radius, currentHitPos, currentHitDistSq))
     {
 		// 交差点の距離が最小値より小さい場合、更新
         if (currentHitDistSq < minT)

@@ -15,7 +15,7 @@ public:
     /// </summary>
 	/// <param name="other">他のコライダー</param>
 	/// <returns>true: 当たっている, false: 当たっていない</returns>
-    bool Intersects(const Collider* other) const override;
+    bool IsIntersects(const Collider* other) const override;
 
     /// <summary>
 	/// Rayとの当たり判定を行う
@@ -25,7 +25,7 @@ public:
 	/// <param name="outHtPos">当たった位置</param>
 	/// <param name="outHtDistSq">当たった位置までの距離の二乗</param>
     /// <returns></returns>
-    bool IntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const override;
+    bool IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const override;
 
     /// <summary>
 	/// 球の中心と半径を取得する

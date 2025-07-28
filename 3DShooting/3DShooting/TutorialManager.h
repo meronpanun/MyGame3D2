@@ -56,12 +56,12 @@ private:
 	float m_moveAccumTime;     // WASD操作累積時間
 	float m_viewAccumTime;     // 視点操作累積時間
 	float m_completeWaitTime;  // チュートリアル完了後の待機タイマー
-	float m_isMoveCheckAnimTime; // WASD操作のアニメーションタイマー
-	float m_isViewCheckAnimTime; // 視点操作のアニメーションタイマー
+	float m_moveCheckAnimTime; // WASD操作のアニメーションタイマー
+	float m_viewCheckAnimTime; // 視点操作のアニメーションタイマー
 	float m_jumpAccumTime;     // ジャンプ操作累積時間
 	float m_runAccumTime;      // 走る操作累積時間
-	float m_isRunCheckAnimTime;  // 走る操作のアニメーションタイマー
-	float m_isJumpCheckAnimTime; // ジャンプ操作のアニメーションタイマー
+	float m_runCheckAnimTime;  // 走る操作のアニメーションタイマー
+	float m_jumpCheckAnimTime; // ジャンプ操作のアニメーションタイマー
 
     bool m_isCompletedDisplay; // 完了演出表示中フラグ
 	bool m_isMoveDone;		   // WASD操作が完了したか

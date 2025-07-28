@@ -31,6 +31,7 @@ ScoreManager::ScoreManager() :
     LoadScores(); // 初期化時にスコアを読み込み
 }
 
+// スコアを追加する
 int ScoreManager::AddScore(bool isHeadShot)
 {
     int baseScore = isHeadShot ? kBaseHeadShotScore : kBaseBodyShotScore;
@@ -41,6 +42,7 @@ int ScoreManager::AddScore(bool isHeadShot)
     m_score += add;
     m_totalScore += add; // 累計スコアにも加算
     m_comboTimer = kComboGraceFrame; // コンボ猶予リセット
+
     if (isHeadShot) 
     {
         m_headKillCount++;
@@ -66,27 +68,32 @@ void ScoreManager::Update()
     }
 }
 
+// コンボをリセット
 void ScoreManager::ResetCombo() 
 {
     m_combo = 0;
 }
 
+// 現在のスコアを取得
 int ScoreManager::GetScore() const 
 {
     return m_score;
 }
 
+// ゲーム全体の累計スコアを取得
 int ScoreManager::GetCombo() const 
 {
     return m_combo;
 }
 
+// スコアを保存する
 void ScoreManager::SaveScore(int score)
 {
     // スコアをリストに追加
     m_highScores.push_back(score);
     // 降順にソート
     std::sort(m_highScores.begin(), m_highScores.end(), std::greater<int>());
+
     // 最大数を超えた場合は削除
     if (m_highScores.size() > kMaxHighScores)
     {
@@ -105,6 +112,7 @@ void ScoreManager::SaveScore(int score)
     }
 }
 
+// スコアを読み込む
 void ScoreManager::LoadScores()
 {
     m_highScores.clear();

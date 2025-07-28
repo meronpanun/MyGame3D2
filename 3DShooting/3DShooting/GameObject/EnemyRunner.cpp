@@ -154,7 +154,7 @@ bool EnemyRunner::CanAttackPlayer(const Player& player)
 	m_pAttackHitCollider->SetRadius(kAttackHitRadius);
 
 	std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
-	return m_pAttackHitCollider->Intersects(playerBodyCollider.get());
+	return m_pAttackHitCollider->IsIntersects(playerBodyCollider.get());
 }
 
 void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList)
@@ -242,7 +242,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 	}
 
 	std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
-	bool isPlayerInAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
+	bool isPlayerInAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
 	if (m_currentAnimState == AnimState::Attack)
 	{
@@ -338,7 +338,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 	m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
 	// 敵とプレイヤーの押し出し処理
-	if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
+	if (m_pBodyCollider->IsIntersects(playerBodyCollider.get()))
 	{
 		VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
 		VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
@@ -401,7 +401,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 				m_pAttackHitCollider->SetSegment(handRPos, handLPos);
 				m_pAttackHitCollider->SetRadius(kAttackHitRadius);
 
-				if (m_pAttackHitCollider->Intersects(playerBodyCollider.get()))
+				if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
 				{
 					const_cast<Player&>(player).TakeDamage(m_attackPower);
 					m_hasAttackHit = true;
@@ -416,7 +416,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 	{
 		CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
 
-		if (m_pBodyCollider->Intersects(&playerTackleCollider))
+		if (m_pBodyCollider->IsIntersects(&playerTackleCollider))
 		{
 			TakeTackleDamage(tackleInfo.damage);
 			m_lastTackleId = tackleInfo.tackleId;
@@ -497,8 +497,8 @@ EnemyBase::HitPart EnemyRunner::CheckHitPart(const VECTOR& rayStart, const VECTO
 	float hitDistSqHead = FLT_MAX;
 	float hitDistSqBody = FLT_MAX;
 
-	bool headHit = m_pHeadCollider->IntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
-	bool bodyHit = m_pBodyCollider->IntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
+	bool headHit = m_pHeadCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
+	bool bodyHit = m_pBodyCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
 
 	if (headHit && bodyHit)
 	{

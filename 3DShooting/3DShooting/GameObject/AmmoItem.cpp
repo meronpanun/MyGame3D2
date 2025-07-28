@@ -73,7 +73,7 @@ void AmmoItem::Update(Player* player)
 	m_collider.SetRadius(m_radius);
 
 	const Collider* playerCollider = dynamic_cast<const Collider*>(player->GetBodyCollider().get());
-	m_isHit = m_collider.Intersects(playerCollider);
+	m_isHit = m_collider.IsIntersects(playerCollider);
 
 	// 弾薬が満タンかどうかは問わず、当たれば回復
 	if (m_isHit)

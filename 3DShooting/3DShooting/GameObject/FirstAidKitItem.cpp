@@ -82,7 +82,7 @@ void FirstAidKitItem::Update(Player* player)
 	const Collider* playerCollider = dynamic_cast<const Collider*>(player->GetBodyCollider().get());
 
 	// オブジェクト指向的な当たり判定
-	m_isHit = m_collider.Intersects(playerCollider);
+	m_isHit = m_collider.IsIntersects(playerCollider);
 
 	// プレイヤーの体力が満タンでなく、かつ当たっていれば回復
 	if (m_isHit && player->GetHealth() < player->GetMaxHealth())

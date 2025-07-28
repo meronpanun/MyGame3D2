@@ -3,7 +3,10 @@
 #include <string>
 #include <vector>
 
-struct ObjectTransformData
+/// <summary>
+/// オブジェクト変換データ
+/// </summary>
+struct ObjectTransformData 
 {
 	std::string name;    // オブジェクト名
 	VECTOR pos;		     // 位置

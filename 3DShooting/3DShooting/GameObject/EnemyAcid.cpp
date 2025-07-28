@@ -148,7 +148,7 @@ bool EnemyAcid::CanAttackPlayer(const Player& player)
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
 
     // プレイヤーが攻撃範囲内にいるかどうかのみ判定
-    return m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
+    return m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 }
 
 // 酸を吐く攻撃を行う
@@ -273,7 +273,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
 
     // プレイヤーとの物理衝突判定
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
-    if (m_pBodyCollider->Intersects(playerBodyCollider.get()))
+    if (m_pBodyCollider->IsIntersects(playerBodyCollider.get()))
     {
         VECTOR enemyCenter  = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
         VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
@@ -303,7 +303,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     }
 
     // プレイヤーが攻撃範囲内か
-    bool inAttackRange = m_pAttackRangeCollider->Intersects(playerBodyCollider.get());
+    bool inAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
     // 攻撃アニメーション中・硬直中は移動や状態遷移を行わない
     if (m_currentAnimState == AnimState::Attack || m_attackEndDelayTimer > 0) 
@@ -407,7 +407,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     if (tackleInfo.isTackling && tackleInfo.tackleId != m_lastTackleId)
     {
         CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
-        if (m_pBodyCollider->Intersects(&playerTackleCollider))
+        if (m_pBodyCollider->IsIntersects(&playerTackleCollider))
         {
             TakeTackleDamage(tackleInfo.damage);
             m_lastTackleId = tackleInfo.tackleId;
@@ -431,7 +431,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         ball.Update();
         std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
         SphereCollider acidCol(ball.pos, ball.radius);
-        if (acidCol.Intersects(playerCol.get()))
+        if (acidCol.IsIntersects(playerCol.get()))
         {
             const_cast<Player&>(player).TakeDamage(ball.damage);
             ball.active = false;
@@ -531,8 +531,8 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
     m_pBodyCollider->SetRadius(::kBodyColliderRadius);
 
-    bool headHit = m_pHeadCollider->IntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
-    bool bodyHit = m_pBodyCollider->IntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
+    bool headHit = m_pHeadCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosHead, hitDistSqHead);
+    bool bodyHit = m_pBodyCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosBody, hitDistSqBody);
 
     if (headHit && bodyHit)
     {
