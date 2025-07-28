@@ -23,7 +23,9 @@ public:
 	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList) abstract;
 	virtual void Draw() abstract;
 
-	// 当たり判定の部位
+	/// <summary>
+	/// 当たり判定の部位
+	/// </summary>
 	enum class HitPart
 	{
 		None,
@@ -31,7 +33,9 @@ public:
 		Head
 	};
 
-	// 敵の状態管理
+	/// <summary>
+	/// 敵の状態管理 
+	/// </summary>
 	enum class EnemyState
 	{
 		Idle,       // 待機状態
@@ -41,7 +45,9 @@ public:
 		Dead        // 死亡状態
 	};
 
-	// アニメーション状態
+	/// <summary>
+	/// アニメーション状態
+	/// </summary>
 	enum class AnimState
 	{
 		Idle,    // 待機
@@ -50,6 +56,13 @@ public:
 		Run,     // 走行
 		Attack,  // 攻撃
 		Dead     // 死亡
+	};
+
+	enum class LastDamageType
+	{
+		None,
+		Shot,
+		Tackle
 	};
 
 	virtual void SetModelHandle(int handle) {}
@@ -146,7 +159,6 @@ public:
 	/// <param name="cb">ヒット時に呼ばれるコールバック関数</param>
 	void SetOnHitCallback(std::function<void(HitPart)> cb) { m_onHitCallback = cb; }
 
-	enum class LastDamageType { None, Shot, Tackle };
 	LastDamageType GetLastDamageType() const { return m_lastDamageType; }
 	void SetLastDamageType(LastDamageType type) { m_lastDamageType = type; }
 

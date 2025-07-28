@@ -50,7 +50,9 @@ private:
     VECTOR m_pos;     // 現在の位置
     VECTOR m_prevPos; // 前フレームの位置 (Rayの始点)
     VECTOR m_dir;     // 進行方向
+
     float  m_speed;   // 速度
-    bool   m_isActive;
     float  m_damage;
+
+    bool   m_isActive;
 };
