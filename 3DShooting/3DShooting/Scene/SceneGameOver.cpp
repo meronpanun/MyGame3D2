@@ -48,6 +48,11 @@ void SceneGameOver::Init()
 {
     // マウスカーソルの表示/非表示を設定
     SetMouseDispFlag(true);
+
+    // カウントアップ演出用スコア初期化
+    ScoreManager::Instance().ResetDisplayScore();
+    ScoreManager::Instance().SetTargetDisplayScore(ScoreManager::Instance().GetTotalScore());
+
     m_isBGMStarted = false;
     // BGM再生（既に再生中でなければ）
     if (CheckSoundMem(m_bgmHandle) == 0)
@@ -64,6 +69,9 @@ SceneBase* SceneGameOver::Update()
     m_scrollY += kScrollSpeed;
     if (m_scrollX > kBgImageSize) m_scrollX -= kBgImageSize;
     if (m_scrollY > kBgImageSize) m_scrollY -= kBgImageSize;
+
+    // スコア演出用の更新
+    ScoreManager::Instance().Update();
 
     if (Mouse::IsTriggerLeft())
     {
@@ -137,7 +145,7 @@ void SceneGameOver::Draw()
     sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", m_killCount);
     DrawString(screenW / 2 - 150, screenH / 2 + 20, killStr, 0xffffff);
     char scoreStr[64];
-    sprintf_s(scoreStr, sizeof(scoreStr), "スコア: %d", m_score);
+    sprintf_s(scoreStr, sizeof(scoreStr), "スコア: %d", ScoreManager::Instance().GetDisplayScore());
     DrawString(screenW / 2 - 150, screenH / 2 + 60, scoreStr, 0xffffff);
     SetFontSize(16);
     // ボタン描画

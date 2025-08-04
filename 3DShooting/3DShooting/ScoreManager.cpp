@@ -26,7 +26,14 @@ ScoreManager::ScoreManager() :
     m_totalScore(0),
     m_bodyKillCount(0),
     m_headKillCount(0),
-    m_lastComboRate(1.0f)
+    m_lastComboRate(1.0f),
+    m_displayScore(0),
+    m_targetDisplayScore(0),
+    m_displayTotalScore(0),
+    m_targetTotalScore(0),
+    m_targetBodyKillCount(0),
+    m_targetHeadKillCount(0),
+    m_scoreCountUpSpeed(30)
 {
     LoadScores(); // 初期化時にスコアを読み込み
 }
@@ -65,6 +72,20 @@ void ScoreManager::Update()
             m_lastComboRate = 1.0f;
             m_score = 0; // コンボが切れたらスコアもリセット
         }
+    }
+
+    // スコアカウントアップ演出
+    if (m_displayScore < m_targetDisplayScore)
+    {
+        int diff = m_targetDisplayScore - m_displayScore;
+        int add = std::min(m_scoreCountUpSpeed, diff);
+        m_displayScore += add;
+    }
+    if (m_displayTotalScore < m_targetTotalScore)
+    {
+        int diff = m_targetTotalScore - m_displayTotalScore;
+        int add = std::min(m_scoreCountUpSpeed, diff);
+        m_displayTotalScore += add;
     }
 }
 
@@ -128,4 +149,18 @@ void ScoreManager::LoadScores()
         // 降順にソート
         std::sort(m_highScores.begin(), m_highScores.end(), std::greater<int>());
     }
+}
+
+void ScoreManager::ResetDisplayValues()
+{
+    m_displayScore = 0;
+    m_displayTotalScore = 0;
+}
+
+void ScoreManager::SetTargetDisplayValues(int score, int totalScore, int bodyKill, int headKill)
+{
+    m_targetDisplayScore = score;
+    m_targetTotalScore = totalScore;
+    m_targetBodyKillCount = bodyKill;
+    m_targetHeadKillCount = headKill;
 }

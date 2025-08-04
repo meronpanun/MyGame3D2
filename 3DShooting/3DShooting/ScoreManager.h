@@ -50,43 +50,60 @@ public:
     /// <summary>
     /// ボディショットキル数を取得
     /// </summary>
-	/// <returns>ボディショットキル数</returns>
-	int GetBodyKillCount() const { return m_bodyKillCount; } 
+    /// <returns>ボディショットキル数</returns>
+    int GetBodyKillCount() const { return m_bodyKillCount; }
 
     /// <summary>
     /// ヘッドショットキル数を取得
     /// </summary>
-	/// <returns>ヘッドショットキル数</returns>
-	int GetHeadKillCount() const { return m_headKillCount; } 
+    /// <returns>ヘッドショットキル数</returns>
+    int GetHeadKillCount() const { return m_headKillCount; }
 
     /// <summary>
-	/// 最後のコンボ倍率を取得
+    /// 最後のコンボ倍率を取得
     /// </summary>
-	/// <returns>最後のコンボ倍率</returns>
+    /// <returns>最後のコンボ倍率</returns>
     float GetLastComboRate() const { return m_lastComboRate; }
 
     /// <summary>
     /// スコア保存・読み込み機能 
     /// </summary>
-	/// <param name="score">保存するスコア</param>
+    /// <param name="score">保存するスコア</param>
     void SaveScore(int score);
 
     /// <summary>
-	/// スコアを読み込む
+    /// スコアを読み込む
     /// </summary>
     void LoadScores();
 
     /// <summary>
-	/// ハイスコアのリストを取得
+    /// ハイスコアのリストを取得
     /// </summary>
-	/// <returns>ハイスコアのリスト</returns>
+    /// <returns>ハイスコアのリスト</returns>
     const std::vector<int>& GetHighScores() const { return m_highScores; }
 
     /// <summary>
-	/// 最高スコアを取得
+    /// 最高スコアを取得
     /// </summary>
-	/// <returns>最高スコア</returns>
+    /// <returns>最高スコア</returns>
     int GetHighestScore() const { return m_highScores.empty() ? 0 : m_highScores[0]; }
+
+    // 表示用スコアの取得
+    int GetDisplayScore() const { return m_displayScore; }
+
+    // 表示用スコアのリセット
+    void ResetDisplayScore() { m_displayScore = 0; m_targetDisplayScore = m_score; }
+
+    // 表示用スコアの目標値設定
+    void SetTargetDisplayScore(int score) { m_targetDisplayScore = score; }
+
+    // カウントアップ速度設定
+    void SetScoreCountUpSpeed(int speed) { m_scoreCountUpSpeed = speed; }
+
+    int GetDisplayTotalScore() const { return m_displayTotalScore; }
+
+    void ResetDisplayValues();
+    void SetTargetDisplayValues(int score, int totalScore, int bodyKill, int headKill);
 
 private:
     std::vector<int> m_highScores;
@@ -97,6 +114,14 @@ private:
     int m_comboTimer;    // コンボ継続猶予タイマー（フレーム単位）
     int m_bodyKillCount; // ボディショットキル数
     int m_headKillCount; // ヘッドショットキル数
+    // カウントアップ演出用
+    int m_displayScore;
+    int m_targetDisplayScore;
+    int m_displayTotalScore;
+    int m_targetTotalScore;
+    int m_targetBodyKillCount;
+    int m_targetHeadKillCount;
+    int m_scoreCountUpSpeed;
 
     float m_lastComboRate; // 最後のコンボ倍率
 };

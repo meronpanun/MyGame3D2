@@ -15,8 +15,12 @@ namespace
     constexpr int kBgImageSize = 1024;   // 背景画像のサイズ
 }
 
-SceneResult::SceneResult()
-    : m_bgmHandle(-1), m_isBGMStarted(false), m_backgroundHandle(-1), m_scrollX(0.0f), m_scrollY(0.0f)
+SceneResult::SceneResult() :
+    m_bgmHandle(-1),
+    m_isBGMStarted(false),
+    m_backgroundHandle(-1),
+    m_scrollX(0.0f), 
+    m_scrollY(0.0f)
 {
     // BGMのロード
     m_bgmHandle = LoadSoundMem("data/sound/BGM/GameClearBGM.mp3");
@@ -43,6 +47,16 @@ void SceneResult::Init()
     SetMouseDispFlag(true);
     // スコア保存
     ScoreManager::Instance().SaveScore(ScoreManager::Instance().GetTotalScore());
+
+    // カウントアップ演出用初期化
+    ScoreManager::Instance().ResetDisplayValues();
+    ScoreManager::Instance().SetTargetDisplayValues(
+        ScoreManager::Instance().GetScore(),
+        ScoreManager::Instance().GetTotalScore(),
+        ScoreManager::Instance().GetBodyKillCount(),
+        ScoreManager::Instance().GetHeadKillCount()
+    );
+
     m_isBGMStarted = false;
     // BGM再生（既に再生中でなければ）
     if (CheckSoundMem(m_bgmHandle) == 0)
@@ -59,6 +73,9 @@ SceneBase* SceneResult::Update()
     m_scrollY += kScrollSpeed;
     if (m_scrollX > kBgImageSize) m_scrollX -= kBgImageSize;
     if (m_scrollY > kBgImageSize) m_scrollY -= kBgImageSize;
+
+    // スコア演出用の更新
+    ScoreManager::Instance().Update();
 
     if (Mouse::IsTriggerLeft())
     {
@@ -130,19 +147,23 @@ void SceneResult::Draw()
     DrawString(screenW / 2 - 100, 30, "ゲームクリア！", 0x00ff00);
     SetFontSize(20);
     int y = 80;
+
     char scoreStr[64];
-    sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア: %d", ScoreManager::Instance().GetTotalScore());
+    sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア: %d", ScoreManager::Instance().GetDisplayTotalScore());
     DrawString(screenW / 2 - 100, y, scoreStr, 0xffffff);
     y += 28;
+
     int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
     char killStr[64];
     sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", killCount);
     DrawString(screenW / 2 - 100, y, killStr, 0xffffff);
     y += 28;
+
     char timeStr[64];
     sprintf_s(timeStr, sizeof(timeStr), "クリアタイム: %.1f秒", SceneMain::GetElapsedTime());
     DrawString(screenW / 2 - 100, y, timeStr, 0xffffff);
     y += 36;
+
     // ハイスコア表示
     SetFontSize(18);
     DrawString(screenW / 2 - 100, y, "--- ハイスコア ---", 0xffff00);
