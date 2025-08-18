@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneOption.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneOption.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneGameOver.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneGameOver.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -33,10 +37,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneMain.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneOption.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneOption.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBoss.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -265,7 +265,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 0,
               "Title": "SceneOption.h",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneOption.h",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneOption.h",
@@ -288,7 +288,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "SceneGameOver.cpp",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneGameOver.cpp",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneGameOver.cpp",
@@ -301,7 +301,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "ScoreManager.cpp",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\ScoreManager.cpp",
               "RelativeDocumentMoniker": "3DShooting\\ScoreManager.cpp",
@@ -309,12 +309,11 @@
               "RelativeToolTip": "3DShooting\\ScoreManager.cpp",
               "ViewState": "AgIAAIMAAAAAAAAAAAAEwJ0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-16T02:37:31.579Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-16T02:37:31.579Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "ScoreManager.h",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\ScoreManager.h",
               "RelativeDocumentMoniker": "3DShooting\\ScoreManager.h",
@@ -322,12 +321,11 @@
               "RelativeToolTip": "3DShooting\\ScoreManager.h",
               "ViewState": "AgIAAF8AAAAAAAAAAAAewGYAAABEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-16T02:36:58.763Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-16T02:36:58.763Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "SceneResult.cpp",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneResult.cpp",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneResult.cpp",
@@ -335,12 +333,11 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneResult.cpp",
               "ViewState": "AgIAAIkAAAAAAAAAAAArwJ4AAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-07-14T05:56:44.182Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-14T05:56:44.182Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "SceneResult.h",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneResult.h",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneResult.h",
@@ -348,12 +345,11 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneResult.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-17T01:09:03.775Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-17T01:09:03.775Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "SceneGameOver.h",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneGameOver.h",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneGameOver.h",
@@ -361,12 +357,11 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneGameOver.h",
               "ViewState": "AgIAAAIAAAAAAAAAAAAewBcAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-17T01:10:22.377Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-17T01:10:22.377Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "SceneTitle.h",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneTitle.h",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneTitle.h",
@@ -374,8 +369,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneTitle.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-25T01:57:02.769Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-25T01:57:02.769Z"
             },
             {
               "$type": "Document",
@@ -387,12 +381,11 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyBoss.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-16T06:44:26.582Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-16T06:44:26.582Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "SceneMain.h",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.h",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneMain.h",
@@ -400,8 +393,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.h",
               "ViewState": "AgIAADAAAAAAAAAAAAAewEUAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-07-22T01:36:12.468Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-07-22T01:36:12.468Z"
             },
             {
               "$type": "Document",
