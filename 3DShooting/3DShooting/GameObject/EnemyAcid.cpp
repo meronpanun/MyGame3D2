@@ -5,6 +5,7 @@
 #include "SphereCollider.h" 
 #include "CapsuleCollider.h" 
 #include "SceneMain.h"
+#include "TransformDataLoader.h"
 #include <cassert>       
 #include <algorithm>     
 #include <cmath> 
@@ -81,6 +82,23 @@ void EnemyAcid::Init()
     m_isAlive = true;
     m_isDeadAnimPlaying = false;
     m_isItemDropped = false;
+
+    // CSVからAcidEnemyのTransform情報を取得
+    {
+        auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+        for (const auto& data : dataList)
+        {
+            if (data.name == "AcidEnemy")
+            {
+                MV1SetRotationXYZ(m_modelHandle, data.rot);
+                MV1SetScale(m_modelHandle, data.scale);
+                m_attackPower = data.attack;
+                m_hp = data.hp;
+                m_chaseSpeed = data.chaseSpeed;
+                break;
+            }
+        }
+    }
 
     // ここで一度「絶対にRunでない値」にリセット
     m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため

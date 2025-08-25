@@ -1,2 +1,3 @@
-﻿  SceneResult.cpp
+﻿  Player.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(268,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
   3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

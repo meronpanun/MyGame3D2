@@ -6,6 +6,7 @@
 #include "SphereCollider.h" 
 #include "CapsuleCollider.h" 
 #include "SceneMain.h"
+#include "TransformDataLoader.h"
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -77,6 +78,23 @@ void EnemyNormal::Init()
     m_isItemDropped = false;
     m_lastHitPart   = HitPart::None; // 最後のヒット部位をリセット
     m_hitDisplayTimer = 0; // ヒット表示タイマーもリセット
+
+    // CSVからNormalEnemyのTransform情報を取得
+    {
+        auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+        for (const auto& data : dataList)
+        {
+            if (data.name == "NormalEnemy")
+            {
+                MV1SetRotationXYZ(m_modelHandle, data.rot);
+                MV1SetScale(m_modelHandle, data.scale);
+                m_attackPower = data.attack;
+                m_hp = data.hp;
+                m_chaseSpeed = data.chaseSpeed;
+                break;
+            }
+        }
+    }
 
     // ここで一度「絶対にWalkでない値」にリセット
     m_currentAnimState = AnimState::Dead;

@@ -104,7 +104,10 @@ Player::Player() :
 	m_shootCooldownTimer(0.0f),
 	m_shootRate(kShootRate),
 	m_isInvincible(false),
-	m_isInfiniteAmmo(false)
+	m_isInfiniteAmmo(false),
+	m_tackleCooldownMax(0.0f),
+	m_tackleSpeed(0.0f),
+	m_tackleDamage(0.0f)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -852,24 +855,16 @@ bool Player::HasShot()
 
 void Player::Shoot(std::vector<Bullet>& bullets)
 {
-    // 画面中央の座標を取得
-    float screenCenterX, screenCenterY;
-    GetCameraScreenCenter(&screenCenterX, &screenCenterY);
-    
-    // 画面中央の3D座標を計算（カメラから一定距離の点）
+    // 画面中央(カメラ中心)からレティクル方向へ発射
     VECTOR cameraPos = m_pCamera->GetPos();
     VECTOR cameraForward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
-    float rayDistance = 1000.0f; // 十分に遠い距離
-    VECTOR screenCenter3D = VAdd(cameraPos, VScale(cameraForward, rayDistance));
-    
-    // 銃の発射位置を取得
-    VECTOR gunPos = GetGunPos();
-    
-    // 銃の位置から画面中央の3D座標への方向ベクトルを計算
-    VECTOR bulletDirection = VNorm(VSub(screenCenter3D, gunPos));
-    
-    // 弾丸を発射
-    bullets.emplace_back(gunPos, bulletDirection, m_bulletPower);
+
+    // 画面中央から出ているように見せるため、カメラ前方に小さくオフセット
+    constexpr float kCameraMuzzleOffset = 10.0f;
+    VECTOR spawnPos = VAdd(cameraPos, VScale(cameraForward, kCameraMuzzleOffset));
+
+    // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
+    bullets.emplace_back(spawnPos, cameraForward, m_bulletPower);
     //m_ammo--;
 
 	float rotX = -m_pCamera->GetPitch();
