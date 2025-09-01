@@ -110,7 +110,7 @@ Player::Player() :
 	m_tackleDamage(0.0f),
 	m_isSwordAnimating(false),
 	m_swordAnimTimer(0.0f),
-	m_swordAnimDuration(0.2f)
+	m_swordAnimDuration(0.1f)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -578,7 +578,7 @@ void Player::Draw()
 			if (shouldDrawSword)
 		{
 			// 待機状態の剣の位置と回転を定義
-			VECTOR waitPos = VGet(-25.0f * scaleW, -30.0f * scaleH, 0.0f);
+			VECTOR waitPos = VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f);
 			VECTOR waitRotVec = VGet(0.0f, 30.0f, 0.0f); // Y軸回転を0度に変更
 
 			// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
