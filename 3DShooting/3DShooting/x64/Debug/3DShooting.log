@@ -1,7 +1,20 @@
-﻿  SceneMain.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(83,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(84,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(565,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(565,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(577,25): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
+﻿  Player.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(285,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
+Effekseer_vs2019_x64_d.lib(Effekseer.EffectNode.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(Effekseer.EffectNode.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeModel.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeModel.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeRibbon.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeRibbon.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeRing.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeRing.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeSprite.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeSprite.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeTrack.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(Effekseer.EffectNodeTrack.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(Effekseer.Instance.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(Effekseer.Instance.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(CurlNoise.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(CurlNoise.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(ForceFields.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(ForceFields.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+Effekseer_vs2019_x64_d.lib(ProceduralModelGenerator.obj) : warning LNK4099: PDB '' が 'Effekseer_vs2019_x64_d.lib(ProceduralModelGenerator.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+EffekseerRendererDX9_vs2019_x64_d.lib(EffekseerRenderer.PngTextureLoader.obj) : warning LNK4099: PDB '' が 'EffekseerRendererDX9_vs2019_x64_d.lib(EffekseerRenderer.PngTextureLoader.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+EffekseerRendererDX9_vs2019_x64_d.lib(EffekseerRendererDX9.ModelRenderer.obj) : warning LNK4099: PDB '' が 'EffekseerRendererDX9_vs2019_x64_d.lib(EffekseerRendererDX9.ModelRenderer.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+EffekseerRendererDX9_vs2019_x64_d.lib(EffekseerRendererDX9.Renderer.obj) : warning LNK4099: PDB '' が 'EffekseerRendererDX9_vs2019_x64_d.lib(EffekseerRendererDX9.Renderer.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+EffekseerRendererDX11_vs2019_x64_d.lib(EffekseerRendererDX11.ModelRenderer.obj) : warning LNK4099: PDB '' が 'EffekseerRendererDX11_vs2019_x64_d.lib(EffekseerRendererDX11.ModelRenderer.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+EffekseerRendererDX11_vs2019_x64_d.lib(EffekseerRendererDX11.Renderer.obj) : warning LNK4099: PDB '' が 'EffekseerRendererDX11_vs2019_x64_d.lib(EffekseerRendererDX11.Renderer.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+EffekseerRendererDX11_vs2019_x64_d.lib(GraphicsDevice.obj) : warning LNK4099: PDB '' が 'EffekseerRendererDX11_vs2019_x64_d.lib(GraphicsDevice.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
+EffekseerForDXLib_vs2019_x64_d.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64_d.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
   3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

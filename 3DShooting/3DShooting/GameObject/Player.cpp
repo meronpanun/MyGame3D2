@@ -107,7 +107,10 @@ Player::Player() :
 	m_isInfiniteAmmo(false),
 	m_tackleCooldownMax(0.0f),
 	m_tackleSpeed(0.0f),
-	m_tackleDamage(0.0f)
+	m_tackleDamage(0.0f),
+	m_isSwordAnimating(false),
+	m_swordAnimTimer(0.0f),
+	m_swordAnimDuration(0.2f)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -195,6 +198,17 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// プレイヤーの位置をカメラに設定
 	m_pCamera->SetPlayerPos(m_modelPos);
 
+	// 剣のアニメーションタイマー更新
+	if (m_isSwordAnimating)
+	{
+		m_swordAnimTimer += 1.0f / 60.0f; // 60FPSを想定
+		if (m_swordAnimTimer >= m_swordAnimDuration)
+		{
+			m_isSwordAnimating = false;
+			m_swordAnimTimer = 0.0f;
+		}
+	}
+
 	m_pCamera->Update(); // カメラの更新
 	m_pEffect->Update(); // エフェクトの更新
 
@@ -263,6 +277,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	if (!m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
 	{
 		m_isTackling = true;
+		m_isSwordAnimating = true; // 剣のアニメーション開始
+		m_swordAnimTimer = 0.0f;   // タイマーリセット
+
 		PlaySoundMem(m_tackleSEHandle, DX_PLAYTYPE_BACK); // タックルSE再生
 		m_tackleFrame = kTackleDuration;
 		m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
@@ -537,12 +554,7 @@ void Player::Draw()
 	float scaleH = screenH / baseScreenH;
 	float scaleAvg = (scaleW + scaleH) * 0.5f;
 
-	// 剣の基本位置（画面サイズに応じて調整）
-	float baseSwordScreenX = -25.0f * scaleW;
-	float baseSwordScreenY = -30.0f * scaleH;
-	float swordScreenZ = 35.0f * scaleAvg;
-
-	// メインカメラから全てのオフセットを取得
+	// カメラオフセット設定
 	VECTOR totalCameraOffset = VGet(0, 0, 0);
 	if (m_pCamera)
 	{
@@ -550,30 +562,63 @@ void Player::Draw()
 		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
 		totalCameraOffset = VAdd(shakeOffset, headBobOffset);
 	}
-
-	// 剣専用カメラの設定（メインカメラと同じオフセットを適用）
-	VECTOR swordCamPos = VGet(0, 0, -swordScreenZ);
-	VECTOR swordCamTarget = VGet(0, 0, 0);
-
-	// メインカメラのオフセットを剣カメラにも適用
-	// ただし、剣は画面固定なので座標系を調整
+	VECTOR swordCamPos = VGet(0, 0, -35.0f * scaleAvg);
 	swordCamPos.x += totalCameraOffset.x;
 	swordCamPos.y += totalCameraOffset.y;
-	swordCamTarget.x += totalCameraOffset.x * 0.3f; // ターゲットには軽減して適用
-	swordCamTarget.y += totalCameraOffset.y * 0.3f;
-
+	VECTOR swordCamTarget = VGet(totalCameraOffset.x * 0.3f, totalCameraOffset.y * 0.3f, 0);
 	SetCameraPositionAndTarget_UpVecY(swordCamPos, swordCamTarget);
 
-	// 剣の位置（基本位置のみ使用、カメラで揺れを表現）
-	float swordPosX = baseSwordScreenX;
-	float swordPosY = baseSwordScreenY;
+	// 描画するかどうかのフラグ
+	bool shouldDrawSword = (m_tackleCooldown <= 0) || m_isSwordAnimating;
+	if (!m_isSwordAnimating && m_tackleCooldown > 0) 
+	{
+		shouldDrawSword = false; // クールダウン中は非表示
+	}
 
-	MV1SetPosition(m_swordHandle, VGet(swordPosX, swordPosY, 0.0f));
-	MV1SetRotationXYZ(m_swordHandle, VGet(0.0f, 200.0f, 0.0f)); // 剣の回転
-	MV1SetScale(m_swordHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg)); // 剣のスケール
+			if (shouldDrawSword)
+		{
+			// 待機状態の剣の位置と回転を定義
+			VECTOR waitPos = VGet(-25.0f * scaleW, -30.0f * scaleH, 0.0f);
+			VECTOR waitRotVec = VGet(0.0f, 30.0f, 0.0f); // Y軸回転を0度に変更
 
-	// 剣の描画
-	MV1DrawModel(m_swordHandle);
+			// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
+			MATRIX matWaitRot = MGetRotY(waitRotVec.y);
+			MATRIX matWaitPos = MGetTranslate(waitPos);
+			MATRIX waitMatrix = MMult(matWaitRot, matWaitPos);
+
+			MATRIX finalMatrix = waitMatrix;
+
+			if (m_isSwordAnimating)
+			{
+				float animProgress = m_swordAnimTimer / m_swordAnimDuration;
+				// イージング（滑らかな動き）
+				animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
+
+				// 回転角度を計算 (左 -> 右)
+				float startAngle = 25.0f * (DX_PI_F / 180.0f);
+				float endAngle = 180.0f * (DX_PI_F / 180.0f);
+				float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
+
+				// モデルのローカル座標におけるピボット（手持ち部分）の位置
+				VECTOR pivotOffset = VGet(0.0f, 0.0f, -20.0f);
+
+				// 行列を使ってピボット回転を実装
+				MATRIX matPivotTrans = MGetTranslate(VScale(pivotOffset, -1.0f));
+				MATRIX matRotate = MGetRotY(currentAngle);
+				MATRIX matPivotTransInv = MGetTranslate(pivotOffset);
+
+				// 最終的な行列をMMultで計算
+				// finalMatrix = (待機時の行列) -> (ピボットを原点へ) -> (回転) -> (ピボットを戻す)
+				MATRIX tempMat1 = MMult(waitMatrix, matPivotTrans);
+				MATRIX tempMat2 = MMult(tempMat1, matRotate);
+				finalMatrix = MMult(tempMat2, matPivotTransInv);
+			}
+
+			// モデルに最終的な変換行列を適用
+			MV1SetMatrix(m_swordHandle, finalMatrix);
+			MV1SetScale(m_swordHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg));
+			MV1DrawModel(m_swordHandle);
+		}
 
 	// メインカメラに戻す
 	m_pCamera->SetCameraToDxLib();

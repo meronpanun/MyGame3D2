@@ -271,4 +271,9 @@ private:
 	bool  m_isTackling;    // タックル中かどうか
 	bool  m_isInvincible; // 無敵モードかどうか
 	bool  m_isInfiniteAmmo; // 弾薬無限モードかどうか
+
+	// 剣のアニメーション関連
+	bool  m_isSwordAnimating;   // 剣がアニメーション中か
+	float m_swordAnimTimer;     // 剣のアニメーションタイマー
+	float m_swordAnimDuration;  // 剣のアニメーション時間
 };
