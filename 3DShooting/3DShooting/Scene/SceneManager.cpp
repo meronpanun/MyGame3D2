@@ -106,6 +106,38 @@ void SceneManager::Update()
         }
 
 		m_pCurrentScene = m_pNextScene;
+		
+		// 新しいシーンがSceneMainの場合、ローディング画面を即座に表示
+		if (dynamic_cast<SceneMain*>(m_pCurrentScene))
+		{
+			// ローディング画面を表示
+			ClearDrawScreen();
+			int screenW, screenH;
+			GetScreenState(&screenW, &screenH, nullptr);
+			
+			// 背景を黒で塗りつぶし
+			DrawBox(0, 0, screenW, screenH, 0x000000, true);
+			
+			// ローディングテキストを中央に表示
+			SetFontSize(48);
+			const char* loadingText = "Now Loading...";
+			int textWidth = GetDrawStringWidth(loadingText, 12);
+			int textX = (screenW - textWidth) / 2;
+			int textY = screenH / 2 - 30;
+			DrawString(textX, textY, loadingText, 0xffffff);
+			
+			// 追加のローディング情報
+			SetFontSize(24);
+			const char* subText = "ゲームを準備中...";
+			int subTextWidth = GetDrawStringWidth(subText, 8);
+			int subTextX = (screenW - subTextWidth) / 2;
+			int subTextY = textY + 60;
+			DrawString(subTextX, subTextY, subText, 0xcccccc);
+			
+			SetFontSize(16);
+			ScreenFlip(); // ローディング画面を即座に表示
+		}
+		
 		m_pCurrentScene->Init();
 	}
 }

@@ -21,6 +21,7 @@
 #include "TutorialManager.h"
 #include <cassert>
 #include <algorithm>
+#include <string>
 
 // static変数の定義
 float SceneMain::s_elapsedTime = 0.0f;
@@ -107,21 +108,10 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_pTutorialManager(std::make_unique<TutorialManager>()),
     m_bgmHandle(-1),
     m_isBGMStarted(false),
-    m_isLoading(false),
+    m_isLoading(true),  
 	m_isReturningFromOtherScene(isReturningFromOtherScene)
 {
     g_sceneMainInstance = this;
-    // モデルの読み込み
-    m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
-    assert(m_skyDomeHandle != -1);
-
-    // レティクル画像の読み込み
-    m_dotHandle = LoadGraph("data/image/Dot.png");
-    assert(m_dotHandle != -1);
-
-    // BGMのロード
-    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
-    assert(m_bgmHandle != -1);
 }
 
 SceneMain::~SceneMain()
@@ -136,11 +126,18 @@ SceneMain::~SceneMain()
 
 void SceneMain::Init()
 {
-    SetUseASyncLoadFlag(true); // 非同期読み込みを有効化
     SetWaitVSyncFlag(true);    // VSync有効化で描画負荷を安定化
 
     // 経過時間リセット
     s_elapsedTime = 0.0f;
+
+    // 非同期読み込みを有効化（ローディング状態は既にコンストラクタで設定済み）
+    SetUseASyncLoadFlag(true);
+
+    // 重いリソースの非同期読み込みを開始
+    m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
+    m_dotHandle = LoadGraph("data/image/Dot.png");
+    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
 
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->Init();
@@ -285,14 +282,11 @@ void SceneMain::Init()
 	// 環境光の設定
     SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
 
-	SetUseASyncLoadFlag(false); // 非同期読み込みを無効化
-
-    //m_pTutorialManager = std::make_unique<TutorialManager>();
-    //m_pTutorialManager->Init();
-
     // BGM再生フラグをリセット（Initでは再生しない）
     m_isBGMStarted = false;
-    m_isLoading = true; // 追加
+    
+    // 非同期読み込みを無効化（Init完了後）
+    SetUseASyncLoadFlag(false);
 }
 
 // スコアポップアップを追加する
@@ -302,6 +296,7 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 
     if (m_scorePopups.size() > 5) m_scorePopups.pop_front(); // 最大5件まで
     m_totalScorePopupTimer = kTotalScoreDuration; // 合計スコアタイマーリセット
+
     // 直近の倍率適用済みスコアを保存
     int totalScore = ScoreManager::Instance().GetScore();
     float lastComboRate = ScoreManager::Instance().GetLastComboRate();
@@ -311,20 +306,24 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 SceneBase* SceneMain::Update()
 {
     // ローディング中は他の処理を行わない
-    if (m_isLoading) {
-        if (GetASyncLoadNum() == 0) {
-            m_isLoading = false;
-        } else {
+    if (m_isLoading) 
+    {
+        // 非同期読み込みが完了しているかチェック
+        if (GetASyncLoadNum() == 0) 
+        {
+            // 最低限のローディング時間を確保（視覚的な安定性のため）
+            static int loadingFrameCount = 0;
+            loadingFrameCount++;
+            if (loadingFrameCount >= 10) // 約0.17秒間ローディング表示（短縮）
+            {
+                m_isLoading = false;
+                loadingFrameCount = 0;
+            }
+        } 
+        else 
+        {
             return this;
         }
-    }
-
-    // 非同期読み込みが終わるまではupdateの処理を行わない
-    if (GetASyncLoadNum() > 0)
-    {
-        // グラフィックを使った処理が行われる可能性があるので
-        // 最初にチェックしてロードが終わっていなければここでupdate終了
-		return this;
     }
 
     // BGM再生（非同期ロード完了直後に一度だけ）
@@ -453,9 +452,38 @@ void SceneMain::Draw()
     // ローディング中はローディング画面を表示
     if (m_isLoading) 
     {
+        // 背景を黒で塗りつぶし
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+        DrawBox(0, 0, screenW, screenH, 0x000000, true);
+        
+        // ローディングテキストを中央に表示
         SetFontSize(48);
-        DrawFormatString(screenW * 0.5f, screenH * 0.5f, 0xffffff, "Now Loading...");
+        const char* loadingText = "Now Loading...";
+        int textWidth = GetDrawStringWidth(loadingText, 12);
+        int textX = (screenW - textWidth) / 2;
+        int textY = screenH / 2 - 30;
+        DrawString(textX, textY, loadingText, 0xffffff);
+        
+        // プログレスバー風の表示（点々をアニメーション）
+        static int loadingDots = 0;
+        static int loadingTimer = 0;
+        loadingTimer++;
+        if (loadingTimer >= 20) {
+            loadingTimer = 0;
+            loadingDots = (loadingDots + 1) % 4;
+        }
+        
+        std::string dots = std::string(loadingDots, '.');
+        DrawString(textX + textWidth + 10, textY, dots.c_str(), 0x888888);
+        
+        // 追加のローディング情報
+        SetFontSize(24);
+        const char* subText = "ゲームを準備中...";
+        int subTextWidth = GetDrawStringWidth(subText, 8);
+        int subTextX = (screenW - subTextWidth) / 2;
+        int subTextY = textY + 60;
+        DrawString(subTextX, subTextY, subText, 0xcccccc);
+        
         SetFontSize(16);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
         return;
@@ -503,16 +531,28 @@ void SceneMain::Draw()
             int tackleY = y + newHeight + 20; // 修正後の高さでY座標を計算
 
             // Shot画像
-            if (shotImg >= 0) DrawExtendGraph(imgBaseX, shotY, imgBaseX + newWidth, shotY + newHeight, shotImg, true);
+            if (shotImg >= 0)
+            {
+                DrawExtendGraph(imgBaseX, shotY, imgBaseX + newWidth, shotY + newHeight, shotImg, true);
+            }
+
             // 射撃達成時は射撃画像の右側にチェック
             if (shotCleared && checkImg >= 0)
-                DrawExtendGraph(imgBaseX + newWidth + 10, shotY + newHeight/2 - checkSize/2, imgBaseX + newWidth + 10 + checkSize, shotY + newHeight/2 + checkSize/2, checkImg, true);
+            {
+                DrawExtendGraph(imgBaseX + newWidth + 10, shotY + newHeight / 2 - checkSize / 2, imgBaseX + newWidth + 10 + checkSize, shotY + newHeight / 2 + checkSize / 2, checkImg, true);
+            }
             
             // Tackle画像
-            if (tackleImg >= 0) DrawExtendGraph(imgBaseX, tackleY, imgBaseX + newWidth, tackleY + newHeight, tackleImg, true);
+            if (tackleImg >= 0)
+            {
+                DrawExtendGraph(imgBaseX, tackleY, imgBaseX + newWidth, tackleY + newHeight, tackleImg, true);
+            }
+
             // タックル達成時はタックル画像の右側にチェック
             if (tackleCleared && checkImg >= 0)
-                DrawExtendGraph(imgBaseX + newWidth + 10, tackleY + newHeight/2 - checkSize/2, imgBaseX + newWidth + 10 + checkSize, tackleY + newHeight/2 + checkSize/2, checkImg, true);
+            {
+                DrawExtendGraph(imgBaseX + newWidth + 10, tackleY + newHeight / 2 - checkSize / 2, imgBaseX + newWidth + 10 + checkSize, tackleY + newHeight / 2 + checkSize / 2, checkImg, true);
+            }
         }
     }
 
