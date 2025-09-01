@@ -2,7 +2,7 @@
 #include "EnemyBase.h"
 
 /// <summary>
-/// 敵ボスクラス
+/// ボスクラス
 /// </summary>
 class EnemyBoss : public EnemyBase
 {

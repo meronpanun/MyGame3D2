@@ -65,9 +65,6 @@ void SceneManager::Update()
     if (m_isExternalSceneChange)
     {
         m_isExternalSceneChange = false; // フラグをリセット
-        // このフレームでは m_pCurrentScene->Update() を実行せず、
-        // m_pCurrentScene は既に RequestChangeScene で設定されているため、
-        // 以下のシーン切り替えロジックも発動しない。
     }
     else // 通常のシーン更新
     {
@@ -81,9 +78,6 @@ void SceneManager::Update()
 	// シーンが変わった場合、初期化処理を行う
 	if (m_pNextScene != nullptr && m_pNextScene != m_pCurrentScene)
 	{
-        // ここで古いシーンを delete するロジックは、SceneManagerが所有するシーンのみを対象としています。
-        // SceneManagerのメンバーではない動的にnewされたシーンは、ここで delete されずメモリリークする可能性があります。
-        // これは既存の設計上の問題であり、今回の修正の範囲外とします。
         if (m_pCurrentScene == m_pTitle) 
 		{
             delete m_pTitle; m_pTitle = nullptr;
@@ -125,16 +119,22 @@ void SceneManager::Update()
 			int textX = (screenW - textWidth) / 2;
 			int textY = screenH / 2 - 30;
 			DrawString(textX, textY, loadingText, 0xffffff);
-			
-			// 追加のローディング情報
-			SetFontSize(24);
-			const char* subText = "ゲームを準備中...";
-			int subTextWidth = GetDrawStringWidth(subText, 8);
-			int subTextX = (screenW - subTextWidth) / 2;
-			int subTextY = textY + 60;
-			DrawString(subTextX, subTextY, subText, 0xcccccc);
+
+			// プログレスバー風の表示（点々をアニメーション）
+			static int loadingDots = 0;
+			static int loadingTimer = 0;
+			loadingTimer++;
+			if (loadingTimer >= 20)
+			{
+				loadingTimer = 0;
+				loadingDots = (loadingDots + 1) % 4;
+			}
+
+			std::string dots = std::string(loadingDots, '.');
+			DrawString(textX + textWidth + 10, textY, dots.c_str(), 0x888888);
 			
 			SetFontSize(16);
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 			ScreenFlip(); // ローディング画面を即座に表示
 		}
 		
@@ -156,11 +156,6 @@ void SceneManager::Draw()
 
 void SceneManager::RequestChangeScene(SceneBase* newScene)
 {
-    // ここでの delete 処理は削除します。
-    // シーンの解放は SceneManager::Update() またはデストラクタで行われるべきです。
-    // 現在の設計では、SceneManagerがnewしたシーン（m_pTitleなど）以外はメモリリークする可能性がありますが、
-    // これは既存の設計上の問題であり、今回のデバッグ機能の範囲外とします。
-
     m_pCurrentScene = newScene;
     m_pCurrentScene->Init();
     m_pNextScene = m_pCurrentScene; // Update()で上書きされないように設定

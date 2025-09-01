@@ -223,17 +223,17 @@ void WaveManager::Update()
         return;
     }
 
-    // State: In an active wave
+	// ウェーブがアクティブな場合、敵のスポーンとウェーブクリア判定を行う
     if (m_isWaveActive)
     {
         if (IsCurrentWaveCleared())
         {
-            // Wave just ended. Transition to interval state for the next frame.
+			
             NextWave();
         }
         else
         {
-            // Wave is ongoing, so spawn enemies based on time.
+    
             if (m_currentSpawnIndex < m_spawnInfoList.size())
             {
                 m_spawnTimer += 1.0f / 60.0f;
@@ -258,7 +258,7 @@ void WaveManager::Update()
             }
         }
     }
-    // State: In a break between waves (or before the first wave)
+	// ウェーブがアクティブでない場合、次のウェーブ開始までのインターバルをカウントダウン
     else
     {
         if (m_waveIntervalTimer > 0.0f)
@@ -267,10 +267,9 @@ void WaveManager::Update()
         }
         else
         {
-            // Interval is over (or it's the start of the game), start the next wave.
-            if (m_currentWave <= 3) // Assuming 3 is the max wave number
+            if (m_currentWave <= 3)
             {
-                VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f); // This might need to get the actual player pos
+				VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f); // プレイヤー位置の初期値
                 StartCurrentWave(playerPos);
             }
         }
@@ -730,24 +729,12 @@ void WaveManager::NextWave()
         }
     }
 
-    printf("[DEBUG] Wave %d finished. Max interval found: %.2f\n", m_currentWave, maxInterval);
-
     // 次のウェーブへの移行準備
     m_isWaveActive = false;
     m_waveIntervalTimer = maxInterval;
 
     // ウェーブ番号を更新
     m_currentWave++;
-
-    if (m_currentWave > 3)
-    {
-        m_isAllWavesCompleted = true;
-        printf("[DEBUG] All waves completed!\n");
-    }
-    else
-    {
-        printf("[DEBUG] Next wave is %d. Interval timer started.\n", m_currentWave);
-    }
 }
 
 // 現在のウェーブの敵がすべて倒されたかチェック

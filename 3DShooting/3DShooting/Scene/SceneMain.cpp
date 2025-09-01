@@ -314,7 +314,7 @@ SceneBase* SceneMain::Update()
             // 最低限のローディング時間を確保（視覚的な安定性のため）
             static int loadingFrameCount = 0;
             loadingFrameCount++;
-            if (loadingFrameCount >= 10) // 約0.17秒間ローディング表示（短縮）
+            if (loadingFrameCount >= 80) 
             {
                 m_isLoading = false;
                 loadingFrameCount = 0;
@@ -449,45 +449,6 @@ void SceneMain::Draw()
 {
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, nullptr);
-    // ローディング中はローディング画面を表示
-    if (m_isLoading) 
-    {
-        // 背景を黒で塗りつぶし
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-        DrawBox(0, 0, screenW, screenH, 0x000000, true);
-        
-        // ローディングテキストを中央に表示
-        SetFontSize(48);
-        const char* loadingText = "Now Loading...";
-        int textWidth = GetDrawStringWidth(loadingText, 12);
-        int textX = (screenW - textWidth) / 2;
-        int textY = screenH / 2 - 30;
-        DrawString(textX, textY, loadingText, 0xffffff);
-        
-        // プログレスバー風の表示（点々をアニメーション）
-        static int loadingDots = 0;
-        static int loadingTimer = 0;
-        loadingTimer++;
-        if (loadingTimer >= 20) {
-            loadingTimer = 0;
-            loadingDots = (loadingDots + 1) % 4;
-        }
-        
-        std::string dots = std::string(loadingDots, '.');
-        DrawString(textX + textWidth + 10, textY, dots.c_str(), 0x888888);
-        
-        // 追加のローディング情報
-        SetFontSize(24);
-        const char* subText = "ゲームを準備中...";
-        int subTextWidth = GetDrawStringWidth(subText, 8);
-        int subTextX = (screenW - subTextWidth) / 2;
-        int subTextY = textY + 60;
-        DrawString(subTextX, subTextY, subText, 0xcccccc);
-        
-        SetFontSize(16);
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-        return;
-    }
 
     m_pStage->Draw();
 
