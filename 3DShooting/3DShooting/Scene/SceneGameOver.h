@@ -16,13 +16,15 @@ public:
 
 private:
     int m_backgroundHandle; // 背景画像のハンドル
-    float m_scrollX;        // 背景のスクロールX座標
-    float m_scrollY;        // 背景のスクロールY座標
-    int m_bgmHandle;       // ゲームオーバーBGMのハンドル
-    int m_returnSEHandle;  // 戻るボタンSEのハンドル
-    bool m_isBGMStarted;     // BGM再生済みフラグ
-    int m_wave;
-    int m_killCount;
-    int m_score;
+    int m_bgmHandle;        // ゲームオーバーBGMのハンドル
+    int m_returnSEHandle;   // 戻るボタンSEのハンドル
+    int m_wave;             // ウェーブ
+    int m_killCount;        // キル数
+    int m_score;            // スコア
+
+    float m_scrollX; // 背景のスクロールX座標
+    float m_scrollY; // 背景のスクロールY座標
+
+    bool m_isBGMStarted; // BGM再生済みフラグ
 };
 

@@ -25,18 +25,20 @@ public:
 	/// </summary>
 	struct EffectFeedback
 	{
-		float timer = 0.0f;
-		float alpha = 0.0f;
 		int colorR = 255;
 		int colorG = 0;
 		int colorB = 0;
+		float timer = 0.0f;
+		float alpha = 0.0f;
 		float duration = 45.0f;
 		void Trigger(float d, int r, int g, int b)
 		{
-			timer = d;
-			alpha = 1.0f;
+			timer	 = d;
+			alpha    = 1.0f;
 			duration = d;
-			colorR = r; colorG = g; colorB = b;
+			colorR   = r; 
+			colorG   = g; 
+			colorB   = b;
 		}
 	};
 

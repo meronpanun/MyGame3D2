@@ -37,6 +37,9 @@ namespace
 	constexpr int   kButtonYOffset      = 70;   // ボタンのY座標オフセット
 	constexpr int   kButtonSpacing      = 20;   // ボタン間のスペース
 
+	// ゲームクリアシーンへの遷移遅延フレーム数
+	constexpr int kClearSceneDelayFrames = 120; // 2秒
+
 	// 戻るボタンとオプションボタンの座標
 	constexpr int kReturnButtonX = 210; // 戻るボタンのX座標
 	constexpr int kReturnButtonY = 290; // 戻るボタンのY座標
@@ -109,7 +112,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_bgmHandle(-1),
     m_isBGMStarted(false),
     m_isLoading(true),  
-	m_isReturningFromOtherScene(isReturningFromOtherScene)
+	m_isReturningFromOtherScene(isReturningFromOtherScene),
+	m_clearSceneDelayTimer(-1)
 {
     g_sceneMainInstance = this;
 }
@@ -184,6 +188,8 @@ void SceneMain::Init()
     m_isWave1FirstAidDropped = false;
     m_isWave1AmmoDropped = false;
     m_wave1DropCount = 0;
+
+    m_clearSceneDelayTimer = -1; // 遅延タイマーをリセット
 
     // WaveManagerの敵の死亡時にアイテムをドロップするコールバックを設定
     m_pWaveManager->SetOnEnemyDeathCallback([this](const VECTOR& pos) {
@@ -425,12 +431,27 @@ SceneBase* SceneMain::Update()
 		return new SceneGameOver(wave, killCount, score);
     }
     m_pWaveManager->Update();
-    if (m_pWaveManager->GetCurrentWave() > 3) 
+
+    // ウェーブ3終了後の遅延処理
+    if (m_pWaveManager->GetCurrentWave() > 3)
     {
-        // BGMを停止
-        StopSoundMem(m_bgmHandle);
-        return new SceneResult();
+        if (m_clearSceneDelayTimer == -1) // 遅延がまだ開始されていない場合
+        {
+            m_clearSceneDelayTimer = kClearSceneDelayFrames; // 遅延タイマーを開始
+            StopSoundMem(m_bgmHandle); // BGMを停止
+        }
+        else if (m_clearSceneDelayTimer > 0) // 遅延中の場合
+        {
+            m_clearSceneDelayTimer--; // タイマーを減らす
+        }
+        else // 遅延が終了した場合
+        {
+            return new SceneResult(); // シーン遷移
+        }
     }
+
+    // 遅延中は他の処理をスキップ
+    if (m_clearSceneDelayTimer != -1) return this;
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
     for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
     m_items.erase(

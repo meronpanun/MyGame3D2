@@ -789,7 +789,7 @@ void WaveManager::DrawDebugInfo()
 
     // 敵の出現情報
     char spawnInfo[256];
-    sprintf_s(spawnInfo, "Spawn:%d/%d", m_currentSpawnIndex, m_spawnInfoList.size());
+    sprintf_s(spawnInfo, "Spawn:%d/%d", m_currentSpawnIndex, static_cast<int>(m_spawnInfoList.size()));
     DrawString(kDebugInfoPosX + kDebugInfoSpacing * 2, kDebugInfoPosY, spawnInfo, 0xffffff);
 
     // 生存している敵の数

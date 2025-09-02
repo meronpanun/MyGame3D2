@@ -36,13 +36,13 @@ public:
 	/// 一時停止状態を設定
 	/// </summary>
 	/// <param name="paused">一時停止状態</param>
-	void SetPaused(bool paused); 
+	void SetPaused(bool paused);
 
 	/// <summary>
 	/// カメラを取得
 	/// </summary>
 	/// <returns>カメラのポインタ</returns>
-	Camera* GetCamera() const { return m_pCamera.get(); } 
+	Camera* GetCamera() const { return m_pCamera.get(); }
 
 	/// <summary>
 	/// カメラ感度を設定
@@ -57,7 +57,8 @@ public:
 	void AddScorePopup(int score, bool isHeadShot, int combo);
 
 public:
-	static bool s_isSkipTutorial; // チュートリアルスキップ用デバッグフラグ
+	static bool  s_isSkipTutorial; // チュートリアルスキップフラグ
+	int   m_clearSceneDelayTimer; // ゲームクリアシーンへの遷移遅延タイマー
 	bool m_isWave1FirstAidDropped;
 	bool m_isWave1AmmoDropped;
 	bool m_isLoading;

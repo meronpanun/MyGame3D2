@@ -37,7 +37,8 @@ SceneTitle::SceneTitle(bool skipLogo):
 	m_isSceneFadeIn(false),
 	m_isBGMStarted(false),
 	m_gameStartTextAlpha(0),
-	m_gameStartTextAlphaDir(1)
+	m_gameStartTextAlphaDir(1),
+	m_skipLogo(skipLogo)
 {
     // タイトルロゴ画像を読み込む
     m_logoHandle = LoadGraph("data/image/TitleLogo.png");
@@ -74,8 +75,6 @@ void SceneTitle::Init()
 
 SceneBase* SceneTitle::Update()
 {
-
-
     // タイトルロゴのフェードイン処理
     if (!m_isFadeComplete)
     {

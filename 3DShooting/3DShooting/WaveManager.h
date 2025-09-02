@@ -15,21 +15,21 @@ class Player;
 // Waveデータの構造体
 struct WaveData
 {
-    int wave;              // Wave番号
-    std::string enemyType; // 敵の種類
-    int count;             // 出現数
-    float spawnInterval;   // 同じ敵タイプ内での出現間隔
-    float startTime;       // このエネミータイプの開始時間
-    float waveInterval;    // ウェーブ間インターバル
+	int wave = 0;            // ウェーブ番号
+    std::string enemyType;   // 敵の種類
+	int count = 0;           // 出現数
+	float spawnInterval = 0; // 出現間隔
+	float startTime     = 0; // 出現開始時間
+	float waveInterval  = 0; // ウェーブ間インターバル
 };
 
 // 敵の出現情報
 struct EnemySpawnInfo
 {
-	std::string enemyType; // 敵の種類
-	VECTOR spawnPos;       // 出現位置
-	float  spawnTime;      // 出現時間
-	bool   isSpawned;      // すでに出現したかどうか
+	std::string enemyType;    // 敵の種類
+	VECTOR spawnPos;          // 出現位置
+	float  spawnTime = 0;     // 出現時間
+	bool   isSpawned = false; // 出現済みフラグ
 };
 
 /// <summary>
