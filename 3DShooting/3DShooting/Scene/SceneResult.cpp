@@ -58,6 +58,7 @@ void SceneResult::Init()
     );
 
     m_isBGMStarted = false;
+
     // BGM再生（既に再生中でなければ）
     if (CheckSoundMem(m_bgmHandle) == 0)
     {
@@ -138,7 +139,7 @@ void SceneResult::Draw()
             int drawY = y * kBgImageSize + offsetY;
             DrawExtendGraph(drawX, drawY, 
                           drawX + kBgImageSize, drawY + kBgImageSize, 
-                          m_backgroundHandle, TRUE);
+                          m_backgroundHandle, true);
         }
     }
 
@@ -169,12 +170,14 @@ void SceneResult::Draw()
     DrawString(screenW * 0.5f - 100, y, "--- ハイスコア ---", 0xffff00);
     y += 24;
     const auto& scores = ScoreManager::Instance().GetHighScores();
-    for (int i = 0; i < 3 && i < (int)scores.size(); ++i) {
+    for (int i = 0; i < 3 && i < (int)scores.size(); ++i) 
+    {
         char highStr[64];
         sprintf_s(highStr, sizeof(highStr), "%d位: %d", i+1, scores[i]);
         DrawString(screenW * 0.5f - 100, y, highStr, 0xffffff);
         y += 22;
     }
+
     SetFontSize(16);
     // ボタン描画
     int btnY = screenH - 80;

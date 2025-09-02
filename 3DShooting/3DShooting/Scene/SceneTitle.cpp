@@ -147,7 +147,7 @@ SceneBase* SceneTitle::Update()
         }
         else
         {
-            m_sceneFadeAlpha = 255; // フェードイン完了
+            m_sceneFadeAlpha = 255;
             m_isSceneFadeIn  = true;
         }
         return this;

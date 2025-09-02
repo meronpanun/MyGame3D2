@@ -229,40 +229,42 @@ private:
 
 	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
 
+	int   m_initialAmmo;       // 初期弾薬数
+	int   m_modelHandle;       // プレイヤーモデルのハンドル
+	int   m_swordModelHandle;  // 剣モデルのハンドル
+	int   m_swordImageHandle;  // 剣のUI画像のハンドル
+	int   m_ammoImageHandle;   // 弾のハンドル
+	int   m_shootSEHandle;     // シュートのSEハンドル
+	int   m_playerHitSEHandle; // 被弾SEのハンドル
+	int   m_tackleSEHandle;    // タックルSEのハンドル
+	int   m_recoverySEHandle;  // 回復アイテムSEのハンドル
+	int   m_ammo;		       // プレイヤーの弾薬数	
+	int   m_tackleFrame;       // タックルのフレーム数
+	int   m_tackleCooldown;    // タックルのクールダウンタイマー
+	int   m_tackleId;          // タックルID
+	int   m_ammoItemSEHandle;  // 弾薬アイテムSEのハンドル
+
 	float m_animBlendRate; // アニメーションのブレンド率
 	float m_health;        // 現在の体力
 	float m_healthBarAnim; // HPバーのアニメーション用体力値
 	float m_healthBarAnimTimer; // HPバーアニメーション用タイマー
 	float m_jumpVelocity;  // ジャンプの速度
 	float m_maxHealth;     // 最大体力
-	float m_moveSpeed;    // 移動速度
+	float m_moveSpeed;     // 移動速度
 	float m_runSpeed;      // 走る速度
-	float m_bulletPower; // 弾の威力
-	float m_tackleCooldownMax; // タックルクールタイム
+	float m_bulletPower;   // 弾の威力
+	float m_tackleCooldownMax;  // タックルクールタイム
 	float m_tackleSpeed;        // タックル時の速度
 	float m_tackleDamage;       // タックルダメージ
-	float m_damageEffectTimer; // ダメージエフェクト用タイマー
-	float m_damageEffectAlpha; // ダメージエフェクト用アルファ値
-	float m_healEffectTimer;
-	float m_healEffectAlpha; // ヒールエフェクト用アルファ値
-	float m_ammoEffectTimer; // 弾薬エフェクト用タイマー
-	float m_ammoEffectAlpha; // 弾薬エフェクト用アルファ値
+	float m_damageEffectTimer;  // ダメージエフェクト用タイマー
+	float m_damageEffectAlpha;  // ダメージエフェクト用アルファ値
+	float m_healEffectTimer;    // ヒールエフェクト用タイマー	
+	float m_healEffectAlpha;    // ヒールエフェクト用アルファ値
+	float m_ammoEffectTimer;    // 弾薬エフェクト用タイマー
+	float m_ammoEffectAlpha;    // 弾薬エフェクト用アルファ値
 	float m_shootCooldown;      // 発射クールタイム
 	float m_shootCooldownTimer; // クールタイムタイマー
 	float m_shootRate;          // 1秒あたりの発射回数
-
-	int   m_initialAmmo;     // 初期弾薬数
-	int   m_modelHandle;    // プレイヤーモデルのハンドル
-	int   m_swordHandle;    // 剣のハンドル
-	int   m_shootSEHandle;  // シュートのSEハンドル
-	int   m_playerHitSEHandle;   // 被弾SEのハンドル
-	int   m_tackleSEHandle;      // タックルSEのハンドル
-	int   m_recoverySEHandle;   // 回復アイテムSEのハンドル
-	int   m_ammo;		    // プレイヤーの弾薬数	
-	int   m_tackleFrame;    // タックルのフレーム数
-	int   m_tackleCooldown; // タックルのクールダウンタイマー
-	int   m_tackleId;       // タックルID
-	int   m_ammoItemSEHandle;   // 弾薬アイテムSEのハンドル
 
 	bool  m_isMoving;	   // プレイヤーが移動中かどうか
 	bool  m_isJumping;	   // プレイヤーがジャンプ中かどうか

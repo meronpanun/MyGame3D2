@@ -76,7 +76,9 @@ namespace
 
 Player::Player() :
 	m_modelHandle(-1),
-	m_swordHandle(-1),
+	m_swordModelHandle(-1),
+	m_swordImageHandle(-1),
+	m_ammoImageHandle(-1),
 	m_shootSEHandle(-1),
 	m_playerHitSEHandle(-1),
 	m_tackleSEHandle(-1),
@@ -125,9 +127,17 @@ Player::Player() :
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
 	assert(m_modelHandle != -1);
 
-	// 剣の読み込み
-	m_swordHandle = MV1LoadModel("data/model/Sword.mv1");
-	assert(m_swordHandle != -1);
+	// 剣モデルの読み込み
+	m_swordModelHandle = MV1LoadModel("data/model/Sword.mv1");
+	assert(m_swordModelHandle != -1);
+
+	// 弾UI画像の読み込み
+	m_ammoImageHandle = LoadGraph("data/image/ammo.png");
+	assert(m_ammoImageHandle != -1);
+
+	// 剣UI画像の読み込み
+	m_swordImageHandle = LoadGraph("data/image/sword.png");
+	assert(m_swordImageHandle != -1);
 
 	// SEの読み込み
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
@@ -146,7 +156,13 @@ Player::~Player()
 {
 	// モデルの解放
 	MV1DeleteModel(m_modelHandle);
-	MV1DeleteModel(m_swordHandle);
+	MV1DeleteModel(m_swordModelHandle);
+
+	// 弾画像の解放
+	DeleteGraph(m_ammoImageHandle);
+
+	// 剣UI画像の解放
+	DeleteGraph(m_swordImageHandle);
 
 	// SEの解放
 	DeleteSoundMem(m_shootSEHandle);
@@ -488,14 +504,26 @@ void Player::Draw()
 
 	SetFontSize(ammoFontSize);
 
+	// ammo画像の描画
+	const int kAmmoImageTargetSize = 48; // 適切なサイズに調整
+	int ammoImageWidth = kAmmoImageTargetSize;
+	int ammoImageHeight = kAmmoImageTargetSize;
+
+	// 画像をテキストの左側に配置するためのX座標を計算
+	// テキストの開始位置から画像の幅と少しの余白を引く
+	int ammoImageX = ammoX - ammoImageWidth - 10; // 10は余白
+	int ammoImageY = ammoY + (ammoFontSize - ammoImageHeight) * 0.5f; // テキストと画像を中央揃え
+
+	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + ammoImageWidth, ammoImageY + ammoImageHeight, m_ammoImageHandle, true);
+
 	// 弾薬無限モードの場合は「∞」を表示
 	if (m_isInfiniteAmmo)
 	{
-		DrawFormatString(ammoX, ammoY, 0xffff50, "AMMO: ∞");
+		DrawFormatString(ammoX, ammoY, 0xffff50, "∞");
 	}
 	else
 	{
-		DrawFormatString(ammoX, ammoY, 0xffff50, "AMMO: %d", m_ammo);
+		DrawFormatString(ammoX, ammoY, 0xffff50, "%d", m_ammo);
 	}
 
 	SetFontSize(16); // フォントサイズを元に戻す
@@ -568,9 +596,9 @@ void Player::Draw()
 		}
 
 		// モデルに最終的な変換行列を適用
-		MV1SetMatrix(m_swordHandle, finalMatrix);
-		MV1SetScale(m_swordHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg));
-		MV1DrawModel(m_swordHandle);
+		MV1SetMatrix(m_swordModelHandle, finalMatrix);
+		MV1SetScale(m_swordModelHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg));
+		MV1DrawModel(m_swordModelHandle);
 	}
 
 	// メインカメラに戻す
@@ -586,16 +614,18 @@ void Player::Draw()
 	int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
 	DrawBox(kTackleGaugeX, kTackleGaugeY, kTackleGaugeX + tackleFilledWidth, kTackleGaugeY + kTackleGaugeHeight, 0x50B4ff, true);
 
-	// テキスト
-	DrawFormatString(kTackleGaugeX, kTackleGaugeY - 18, 0xFFFFFF, "Tackle Cooldown");
-	if (m_tackleCooldown > 0) 
-	{
-		DrawFormatString(kTackleGaugeX + kTackleGaugeWidth + 10, kTackleGaugeY, 0xFF8080, "WAIT");
-	}
-	else 
-	{
-		DrawFormatString(kTackleGaugeX + kTackleGaugeWidth + 10, kTackleGaugeY, 0x80FF80, "READY");
-	}
+	// 剣の画像を描画
+	const int kSwordImageWidth = 64; // 調整後の幅
+	const int kSwordImageHeight = 96; // 調整後の高さ (アスペクト比維持)
+
+	int swordImageX = kTackleGaugeX + kTackleGaugeWidth + 10; // ゲージの右側に配置
+	int swordImageY = kTackleGaugeY + (kTackleGaugeHeight - kSwordImageHeight) / 2; // ゲージと中央揃え
+
+	// クールダウン中は半透明、準備完了時は不透明
+	int alpha = (m_tackleCooldown > 0) ? 128 : 255;
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+	DrawExtendGraph(swordImageX, swordImageY, swordImageX + kSwordImageWidth, swordImageY + kSwordImageHeight, m_swordImageHandle, true);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
 
 	// HPバーのパラメータ
     const int barWidth  = 200;
@@ -638,13 +668,13 @@ void Player::Draw()
     // HP数値
     DrawFormatString(barX + 8, barY + 2, 0xffffff, "HP: %.0f / %.0f", hp, maxHP);
 
-	// ダメージエフェクト描画（赤）
+	// ダメージエフェクト描画
 	DrawEffectFeedback(m_damageEffect);
 
-	// 回復エフェクト描画(緑)
+	// 回復エフェクト描画
 	DrawEffectFeedback(m_healEffect);
 
-    // 弾薬エフェクト描画(オレンジ)
+    // 弾薬エフェクト描画
     DrawEffectFeedback(m_ammoEffect);
 
 	// タックル中は集中線エフェクトを描画
@@ -822,7 +852,6 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 
     // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
     bullets.emplace_back(spawnPos, cameraForward, m_bulletPower);
-    //bullets.emplace_back(gunPos, gunDir, m_bulletPower);
 
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();
