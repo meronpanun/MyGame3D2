@@ -84,22 +84,20 @@ void EnemyAcid::Init()
     m_isItemDropped = false;
 
     // CSVからAcidEnemyのTransform情報を取得
+    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+    for (const auto& data : dataList)
     {
-        auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-        for (const auto& data : dataList)
-        {
-            if (data.name == "AcidEnemy")
-            {
-                MV1SetRotationXYZ(m_modelHandle, data.rot);
-                MV1SetScale(m_modelHandle, data.scale);
-                m_attackPower = data.attack;
-                m_hp = data.hp;
-                m_chaseSpeed = data.chaseSpeed;
-                break;
-            }
-        }
+       if (data.name == "AcidEnemy")
+       {
+           MV1SetRotationXYZ(m_modelHandle, data.rot);
+           MV1SetScale(m_modelHandle, data.scale);
+           m_attackPower = data.attack;
+           m_hp = data.hp;
+           m_chaseSpeed = data.chaseSpeed;
+           break;
+       }
     }
-
+    
     // ここで一度「絶対にRunでない値」にリセット
     m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため
 
@@ -269,8 +267,8 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
     VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
 
-    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight / 2.0f, 0));
-    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight / 2.0f, 0));
+    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight * 0.5f, 0));
+    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight * 0.5f, 0));
     m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
     m_pBodyCollider->SetRadius(::kBodyColliderRadius);
 
@@ -544,8 +542,8 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
     VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
 
-    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight / 2.0f, 0));
-    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight / 2.0f, 0));
+    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight * 0.5f, 0));
+    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight * 0.5f, 0));
     m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
     m_pBodyCollider->SetRadius(::kBodyColliderRadius);
 
@@ -587,19 +585,15 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
 
 float EnemyAcid::CalcDamage(float bulletDamage, HitPart part) const
 {
-    float damage = bulletDamage;
-    switch (part)
+    if (part == HitPart::Head)
     {
-    case HitPart::Head:
-        damage *= 2.0f; // ヘッドショットは2倍ダメージ
-        break;
-    case HitPart::Body:
-        damage *= 1.0f; // ボディは等倍ダメージ
-        break;
-    default:
-        break;
+        return bulletDamage * 2.0f; // ヘッドショットは2倍ダメージ
     }
-    return damage;
+    else if (part == HitPart::Body)
+    {
+        return bulletDamage; // ボディショットは通常のダメージ
+    }
+    return 0.0f;
 }
 
 void EnemyAcid::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
@@ -634,5 +628,4 @@ void EnemyAcid::TakeDamage(float damage)
 void EnemyAcid::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);
-    // 体ヒット表示や他の処理は既存のまま
 }

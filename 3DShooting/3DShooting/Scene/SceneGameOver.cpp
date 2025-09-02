@@ -7,11 +7,11 @@
 
 namespace
 {
-    constexpr int kButtonWidth = 220;
-    constexpr int kButtonHeight = 60;
-    constexpr int kButtonSpacing = 40;
+	constexpr int kButtonWidth   = 220;  // ボタンの幅
+	constexpr int kButtonHeight  = 60;   // ボタンの高さ
+	constexpr int kButtonSpacing = 40;   // ボタン間のスペース
+    constexpr int kBgImageSize   = 1024; // 背景画像のサイズ
     constexpr float kScrollSpeed = 1.0f; // 背景のスクロール速度
-    constexpr int kBgImageSize = 1024;   // 背景画像のサイズ
 }
 
 SceneGameOver::SceneGameOver(int wave, int killCount, int score) : 
@@ -40,6 +40,7 @@ SceneGameOver::~SceneGameOver()
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
     DeleteSoundMem(m_returnSEHandle);
+
     // 背景画像の解放
     DeleteGraph(m_backgroundHandle);
 }
@@ -54,6 +55,7 @@ void SceneGameOver::Init()
     ScoreManager::Instance().SetTargetDisplayScore(ScoreManager::Instance().GetTotalScore());
 
     m_isBGMStarted = false;
+
     // BGM再生（既に再生中でなければ）
     if (CheckSoundMem(m_bgmHandle) == 0)
     {
@@ -77,8 +79,8 @@ SceneBase* SceneGameOver::Update()
     {
         int screenW, screenH;
         GetScreenState(&screenW, &screenH, nullptr);
-        int centerX = screenW / 2;
-        int baseY = screenH / 2 + 180;
+        int centerX = screenW * 0.5f;
+        int baseY = screenH * 0.5f + 180;
         // タイトルに戻るボタン
         int titleBtnX1 = centerX - kButtonWidth - kButtonSpacing/2;
         int titleBtnY1 = baseY;
@@ -136,21 +138,21 @@ void SceneGameOver::Draw()
     }
 
     SetFontSize(48);
-    DrawString(screenW / 2 - 200, screenH / 2 - 100, "Game Over", 0xff0000);
+    DrawString(screenW / 2 - 200, screenH * 0.5f - 100, "Game Over", 0xff0000);
     SetFontSize(36);
     char waveStr[64];
     sprintf_s(waveStr, sizeof(waveStr), "到達ウェーブ: %d", m_wave);
-    DrawString(screenW / 2 - 150, screenH / 2 - 20, waveStr, 0xffffff);
+    DrawString(screenW * 0.5f - 150, screenH * 0.5f - 20, waveStr, 0xffffff);
     char killStr[64];
     sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", m_killCount);
-    DrawString(screenW / 2 - 150, screenH / 2 + 20, killStr, 0xffffff);
+    DrawString(screenW * 0.5f - 150, screenH * 0.5f + 20, killStr, 0xffffff);
     char scoreStr[64];
     sprintf_s(scoreStr, sizeof(scoreStr), "スコア: %d", ScoreManager::Instance().GetDisplayScore());
-    DrawString(screenW / 2 - 150, screenH / 2 + 60, scoreStr, 0xffffff);
+    DrawString(screenW * 0.5f - 150, screenH * 0.5f + 60, scoreStr, 0xffffff);
     SetFontSize(16);
     // ボタン描画
-    int centerX = screenW / 2;
-    int baseY = screenH / 2 + 180;
+    int centerX = screenW * 0.5f;
+    int baseY = screenH * 0.5f + 180;
     int titleBtnX1 = centerX - kButtonWidth - kButtonSpacing/2;
     int titleBtnY1 = baseY;
     int titleBtnX2 = centerX - kButtonSpacing/2;

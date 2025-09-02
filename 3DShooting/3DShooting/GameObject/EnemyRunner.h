@@ -56,7 +56,16 @@ public:
 	/// <param name="cb">コールバック関数</param>
 	void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
+	/// <summary>
+	/// モデルハンドルを設定する
+	/// </summary>
+	/// <param name="handle">モデルハンドル</param>
 	void SetModelHandle(int handle);
+
+	/// <summary>
+	/// モデルハンドルを取得する
+	/// </summary>
+	/// <returns>モデルハンドル</returns>
 	int GetModelHandle() const { return m_modelHandle; }
 
 	// ダメージ処理
@@ -64,8 +73,18 @@ public:
 	void TakeTackleDamage(float damage) override;
 
 private:
-	void ChangeAnimation(AnimState newAnimState, bool loop); // アニメーション切り替え関数
+	/// <summary>
+	/// アニメーションを変更する
+	/// </summary>
+	/// <param name="newAnimState">新しいアニメーション状態</param>
+	/// <param name="loop">ループ再生するかどうか</param>
+	void ChangeAnimation(AnimState newAnimState, bool loop);
 
+	/// <summary>
+	/// プレイヤーに攻撃可能かどうかを判定
+	/// </summary>
+	/// <param name="player">プレイヤーオブジェクト</param>
+	/// <returns>攻撃可能ならtrue</returns>
 	bool CanAttackPlayer(const Player& player);
 
 private:
@@ -89,7 +108,7 @@ private:
 	float m_chaseSpeed; // 追跡速度
 
 	bool m_isTackleHit;		  // 1フレームで複数回ダメージを受けないためのフラグ
-	bool m_hasAttackHit;	  // 攻撃がヒットしたかどうか
+	bool m_isAttackHit;	      // 攻撃がヒットしたかどうか
 	bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-	bool m_isItemDropped = false; // アイテムドロップ済みフラグ
+	bool m_isItemDropped;     // アイテムドロップ済みフラグ
 };

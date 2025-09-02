@@ -116,8 +116,8 @@ void SceneManager::Update()
 			SetFontSize(48);
 			const char* loadingText = "Now Loading...";
 			int textWidth = GetDrawStringWidth(loadingText, 12);
-			int textX = (screenW - textWidth) / 2;
-			int textY = screenH / 2 - 30;
+			int textX = (screenW - textWidth) * 0.5f;
+			int textY = screenH * 0.5f - 30;
 			DrawString(textX, textY, loadingText, 0xffffff);
 			
 			SetFontSize(16);

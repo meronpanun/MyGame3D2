@@ -29,12 +29,12 @@ private:
 
 	int m_modelHandle; // モデルハンドル
 
-	float m_radius;
+	float m_radius;    // 半径
 	float m_velocityY; // 落下速度
 	float m_rotY;      // Y軸回転角度
 
-	bool m_isHit;
-	bool m_isUsed; // アイテムが使用されたかどうか
+	bool m_isHit;      // プレイヤーと接触したかどうか
+	bool m_isUsed;     // アイテムが使用されたかどうか
 	bool m_isDropping; // 落下中かどうか
 };
 

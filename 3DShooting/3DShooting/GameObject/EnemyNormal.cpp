@@ -44,7 +44,7 @@ EnemyNormal::EnemyNormal() :
     m_isTackleHit(false),
     m_lastTackleId(-1),
     m_animTime(0.0f),
-    m_hasAttackHit(false),
+    m_isAttackHit(false),
     m_onDropItem(nullptr),
     m_currentAnimState(AnimState::Walk),
     m_attackEndDelayTimer(0),
@@ -270,7 +270,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             --m_attackEndDelayTimer;
             if (m_attackEndDelayTimer == 0)
             {
-                m_hasAttackHit = false; // 攻撃ヒットフラグをリセット
+                m_isAttackHit = false; // 攻撃ヒットフラグをリセット
                 if (isPlayerInAttackRange)
                 {
                     ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
@@ -291,7 +291,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
         if (CanAttackPlayer(player))
         {
-            m_hasAttackHit = false;
+            m_isAttackHit = false;
             ChangeAnimation(AnimState::Attack, false);
         }
     }
@@ -418,7 +418,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         float attackEnd = currentAnimTotalTime * 0.7f;   // 攻撃終了時間
 
 		// 攻撃アニメーションの範囲内でのみ攻撃判定を行う
-        if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+        if (!m_isAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
         {
             int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
             int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
@@ -434,7 +434,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
                 if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
                 {
                     const_cast<Player&>(player).TakeDamage(m_attackPower); // プレイヤーにダメージ
-                    m_hasAttackHit = true;
+                    m_isAttackHit = true;
                 }
             }
         }
@@ -607,5 +607,4 @@ void EnemyNormal::TakeDamage(float damage)
 void EnemyNormal::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);
-    // 体ヒット表示や他の処理は既存のまま
 }

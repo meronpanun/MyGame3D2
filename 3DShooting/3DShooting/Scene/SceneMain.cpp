@@ -500,7 +500,7 @@ void SceneMain::Draw()
             // 射撃達成時は射撃画像の右側にチェック
             if (shotCleared && checkImg >= 0)
             {
-                DrawExtendGraph(imgBaseX + newWidth + 10, shotY + newHeight / 2 - checkSize / 2, imgBaseX + newWidth + 10 + checkSize, shotY + newHeight / 2 + checkSize / 2, checkImg, true);
+                DrawExtendGraph(imgBaseX + newWidth + 10, shotY + newHeight * 0.5f - checkSize * 0.5f, imgBaseX + newWidth + 10 + checkSize, shotY + newHeight * 0.5f + checkSize * 0.5f, checkImg, true);
             }
             
             // Tackle画像
@@ -512,7 +512,7 @@ void SceneMain::Draw()
             // タックル達成時はタックル画像の右側にチェック
             if (tackleCleared && checkImg >= 0)
             {
-                DrawExtendGraph(imgBaseX + newWidth + 10, tackleY + newHeight / 2 - checkSize / 2, imgBaseX + newWidth + 10 + checkSize, tackleY + newHeight / 2 + checkSize / 2, checkImg, true);
+                DrawExtendGraph(imgBaseX + newWidth + 10, tackleY + newHeight * 0.5f - checkSize * 0.5f, imgBaseX + newWidth + 10 + checkSize, tackleY + newHeight * 0.5f + checkSize * 0.5f, checkImg, true);
             }
         }
     }

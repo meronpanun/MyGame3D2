@@ -42,12 +42,13 @@ EnemyRunner::EnemyRunner() :
 	m_isTackleHit(false),
 	m_lastTackleId(-1),
 	m_animTime(0.0f),
-	m_hasAttackHit(false),
+	m_isAttackHit(false),
 	m_onDropItem(nullptr),
 	m_currentAnimState(AnimState::Run),
 	m_attackEndDelayTimer(0),
 	m_isDeadAnimPlaying(false),
-	m_chaseSpeed(kChaseSpeed)
+	m_chaseSpeed(kChaseSpeed),
+	m_isItemDropped(false)
 {
 	// モデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/RunnerZombie.mv1");
@@ -70,9 +71,6 @@ void EnemyRunner::Init()
 {
     m_attackCooldownMax = kAttackCooldownMax;
     m_isAlive           = true;
-    m_isDeadAnimPlaying = false;
-    m_isItemDropped     = false;
-    m_hasAttackHit      = false;
 
     // CSVからRunnerEnemyのTransform情報を取得
     auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -259,7 +257,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 			--m_attackEndDelayTimer;
 			if (m_attackEndDelayTimer == 0)
 			{
-				m_hasAttackHit = false;
+				m_isAttackHit = false;
 				if (isPlayerInAttackRange)
 				{
 					ChangeAnimation(AnimState::Attack, false);
@@ -280,7 +278,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		// 攻撃が届くまでRunを維持し、届いたらAttackに遷移
 		if (CanAttackPlayer(player))
 		{
-			m_hasAttackHit = false;
+			m_isAttackHit = false;
 			ChangeAnimation(AnimState::Attack, false);
 		}
 	}
@@ -365,8 +363,9 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		}
 	}
 
-    // 敵同士の押し出し処理（簡略版）
-    for (EnemyBase* other : enemyList) {
+    // 敵同士の押し出し処理
+    for (EnemyBase* other : enemyList) 
+	{
         if (!other || other == this) continue;
 
         VECTOR otherPos = other->GetPos();
@@ -375,7 +374,8 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         float distSq = VDot(diff, diff);
         float minDist = kBodyColliderRadius * 2.0f;
 
-        if (distSq < minDist * minDist && distSq > 0.0001f) {
+        if (distSq < minDist * minDist && distSq > 0.0001f) 
+		{
             float dist = std::sqrt(distSq);
             float pushBack = (minDist - dist) * 0.5f; // 押し出す量を半分にする
             VECTOR pushDir = VNorm(diff);
@@ -388,7 +388,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kAttackAnimName);
 		float attackStart = currentAnimTotalTime * 0.5f;
 		float attackEnd = currentAnimTotalTime * 0.7f;
-		if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+		if (!m_isAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
 		{
 			// ここをLeftHandとRightHandに変更
 			int handRIndex = MV1SearchFrame(m_modelHandle, "mixamorig:RightHand");
@@ -404,7 +404,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 				if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
 				{
 					const_cast<Player&>(player).TakeDamage(m_attackPower);
-					m_hasAttackHit = true;
+					m_isAttackHit = true;
 				}
 			}
 		}
@@ -537,7 +537,7 @@ float EnemyRunner::CalcDamage(float bulletDamage, HitPart part) const
 {
 	if (part == HitPart::Head)
 	{
-		return bulletDamage * 2.5f; // Runnerはヘッドショット倍率を少し高めに
+		return bulletDamage * 2.0f; 
 	}
 	else if (part == HitPart::Body)
 	{
@@ -578,5 +578,4 @@ void EnemyRunner::TakeDamage(float damage)
 void EnemyRunner::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);
-    // 体ヒット表示や他の処理は既存のまま
 }

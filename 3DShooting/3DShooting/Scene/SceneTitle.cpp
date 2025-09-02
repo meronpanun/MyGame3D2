@@ -174,7 +174,7 @@ SceneBase* SceneTitle::Update()
         {
             // BGMを停止
             StopSoundMem(m_bgmHandle);
-            PlaySoundMem(m_confirmSEHandle, DX_PLAYTYPE_BACK); // 決定ボタンSE再生
+            PlaySoundMem(m_confirmSEHandle, DX_PLAYTYPE_BACK);
             return new SceneMain();
         }
         //// マウスがオプションボタンとパネルを囲む背景の範囲内にあるかチェック
@@ -231,8 +231,8 @@ void SceneTitle::Draw()
         const char* buttonText = "START";
         int textWidth = GetDrawStringWidth(buttonText, static_cast<int>(strlen(buttonText)));
         int textX = static_cast<int>((kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f);
-        int textY = static_cast<int>((kStartButtonY1 + kStartButtonY2) * 0.5f) - 10; // テキストの高さを調整
-        DrawString(textX, textY, buttonText, 0x000000); // テキスト色は黒
+        int textY = static_cast<int>((kStartButtonY1 + kStartButtonY2) * 0.5f) - 10;
+        DrawString(textX, textY, buttonText, 0x000000);
     }
 }
 

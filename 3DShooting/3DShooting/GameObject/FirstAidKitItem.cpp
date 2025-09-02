@@ -41,8 +41,6 @@ FirstAidKitItem::~FirstAidKitItem()
 
 void FirstAidKitItem::Init()
 {
-	m_isDropping = true;
-	m_velocityY = 0.0f;
 	m_collider.SetCenter(m_pos);
 	m_collider.SetRadius(m_radius);
 

@@ -154,7 +154,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
 
         if (!item.isOpen)  // 閉じた状態の場合、右向きに回転
         {
-            rotationAngle = -DX_PI_F / 2.0f; // 90度時計回り
+            rotationAngle = -DX_PI_F * 0.5f; // 90度時計回り
         }
 
         // 文字のサイズを取得して、回転の中心と描画位置を調整

@@ -8,11 +8,11 @@
 
 namespace
 {
-    constexpr int kButtonWidth = 220;
-    constexpr int kButtonHeight = 60;
-    constexpr int kButtonSpacing = 40;
+	constexpr int kButtonWidth   = 220;  // ボタンの幅
+	constexpr int kButtonHeight  = 60;   // ボタンの高さ
+	constexpr int kButtonSpacing = 40;   // ボタン間のスペース
+    constexpr int kBgImageSize   = 1024; // 背景画像のサイズ
     constexpr float kScrollSpeed = 1.0f; // 背景のスクロール速度
-    constexpr int kBgImageSize = 1024;   // 背景画像のサイズ
 }
 
 SceneResult::SceneResult() :
@@ -85,7 +85,7 @@ SceneBase* SceneResult::Update()
         int btnW = 120;
         int btnH = 36;
         int btnSpacing = 24;
-        int centerX = screenW / 2;
+        int centerX = screenW * 0.5f;
         // タイトルボタン
         int titleBtnX1 = centerX - btnW - btnSpacing/2;
         int titleBtnY1 = btnY;
@@ -144,35 +144,35 @@ void SceneResult::Draw()
 
     // タイトル
     SetFontSize(32);
-    DrawString(screenW / 2 - 100, 30, "ゲームクリア！", 0x00ff00);
+    DrawString(screenW * 0.5f - 100, 30, "ゲームクリア！", 0x00ff00);
     SetFontSize(20);
     int y = 80;
 
     char scoreStr[64];
     sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア: %d", ScoreManager::Instance().GetDisplayTotalScore());
-    DrawString(screenW / 2 - 100, y, scoreStr, 0xffffff);
+    DrawString(screenW * 0.5f - 100, y, scoreStr, 0xffffff);
     y += 28;
 
     int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
     char killStr[64];
     sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", killCount);
-    DrawString(screenW / 2 - 100, y, killStr, 0xffffff);
+    DrawString(screenW * 0.5f - 100, y, killStr, 0xffffff);
     y += 28;
 
     char timeStr[64];
     sprintf_s(timeStr, sizeof(timeStr), "クリアタイム: %.1f秒", SceneMain::GetElapsedTime());
-    DrawString(screenW / 2 - 100, y, timeStr, 0xffffff);
+    DrawString(screenW * 0.5f - 100, y, timeStr, 0xffffff);
     y += 36;
 
     // ハイスコア表示
     SetFontSize(18);
-    DrawString(screenW / 2 - 100, y, "--- ハイスコア ---", 0xffff00);
+    DrawString(screenW * 0.5f - 100, y, "--- ハイスコア ---", 0xffff00);
     y += 24;
     const auto& scores = ScoreManager::Instance().GetHighScores();
     for (int i = 0; i < 3 && i < (int)scores.size(); ++i) {
         char highStr[64];
         sprintf_s(highStr, sizeof(highStr), "%d位: %d", i+1, scores[i]);
-        DrawString(screenW / 2 - 100, y, highStr, 0xffffff);
+        DrawString(screenW * 0.5f - 100, y, highStr, 0xffffff);
         y += 22;
     }
     SetFontSize(16);
@@ -181,7 +181,7 @@ void SceneResult::Draw()
     int btnW = 120;
     int btnH = 36;
     int btnSpacing = 24;
-    int centerX = screenW / 2;
+    int centerX = screenW * 0.5f;
     // タイトルボタン
     int titleBtnX1 = centerX - btnW - btnSpacing/2;
     int titleBtnY1 = btnY;
