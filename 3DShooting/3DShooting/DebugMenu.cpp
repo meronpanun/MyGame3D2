@@ -52,32 +52,32 @@ DebugMenu::DebugMenu()
             }, []() {
                 return SceneMain::s_isSkipTutorial ? "[ON]" : "[OFF]";
             }},
-            {"Go to Title", {}, []() {
+            {"TitleScene", {}, []() {
                 if (Game::m_pSceneManager)
                 {
                     Game::m_pSceneManager->RequestChangeScene(new SceneTitle(false));
                 }
             }},
-            {"Go to Main", {}, []() {
+            {"MainScene", {}, []() {
                 if (Game::m_pSceneManager)
                 {
                     Game::m_pSceneManager->RequestChangeScene(new SceneMain(false));
                 }
             }},
-            {"Go to Result", {}, []() {
+            {"ResultScene", {}, []() {
                 if (Game::m_pSceneManager)
                 {
                     Game::m_pSceneManager->RequestChangeScene(new SceneResult());
                 }
             }},
-            {"Go to Option", {}, []() {
+            {"OptionScene", {}, []() {
                 if (Game::m_pSceneManager)
                 {
                     // オプション画面は現在のシーンを引数に取るが、デバッグ遷移なのでnullptrを渡す
                     Game::m_pSceneManager->RequestChangeScene(new SceneOption(nullptr));
                 }
             }},
-            {"Go to Game Over", {}, []() {
+            {"GameOverScene", {}, []() {
                 if (Game::m_pSceneManager)
                 {
                     // ゲームオーバー画面はwave, killCount, scoreを引数に取るので、適当な値を渡す

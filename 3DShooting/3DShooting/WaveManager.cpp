@@ -534,7 +534,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         pPooled->SetActive(true);
         pPooled->Init();
         if (enemyData) pPooled->SetHp(enemyData->hp);
-        pPooled->SetPos(spawnPos); // Initの後にSetPos
+        pPooled->SetPos(spawnPos);
         pEnemy = pPooled;
     }
     else if (enemyType == "RunnerEnemy")
@@ -663,8 +663,14 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
     m_isWaveActive = true;
 
     // ウェーブ1の敵ロードフラグ
-    if (m_currentWave == 1) m_isWave1Loaded = true;
-    else m_isWave1Loaded = false;
+    if (m_currentWave == 1)
+    {
+        m_isWave1Loaded = true;
+    }
+    else
+    {
+        m_isWave1Loaded = false;
+    }
 
     printf("Starting Wave %d\n", m_currentWave);
 
@@ -678,7 +684,7 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
         }
     }
 
-    printf("Found %d enemy types for Wave %d\n", static_cast<int>(currentWaveData.size()), m_currentWave);
+     printf("Found %d enemy types for Wave %d\n", static_cast<int>(currentWaveData.size()), m_currentWave);
 
     // 出現情報を作成
     for (const WaveData& waveData : currentWaveData)

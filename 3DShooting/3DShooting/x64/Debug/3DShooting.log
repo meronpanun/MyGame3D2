@@ -1,31 +1,15 @@
-﻿  EnemyNormal.cpp
-  EnemyRunner.cpp
-  FirstAidKitItem.cpp
-  Player.cpp
-  SceneMain.cpp
-  WaveManager.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\FirstAidKitItem.cpp(72,37): warning C4305: '-=': 'double' から 'float' へ切り詰めます。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(290,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(660,17): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(661,17): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(739,21): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(740,21): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(83,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(84,31): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
+﻿  WaveManager.cpp
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(143,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(151,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(159,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(358,15): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(522,64): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(522,30): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(534,25): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244: '初期化中': '_Rep' から 'unsigned int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:         with
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:         [
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:             _Rep=std::chrono::system_clock::rep
 C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:         ]
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(786,26): warning C4477: 'sprintf_s' : 書式文字列 '%d' には、型 'int' の引数が必要ですが、可変個引数 2 は型 'unsigned __int64' です
-      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(786,26):
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(792,26): warning C4477: 'sprintf_s' : 書式文字列 '%d' には、型 'int' の引数が必要ですが、可変個引数 2 は型 'unsigned __int64' です
+      C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(792,26):
       書式文字列に '%zd' を使用することをお勧めします
   
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe
