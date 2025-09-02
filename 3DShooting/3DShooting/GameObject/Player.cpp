@@ -150,6 +150,13 @@ Player::Player() :
 	assert(m_recoverySEHandle != -1);
 	m_ammoItemSEHandle = LoadSoundMem("data/sound/SE/AmmoItem.mp3");
 	assert(m_ammoItemSEHandle != -1);
+
+    // フォントの作成
+    m_fontHandle = CreateFontToHandle("Arial Black", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_fontHandle != -1);
+
+    m_hpFontHandle = CreateFontToHandle("Arial Black", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_hpFontHandle != -1);
 }
 
 Player::~Player()
@@ -170,6 +177,10 @@ Player::~Player()
 	DeleteSoundMem(m_tackleSEHandle);
 	DeleteSoundMem(m_recoverySEHandle);
 	DeleteSoundMem(m_ammoItemSEHandle);
+
+    // フォントの解放
+    DeleteFontToHandle(m_fontHandle);
+    DeleteFontToHandle(m_hpFontHandle);
 }
 
 void Player::Init()
@@ -498,11 +509,8 @@ void Player::Draw()
 	GetScreenState(&screenW, &screenH, NULL);
 
 	// 残弾数の表示
-	int ammoFontSize = 32;
 	int ammoX = screenW - 200;
 	int ammoY = screenH - 60;
-
-	SetFontSize(ammoFontSize);
 
 	// ammo画像の描画
 	const int kAmmoImageTargetSize = 48; // 適切なサイズに調整
@@ -512,21 +520,19 @@ void Player::Draw()
 	// 画像をテキストの左側に配置するためのX座標を計算
 	// テキストの開始位置から画像の幅と少しの余白を引く
 	int ammoImageX = ammoX - ammoImageWidth - 10; // 10は余白
-	int ammoImageY = ammoY + (ammoFontSize - ammoImageHeight) * 0.5f; // テキストと画像を中央揃え
+	int ammoImageY = ammoY + (32 - ammoImageHeight) * 0.5f; // テキストと画像を中央揃え (32 is font size)
 
 	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + ammoImageWidth, ammoImageY + ammoImageHeight, m_ammoImageHandle, true);
 
 	// 弾薬無限モードの場合は「∞」を表示
 	if (m_isInfiniteAmmo)
 	{
-		DrawFormatString(ammoX, ammoY, 0xffff50, "∞");
+		DrawFormatStringToHandle(ammoX, ammoY, 0xffff50, m_fontHandle, "∞");
 	}
 	else
 	{
-		DrawFormatString(ammoX, ammoY, 0xffff50, "%d", m_ammo);
+		DrawFormatStringToHandle(ammoX, ammoY, 0xffff50, m_fontHandle, "%d", m_ammo);
 	}
-
-	SetFontSize(16); // フォントサイズを元に戻す
 
 	/*剣の描画*/
 	// 画面サイズに応じてスケーリング
@@ -666,7 +672,7 @@ void Player::Draw()
     DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x000000, false);
 
     // HP数値
-    DrawFormatString(barX + 8, barY + 2, 0xffffff, "HP: %.0f / %.0f", hp, maxHP);
+    DrawFormatStringToHandle(barX + 8, barY + 2, 0xffffff, m_hpFontHandle, "HP: %.0f / %.0f", hp, maxHP);
 
 	// ダメージエフェクト描画
 	DrawEffectFeedback(m_damageEffect);

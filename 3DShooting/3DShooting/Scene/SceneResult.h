@@ -19,6 +19,12 @@ private:
     int m_returnSEHandle;   // 戻るボタンSEのハンドル
     int m_bgmHandle;        // ゲームクリアBGMのハンドル
 
+    int m_japaneseFontHandle; // 日本語フォントハンドル
+    int m_arialBlackFontHandle; // Arial Blackフォントハンドル
+    int m_arialBlackLargeFontHandle; // Arial Blackラージフォントハンドル
+    int m_japaneseLargeFontHandle; // 日本語ラージフォントハンドル
+    int m_japaneseButtonFontHandle; // 日本語ボタンフォントハンドル
+
     float m_scrollX;        // 背景のスクロールX座標
     float m_scrollY;        // 背景のスクロールY座標
 

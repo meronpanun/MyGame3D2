@@ -231,6 +231,8 @@ private:
 
 	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
 
+	int   m_fontHandle;        // フォントハンドル
+	int   m_hpFontHandle;      // HPフォントハンドル
 	int   m_initialAmmo;       // 初期弾薬数
 	int   m_modelHandle;       // プレイヤーモデルのハンドル
 	int   m_swordModelHandle;  // 剣モデルのハンドル

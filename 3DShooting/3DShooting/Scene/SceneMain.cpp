@@ -113,9 +113,16 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_isBGMStarted(false),
     m_isLoading(true),  
 	m_isReturningFromOtherScene(isReturningFromOtherScene),
-	m_clearSceneDelayTimer(-1)
+	m_clearSceneDelayTimer(-1),
+	m_scoreFontHandle(-1)
 {
+    {
     g_sceneMainInstance = this;
+
+    // スコアポップアップ用フォントの作成
+    m_scoreFontHandle = CreateFontToHandle("Abadi MT", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_scoreFontHandle != -1);
+}
 }
 
 SceneMain::~SceneMain()
@@ -126,6 +133,9 @@ SceneMain::~SceneMain()
 
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
+
+    // フォントの解放
+    DeleteFontToHandle(m_scoreFontHandle);
 }
 
 void SceneMain::Init()
@@ -572,11 +582,11 @@ void SceneMain::Draw()
             float lastComboRate = ScoreManager::Instance().GetLastComboRate();
             if (lastComboRate > 1.0f)
             {
-                DrawFormatString(popupBaseX, popupBaseY, 0x00ffcc, "%d *%.2f", m_lastTotalScorePopupValue, lastComboRate);
+                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFontHandle, "%d ×%.2f", m_lastTotalScorePopupValue, lastComboRate);
             }
             else 
             {
-                DrawFormatString(popupBaseX, popupBaseY, 0x00ffcc, "%d", m_lastTotalScorePopupValue);
+                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFontHandle, "%d", m_lastTotalScorePopupValue);
             }
         }
         else if (showScorePopup) 
@@ -584,11 +594,11 @@ void SceneMain::Draw()
             // 合計スコア
             if (lastComboRate > 1.0f) 
             {
-                DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0x00ffcc, "%d *%.2f", comboScore, lastComboRate);
+                DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0x00ffcc, m_scoreFontHandle, "%d ×%.2f", comboScore, lastComboRate);
             }
             else 
             {
-                DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0x00ffcc, "%d", comboScore);
+                DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0x00ffcc, m_scoreFontHandle, "%d", comboScore);
             }
             idx++;
             int lastIsHeadShot = -1;
@@ -598,11 +608,11 @@ void SceneMain::Draw()
                 {
                     if (popup.isHeadShot) 
                     {
-                        DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffe000, "%dpt ヘッドショットキル*%d", 200, displayCombo);
+                        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffe000, m_scoreFontHandle, "%dpt ヘッドショットキル×%d", 200, displayCombo);
                     }
                     else 
                     {
-                        DrawFormatString(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffffff, "%dpt ゾンビキル*%d", 100, displayCombo);
+                        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffffff, m_scoreFontHandle, "%dpt ゾンビキル×%d", 100, displayCombo);
                     }
                     idx++;
                 }

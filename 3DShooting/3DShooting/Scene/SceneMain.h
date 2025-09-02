@@ -108,6 +108,7 @@ private:
 	int m_totalScorePopupTimer; // 合計スコア表示用タイマー
 	int m_lastTotalScorePopupValue; // 合計スコアポップアップ用の一時保存値
 
+	int m_scoreFontHandle; // スコアポップアップ用フォントハンドル
 	static float s_elapsedTime;
 
 	int m_bgmHandle;       // ゲームシーンBGMのハンドル
