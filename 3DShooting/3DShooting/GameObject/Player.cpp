@@ -19,18 +19,18 @@
 
 namespace
 {
-	// モデルのオフセット
-	constexpr float kModelOffsetX = 80.0f; 
-	constexpr float kModelOffsetY = 20.0f;
-	constexpr float kModelOffsetZ = 60.0f;
+	// 銃のオフセット
+	constexpr float kGunOffsetX = 80.0f; 
+	constexpr float kGunOffsetY = 20.0f;
+	constexpr float kGunOffsetZ = 60.0f;
 
 	// アニメーションのブレンド率
 	constexpr float kAnimBlendRate = 1.0f; 
 
-	// 銃のオフセット
-	constexpr float kGunOffsetX = -50.0f;
-	constexpr float kGunOffsetY = 50;
-	constexpr float kGunOffsetZ = 0;
+	// マズルフラッシュエフェクトのオフセット
+	constexpr float kMuzzleFlashEffectOffsetX = -20.0f;
+	constexpr float kMuzzleFlashEffectOffsetY = 30.0f;
+	constexpr float kMuzzleFlashEffectOffsetZ = 80.0f;
 
 	// UI関連
 	constexpr int kMarginX    = 20; 
@@ -181,6 +181,7 @@ void Player::Init()
 			break;
 		}
 	}
+
 	m_pEffect->Init(); // エフェクトの初期化
 	m_pCamera->Init(); // カメラの初期化
 
@@ -230,7 +231,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	m_pBodyCollider->SetRadius(kCapsuleRadius);
 
 	// モデルの位置と回転を更新
-	VECTOR modelOffset	  = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ);
+	VECTOR modelOffset	  = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);
 	MATRIX rotYaw		  = MGetRotY(m_pCamera->GetYaw());
 	MATRIX rotPitch		  = MGetRotX(-m_pCamera->GetPitch());
 	MATRIX modelRot		  = MMult(rotPitch, rotYaw);
@@ -812,21 +813,25 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     VECTOR cameraPos = m_pCamera->GetPos();
     VECTOR cameraForward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
 
+	VECTOR gunPos = GetGunPos();
+	VECTOR gunDir = GetGunRot();
+
     // 画面中央から出ているように見せるため、カメラ前方に小さくオフセット
     constexpr float kCameraMuzzleOffset = 10.0f;
     VECTOR spawnPos = VAdd(cameraPos, VScale(cameraForward, kCameraMuzzleOffset));
 
     // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
     bullets.emplace_back(spawnPos, cameraForward, m_bulletPower);
+    //bullets.emplace_back(gunPos, gunDir, m_bulletPower);
 
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();
 	float rotZ = 0.0f;
 
-	//if (m_pEffect)
-	//{
-	//	m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
-	//}
+	if (m_pEffect)
+	{
+		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
+	}
 
 	// カメラシェイクを発生
 	if (m_pCamera)
@@ -839,32 +844,18 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 VECTOR Player::GetGunPos() const
 {
 	// モデルのオフセットと回転を計算
-	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ); // モデルのオフセット
-	MATRIX rotYaw      = MGetRotY(m_pCamera->GetYaw());                     // カメラのヨー回転
-	MATRIX rotPitch	   = MGetRotX(-m_pCamera->GetPitch());	                // カメラのピッチ回転
-	MATRIX modelRot    = MMult(rotPitch, rotYaw);						    // モデルの回転行列を計算
-	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);			// オフセットを回転
-	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);			// モデルの位置とオフセットを組み合わせて銃の位置を計算
-	VECTOR gunOffset     = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);     // 銃のオフセット
-	VECTOR gunPos        = VTransform(gunOffset, modelRot);			        // 銃のオフセットを回転
+	VECTOR modelOffset        = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ); // モデルのオフセット
+	MATRIX rotYaw             = MGetRotY(m_pCamera->GetYaw());        // カメラのヨー回転
+	MATRIX rotPitch           = MGetRotX(-m_pCamera->GetPitch());	  // カメラのピッチ回転
+	MATRIX modelRot           = MMult(rotPitch, rotYaw);			  // モデルの回転行列を計算
+	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);	  // オフセットを回転
+	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset); // モデルの位置とオフセットを組み合わせて銃の位置を計算
 
-	// 基本的な銃の位置を計算
-	VECTOR finalGunPos = VAdd(modelPosition, gunPos);
-
-	// メインカメラのオフセット（シェイク + Head Bobbing）を銃位置にも適用
-	// これにより銃と剣の揺れが一致する
-	if (m_pCamera)
-	{
-		VECTOR shakeOffset   = m_pCamera->GetShakeOffset();
-		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
-		VECTOR totalOffset   = VAdd(shakeOffset, headBobOffset);
-
-		// 銃の位置にもカメラオフセットを適用（ワールド座標なので直接加算）
-		finalGunPos = VAdd(finalGunPos, totalOffset);
-	}
+	VECTOR gunOffset = VGet(kMuzzleFlashEffectOffsetX, kMuzzleFlashEffectOffsetY, kMuzzleFlashEffectOffsetZ); // マズルフラッシュのオフセット
+	VECTOR gunPos    = VTransform(gunOffset, modelRot);			    // 銃のオフセットを回転
 
 	// 銃の位置を計算して返す
-	return finalGunPos;
+	return VAdd(modelPosition, gunPos);
 }
 
 // 銃の向きを取得
@@ -895,7 +886,7 @@ Player::TackleInfo Player::GetTackleInfo() const
 
 		// プレイヤーの体の中心位置
 		VECTOR bodyCenter = m_modelPos;
-		bodyCenter.y += kModelOffsetY;
+		bodyCenter.y += kGunOffsetY;
 
 		// プレイヤーの前面中心（体の中心から前方へkTackleHitRangeだけ進める）
 		VECTOR frontCenter = VAdd(bodyCenter, VScale(m_tackleDir, kTackleHitRange));
