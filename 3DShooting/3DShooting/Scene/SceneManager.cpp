@@ -119,22 +119,8 @@ void SceneManager::Update()
 			int textX = (screenW - textWidth) / 2;
 			int textY = screenH / 2 - 30;
 			DrawString(textX, textY, loadingText, 0xffffff);
-
-			// プログレスバー風の表示（点々をアニメーション）
-			static int loadingDots = 0;
-			static int loadingTimer = 0;
-			loadingTimer++;
-			if (loadingTimer >= 20)
-			{
-				loadingTimer = 0;
-				loadingDots = (loadingDots + 1) % 4;
-			}
-
-			std::string dots = std::string(loadingDots, '.');
-			DrawString(textX + textWidth + 10, textY, dots.c_str(), 0x888888);
 			
 			SetFontSize(16);
-			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 			ScreenFlip(); // ローディング画面を即座に表示
 		}
 		

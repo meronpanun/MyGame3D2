@@ -45,8 +45,13 @@ namespace
 	// タックル関連
 	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
 	constexpr float kTackleHitRange  = 250.0f; // タックルの前方有効距離
-	constexpr float kTackleHitRadius  = 250.0f; // タックルの横幅（半径）
+	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅（半径）
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
+	// タックルクールタイムゲージ
+	constexpr int kTackleGaugeX		 = 10;  // タックルクールタイムゲージのX座標
+	constexpr int kTackleGaugeY		 = 50;  // タックルクールタイムゲージのY座標
+	constexpr int kTackleGaugeWidth  = 200; // タックルクールタイムゲージの幅
+	constexpr int kTackleGaugeHeight = 16;  // タックルクールタイムゲージの高さ
 
 	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
@@ -63,6 +68,10 @@ namespace
 	constexpr float kOverRatioScale		 = 1.2f;  // 消える時の根元の外側へのスケール（1.0で画面端、1.2で完全に外）
 
 	constexpr float kShootRate = 10.0f; // 1秒あたりの発射回数
+
+	// X,Z座標の移動範囲制限
+	constexpr float kLimitMoveX = 2800.0f;
+	constexpr float kLimitMoveZ = 2800.0f;
 }
 
 Player::Player() :
@@ -110,7 +119,7 @@ Player::Player() :
 	m_tackleDamage(0.0f),
 	m_isSwordAnimating(false),
 	m_swordAnimTimer(0.0f),
-	m_swordAnimDuration(0.1f)
+	m_swordAnimDuration(0.05f)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -201,7 +210,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// 剣のアニメーションタイマー更新
 	if (m_isSwordAnimating)
 	{
-		m_swordAnimTimer += 1.0f / 60.0f; // 60FPSを想定
+		m_swordAnimTimer += 1.0f / 60.0f;
 		if (m_swordAnimTimer >= m_swordAnimDuration)
 		{
 			m_isSwordAnimating = false;
@@ -211,10 +220,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	m_pCamera->Update(); // カメラの更新
 	m_pEffect->Update(); // エフェクトの更新
-
-	//UpdateAnime(m_prevAnimData); // 前のアニメーションデータを更新
-	//UpdateAnime(m_nextAnimData); // 次のアニメーションデータを更新
-	//UpdateAnimeBlend();		   // アニメーションのブレンドを更新
 
 	// プレイヤーのカプセルコライダーを毎フレーム更新
 	VECTOR center = m_modelPos;
@@ -256,7 +261,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	// マウスの左クリックで射撃(タックル中は射撃不可)
+	// マウスの左クリックで射撃（タックル中は射撃不可）
 	if (!m_isTackling && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
@@ -296,8 +301,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			cosf(pitch) * cosf(yaw)
 		);
 
-		//	ChangeAnime(kTackleAnimName, false); // タックルアニメーション
-
 		// タックル開始時にFOVを広げ、カメラを後ろに引く
 		if (m_pCamera)
 		{
@@ -308,208 +311,160 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-		// タックル中の処理
-		if (m_isTackling)
+	// タックル中の処理
+	if (m_isTackling)
+	{
+		m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
+
+		// 地面より下に行かないように制限
+		if (m_modelPos.y < kGroundY)
 		{
-			m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
-
-			// 地面より下に行かないように制限
-			if (m_modelPos.y < kGroundY)
-			{
-				m_modelPos.y = kGroundY;
-			}
-
-			// タックル判定情報を作成
-			TackleInfo tackleInfo = GetTackleInfo();
-
-			// 各敵にタックル情報を渡してUpdate
-			for (EnemyBase* enemy : enemyList)
-			{
-				// 敵がnullptrの場合はスキップ
-				if (!enemy) continue;
-
-				// 敵の更新処理
-				enemy->Update(m_bullets, tackleInfo, *this, enemyList);
-			}
-
-#ifdef _DEBUG
-			// タックル判定カプセルのデバッグ描画
-			DebugUtil::DrawCapsule(
-				tackleInfo.capA,
-				tackleInfo.capB,
-				tackleInfo.radius,
-				16,
-				0x00ff00,
-				false
-			);
-#endif
-			m_tackleFrame--;
-			// タックル終了判定
-			if (m_tackleFrame <= 0)
-			{
-				m_isTackling = false;
-
-				// タックル終了時にFOVとカメラオフセットを元に戻す
-				if (m_pCamera)
-				{
-					m_pCamera->ResetFOV();
-					m_pCamera->ResetOffset();
-				}
-
-				// タックル後のアニメーション遷移
-				/*if (m_isMoving)
-				{
-					ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
-				}
-				else
-				{
-					ChangeAnime(kIdleAnimName, true);
-				}*/
-			}
-			// タックル中は他の移動・ジャンプを無効化
-			return;
+			m_modelPos.y = kGroundY;
 		}
 
-		// タックル中でなければ bullets のみ渡す
-		TackleInfo tackleInfo{};
+		// タックル判定情報を作成
+		TackleInfo tackleInfo = GetTackleInfo();
+
+		// 各敵にタックル情報を渡してUpdate
 		for (EnemyBase* enemy : enemyList)
 		{
+			// 敵がnullptrの場合はスキップ
 			if (!enemy) continue;
+
+			// 敵の更新処理
 			enemy->Update(m_bullets, tackleInfo, *this, enemyList);
 		}
-	
-		// 弾の更新
-		Bullet::UpdateBullets(m_bullets, m_modelPos);
 
-		// 走るキー入力
-		const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
-		bool isRunning = wantRun; // 走っているかどうかのフラグ
-
-		float moveSpeed = isRunning ? m_runSpeed : m_moveSpeed; // 移動速度の設定
-		bool isMoving = false; // 移動中かどうかのフラグ
-
-		// 移動方向の初期化
-		VECTOR moveDir = VGet(0, 0, 0);
-
-		// キー入力による移動方向の設定
-		if (CheckHitKey(KEY_INPUT_W))
+#ifdef _DEBUG
+		// タックル判定カプセルのデバッグ描画
+		DebugUtil::DrawCapsule(
+			tackleInfo.capA,
+			tackleInfo.capB,
+			tackleInfo.radius,
+			16,
+			0x00ff00,
+			false
+		);
+#endif
+		m_tackleFrame--;
+		// タックル終了判定
+		if (m_tackleFrame <= 0)
 		{
-			moveDir.x += sinf(m_pCamera->GetYaw());
-			moveDir.z += cosf(m_pCamera->GetYaw());
-		}
-		if (CheckHitKey(KEY_INPUT_S))
-		{
-			moveDir.x -= sinf(m_pCamera->GetYaw());
-			moveDir.z -= cosf(m_pCamera->GetYaw());
-		}
-		if (CheckHitKey(KEY_INPUT_A))
-		{
-			moveDir.x += sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
-			moveDir.z += cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
-		}
-		if (CheckHitKey(KEY_INPUT_D))
-		{
-			moveDir.x += sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
-			moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
-		}
+			m_isTackling = false;
 
-		// スペースキーを押した瞬間のみジャンプ
-		if (keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
-		{
-			m_jumpVelocity = kJumpPower;
-			m_isJumping = true;
-			//ChangeAnime(kJumpAnimName, false);
-		}
-
-		// ジャンプ中または空中なら重力適用
-		if (m_isJumping || !isOnGround)
-		{
-			m_modelPos.y += m_jumpVelocity; // ジャンプの速度を適用
-			m_jumpVelocity -= kGravity;     // 重力を適用
-
-			// 着地判定
-			if (m_modelPos.y <= kGroundY)
+			// タックル終了時にFOVとカメラオフセットを元に戻す
+			if (m_pCamera)
 			{
-				m_modelPos.y = kGroundY; // 地面に着地
-				m_jumpVelocity = 0.0f;   // ジャンプ速度をリセット
-				m_isJumping = false;     // ジャンプ状態を解除
+				m_pCamera->ResetFOV();
+				m_pCamera->ResetOffset();
 			}
 		}
+		// タックル中は他の移動・ジャンプを無効化
+		return;
+	}
 
-		// 移動方向がある場合
-		if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+	// 各敵に更新処理を行うためのタックル情報を作成
+	TackleInfo tackleInfo{}; 
+	for (EnemyBase* enemy : enemyList)
+	{
+		if (!enemy) continue;
+		enemy->Update(m_bullets, tackleInfo, *this, enemyList);
+	}
+	
+	// 弾の更新
+	Bullet::UpdateBullets(m_bullets, m_modelPos);
+
+	// 走るキー入力
+	const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
+	bool isRunning = wantRun; // 走っているかどうかのフラグ
+
+	float moveSpeed = isRunning ? m_runSpeed : m_moveSpeed; // 移動速度の設定
+	bool isMoving = false; // 移動中かどうかのフラグ
+
+	// 移動方向の初期化
+	VECTOR moveDir = VGet(0, 0, 0);
+
+	// キー入力による移動方向の設定
+	if (CheckHitKey(KEY_INPUT_W))
+	{
+		moveDir.x += sinf(m_pCamera->GetYaw());
+		moveDir.z += cosf(m_pCamera->GetYaw());
+	}
+	if (CheckHitKey(KEY_INPUT_S))
+	{
+		moveDir.x -= sinf(m_pCamera->GetYaw());
+		moveDir.z -= cosf(m_pCamera->GetYaw());
+	}
+	if (CheckHitKey(KEY_INPUT_A))
+	{
+		moveDir.x += sinf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
+		moveDir.z += cosf(m_pCamera->GetYaw() - DX_PI_F * 0.5f);
+	}
+	if (CheckHitKey(KEY_INPUT_D))
+	{
+		moveDir.x += sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
+		moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
+	}
+
+	// スペースキーを押した瞬間のみジャンプ
+	if (keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
+	{
+		m_jumpVelocity = kJumpPower;
+		m_isJumping = true;
+	}
+
+	// ジャンプ中または空中なら重力適用
+	if (m_isJumping || !isOnGround)
+	{
+		m_modelPos.y += m_jumpVelocity; // ジャンプの速度を適用
+		m_jumpVelocity -= kGravity;     // 重力を適用
+
+		// 着地判定
+		if (m_modelPos.y <= kGroundY)
 		{
-			// 移動方向の長さを計算
-			float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
-			moveDir.x /= len;
-			moveDir.z /= len;
-			m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
-			isMoving = true;
+			m_modelPos.y = kGroundY; // 地面に着地
+			m_jumpVelocity = 0.0f;   // ジャンプ速度をリセット
+			m_isJumping = false;     // ジャンプ状態を解除
 		}
+	}
 
-		// X,Z座標の移動範囲制限
-		m_modelPos.x = std::clamp(m_modelPos.x, -2800.0f, 2800.0f);
-		m_modelPos.z = std::clamp(m_modelPos.z, -2800.0f, 2800.0f);
+	// 移動方向がある場合
+	if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+	{
+		// 移動方向の長さを計算
+		float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
+		moveDir.x /= len;
+		moveDir.z /= len;
+		m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
+		isMoving = true;
+	}
 
-		//// アニメーションが終了したら
-		//if (m_nextAnimData.isEnd)
-		//{
-		//	if (m_isMoving)
-		//	{
-		//		// 移動アニメーションに変更
-		//		ChangeAnime(m_isWasRunning ? kRunAnimName : kWalkAnimName, true);
-		//	}
-		//	else
-		//	{
-		//		// 待機アニメーションに変更
-		//		ChangeAnime(kIdleAnimName, true);
-		//	}
-		//}
+	// X,Z座標の移動範囲制限
+	m_modelPos.x = std::clamp(m_modelPos.x, -kLimitMoveX, kLimitMoveX);
+	m_modelPos.z = std::clamp(m_modelPos.z, -kLimitMoveZ, kLimitMoveZ);
 
-		// 移動中で前回は移動していなかった場合
-		//if (isMoving && !m_isMoving)
-		//{
-		//	ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-		//}
-		//else if (!isMoving && m_isMoving)
-		//{
-		//	ChangeAnime(kIdleAnimName, true);
-		//}
-		//else if (isMoving && m_isMoving && (isRunning != m_isWasRunning))
-		//{
-		//	ChangeAnime(isRunning ? kRunAnimName : kWalkAnimName, true);
-		//}
+	m_isMoving = isMoving;      // 移動中の状態を更新
+	m_isWasRunning = isRunning; // 走っている状態を更新
 
-		m_isMoving = isMoving;  // 移動中の状態を更新
-		m_isWasRunning = isRunning; // 走っている状態を更新
+	// Head Bobbing状態をカメラに設定
+	if (m_pCamera)
+	{
+		m_pCamera->SetHeadBobbingState(isMoving, isRunning);
+	}
 
-		// Head Bobbing状態をカメラに設定
-		if (m_pCamera)
-		{
-			m_pCamera->SetHeadBobbingState(isMoving, isRunning);
-		}
+	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 
-		std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
-
-		// プレイヤーの斜め後方上空からプレイヤーを見る
-		if (m_pDebugCamera) 
-		{
-			VECTOR target = m_modelPos;
-			VECTOR offset = VGet(-200.0f, 150.0f, -200.0f); // 斜め後方上空
-
-			m_pDebugCamera->SetPos(VAdd(target, offset));
-			m_pDebugCamera->SetTarget(target);
-			m_pDebugCamera->SetFOV(60.0f * DX_PI_F / 180.0f);
-		}
-
-		// HPバーアニメーション（ダメージ分を徐々に減らす）
-		if (m_healthBarAnim > m_health) {
-			float animSpeed = 1.5f; // 減少速度（大きいほど速い）
-			m_healthBarAnim -= animSpeed;
-			if (m_healthBarAnim < m_health) m_healthBarAnim = m_health;
-		} else {
-			m_healthBarAnim = m_health;
-		}
+	// HPバーアニメーション（ダメージ分を徐々に減らす）
+	if (m_healthBarAnim > m_health) 
+	{
+		float animSpeed = 1.5f; // 減少速度（大きいほど速い）
+		m_healthBarAnim -= animSpeed;
+		if (m_healthBarAnim < m_health) m_healthBarAnim = m_health;
+	} 
+	else 
+	{
+		m_healthBarAnim = m_health;
+	}
 }
 
 
@@ -544,8 +499,6 @@ void Player::Draw()
 
 	SetFontSize(16); // フォントサイズを元に戻す
 
-
-
 	/*剣の描画*/
 	// 画面サイズに応じてスケーリング
 	float baseScreenW = 640.0f;
@@ -558,9 +511,9 @@ void Player::Draw()
 	VECTOR totalCameraOffset = VGet(0, 0, 0);
 	if (m_pCamera)
 	{
-		VECTOR shakeOffset = m_pCamera->GetShakeOffset();
+		VECTOR shakeOffset   = m_pCamera->GetShakeOffset();
 		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
-		totalCameraOffset = VAdd(shakeOffset, headBobOffset);
+		totalCameraOffset    = VAdd(shakeOffset, headBobOffset);
 	}
 	VECTOR swordCamPos = VGet(0, 0, -35.0f * scaleAvg);
 	swordCamPos.x += totalCameraOffset.x;
@@ -575,79 +528,72 @@ void Player::Draw()
 		shouldDrawSword = false; // クールダウン中は非表示
 	}
 
-			if (shouldDrawSword)
+	if (shouldDrawSword)
+	{
+		// 待機状態の剣の位置と回転を定義
+		VECTOR waitPos = VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f);
+		VECTOR waitRotVec = VGet(0.0f, 30.0f, 0.0f); // Y軸回転を0度に変更
+
+		// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
+		MATRIX matWaitRot  = MGetRotY(waitRotVec.y);
+		MATRIX matWaitPos  = MGetTranslate(waitPos);
+		MATRIX waitMatrix  = MMult(matWaitRot, matWaitPos);
+		MATRIX finalMatrix = waitMatrix;
+
+		if (m_isSwordAnimating)
 		{
-			// 待機状態の剣の位置と回転を定義
-			VECTOR waitPos = VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f);
-			VECTOR waitRotVec = VGet(0.0f, 30.0f, 0.0f); // Y軸回転を0度に変更
+			float animProgress = m_swordAnimTimer / m_swordAnimDuration;
+			// イージング（滑らかな動き）
+			animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
 
-			// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
-			MATRIX matWaitRot = MGetRotY(waitRotVec.y);
-			MATRIX matWaitPos = MGetTranslate(waitPos);
-			MATRIX waitMatrix = MMult(matWaitRot, matWaitPos);
+			// 回転角度を計算 (左 -> 右)
+			float startAngle = 25.0f * (DX_PI_F / 180.0f);
+			float endAngle = 180.0f * (DX_PI_F / 180.0f);
+			float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
 
-			MATRIX finalMatrix = waitMatrix;
+			// モデルのローカル座標におけるピボット（手持ち部分）の位置
+			VECTOR pivotOffset = VGet(0.0f, 0.0f, -20.0f);
 
-			if (m_isSwordAnimating)
-			{
-				float animProgress = m_swordAnimTimer / m_swordAnimDuration;
-				// イージング（滑らかな動き）
-				animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
+			// 行列を使ってピボット回転を実装
+			MATRIX matPivotTrans = MGetTranslate(VScale(pivotOffset, -1.0f));
+			MATRIX matRotate = MGetRotY(currentAngle);
+			MATRIX matPivotTransInv = MGetTranslate(pivotOffset);
 
-				// 回転角度を計算 (左 -> 右)
-				float startAngle = 25.0f * (DX_PI_F / 180.0f);
-				float endAngle = 180.0f * (DX_PI_F / 180.0f);
-				float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
-
-				// モデルのローカル座標におけるピボット（手持ち部分）の位置
-				VECTOR pivotOffset = VGet(0.0f, 0.0f, -20.0f);
-
-				// 行列を使ってピボット回転を実装
-				MATRIX matPivotTrans = MGetTranslate(VScale(pivotOffset, -1.0f));
-				MATRIX matRotate = MGetRotY(currentAngle);
-				MATRIX matPivotTransInv = MGetTranslate(pivotOffset);
-
-				// 最終的な行列をMMultで計算
-				// finalMatrix = (待機時の行列) -> (ピボットを原点へ) -> (回転) -> (ピボットを戻す)
-				MATRIX tempMat1 = MMult(waitMatrix, matPivotTrans);
-				MATRIX tempMat2 = MMult(tempMat1, matRotate);
-				finalMatrix = MMult(tempMat2, matPivotTransInv);
-			}
-
-			// モデルに最終的な変換行列を適用
-			MV1SetMatrix(m_swordHandle, finalMatrix);
-			MV1SetScale(m_swordHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg));
-			MV1DrawModel(m_swordHandle);
+			// 最終的な行列をMMultで計算
+			// finalMatrix = (待機時の行列) -> (ピボットを原点へ) -> (回転) -> (ピボットを戻す)
+			MATRIX tempMat1 = MMult(waitMatrix, matPivotTrans);
+			MATRIX tempMat2 = MMult(tempMat1, matRotate);
+			finalMatrix = MMult(tempMat2, matPivotTransInv);
 		}
+
+		// モデルに最終的な変換行列を適用
+		MV1SetMatrix(m_swordHandle, finalMatrix);
+		MV1SetScale(m_swordHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg));
+		MV1DrawModel(m_swordHandle);
+	}
 
 	// メインカメラに戻す
 	m_pCamera->SetCameraToDxLib();
 
 	m_pEffect->Draw(); // エフェクトの描画
 
-	// タックルクールタイムゲージ
-	const int tackleGaugeX = 10;
-	const int tackleGaugeY = 50;
-	const int tackleGaugeWidth = 200;
-	const int tackleGaugeHeight = 16;
-
 	// 枠
-	DrawBox(tackleGaugeX - 1, tackleGaugeY - 1, tackleGaugeX + tackleGaugeWidth + 1, tackleGaugeY + tackleGaugeHeight + 1, 0x5050C8, false);
+	DrawBox(kTackleGaugeX - 1, kTackleGaugeY - 1, kTackleGaugeX + kTackleGaugeWidth + 1, kTackleGaugeY + kTackleGaugeHeight + 1, 0x5050C8, false);
 
 	// ゲージ本体
 	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
-	int tackleFilledWidth = static_cast<int>(tackleGaugeWidth * tackleRate);
-	DrawBox(tackleGaugeX, tackleGaugeY, tackleGaugeX + tackleFilledWidth, tackleGaugeY + tackleGaugeHeight, 0x50B4ff, true);
+	int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
+	DrawBox(kTackleGaugeX, kTackleGaugeY, kTackleGaugeX + tackleFilledWidth, kTackleGaugeY + kTackleGaugeHeight, 0x50B4ff, true);
 
 	// テキスト
-	DrawFormatString(tackleGaugeX, tackleGaugeY - 18, 0xFFFFFF, "Tackle Cooldown");
+	DrawFormatString(kTackleGaugeX, kTackleGaugeY - 18, 0xFFFFFF, "Tackle Cooldown");
 	if (m_tackleCooldown > 0) 
 	{
-		DrawFormatString(tackleGaugeX + tackleGaugeWidth + 10, tackleGaugeY, 0xFF8080, "WAIT");
+		DrawFormatString(kTackleGaugeX + kTackleGaugeWidth + 10, kTackleGaugeY, 0xFF8080, "WAIT");
 	}
 	else 
 	{
-		DrawFormatString(tackleGaugeX + tackleGaugeWidth + 10, tackleGaugeY, 0x80FF80, "READY");
+		DrawFormatString(kTackleGaugeX + kTackleGaugeWidth + 10, kTackleGaugeY, 0x80FF80, "READY");
 	}
 
 	// HPバーのパラメータ
@@ -660,9 +606,12 @@ void Player::Draw()
     // 最大HP
     const float maxHP = 100.0f; 
     float hp = m_health;
+
     if (hp < 0) hp = 0;
     if (hp > maxHP) hp = maxHP;
+
     float hpAnim = m_healthBarAnim;
+
     if (hpAnim < 0) hpAnim = 0;
     if (hpAnim > maxHP) hpAnim = maxHP;
 
@@ -677,7 +626,7 @@ void Player::Draw()
     if (hpAnim > hp) {
         int animStart = barX + static_cast<int>(barWidth * hpRate);
         int animEnd   = barX + static_cast<int>(barWidth * hpAnimRate);
-        DrawBox(animStart, barY, animEnd, barY + barHeight, 0xFFD700, true); // 黄色
+        DrawBox(animStart, barY, animEnd, barY + barHeight, 0xFFD700, true);
     }
     // HPバー本体
     DrawBox(barX, barY, barX + static_cast<int>(barWidth * hpRate), barY + barHeight, 0xff4040, true);
@@ -687,56 +636,6 @@ void Player::Draw()
 
     // HP数値
     DrawFormatString(barX + 8, barY + 2, 0xffffff, "HP: %.0f / %.0f", hp, maxHP);
-
-#ifdef _DEBUG
-	if (m_pCamera)
-	{
-		// デバッグカメラの位置とターゲットを取得
-		const VECTOR pos = m_pCamera->GetPos();
-		const VECTOR tgt = m_pCamera->GetTarget();
-		float fov = m_pCamera->GetFOV();
-
-		// サブカメラ用描画領域
-		int subW = 320, subH = 180; // サブウィンドウサイズ
-		int subX = Game::kScreenWidth - subW;
-		int subY = Game::kScreenHeigth - subH;
-
-		// サブカメラ用描画先サーフェス作成
-		int subScreen = MakeScreen(subW, subH, true);
-		SetDrawScreen(subScreen);
-		ClearDrawScreen();
-
-		// サブカメラで描画
-		m_pDebugCamera->SetCameraToDxLib();
-
-		// ここでフィールド・プレイヤーモデル・当たり判定を描画 
-		MV1DrawModel(m_modelHandle); // プレイヤーモデル描画
-
-		// プレイヤーカプセル当たり判定のデバッグ表示
-		//auto playerCol = GetBodyCollider();
-		//DebugUtil::DrawCapsule(
-		//	playerCol->GetSegmentA(),
-		//	playerCol->GetSegmentB(),
-		//	playerCol->GetRadius(),
-		//	16,
-		//	0xff00ff,
-		//	false
-		//);
-
-		// メイン画面に戻す
-		SetDrawScreen(DX_SCREEN_BACK);
-
-		// サブ画面を右下に転送
-		//DrawGraph(subX, subY, subScreen, false);
-
-		// サーフェス解放
-		DeleteGraph(subScreen);
-
-		// 標準出力
-		//printf("[DebugCamera] Pos:(%.1f, %.1f, %.1f)  Target:(%.1f, %.1f, %.1f)  FOV:%.1f\n",
-			//pos.x, pos.y, pos.z, tgt.x, tgt.y, tgt.z, fov * 180.0f / DX_PI_F);
-	}
-#endif
 
 	// ダメージエフェクト描画（赤）
 	DrawEffectFeedback(m_damageEffect);
@@ -758,27 +657,32 @@ void Player::DrawTackleLines()
 {
     int screenW = Game::kScreenWidth;
     int screenH = Game::kScreenHeigth;
-    int centerX = screenW / 2;
-    int centerY = screenH / 2;
+    int centerX = screenW * 0.5f;
+    int centerY = screenH * 0.5f;
     // 画面中心から端までの最大半径を計算
     float maxScreenRadius = sqrtf((float)(screenW * screenW + screenH * screenH)) * kMaxScreenRadiusRate;
     // タックル進行度（0.0:開始→1.0:終了）
     float progress = 1.0f - (float)m_tackleFrame / (float)kTackleDuration;
     // 集中線の明るさ（進行度に応じて変化）
     float intensity = 0.3f + progress * 0.7f;
+
     for (int i = 0; i < kNumLines; ++i)
     {
         // 放射状に等間隔で角度を決定
         float baseAngle = (float)i / kNumLines * 2.0f * DX_PI_F;
         float angle = baseAngle;
+
         // 線の長さ（全て同じ）
         float lenRatio = kLenRatio;
+
         // 描画範囲（根元・先端の進行度）
         float drawStart = 0.0f;
-        float drawEnd = 1.0f;
+        float drawEnd   = 1.0f;
+
         // 根元・先端の半径を計算
         float startRadius = maxScreenRadius * (1.0f - lenRatio * drawStart);
         float endRadius = maxScreenRadius * (1.0f - lenRatio * drawEnd);
+
         // 伸びるアニメーション
         if (progress < kAppear)
         {
@@ -792,17 +696,20 @@ void Player::DrawTackleLines()
             float overRatio = drawStart * kOverRatioScale;
             startRadius = maxScreenRadius * (1.0f - lenRatio * drawStart + overRatio * lenRatio);
         }
+
         // 根元・先端の座標を計算
         int x1 = centerX + (int)(startRadius * cosf(angle));
         int y1 = centerY + (int)(startRadius * sinf(angle));
         int x2 = centerX + (int)(endRadius * cosf(angle));
         int y2 = centerY + (int)(endRadius * sinf(angle));
+
         // 太さ（根元が太く、先端が細い）
         int baseThickness = kBaseThickness;
         int tipThickness = kTipThickness;
         float perpAngle = angle + DX_PI_F * 0.5f;
         float baseHalf = baseThickness * 0.5f;
         float tipHalf = tipThickness * 0.5f;
+
         // 四隅の座標を計算（台形/三角形のため）
         int bx1 = x1 + (int)(baseHalf * cosf(perpAngle));
         int by1 = y1 + (int)(baseHalf * sinf(perpAngle));
@@ -812,6 +719,7 @@ void Player::DrawTackleLines()
         int ty1 = y2 + (int)(tipHalf * sinf(perpAngle));
         int tx2 = x2 - (int)(tipHalf * cosf(perpAngle));
         int ty2 = y2 - (int)(tipHalf * sinf(perpAngle));
+
         // アルファブレンドで白色の集中線を描画
         int alpha = (int)(255 * intensity);
         SetDrawBlendMode(DX_BLENDMODE_ADD, alpha);
@@ -828,8 +736,8 @@ void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
     {
         int screenW, screenH;
         GetScreenState(&screenW, &screenH, nullptr);
-        int centerX = screenW / 2;
-        int centerY = screenH / 2;
+        int centerX = screenW * 0.5f;
+        int centerY = screenH * 0.5f;
         float maxDistance = sqrtf((float)(screenW * screenW + screenH * screenH)) * 0.5f;
         float edgeWidth = maxDistance * 0.4f;
         const int stepSize = 8;
@@ -910,7 +818,6 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 
     // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
     bullets.emplace_back(spawnPos, cameraForward, m_bulletPower);
-    //m_ammo--;
 
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();
@@ -926,98 +833,6 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	{
 		m_pCamera->Shake(6.0f, 8); // 強さ・フレーム数
 	}
-    
-    // アニメーション関連
-    //ChangeAnime("Shoot", false); // 射撃アニメーションを再生
-}
-
-// アニメーションのアタッチ
-void Player::AttachAnime(AnimData& data, const char* animName, bool isLoop) 
-{
-	// アニメーションのインデックスを取得
-	int index = MV1GetAnimIndex(m_modelHandle, animName); 
-
-	// モデルアニメーションをアタッチ
-	data.attachNo = MV1AttachAnim(m_modelHandle, index, -1, false); 
-	data.count  = 0.0f;	  // アニメーションのカウントを初期化
-	data.isLoop = isLoop; // ループフラグを設定
-	data.isEnd  = false;  // アニメーションが終了したか
-}
-
-// アニメーションの更新
-void Player::UpdateAnime(AnimData& data) 
-{
-	if (data.attachNo == -1) return; // アタッチされていない場合は何もしない
-
-	float animSpeed = 1.0f;
-
-	data.count += animSpeed;
-
-	// アニメーションの総時間を取得
-	const float totalTime = MV1GetAttachAnimTotalTime(m_modelHandle, data.attachNo); 
-	
-	// ループアニメーションの場合
-	if (data.isLoop)
-	{
-		// アニメーションのカウントが総時間を超えた場合、ループさせる
-		while (data.count > totalTime)  
-		{
-			data.count -= totalTime; // 総時間を引いてループ
-		}
-	}
-	else
-	{
-		if (data.count > totalTime)
-		{
-			data.count = totalTime; // アニメーションのカウントを総時間に制限
-			data.isEnd = true;      // アニメーションが終了したフラグを立てる
-		}
-	}
-
-	// アニメーションの時間を設定
-	MV1SetAttachAnimTime(m_modelHandle, data.attachNo, data.count); 
-}
-
-// アニメーションのブレンドを更新
-void Player::UpdateAnimeBlend() 
-{
-	// アタッチされていない場合は何もしない
-	if (m_nextAnimData.attachNo == -1 && m_prevAnimData.attachNo == -1) return; 
-
-	// アニメーションのブレンド率を更新
-	m_animBlendRate += 1.0f / 8.0f; 
-
-	// ブレンド率が1.0を超えたら
-	if (m_animBlendRate > 1.0f)
-	{
-		m_animBlendRate = 1.0f; // 1.0に制限
-	}
-
-	// 前のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-	// 次のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate); 
-}
-
-// アニメーションの変更
-void Player::ChangeAnime(const char* animName, bool isLoop) 
-{
-	// 前のアニメーションを解除
-	MV1DetachAnim(m_modelHandle, m_prevAnimData.attachNo);
-
-	// 前のアニメーションデータを保存
-	m_prevAnimData = m_nextAnimData; 
-
-	// 次のアニメーションをアタッチ
-	AttachAnime(m_nextAnimData, animName, isLoop); 
-
-	// アニメーションのブレンド率をリセット
-	m_animBlendRate = 0.0f; 
-
-	// 前のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_prevAnimData.attachNo, 1.0f - m_animBlendRate); 
-	// 次のアニメーションのブレンド率を設定
-	MV1SetAttachAnimBlendRate(m_modelHandle, m_nextAnimData.attachNo, m_animBlendRate);
 }
 
 // 銃の位置を取得
@@ -1025,14 +840,13 @@ VECTOR Player::GetGunPos() const
 {
 	// モデルのオフセットと回転を計算
 	VECTOR modelOffset = VGet(kModelOffsetX, kModelOffsetY, kModelOffsetZ); // モデルのオフセット
-	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());                     // カメラのヨー回転
-	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());	               // カメラのピッチ回転
-	MATRIX modelRot = MMult(rotPitch, rotYaw);						   // モデルの回転行列を計算
-	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);				   // オフセットを回転
-	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);			   // モデルの位置とオフセットを組み合わせて銃の位置を計算
-
-	VECTOR gunOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ); // 銃のオフセット
-	VECTOR gunPos = VTransform(gunOffset, modelRot);			    // 銃のオフセットを回転
+	MATRIX rotYaw      = MGetRotY(m_pCamera->GetYaw());                     // カメラのヨー回転
+	MATRIX rotPitch	   = MGetRotX(-m_pCamera->GetPitch());	                // カメラのピッチ回転
+	MATRIX modelRot    = MMult(rotPitch, rotYaw);						    // モデルの回転行列を計算
+	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);			// オフセットを回転
+	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);			// モデルの位置とオフセットを組み合わせて銃の位置を計算
+	VECTOR gunOffset     = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);     // 銃のオフセット
+	VECTOR gunPos        = VTransform(gunOffset, modelRot);			        // 銃のオフセットを回転
 
 	// 基本的な銃の位置を計算
 	VECTOR finalGunPos = VAdd(modelPosition, gunPos);
@@ -1041,9 +855,9 @@ VECTOR Player::GetGunPos() const
 	// これにより銃と剣の揺れが一致する
 	if (m_pCamera)
 	{
-		VECTOR shakeOffset = m_pCamera->GetShakeOffset();
+		VECTOR shakeOffset   = m_pCamera->GetShakeOffset();
 		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
-		VECTOR totalOffset = VAdd(shakeOffset, headBobOffset);
+		VECTOR totalOffset   = VAdd(shakeOffset, headBobOffset);
 
 		// 銃の位置にもカメラオフセットを適用（ワールド座標なので直接加算）
 		finalGunPos = VAdd(finalGunPos, totalOffset);
@@ -1119,7 +933,7 @@ void Player::AddHp(float value)
         m_health = 0.0f; // 体力が負にならないように制限
     }
     // 回復時にエフェクトを発動
-    m_healEffect.Trigger(45.0f, 0, 255, 0); // 緑
+    m_healEffect.Trigger(45.0f, 0, 255, 0);
 }
 
 void Player::AddAmmo(int value)
@@ -1127,5 +941,5 @@ void Player::AddAmmo(int value)
     m_ammo += value;
     if (m_ammo < 0) m_ammo = 0;
     // 弾薬取得時にエフェクトを発動
-    m_ammoEffect.Trigger(45.0f, 255, 128, 0); // オレンジ
+    m_ammoEffect.Trigger(45.0f, 255, 128, 0);
 }
