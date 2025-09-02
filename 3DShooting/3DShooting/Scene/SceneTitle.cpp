@@ -24,8 +24,9 @@ namespace
 	constexpr int kGameStartTextBlinkSpeed = 4;
 }
 
-SceneTitle::SceneTitle(bool skipLogo):
-    m_logoHandle(-1),
+SceneTitle::SceneTitle(bool isReturningFromOtherScene) :
+	m_fontHandle(-1),
+    m_titleLogo(-1),
     m_bannerHandle(-1),
     m_bgmHandle(-1),
 	m_fadeAlpha(0),
@@ -37,12 +38,11 @@ SceneTitle::SceneTitle(bool skipLogo):
 	m_isSceneFadeIn(false),
 	m_isBGMStarted(false),
 	m_gameStartTextAlpha(0),
-	m_gameStartTextAlphaDir(1),
-	m_skipLogo(skipLogo)
+	m_gameStartTextAlphaDir(1)
 {
     // タイトルロゴ画像を読み込む
-    m_logoHandle = LoadGraph("data/image/TitleLogo.png");
-    assert(m_logoHandle != -1);
+    m_titleLogo = LoadGraph("data/image/TitleLogo.png");
+    assert(m_titleLogo != -1);
     
     // タイトルBGMを読み込む
     m_bgmHandle = LoadSoundMem("data/sound/BGM/TitleBGM.wav");
@@ -51,26 +51,25 @@ SceneTitle::SceneTitle(bool skipLogo):
 	// 決定ボタンSEを読み込む
     m_confirmSEHandle = LoadSoundMem("data/sound/SE/ConfirmButton.mp3");
     assert(m_confirmSEHandle != -1);
+
+    m_fontHandle = CreateFontToHandle("Arial Black", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }
 
 SceneTitle::~SceneTitle()
 {
-    // タイトルロゴ画像を解放する
-	DeleteGraph(m_logoHandle);
-	
+    // フォントハンドルの削除
+	DeleteFontToHandle(m_fontHandle); 
 
-    // タイトルBGMを解放する
-    DeleteSoundMem(m_bgmHandle);
+	// 画像のハンドルを削除
+	DeleteGraph(m_titleLogo);
 
-	// 決定ボタンSEを解放する
-    DeleteSoundMem(m_confirmSEHandle);
+	// サウンドを削除
+	DeleteSoundMem(m_bgmHandle);
+	DeleteSoundMem(m_confirmSEHandle);
 }
 
 void SceneTitle::Init()
 {
-    // マウスカーソルを表示する
-    SetMouseDispFlag(true);
-    m_isBGMStarted = false;
 }
 
 SceneBase* SceneTitle::Update()
@@ -146,7 +145,7 @@ void SceneTitle::Draw()
         Game::kScreenWidth, Game::kScreenHeigth,
         0, 0,                       
         kLogoWidth, kLogoHeight,    
-        m_logoHandle, true          
+        m_titleLogo, true          
     );
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -154,14 +153,11 @@ void SceneTitle::Draw()
     if (m_isFadeComplete)
     {
         const char* gameStartText = "Press Left Click to Start Game";
-        int textWidth = GetDrawStringWidth(gameStartText, static_cast<int>(strlen(gameStartText)));
-        int textX = (Game::kScreenWidth - textWidth) - 650;
-        int textY = Game::kScreenHeigth - 100; // 画面下部に表示
-        SetFontSize(32);
+        int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_fontHandle);
+        
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-        DrawString(textX, textY, gameStartText, 0xFFFFFF);
+		DrawFormatStringToHandle((Game::kScreenWidth - textWidth) / 2, 600, GetColor(255, 255, 255), m_fontHandle, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-        SetFontSize(16); // フォントサイズを元に戻す
-    }
+	}
 }
 

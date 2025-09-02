@@ -17,7 +17,8 @@ public:
 	
 
 private:
-	int m_logoHandle;	   // タイトルロゴのハンドル
+	int m_fontHandle; // フォントハンドル
+	int m_titleLogo;	   // タイトルロゴのハンドル
 	int m_bannerHandle;	   // バナー画像のハンドル
 	int m_bgmHandle;	   // タイトルBGMのハンドル
 	int m_confirmSEHandle; // 決定ボタンSEのハンドル
@@ -29,7 +30,6 @@ private:
 	bool m_isBGMStarted;   // BGM再生済みフラグ
 	bool m_isFadeComplete; // フェード完了フラグ
 	bool m_isFadeOut;	   // フェードアウトフラグ
-	bool m_skipLogo;       // ロゴスキップ用のフラグ
 	bool m_isSceneFadeIn;  // シーンフェードインフラグ
 
 	int m_gameStartTextAlpha; // ゲームスタートテキストのアルファ値
