@@ -14,10 +14,7 @@ public:
 	SceneBase* Update() override;
 	void Draw() override;
 
-	/// <summary>
-	/// タイトルロゴをスキップする
-	/// </summary>
-	void SkipLogo();
+	
 
 private:
 	int m_logoHandle;	   // タイトルロゴのハンドル
@@ -34,5 +31,8 @@ private:
 	bool m_isFadeOut;	   // フェードアウトフラグ
 	bool m_skipLogo;       // ロゴスキップ用のフラグ
 	bool m_isSceneFadeIn;  // シーンフェードインフラグ
+
+	int m_gameStartTextAlpha; // ゲームスタートテキストのアルファ値
+	int m_gameStartTextAlphaDir; // ゲームスタートテキストのアルファ値の増減方向
 };
 

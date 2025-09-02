@@ -619,7 +619,7 @@ void Player::Draw()
 	const int kSwordImageHeight = 96; // 調整後の高さ (アスペクト比維持)
 
 	int swordImageX = kTackleGaugeX + kTackleGaugeWidth + 10; // ゲージの右側に配置
-	int swordImageY = kTackleGaugeY + (kTackleGaugeHeight - kSwordImageHeight) / 2; // ゲージと中央揃え
+	int swordImageY = kTackleGaugeY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
 
 	// クールダウン中は半透明、準備完了時は不透明
 	int alpha = (m_tackleCooldown > 0) ? 128 : 255;

@@ -16,25 +16,12 @@ namespace
     constexpr int kLogoX = static_cast<int>(Game::kScreenWidth * -0.5f);
     constexpr int kLogoY = static_cast<int>((Game::kScreenHeigth - kLogoHeight) * 0.5f);
 
-	// タイトルバナー関連
-	constexpr int kBannerWidth  = 640;  // バナーの幅
-	constexpr int kBannerHeight = 360;  // バナーの高さ
-	constexpr int kBannerX      = -30;  // バナーのX座標
-	constexpr int kBannerY      = -100; // バナーのY座標
-
     // フェード関連
 	constexpr int kFadeDuration = 60; // フェードイン・フェードアウトのフレーム数
 	constexpr int kWaitDuration = 60; // フェードイン後の待機時間（フレーム数）
 
-    // パネルの幅と高さ
-    constexpr int kPanelWidth  = 350; // パネルの幅
-    constexpr int kPanelHeight = 240; // パネルの高さ
-
-    // スタートボタンの範囲を定数化
-    constexpr int kStartButtonX1 = static_cast<int>((Game::kScreenWidth - kPanelWidth) * 0.5f); // スタートボタンの左上X座標
-    constexpr int kStartButtonY1 = 300;                          // スタートボタンの左上Y座標
-    constexpr int kStartButtonX2 = kStartButtonX1 + kPanelWidth; // スタートボタンの右下X座標
-    constexpr int kStartButtonY2 = 500;                          // スタートボタンの右下Y座標
+	// ゲームスタートテキストの点滅速度
+	constexpr int kGameStartTextBlinkSpeed = 4;
 }
 
 SceneTitle::SceneTitle(bool skipLogo):
@@ -47,16 +34,15 @@ SceneTitle::SceneTitle(bool skipLogo):
 	m_waitFrame(0),
 	m_isFadeComplete(false),
 	m_isFadeOut(false),
-	m_skipLogo(skipLogo),
 	m_isSceneFadeIn(false),
-	m_isBGMStarted(false)
+	m_isBGMStarted(false),
+	m_gameStartTextAlpha(0),
+	m_gameStartTextAlphaDir(1)
 {
     // タイトルロゴ画像を読み込む
     m_logoHandle = LoadGraph("data/image/TitleLogo.png");
     assert(m_logoHandle != -1);
-    m_bannerHandle = LoadGraph("data/image/TitleBanner.png");
-    assert(m_bannerHandle != -1);
-
+    
     // タイトルBGMを読み込む
     m_bgmHandle = LoadSoundMem("data/sound/BGM/TitleBGM.wav");
     assert(m_bgmHandle != -1);
@@ -70,7 +56,7 @@ SceneTitle::~SceneTitle()
 {
     // タイトルロゴ画像を解放する
 	DeleteGraph(m_logoHandle);
-	DeleteGraph(m_bannerHandle);
+	
 
     // タイトルBGMを解放する
     DeleteSoundMem(m_bgmHandle);
@@ -88,14 +74,7 @@ void SceneTitle::Init()
 
 SceneBase* SceneTitle::Update()
 {
-#ifdef _DEBUG
-    // Sキーでロゴをスキップ
-    if (!m_isFadeOut && DebugUtil::IsSkipLogoKeyPressed())
-    {
-        SkipLogo();
-        return this;
-    }
-#endif // _DEBUG
+
 
     // タイトルロゴのフェードイン処理
     if (!m_isFadeComplete)
@@ -121,38 +100,6 @@ SceneBase* SceneTitle::Update()
         return this; // 待機時間中はシーン遷移しない
     }
 
-    // タイトルロゴのフェードアウト処理
-    if (!m_isFadeOut)
-    {
-        if (m_fadeFrame < kFadeDuration)
-        {
-            m_fadeAlpha = static_cast<int>(255.0f * (1.0f - (m_fadeFrame / static_cast<float>(kFadeDuration))));
-            m_fadeFrame++;
-        }
-        else
-        {
-            m_fadeAlpha = 0;
-            m_isFadeOut = true; // フェードアウトが完了
-            m_fadeFrame = 0;    // フェードイン用にリセット
-        }
-        return this;
-    }
-
-    // タイトルシーンのフェードイン処理
-    if (!m_isSceneFadeIn)
-    {
-        if (m_sceneFadeAlpha < 255)
-        {
-            m_sceneFadeAlpha += 5; // フェードインの速度を調整
-        }
-        else
-        {
-            m_sceneFadeAlpha = 255;
-            m_isSceneFadeIn  = true;
-        }
-        return this;
-    }
-
     // BGM再生（ロゴ演出が終わった直後に一度だけ）
     if (!m_isBGMStarted)
     {
@@ -163,26 +110,26 @@ SceneBase* SceneTitle::Update()
         m_isBGMStarted = true;
     }
 
+    // 「ゲームスタート」文字の点滅処理
+    m_gameStartTextAlpha += m_gameStartTextAlphaDir * kGameStartTextBlinkSpeed;
+    if (m_gameStartTextAlpha > 255)
+    {
+        m_gameStartTextAlpha = 255;
+        m_gameStartTextAlphaDir = -1;
+    }
+    else if (m_gameStartTextAlpha < 0) 
+    {
+        m_gameStartTextAlpha = 0;
+        m_gameStartTextAlphaDir = 1;
+    }
+
     // マウスの左クリックをチェック
     if (Mouse::IsTriggerLeft())
     {
-        // マウスの位置を取得
-        Vec2 mousePos = Mouse::GetPos();
-
-        if (mousePos.x >= kStartButtonX1 && mousePos.x <= kStartButtonX2 &&
-            mousePos.y >= kStartButtonY1 && mousePos.y <= kStartButtonY2)
-        {
-            // BGMを停止
-            StopSoundMem(m_bgmHandle);
-            PlaySoundMem(m_confirmSEHandle, DX_PLAYTYPE_BACK);
-            return new SceneMain();
-        }
-        //// マウスがオプションボタンとパネルを囲む背景の範囲内にあるかチェック
-        //if (mousePos.x >= kBackgroundX1 && mousePos.x <= kBackgroundX2 &&
-        //    mousePos.y >= kBackgroundY1 && mousePos.y <= kBackgroundY2)
-        //{
-        //    return new SceneOption(this, m_currentReticleType);
-        //}
+        // BGMを停止
+        StopSoundMem(m_bgmHandle);
+        PlaySoundMem(m_confirmSEHandle, DX_PLAYTYPE_BACK);
+        return new SceneMain();
     }
     // 何もしなければシーン遷移しない(タイトル画面のまま)
     return this;
@@ -193,56 +140,29 @@ void SceneTitle::Draw()
     // マウスの位置を取得
     Vec2 mousePos = Mouse::GetPos();
 
-    // タイトルロゴのフェードイン・フェードアウト描画
-    if (!m_isFadeOut)
+    // タイトルロゴの描画
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
+    DrawRectExtendGraph(
+        0, 0,                       
+        Game::kScreenWidth, Game::kScreenHeigth,
+        0, 0,                       
+        kLogoWidth, kLogoHeight,    
+        m_logoHandle, true          
+    );
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+    // フェードイン完了後、「ゲームスタート」の文字を表示
+    if (m_isFadeComplete)
     {
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
-        DrawRectExtendGraph(
-            0, 0,                       
-            Game::kScreenWidth, Game::kScreenHeigth,
-            0, 0,                       
-            kLogoWidth, kLogoHeight,    
-            m_logoHandle, true          
-        );
+        const char* gameStartText = "Press Left Click to Start Game";
+        int textWidth = GetDrawStringWidth(gameStartText, static_cast<int>(strlen(gameStartText)));
+        int textX = (Game::kScreenWidth - textWidth) - 650;
+        int textY = Game::kScreenHeigth - 100; // 画面下部に表示
+        SetFontSize(32);
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
+        DrawString(textX, textY, gameStartText, 0xFFFFFF);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-        // フェード処理が終わっていない場合はここで描画を終了
-        return;
-    }
-
-    // ボタンの描画
-    if (m_isFadeOut || m_skipLogo)
-    {
-        // バナーの描画
-        DrawExtendGraph(kBannerX, kBannerY, kBannerWidth, kBannerHeight, m_bannerHandle, true);
-
-        // スタートボタンの描画
-        unsigned int buttonColor = 0xadadad; // 通常時のボタン色
-        if (mousePos.x >= kStartButtonX1 && mousePos.x <= kStartButtonX2 &&
-            mousePos.y >= kStartButtonY1 && mousePos.y <= kStartButtonY2)
-        {
-            buttonColor = 0xffffff; // ホバー時のボタン色（グレー）
-        }
-
-        // ボタンの背景を描画
-        DrawBox(kStartButtonX1, kStartButtonY1, kStartButtonX2, kStartButtonY2, buttonColor, true);
-
-        // ボタンのテキストを描画
-        const char* buttonText = "START";
-        int textWidth = GetDrawStringWidth(buttonText, static_cast<int>(strlen(buttonText)));
-        int textX = static_cast<int>((kStartButtonX1 + kStartButtonX2) * 0.5f - textWidth * 0.5f);
-        int textY = static_cast<int>((kStartButtonY1 + kStartButtonY2) * 0.5f) - 10;
-        DrawString(textX, textY, buttonText, 0x000000);
+        SetFontSize(16); // フォントサイズを元に戻す
     }
 }
 
-// ロゴをスキップする場合、フェード処理と待機時間をスキップし、ボタン操作を有効化
-void SceneTitle::SkipLogo()
-{
-	m_isFadeComplete = true;          // フェードインを完了
-	m_isFadeOut      = true;          // フェードアウトを開始
-    m_waitFrame      = kWaitDuration; // 待機時間をスキップ
-    m_fadeAlpha      = 0;             // フェードアウト済みの状態に設定
-    m_isSceneFadeIn  = true;          // タイトルシーンのフェードインを開始
-    m_sceneFadeAlpha = 255;           // フェードインを完全に表示
-}
