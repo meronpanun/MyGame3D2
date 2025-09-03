@@ -14,16 +14,16 @@ public:
 	/// <summary>
 	/// チュートリアルのステップ
 	/// </summary>
-	enum class Step 
-    {
-        None,
+	enum class Step
+	{
+		None,
 		Move,			 // WASD操作
 		View,		     // 視点操作
 		Completed,		 // チュートリアル完了
 		Jump,			 // ジャンプ操作
 		Run,             // 走る操作
 		CompletedDisplay // チュートリアル完了後の待機中
-    };
+	};
 
 	void Init();
 	void Update();
@@ -63,7 +63,7 @@ private:
 	float m_runCheckAnimTime;  // 走る操作のアニメーションタイマー
 	float m_jumpCheckAnimTime; // ジャンプ操作のアニメーションタイマー
 
-    bool m_isCompletedDisplay; // 完了演出表示中フラグ
+	bool m_isCompletedDisplay; // 完了演出表示中フラグ
 	bool m_isMoveDone;		   // WASD操作が完了したか
 	bool m_isViewDone;		   // 視点操作が完了したか
 	bool m_isMoveCheckAnim;	   // WASD操作のアニメーションが進行中か
@@ -72,5 +72,7 @@ private:
 	bool m_isRunDone;          // 走る操作が完了したか
 	bool m_isJumpCheckAnim;    // ジャンプ操作のアニメーションが進行中か
 	bool m_isRunCheckAnim;     // 走る操作のアニメーションが進行中か
-};
 
+	int m_japaneseFontHandle;        // 日本語フォントハンドル
+	int m_japaneseLargeFontHandle;   // 日本語ラージフォントハンドル
+};

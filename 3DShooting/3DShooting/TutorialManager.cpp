@@ -77,12 +77,23 @@ TutorialManager::TutorialManager() :
 	// チェックマーク画像の読み込み
     m_checkMarkHandle = LoadGraph("data/image/CheckMark.png");
     assert(m_checkMarkHandle != -1);
+
+    // フォントの作成
+    m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_japaneseFontHandle != -1);
+
+    m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_japaneseLargeFontHandle != -1);
 }
 
 TutorialManager::~TutorialManager()
 {
 	// チェックマーク画像の解放
     DeleteGraph(m_checkMarkHandle);
+
+    // フォントの解放
+    DeleteFontToHandle(m_japaneseFontHandle);
+    DeleteFontToHandle(m_japaneseLargeFontHandle);
 }
 
 void TutorialManager::Init()
@@ -200,15 +211,13 @@ void TutorialManager::Draw(int screenW, int screenH)
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // タイトル表示
-    SetFontSize(kTitleFontSize);
-    DrawFormatString(screenW - kMessageOffsetX, kInitialYPos - kTitleFontSize - kTitleOffsetY, kTitleColor, kTitleText);
+    DrawFormatStringToHandle(screenW - kMessageOffsetX, kInitialYPos - kTitleFontSize - kTitleOffsetY, kTitleColor, m_japaneseLargeFontHandle, kTitleText);
 
     int x = screenW - kMessageOffsetX;
     int y = kInitialYPos;
-    SetFontSize(kFontSize);
 
     // 1. WASD
-    DrawFormatString(x, y, 0xffffff, "WASDで移動しよう!");
+    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "WASDで移動しよう!");
     if (m_isMoveDone && m_checkMarkHandle >= 0)
     {
         float scale = 1.0f;
@@ -223,14 +232,14 @@ void TutorialManager::Draw(int screenW, int screenH)
             m_isMoveCheckAnim = false;
         }
         int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthWASD + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cx = x + kMsgWidthWASD + kCheckMarkOffsetY;
         int cy = y + kCheckMarkOffsetY;
         DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
     y += kLineSpacing;
 
     // 2. 視点
-    DrawFormatString(x, y, 0xffffff, "マウスで視点を動かそう!");
+    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "マウスで視点を動かそう!");
     if (m_isViewDone && m_checkMarkHandle >= 0) 
     {
         float scale = 1.0f;
@@ -245,14 +254,14 @@ void TutorialManager::Draw(int screenW, int screenH)
             m_isViewCheckAnim = false;
         }
         int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthMouse + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cx = x + kMsgWidthMouse + kCheckMarkOffsetY;
         int cy = y + kCheckMarkOffsetY;
         DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
     y += kLineSpacing;
 
     // 3. ジャンプ
-    DrawFormatString(x, y, 0xffffff, "スペースキーでジャンプ!");
+    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "スペースキーでジャンプ!");
     if (m_isJumpDone && m_checkMarkHandle >= 0) 
     {
         float scale = 1.0f;
@@ -267,14 +276,14 @@ void TutorialManager::Draw(int screenW, int screenH)
             m_isJumpCheckAnim = false;
         }
         int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthJump + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cx = x + kMsgWidthJump + kCheckMarkOffsetY;
         int cy = y + kCheckMarkOffsetY;
         DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
     y += kLineSpacing;
 
     // 4. 走る
-    DrawFormatString(x, y, 0xffffff, "Shift+Wで走ろう!");
+    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "Shift+Wで走ろう!");
     if (m_isRunDone && m_checkMarkHandle >= 0)
     {
         float scale = 1.0f;
@@ -289,12 +298,12 @@ void TutorialManager::Draw(int screenW, int screenH)
             m_isRunCheckAnim = false;
         }
         int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthRun + kCheckMarkOffsetY; // メッセージの幅 + オフセット
+        int cx = x + kMsgWidthRun + kCheckMarkOffsetY;
         int cy = y + kCheckMarkOffsetY;
         DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
     }
 
-    SetFontSize(kDefaultFontSize);
+    
 }
 
 // チュートリアルがアクティブかどうか

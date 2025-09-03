@@ -37,7 +37,7 @@ SceneResult::SceneResult() :
     assert(m_backgroundHandle != -1);
 
     // フォントの作成
-    m_japaneseFontHandle = CreateFontToHandle("Noto Sans Japanese", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_japaneseFontHandle != -1);
 
     m_arialBlackFontHandle = CreateFontToHandle("Arial Black", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -46,10 +46,10 @@ SceneResult::SceneResult() :
     m_arialBlackLargeFontHandle = CreateFontToHandle("Arial Black", 64, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_arialBlackLargeFontHandle != -1);
 
-    m_japaneseLargeFontHandle = CreateFontToHandle("Noto Sans Japanese", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_japaneseLargeFontHandle != -1);
 
-    m_japaneseButtonFontHandle = CreateFontToHandle("Noto Sans Japanese", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_japaneseButtonFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_japaneseButtonFontHandle != -1);
 }
 
@@ -177,18 +177,18 @@ void SceneResult::Draw()
     int y = 120;
 
     char scoreStr[64];
-    sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア  : %d", ScoreManager::Instance().GetDisplayTotalScore());
+    sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア 　 : %d", ScoreManager::Instance().GetDisplayTotalScore());
     DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", scoreStr);
     y += 48; 
 
     int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
     char killStr[64];
-    sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", killCount);
+    sprintf_s(killStr, sizeof(killStr), "倒した敵の数 : %d", killCount);
     DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", killStr);
     y += 48; 
 
     char timeStr[64];
-    sprintf_s(timeStr, sizeof(timeStr), "クリアタイム: %.1f秒", SceneMain::GetElapsedTime());
+    sprintf_s(timeStr, sizeof(timeStr), "クリアタイム 　: %.1f秒", SceneMain::GetElapsedTime());
     DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", timeStr);
     y += 60; 
 
