@@ -1,11 +1,4 @@
-﻿  WaveManager.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(143,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(151,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(159,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(358,15): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244: '初期化中': '_Rep' から 'unsigned int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:         with
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:         [
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:             _Rep=std::chrono::system_clock::rep
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(467,19): warning C4244:         ]
-  3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe
+﻿  SceneManager.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneManager.cpp(141,15): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Scene\SceneManager.cpp(142,15): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+  3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

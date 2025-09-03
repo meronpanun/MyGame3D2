@@ -1,4 +1,5 @@
 ﻿#include "SceneManager.h"
+#include <string>
 #include "SceneTitle.h"
 #include "SceneMain.h"
 #include "SceneResult.h"
@@ -15,7 +16,9 @@ SceneManager::SceneManager() :
 	m_pGameOver(nullptr),
 	m_pCurrentScene(nullptr),
 	m_pNextScene(nullptr),
-    m_isExternalSceneChange(false)
+    m_isExternalSceneChange(false),
+	m_loadingDotCount(0),
+	m_loadingAnimTimer(0)
 {
 }
 
@@ -64,7 +67,7 @@ void SceneManager::Update()
     // 外部からのシーン変更要求があった場合
     if (m_isExternalSceneChange)
     {
-        m_isExternalSceneChange = false; // フラグをリセット
+        m_isExternalSceneChange = false; 
     }
     else // 通常のシーン更新
     {
@@ -104,24 +107,50 @@ void SceneManager::Update()
 		// 新しいシーンがSceneMainの場合、ローディング画面を即座に表示
 		if (dynamic_cast<SceneMain*>(m_pCurrentScene))
 		{
-			// ローディング画面を表示
-			ClearDrawScreen();
-			int screenW, screenH;
-			GetScreenState(&screenW, &screenH, nullptr);
-			
-			// 背景を黒で塗りつぶし
-			DrawBox(0, 0, screenW, screenH, 0x000000, true);
-			
-			// ローディングテキストを中央に表示
-			SetFontSize(48);
-			const char* loadingText = "Now Loading...";
-			int textWidth = GetDrawStringWidth(loadingText, 12);
-			int textX = (screenW - textWidth) * 0.5f;
-			int textY = screenH * 0.5f - 30;
-			DrawString(textX, textY, loadingText, 0xffffff);
-			
-			SetFontSize(16);
-			ScreenFlip(); // ローディング画面を即座に表示
+			// ローディングアニメーションのループ
+			for (int i = 0; i < 360; ++i)
+			{
+				// 画面をクリア
+				ClearDrawScreen();
+				int screenW, screenH;
+				GetScreenState(&screenW, &screenH, nullptr);
+
+				// 背景を黒で塗りつぶし
+				DrawBox(0, 0, screenW, screenH, 0x000000, true);
+
+				// ローディングテキストとアニメーションするドットを準備
+				SetFontSize(48);
+				std::string loadingText = "Now Loading";
+				m_loadingAnimTimer++;
+				if (m_loadingAnimTimer > 30) // 30フレームごとにドットを増やす
+				{
+					m_loadingAnimTimer = 0;
+					m_loadingDotCount++;
+					if (m_loadingDotCount > 3)
+					{
+						m_loadingDotCount = 0;
+					}
+				}
+				for (int j = 0; j < m_loadingDotCount; ++j)
+				{
+					loadingText += ".";
+				}
+
+				// テキストを描画
+				int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
+				int textX = (screenW - textWidth) * 0.5f;
+				int textY = screenH * 0.5f - 30;
+				DrawString(textX, textY, loadingText.c_str(), 0xffffff);
+
+				SetFontSize(16);
+				ScreenFlip(); // 画面を更新
+
+				// ウィンドウの応答を維持
+				if (ProcessMessage() == -1)
+				{
+					break; // ゲームが終了した場合
+				}
+			}
 		}
 		
 		m_pCurrentScene->Init();

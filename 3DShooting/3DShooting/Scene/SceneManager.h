@@ -19,7 +19,7 @@ public:
 	void Init();
 	void Update();
 	void Draw();
-	
+
 	/// <summary>
 	/// シーンを変更するリクエストを行う
 	/// </summary>
@@ -33,9 +33,12 @@ private:
 	bool m_isExternalSceneChange; // 外部からのシーン変更要求フラグ
 
 	// SceneManagerで管理するシーン
-	SceneTitle*    m_pTitle;
-	SceneMain*     m_pSceneMain;
-	SceneResult*   m_pResult;
-	SceneOption*   m_pOption;
+	SceneTitle* m_pTitle;
+	SceneMain* m_pSceneMain;
+	SceneResult* m_pResult;
+	SceneOption* m_pOption;
 	SceneGameOver* m_pGameOver;
+
+	int m_loadingDotCount;    // ロード中のドットの数
+	int m_loadingAnimTimer;   // ロードアニメーションのタイマー
 };
