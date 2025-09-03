@@ -109,7 +109,7 @@ private:
     float m_chaseSpeed; // 追跡速度
 
     bool m_isTackleHit;       // 1フレームで複数回ダメージを受けないためのフラグ
-    bool m_isAttackHit;      // 攻撃がヒットしたかどうか
+    bool m_isAttackHit;       // 攻撃がヒットしたかどうか
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
     bool m_isItemDropped;     // アイテムドロップ済みフラグ
 

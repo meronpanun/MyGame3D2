@@ -33,6 +33,7 @@ namespace
     constexpr float kAttackRangeRadius = 1000.0f; // 攻撃範囲の半径
     constexpr float kAcidBulletSpeed   = 10.0f;   // 酸弾の速度
     constexpr float kAcidBulletRadius  = 10.0f;   // 酸弾の半径
+    constexpr float kAcidBulletGravity = 0.4f;    // 酸弾の重力加速度
     constexpr int   kAttackEndDelay    = 30;      // 攻撃後の硬直時間
 
     // 追跡関連（遠距離型なので、近づきすぎたら離れる）
@@ -186,11 +187,9 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     VECTOR toTarget = VSub(target, spawnPos);
     VECTOR flat = toTarget; flat.y = 0.0f;
     float dist = VSize(flat);
-    float speed = 10.0f; 
-    float t = dist / speed;
-    float gravity = 0.4f;
-    float vy = (toTarget.y + 0.5f * gravity * t * t) / t;
-    VECTOR vel = VScale(VNorm(flat), speed);
+    float t = dist / kAcidBulletSpeed;
+    float vy = (toTarget.y + 0.5f * kAcidBulletGravity * t * t) / t;
+    VECTOR vel = VScale(VNorm(flat), kAcidBulletSpeed);
     vel.y = vy;
 
     AcidBall ball;

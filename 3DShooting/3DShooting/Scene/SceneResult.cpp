@@ -126,14 +126,14 @@ SceneBase* SceneResult::Update()
         int btnSpacing = 24;
         int centerX = screenW * 0.5f;
         // タイトルボタン
-        int titleBtnX1 = centerX - btnW - btnSpacing/2;
+        int titleBtnX1 = centerX - btnW - btnSpacing * 0.5f;
         int titleBtnY1 = btnY;
-        int titleBtnX2 = centerX - btnSpacing/2;
+        int titleBtnX2 = centerX - btnSpacing * 0.5f;
         int titleBtnY2 = btnY + btnH;
         // リトライボタン
-        int retryBtnX1 = centerX + btnSpacing/2;
+        int retryBtnX1 = centerX + btnSpacing * 0.5f;
         int retryBtnY1 = btnY;
-        int retryBtnX2 = centerX + btnW + btnSpacing/2;
+        int retryBtnX2 = centerX + btnW + btnSpacing * 0.5f;
         int retryBtnY2 = btnY + btnH;
         Vec2 mousePos = Mouse::GetPos();
         if (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 && mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2)
@@ -235,17 +235,17 @@ void SceneResult::Draw()
     int btnSpacing = 40;
     int centerX = screenW * 0.5f;
     // タイトルボタン
-    int titleBtnX1 = centerX - btnW - btnSpacing/2;
+    int titleBtnX1 = centerX - btnW - btnSpacing * 0.5f;
     int titleBtnY1 = btnY;
-    int titleBtnX2 = centerX - btnSpacing/2;
+    int titleBtnX2 = centerX - btnSpacing * 0.5f;
     int titleBtnY2 = btnY + btnH;
     DrawBox(titleBtnX1, titleBtnY1, titleBtnX2, titleBtnY2, 0x888888, true);
     int titleTextWidth = GetDrawStringWidthToHandle("タイトルに戻る", -1, m_japaneseButtonFontHandle);
     DrawFormatStringToHandle(titleBtnX1 + (btnW - titleTextWidth) * 0.5f, titleBtnY1 + (btnH - 24) * 0.5f, 0xffffff, m_japaneseButtonFontHandle, "タイトルに戻る");
     // リトライボタン
-    int retryBtnX1 = centerX + btnSpacing/2;
+    int retryBtnX1 = centerX + btnSpacing * 0.5f;
     int retryBtnY1 = btnY;
-    int retryBtnX2 = centerX + btnW + btnSpacing/2;
+    int retryBtnX2 = centerX + btnW + btnSpacing * 0.5f;
     int retryBtnY2 = btnY + btnH;
     DrawBox(retryBtnX1, retryBtnY1, retryBtnX2, retryBtnY2, 0x888888, true);
     int retryTextWidth = GetDrawStringWidthToHandle("リトライ", -1, m_japaneseButtonFontHandle);
