@@ -171,49 +171,59 @@ void SceneResult::Draw()
         }
     }
 
-    // タイトル
+    
     int gameClearTextWidth = GetDrawStringWidthToHandle("GameClear!", -1, m_arialBlackLargeFontHandle);
-    DrawFormatStringToHandle(screenW * 0.5f - gameClearTextWidth * 0.5f, 30, 0x00ff00, m_arialBlackLargeFontHandle, "GameClear!");
-    int y = 120; // Adjusted Y position for larger font
+    DrawFormatStringToHandle(screenW * 0.5f - gameClearTextWidth * 0.5f, 30, 0xffd700, m_arialBlackLargeFontHandle, "GameClear!");
+    int y = 120;
 
     char scoreStr[64];
-    sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア: %d", ScoreManager::Instance().GetDisplayTotalScore());
-    int scoreTextWidth = GetDrawStringWidthToHandle(scoreStr, -1, m_japaneseLargeFontHandle);
-    DrawFormatStringToHandle(screenW * 0.5f - scoreTextWidth * 0.5f, y, 0xffffff, m_japaneseLargeFontHandle, "%s", scoreStr);
-    y += 48; // Adjusted spacing
+    sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア  : %d", ScoreManager::Instance().GetDisplayTotalScore());
+    DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", scoreStr);
+    y += 48; 
 
     int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
     char killStr[64];
     sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", killCount);
-    int killTextWidth = GetDrawStringWidthToHandle(killStr, -1, m_japaneseLargeFontHandle);
-    DrawFormatStringToHandle(screenW * 0.5f - killTextWidth * 0.5f, y, 0xffffff, m_japaneseLargeFontHandle, "%s", killStr);
-    y += 48; // Adjusted spacing
+    DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", killStr);
+    y += 48; 
 
     char timeStr[64];
     sprintf_s(timeStr, sizeof(timeStr), "クリアタイム: %.1f秒", SceneMain::GetElapsedTime());
-    int timeTextWidth = GetDrawStringWidthToHandle(timeStr, -1, m_japaneseLargeFontHandle);
-    DrawFormatStringToHandle(screenW * 0.5f - timeTextWidth * 0.5f, y, 0xffffff, m_japaneseLargeFontHandle, "%s", timeStr);
-    y += 60; // Adjusted spacing
+    DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", timeStr);
+    y += 60; 
 
     // ハイスコア表示
     int highScoreTextWidth = GetDrawStringWidthToHandle("--- High Score ---", -1, m_arialBlackLargeFontHandle);
     DrawFormatStringToHandle(screenW * 0.5f - highScoreTextWidth * 0.5f, y, 0xffff00, m_arialBlackLargeFontHandle, "--- High Score ---");
-    y += 80; // Adjusted spacing for larger font
+    y += 80; 
     const auto& scores = ScoreManager::Instance().GetHighScores();
     for (int i = 0; i < 3 && i < (int)scores.size(); ++i) 
     {
         char highStr[64];
         sprintf_s(highStr, sizeof(highStr), "%d位: %d", i+1, scores[i]);
         int highStrWidth = GetDrawStringWidthToHandle(highStr, -1, m_japaneseLargeFontHandle);
-        DrawFormatStringToHandle(screenW * 0.5f - highStrWidth * 0.5f, y, 0xffffff, m_japaneseLargeFontHandle, "%s", highStr);
-        y += 48; // Adjusted spacing for larger font
+        unsigned int color = 0xffffff;
+        if (i == 0) 
+        {
+            color = 0xffd700;
+        }
+        else if (i == 1)
+        {
+            color = 0xc0c0c0;
+        }
+        else if (i == 2) 
+        {
+            color = 0xff8c00;
+        }
+        DrawFormatStringToHandle(screenW * 0.5f - highStrWidth * 0.5f, y, color, m_japaneseLargeFontHandle, "%s", highStr);
+        y += 48; 
     }
 
     // ボタン描画
-    int btnY = screenH - 100; // Adjusted Y position
-    int btnW = 180; // Adjusted button width
-    int btnH = 50; // Adjusted button height
-    int btnSpacing = 40; // Adjusted button spacing
+    int btnY = screenH - 100; 
+    int btnW = 180;
+    int btnH = 50; 
+    int btnSpacing = 40;
     int centerX = screenW * 0.5f;
     // タイトルボタン
     int titleBtnX1 = centerX - btnW - btnSpacing/2;
@@ -222,7 +232,7 @@ void SceneResult::Draw()
     int titleBtnY2 = btnY + btnH;
     DrawBox(titleBtnX1, titleBtnY1, titleBtnX2, titleBtnY2, 0x888888, true);
     int titleTextWidth = GetDrawStringWidthToHandle("タイトルに戻る", -1, m_japaneseButtonFontHandle);
-    DrawFormatStringToHandle(titleBtnX1 + (btnW - titleTextWidth) * 0.5f, titleBtnY1 + (btnH - 24) * 0.5f, 0xffffff, m_japaneseButtonFontHandle, "タイトルに戻る"); // 24 is font size
+    DrawFormatStringToHandle(titleBtnX1 + (btnW - titleTextWidth) * 0.5f, titleBtnY1 + (btnH - 24) * 0.5f, 0xffffff, m_japaneseButtonFontHandle, "タイトルに戻る");
     // リトライボタン
     int retryBtnX1 = centerX + btnSpacing/2;
     int retryBtnY1 = btnY;
@@ -230,5 +240,5 @@ void SceneResult::Draw()
     int retryBtnY2 = btnY + btnH;
     DrawBox(retryBtnX1, retryBtnY1, retryBtnX2, retryBtnY2, 0x888888, true);
     int retryTextWidth = GetDrawStringWidthToHandle("リトライ", -1, m_japaneseButtonFontHandle);
-    DrawFormatStringToHandle(retryBtnX1 + (btnW - retryTextWidth) * 0.5f, retryBtnY1 + (btnH - 24) * 0.5f, 0xffffff, m_japaneseButtonFontHandle, "リトライ"); // 24 is font size
+    DrawFormatStringToHandle(retryBtnX1 + (btnW - retryTextWidth) * 0.5f, retryBtnY1 + (btnH - 24) * 0.5f, 0xffffff, m_japaneseButtonFontHandle, "リトライ");
 }
