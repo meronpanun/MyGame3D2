@@ -80,21 +80,20 @@ void EnemyNormal::Init()
     m_hitDisplayTimer = 0; // ヒット表示タイマーもリセット
 
     // CSVからNormalEnemyのTransform情報を取得
+    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+    for (const auto& data : dataList)
     {
-        auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-        for (const auto& data : dataList)
+        if (data.name == "NormalEnemy")
         {
-            if (data.name == "NormalEnemy")
-            {
-                MV1SetRotationXYZ(m_modelHandle, data.rot);
-                MV1SetScale(m_modelHandle, data.scale);
-                m_attackPower = data.attack;
-                m_hp = data.hp;
-                m_chaseSpeed = data.chaseSpeed;
-                break;
-            }
+            MV1SetRotationXYZ(m_modelHandle, data.rot);
+            MV1SetScale(m_modelHandle, data.scale);
+            m_attackPower = data.attack;
+            m_hp = data.hp;
+            m_chaseSpeed = data.chaseSpeed;
+            break;
         }
     }
+    
 
     // ここで一度「絶対にWalkでない値」にリセット
     m_currentAnimState = AnimState::Dead;
@@ -177,6 +176,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
+            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         
         // 死亡アニメーション中もアニメーション時間を更新
@@ -208,10 +208,6 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
             SetActive(false);  // プールに戻す
-        } 
-        else 
-        {
-            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         return;
     }

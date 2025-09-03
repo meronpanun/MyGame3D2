@@ -59,11 +59,13 @@ WaveManager::WaveManager() :
     m_onEnemyDeathCallback(nullptr),
     m_waveIntervalTimer(0.0f),
     m_totalSpawnedCount(0),
-    m_shotTutorialImg(-1),
-    m_tackleTutorialImg(-1),
     m_isShotTutorialCleared(false),
     m_isTackleTutorialCleared(false),
-    m_checkMarkImg(-1)
+    m_waveImageAnimTimer(0),
+    m_waveImageAnimDuration(45),
+    m_waveImageAnimHoldDuration(30),
+    m_waveImageAnimInitialHoldDuration(30),
+    m_isWaveImageAnimating(false)
 {
     // 敵のテンプレートを作成
     m_pEnemyNormalTemplate = std::make_shared<EnemyNormal>();
@@ -79,11 +81,6 @@ WaveManager::WaveManager() :
     m_waveImages[0] = LoadGraph("data/image/wave1.png");
     m_waveImages[1] = LoadGraph("data/image/wave2.png");
     m_waveImages[2] = LoadGraph("data/image/wave3.png");
-
-    // チュートリアル画像の読み込み
-    m_shotTutorialImg   = LoadGraph("data/image/ShotTutorial.png");
-    m_tackleTutorialImg = LoadGraph("data/image/TackleTutorial.png");
-    m_checkMarkImg      = LoadGraph("data/image/CheckMark.png");
 }
 
 WaveManager::~WaveManager()
@@ -97,9 +94,6 @@ WaveManager::~WaveManager()
 			m_waveImages[i] = -1;
 		}
 	}
-    DeleteGraph(m_shotTutorialImg);
-    DeleteGraph(m_tackleTutorialImg);
-    DeleteGraph(m_checkMarkImg);
 }
 
 void WaveManager::Init()
@@ -275,12 +269,20 @@ void WaveManager::Update()
         }
     }
 
-    // This part is independent of the state machine above
-    // Clean up dead enemies from the active list
+    // ウェーブ画像アニメーションの更新
+    if (m_isWaveImageAnimating)
+    {
+        m_waveImageAnimTimer++;
+        if (m_waveImageAnimTimer >= m_waveImageAnimInitialHoldDuration + m_waveImageAnimDuration + m_waveImageAnimHoldDuration)
+        {
+            m_isWaveImageAnimating = false;
+        }
+    }
+
     m_enemyList.erase(
         std::remove_if(m_enemyList.begin(), m_enemyList.end(),
             [](const std::shared_ptr<EnemyBase>& pEnemy) {
-                return !pEnemy->IsAlive();
+                return !pEnemy->IsActive();
             }),
         m_enemyList.end()
     );
@@ -352,12 +354,53 @@ void WaveManager::DrawEnemies()
         GetGraphSize(img, &imgW, &imgH);
         int screenW = 0, screenH = 0;
         GetScreenState(&screenW, &screenH, NULL);
-        // 定数で指定した幅、高さは縦横比維持で計算
-        int drawW = kWaveImageDrawWidth;
-        int drawH = imgH * drawW / imgW;
-        int x = (screenW - drawW) * 0.5f;
-        int y = 0; // 画面上部中央
-        DrawExtendGraph(x, y, x + drawW, y + drawH, img, true);
+
+        // 最終的な位置とサイズ
+        int targetDrawW = kWaveImageDrawWidth;
+        int targetDrawH = imgH * targetDrawW / imgW;
+        int targetX = (screenW - targetDrawW) * 0.5f;
+        int targetY = 0; // 画面上部中央
+
+        // 初期位置とサイズ (拡大して中央)
+        int startDrawW = static_cast<int>(screenW * 0.4f);
+        int startDrawH = imgH * startDrawW / imgW;
+        int startX = (screenW - startDrawW) * 0.5f; // 画面中央
+        int startY = (screenH - startDrawH) * 0.5f; // 画面中央
+
+        int currentX, currentY, currentDrawW, currentDrawH;
+
+        if (m_isWaveImageAnimating)
+        {
+            float t;
+            if (m_waveImageAnimTimer < m_waveImageAnimInitialHoldDuration)
+            {
+                t = 0.0f; // 初期ホールド中は補間を0に固定
+            }
+            else if (m_waveImageAnimTimer < m_waveImageAnimInitialHoldDuration + m_waveImageAnimDuration)
+            {
+                t = (float)(m_waveImageAnimTimer - m_waveImageAnimInitialHoldDuration) / m_waveImageAnimDuration;
+            }
+            else
+            {
+                t = 1.0f; // ホールド中は補間を終了位置に固定
+            }
+            t = (std::min)(1.0f, t); // 0.0fから1.0fにクランプ
+
+            // 線形補間
+            currentX = static_cast<int>(startX + (targetX - startX) * t);
+            currentY = static_cast<int>(startY + (targetY - startY) * t);
+            currentDrawW = static_cast<int>(startDrawW + (targetDrawW - startDrawW) * t);
+            currentDrawH = static_cast<int>(startDrawH + (targetDrawH - startDrawH) * t);
+        }
+        else
+        {
+            currentX = targetX;
+            currentY = targetY;
+            currentDrawW = targetDrawW;
+            currentDrawH = targetDrawH;
+        }
+
+        DrawExtendGraph(currentX, currentY, currentX + currentDrawW, currentY + currentDrawH, img, true);
     }
 
 	// 敵の描画
@@ -661,6 +704,10 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
     m_currentSpawnIndex = 0;
     m_spawnTimer = 0.0f;
     m_isWaveActive = true;
+
+    // ウェーブ画像アニメーションを開始
+    m_isWaveImageAnimating = true;
+    m_waveImageAnimTimer = 0;
 
     // ウェーブ1の敵ロードフラグ
     if (m_currentWave == 1)

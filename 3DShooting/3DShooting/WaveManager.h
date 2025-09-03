@@ -124,18 +124,6 @@ public:
     float GetSpawnTimer() const { return m_spawnTimer; }
 
     /// <summary>
-	/// 現在のウェーブの画像ハンドルを取得
-    /// </summary>
-	/// <returns>現在のウェーブの画像ハンドル</returns>
-    int GetShotTutorialImg() const { return m_shotTutorialImg; }
-
-    /// <summary>
-	/// タックルチュートリアル画像のハンドルを取得
-    /// </summary>
-	/// <returns>タックルチュートリアル画像のハンドル</returns>
-    int GetTackleTutorialImg() const { return m_tackleTutorialImg; }
-
-    /// <summary>
 	/// チュートリアルがクリアされたかどうかを取得
     /// </summary>
 	/// <returns>ショットチュートリアルがクリアされていればtrue</returns>
@@ -146,12 +134,6 @@ public:
     /// </summary>
 	/// <returns>タックルチュートリアルがクリアされていればtrue</returns>
     bool IsTackleTutorialCleared() const { return m_isTackleTutorialCleared; }
-
-    /// <summary>
-	/// チェックマーク画像のハンドルを取得
-    /// </summary>
-	/// <returns>チェックマーク画像のハンドル</returns>
-    int GetCheckMarkImg() const { return m_checkMarkImg; }
 
 private:
     /// <summary>
@@ -232,9 +214,6 @@ private:
 	int m_currentSpawnIndex; // 現在の出現インデックス
     int m_waveImages[3];     // 1,2,3ウェーブ用画像ハンドル
     int m_totalSpawnedCount; // 累計出現数
-	int m_shotTutorialImg;   // ショットチュートリアル画像ハンドル
-	int m_tackleTutorialImg; // タックルチュートリアル画像ハンドル
-	int m_checkMarkImg;      // チェックマーク画像ハンドル
 
 	float m_waveTimer;         // ウェーブのタイマー
 	float m_spawnTimer;        // 敵の出現タイマー
@@ -247,4 +226,10 @@ private:
 	bool m_isShotTutorialCleared;   // ショットチュートリアルがクリアされたかどうか
 	bool m_isTackleTutorialCleared; // タックルチュートリアルがクリアされたかどうか
 	bool m_isRoadFloorBoundsSet;    // 範囲が設定されているかどうか
+
+    int m_waveImageAnimTimer;    // ウェーブ画像アニメーションタイマー
+    int m_waveImageAnimDuration; // ウェーブ画像アニメーションの総時間
+    int m_waveImageAnimHoldDuration; // ウェーブ画像アニメーションのホールド時間
+    int m_waveImageAnimInitialHoldDuration; // ウェーブ画像アニメーションの初期ホールド時間
+    bool m_isWaveImageAnimating; // ウェーブ画像アニメーション中フラグ
 };

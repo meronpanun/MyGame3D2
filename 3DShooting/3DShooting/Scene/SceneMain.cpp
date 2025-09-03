@@ -116,14 +116,13 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_clearSceneDelayTimer(-1),
 	m_scoreFontHandle(-1)
 {
-    {
     g_sceneMainInstance = this;
 
     // スコアポップアップ用フォントの作成
     m_scoreFontHandle = CreateFontToHandle("Abadi MT", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_scoreFontHandle != -1);
 }
-}
+
 
 SceneMain::~SceneMain()
 {
@@ -497,55 +496,6 @@ void SceneMain::Draw()
     if (!isWave1Tutorial)
     {
         m_pWaveManager->DrawEnemies();
-        // ウェーブ1画像が表示されるタイミングで右上にチュートリアル画像を表示
-        if (!m_pWaveManager->IsAllWavesCompleted() && m_pWaveManager->GetCurrentWave() == 1
-            && !m_isReturningFromOption && !m_isReturningFromOtherScene)
-        {
-            int shotImg        = m_pWaveManager->GetShotTutorialImg();
-            int tackleImg      = m_pWaveManager->GetTackleTutorialImg();
-            int checkImg       = m_pWaveManager->GetCheckMarkImg();
-            bool shotCleared   = m_pWaveManager->IsShotTutorialCleared();
-            bool tackleCleared = m_pWaveManager->IsTackleTutorialCleared();
-            int screenW, screenH;
-            GetScreenState(&screenW, &screenH, nullptr);
-            int x = screenW - 220;
-            int y = 20;
-            // チュートリアル画像の描画サイズを調整
-            int newWidth = 220; 
-            int origW = 176, origH = 60; // 両方の画像の元サイズ
-
-            // アスペクト比を維持して高さを計算
-            int newHeight = origH * newWidth / origW;
-
-            int checkSize = 50; // チェックマークも少し大きく
-            int imgBaseX = x - 100; // 画像をさらに左にずらす
-            int shotY = y;
-            int tackleY = y + newHeight + 20; // 修正後の高さでY座標を計算
-
-            // Shot画像
-            if (shotImg >= 0)
-            {
-                DrawExtendGraph(imgBaseX, shotY, imgBaseX + newWidth, shotY + newHeight, shotImg, true);
-            }
-
-            // 射撃達成時は射撃画像の右側にチェック
-            if (shotCleared && checkImg >= 0)
-            {
-                DrawExtendGraph(imgBaseX + newWidth + 10, shotY + newHeight * 0.5f - checkSize * 0.5f, imgBaseX + newWidth + 10 + checkSize, shotY + newHeight * 0.5f + checkSize * 0.5f, checkImg, true);
-            }
-            
-            // Tackle画像
-            if (tackleImg >= 0)
-            {
-                DrawExtendGraph(imgBaseX, tackleY, imgBaseX + newWidth, tackleY + newHeight, tackleImg, true);
-            }
-
-            // タックル達成時はタックル画像の右側にチェック
-            if (tackleCleared && checkImg >= 0)
-            {
-                DrawExtendGraph(imgBaseX + newWidth + 10, tackleY + newHeight * 0.5f - checkSize * 0.5f, imgBaseX + newWidth + 10 + checkSize, tackleY + newHeight * 0.5f + checkSize * 0.5f, checkImg, true);
-            }
-        }
     }
 
     m_pPlayer->Draw();

@@ -210,6 +210,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
+            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         
         // 死亡アニメーション中もアニメーション時間を更新
@@ -240,10 +241,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 m_onDeathCallback = nullptr; // 一度だけ呼び出す
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
-        } 
-        else 
-        {
-            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         return;
     }

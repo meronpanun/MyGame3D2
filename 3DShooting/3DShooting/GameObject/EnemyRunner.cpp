@@ -165,6 +165,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
+            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         
         // 死亡アニメーション中もアニメーション時間を更新
@@ -196,10 +197,6 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
             SetActive(false);  // プールに戻す
-        }
-		else 
-		{
-            m_isAlive = true; // 死亡アニメーション中はtrueのまま
         }
         return;
     }
