@@ -26,6 +26,8 @@ public:
 	/// <param name="newScene">新しいシーンのポインタ</param>
 	void RequestChangeScene(SceneBase* newScene);
 
+	SceneBase* GetCurrentScene() const { return m_pCurrentScene; }
+
 private:
 	SceneBase* m_pCurrentScene;
 	SceneBase* m_pNextScene;

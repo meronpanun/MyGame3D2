@@ -20,6 +20,5 @@ public:
 
 private:
     static bool s_isVisible; // デバッグウィンドウの表示状態
-    static bool s_prevMouseVisible; // デバッグウィンドウを開く前のマウス表示状態
     static DebugMenu s_debugMenu;
 };

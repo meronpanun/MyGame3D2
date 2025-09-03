@@ -1,10 +1,12 @@
 ﻿#include "DebugUtil.h"
 #include "EffekseerForDXLib.h"
 #include "DebugMenu.h"
+#include "Game.h"
+#include "SceneManager.h"
+#include "SceneMain.h"
 #include <cstdarg>
 
 bool DebugUtil::s_isVisible = false; // デバッグウィンドウの表示状態を管理する静的変数
-bool DebugUtil::s_prevMouseVisible = false; // デバッグウィンドウを開く前のマウス表示状態を保存
 DebugMenu DebugUtil::s_debugMenu;
 
 // 3Dカプセルのデバッグ描画関数
@@ -49,18 +51,28 @@ void DebugUtil::ShowDebugWindow()
     int nowF1 = CheckHitKey(KEY_INPUT_F1);
     if (nowF1 && !prevF1)
     {
-        if (!s_isVisible)
+        s_isVisible = !s_isVisible;
+
+        if (s_isVisible)
         {
-            // デバッグウィンドウを開く前に現在のマウス表示状態を保存
-            s_prevMouseVisible = (GetMouseDispFlag() == true);
-            s_isVisible = true;
-            SetMouseDispFlag(true); // デバッグウィンドウを開く時は必ずマウスを表示
+            // デバッグウィンドウを開く時は必ずマウスを表示
+            SetMouseDispFlag(true);
         }
         else
         {
-            // デバッグウィンドウを閉じる時は元の状態に戻す
-            s_isVisible = false;
-            SetMouseDispFlag(s_prevMouseVisible ? true : false);
+            // デバッグウィンドウを閉じる時は現在のシーンに応じてマウスの表示を決定
+            if (Game::m_pSceneManager)
+            {
+                SceneBase* currentScene = Game::m_pSceneManager->GetCurrentScene();
+                if (dynamic_cast<SceneMain*>(currentScene))
+                {
+                    SetMouseDispFlag(false); // ゲーム本編では非表示
+                }
+                else
+                {
+                    SetMouseDispFlag(true); // それ以外のシーンでは表示
+                }
+            }
         }
     }
     prevF1 = nowF1;
