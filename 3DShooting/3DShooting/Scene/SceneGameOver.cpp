@@ -33,6 +33,18 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score) :
     // 背景画像のロード
     m_backgroundHandle = LoadGraph("data/image/BackGrand.png");
     assert(m_backgroundHandle != -1);
+
+    // フォントの作成
+    m_japaneseFontHandle = CreateFontToHandle("Noto Sans Japanese", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_japaneseFontHandle != -1);
+    m_arialBlackFontHandle = CreateFontToHandle("Arial Black", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_arialBlackFontHandle != -1);
+    m_arialBlackLargeFontHandle = CreateFontToHandle("Arial Black", 64, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_arialBlackLargeFontHandle != -1);
+    m_japaneseLargeFontHandle = CreateFontToHandle("Noto Sans Japanese", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_japaneseLargeFontHandle != -1);
+    m_japaneseButtonFontHandle = CreateFontToHandle("Noto Sans Japanese", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    assert(m_japaneseButtonFontHandle != -1);
 }
 
 SceneGameOver::~SceneGameOver()
@@ -43,6 +55,13 @@ SceneGameOver::~SceneGameOver()
 
     // 背景画像の解放
     DeleteGraph(m_backgroundHandle);
+
+    // フォントの解放
+    DeleteFontToHandle(m_japaneseFontHandle);
+    DeleteFontToHandle(m_arialBlackFontHandle);
+    DeleteFontToHandle(m_arialBlackLargeFontHandle);
+    DeleteFontToHandle(m_japaneseLargeFontHandle);
+    DeleteFontToHandle(m_japaneseButtonFontHandle);
 }
 
 void SceneGameOver::Init()
@@ -82,14 +101,14 @@ SceneBase* SceneGameOver::Update()
         int centerX = screenW * 0.5f;
         int baseY = screenH * 0.5f + 180;
         // タイトルに戻るボタン
-        int titleBtnX1 = centerX - kButtonWidth - kButtonSpacing/2;
+        int titleBtnX1 = centerX - kButtonWidth - kButtonSpacing * 0.5f;
         int titleBtnY1 = baseY;
-        int titleBtnX2 = centerX - kButtonSpacing/2;
+        int titleBtnX2 = centerX - kButtonSpacing * 0.5f;
         int titleBtnY2 = baseY + kButtonHeight;
         // リトライボタン
-        int retryBtnX1 = centerX + kButtonSpacing/2;
+        int retryBtnX1 = centerX + kButtonSpacing * 0.5f;
         int retryBtnY1 = baseY;
-        int retryBtnX2 = centerX + kButtonWidth + kButtonSpacing/2;
+        int retryBtnX2 = centerX + kButtonWidth + kButtonSpacing * 0.5f;
         int retryBtnY2 = baseY + kButtonHeight;
         Vec2 mousePos = Mouse::GetPos();
         if (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 && mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2)
@@ -137,34 +156,38 @@ void SceneGameOver::Draw()
         }
     }
 
-    SetFontSize(48);
-    DrawString(screenW / 2 - 200, screenH * 0.5f - 100, "Game Over", 0xff0000);
-    SetFontSize(36);
+    int gameOverTextWidth = GetDrawStringWidthToHandle("Game Over", -1, m_arialBlackLargeFontHandle);
+    DrawFormatStringToHandle(screenW * 0.5f - gameOverTextWidth * 0.5f, screenH * 0.5f - 100, 0xff4500, m_arialBlackLargeFontHandle, "Game Over");
+
     char waveStr[64];
     sprintf_s(waveStr, sizeof(waveStr), "到達ウェーブ: %d", m_wave);
-    DrawString(screenW * 0.5f - 150, screenH * 0.5f - 20, waveStr, 0xffffff);
+    DrawFormatStringToHandle(screenW * 0.5f - 200, screenH * 0.5f - 20, 0xffffff, m_japaneseLargeFontHandle, "%s", waveStr);
+
     char killStr[64];
     sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", m_killCount);
-    DrawString(screenW * 0.5f - 150, screenH * 0.5f + 20, killStr, 0xffffff);
+    DrawFormatStringToHandle(screenW * 0.5f - 200, screenH * 0.5f + 20, 0xffffff, m_japaneseLargeFontHandle, "%s", killStr);
+
     char scoreStr[64];
     sprintf_s(scoreStr, sizeof(scoreStr), "スコア: %d", ScoreManager::Instance().GetDisplayScore());
-    DrawString(screenW * 0.5f - 150, screenH * 0.5f + 60, scoreStr, 0xffffff);
-    SetFontSize(16);
+    DrawFormatStringToHandle(screenW * 0.5f - 200, screenH * 0.5f + 60, 0xffffff, m_japaneseLargeFontHandle, "%s", scoreStr);
+
     // ボタン描画
     int centerX = screenW * 0.5f;
     int baseY = screenH * 0.5f + 180;
-    int titleBtnX1 = centerX - kButtonWidth - kButtonSpacing/2;
+    int titleBtnX1 = centerX - kButtonWidth - kButtonSpacing * 0.5f;
     int titleBtnY1 = baseY;
-    int titleBtnX2 = centerX - kButtonSpacing/2;
+    int titleBtnX2 = centerX - kButtonSpacing * 0.5f;
     int titleBtnY2 = baseY + kButtonHeight;
-    int retryBtnX1 = centerX + kButtonSpacing/2;
+    int retryBtnX1 = centerX + kButtonSpacing * 0.5f;
     int retryBtnY1 = baseY;
-    int retryBtnX2 = centerX + kButtonWidth + kButtonSpacing/2;
+    int retryBtnX2 = centerX + kButtonWidth + kButtonSpacing * 0.5f;
     int retryBtnY2 = baseY + kButtonHeight;
     // タイトルボタン
     DrawBox(titleBtnX1, titleBtnY1, titleBtnX2, titleBtnY2, 0x888888, true);
-    DrawString(titleBtnX1 + 30, titleBtnY1 + 18, "タイトルに戻る", 0xffffff);
+    int titleTextWidth = GetDrawStringWidthToHandle("タイトルに戻る", -1, m_japaneseButtonFontHandle);
+    DrawFormatStringToHandle(titleBtnX1 + (kButtonWidth - titleTextWidth) * 0.5f, titleBtnY1 + (kButtonHeight - 24) * 0.5f, 0xffffff, m_japaneseButtonFontHandle, "タイトルに戻る");
     // リトライボタン
     DrawBox(retryBtnX1, retryBtnY1, retryBtnX2, retryBtnY2, 0x888888, true);
-    DrawString(retryBtnX1 + 50, retryBtnY1 + 18, "リトライ", 0xffffff);
+    int retryTextWidth = GetDrawStringWidthToHandle("リトライ", -1, m_japaneseButtonFontHandle);
+    DrawFormatStringToHandle(retryBtnX1 + (kButtonWidth - retryTextWidth) * 0.5f, retryBtnY1 + (kButtonHeight - 24) * 0.5f, 0xffffff, m_japaneseButtonFontHandle, "リトライ");
 }

@@ -1,14 +1,26 @@
-﻿  SceneResult.cpp
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(117,21): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(176,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(181,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(187,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(192,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(197,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(218,49): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(227,17): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(235,86): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(235,41): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(243,86): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(243,41): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+﻿  SceneGameOver.cpp
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(101,21): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(102,19): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(104,24): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(106,24): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(109,24): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(111,24): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(160,88): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(160,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(164,67): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(164,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(168,67): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(168,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(172,67): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(172,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(175,17): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(176,15): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(177,20): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(179,20): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(181,20): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(183,20): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(188,94): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(188,41): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(192,94): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(192,41): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人\Documents\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

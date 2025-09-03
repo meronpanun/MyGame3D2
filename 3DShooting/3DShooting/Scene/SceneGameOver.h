@@ -7,12 +7,12 @@
 class SceneGameOver : public SceneBase
 {
 public:
-	SceneGameOver(int wave, int killCount, int score);
-	virtual ~SceneGameOver();
+    SceneGameOver(int wave, int killCount, int score);
+    virtual ~SceneGameOver();
 
-	void Init() override;
-	SceneBase* Update() override;
-	void Draw() override;
+    void Init() override;
+    SceneBase* Update() override;
+    void Draw() override;
 
 private:
     int m_backgroundHandle; // 背景画像のハンドル
@@ -26,5 +26,11 @@ private:
     float m_scrollY; // 背景のスクロールY座標
 
     bool m_isBGMStarted; // BGM再生済みフラグ
+
+    int m_japaneseFontHandle; // 日本語フォントハンドル
+    int m_arialBlackFontHandle; // Arial Blackフォントハンドル
+    int m_arialBlackLargeFontHandle; // Arial Blackラージフォントハンドル
+    int m_japaneseLargeFontHandle; // 日本語ラージフォントハンドル
+    int m_japaneseButtonFontHandle; // 日本語ボタンフォントハンドル
 };
 
