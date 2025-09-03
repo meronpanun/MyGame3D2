@@ -38,7 +38,7 @@ namespace
 	constexpr int   kButtonSpacing      = 20;   // ボタン間のスペース
 
 	// ゲームクリアシーンへの遷移遅延フレーム数
-	constexpr int kClearSceneDelayFrames = 120; // 2秒
+	constexpr int kClearSceneDelayFrames = 60; 
 
 	// 戻るボタンとオプションボタンの座標
 	constexpr int kReturnButtonX = 210; // 戻るボタンのX座標
@@ -139,12 +139,12 @@ SceneMain::~SceneMain()
 
 void SceneMain::Init()
 {
-    SetWaitVSyncFlag(true);    // VSync有効化で描画負荷を安定化
+    SetWaitVSyncFlag(true); // VSync有効化で描画負荷を安定化
 
     // 経過時間リセット
     s_elapsedTime = 0.0f;
 
-    // 非同期読み込みを有効化（ローディング状態は既にコンストラクタで設定済み）
+    // 非同期読み込みを有効化
     SetUseASyncLoadFlag(true);
 
     // 重いリソースの非同期読み込みを開始
