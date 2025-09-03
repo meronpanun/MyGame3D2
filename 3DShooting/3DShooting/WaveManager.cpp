@@ -228,7 +228,7 @@ void WaveManager::Update()
         else
         {
     
-            if (m_currentSpawnIndex < m_spawnInfoList.size())
+            if (m_currentSpawnIndex < m_spawnInfoList.size() && !m_isWaveImageAnimating)
             {
                 m_spawnTimer += 1.0f / 60.0f;
                 while (m_currentSpawnIndex < m_spawnInfoList.size())
@@ -347,7 +347,7 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
 void WaveManager::DrawEnemies()
 {
     // ウェーブ中は常に画像を表示
-    if (!m_isAllWavesCompleted && m_currentWave >= 1 && m_currentWave <= 3)
+    if (!m_isAllWavesCompleted && m_currentWave >= 1 && m_currentWave <= 3 && (m_isWaveImageAnimating || m_isWaveActive))
     {
         int img = m_waveImages[m_currentWave - 1];
         int imgW = 0, imgH = 0;
