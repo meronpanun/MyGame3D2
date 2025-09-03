@@ -17,6 +17,7 @@ namespace
 
 SceneResult::SceneResult() :
     m_bgmHandle(-1),
+	m_gameClearImageHandle(-1),
     m_isBGMStarted(false),
     m_backgroundHandle(-1),
     m_scrollX(0.0f), 
@@ -32,9 +33,14 @@ SceneResult::SceneResult() :
     assert(m_bgmHandle != -1);
     m_returnSEHandle = LoadSoundMem("data/sound/SE/ButtonReturn.mp3");
     assert(m_returnSEHandle != -1);
+
     // 背景画像のロード
     m_backgroundHandle = LoadGraph("data/image/GameClearBackGrand.png");
     assert(m_backgroundHandle != -1);
+
+	// ゲームクリア画像のロード
+	m_gameClearImageHandle = LoadGraph("data/image/GameClear.png");
+	assert(m_gameClearImageHandle != -1);
 
     // フォントの作成
     m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -58,8 +64,12 @@ SceneResult::~SceneResult()
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
     DeleteSoundMem(m_returnSEHandle);
+
     // 背景画像の解放
     DeleteGraph(m_backgroundHandle);
+
+	// ゲームクリア画像の解放
+	DeleteGraph(m_gameClearImageHandle);
 
     // フォントの解放
     DeleteFontToHandle(m_japaneseFontHandle);
@@ -171,11 +181,10 @@ void SceneResult::Draw()
         }
     }
 
+	// ゲームクリア画像を描画
+    DrawExtendGraph(0, -250, screenW, screenH - 200, m_gameClearImageHandle, true);
     
-    int gameClearTextWidth = GetDrawStringWidthToHandle("GameClear!", -1, m_arialBlackLargeFontHandle);
-    DrawFormatStringToHandle(screenW * 0.5f - gameClearTextWidth * 0.5f, 30, 0xffd700, m_arialBlackLargeFontHandle, "GameClear!");
-    int y = 120;
-
+    int y = 230;
     char scoreStr[64];
     sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア 　 : %d", ScoreManager::Instance().GetDisplayTotalScore());
     DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", scoreStr);

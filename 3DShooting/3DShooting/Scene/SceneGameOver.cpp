@@ -34,6 +34,10 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score) :
     m_backgroundHandle = LoadGraph("data/image/BackGrand.png");
     assert(m_backgroundHandle != -1);
 
+    // ゲームオーバー画像のロード
+    m_gameOverImageHandle = LoadGraph("data/image/GameOver.png");
+    assert(m_gameOverImageHandle != -1);
+
     // フォントの作成
     m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_japaneseFontHandle != -1);
@@ -55,6 +59,7 @@ SceneGameOver::~SceneGameOver()
 
     // 背景画像の解放
     DeleteGraph(m_backgroundHandle);
+    DeleteGraph(m_gameOverImageHandle);
 
     // フォントの解放
     DeleteFontToHandle(m_japaneseFontHandle);
@@ -152,12 +157,12 @@ void SceneGameOver::Draw()
             int drawY = y * kBgImageSize + offsetY;
             DrawExtendGraph(drawX, drawY, 
                           drawX + kBgImageSize, drawY + kBgImageSize, 
-                          m_backgroundHandle, TRUE);
+                          m_backgroundHandle, true);
         }
     }
 
-    int gameOverTextWidth = GetDrawStringWidthToHandle("Game Over", -1, m_arialBlackLargeFontHandle);
-    DrawFormatStringToHandle(screenW * 0.5f - gameOverTextWidth * 0.5f, screenH * 0.5f - 100, 0xff4500, m_arialBlackLargeFontHandle, "Game Over");
+    // ゲームオーバー画像を描画
+    DrawExtendGraph(0, -200, screenW, screenH - 100, m_gameOverImageHandle, true);
 
     char waveStr[64];
     sprintf_s(waveStr, sizeof(waveStr), "到達ウェーブ: %d", m_wave);

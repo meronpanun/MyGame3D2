@@ -16,6 +16,7 @@ public:
 
 private:
     int m_backgroundHandle; // 背景画像のハンドル
+    int m_gameOverImageHandle; // ゲームオーバー画像のハンドル
     int m_bgmHandle;        // ゲームオーバーBGMのハンドル
     int m_returnSEHandle;   // 戻るボタンSEのハンドル
     int m_wave;             // ウェーブ
