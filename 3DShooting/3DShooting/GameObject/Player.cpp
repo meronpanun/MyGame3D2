@@ -859,6 +859,9 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
     bullets.emplace_back(spawnPos, cameraForward, m_bulletPower);
 
+	// SEを再生
+	PlaySoundMem(m_shootSEHandle, DX_PLAYTYPE_BACK);
+
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();
 	float rotZ = 0.0f;

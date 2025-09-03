@@ -341,11 +341,12 @@ SceneBase* SceneMain::Update()
         }
     }
 
-    // BGM再生（非同期ロード完了直後に一度だけ）
+    // BGM再生
     if (!m_isBGMStarted)
     {
         if (CheckSoundMem(m_bgmHandle) == 0)
         {
+            ChangeVolumeSoundMem(200, m_bgmHandle);
             PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
         }
         m_isBGMStarted = true;
