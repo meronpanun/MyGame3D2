@@ -184,7 +184,7 @@ void SceneResult::Draw()
 	// ゲームクリア画像を描画
     DrawExtendGraph(0, -250, screenW, screenH - 200, m_gameClearImageHandle, true);
     
-    int y = 230;
+    int y = 550;
     char scoreStr[64];
     sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア 　 : %d", ScoreManager::Instance().GetDisplayTotalScore());
     DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", scoreStr);
