@@ -151,16 +151,18 @@ void ScoreManager::LoadScores()
     }
 }
 
-void ScoreManager::ResetDisplayValues()
+// 表示用の値をリセット
+void ScoreManager::ResetDisplayValues() 
 {
-    m_displayScore = 0;
+    m_displayScore      = 0;
     m_displayTotalScore = 0;
 }
 
-void ScoreManager::SetTargetDisplayValues(int score, int totalScore, int bodyKill, int headKill)
+// 表示用の目標値を設定
+void ScoreManager::SetTargetDisplayValues(int score, int totalScore, int bodyKill, int headKill) 
 {
-    m_targetDisplayScore = score;
-    m_targetTotalScore = totalScore;
+    m_targetDisplayScore  = score;
+    m_targetTotalScore    = totalScore;
     m_targetBodyKillCount = bodyKill;
     m_targetHeadKillCount = headKill;
 }

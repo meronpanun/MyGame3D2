@@ -88,41 +88,76 @@ public:
     /// <returns>最高スコア</returns>
     int GetHighestScore() const { return m_highScores.empty() ? 0 : m_highScores[0]; }
 
-    // 表示用スコアの取得
+    /// <summary>
+	/// 表示用スコアを取得
+    /// </summary>
+	/// <returns>表示用スコア</returns>
     int GetDisplayScore() const { return m_displayScore; }
 
-    // 表示用スコアのリセット
+    /// <summary>
+	/// 表示用スコアのリセット
+    /// </summary>
     void ResetDisplayScore() { m_displayScore = 0; m_targetDisplayScore = m_score; }
 
     // 表示用スコアの目標値設定
+    /// <summary>
+	/// 表示用スコアの目標値を設定
+    /// </summary>
+	/// <param name="score">目標スコア</param>
     void SetTargetDisplayScore(int score) { m_targetDisplayScore = score; }
 
     // カウントアップ速度設定
+
+    /// <summary>
+	/// カウントアップ速度を設定
+    /// </summary>
+	/// <param name="speed">速度</param>
     void SetScoreCountUpSpeed(int speed) { m_scoreCountUpSpeed = speed; }
 
+    /// <summary>
+	/// 表示用累計スコアを取得
+    /// </summary>
+	/// <returns>表示用累計スコア</returns>
     int GetDisplayTotalScore() const { return m_displayTotalScore; }
 
+    /// <summary>
+	/// 表示用累計スコアのリセット
+    /// </summary>
     void ResetDisplayValues();
+
+    /// <summary>
+	/// 表示用の目標値を設定
+    /// </summary>
+	/// <param name="score">目標スコア</param>
+	/// <param name="totalScore">目標累計スコア</param>
+	/// <param name="bodyKill">目標ボディショットキル数</param>
+	/// <param name="headKill">目標ヘッドショットキル数</param>
     void SetTargetDisplayValues(int score, int totalScore, int bodyKill, int headKill);
 
 private:
-    std::vector<int> m_highScores;
+	std::vector<int> m_highScores; // ハイスコアリスト
 
-    int m_score;         // 現在のスコア
-    int m_totalScore;    // ゲーム全体の累計スコア
-    int m_combo;         // 現在のコンボ数
-    int m_comboTimer;    // コンボ継続猶予タイマー（フレーム単位）
+	// スコア関連
+    int m_score;      // 現在のスコア
+    int m_totalScore; // ゲーム全体の累計スコア
+
+	// コンボ関連
+    int m_combo;           // 現在のコンボ数
+    int m_comboTimer;      // コンボ継続猶予タイマー
+    float m_lastComboRate; // 最後のコンボ倍率
+
+	// キル数関連
     int m_bodyKillCount; // ボディショットキル数
     int m_headKillCount; // ヘッドショットキル数
-    // カウントアップ演出用
-    int m_displayScore;
-    int m_targetDisplayScore;
-    int m_displayTotalScore;
-    int m_targetTotalScore;
-    int m_targetBodyKillCount;
-    int m_targetHeadKillCount;
-    int m_scoreCountUpSpeed;
 
-    float m_lastComboRate; // 最後のコンボ倍率
+    // カウントアップ演出用
+	int m_displayScore;        // 表示用スコア
+    int m_targetDisplayScore;  // 表示用スコアの目標値
+    int m_displayTotalScore;   // 表示用累計スコア
+    int m_targetTotalScore;    // 表示用累計スコアの目標値
+    int m_targetBodyKillCount; // 表示用ボディショットキル数の目標値
+	int m_targetHeadKillCount; // 表示用ヘッドショットキル数の目標値
+    int m_scoreCountUpSpeed;   // カウントアップ速度
+
 };
 

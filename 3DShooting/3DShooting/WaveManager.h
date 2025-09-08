@@ -210,26 +210,32 @@ private:
     VECTOR m_roadFloorMin; // 最小位置
     VECTOR m_roadFloorMax; // 最大位置
 
-	int m_currentWave;       // 現在のWave番号
-	int m_currentSpawnIndex; // 現在の出現インデックス
-    int m_waveImages[3];     // 1,2,3ウェーブ用画像ハンドル
+    // 敵管理
     int m_totalSpawnedCount; // 累計出現数
 
-	float m_waveTimer;         // ウェーブのタイマー
-	float m_spawnTimer;        // 敵の出現タイマー
-	float m_waveIntervalTimer; // ウェーブ間インターバル用タイマー
-
-	bool m_isWaveActive;            // 現在のウェーブがアクティブかどうか
-	bool m_isAllWavesCompleted;     // すべてのウェーブが完了したかどうか
+	// チュートリアル関連
 	bool m_isWave1Loaded;           // ウェーブ1の敵がロードされたかどうか
 	bool m_isWave1EnemySpawned;     // ウェーブ1の敵が実際に出現したかどうか
 	bool m_isShotTutorialCleared;   // ショットチュートリアルがクリアされたかどうか
 	bool m_isTackleTutorialCleared; // タックルチュートリアルがクリアされたかどうか
-	bool m_isRoadFloorBoundsSet;    // 範囲が設定されているかどうか
 
-    int m_waveImageAnimTimer;    // ウェーブ画像アニメーションタイマー
-    int m_waveImageAnimDuration; // ウェーブ画像アニメーションの総時間
-    int m_waveImageAnimHoldDuration; // ウェーブ画像アニメーションのホールド時間
-    int m_waveImageAnimInitialHoldDuration; // ウェーブ画像アニメーションの初期ホールド時間
-    bool m_isWaveImageAnimating; // ウェーブ画像アニメーション中フラグ
+    // ステージ情報
+	bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
+
+	// ウェーブ管理関連
+    int m_currentWave;          // 現在のWave番号
+    int m_currentSpawnIndex;    // 現在の出現インデックス
+    float m_waveTimer;          // ウェーブのタイマー
+    float m_spawnTimer;         // 敵の出現タイマー
+    float m_waveIntervalTimer;  // ウェーブ間インターバル用タイマー
+    bool m_isWaveActive;        // 現在のウェーブがアクティブかどうか
+    bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
+
+	// ウェーブ画像アニメーション関連
+    int  m_waveImages[3];                    // 1,2,3ウェーブ用画像ハンドル
+    int  m_waveImageAnimTimer;               // ウェーブ画像アニメーションタイマー
+    int  m_waveImageAnimDuration;            // ウェーブ画像アニメーションの総時間
+    int  m_waveImageAnimHoldDuration;        // ウェーブ画像アニメーションのホールド時間
+    int  m_waveImageAnimInitialHoldDuration; // ウェーブ画像アニメーションの初期ホールド時間
+    bool m_isWaveImageAnimating;             // ウェーブ画像アニメーション中フラグ
 };

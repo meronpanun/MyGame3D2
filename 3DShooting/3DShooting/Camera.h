@@ -146,31 +146,36 @@ private:
 	float Lerp(float current, float target, float speed);
 
 private:
-	VECTOR m_pos;			// カメラの位置
-	VECTOR m_target;		// カメラの注視点
-	VECTOR m_offset;		// カメラのオフセット
-	VECTOR m_defaultOffset; // デフォルトのオフセット
-	VECTOR m_playerPos;		// プレイヤーの位置
-	VECTOR m_shakeOffset;	// シェイクオフセット
+	// 位置・注視点管理
+	VECTOR m_pos;            // カメラの位置
+	VECTOR m_target;         // カメラの注視点
+	VECTOR m_offset;         // カメラのオフセット
+	VECTOR m_defaultOffset;  // デフォルトのオフセット
+	VECTOR m_playerPos;      // プレイヤーの位置
 
-	float m_yaw;		  // ヨー角度
-	float m_pitch;		  // ピッチ角度
-	float m_sensitivity;  // カメラの感度
-	float m_fov;		  // カメラの視野角
-	float m_defaultFov;   // デフォルトのFOV
-	float m_targetFov;    // 目標FOV
-	float m_fovLerpSpeed; // FOVの補間速度
-	float m_shakeIntensity; // シェイクの強度
+	// 回転管理
+	float m_yaw;             // ヨー角度
+	float m_pitch;           // ピッチ角度
+	float m_sensitivity;     // カメラの感度
 
-	int m_shakeDuration; // シェイクの持続時間
+	// 視野角(FOV)管理
+	float m_fov;             // カメラの視野角
+	float m_defaultFov;      // デフォルトのFOV
+	float m_targetFov;       // 目標FOV
+	float m_fovLerpSpeed;    // FOVの補間速度
 
-	// Head Bobbing関連のメンバー変数
-	VECTOR m_headBobOffset;       // Head Bobbingによるオフセット
-	float  m_headBobTimer;        // Head Bobbingのタイマー
-	float  m_headBobIntensity;    // 現在のHead Bobbing強度
-	float  m_targetBobIntensity;  // 目標のHead Bobbing強度
-	float  m_headBobSpeed;        // 現在のHead Bobbing速度
-	float  m_targetBobSpeed;      // 目標のHead Bobbing速度
-	bool   m_isMoving;            // 移動中かどうか
-	bool   m_isRunning;           // 走行中かどうか
+	// シェイク効果管理
+	VECTOR m_shakeOffset;    // シェイクオフセット
+	float  m_shakeIntensity; // シェイクの強度
+	int    m_shakeDuration;  // シェイクの持続時間
+
+	// Head Bobbing管理
+	VECTOR m_headBobOffset;      // Head Bobbingによるオフセット
+	float  m_headBobTimer;       // Head Bobbingのタイマー
+	float  m_headBobIntensity;   // 現在のHead Bobbing強度
+	float  m_targetBobIntensity; // 目標のHead Bobbing強度
+	float  m_headBobSpeed;       // 現在のHead Bobbing速度
+	float  m_targetBobSpeed;     // 目標のHead Bobbing速度
+	bool   m_isMoving;           // 移動中かどうか
+	bool   m_isRunning;          // 走行中かどうか
 };

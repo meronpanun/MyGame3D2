@@ -10,6 +10,20 @@
 #include "SceneGameOver.h"
 #include <cassert>
 
+namespace
+{
+    // UI定数
+	constexpr int kIndentWidth         = 20;  // インデント幅
+	constexpr int kItemWidth           = 200; // アイテムの幅
+	constexpr int kItemHeight          = 15;  // アイテムの高さ
+	constexpr int kTextLineSpacing     = 20;  // テキスト行間隔
+	constexpr int kIndicatorOffsetX    = -10; // インジケーターのXオフセット
+	constexpr int kIndicatorTextOffset = 10;  // インジケーターとテキストの間隔
+	constexpr int kIndicatorOffsetY    = 14;  // インジケーターのYオフセット
+    constexpr float kIndicatorClosedAngle = -DX_PI_F * 0.5f; // 90度時計回り
+}
+
+
 DebugMenu::DebugMenu()
 {
     // メニュー構造の定義
@@ -123,10 +137,10 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
 {
     bool isSelected = (currentPath == selectedPath);
 
-    int itemX = x + depth * 20;
+    int itemX = x + depth * kIndentWidth;
     int itemY = y;
-    int itemWidth = 200;
-    int itemHeight = 15;
+    int itemWidth = kItemWidth;
+    int itemHeight = kItemHeight;
 
     bool isHovered = (mouseX >= itemX && mouseX <= itemX + itemWidth &&
         mouseY >= itemY && mouseY <= itemY + itemHeight);
@@ -146,7 +160,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
     }
 
     int color = isHovered ? 0x0000ff : 0xffffff;
-    // 子項目がある場合、開閉状態に応じたインジケータを描画
+    // 子項目がある場合、開閉状態に応じたインジケーター（三角形文字）を描画
     if (!item.children.empty())
     {
         const TCHAR* indicatorChar = _T("▼");// 下向きの三角形文字を使用
@@ -154,7 +168,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
 
         if (!item.isOpen)  // 閉じた状態の場合、右向きに回転
         {
-            rotationAngle = -DX_PI_F * 0.5f; // 90度時計回り
+            rotationAngle = kIndicatorClosedAngle; // 90度時計回り
         }
 
         // 文字のサイズを取得して、回転の中心と描画位置を調整
@@ -166,8 +180,8 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
         double rotCenterY = charHeight * 0.5f;
 
         // 描画位置を計算
-        int indicatorDrawX = itemX - 10;
-        int indicatorDrawY = itemY + (itemHeight * 0.5f) - (charHeight * 0.5f) + 14;
+        int indicatorDrawX = itemX + kIndicatorOffsetX;
+        int indicatorDrawY = itemY + (itemHeight * 0.5f) - (charHeight * 0.5f) + kIndicatorOffsetY;
 
         // DrawRotaString で回転して描画
         DrawRotaString(indicatorDrawX, indicatorDrawY,
@@ -180,7 +194,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
     int textStartX = itemX;
     if (!item.children.empty())
     {
-        textStartX += 10; // インジケータの分だけテキストを右にずらす
+        textStartX += kIndicatorTextOffset; // インジケータの分だけテキストを右にずらす
     }
 
     std::string displayText = item.name;
@@ -190,7 +204,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
     }
 
     DrawString(textStartX, itemY, displayText.c_str(), color);
-    y += 20;
+    y += kTextLineSpacing;
 
     if (item.isOpen && !item.children.empty())
     {
