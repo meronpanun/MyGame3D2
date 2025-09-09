@@ -468,10 +468,18 @@ SceneBase* SceneMain::Update()
         std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }),
         m_items.end()
     );
-    if (m_hitMarkTimer > 0) { --m_hitMarkTimer; }
-    for (auto& popup : m_scorePopups) { popup.timer--; }
-    while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) { m_scorePopups.pop_front(); }
-    if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; }
+
+    // ヒットマークタイマー更新
+	if (m_hitMarkTimer > 0) { --m_hitMarkTimer; }
+
+    // スコアポップアップタイマー更新
+	for (auto& popup : m_scorePopups) { popup.timer--; } 
+
+    // タイマー切れのポップアップ削除
+	while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) { m_scorePopups.pop_front(); } 
+
+    // 合計スコアポップアップタイマー更新
+	if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; } 
     ScoreManager::Instance().Update();
     return this;
 }

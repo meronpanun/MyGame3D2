@@ -63,8 +63,6 @@ EnemyRunner::EnemyRunner() :
 
 EnemyRunner::~EnemyRunner()
 {
-	// モデルの解放
-	MV1DeleteModel(m_modelHandle);
 }
 
 void EnemyRunner::Init()

@@ -156,7 +156,7 @@ void SceneTitle::Draw()
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_fontHandle);
         
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-		DrawFormatStringToHandle((Game::kScreenWidth - textWidth) * 0.5f, 800, 0xffffff, m_fontHandle, gameStartText);
+		DrawFormatStringToHandle((Game::kScreenWidth - textWidth) * 0.5f, 500, 0xffffff, m_fontHandle, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 }

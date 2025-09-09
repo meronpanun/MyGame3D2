@@ -70,8 +70,6 @@ EnemyAcid::EnemyAcid() :
 
 EnemyAcid::~EnemyAcid()
 {
-	// モデルの解放
-    MV1DeleteModel(m_modelHandle);
 }
 
 void EnemyAcid::Init()

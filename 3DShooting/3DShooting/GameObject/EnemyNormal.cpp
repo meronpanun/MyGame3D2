@@ -65,8 +65,6 @@ EnemyNormal::EnemyNormal() :
 
 EnemyNormal::~EnemyNormal()
 {
-	// モデルの解放
-    MV1DeleteModel(m_modelHandle);
 }
 
 void EnemyNormal::Init()
