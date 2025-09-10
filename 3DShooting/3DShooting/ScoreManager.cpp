@@ -166,3 +166,21 @@ void ScoreManager::SetTargetDisplayValues(int score, int totalScore, int bodyKil
     m_targetBodyKillCount = bodyKill;
     m_targetHeadKillCount = headKill;
 }
+
+void ScoreManager::ResetAll()
+{
+    m_score = 0;
+    m_totalScore = 0;
+    m_combo = 0;
+    m_comboTimer = 0;
+    m_lastComboRate = 1.0f;
+    m_bodyKillCount = 0;
+    m_headKillCount = 0;
+    m_displayScore = 0;
+    m_targetDisplayScore = 0;
+    m_displayTotalScore = 0;
+    m_targetTotalScore = 0;
+    m_targetBodyKillCount = 0;
+    m_targetHeadKillCount = 0;
+}
+

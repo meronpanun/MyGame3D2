@@ -134,21 +134,23 @@ public:
 	/// <param name="headKill">目標ヘッドショットキル数</param>
     void SetTargetDisplayValues(int score, int totalScore, int bodyKill, int headKill);
 
+    void ResetAll(); // スコア・キル数・コンボなど全リセット
+
 private:
 	std::vector<int> m_highScores; // ハイスコアリスト
 
 	// スコア関連
-    int m_score;      // 現在のスコア
-    int m_totalScore; // ゲーム全体の累計スコア
+    int m_score;               // 現在のスコア
+    int m_totalScore;          // ゲーム全体の累計スコア
 
 	// コンボ関連
-    int m_combo;           // 現在のコンボ数
-    int m_comboTimer;      // コンボ継続猶予タイマー
-    float m_lastComboRate; // 最後のコンボ倍率
+    int m_combo;               // 現在のコンボ数
+    int m_comboTimer;          // コンボ継続猶予タイマー
+    float m_lastComboRate;     // 最後のコンボ倍率
 
 	// キル数関連
-    int m_bodyKillCount; // ボディショットキル数
-    int m_headKillCount; // ヘッドショットキル数
+    int m_bodyKillCount;       // ボディショットキル数
+    int m_headKillCount;       // ヘッドショットキル数
 
     // カウントアップ演出用
 	int m_displayScore;        // 表示用スコア

@@ -141,6 +141,10 @@ SceneBase* SceneResult::Update()
             // BGMを停止
             StopSoundMem(m_bgmHandle);
             PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
+
+			// スコアをリセット
+			ScoreManager::Instance().ResetAll();
+
             return new SceneTitle(true);
         }
         if (mousePos.x >= retryBtnX1 && mousePos.x <= retryBtnX2 && mousePos.y >= retryBtnY1 && mousePos.y <= retryBtnY2)
@@ -148,6 +152,10 @@ SceneBase* SceneResult::Update()
             // BGMを停止
             StopSoundMem(m_bgmHandle);
             PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
+
+            // スコアをリセット
+			ScoreManager::Instance().ResetAll();
+
             return new SceneMain(true);
         }
     }
@@ -184,7 +192,7 @@ void SceneResult::Draw()
 	// ゲームクリア画像を描画
     DrawExtendGraph(0, -250, screenW, screenH - 200, m_gameClearImageHandle, true);
     
-    int y = 550;
+    int y = 250;
     char scoreStr[64];
     sprintf_s(scoreStr, sizeof(scoreStr), "合計スコア 　 : %d", ScoreManager::Instance().GetDisplayTotalScore());
     DrawFormatStringToHandle(screenW * 0.5f - 200, y, 0xffffff, m_japaneseLargeFontHandle, "%s", scoreStr);

@@ -58,11 +58,6 @@ public:
 
 public:
 	static bool  s_isSkipTutorial; // チュートリアルスキップフラグ
-	int   m_clearSceneDelayTimer; // ゲームクリアシーンへの遷移遅延タイマー
-	bool m_isWave1FirstAidDropped;
-	bool m_isWave1AmmoDropped;
-	bool m_isLoading;
-	int m_wave1DropCount;
 
 	static SceneMain* Instance();
 	WaveManager* GetWaveManager() const { return m_pWaveManager.get(); }
@@ -73,47 +68,54 @@ private:
 	void DrawPauseMenu();
 
 private:
-	std::unique_ptr<Player> m_pPlayer;
-	std::shared_ptr<Camera> m_pCamera;
-	std::shared_ptr<EnemyNormal> m_pEnemyNormal;
-	std::shared_ptr<EnemyRunner> m_pEnemyRunner;
-	std::shared_ptr<EnemyAcid> m_pEnemyAcid;
-	std::shared_ptr<Stage> m_pStage;
-	std::shared_ptr<WaveManager> m_pWaveManager;
-	std::vector<EnemyBase*> m_enemyList;
-	std::vector<std::shared_ptr<ItemBase>> m_items;
-	std::unique_ptr<TutorialManager> m_pTutorialManager;
+    // ゲームオブジェクト管理
+    std::unique_ptr<Player> m_pPlayer;
+    std::shared_ptr<Camera> m_pCamera;
+    std::shared_ptr<EnemyNormal> m_pEnemyNormal;
+    std::shared_ptr<EnemyRunner> m_pEnemyRunner;
+    std::shared_ptr<EnemyAcid> m_pEnemyAcid;
+    std::shared_ptr<Stage> m_pStage;
+    std::shared_ptr<WaveManager> m_pWaveManager;
+    std::vector<EnemyBase*> m_enemyList;
+    std::vector<std::shared_ptr<ItemBase>> m_items;
+    std::unique_ptr<TutorialManager> m_pTutorialManager;
 
-	std::chrono::steady_clock::time_point m_pauseStartTime;
+    // 状態管理
+    bool  m_isPaused;                  // 一時停止中か
+    bool  m_isReturningFromOption;     // オプションから戻ったか
+    bool  m_isEscapePressed;           // Escapeキー押下状態
+    bool  m_isReturningFromOtherScene; // 他シーンから戻ったか
+    bool  m_isLoading;                 // ロード中か
+    bool  m_isWave1FirstAidDropped;    // Wave1救急キットドロップ済み
+    bool  m_isWave1AmmoDropped;        // Wave1弾薬ドロップ済み
+    int   m_wave1DropCount;            // Wave1ドロップ回数
+    EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
 
-	EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
-	bool  m_isPaused;
-	bool  m_isReturningFromOption;
-	bool  m_isEscapePressed;
-	int   m_skyDomeHandle;
-	int   m_dotHandle;
-	int m_hitMarkTimer;
+	// リソース管理
+    int   m_skyDomeHandle;             // スカイドーム画像ハンドル
+    int   m_dotHandle;                 // ドット画像ハンドル
+    int   m_scoreFontHandle;           // スコアポップアップ用フォントハンドル
+    int   m_bgmHandle;                 // BGMハンドル
+    bool  m_isBGMStarted;              // BGM再生済みフラグ
 
-	float m_cameraSensitivity;
+    // スコアポップアップ管理
+    struct ScorePopup
+    {
+        int value;
+        int combo;
+        int timer;
+        bool isHeadShot;
+    };
+    std::deque<ScorePopup> m_scorePopups;
+    int m_totalScorePopupTimer;        // 合計スコア表示用タイマー
+    int m_lastTotalScorePopupValue;    // 合計スコアポップアップ用一時保存値
 
-	// スコアポップアップ情報
-	struct ScorePopup
-	{
-		int value;
-		int combo;
-		int timer;
-		bool isHeadShot;
-	};
-	std::deque<ScorePopup> m_scorePopups;
-	int m_totalScorePopupTimer; // 合計スコア表示用タイマー
-	int m_lastTotalScorePopupValue; // 合計スコアポップアップ用の一時保存値
-
-	int m_scoreFontHandle; // スコアポップアップ用フォントハンドル
-	static float s_elapsedTime;
-
-	int m_bgmHandle;       // ゲームシーンBGMのハンドル
-	bool m_isBGMStarted;   // BGM再生済みフラグ
-	bool m_isReturningFromOtherScene; // 他のシーンから戻ってきたかどうか
+    // 経過時間管理
+    std::chrono::steady_clock::time_point m_pauseStartTime;
+    int   m_hitMarkTimer;              // ヒットマーク表示タイマー
+    int   m_clearSceneDelayTimer;      // ゲームクリア遷移遅延タイマー
+    float m_cameraSensitivity;         // カメラ感度
+    static float s_elapsedTime;        // ゲーム経過時間（秒）
 };
 
 
