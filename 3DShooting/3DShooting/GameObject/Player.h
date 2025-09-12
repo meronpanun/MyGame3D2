@@ -222,7 +222,6 @@ private:
 	int   m_tackleId;          // タックルID
 	int   m_ammoItemSEHandle;  // 弾薬アイテムSEのハンドル
 
-	float m_animBlendRate; // アニメーションのブレンド率
 	float m_health;        // 現在の体力
 	float m_healthBarAnim; // HPバーのアニメーション用体力値
 	float m_healthBarAnimTimer; // HPバーアニメーション用タイマー

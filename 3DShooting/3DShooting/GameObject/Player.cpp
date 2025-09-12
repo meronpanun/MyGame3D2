@@ -24,9 +24,6 @@ namespace
 	constexpr float kGunOffsetY = 20.0f;
 	constexpr float kGunOffsetZ = 60.0f;
 
-	// アニメーションのブレンド率
-	constexpr float kAnimBlendRate = 1.0f; 
-
 	// マズルフラッシュエフェクトのオフセット
 	constexpr float kMuzzleFlashEffectOffsetX = -20.0f;
 	constexpr float kMuzzleFlashEffectOffsetY = 30.0f;
@@ -84,13 +81,13 @@ Player::Player() :
 	m_tackleSEHandle(-1),
 	m_recoverySEHandle(-1),
 	m_ammoItemSEHandle(-1),
+	m_ammo(0),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pEffect(std::make_shared<Effect>()),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
 	m_pEnemy(std::make_shared<EnemyNormal>()),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>()),
-	m_animBlendRate(0.0f),
 	m_isMoving(false),
 	m_isWasRunning(false),
 	m_pos(VGet(0, 0, 0)),
@@ -213,8 +210,6 @@ void Player::Init()
 	m_pCamera->Init(); // カメラの初期化
 
 	m_shootCooldown = 1.0f / m_shootRate; // 発射クールタイムを設定
-
-	m_animBlendRate = kAnimBlendRate; // アニメーションのブレンド率を設定
 
 	// CSVの初期弾薬数を反映
 	m_ammo = m_initialAmmo;
@@ -513,7 +508,7 @@ void Player::Draw()
 	int ammoY = screenH - 60;
 
 	// ammo画像の描画
-	const int kAmmoImageTargetSize = 48; // 適切なサイズに調整
+	const int kAmmoImageTargetSize = 48; 
 	int ammoImageWidth = kAmmoImageTargetSize;
 	int ammoImageHeight = kAmmoImageTargetSize;
 
@@ -578,7 +573,7 @@ void Player::Draw()
 		if (m_isSwordAnimating)
 		{
 			float animProgress = m_swordAnimTimer / m_swordAnimDuration;
-			// イージング（滑らかな動き）
+			// イージング
 			animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
 
 			// 回転角度を計算 (左 -> 右)
