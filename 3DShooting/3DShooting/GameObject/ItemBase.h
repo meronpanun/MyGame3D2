@@ -1,5 +1,4 @@
 ﻿#pragma once
-
 #include "EffekseerForDXLib.h"
 
 class Player;
@@ -19,6 +18,6 @@ public:
 
 	virtual bool IsUsed() const abstract;
 
-	// 位置設定用の純粋仮想関数を追加
+	// 位置設定用
 	virtual void SetPos(const VECTOR& pos) abstract;
 };
