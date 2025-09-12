@@ -83,7 +83,7 @@ Player::Player() :
 	m_ammoItemSEHandle(-1),
 	m_ammo(0),
 	m_modelPos(VGet(0, 0, 0)),
-	m_pEffect(std::make_shared<Effect>()),
+	m_pEffect(nullptr),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
 	m_pEnemy(std::make_shared<EnemyNormal>()),
@@ -206,7 +206,11 @@ void Player::Init()
 		}
 	}
 
-	m_pEffect->Init(); // エフェクトの初期化
+	if (!m_pEffect) 
+	{
+		m_pEffect = std::make_shared<Effect>();
+		m_pEffect->Init();
+	}
 	m_pCamera->Init(); // カメラの初期化
 
 	m_shootCooldown = 1.0f / m_shootRate; // 発射クールタイムを設定
@@ -242,7 +246,11 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	m_pCamera->Update(); // カメラの更新
-	m_pEffect->Update(); // エフェクトの更新
+
+	if (m_pEffect)
+	{
+		m_pEffect->Update(); // エフェクトの更新
+	}
 
 	// プレイヤーのカプセルコライダーを毎フレーム更新
 	VECTOR center = m_modelPos;
@@ -605,8 +613,11 @@ void Player::Draw()
 	// メインカメラに戻す
 	m_pCamera->SetCameraToDxLib();
 
-	m_pEffect->Draw(); // エフェクトの描画
-
+	if (m_pEffect)
+	{
+		m_pEffect->Draw(); // エフェクトの描画
+	}
+	
 	// 枠
 	DrawBox(kTackleGaugeX - 1, kTackleGaugeY - 1, kTackleGaugeX + kTackleGaugeWidth + 1, kTackleGaugeY + kTackleGaugeHeight + 1, 0x5050C8, false);
 

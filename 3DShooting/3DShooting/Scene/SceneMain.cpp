@@ -114,7 +114,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_isLoading(true),  
 	m_isReturningFromOtherScene(isReturningFromOtherScene),
 	m_clearSceneDelayTimer(-1),
-	m_scoreFontHandle(-1)
+	m_scoreFontHandle(-1),
+	m_isPlayerInit(false)
 {
     g_sceneMainInstance = this;
 
@@ -149,11 +150,11 @@ void SceneMain::Init()
 
     // 重いリソースの非同期読み込みを開始
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
-    m_dotHandle = LoadGraph("data/image/Dot.png");
-    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
+    m_dotHandle     = LoadGraph("data/image/Dot.png");
+    m_bgmHandle     = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
 
     m_pPlayer = std::make_unique<Player>();
-    m_pPlayer->Init();
+    //m_pPlayer->Init();
     Game::m_pPlayer = m_pPlayer.get();
 
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();
@@ -297,10 +298,10 @@ void SceneMain::Init()
 	// 環境光の設定
     SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
 
-    // BGM再生フラグをリセット（Initでは再生しない）
+    // BGM再生フラグをリセット
     m_isBGMStarted = false;
     
-    // 非同期読み込みを無効化（Init完了後）
+    // 非同期読み込みを無効化
     SetUseASyncLoadFlag(false);
 }
 
@@ -326,13 +327,20 @@ SceneBase* SceneMain::Update()
         // 非同期読み込みが完了しているかチェック
         if (GetASyncLoadNum() == 0) 
         {
-            // 最低限のローディング時間を確保（視覚的な安定性のため）
+            // 最低限のローディング時間を確保
             static int loadingFrameCount = 0;
             loadingFrameCount++;
             if (loadingFrameCount >= 80) 
             {
                 m_isLoading = false;
                 loadingFrameCount = 0;
+            }
+
+            // 非同期ロード完了後に1回だけ呼ぶ
+            if (!m_isPlayerInit && m_pPlayer)
+            {
+                m_pPlayer->Init();
+                m_isPlayerInit = true;
             }
         } 
         else 

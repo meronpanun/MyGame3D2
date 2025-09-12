@@ -64,98 +64,58 @@ void SceneManager::Update()
     // マウスの入力状態を更新
     Mouse::Update();
 
-    // 外部からのシーン変更要求があった場合
-    if (m_isExternalSceneChange)
+    // 現在のシーンを更新
+    if (m_pCurrentScene != nullptr)
     {
-        m_isExternalSceneChange = false; 
+        m_pNextScene = m_pCurrentScene->Update();
     }
-    else // 通常のシーン更新
+
+    // シーンが変わった場合、初期化処理とローディング画面表示を行う
+    if (m_pNextScene != nullptr && m_pNextScene != m_pCurrentScene)
     {
-        // 現在のシーンを更新
-        if (m_pCurrentScene != nullptr)
+        // ローディング画面表示（SceneMainの場合のみ）
+        if (dynamic_cast<SceneMain*>(m_pNextScene))
         {
-            m_pNextScene = m_pCurrentScene->Update();
+            for (int i = 0; i < 360; ++i)
+            {
+                ClearDrawScreen();
+                int screenW, screenH;
+                GetScreenState(&screenW, &screenH, nullptr);
+                DrawBox(0, 0, screenW, screenH, 0x000000, true);
+                SetFontSize(48);
+                std::string loadingText = "Now Loading";
+                m_loadingAnimTimer++;
+                if (m_loadingAnimTimer > 30)
+                {
+                    m_loadingAnimTimer = 0;
+                    m_loadingDotCount++;
+                    if (m_loadingDotCount > 3)
+                    {
+                        m_loadingDotCount = 0;
+                    }
+                }
+                for (int j = 0; j < m_loadingDotCount; ++j)
+                {
+                    loadingText += ".";
+                }
+                int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
+                int textX = (screenW - textWidth) * 0.5f;
+                int textY = screenH * 0.5f - 30;
+                DrawString(textX, textY, loadingText.c_str(), 0xffffff);
+                SetFontSize(16);
+                ScreenFlip();
+                if (ProcessMessage() == -1)
+                {
+                    break;
+                }
+            }
         }
+
+        m_pCurrentScene = m_pNextScene;
+        m_pCurrentScene->Init();
     }
-
-	// シーンが変わった場合、初期化処理を行う
-	if (m_pNextScene != nullptr && m_pNextScene != m_pCurrentScene)
-	{
-        if (m_pCurrentScene == m_pTitle) 
-		{
-            delete m_pTitle; m_pTitle = nullptr;
-        } 
-		else if (m_pCurrentScene == m_pOption) 
-		{
-            delete m_pOption; m_pOption = nullptr;
-        }
-		else if (m_pCurrentScene == m_pSceneMain) 
-		{
-            delete m_pSceneMain; m_pSceneMain = nullptr;
-        }
-		else if (m_pCurrentScene == m_pResult) 
-		{
-            delete m_pResult; m_pResult = nullptr;
-        }
-		else if (m_pCurrentScene == m_pGameOver) 
-		{
-            delete m_pGameOver; m_pGameOver = nullptr;
-        }
-
-		m_pCurrentScene = m_pNextScene;
-		
-		// 新しいシーンがSceneMainの場合、ローディング画面を即座に表示
-		if (dynamic_cast<SceneMain*>(m_pCurrentScene))
-		{
-			// ローディングアニメーションのループ
-			for (int i = 0; i < 360; ++i)
-			{
-				// 画面をクリア
-				ClearDrawScreen();
-				int screenW, screenH;
-				GetScreenState(&screenW, &screenH, nullptr);
-
-				// 背景を黒で塗りつぶし
-				DrawBox(0, 0, screenW, screenH, 0x000000, true);
-
-				// ローディングテキストとアニメーションするドットを準備
-				SetFontSize(48);
-				std::string loadingText = "Now Loading";
-				m_loadingAnimTimer++;
-				if (m_loadingAnimTimer > 30) // 30フレームごとにドットを増やす
-				{
-					m_loadingAnimTimer = 0;
-					m_loadingDotCount++;
-					if (m_loadingDotCount > 3)
-					{
-						m_loadingDotCount = 0;
-					}
-				}
-				for (int j = 0; j < m_loadingDotCount; ++j)
-				{
-					loadingText += ".";
-				}
-
-				// テキストを描画
-				int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
-				int textX = (screenW - textWidth) * 0.5f;
-				int textY = screenH * 0.5f - 30;
-				DrawString(textX, textY, loadingText.c_str(), 0xffffff);
-
-				SetFontSize(16);
-				ScreenFlip(); // 画面を更新
-
-				// ウィンドウの応答を維持
-				if (ProcessMessage() == -1)
-				{
-					break; // ゲームが終了した場合
-				}
-			}
-		}
-		
-		m_pCurrentScene->Init();
-	}
 }
+
 
 void SceneManager::Draw()
 {

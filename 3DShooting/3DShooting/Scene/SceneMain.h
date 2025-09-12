@@ -116,6 +116,8 @@ private:
     int   m_clearSceneDelayTimer;      // ゲームクリア遷移遅延タイマー
     float m_cameraSensitivity;         // カメラ感度
     static float s_elapsedTime;        // ゲーム経過時間（秒）
+
+    bool m_isPlayerInit;
 };
 
 
