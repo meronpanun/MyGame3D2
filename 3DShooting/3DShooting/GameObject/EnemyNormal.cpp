@@ -164,7 +164,7 @@ void EnemyNormal::SetModelHandle(int handle)
     m_modelHandle = MV1DuplicateModel(handle);
 }
 
-void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList)
+void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
 {
     if (m_hp <= 0.0f) 
     {
@@ -337,7 +337,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
     // 攻撃範囲のコライダー（球）
     VECTOR attackRangeCenter = m_pos;
-    attackRangeCenter.y += (kBodyColliderHeight * 0.5f); // 敵の高さの半分くらい
+    attackRangeCenter.y += (kBodyColliderHeight * 0.5f);
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
     m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
@@ -434,7 +434,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         }
     }
 
-    CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
+    CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets), pEffect);
 
     if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {

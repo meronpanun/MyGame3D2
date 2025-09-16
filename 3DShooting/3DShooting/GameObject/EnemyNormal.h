@@ -22,7 +22,7 @@ public:
     virtual ~EnemyNormal();
 
     void Init() override;
-    void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList) override;
+    void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect = nullptr) override;
     void Draw() override;
 
     /// <summary>
@@ -112,5 +112,4 @@ private:
     bool m_isAttackHit;       // 攻撃がヒットしたかどうか
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
     bool m_isItemDropped;     // アイテムドロップ済みフラグ
-
 };

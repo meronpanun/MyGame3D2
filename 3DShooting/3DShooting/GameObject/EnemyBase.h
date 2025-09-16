@@ -9,6 +9,7 @@ class Bullet;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
+class Effect;
 
 /// <summary>
 /// 敵の基底クラス
@@ -20,7 +21,7 @@ public:
 	virtual ~EnemyBase() = default;
 
 	virtual void Init() abstract;
-	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList) abstract;
+	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect = nullptr) abstract;
 	virtual void Draw() abstract;
 
 	/// <summary>
@@ -72,7 +73,8 @@ public:
 	/// 弾や攻撃を受ける処理(基底で共通処理) 
 	/// </summary>
 	/// <param name="bullets">弾のリスト</param>
-	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets);
+	/// <param name="pEffect">エフェクトクラスのポインタ</param>
+	virtual void CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect = nullptr);
 
 	/// <summary>
 	/// 敵がダメージを受ける処理

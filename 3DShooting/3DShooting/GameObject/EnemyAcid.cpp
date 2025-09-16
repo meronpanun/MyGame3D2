@@ -197,7 +197,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     m_acidBalls.push_back(ball);
 }
 
-void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList)
+void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
 {
     if (m_hp <= 0.0f) 
     {
@@ -411,7 +411,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     }
 
     // 弾との当たり判定・ダメージ処理
-    CheckHitAndDamage(bullets);
+    CheckHitAndDamage(bullets, pEffect);
 
     // タックルダメージ処理
     if (tackleInfo.isTackling && tackleInfo.tackleId != m_lastTackleId)

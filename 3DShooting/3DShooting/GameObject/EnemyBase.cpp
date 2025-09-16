@@ -1,6 +1,7 @@
 ﻿#include "EnemyBase.h"
 #include "Bullet.h"
 #include "Collider.h"
+#include "Effect.h"
 
 namespace
 {
@@ -28,7 +29,7 @@ EnemyBase::EnemyBase() :
 {
 }
 
-void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
+void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
 {
     // 最も近いヒット情報を保持
     int hitBulletIndex = -1;
@@ -72,6 +73,13 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets)
 
         m_lastHitPart = determinedHitPart;
         m_hitDisplayTimer = kDefaultHitDisplayDuration;
+
+        // 弾が当たった位置で出血エフェクトを生成
+        if (pEffect)
+        {
+            VECTOR hitPos = bullet.GetPos(); // 弾の現在位置を衝突位置として使用
+            pEffect->PlayLossOfBlood(hitPos.x, hitPos.y, hitPos.z, 0.0f, 0.0f, 0.0f);
+        }
 
         bullet.Deactivate(); // 敵に当たった弾は非アクティブにする
 

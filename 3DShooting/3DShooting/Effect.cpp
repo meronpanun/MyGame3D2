@@ -9,7 +9,7 @@ Effect::Effect() :
 	m_muzzleFlashEffectHandle = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 1.0f);
 	assert(m_muzzleFlashEffectHandle != -1);
 	// 出血エフェクトハンドルの読み込み
-	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 1.0f);
+	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 2.0f);
 	assert(m_lossOfBloodEffectHandle != -1);
 
 }
@@ -22,7 +22,6 @@ Effect::~Effect()
 
 void Effect::Init()
 {
-
 }
 
 void Effect::Update()

@@ -153,7 +153,7 @@ bool EnemyRunner::CanAttackPlayer(const Player& player)
 	return m_pAttackHitCollider->IsIntersects(playerBodyCollider.get());
 }
 
-void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList)
+void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
 {
     if (m_hp <= 0.0f) 
     {
@@ -405,7 +405,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		}
 	}
 
-	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets));
+	CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets), pEffect);
 
 	if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
 	{
