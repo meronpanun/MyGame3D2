@@ -523,7 +523,7 @@ void Player::Draw()
 	// 画像をテキストの左側に配置するためのX座標を計算
 	// テキストの開始位置から画像の幅と少しの余白を引く
 	int ammoImageX = ammoX - ammoImageWidth - 10; // 10は余白
-	int ammoImageY = ammoY + (32 - ammoImageHeight) * 0.5f; // テキストと画像を中央揃え (32 is font size)
+	int ammoImageY = ammoY + (32 - ammoImageHeight) * 0.5f; // テキストと画像を中央揃え
 
 	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + ammoImageWidth, ammoImageY + ammoImageHeight, m_ammoImageHandle, true);
 
@@ -569,7 +569,7 @@ void Player::Draw()
 	if (shouldDrawSword)
 	{
 		// 待機状態の剣の位置と回転を定義
-		VECTOR waitPos = VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f);
+		VECTOR waitPos    = VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f);
 		VECTOR waitRotVec = VGet(0.0f, 30.0f, 0.0f); // Y軸回転を0度に変更
 
 		// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
@@ -585,23 +585,23 @@ void Player::Draw()
 			animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
 
 			// 回転角度を計算 (左 -> 右)
-			float startAngle = 25.0f * (DX_PI_F / 180.0f);
-			float endAngle = 180.0f * (DX_PI_F / 180.0f);
+			float startAngle   = 25.0f * (DX_PI_F / 180.0f);
+			float endAngle     = 180.0f * (DX_PI_F / 180.0f);
 			float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
 
 			// モデルのローカル座標におけるピボット（手持ち部分）の位置
 			VECTOR pivotOffset = VGet(0.0f, 0.0f, -20.0f);
 
 			// 行列を使ってピボット回転を実装
-			MATRIX matPivotTrans = MGetTranslate(VScale(pivotOffset, -1.0f));
-			MATRIX matRotate = MGetRotY(currentAngle);
+			MATRIX matPivotTrans    = MGetTranslate(VScale(pivotOffset, -1.0f));
+			MATRIX matRotate        = MGetRotY(currentAngle);
 			MATRIX matPivotTransInv = MGetTranslate(pivotOffset);
 
 			// 最終的な行列をMMultで計算
 			// finalMatrix = (待機時の行列) -> (ピボットを原点へ) -> (回転) -> (ピボットを戻す)
 			MATRIX tempMat1 = MMult(waitMatrix, matPivotTrans);
 			MATRIX tempMat2 = MMult(tempMat1, matRotate);
-			finalMatrix = MMult(tempMat2, matPivotTransInv);
+			finalMatrix     = MMult(tempMat2, matPivotTransInv);
 		}
 
 		// モデルに最終的な変換行列を適用

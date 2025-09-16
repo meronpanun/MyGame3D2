@@ -154,7 +154,6 @@ void SceneMain::Init()
     m_bgmHandle     = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
 
     m_pPlayer = std::make_unique<Player>();
-    //m_pPlayer->Init();
     Game::m_pPlayer = m_pPlayer.get();
 
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();
@@ -263,7 +262,7 @@ void SceneMain::Init()
         else
         {
             // wave2以降はどちらか一方のみドロップ
-            int randValue = GetRand(99); // 0-99
+            int randValue = GetRand(99);
             std::shared_ptr<ItemBase> dropItem;
             if (randValue < 50) 
             {
