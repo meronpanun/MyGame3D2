@@ -21,7 +21,10 @@ public:
 	/// <param name="z">Z座標</param>
 	void PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ);
 
+	void PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ);
+
 private:
 	int m_muzzleFlashEffectHandle; // マズルフラッシュのエフェクトハンドル
+	int m_lossOfBloodEffectHandle; // 出血エフェクトハンドル
 };
 

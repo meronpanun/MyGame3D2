@@ -874,7 +874,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 
 	if (m_pEffect)
 	{
-		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
+		m_pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ); // マズルフラッシュエフェクトを発生
 	}
 
 	// カメラシェイクを発生
@@ -896,7 +896,7 @@ VECTOR Player::GetGunPos() const
 	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset); // モデルの位置とオフセットを組み合わせて銃の位置を計算
 
 	VECTOR gunOffset = VGet(kMuzzleFlashEffectOffsetX, kMuzzleFlashEffectOffsetY, kMuzzleFlashEffectOffsetZ); // マズルフラッシュのオフセット
-	VECTOR gunPos    = VTransform(gunOffset, modelRot);			    // 銃のオフセットを回転
+	VECTOR gunPos    = VTransform(gunOffset, modelRot); // 銃のオフセットを回転
 
 	// 銃の位置を計算して返す
 	return VAdd(modelPosition, gunPos);

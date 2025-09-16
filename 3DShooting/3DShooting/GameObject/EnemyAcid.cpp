@@ -207,7 +207,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
-            m_isAlive = true; // 死亡アニメーション中はtrueのまま
+            m_isAlive = true;  // 死亡アニメーション中はtrueのまま
         }
         
         // 死亡アニメーション中もアニメーション時間を更新

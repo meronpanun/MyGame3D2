@@ -5,9 +5,13 @@
 Effect::Effect() :
 	m_muzzleFlashEffectHandle(-1)
 {
-	// エフェクトのハンドルを取得
+	// エフェクトハンドルの読み込み
 	m_muzzleFlashEffectHandle = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 1.0f);
 	assert(m_muzzleFlashEffectHandle != -1);
+	// 出血エフェクトハンドルの読み込み
+	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 1.0f);
+	assert(m_lossOfBloodEffectHandle != -1);
+
 }
 
 Effect::~Effect()
@@ -39,6 +43,20 @@ void Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, 
 	if (m_muzzleFlashEffectHandle != -1)
 	{
 		int handle = PlayEffekseer3DEffect(m_muzzleFlashEffectHandle);
+		if (handle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
+		}
+	}
+}
+
+// 出血エフェクトを再生する
+void Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ)
+{
+	if (m_lossOfBloodEffectHandle != -1)
+	{
+		int handle = PlayEffekseer3DEffect(m_lossOfBloodEffectHandle);
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);

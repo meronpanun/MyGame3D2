@@ -51,8 +51,8 @@ public:
 		VECTOR capB = { 0,0,0 }; // タックル判定カプセルのB点
 		float  radius = 0.0f;      // タックル判定カプセルの半径
 		float  damage = 0.0f;	   // タックルのダメージ量
-		bool   isTackling = false;	   // タックル中かどうか
-		int    tackleId = 0;         // タックルID
+		bool   isTackling = false; // タックル中かどうか
+		int    tackleId = 0;       // タックルID
 	};
 
 	/// <summary>

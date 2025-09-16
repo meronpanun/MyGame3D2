@@ -21,7 +21,7 @@ namespace
 
 	// カプセルコライダーのサイズを定義
 	constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
-	constexpr float kBodyColliderHeight = 120.0f; // 体のコライダー高さ
+	constexpr float kBodyColliderHeight = 110.0f; // 体のコライダー高さ
 	constexpr float kHeadRadius		    = 15.0f;  // 頭のコライダー半径
 
 	// 攻撃関連
