@@ -311,8 +311,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.cpp",
               "ViewState": "AgIAAHcDAAAAAAAAAADwv6cDAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T04:54:25.216Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T04:54:25.216Z"
             },
             {
               "$type": "Document",
@@ -324,8 +323,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneManager.cpp",
               "ViewState": "AgIAAEcAAAAAAAAAAADwv2IAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T05:09:20.403Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:09:20.403Z"
             },
             {
               "$type": "Document",
@@ -337,8 +335,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyRunner.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T07:42:50.002Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T07:42:50.002Z"
             },
             {
               "$type": "Document",
@@ -350,8 +347,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyAcid.cpp",
               "ViewState": "AgIAAK0AAAAAAAAAAADwv30AAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T07:16:01.609Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T07:16:01.609Z"
             },
             {
               "$type": "Document",
@@ -363,8 +359,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyAcid.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAIsAAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-09T07:24:06.795Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T07:24:06.795Z"
             },
             {
               "$type": "Document",
@@ -376,8 +371,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyBase.h",
               "ViewState": "AgIAACUAAAAAAAAAAADwvz0AAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-09T07:17:50.832Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T07:17:50.832Z"
             },
             {
               "$type": "Document",
@@ -387,7 +381,7 @@
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyBase.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyBase.cpp",
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyBase.cpp",
-              "ViewState": "AgIAADUAAAAAAAAAAADwv1wAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAADEAAAAAAAAAAADwv10AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-09-12T01:57:26.375Z",
               "EditorCaption": ""
@@ -402,8 +396,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyNormal.h",
               "ViewState": "AgIAAA4AAAAAAAAAAAAqwDwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-12T01:58:06.401Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-12T01:58:06.401Z"
             },
             {
               "$type": "Document",
@@ -415,8 +408,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyRunner.h",
               "ViewState": "AgIAAEEAAAAAAAAAAAAqwFoAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-12T01:58:23.222Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-12T01:58:23.222Z"
             },
             {
               "$type": "Document",
@@ -428,8 +420,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.cpp",
               "ViewState": "AgIAACkBAAAAAAAAAADwvz4BAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T05:09:25.577Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:09:25.577Z"
             },
             {
               "$type": "Document",
@@ -441,8 +432,7 @@
               "RelativeToolTip": "3DShooting\\Effect.cpp",
               "ViewState": "AgIAAB0AAAAAAAAAAADwvzUAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-08T04:56:12.065Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-08T04:56:12.065Z"
             },
             {
               "$type": "Document",
@@ -454,8 +444,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\ItemBase.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-09T05:11:26.231Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:11:26.231Z"
             },
             {
               "$type": "Document",
@@ -467,8 +456,7 @@
               "RelativeToolTip": "3DShooting\\Effect.h",
               "ViewState": "AgIAABcAAAAAAAAAAAAAABcAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-08T07:27:32.76Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-08T07:27:32.76Z"
             },
             {
               "$type": "Document",
@@ -480,8 +468,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyNormal.cpp",
               "ViewState": "AgIAAOABAAAAAAAAAAAAAFMBAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T06:53:33.704Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T06:53:33.704Z"
             },
             {
               "$type": "Document",
