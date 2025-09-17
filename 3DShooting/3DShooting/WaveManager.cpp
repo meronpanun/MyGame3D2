@@ -289,7 +289,7 @@ void WaveManager::Update()
 }
 
 // GetEnemyListをアクティブな敵のみ返すようにする
-void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player)
+void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, Effect* pEffect)
 {
     // 死亡時コールバックを毎フレーム再設定（プール再利用対策）
     auto deathTypeCallback = [this](const VECTOR& pos, EnemyBase::LastDamageType type) {
@@ -323,7 +323,7 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
         // 自分以外の敵リストを作成
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
-        pEnemy->Update(bullets, tackleInfo, player, others);
+        pEnemy->Update(bullets, tackleInfo, player, others, pEffect);
     }
     // RunnerEnemy
     for (auto& pEnemy : m_enemyRunnerPool)
@@ -331,7 +331,7 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
-        pEnemy->Update(bullets, tackleInfo, player, others);
+        pEnemy->Update(bullets, tackleInfo, player, others, pEffect);
     }
     // AcidEnemy
     for (auto& pEnemy : m_enemyAcidPool)
@@ -339,7 +339,7 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
-        pEnemy->Update(bullets, tackleInfo, player, others);
+        pEnemy->Update(bullets, tackleInfo, player, others, pEffect);
     }
 }
 

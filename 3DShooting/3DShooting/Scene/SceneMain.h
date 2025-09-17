@@ -18,6 +18,7 @@ class FirstAidKitItem;
 class ItemBase;
 class Stage;
 class WaveManager;
+class Effect;
 
 /// <summary>
 /// メインシーンクラス
@@ -76,6 +77,7 @@ private:
     std::shared_ptr<EnemyAcid> m_pEnemyAcid;
     std::shared_ptr<Stage> m_pStage;
     std::shared_ptr<WaveManager> m_pWaveManager;
+	std::unique_ptr<Effect> m_pEffect;
     std::vector<EnemyBase*> m_enemyList;
     std::vector<std::shared_ptr<ItemBase>> m_items;
     std::unique_ptr<TutorialManager> m_pTutorialManager;

@@ -19,6 +19,7 @@
 #include "WaveManager.h"
 #include "ScoreManager.h"
 #include "TutorialManager.h"
+#include "Effect.h"
 #include <cassert>
 #include <algorithm>
 #include <string>
@@ -115,7 +116,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_isReturningFromOtherScene(isReturningFromOtherScene),
 	m_clearSceneDelayTimer(-1),
 	m_scoreFontHandle(-1),
-	m_isPlayerInit(false)
+	m_isPlayerInit(false),
+	m_pEffect(std::make_unique<Effect>())
 {
     g_sceneMainInstance = this;
 
@@ -170,6 +172,7 @@ void SceneMain::Init()
 
 	m_pWaveManager = std::make_shared<WaveManager>();
 	m_pWaveManager->Init();
+	m_pEffect->Init();
 	
 	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
 	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
@@ -448,6 +451,7 @@ SceneBase* SceneMain::Update()
 		return new SceneGameOver(wave, killCount, score);
     }
     m_pWaveManager->Update();
+	m_pEffect->Update();
 
     // ウェーブ3終了後の遅延処理
     if (m_pWaveManager->GetCurrentWave() > 3)
@@ -469,7 +473,7 @@ SceneBase* SceneMain::Update()
 
     // 遅延中は他の処理をスキップ
     if (m_clearSceneDelayTimer != -1) return this;
-    m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer);
+    m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pEffect.get());
     for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
     m_items.erase(
         std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }),
@@ -512,6 +516,7 @@ void SceneMain::Draw()
     if (!isWave1Tutorial)
     {
         m_pWaveManager->DrawEnemies();
+		m_pEffect->Draw();
     }
 
     m_pPlayer->Draw();

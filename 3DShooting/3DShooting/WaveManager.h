@@ -86,7 +86,7 @@ public:
 	/// <param name="bullets">弾のリスト</param>
 	/// <param name="tackleInfo">タックル情報</param>
 	/// <param name="player">プレイヤーオブジェクト</param>
-    void UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player);
+    void UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, Effect* pEffect);
 
     /// <summary>
     /// 敵の一括描画
