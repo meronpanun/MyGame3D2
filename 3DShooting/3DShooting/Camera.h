@@ -130,6 +130,18 @@ public:
 	/// <param name="isRunning">走行中かどうか</param>
 	void SetHeadBobbingState(bool isMoving, bool isRunning);
 
+	/// <summary>
+	/// 着地時の揺れを適用
+	/// </summary>
+	/// <param name="intensity">揺れの強さ</param>
+	void ApplyLandingSway(float intensity);
+
+	/// <summary>
+	/// 着地時の揺れオフセットを取得
+	/// </summary>
+	/// <returns>着地時の揺れオフセット</returns>
+	VECTOR GetLandingSwayOffset() const;
+
 private:
 	/// <summary>
 	/// Head Bobbin効果を更新
@@ -178,4 +190,9 @@ private:
 	float  m_targetBobSpeed;     // 目標のHead Bobbing速度
 	bool   m_isMoving;           // 移動中かどうか
 	bool   m_isRunning;          // 走行中かどうか
+
+	// 着地時の揺れ管理
+	VECTOR m_landingSwayOffset; // 着地時の揺れオフセット
+	float m_landingSwayTimer;
+	float m_landingSwayIntensity;
 };

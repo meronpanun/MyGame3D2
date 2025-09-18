@@ -205,6 +205,7 @@ private:
 	int   m_tackleId;          // タックルID
 	int   m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int   m_ammoItemSEHandle;  // 弾薬アイテムSEのハンドル
+	int   m_landingSEHandle; // 着地SEのハンドル
 
 	float m_health;        // 現在の体力
 	float m_healthBarAnim; // HPバーのアニメーション用体力値
@@ -229,6 +230,7 @@ private:
 
 	bool  m_isMoving;	   // プレイヤーが移動中かどうか
 	bool  m_isJumping;	   // プレイヤーがジャンプ中かどうか
+	bool  m_wasJumping;	   // 前のフレームでジャンプしていたかどうか
 	bool  m_isWasRunning;  // 前回の移動状態が走っていたかどうか
 	bool  m_hasShot;       // プレイヤーがショット可能かどうか
 	bool  m_isTackling;    // タックル中かどうか

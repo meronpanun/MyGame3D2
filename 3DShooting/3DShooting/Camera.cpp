@@ -25,6 +25,10 @@ namespace
     // 走行時の追加効果の強度
     constexpr float kRunVerticalNoiseStrength   = 0.1f;  // 走行時の縦揺れノイズ強度
     constexpr float kRunHorizontalNoiseStrength = 0.08f; // 走行時の横揺れノイズ強度
+
+    // 着地時の揺れ関連の定数
+    constexpr float kLandingSwaySpeed = 12.0f; // 揺れの速さ
+    constexpr float kLandingSwayDamping = 0.9f; // 揺れの減衰率
 }
 
 Camera::Camera() :
@@ -47,7 +51,10 @@ Camera::Camera() :
     m_headBobSpeed(0.0f),
     m_targetBobSpeed(0.0f),
     m_isMoving(false),
-    m_isRunning(false)
+    m_isRunning(false),
+    m_landingSwayOffset(VGet(0, 0, 0)),
+    m_landingSwayTimer(0.0f),
+    m_landingSwayIntensity(0.0f)
 {
 }
 
@@ -83,6 +90,22 @@ void Camera::Update()
     // Head Bobbing更新
     UpdateHeadBobbing();
 
+    // 着地時の揺れを更新
+    m_landingSwayOffset = VGet(0, 0, 0);
+    if (m_landingSwayIntensity > 0.01f)
+    {
+        m_landingSwayTimer += 1.0f / 60.0f;
+        float sway = sinf(m_landingSwayTimer * kLandingSwaySpeed) * m_landingSwayIntensity;
+        m_landingSwayOffset.y = sway;
+
+        m_landingSwayIntensity *= kLandingSwayDamping;
+        if (m_landingSwayIntensity < 0.01f)
+        {
+            m_landingSwayIntensity = 0.0f;
+            m_landingSwayTimer = 0.0f;
+        }
+    }
+
     // ピッチ角度に制限を設ける
     if (m_pitch > kPitchLimit)
     {
@@ -108,6 +131,7 @@ void Camera::Update()
     m_pos = VAdd(m_playerPos, rotatedOffset);
     m_pos = VAdd(m_pos, m_shakeOffset);
     m_pos = VAdd(m_pos, m_headBobOffset);
+    m_pos = VAdd(m_pos, m_landingSwayOffset);
 
     m_target = VAdd(m_pos, forward);
 
@@ -199,6 +223,17 @@ void Camera::SetHeadBobbingState(bool isMoving, bool isRunning)
 {
     m_isMoving = isMoving;
     m_isRunning = isRunning;
+}
+
+void Camera::ApplyLandingSway(float intensity)
+{
+    m_landingSwayIntensity = intensity;
+    m_landingSwayTimer = 0.0f;
+}
+
+VECTOR Camera::GetLandingSwayOffset() const
+{
+    return m_landingSwayOffset;
 }
 
 // カメラの感度を設定

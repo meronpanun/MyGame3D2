@@ -95,6 +95,7 @@ Player::Player() :
 	m_healthBarAnim(100.0f),
 	m_healthBarAnimTimer(0.0f),
 	m_isJumping(false),
+	m_wasJumping(false),
 	m_jumpVelocity(0.0f),
 	m_hasShot(false),
 	m_tackleFrame(0),
@@ -485,6 +486,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			m_modelPos.y = kGroundY; // 地面に着地
 			m_jumpVelocity = 0.0f;   // ジャンプ速度をリセット
 			m_isJumping = false;     // ジャンプ状態を解除
+
+			// 着地した瞬間の処理
+			if (m_wasJumping)
+			{
+				m_pCamera->ApplyLandingSway(5.0f);
+			}
 		}
 	}
 
@@ -505,6 +512,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	m_isMoving = isMoving;      // 移動中の状態を更新
 	m_isWasRunning = isRunning; // 走っている状態を更新
+	m_wasJumping = m_isJumping; // ジャンプ状態を更新
 
 	// Head Bobbing状態をカメラに設定
 	if (m_pCamera)
@@ -580,7 +588,9 @@ void Player::Draw()
 	{
 		VECTOR shakeOffset   = m_pCamera->GetShakeOffset();
 		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
+		VECTOR landingSwayOffset = m_pCamera->GetLandingSwayOffset();
 		totalCameraOffset    = VAdd(shakeOffset, headBobOffset);
+		totalCameraOffset = VAdd(totalCameraOffset, landingSwayOffset);
 	}
 	VECTOR swordCamPos = VGet(0, 0, -35.0f * scaleAvg);
 	swordCamPos.x += totalCameraOffset.x;
