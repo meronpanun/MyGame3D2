@@ -118,7 +118,8 @@ Player::Player() :
 	m_tackleDamage(0.0f),
 	m_isSwordAnimating(false),
 	m_swordAnimTimer(0.0f),
-	m_swordAnimDuration(0.05f)
+	m_swordAnimDuration(0.05f),
+	m_concentrationLineEffectHandle(-1)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -339,6 +340,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			VECTOR offset = m_pCamera->GetOffset();
 			offset.z = 30.0f;
 			m_pCamera->SetOffset(offset);
+
+			// 集中線エフェクトを再生
+			if (m_pEffect)
+			{
+				m_concentrationLineEffectHandle = m_pEffect->PlayConcentrationLine(0.0f, 0.0f, 0.0f, 20.0f);
+			}
 		}
 	}
 
@@ -389,8 +396,30 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 				m_pCamera->ResetFOV();
 				m_pCamera->ResetOffset();
 			}
+
+			// 集中線エフェクトを停止
+			if (m_concentrationLineEffectHandle != -1)
+			{
+				StopEffekseer3DEffect(m_concentrationLineEffectHandle);
+				m_concentrationLineEffectHandle = -1;
+			}
 		}
 		// タックル中は他の移動・ジャンプを無効化
+
+		// 集中線エフェクトをカメラに追従させる
+		if (m_concentrationLineEffectHandle != -1)
+		{
+			VECTOR camPos = m_pCamera->GetPos();
+			VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+			VECTOR effectPos = VAdd(camPos, VScale(camDir, 15.0f)); // カメラの少し前に出す
+			SetPosPlayingEffekseer3DEffect(m_concentrationLineEffectHandle, effectPos.x, effectPos.y, effectPos.z);
+
+			// エフェクトをカメラの向きに合わせる
+			float pitch = -m_pCamera->GetPitch();
+			float yaw = m_pCamera->GetYaw();
+			SetRotationPlayingEffekseer3DEffect(m_concentrationLineEffectHandle, pitch, yaw, 0.0f);
+		}
+
 		return;
 	}
 
@@ -688,89 +717,6 @@ void Player::Draw()
 
     // 弾薬エフェクト描画
     DrawEffectFeedback(m_ammoEffect);
-
-	// タックル中は集中線エフェクトを描画
-	if (m_isTackling)
-	{
-		DrawTackleLines();
-	}
-}
-
-void Player::DrawTackleLines()
-{
-    int screenW = Game::kScreenWidth;
-    int screenH = Game::kScreenHeigth;
-    int centerX = screenW * 0.5f;
-    int centerY = screenH * 0.5f;
-    // 画面中心から端までの最大半径を計算
-    float maxScreenRadius = sqrtf((float)(screenW * screenW + screenH * screenH)) * kMaxScreenRadiusRate;
-    // タックル進行度（0.0:開始→1.0:終了）
-    float progress = 1.0f - (float)m_tackleFrame / (float)kTackleDuration;
-    // 集中線の明るさ（進行度に応じて変化）
-    float intensity = 0.3f + progress * 0.7f;
-
-    for (int i = 0; i < kNumLines; ++i)
-    {
-        // 放射状に等間隔で角度を決定
-        float baseAngle = (float)i / kNumLines * 2.0f * DX_PI_F;
-        float angle = baseAngle;
-
-        // 線の長さ（全て同じ）
-        float lenRatio = kLenRatio;
-
-        // 描画範囲（根元・先端の進行度）
-        float drawStart = 0.0f;
-        float drawEnd   = 1.0f;
-
-        // 根元・先端の半径を計算
-        float startRadius = maxScreenRadius * (1.0f - lenRatio * drawStart);
-        float endRadius = maxScreenRadius * (1.0f - lenRatio * drawEnd);
-
-        // 伸びるアニメーション
-        if (progress < kAppear)
-        {
-            drawEnd = progress / kAppear;
-            endRadius = maxScreenRadius * (1.0f - lenRatio * drawEnd);
-        }
-        // 消えるアニメーション（根元が外側に抜けていく）
-        else if (progress > 1.0f - kVanish)
-        {
-            drawStart = (progress - (1.0f - kVanish)) / kVanish;
-            float overRatio = drawStart * kOverRatioScale;
-            startRadius = maxScreenRadius * (1.0f - lenRatio * drawStart + overRatio * lenRatio);
-        }
-
-        // 根元・先端の座標を計算
-        int x1 = centerX + (int)(startRadius * cosf(angle));
-        int y1 = centerY + (int)(startRadius * sinf(angle));
-        int x2 = centerX + (int)(endRadius * cosf(angle));
-        int y2 = centerY + (int)(endRadius * sinf(angle));
-
-        // 太さ（根元が太く、先端が細い）
-        int baseThickness = kBaseThickness;
-        int tipThickness = kTipThickness;
-        float perpAngle = angle + DX_PI_F * 0.5f;
-        float baseHalf = baseThickness * 0.5f;
-        float tipHalf = tipThickness * 0.5f;
-
-        // 四隅の座標を計算（台形/三角形のため）
-        int bx1 = x1 + (int)(baseHalf * cosf(perpAngle));
-        int by1 = y1 + (int)(baseHalf * sinf(perpAngle));
-        int bx2 = x1 - (int)(baseHalf * cosf(perpAngle));
-        int by2 = y1 - (int)(baseHalf * sinf(perpAngle));
-        int tx1 = x2 + (int)(tipHalf * cosf(perpAngle));
-        int ty1 = y2 + (int)(tipHalf * sinf(perpAngle));
-        int tx2 = x2 - (int)(tipHalf * cosf(perpAngle));
-        int ty2 = y2 - (int)(tipHalf * sinf(perpAngle));
-
-        // アルファブレンドで白色の集中線を描画
-        int alpha = (int)(255 * intensity);
-        SetDrawBlendMode(DX_BLENDMODE_ADD, alpha);
-        DrawTriangle(bx1, by1, bx2, by2, tx1, ty1, 0xffffff, true);
-        DrawTriangle(bx2, by2, tx1, ty1, tx2, ty2, 0xffffff, true);
-    }
-    // ブレンドモードを元に戻す
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 void Player::DrawEffectFeedback(Player::EffectFeedback& effect)

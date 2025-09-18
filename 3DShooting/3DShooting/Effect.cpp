@@ -11,13 +11,17 @@ Effect::Effect() :
 	// 出血エフェクトハンドルの読み込み
 	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 2.5f);
 	assert(m_lossOfBloodEffectHandle != -1);
-
+	// 集中線エフェクトハンドルの読み込み
+	m_concentrationLineEffectHandle = LoadEffekseerEffect("data/Effekseer/ConcentrationLine.efkefc", 1.0f);
+	assert(m_concentrationLineEffectHandle != -1);
 }
 
 Effect::~Effect()
 {
 	// エフェクトのハンドルを削除
 	DeleteEffekseerEffect(m_muzzleFlashEffectHandle);
+	DeleteEffekseerEffect(m_lossOfBloodEffectHandle);
+	DeleteEffekseerEffect(m_concentrationLineEffectHandle);
 }
 
 void Effect::Init()
@@ -63,4 +67,20 @@ void Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, 
 			SetSpeedPlayingEffekseer3DEffect(handle, 5.0f); // 再生速度を5倍に
 		}
 	}
+}
+
+// 集中線エフェクトを再生する
+int Effect::PlayConcentrationLine(float x, float y, float z, float scale)
+{
+	if (m_concentrationLineEffectHandle != -1)
+	{
+		int handle = PlayEffekseer3DEffect(m_concentrationLineEffectHandle);
+		if (handle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			SetScalePlayingEffekseer3DEffect(handle, scale, scale, scale);
+		}
+		return handle;
+	}
+	return -1;
 }

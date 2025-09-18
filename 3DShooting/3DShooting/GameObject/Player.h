@@ -128,17 +128,6 @@ public:
 	/// <returns>弾薬無限モードならtrue</returns>
 	bool IsInfiniteAmmo() const { return m_isInfiniteAmmo; }
 
-	/// <summary>
-	/// アニメーションデータ構造体
-	/// </summary>
-	struct AnimData
-	{
-		int   attachNo = -1;    // アタッチされているアニメーションの番号
-		float count = 0.0f;  // アニメーションのカウント
-		bool  isLoop = false; // ループアニメーションかどうか
-		bool  isEnd = false; // アニメーションが終了したかどうか
-	};
-
 	// プレイヤーのカプセルコライダー取得
 	std::shared_ptr<CapsuleCollider> GetBodyCollider() const;
 
@@ -179,8 +168,6 @@ private:
 
 	void DrawEffectFeedback(EffectFeedback& effect);
 
-	void DrawTackleLines(); // 集中線エフェクト描画
-
 private:
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
@@ -194,10 +181,6 @@ private:
 	VECTOR m_modelPos;
 	VECTOR m_tackleDir; // タックルの方向
 	VECTOR m_scale; // スケール
-
-	// アニメーションデータ
-	AnimData m_nextAnimData;
-	AnimData m_prevAnimData;
 
 	EffectFeedback m_damageEffect;
 	EffectFeedback m_healEffect;
@@ -220,6 +203,7 @@ private:
 	int   m_tackleFrame;       // タックルのフレーム数
 	int   m_tackleCooldown;    // タックルのクールダウンタイマー
 	int   m_tackleId;          // タックルID
+	int   m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int   m_ammoItemSEHandle;  // 弾薬アイテムSEのハンドル
 
 	float m_health;        // 現在の体力

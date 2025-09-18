@@ -23,8 +23,12 @@ public:
 
 	void PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ);
 
+    int PlayConcentrationLine(float x, float y, float z, float scale);
+
+
 private:
 	int m_muzzleFlashEffectHandle; // マズルフラッシュのエフェクトハンドル
 	int m_lossOfBloodEffectHandle; // 出血エフェクトハンドル
+	int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 };
 

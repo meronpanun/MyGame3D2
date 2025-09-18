@@ -37,7 +37,7 @@ Camera::Camera() :
     m_pitch(0.0f),
     m_sensitivity(0.1f),
     m_fov(DX_PI_F * 0.5f),
-    m_defaultFov(DX_PI_F * 0.5f),
+    m_defaultFov(DX_PI_F * 0.5f), 
     m_targetFov(DX_PI_F * 0.5f),
     m_fovLerpSpeed(0.15f),
     m_headBobOffset(VGet(0, 0, 0)),
@@ -94,8 +94,8 @@ void Camera::Update()
     }
 
     // カメラの回転行列を作成
-    MATRIX rotYaw = MGetRotY(m_yaw);
-    MATRIX rotPitch = MGetRotX(-m_pitch);
+    MATRIX rotYaw    = MGetRotY(m_yaw);
+    MATRIX rotPitch  = MGetRotX(-m_pitch);
     MATRIX cameraRot = MMult(rotPitch, rotYaw);
 
     // カメラの向きを計算
