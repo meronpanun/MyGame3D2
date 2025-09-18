@@ -27,7 +27,7 @@ public:
 
 
 private:
-	int m_muzzleFlashEffectHandle; // マズルフラッシュのエフェクトハンドル
+	int m_muzzleFlashEffectHandles[5]; // マズルフラッシュのエフェクトハンドル配列
 	int m_lossOfBloodEffectHandle; // 出血エフェクトハンドル
 	int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 };

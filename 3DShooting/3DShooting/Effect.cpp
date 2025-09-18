@@ -2,12 +2,29 @@
 #include "EffekseerForDXLib.h"
 #include <assert.h>
 
-Effect::Effect() :
-	m_muzzleFlashEffectHandle(-1)
+#include <string>
+#include <vector>
+#include <time.h>
+
+Effect::Effect():
+	m_lossOfBloodEffectHandle(-1),
+	m_concentrationLineEffectHandle(-1),
+	m_muzzleFlashEffectHandles{ -1, -1, -1, -1, -1 }
 {
+	// 乱数のシードを設定
+	srand(time(NULL));
+
 	// エフェクトハンドルの読み込み
-	m_muzzleFlashEffectHandle = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 1.0f);
-	assert(m_muzzleFlashEffectHandle != -1);
+	m_muzzleFlashEffectHandles[0] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 2.0f);
+	m_muzzleFlashEffectHandles[1] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash2.efkefc", 2.0f);
+	m_muzzleFlashEffectHandles[2] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash3.efkefc", 2.0f);
+	m_muzzleFlashEffectHandles[3] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash4.efkefc", 3.5f);
+	m_muzzleFlashEffectHandles[4] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", 3.0f);
+	for (int i = 0; i < 5; ++i)
+	{
+		assert(m_muzzleFlashEffectHandles[i] != -1);
+	}
+
 	// 出血エフェクトハンドルの読み込み
 	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 2.5f);
 	assert(m_lossOfBloodEffectHandle != -1);
@@ -19,7 +36,10 @@ Effect::Effect() :
 Effect::~Effect()
 {
 	// エフェクトのハンドルを削除
-	DeleteEffekseerEffect(m_muzzleFlashEffectHandle);
+	for (int i = 0; i < 5; ++i)
+	{
+		DeleteEffekseerEffect(m_muzzleFlashEffectHandles[i]);
+	}
 	DeleteEffekseerEffect(m_lossOfBloodEffectHandle);
 	DeleteEffekseerEffect(m_concentrationLineEffectHandle);
 }
@@ -43,9 +63,10 @@ void Effect::Draw()
 // マズルフラッシュを再生する
 void Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
-	if (m_muzzleFlashEffectHandle != -1)
+	int index = rand() % 5;
+	if (m_muzzleFlashEffectHandles[index] != -1)
 	{
-		int handle = PlayEffekseer3DEffect(m_muzzleFlashEffectHandle);
+		int handle = PlayEffekseer3DEffect(m_muzzleFlashEffectHandles[index]);
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
