@@ -9,7 +9,7 @@ Effect::Effect() :
 	m_muzzleFlashEffectHandle = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 1.0f);
 	assert(m_muzzleFlashEffectHandle != -1);
 	// 出血エフェクトハンドルの読み込み
-	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 10.0f);
+	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 2.5f);
 	assert(m_lossOfBloodEffectHandle != -1);
 
 }
@@ -60,7 +60,7 @@ void Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, 
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
 			SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
-			SetSpeedPlayingEffekseer3DEffect(handle, 2.0f); // 再生速度を2倍に
+			SetSpeedPlayingEffekseer3DEffect(handle, 4.0f); // 再生速度を4倍に
 		}
 	}
 }

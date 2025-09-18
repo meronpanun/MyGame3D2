@@ -59,6 +59,9 @@ public:
 		Dead     // 死亡
 	};
 
+	/// <summary>
+	/// 最後に受けたダメージの種類
+	/// </summary>
 	enum class LastDamageType
 	{
 		None,
@@ -154,16 +157,28 @@ public:
 	/// <returns>アクティブならtrue</returns>
 	bool IsActive() const { return m_isActive; }
 
-
 	/// <summary>
 	/// ヒット時のコールバックを設定する
 	/// </summary>
 	/// <param name="cb">ヒット時に呼ばれるコールバック関数</param>
 	void SetOnHitCallback(std::function<void(HitPart)> cb) { m_onHitCallback = cb; }
 
+	/// <summary>
+	/// 最後に当たった攻撃の種類を取得する
+	/// </summary>
+	/// <returns>最後に当たった攻撃の種類</returns>
 	LastDamageType GetLastDamageType() const { return m_lastDamageType; }
+
+	/// <summary>
+	/// 最後に当たった攻撃の種類を設定する
+	/// </summary>
+	/// <param name="type">最後に当たった攻撃の種類</param>
 	void SetLastDamageType(LastDamageType type) { m_lastDamageType = type; }
 
+	/// <summary>
+	/// 最後に当たった部位を取得する
+	/// </summary>
+	/// <param name="cb">最後に当たった部位</param>
 	void SetOnDeathWithTypeCallback(std::function<void(const VECTOR&, LastDamageType)> cb) { m_onDeathWithTypeCallback = cb; }
 
 protected:

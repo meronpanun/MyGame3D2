@@ -48,7 +48,7 @@ namespace
 	constexpr int kOptionButtonY = 120; // オプションボタンのY座標
 
     // カメラの回転速度
-	constexpr float kCameraRotaSpeed = 0.001f; 
+	constexpr float kCameraRotaSpeed = 0.0001f; 
 
     // スカイドーム関連
 	constexpr float kSkyDomePosY  = 200.0f; // スカイドームのY座標
@@ -172,7 +172,6 @@ void SceneMain::Init()
 
 	m_pWaveManager = std::make_shared<WaveManager>();
 	m_pWaveManager->Init();
-	m_pEffect->Init();
 	
 	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
 	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
@@ -451,7 +450,6 @@ SceneBase* SceneMain::Update()
 		return new SceneGameOver(wave, killCount, score);
     }
     m_pWaveManager->Update();
-	m_pEffect->Update();
 
     // ウェーブ3終了後の遅延処理
     if (m_pWaveManager->GetCurrentWave() > 3)
@@ -516,7 +514,6 @@ void SceneMain::Draw()
     if (!isWave1Tutorial)
     {
         m_pWaveManager->DrawEnemies();
-		m_pEffect->Draw();
     }
 
     m_pPlayer->Draw();
