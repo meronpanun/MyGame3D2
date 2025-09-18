@@ -60,7 +60,7 @@ void Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, 
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
 			SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
-			SetSpeedPlayingEffekseer3DEffect(handle, 4.0f); // 再生速度を4倍に
+			SetSpeedPlayingEffekseer3DEffect(handle, 5.0f); // 再生速度を5倍に
 		}
 	}
 }
