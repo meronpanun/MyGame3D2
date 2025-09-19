@@ -110,7 +110,12 @@ Player::Player() :
 	m_isSwordAnimating(false),
 	m_swordAnimTimer(0.0f),
 	m_swordAnimDuration(0.05f),
-	m_concentrationLineEffectHandle(-1)
+	m_concentrationLineEffectHandle(-1),
+	m_noAmmoImageHandle(-1),
+	m_gunImageHandle(-1),
+	m_isLowAmmo(false),
+	m_lowAmmoBlinkTimer(0.0f),
+	m_showLowAmmoWarning(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -123,6 +128,14 @@ Player::Player() :
 	// 弾UI画像の読み込み
 	m_ammoImageHandle = LoadGraph("data/image/ammo.png");
 	assert(m_ammoImageHandle != -1);
+
+	// 弾薬切れUI画像の読み込み
+	m_noAmmoImageHandle = LoadGraph("data/image/NoAmmo.png");
+	assert(m_noAmmoImageHandle != -1);
+
+	// 銃UI画像の読み込み
+	m_gunImageHandle = LoadGraph("data/image/Gun.png");
+	assert(m_gunImageHandle != -1);
 
 	// 剣UI画像の読み込み
 	m_swordImageHandle = LoadGraph("data/image/sword.png");
@@ -146,6 +159,9 @@ Player::Player() :
 
     m_hpFontHandle = CreateFontToHandle("Arial Black", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_hpFontHandle != -1);
+
+	m_warningFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+	assert(m_warningFontHandle != -1);
 }
 
 Player::~Player()
@@ -156,6 +172,8 @@ Player::~Player()
 
 	// 弾画像の解放
 	DeleteGraph(m_ammoImageHandle);
+	DeleteGraph(m_noAmmoImageHandle);
+	DeleteGraph(m_gunImageHandle);
 
 	// 剣UI画像の解放
 	DeleteGraph(m_swordImageHandle);
@@ -169,7 +187,9 @@ Player::~Player()
 
     // フォントの解放
     DeleteFontToHandle(m_fontHandle);
+
     DeleteFontToHandle(m_hpFontHandle);
+	DeleteFontToHandle(m_warningFontHandle);
 }
 
 void Player::Init()
@@ -523,6 +543,18 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_healthBarAnim = m_health;
 	}
+
+	// 弾薬低下の警告表示処理
+	if (m_ammo <= 10 && !m_isInfiniteAmmo)
+	{
+		m_isLowAmmo = true;
+		m_lowAmmoBlinkTimer += 1.0f / 60.0f; // タイマー更新
+	}
+	else
+	{
+		m_isLowAmmo = false;
+		m_lowAmmoBlinkTimer = 0.0f;
+	}
 }
 
 
@@ -538,30 +570,72 @@ void Player::Draw()
 	int screenH = Game::kScreenHeigth;
 	GetScreenState(&screenW, &screenH, NULL);
 
-	// 残弾数の表示
-	int ammoX = screenW - 200;
-	int ammoY = screenH - 60;
+	// 銃UI画像の描画
+	const int gunImageWidth = 200; 
+	const int gunImageHeight = 133; 
+	int gunImageX = screenW - gunImageWidth - 20; // 右端から20pxの余白
+	int gunImageY = screenH - gunImageHeight + 20; // 下端から10pxの余白
+	DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, m_gunImageHandle, true);
+
+	// 残弾数の表示 (ammo.png とテキストを銃画像の上に配置)
+	// 弾薬UI全体の幅を計算
+	const int kAmmoImageTargetSize = 48;
+	// フォントサイズ32のテキストの高さは32pxと仮定
+	int ammoTextHeight = 32;
+	int ammoTextWidth = GetDrawStringWidthToHandle("999", 3, m_fontHandle); // 仮の最大弾薬数で幅を計算
+	int ammoUIWidth = kAmmoImageTargetSize + 10 + ammoTextWidth; // ammo.png + 余白 + テキスト
+
+	// 弾薬UIのX座標 (銃画像の中央より少し右)
+	int ammoUIX = gunImageX + (gunImageWidth / 2) - (ammoUIWidth / 2) + 20;
+	// 弾薬UIのY座標 (銃画像の上端よりさらに下)
+	int ammoUIY = gunImageY + gunImageHeight - kAmmoImageTargetSize - 105; 
 
 	// ammo画像の描画
-	const int kAmmoImageTargetSize = 48; 
-	int ammoImageWidth = kAmmoImageTargetSize;
-	int ammoImageHeight = kAmmoImageTargetSize;
+	int ammoImageX = ammoUIX;
+	int ammoImageY = ammoUIY;
+	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageTargetSize, ammoImageY + kAmmoImageTargetSize, m_ammoImageHandle, true);
 
-	// 画像をテキストの左側に配置するためのX座標を計算
-	// テキストの開始位置から画像の幅と少しの余白を引く
-	int ammoImageX = ammoX - ammoImageWidth - 10; // 10は余白
-	int ammoImageY = ammoY + (32 - ammoImageHeight) * 0.5f; // テキストと画像を中央揃え
-
-	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + ammoImageWidth, ammoImageY + ammoImageHeight, m_ammoImageHandle, true);
+	// 弾薬数のテキスト描画
+	int ammoTextX = ammoImageX + kAmmoImageTargetSize + 10; // ammo.pngの右に10pxの余白
+	int ammoTextY = ammoUIY + (kAmmoImageTargetSize - ammoTextHeight) / 2; // テキストと画像を中央揃え
 
 	// 弾薬無限モードの場合は「∞」を表示
 	if (m_isInfiniteAmmo)
 	{
-		DrawFormatStringToHandle(ammoX, ammoY, 0xffffff, m_fontHandle, "∞");
+		DrawFormatStringToHandle(ammoTextX, ammoTextY, 0xffffff, m_fontHandle, "∞");
 	}
 	else
 	{
-		DrawFormatStringToHandle(ammoX, ammoY, 0xffffff, m_fontHandle, "%d", m_ammo);
+		// 弾薬が少ない場合は赤色で表示
+		int textColor = m_isLowAmmo ? 0xd3381c : 0xffffff;
+		DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
+	}
+
+	// 弾薬低下の警告表示
+	if (m_isLowAmmo)
+	{
+		// フェードイン・アウトのアルファ値を計算
+		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
+		float alpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		int alphaInt = static_cast<int>(alpha * 255);
+
+		// 画像の描画サイズと位置
+		const int imageSize = 128;
+		int drawX = (screenW - imageSize) / 2;
+		int drawY = (screenH - imageSize) / 2 + 160;
+
+		// 画像を描画
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noAmmoImageHandle, true);
+
+		// テキストを描画
+		const char* text = "残弾僅か";
+		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+		int textX = (screenW - textWidth) / 2;
+		int textY = drawY + imageSize + 5; // 画像の下に配置
+		unsigned int textColor = (alphaInt << 24) | 0xffffff;
+		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 
 	/*剣の描画*/

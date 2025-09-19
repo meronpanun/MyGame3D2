@@ -206,6 +206,12 @@ private:
 	int   m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int   m_ammoItemSEHandle;  // 弾薬アイテムSEのハンドル
 	int   m_landingSEHandle; // 着地SEのハンドル
+	int   m_noAmmoImageHandle; // 弾薬切れUI画像のハンドル
+	int   m_gunImageHandle; // 銃UI画像のハンドル
+
+	bool  m_isLowAmmo;           // 弾薬が少ないかどうかのフラグ
+	float m_lowAmmoBlinkTimer;   // 弾薬切れUIの点滅タイマー
+	bool  m_showLowAmmoWarning;  // 弾薬切れUIの表示フラグ
 
 	float m_health;        // 現在の体力
 	float m_healthBarAnim; // HPバーのアニメーション用体力値
@@ -240,5 +246,7 @@ private:
 	// 剣のアニメーション関連
 	bool  m_isSwordAnimating;   // 剣がアニメーション中か
 	float m_swordAnimTimer;     // 剣のアニメーションタイマー
-	float m_swordAnimDuration;  // 剣のアニメーション時間
+	int   m_swordAnimDuration;  // 剣のアニメーション時間
+
+	int   m_warningFontHandle; // 警告用フォントハンドル
 };
