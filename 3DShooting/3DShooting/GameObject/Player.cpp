@@ -54,16 +54,6 @@ namespace
 	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
 	constexpr float kCapsuleRadius = 50.0f;  // カプセルコライダーの半径
 
-	// 集中線関連
-	constexpr int   kNumLines			 = 18;    // 集中線の本数
-	constexpr float kMaxScreenRadiusRate = 0.95f; // 集中線の最大長さ（画面対角の何割まで伸ばすか）
-	constexpr float kLenRatio			 = 0.75f; // 集中線の標準長さ（0.0〜1.0、1.0で最大）
-	constexpr int   kBaseThickness		 = 200;   // 集中線の根元（外側）の太さ
-	constexpr int   kTipThickness		 = 4;     // 集中線の先端（中心側）の太さ
-	constexpr float kAppear			     = 0.2f;  // 集中線が伸びるアニメーションの比率（0.0〜1.0）
-	constexpr float kVanish				 = 0.2f;  // 集中線が消えるアニメーションの比率（0.0〜1.0）
-	constexpr float kOverRatioScale		 = 1.2f;  // 消える時の根元の外側へのスケール（1.0で画面端、1.2で完全に外）
-
 	constexpr float kShootRate = 10.0f; // 1秒あたりの発射回数
 
 	// X,Z座標の移動範囲制限
@@ -567,11 +557,11 @@ void Player::Draw()
 	// 弾薬無限モードの場合は「∞」を表示
 	if (m_isInfiniteAmmo)
 	{
-		DrawFormatStringToHandle(ammoX, ammoY, 0xffff50, m_fontHandle, "∞");
+		DrawFormatStringToHandle(ammoX, ammoY, 0xffffff, m_fontHandle, "∞");
 	}
 	else
 	{
-		DrawFormatStringToHandle(ammoX, ammoY, 0xffff50, m_fontHandle, "%d", m_ammo);
+		DrawFormatStringToHandle(ammoX, ammoY, 0xffffff, m_fontHandle, "%d", m_ammo);
 	}
 
 	/*剣の描画*/

@@ -4,12 +4,13 @@
 
 namespace
 {
-    constexpr float kPitchLimit = DX_PI_F / 4.0f; // カメラの角度を45度に制限
-    constexpr float kCameraXPos = 8.0f;           // カメラのX軸
-    constexpr float kCameraYPos = 90.0f;          // カメラのY軸
-    constexpr float kCameraZPos = 20.0f;          // カメラのZ軸
-    constexpr float kCameraNear = 1.0f;           // カメラの近くの距離
-    constexpr float kCameraFar = 15000.0f;        // カメラの遠くの距離
+	// カメラ関連の定数
+    constexpr float kPitchLimit = DX_PI_F / 4.0f;   // カメラの角度を45度に制限
+    constexpr float kCameraXPos = 8.0f;             // カメラのX軸
+    constexpr float kCameraYPos = 90.0f;            // カメラのY軸
+    constexpr float kCameraZPos = 20.0f;            // カメラのZ軸
+    constexpr float kCameraNear = 1.0f;             // カメラの近くの距離
+    constexpr float kCameraFar = 15000.0f;          // カメラの遠くの距離
 
     // Head Bobbing関連の定数
     constexpr float kWalkBobIntensity      = 2.0f;  // 歩行時の揺れ強度
@@ -27,8 +28,8 @@ namespace
     constexpr float kRunHorizontalNoiseStrength = 0.08f; // 走行時の横揺れノイズ強度
 
     // 着地時の揺れ関連の定数
-    constexpr float kLandingSwaySpeed = 12.0f; // 揺れの速さ
-    constexpr float kLandingSwayDamping = 0.9f; // 揺れの減衰率
+    constexpr float kLandingSwaySpeed   = 12.0f; // 揺れの速さ
+    constexpr float kLandingSwayDamping = 0.9f;  // 揺れの減衰率
 }
 
 Camera::Camera() :
