@@ -115,7 +115,8 @@ Player::Player() :
 	m_gunImageHandle(-1),
 	m_isLowAmmo(false),
 	m_lowAmmoBlinkTimer(0.0f),
-	m_showLowAmmoWarning(false)
+	m_showLowAmmoWarning(false),
+	m_showNoAmmoWarning(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -545,15 +546,23 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// 弾薬低下の警告表示処理
-	if (m_ammo <= 10 && !m_isInfiniteAmmo)
+	if (m_ammo == 0 && !m_isInfiniteAmmo)
+	{
+		m_isLowAmmo = false;
+		m_lowAmmoBlinkTimer += 1.0f / 60.0f; // タイマー更新
+		m_showNoAmmoWarning = true;
+	}
+	else if (m_ammo <= 10 && !m_isInfiniteAmmo)
 	{
 		m_isLowAmmo = true;
 		m_lowAmmoBlinkTimer += 1.0f / 60.0f; // タイマー更新
+		m_showNoAmmoWarning = false;
 	}
 	else
 	{
 		m_isLowAmmo = false;
 		m_lowAmmoBlinkTimer = 0.0f;
+		m_showNoAmmoWarning = false;
 	}
 }
 
@@ -612,7 +621,7 @@ void Player::Draw()
 	}
 
 	// 弾薬低下の警告表示
-	if (m_isLowAmmo)
+	if (m_isLowAmmo || m_showNoAmmoWarning)
 	{
 		// フェードイン・アウトのアルファ値を計算
 		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
@@ -629,7 +638,7 @@ void Player::Draw()
 		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noAmmoImageHandle, true);
 
 		// テキストを描画
-		const char* text = "残弾僅か";
+		const char* text = m_showNoAmmoWarning ? "残弾なし" : "残弾僅か";
 		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
 		int textX = (screenW - textWidth) / 2;
 		int textY = drawY + imageSize + 5; // 画像の下に配置
