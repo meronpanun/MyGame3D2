@@ -483,6 +483,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_jumpVelocity = kJumpPower;
 		m_isJumping = true;
+		m_pCamera->ApplyJumpSway(5.0f);
 	}
 
 	// ジャンプ中または空中なら重力適用
@@ -662,8 +663,10 @@ void Player::Draw()
 		VECTOR shakeOffset   = m_pCamera->GetShakeOffset();
 		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
 		VECTOR landingSwayOffset = m_pCamera->GetLandingSwayOffset();
+		VECTOR jumpSwayOffset = m_pCamera->GetJumpSwayOffset();
 		totalCameraOffset    = VAdd(shakeOffset, headBobOffset);
 		totalCameraOffset = VAdd(totalCameraOffset, landingSwayOffset);
+		totalCameraOffset = VAdd(totalCameraOffset, jumpSwayOffset);
 	}
 	VECTOR swordCamPos = VGet(0, 0, -35.0f * scaleAvg);
 	swordCamPos.x += totalCameraOffset.x;

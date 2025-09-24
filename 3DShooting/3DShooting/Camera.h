@@ -142,6 +142,18 @@ public:
 	/// <returns>着地時の揺れオフセット</returns>
 	VECTOR GetLandingSwayOffset() const;
 
+	/// <summary>
+	/// ジャンプ時の揺れを適用
+	/// </summary>
+	/// <param name="intensity">揺れの強さ</param>
+	void ApplyJumpSway(float intensity);
+
+	/// <summary>
+	/// ジャンプ時の揺れオフセットを取得
+	/// </summary>
+	/// <returns>ジャンプ時の揺れオフセット</returns>
+	VECTOR GetJumpSwayOffset() const;
+
 private:
 	/// <summary>
 	/// Head Bobbin効果を更新
@@ -195,4 +207,9 @@ private:
 	VECTOR m_landingSwayOffset; // 着地時の揺れオフセット
 	float m_landingSwayTimer;
 	float m_landingSwayIntensity;
+
+	// ジャンプ時の揺れ管理
+	VECTOR m_jumpSwayOffset; // ジャンプ時の揺れオフセット
+	float m_jumpSwayTimer;
+	float m_jumpSwayIntensity;
 };

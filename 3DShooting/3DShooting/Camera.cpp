@@ -30,6 +30,10 @@ namespace
     // 着地時の揺れ関連の定数
     constexpr float kLandingSwaySpeed   = 12.0f; // 揺れの速さ
     constexpr float kLandingSwayDamping = 0.9f;  // 揺れの減衰率
+
+    // ジャンプ時の揺れ関連の定数
+    constexpr float kJumpSwaySpeed   = 20.0f; // 揺れの速さ
+    constexpr float kJumpSwayDamping = 0.85f;  // 揺れの減衰率
 }
 
 Camera::Camera() :
@@ -55,7 +59,10 @@ Camera::Camera() :
     m_isRunning(false),
     m_landingSwayOffset(VGet(0, 0, 0)),
     m_landingSwayTimer(0.0f),
-    m_landingSwayIntensity(0.0f)
+    m_landingSwayIntensity(0.0f),
+    m_jumpSwayOffset(VGet(0, 0, 0)),
+    m_jumpSwayTimer(0.0f),
+    m_jumpSwayIntensity(0.0f)
 {
 }
 
@@ -107,6 +114,22 @@ void Camera::Update()
         }
     }
 
+    // ジャンプ時の揺れを更新
+    m_jumpSwayOffset = VGet(0, 0, 0);
+    if (m_jumpSwayIntensity > 0.01f)
+    {
+        m_jumpSwayTimer += 1.0f / 60.0f;
+        float sway = sinf(m_jumpSwayTimer * kJumpSwaySpeed) * m_jumpSwayIntensity;
+        m_jumpSwayOffset.y = sway;
+
+        m_jumpSwayIntensity *= kJumpSwayDamping;
+        if (m_jumpSwayIntensity < 0.01f)
+        {
+            m_jumpSwayIntensity = 0.0f;
+            m_jumpSwayTimer = 0.0f;
+        }
+    }
+
     // ピッチ角度に制限を設ける
     if (m_pitch > kPitchLimit)
     {
@@ -128,17 +151,17 @@ void Camera::Update()
     // カメラのオフセットを回転させる
     VECTOR rotatedOffset = VTransform(m_offset, cameraRot);
 
-    // カメラの位置を更新（シェイクとHead Bobbingオフセットを適用）
-    m_pos = VAdd(m_playerPos, rotatedOffset);
-    m_pos = VAdd(m_pos, m_shakeOffset);
-    m_pos = VAdd(m_pos, m_headBobOffset);
-    m_pos = VAdd(m_pos, m_landingSwayOffset);
-
-    m_target = VAdd(m_pos, forward);
-
-    // FOVを滑らかに補間
-    m_fov += (m_targetFov - m_fov) * m_fovLerpSpeed;
-
+    	// カメラの位置を更新（シェイクとHead Bobbingオフセットを適用）
+        m_pos = VAdd(m_playerPos, rotatedOffset);
+        m_pos = VAdd(m_pos, m_shakeOffset);
+        m_pos = VAdd(m_pos, m_headBobOffset);
+        m_pos = VAdd(m_pos, m_landingSwayOffset);
+    	m_pos = VAdd(m_pos, m_jumpSwayOffset);
+    
+        m_target = VAdd(m_pos, forward);
+    
+        // FOVを滑らかに補間
+        m_fov += (m_targetFov - m_fov) * m_fovLerpSpeed;
     // カメラの設定を更新
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
     SetupCamera_Perspective(m_fov);
@@ -235,6 +258,17 @@ void Camera::ApplyLandingSway(float intensity)
 VECTOR Camera::GetLandingSwayOffset() const
 {
     return m_landingSwayOffset;
+}
+
+void Camera::ApplyJumpSway(float intensity)
+{
+	m_jumpSwayIntensity = intensity;
+	m_jumpSwayTimer = 0.0f;
+}
+
+VECTOR Camera::GetJumpSwayOffset() const
+{
+	return m_jumpSwayOffset;
 }
 
 // カメラの感度を設定
