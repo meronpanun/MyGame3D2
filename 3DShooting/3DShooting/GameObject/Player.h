@@ -250,4 +250,10 @@ private:
 
 	int   m_warningFontHandle; // 警告用フォントハンドル
 	bool  m_showNoAmmoWarning; // 弾薬切れ警告表示フラグ
+	
+	// Sway管理
+	VECTOR m_gunSwayOffset;
+	VECTOR m_gunSwayRotOffset;
+	VECTOR m_swordSwayOffset;
+	VECTOR m_swordSwayRotOffset;
 };

@@ -34,6 +34,11 @@ namespace
     // ジャンプ時の揺れ関連の定数
     constexpr float kJumpSwaySpeed   = 20.0f; // 揺れの速さ
     constexpr float kJumpSwayDamping = 0.85f;  // 揺れの減衰率
+
+    // カメラを左右に振った際の横揺れのパラメータ
+	constexpr float kSwayAmount    = 0.15f;  // Swayの強さ
+	constexpr float kSwayRotAmount = 0.005f; // Swayの回転強さ
+	constexpr float kSwayDamping   = 0.9f;   // Swayの減衰率
 }
 
 Camera::Camera() :
@@ -62,7 +67,11 @@ Camera::Camera() :
     m_landingSwayIntensity(0.0f),
     m_jumpSwayOffset(VGet(0, 0, 0)),
     m_jumpSwayTimer(0.0f),
-    m_jumpSwayIntensity(0.0f)
+    m_jumpSwayIntensity(0.0f),
+    m_prevYaw(0.0f),
+    m_yawDelta(0.0f),
+    m_swayOffset(VGet(0, 0, 0)),
+    m_swayRotOffset(VGet(0, 0, 0))
 {
 }
 
@@ -83,9 +92,14 @@ void Camera::Update()
     // マウスの移動量に基づいてカメラの回転角度を更新
     Mouse::UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
 
+    // Yawの差分を計算
+    m_yawDelta = m_yaw - m_prevYaw;
+    m_prevYaw = m_yaw;
+
     // シェイク処理
     if (m_shakeDuration > 0)
     {
+        m_shakeOffset.x = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeOffset.y = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeOffset.z = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeDuration--;
@@ -97,6 +111,9 @@ void Camera::Update()
 
     // Head Bobbing更新
     UpdateHeadBobbing();
+
+    // Sway更新
+    UpdateSway();
 
     // 着地時の揺れを更新
     m_landingSwayOffset = VGet(0, 0, 0);
@@ -151,21 +168,33 @@ void Camera::Update()
     // カメラのオフセットを回転させる
     VECTOR rotatedOffset = VTransform(m_offset, cameraRot);
 
-    	// カメラの位置を更新（シェイクとHead Bobbingオフセットを適用）
-        m_pos = VAdd(m_playerPos, rotatedOffset);
-        m_pos = VAdd(m_pos, m_shakeOffset);
-        m_pos = VAdd(m_pos, m_headBobOffset);
-        m_pos = VAdd(m_pos, m_landingSwayOffset);
-    	m_pos = VAdd(m_pos, m_jumpSwayOffset);
-    
-        m_target = VAdd(m_pos, forward);
-    
-        // FOVを滑らかに補間
-        m_fov += (m_targetFov - m_fov) * m_fovLerpSpeed;
+    // カメラの位置を更新（シェイクとHead Bobbingオフセットを適用）
+    m_pos = VAdd(m_playerPos, rotatedOffset);
+    m_pos = VAdd(m_pos, m_shakeOffset);
+    m_pos = VAdd(m_pos, m_headBobOffset);
+    m_pos = VAdd(m_pos, m_landingSwayOffset);
+    m_pos = VAdd(m_pos, m_jumpSwayOffset);
+    m_pos = VAdd(m_pos, m_swayOffset);
+
+    m_target = VAdd(m_pos, forward);
+
+    // FOVを滑らかに補間
+    m_fov += (m_targetFov - m_fov) * m_fovLerpSpeed;
     // カメラの設定を更新
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
     SetupCamera_Perspective(m_fov);
     SetCameraNearFar(kCameraNear, kCameraFar);
+}
+
+void Camera::UpdateSway()
+{
+    // Yawの差分に基づいてSwayを計算
+    m_swayOffset.x -= m_yawDelta * kSwayAmount;
+    m_swayRotOffset.z = m_yawDelta * kSwayRotAmount;
+
+    // Swayを減衰させる
+    m_swayOffset.x *= kSwayDamping;
+    m_swayRotOffset.z *= kSwayDamping;
 }
 
 void Camera::UpdateHeadBobbing()

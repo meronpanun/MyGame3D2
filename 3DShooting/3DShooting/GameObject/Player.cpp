@@ -59,6 +59,13 @@ namespace
 	// X,Z座標の移動範囲制限
 	constexpr float kLimitMoveX = 2800.0f;
 	constexpr float kLimitMoveZ = 2800.0f;
+
+	// カメラを左右に振った際の横揺れ関連の定数
+	constexpr float kGunSwayAmount      = 0.2f;  // 銃モデルのSwayの強さ
+	constexpr float kGunSwayRotAmount   = 0.02f; // 銃モデルのSwayの回転強さ
+	constexpr float kSwordSwayAmount    = 0.6f;  // 剣モデルのSwayの強さ
+	constexpr float kSwordSwayRotAmount = 0.02f; // 剣モデルのSwayの回転強さ
+	constexpr float kSwayDamping        = 0.9f;  // 剣モデルのSwayの減衰率
 }
 
 Player::Player() :
@@ -116,7 +123,11 @@ Player::Player() :
 	m_isLowAmmo(false),
 	m_lowAmmoBlinkTimer(0.0f),
 	m_showLowAmmoWarning(false),
-	m_showNoAmmoWarning(false)
+    m_showNoAmmoWarning(false),
+    m_gunSwayOffset(VGet(0, 0, 0)),
+    m_gunSwayRotOffset(VGet(0, 0, 0)),
+    m_swordSwayOffset(VGet(0, 0, 0)),
+    m_swordSwayRotOffset(VGet(0, 0, 0))
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -234,36 +245,49 @@ void Player::Init()
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
-	unsigned char keyState[256];
-	GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+    unsigned char keyState[256];
+    GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
 
-	// クールタイムタイマー減算
-	if (m_shootCooldownTimer > 0.0f) 
-	{
-		m_shootCooldownTimer -= 1.0f / 60.0f;
-		if (m_shootCooldownTimer < 0.0f) m_shootCooldownTimer = 0.0f;
-	}
+    // クールタイムタイマー減算
+    if (m_shootCooldownTimer > 0.0f) 
+    {
+        m_shootCooldownTimer -= 1.0f / 60.0f;
+        if (m_shootCooldownTimer < 0.0f) m_shootCooldownTimer = 0.0f;
+    }
 
-	// プレイヤーの位置をカメラに設定
-	m_pCamera->SetPlayerPos(m_modelPos);
+    // プレイヤーの位置をカメラに設定
+    m_pCamera->SetPlayerPos(m_modelPos);
 
-	// 剣のアニメーションタイマー更新
-	if (m_isSwordAnimating)
-	{
-		m_swordAnimTimer += 1.0f / 60.0f;
-		if (m_swordAnimTimer >= m_swordAnimDuration)
-		{
-			m_isSwordAnimating = false;
-			m_swordAnimTimer = 0.0f;
-		}
-	}
+    // 剣のアニメーションタイマー更新
+    if (m_isSwordAnimating)
+    {
+        m_swordAnimTimer += 1.0f / 60.0f;
+        if (m_swordAnimTimer >= m_swordAnimDuration)
+        {
+            m_isSwordAnimating = false;
+            m_swordAnimTimer = 0.0f;
+        }
+    }
 
-	m_pCamera->Update(); // カメラの更新
+    m_pCamera->Update(); // カメラの更新
 
-	if (m_pEffect)
-	{
-		m_pEffect->Update(); // エフェクトの更新
-	}
+    // Swayの計算
+    float yawDelta = m_pCamera->GetYawDelta();
+
+    m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
+    m_gunSwayRotOffset.z = yawDelta * kGunSwayRotAmount;
+    m_swordSwayOffset.x -= yawDelta * kSwordSwayAmount;
+    m_swordSwayRotOffset.z = yawDelta * kSwordSwayRotAmount;
+
+    m_gunSwayOffset.x *= kSwayDamping;
+    m_gunSwayRotOffset.z *= kSwayDamping;
+    m_swordSwayOffset.x *= kSwayDamping;
+    m_swordSwayRotOffset.z *= kSwayDamping;
+
+    if (m_pEffect)
+    {
+        m_pEffect->Update(); // エフェクトの更新
+    }
 
 	// プレイヤーのカプセルコライダーを毎フレーム更新
 	VECTOR center = m_modelPos;
@@ -282,10 +306,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
 
 	// モデルの位置を設定
-	MV1SetPosition(m_modelHandle, modelPos);
-
+	MV1SetPosition(m_modelHandle, VAdd(modelPos, m_gunSwayOffset));
+	
 	// モデルの回転を設定
-	MV1SetRotationXYZ(m_modelHandle, VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f));
+	MV1SetRotationXYZ(m_modelHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f), m_gunSwayRotOffset));
 
 	// タックルクールタイム減少
 	if (m_tackleCooldown > 0)
@@ -583,21 +607,21 @@ void Player::Draw()
 	// 銃UI画像の描画
 	const int gunImageWidth = 200; 
 	const int gunImageHeight = 133; 
-	int gunImageX = screenW - gunImageWidth - 20; // 右端から20pxの余白
-	int gunImageY = screenH - gunImageHeight + 20; // 下端から10pxの余白
+	int gunImageX = screenW - gunImageWidth - 20;
+	int gunImageY = screenH - gunImageHeight + 20;
 	DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, m_gunImageHandle, true);
 
-	// 残弾数の表示 (ammo.png とテキストを銃画像の上に配置)
+	// 残弾数の表示
 	// 弾薬UI全体の幅を計算
 	const int kAmmoImageTargetSize = 48;
 	// フォントサイズ32のテキストの高さは32pxと仮定
 	int ammoTextHeight = 32;
 	int ammoTextWidth = GetDrawStringWidthToHandle("999", 3, m_fontHandle); // 仮の最大弾薬数で幅を計算
-	int ammoUIWidth = kAmmoImageTargetSize + 10 + ammoTextWidth; // ammo.png + 余白 + テキスト
+	int ammoUIWidth = kAmmoImageTargetSize + 10 + ammoTextWidth;
 
-	// 弾薬UIのX座標 (銃画像の中央より少し右)
+	// 弾薬UIのX座標 
 	int ammoUIX = gunImageX + (gunImageWidth / 2) - (ammoUIWidth / 2) + 20;
-	// 弾薬UIのY座標 (銃画像の上端よりさらに下)
+	// 弾薬UIのY座標 
 	int ammoUIY = gunImageY + gunImageHeight - kAmmoImageTargetSize - 105; 
 
 	// ammo画像の描画
@@ -606,8 +630,8 @@ void Player::Draw()
 	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageTargetSize, ammoImageY + kAmmoImageTargetSize, m_ammoImageHandle, true);
 
 	// 弾薬数のテキスト描画
-	int ammoTextX = ammoImageX + kAmmoImageTargetSize + 10; // ammo.pngの右に10pxの余白
-	int ammoTextY = ammoUIY + (kAmmoImageTargetSize - ammoTextHeight) / 2; // テキストと画像を中央揃え
+	int ammoTextX = ammoImageX + kAmmoImageTargetSize + 10; 
+	int ammoTextY = ammoUIY + (kAmmoImageTargetSize - ammoTextHeight) / 2;
 
 	// 弾薬無限モードの場合は「∞」を表示
 	if (m_isInfiniteAmmo)
@@ -642,7 +666,7 @@ void Player::Draw()
 		const char* text = m_showNoAmmoWarning ? "残弾なし" : "残弾僅か";
 		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
 		int textX = (screenW - textWidth) / 2;
-		int textY = drawY + imageSize + 5; // 画像の下に配置
+		int textY = drawY + imageSize + 5;
 		unsigned int textColor = (alphaInt << 24) | 0xffffff;
 		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -660,13 +684,13 @@ void Player::Draw()
 	VECTOR totalCameraOffset = VGet(0, 0, 0);
 	if (m_pCamera)
 	{
-		VECTOR shakeOffset   = m_pCamera->GetShakeOffset();
-		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
+		VECTOR shakeOffset       = m_pCamera->GetShakeOffset();
+		VECTOR headBobOffset     = m_pCamera->GetHeadBobOffset();
 		VECTOR landingSwayOffset = m_pCamera->GetLandingSwayOffset();
-		VECTOR jumpSwayOffset = m_pCamera->GetJumpSwayOffset();
+		VECTOR jumpSwayOffset    = m_pCamera->GetJumpSwayOffset();
 		totalCameraOffset    = VAdd(shakeOffset, headBobOffset);
-		totalCameraOffset = VAdd(totalCameraOffset, landingSwayOffset);
-		totalCameraOffset = VAdd(totalCameraOffset, jumpSwayOffset);
+		totalCameraOffset    = VAdd(totalCameraOffset, landingSwayOffset);
+		totalCameraOffset    = VAdd(totalCameraOffset, jumpSwayOffset);
 	}
 	VECTOR swordCamPos = VGet(0, 0, -35.0f * scaleAvg);
 	swordCamPos.x += totalCameraOffset.x;
@@ -684,9 +708,8 @@ void Player::Draw()
 	if (shouldDrawSword)
 	{
 		// 待機状態の剣の位置と回転を定義
-		VECTOR waitPos    = VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f);
-		VECTOR waitRotVec = VGet(0.0f, 30.0f, 0.0f); // Y軸回転を0度に変更
-
+		VECTOR waitPos    = VAdd(VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f), m_swordSwayOffset);
+		VECTOR waitRotVec = VAdd(VGet(0.0f, 30.0f, 0.0f), m_swordSwayRotOffset);
 		// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
 		MATRIX matWaitRot  = MGetRotY(waitRotVec.y);
 		MATRIX matWaitPos  = MGetTranslate(waitPos);
