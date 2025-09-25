@@ -72,6 +72,7 @@ namespace
 	constexpr int kHitMarkCenterSpacing = 4;  // 中央の間隔幅
 	constexpr int kHitMarkLineThickness = 2;  // ラインの太さ
     constexpr int kHitMarkDuration      = 25; // 表示時間
+	constexpr int kHitMarkDoubleLineOffset = 2; // ダブルラインのオフセット
 
 	// スコアポップアップ関連
 	constexpr int kScorePopupX        = 80;  // スコアポップアップのX座標
@@ -600,23 +601,43 @@ void SceneMain::Draw()
         // 赤 or 黄色
         unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffd700 : 0xff4500;
 
+        // 通常のヒットマーク描画
         // 左上→右下
         DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength,
             kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY - kHitMarkCenterSpacing,
             color, kHitMarkLineThickness);
-
         DrawLine(kScreenCenterX + kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing,
             kScreenCenterX + kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength,
             color, kHitMarkLineThickness);
-
         // 左下→右上
         DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength,
             kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing,
             color, kHitMarkLineThickness);
-
         DrawLine(kScreenCenterX + kHitMarkCenterSpacing, kScreenCenterY - kHitMarkCenterSpacing,
             kScreenCenterX + kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength,
             color, kHitMarkLineThickness);
+
+        // ヘッドショットの場合は二重線を描画
+        if (m_hitMarkType == EnemyBase::HitPart::Head)
+        {
+            int offset = kHitMarkDoubleLineOffset;
+            // Top-left
+            DrawLine(kScreenCenterX - kHitMarkLineLength - offset, kScreenCenterY - kHitMarkLineLength + offset,
+                kScreenCenterX - kHitMarkCenterSpacing - offset, kScreenCenterY - kHitMarkCenterSpacing + offset,
+                color, kHitMarkLineThickness);
+            // Bottom-right
+            DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset, kScreenCenterY + kHitMarkCenterSpacing - offset,
+                kScreenCenterX + kHitMarkLineLength + offset, kScreenCenterY + kHitMarkLineLength - offset,
+                color, kHitMarkLineThickness);
+            // Bottom-left
+            DrawLine(kScreenCenterX - kHitMarkLineLength - offset, kScreenCenterY + kHitMarkLineLength - offset,
+                kScreenCenterX - kHitMarkCenterSpacing - offset, kScreenCenterY + kHitMarkCenterSpacing - offset,
+                color, kHitMarkLineThickness);
+            // Top-right
+            DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset, kScreenCenterY - kHitMarkCenterSpacing + offset,
+                kScreenCenterX + kHitMarkLineLength + offset, kScreenCenterY - kHitMarkLineLength + offset,
+                color, kHitMarkLineThickness);
+        }
 
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
