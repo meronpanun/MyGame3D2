@@ -71,7 +71,7 @@ namespace
 	constexpr int kHitMarkLineLength    = 8;  // ラインの長さ
 	constexpr int kHitMarkCenterSpacing = 4;  // 中央の間隔幅
 	constexpr int kHitMarkLineThickness = 2;  // ラインの太さ
-    constexpr int kHitMarkDuration      = 10; // 表示時間
+    constexpr int kHitMarkDuration      = 25; // 表示時間
 
 	// スコアポップアップ関連
 	constexpr int kScorePopupX        = 80;  // スコアポップアップのX座標
@@ -593,26 +593,32 @@ void SceneMain::Draw()
     // ヒットマーク描画
     if (m_hitMarkTimer > 0)
     {
+        // アルファ値を計算
+        int alpha = (255 * m_hitMarkTimer) / kHitMarkDuration;
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
         // 赤 or 黄色
         unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffd700 : 0xff4500;
 
         // 左上→右下
-        DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength, 
-            kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY - kHitMarkCenterSpacing, 
+        DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength,
+            kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY - kHitMarkCenterSpacing,
             color, kHitMarkLineThickness);
 
-        DrawLine(kScreenCenterX + kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing, 
-            kScreenCenterX + kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength, 
+        DrawLine(kScreenCenterX + kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing,
+            kScreenCenterX + kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength,
             color, kHitMarkLineThickness);
 
         // 左下→右上
-        DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength, 
-            kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing, 
+        DrawLine(kScreenCenterX - kHitMarkLineLength, kScreenCenterY + kHitMarkLineLength,
+            kScreenCenterX - kHitMarkCenterSpacing, kScreenCenterY + kHitMarkCenterSpacing,
             color, kHitMarkLineThickness);
 
         DrawLine(kScreenCenterX + kHitMarkCenterSpacing, kScreenCenterY - kHitMarkCenterSpacing,
-            kScreenCenterX + kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength, 
+            kScreenCenterX + kHitMarkLineLength, kScreenCenterY - kHitMarkLineLength,
             color, kHitMarkLineThickness);
+
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
 #ifdef _DEBUG
