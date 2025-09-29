@@ -804,7 +804,8 @@ void Player::Draw()
     DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x505050, true);
 
     // ダメージ分（アニメーション中の減少分）
-    if (hpAnim > hp) {
+    if (hpAnim > hp) 
+	{
         int animStart = barX + static_cast<int>(barWidth * hpRate);
         int animEnd   = barX + static_cast<int>(barWidth * hpAnimRate);
         DrawBox(animStart, barY, animEnd, barY + barHeight, 0xFFD700, true);
