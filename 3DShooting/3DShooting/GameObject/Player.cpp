@@ -120,6 +120,8 @@ Player::Player() :
 	m_concentrationLineEffectHandle(-1),
 	m_noAmmoImageHandle(-1),
 	m_gunImageHandle(-1),
+	m_lowAmmoGunImageHandle(-1),
+	m_noAmmoGunImageHandle(-1),
 	m_isLowAmmo(false),
 	m_lowAmmoBlinkTimer(0.0f),
 	m_showLowAmmoWarning(false),
@@ -148,6 +150,14 @@ Player::Player() :
 	// 銃UI画像の読み込み
 	m_gunImageHandle = LoadGraph("data/image/Gun.png");
 	assert(m_gunImageHandle != -1);
+	m_lowAmmoGunImageHandle = LoadGraph("data/image/LowAmmoGun.png");
+	assert(m_lowAmmoGunImageHandle != -1);
+	m_noAmmoGunImageHandle = LoadGraph("data/image/NoAmmoGun.png");
+	assert(m_noAmmoGunImageHandle != -1);
+
+	// HPUI画像の読み込み
+	m_healthUiImageHandle = LoadGraph("data/image/HealthUI.png");
+	assert(m_healthUiImageHandle != -1);
 
 	// 剣UI画像の読み込み
 	m_swordImageHandle = LoadGraph("data/image/sword.png");
@@ -186,6 +196,11 @@ Player::~Player()
 	DeleteGraph(m_ammoImageHandle);
 	DeleteGraph(m_noAmmoImageHandle);
 	DeleteGraph(m_gunImageHandle);
+	DeleteGraph(m_lowAmmoGunImageHandle);
+	DeleteGraph(m_noAmmoGunImageHandle);
+
+	// HPUI画像の解放
+	DeleteGraph(m_healthUiImageHandle);
 
 	// 剣UI画像の解放
 	DeleteGraph(m_swordImageHandle);
@@ -609,14 +624,22 @@ void Player::Draw()
 	const int gunImageHeight = 133; 
 	int gunImageX = screenW - gunImageWidth - 20;
 	int gunImageY = screenH - gunImageHeight + 20;
-	DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, m_gunImageHandle, true);
+	int gunHandle = m_gunImageHandle;
+	if (m_ammo == 0 && !m_isInfiniteAmmo)
+	{
+		gunHandle = m_noAmmoGunImageHandle;
+	}
+	else if (m_isLowAmmo)
+	{
+		gunHandle = m_lowAmmoGunImageHandle;
+	}
+	DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
 
 	// 残弾数の表示
 	// 弾薬UI全体の幅を計算
 	const int kAmmoImageTargetSize = 48;
-	// フォントサイズ32のテキストの高さは32pxと仮定
 	int ammoTextHeight = 32;
-	int ammoTextWidth = GetDrawStringWidthToHandle("999", 3, m_fontHandle); // 仮の最大弾薬数で幅を計算
+	int ammoTextWidth = GetDrawStringWidthToHandle("999", 3, m_fontHandle); // 仮の最大弾薬数でテキストの幅を計算
 	int ammoUIWidth = kAmmoImageTargetSize + 10 + ammoTextWidth;
 
 	// 弾薬UIのX座標 
@@ -781,7 +804,12 @@ void Player::Draw()
     const int barWidth  = 200;
     const int barHeight = 24;
     const int margin    = 30;
-    const int barX      = margin;
+	const int healthUiImageWidth = 64;
+	const int healthUiImageHeight = 64;
+	const int healthUiImageX = margin;
+	const int healthUiImageY = screenH - barHeight - margin + (barHeight - healthUiImageHeight) / 2;
+	DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + healthUiImageWidth, healthUiImageY + healthUiImageHeight, m_healthUiImageHandle, true);
+    const int barX      = healthUiImageX + healthUiImageWidth + 10;
     const int barY      = screenH - barHeight - margin;
 
     // 最大HP
@@ -817,7 +845,7 @@ void Player::Draw()
     DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x000000, false);
 
     // HP数値
-    DrawFormatStringToHandle(barX + 8, barY + 2, 0xffffff, m_hpFontHandle, "HP: %.0f / %.0f", hp, maxHP);
+    DrawFormatStringToHandle(barX + 8, barY + 2, 0xffffff, m_hpFontHandle, "%.0f / %.0f", hp, maxHP);
 
 	// ダメージエフェクト描画
 	DrawEffectFeedback(m_damageEffect);
