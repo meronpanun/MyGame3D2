@@ -184,10 +184,8 @@ Player::Player() :
     // フォントの作成
     m_fontHandle = CreateFontToHandle("Arial Black", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_fontHandle != -1);
-
     m_hpFontHandle = CreateFontToHandle("Arial Black", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_hpFontHandle != -1);
-
 	m_warningFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 	assert(m_warningFontHandle != -1);
 }
@@ -198,18 +196,14 @@ Player::~Player()
 	MV1DeleteModel(m_modelHandle);
 	MV1DeleteModel(m_swordModelHandle);
 
-	// 弾画像の解放
+	// 画像の解放
 	DeleteGraph(m_ammoImageHandle);
 	DeleteGraph(m_noAmmoImageHandle);
 	DeleteGraph(m_noHealthImageHandle);
 	DeleteGraph(m_gunImageHandle);
 	DeleteGraph(m_lowAmmoGunImageHandle);
 	DeleteGraph(m_noAmmoGunImageHandle);
-
-	// HPUI画像の解放
 	DeleteGraph(m_healthUiImageHandle);
-
-	// 剣UI画像の解放
 	DeleteGraph(m_swordImageHandle);
 
 	// SEの解放
@@ -722,8 +716,60 @@ void Player::Draw()
 		DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
 	}
 
-	// 弾薬低下の警告表示
-	if (m_isLowAmmo || m_showNoAmmoWarning)
+	// 警告表示ロジック
+	if (m_isLowHealth && (m_isLowAmmo || m_showNoAmmoWarning))
+	{
+		float fadeSpeed = 1.5f;
+		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		int alphaInt = static_cast<int>(alpha * 255);
+
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+
+		const char* text = "体力低下";
+		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+		int textX = (screenW - textWidth) / 2;
+		int textY = (screenH - 128) / 2 + 160 + 128 + 5;
+		unsigned int textColor = (alphaInt << 24) | 0xffffff;
+		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+
+		const int imageSize = 128;
+		const int imageSpacing = 20;
+		int drawY = (screenH - imageSize) / 2 + 160;
+
+		int leftDrawX = (screenW / 2) - imageSize - (imageSpacing / 2);
+		DrawExtendGraph(leftDrawX, drawY, leftDrawX + imageSize, drawY + imageSize, m_noHealthImageHandle, true);
+
+		int rightDrawX = (screenW / 2) + (imageSpacing / 2);
+		DrawExtendGraph(rightDrawX, drawY, rightDrawX + imageSize, drawY + imageSize, m_noAmmoImageHandle, true);
+
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	}
+	else if (m_isLowHealth)
+	{
+		// フェードイン・アウトのアルファ値を計算
+		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
+		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		int alphaInt = static_cast<int>(alpha * 255);
+
+		// 画像の描画サイズと位置
+		const int imageSize = 128;
+		int drawX = (screenW - imageSize) / 2;
+		int drawY = (screenH - imageSize) / 2 + 160;
+
+		// 画像を描画
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noHealthImageHandle, true);
+
+		// テキストを描画
+		const char* text = "体力低下";
+		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+		int textX = (screenW - textWidth) / 2;
+		int textY = drawY + imageSize + 5;
+		unsigned int textColor = (alphaInt << 24) | 0xffffff;
+		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	}
+	else if (m_isLowAmmo || m_showNoAmmoWarning)
 	{
 		// フェードイン・アウトのアルファ値を計算
 		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
@@ -740,34 +786,7 @@ void Player::Draw()
 		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noAmmoImageHandle, true);
 
 		// テキストを描画
-		const char* text = m_showNoAmmoWarning ? "残弾なし" : "残弾僅か";
-		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) / 2;
-		int textY = drawY + imageSize + 5;
-		unsigned int textColor = (alphaInt << 24) | 0xffffff;
-		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	}
-
-	// 体力低下の警告表示
-	if (m_isLowHealth)
-	{
-		// フェードイン・アウトのアルファ値を計算
-		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
-		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
-		int alphaInt = static_cast<int>(alpha * 255);
-
-		// 画像の描画サイズと位置
-		const int imageSize = 128; 
-		int drawX = (screenW - imageSize) / 2;
-		int drawY = (screenH - imageSize) / 2 + 160;
-
-		// 画像を描画
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noHealthImageHandle, true);
-
-		// テキストを描画
-		const char* text = "体力低下";
+		const char* text = (m_showNoAmmoWarning) ? "残弾なし" : "残弾僅か";
 		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
 		int textX = (screenW - textWidth) / 2;
 		int textY = drawY + imageSize + 5;
