@@ -126,6 +126,8 @@ Player::Player() :
 	m_lowAmmoBlinkTimer(0.0f),
 	m_showLowAmmoWarning(false),
     m_showNoAmmoWarning(false),
+	m_isLowHealth(false),
+	m_lowHealthBlinkTimer(0.0f),
     m_gunSwayOffset(VGet(0, 0, 0)),
     m_gunSwayRotOffset(VGet(0, 0, 0)),
     m_swordSwayOffset(VGet(0, 0, 0)),
@@ -146,6 +148,10 @@ Player::Player() :
 	// 弾薬切れUI画像の読み込み
 	m_noAmmoImageHandle = LoadGraph("data/image/NoAmmo.png");
 	assert(m_noAmmoImageHandle != -1);
+
+	// 体力低下UI画像の読み込み
+	m_noHealthImageHandle = LoadGraph("data/image/NoHealthUI.png");
+	assert(m_noHealthImageHandle != -1);
 
 	// 銃UI画像の読み込み
 	m_gunImageHandle = LoadGraph("data/image/Gun.png");
@@ -195,6 +201,7 @@ Player::~Player()
 	// 弾画像の解放
 	DeleteGraph(m_ammoImageHandle);
 	DeleteGraph(m_noAmmoImageHandle);
+	DeleteGraph(m_noHealthImageHandle);
 	DeleteGraph(m_gunImageHandle);
 	DeleteGraph(m_lowAmmoGunImageHandle);
 	DeleteGraph(m_noAmmoGunImageHandle);
@@ -214,7 +221,6 @@ Player::~Player()
 
     // フォントの解放
     DeleteFontToHandle(m_fontHandle);
-
     DeleteFontToHandle(m_hpFontHandle);
 	DeleteFontToHandle(m_warningFontHandle);
 }
@@ -604,8 +610,56 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_lowAmmoBlinkTimer = 0.0f;
 		m_showNoAmmoWarning = false;
 	}
+		
+	// 体力低下の警告表示処理
+	if (m_health <= 30.0f)
+	{
+	    m_isLowHealth = true;
+		m_lowHealthBlinkTimer += 1.0f / 60.0f; // タイマー更新
+	}
+	else
+	{
+	    m_isLowHealth = false;
+	    m_lowHealthBlinkTimer = 0.0f;
+	}
+	// エフェクトの更新
+	// ダメージエフェクト
+	if (m_damageEffect.timer > 0)
+	{
+	    m_damageEffect.timer -= 1.0f;
+	    m_damageEffect.alpha -= 1.0f / m_damageEffect.duration;
+	    if (m_damageEffect.alpha < 0) m_damageEffect.alpha = 0;
+	}
+	else if (m_isLowHealth)
+	{
+		float fadeSpeed = 1.5f;
+		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		m_damageEffect.alpha = alpha * 0.7f;
+		m_damageEffect.colorR = 255;
+		m_damageEffect.colorG = 0;
+		m_damageEffect.colorB = 0;
+	}
+    else
+	{
+	    m_damageEffect.alpha = 0.0f;
+	}
+		
+	// 回復エフェクト
+	if (m_healEffect.timer > 0)
+	{
+	    m_healEffect.timer -= 1.0f;
+	    m_healEffect.alpha -= 1.0f / m_healEffect.duration;
+		if (m_healEffect.alpha < 0) m_healEffect.alpha = 0;
+	}
+		
+	// 弾薬エフェクト
+	if (m_ammoEffect.timer > 0)
+	{
+	    m_ammoEffect.timer -= 1.0f;
+		m_ammoEffect.alpha -= 1.0f / m_ammoEffect.duration;
+		if (m_ammoEffect.alpha < 0) m_ammoEffect.alpha = 0;
+	}
 }
-
 
 void Player::Draw()
 {
@@ -687,6 +741,33 @@ void Player::Draw()
 
 		// テキストを描画
 		const char* text = m_showNoAmmoWarning ? "残弾なし" : "残弾僅か";
+		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+		int textX = (screenW - textWidth) / 2;
+		int textY = drawY + imageSize + 5;
+		unsigned int textColor = (alphaInt << 24) | 0xffffff;
+		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	}
+
+	// 体力低下の警告表示
+	if (m_isLowHealth)
+	{
+		// フェードイン・アウトのアルファ値を計算
+		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
+		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		int alphaInt = static_cast<int>(alpha * 255);
+
+		// 画像の描画サイズと位置
+		const int imageSize = 128; 
+		int drawX = (screenW - imageSize) / 2;
+		int drawY = (screenH - imageSize) / 2 + 160;
+
+		// 画像を描画
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noHealthImageHandle, true);
+
+		// テキストを描画
+		const char* text = "体力低下";
 		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
 		int textX = (screenW - textWidth) / 2;
 		int textY = drawY + imageSize + 5;
@@ -789,7 +870,7 @@ void Player::Draw()
 
 	// 剣の画像を描画
 	const int kSwordImageWidth = 64; // 調整後の幅
-	const int kSwordImageHeight = 96; // 調整後の高さ (アスペクト比維持)
+	const int kSwordImageHeight = 96; // 調整後の高さ
 
 	int swordImageX = kTackleGaugeX + kTackleGaugeWidth + 10; // ゲージの右側に配置
 	int swordImageY = kTackleGaugeY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
@@ -859,7 +940,7 @@ void Player::Draw()
 
 void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
 {
-    if (effect.timer > 0.0f && effect.alpha > 0.0f)
+    if (effect.alpha > 0.0f)
     {
         int screenW, screenH;
         GetScreenState(&screenW, &screenH, nullptr);
@@ -888,10 +969,6 @@ void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
             }
         }
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-        // エフェクトの減衰処理
-        effect.alpha -= 1.0f / effect.duration;
-        if (effect.alpha < 0.0f) effect.alpha = 0.0f;
-        effect.timer -= 1.0f;
     }
 }
 
@@ -935,7 +1012,7 @@ bool Player::HasShot()
 
 void Player::Shoot(std::vector<Bullet>& bullets)
 {
-    // 画面中央(カメラ中心)からレティクル方向へ発射
+    // 画面中央（カメラ中心）からレティクル方向へ発射
     VECTOR cameraPos = m_pCamera->GetPos();
     VECTOR cameraForward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
 
@@ -989,7 +1066,6 @@ VECTOR Player::GetGunPos() const
 // 銃の向きを取得
 VECTOR Player::GetGunRot() const
 {
-	// この関数はカメラの純粋な向きを返すものとして維持します
 	return VGet(
 		cosf(m_pCamera->GetPitch()) * sinf(m_pCamera->GetYaw()),
 		sinf(m_pCamera->GetPitch()),

@@ -232,6 +232,10 @@ private:
 	float m_lowAmmoBlinkTimer;  // 弾薬切れUIの点滅タイマー
 	bool  m_showLowAmmoWarning; // 弾薬切れUIの表示フラグ
 
+	int   m_noHealthImageHandle;         // 体力低下UI画像のハンドル
+	bool  m_isLowHealth;                 // 体力が少ないかどうかのフラグ
+	float m_lowHealthBlinkTimer;         // 体力低下UIの点滅タイマー
+
 	float m_health;				// 現在の体力
 	float m_healthBarAnim;		// HPバーのアニメーション用体力値
 	float m_healthBarAnimTimer; // HPバーアニメーション用タイマー
