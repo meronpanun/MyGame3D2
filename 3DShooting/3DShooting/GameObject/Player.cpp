@@ -20,7 +20,7 @@
 namespace
 {
 	// 銃のオフセット
-	constexpr float kGunOffsetX = 80.0f; 
+	constexpr float kGunOffsetX = 80.0f;
 	constexpr float kGunOffsetY = 20.0f;
 	constexpr float kGunOffsetZ = 60.0f;
 
@@ -28,11 +28,6 @@ namespace
 	constexpr float kMuzzleFlashEffectOffsetX = -20.0f;
 	constexpr float kMuzzleFlashEffectOffsetY = 30.0f;
 	constexpr float kMuzzleFlashEffectOffsetZ = 80.0f;
-
-	// UI関連
-	constexpr int kMarginX    = 20; 
-	constexpr int kMarginY    = 20;
-	constexpr int kFontHeight = 20;
 
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.35f; // 重力の強さ
@@ -45,27 +40,138 @@ namespace
 	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅（半径）
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
 	// タックルクールタイムゲージ
-	constexpr int kTackleGaugeX		 = 10;  // タックルクールタイムゲージのX座標
-	constexpr int kTackleGaugeY		 = 50;  // タックルクールタイムゲージのY座標
-	constexpr int kTackleGaugeWidth  = 200; // タックルクールタイムゲージの幅
-	constexpr int kTackleGaugeHeight = 16;  // タックルクールタイムゲージの高さ
+	constexpr int   kTackleGaugeX      = 10;   
+	constexpr int   kTackleGaugeY      = 50;   
+	constexpr int   kTackleGaugeWidth  = 200;  
+	constexpr int   kTackleGaugeHeight = 16;   
 
 	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
 	constexpr float kCapsuleRadius = 50.0f;  // カプセルコライダーの半径
 
-	constexpr float kShootRate = 10.0f; // 1秒あたりの発射回数
+	// 1秒あたりの発射回数
+	constexpr float kShootRate = 10.0f;
 
 	// X,Z座標の移動範囲制限
 	constexpr float kLimitMoveX = 2800.0f;
 	constexpr float kLimitMoveZ = 2800.0f;
 
 	// カメラを左右に振った際の横揺れ関連の定数
-	constexpr float kGunSwayAmount      = 0.2f;  // 銃モデルのSwayの強さ
-	constexpr float kGunSwayRotAmount   = 0.02f; // 銃モデルのSwayの回転強さ
-	constexpr float kSwordSwayAmount    = 0.6f;  // 剣モデルのSwayの強さ
-	constexpr float kSwordSwayRotAmount = 0.02f; // 剣モデルのSwayの回転強さ
-	constexpr float kSwayDamping        = 0.9f;  // 剣モデルのSwayの減衰率
+	constexpr float kGunSwayAmount   = 0.2f;  // 銃モデルの揺れの強さ
+	constexpr float kSwordSwayAmount = 0.6f;  // 剣モデルの揺れの強さ
+	constexpr float kSwayDamping     = 0.9f;  // 剣モデルの揺れの減衰率
+
+	// Update関連
+	constexpr float kFrameRate						= 60.0f; 
+	constexpr float kDeltaTime						= 1.0f / kFrameRate; 
+	constexpr float kPlayerColliderYOffset		    = 60.0f;  
+	constexpr float kTackleFov						= 100.0f; // タックル中のカメラFOV
+	constexpr float kTackleCameraZOffset            = 30.0f;  // タックル中のカメラZオフセット
+	constexpr float kConcentrationLineEffectScale   = 20.0f;  // 集中線エフェクトのスケール
+	constexpr float kConcentrationLineEffectZOffset = 15.0f;  // 集中線エフェクトのZオフセット
+	constexpr float kGroundCheckTolerance			= 0.01f;  // 地面接地判定の許容誤差
+	constexpr float kJumpSwayPower					= 5.0f;   // ジャンプ時の揺れの強さ　
+	constexpr float kLandingSwayPower				= 5.0f;   // 着地時の揺れの強さ
+	constexpr float kHpBarAnimSpeed					= 1.5f;   // HPバーのアニメーション速度
+	constexpr int   kLowAmmoThreshold				= 10;     // 弾薬が少ないと判断する閾値
+	constexpr float kLowHealthThreshold				= 30.0f;  // 体力が少ないと判断する閾値
+	constexpr float kWarningBlinkSpeed				= 1.5f;   // 警告UIの点滅速度
+	constexpr float kLowHealthEffectMaxAlpha		= 0.7f;   // 体力低下UIの最大アルファ値
+	 
+	// 剣関連
+	constexpr float kSwordBaseScreenW         = 640.0f; 
+	constexpr float kSwordBaseScreenH         = 480.0f;
+	constexpr float kSwordCamZ                = -35.0f;
+	constexpr float kSwordCamTargetFactor     = 0.3f;   // 補正値
+	constexpr float kSwordWaitX				  = -20.0f; 
+	constexpr float kSwordWaitY				  = -30.0f; 
+	constexpr float kSwordWaitZ				  = -10.0f;
+	constexpr float kSwordWaitRotY			  = 30.0f; 
+	constexpr float kSwordAnimStartAngle      = 25.0f;  // 振りかぶり開始角度
+	constexpr float kSwordAnimEndAngle        = 180.0f; // 振り下ろし終了角度
+	constexpr float kSwordPivotZ			  = -20.0f; // 剣の回転軸のZ位置
+	constexpr float kSwordModelScale          = 0.5f;   // 剣モデルのスケール
+	constexpr float kDefaultSwordAnimDuration = 0.05f;  // 剣振りアニメーションのデフォルト時間
+
+	// 剣UI関連
+	constexpr int   kSwordImageWidth         = 64;
+	constexpr int   kSwordImageHeight        = 96; 
+	constexpr int   kSwordImageGaugeSpacing  = 10;  // 剣UIとクールダウンゲージの間隔
+	constexpr int   kSwordImageActiveAlpha   = 255; // 使用可能な剣UIのアルファ値
+	constexpr int   kSwordImageCooldownAlpha = 128; // クールダウン中の剣UIのアルファ値
+
+	// フォント関連
+	constexpr int   kDefaultFontThickness  = 3;  // フォントの太さ
+	constexpr int   kAmmoFont			   = 32; // 弾薬フォントサイズ
+	constexpr int   kHpFont				   = 20; // HPフォントサイズ
+	constexpr int   kWarningFont		   = 24; // 警告フォントサイズ
+	constexpr char  kDefaultFontName[]     = "Arial Black";
+	constexpr char  kWarningFontName[]     = "HGPｺﾞｼｯｸE";
+	constexpr int   kDefaultFontType	   = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
+
+	// ダメージエフェクト
+	constexpr float kDamageEffectDuration = 30.0f; // ダメージエフェクトの持続時間
+	constexpr int   kDamageEffectColorR   = 255; 
+	constexpr int   kDamageEffectColorG   = 0;
+	constexpr int   kDamageEffectColorB   = 0;
+
+	// 回復エフェクト
+	constexpr float kHealEffectDuration   = 45.0f; // 回復エフェクトの持続時間
+	constexpr int   kHealEffectColorR     = 0;
+	constexpr int   kHealEffectColorG     = 255;
+	constexpr int   kHealEffectColorB     = 0;
+
+	// 弾薬取得エフェクト
+	constexpr float kAmmoEffectDuration   = 45.0f; // 弾薬取得エフェクトの持続時間
+	constexpr int   kAmmoEffectColorR     = 255;
+	constexpr int   kAmmoEffectColorG     = 128;
+	constexpr int   kAmmoEffectColorB     = 0;
+
+	// カメラシェイク
+	constexpr float kTakeDamageShakePower    = 5.0f; // 攻撃を受けた時の揺れの強さ
+	constexpr int   kTakeDamageShakeDuration = 15;   // 攻撃を受けた時の揺れの持続時間
+	constexpr float kShootShakePower		 = 6.0f; // 撃った時の揺れの強さ
+	constexpr int   kShootShakeDuration      = 8;    // 撃った時の揺れの持続時間
+
+	// 銃UI関連
+	constexpr int   kGunImageWidth   = 200;
+	constexpr int   kGunImageHeight  = 133;
+	constexpr int   kGunImageMarginX = 20;
+	constexpr int   kGunImageMarginY = 20; 
+
+	// 弾薬UI関連
+	constexpr int   kAmmoImageSize          = 48;   
+	constexpr int   kAmmoTextHeight		    = 32;   
+	constexpr char  kAmmoTextMaxWidthStr[]  = "999";
+	constexpr int   kAmmoImageTextSpacing   = 10; 
+	constexpr int   kAmmoUIYOffset		    = 105;
+	constexpr int   kAmmoUIGunCenterOffsetX = 20; 
+
+	// 警告UI関連
+	constexpr int   kWarningImageSize    = 128; 
+	constexpr int   kWarningImageYOffset = 160; 
+	constexpr int   kWarningTextYOffset  = 5;   
+	constexpr int   kWarningImageSpacing = 20;  
+
+	// HpUI関連
+	constexpr int   kHpBarWidth			     = 200;
+	constexpr int   kHpBarHeight		     = 24;
+	constexpr int   kHpBarMargin			 = 30; 
+	constexpr int   kHealthUiImageSize       = 64; 
+	constexpr int   kHealthUiImageBarSpacing = 10; 
+	constexpr float kMaxHp                   = 100.0f;
+	constexpr int   kHpTextOffsetX		     = 8;
+	constexpr int   kHpTextOffsetY		     = 2;
+
+	// 色関連
+	constexpr unsigned int kColorWhite			   = 0xffffff;
+	constexpr unsigned int kColorLowAmmo           = 0xd3381c;
+	constexpr unsigned int kColorTackleGaugeBorder = 0x5050C8;
+	constexpr unsigned int kColorTackleGaugeFill   = 0x50B4ff;
+	constexpr unsigned int kColorHpBarBg           = 0x505050;
+	constexpr unsigned int kColorHpBarDamage	   = 0xFFD700;
+	constexpr unsigned int kColorHpBarFill		   = 0xff4040;
+	constexpr unsigned int kColorHpBarBorder       = 0x000000;
 }
 
 Player::Player() :
@@ -116,7 +222,7 @@ Player::Player() :
 	m_tackleDamage(0.0f),
 	m_isSwordAnimating(false),
 	m_swordAnimTimer(0.0f),
-	m_swordAnimDuration(0.05f),
+	m_swordAnimDuration(kDefaultSwordAnimDuration),
 	m_concentrationLineEffectHandle(-1),
 	m_noAmmoImageHandle(-1),
 	m_gunImageHandle(-1),
@@ -141,15 +247,15 @@ Player::Player() :
 	m_swordModelHandle = MV1LoadModel("data/model/Sword.mv1");
 	assert(m_swordModelHandle != -1);
 
-	// 弾UI画像の読み込み
+	// 弾画像の読み込み
 	m_ammoImageHandle = LoadGraph("data/image/ammo.png");
 	assert(m_ammoImageHandle != -1);
 
-	// 弾薬切れUI画像の読み込み
+	// 弾薬切れ画像の読み込み
 	m_noAmmoImageHandle = LoadGraph("data/image/NoAmmo.png");
 	assert(m_noAmmoImageHandle != -1);
 
-	// 体力低下UI画像の読み込み
+	// 体力低下画像の読み込み
 	m_noHealthImageHandle = LoadGraph("data/image/NoHealthUI.png");
 	assert(m_noHealthImageHandle != -1);
 
@@ -177,16 +283,14 @@ Player::Player() :
 	m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
 	assert(m_tackleSEHandle != -1);
 	m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
-	assert(m_recoverySEHandle != -1);
-	m_ammoItemSEHandle = LoadSoundMem("data/sound/SE/AmmoItem.mp3");
 	assert(m_ammoItemSEHandle != -1);
 
     // フォントの作成
-    m_fontHandle = CreateFontToHandle("Arial Black", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_fontHandle = CreateFontToHandle(kDefaultFontName, kAmmoFont, kDefaultFontThickness, kDefaultFontType);
     assert(m_fontHandle != -1);
-    m_hpFontHandle = CreateFontToHandle("Arial Black", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_hpFontHandle = CreateFontToHandle(kDefaultFontName, kHpFont, kDefaultFontThickness, kDefaultFontType);
     assert(m_hpFontHandle != -1);
-	m_warningFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+	m_warningFontHandle = CreateFontToHandle(kWarningFontName, kWarningFont, kDefaultFontThickness, kDefaultFontType);
 	assert(m_warningFontHandle != -1);
 }
 
@@ -266,7 +370,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     // クールタイムタイマー減算
     if (m_shootCooldownTimer > 0.0f) 
     {
-        m_shootCooldownTimer -= 1.0f / 60.0f;
+        m_shootCooldownTimer -= kDeltaTime;
         if (m_shootCooldownTimer < 0.0f) m_shootCooldownTimer = 0.0f;
     }
 
@@ -276,7 +380,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     // 剣のアニメーションタイマー更新
     if (m_isSwordAnimating)
     {
-        m_swordAnimTimer += 1.0f / 60.0f;
+        m_swordAnimTimer += kDeltaTime;
         if (m_swordAnimTimer >= m_swordAnimDuration)
         {
             m_isSwordAnimating = false;
@@ -290,14 +394,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     float yawDelta = m_pCamera->GetYawDelta();
 
     m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
-    m_gunSwayRotOffset.z = yawDelta * kGunSwayRotAmount;
     m_swordSwayOffset.x -= yawDelta * kSwordSwayAmount;
-    m_swordSwayRotOffset.z = yawDelta * kSwordSwayRotAmount;
 
     m_gunSwayOffset.x *= kSwayDamping;
-    m_gunSwayRotOffset.z *= kSwayDamping;
     m_swordSwayOffset.x *= kSwayDamping;
-    m_swordSwayRotOffset.z *= kSwayDamping;
 
     if (m_pEffect)
     {
@@ -306,7 +406,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	// プレイヤーのカプセルコライダーを毎フレーム更新
 	VECTOR center = m_modelPos;
-	center.y += 60.0f; // 足元から腰～胸あたりを中心に
+	center.y += kPlayerColliderYOffset; // 足元から腰～胸あたりを中心に
 	VECTOR capA = VAdd(center, VGet(0, -kCapsuleHeight * 0.5f, 0));
 	VECTOR capB = VAdd(center, VGet(0, kCapsuleHeight * 0.5f, 0));
 	m_pBodyCollider->SetSegment(capA, capB);
@@ -359,7 +459,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// 地面にいるかどうかの判定
-	bool isOnGround = (m_modelPos.y <= kGroundY + 0.01f);
+	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance);
 
 	// 右クリックでタックル開始
 	if (!m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
@@ -387,15 +487,15 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		// タックル開始時にFOVを広げ、カメラを後ろに引く
 		if (m_pCamera)
 		{
-			m_pCamera->SetTargetFOV(100.0f * DX_PI_F / 180.0f);
+			m_pCamera->SetTargetFOV(kTackleFov * DX_PI_F / 180.0f);
 			VECTOR offset = m_pCamera->GetOffset();
-			offset.z = 30.0f;
+			offset.z = kTackleCameraZOffset;
 			m_pCamera->SetOffset(offset);
 
 			// 集中線エフェクトを再生
 			if (m_pEffect)
 			{
-				m_concentrationLineEffectHandle = m_pEffect->PlayConcentrationLine(0.0f, 0.0f, 0.0f, 20.0f);
+				m_concentrationLineEffectHandle = m_pEffect->PlayConcentrationLine(0.0f, 0.0f, 0.0f, kConcentrationLineEffectScale);
 			}
 		}
 	}
@@ -462,7 +562,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		{
 			VECTOR camPos = m_pCamera->GetPos();
 			VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
-			VECTOR effectPos = VAdd(camPos, VScale(camDir, 15.0f)); // カメラの少し前に出す
+			VECTOR effectPos = VAdd(camPos, VScale(camDir, kConcentrationLineEffectZOffset)); // カメラの少し前に出す
 			SetPosPlayingEffekseer3DEffect(m_concentrationLineEffectHandle, effectPos.x, effectPos.y, effectPos.z);
 
 			// エフェクトをカメラの向きに合わせる
@@ -522,7 +622,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_jumpVelocity = kJumpPower;
 		m_isJumping = true;
-		m_pCamera->ApplyJumpSway(5.0f);
+		m_pCamera->ApplyJumpSway(kJumpSwayPower);
 	}
 
 	// ジャンプ中または空中なら重力適用
@@ -541,7 +641,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			// 着地した瞬間の処理
 			if (m_wasJumping)
 			{
-				m_pCamera->ApplyLandingSway(5.0f);
+				m_pCamera->ApplyLandingSway(kLandingSwayPower);
 			}
 		}
 	}
@@ -576,8 +676,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// HPバーアニメーション（ダメージ分を徐々に減らす）
 	if (m_healthBarAnim > m_health) 
 	{
-		float animSpeed = 1.5f; // 減少速度（大きいほど速い）
-		m_healthBarAnim -= animSpeed;
+		m_healthBarAnim -= kHpBarAnimSpeed;
 		if (m_healthBarAnim < m_health) m_healthBarAnim = m_health;
 	} 
 	else 
@@ -589,13 +688,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	if (m_ammo == 0 && !m_isInfiniteAmmo)
 	{
 		m_isLowAmmo = false;
-		m_lowAmmoBlinkTimer += 1.0f / 60.0f; // タイマー更新
+		m_lowAmmoBlinkTimer += kDeltaTime; // タイマー更新
 		m_showNoAmmoWarning = true;
 	}
-	else if (m_ammo <= 10 && !m_isInfiniteAmmo)
+	else if (m_ammo <= kLowAmmoThreshold && !m_isInfiniteAmmo)
 	{
 		m_isLowAmmo = true;
-		m_lowAmmoBlinkTimer += 1.0f / 60.0f; // タイマー更新
+		m_lowAmmoBlinkTimer += kDeltaTime; // タイマー更新
 		m_showNoAmmoWarning = false;
 	}
 	else
@@ -606,10 +705,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 		
 	// 体力低下の警告表示処理
-	if (m_health <= 30.0f)
+	if (m_health <= kLowHealthThreshold)
 	{
 	    m_isLowHealth = true;
-		m_lowHealthBlinkTimer += 1.0f / 60.0f; // タイマー更新
+		m_lowHealthBlinkTimer += kDeltaTime; // タイマー更新
 	}
 	else
 	{
@@ -626,9 +725,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 	else if (m_isLowHealth)
 	{
-		float fadeSpeed = 1.5f;
-		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
-		m_damageEffect.alpha = alpha * 0.7f;
+		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+		m_damageEffect.alpha = alpha * kLowHealthEffectMaxAlpha;
 		m_damageEffect.colorR = 255;
 		m_damageEffect.colorG = 0;
 		m_damageEffect.colorB = 0;
@@ -668,10 +766,8 @@ void Player::Draw()
 	GetScreenState(&screenW, &screenH, NULL);
 
 	// 銃UI画像の描画
-	const int gunImageWidth = 200; 
-	const int gunImageHeight = 133; 
-	int gunImageX = screenW - gunImageWidth - 20;
-	int gunImageY = screenH - gunImageHeight + 20;
+	int gunImageX = screenW - kGunImageWidth - kGunImageMarginX;
+	int gunImageY = screenH - kGunImageHeight - kGunImageMarginY;
 	int gunHandle = m_gunImageHandle;
 	if (m_ammo == 0 && !m_isInfiniteAmmo)
 	{
@@ -681,126 +777,115 @@ void Player::Draw()
 	{
 		gunHandle = m_lowAmmoGunImageHandle;
 	}
-	DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
+	DrawExtendGraph(gunImageX, gunImageY, gunImageX + kGunImageWidth, gunImageY + kGunImageHeight, gunHandle, true);
 
 	// 残弾数の表示
 	// 弾薬UI全体の幅を計算
-	const int kAmmoImageTargetSize = 48;
-	int ammoTextHeight = 32;
-	int ammoTextWidth = GetDrawStringWidthToHandle("999", 3, m_fontHandle); // 仮の最大弾薬数でテキストの幅を計算
-	int ammoUIWidth = kAmmoImageTargetSize + 10 + ammoTextWidth;
+	int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
+	int ammoUIWidth = kAmmoImageSize + kAmmoImageTextSpacing + ammoTextWidth;
 
 	// 弾薬UIのX座標 
-	int ammoUIX = gunImageX + (gunImageWidth / 2) - (ammoUIWidth / 2) + 20;
+	int ammoUIX = gunImageX + (kGunImageWidth * 0.5f) - (ammoUIWidth * 0.5f) + kAmmoUIGunCenterOffsetX;
 	// 弾薬UIのY座標 
-	int ammoUIY = gunImageY + gunImageHeight - kAmmoImageTargetSize - 105; 
+	int ammoUIY = gunImageY + kGunImageHeight - kAmmoImageSize - kAmmoUIYOffset; 
 
 	// ammo画像の描画
 	int ammoImageX = ammoUIX;
 	int ammoImageY = ammoUIY;
-	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageTargetSize, ammoImageY + kAmmoImageTargetSize, m_ammoImageHandle, true);
+	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageSize, ammoImageY + kAmmoImageSize, m_ammoImageHandle, true);
 
 	// 弾薬数のテキスト描画
-	int ammoTextX = ammoImageX + kAmmoImageTargetSize + 10; 
-	int ammoTextY = ammoUIY + (kAmmoImageTargetSize - ammoTextHeight) / 2;
+	int ammoTextX = ammoImageX + kAmmoImageSize + kAmmoImageTextSpacing; 
+	int ammoTextY = ammoUIY + (kAmmoImageSize - kAmmoTextHeight) * 0.5f;
 
 	// 弾薬無限モードの場合は「∞」を表示
 	if (m_isInfiniteAmmo)
 	{
-		DrawFormatStringToHandle(ammoTextX, ammoTextY, 0xffffff, m_fontHandle, "∞");
+		DrawFormatStringToHandle(ammoTextX, ammoTextY, kColorWhite, m_fontHandle, "∞");
 	}
 	else
 	{
 		// 弾薬が少ない場合は赤色で表示
-		int textColor = m_isLowAmmo ? 0xd3381c : 0xffffff;
+		int textColor = m_isLowAmmo ? kColorLowAmmo : kColorWhite;
 		DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
 	}
 
 	// 警告表示ロジック
 	if (m_isLowHealth && (m_isLowAmmo || m_showNoAmmoWarning))
 	{
-		float fadeSpeed = 1.5f;
-		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
 		int alphaInt = static_cast<int>(alpha * 255);
 
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
 
 		const char* text = "体力低下";
 		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) / 2;
-		int textY = (screenH - 128) / 2 + 160 + 128 + 5;
-		unsigned int textColor = (alphaInt << 24) | 0xffffff;
+		int textX = (screenW - textWidth) * 0.5f;
+		int textY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset + kWarningImageSize + kWarningTextYOffset;
+		unsigned int textColor = (alphaInt << 24) | kColorWhite;
 		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 
-		const int imageSize = 128;
-		const int imageSpacing = 20;
-		int drawY = (screenH - imageSize) / 2 + 160;
+		int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
 
-		int leftDrawX = (screenW / 2) - imageSize - (imageSpacing / 2);
-		DrawExtendGraph(leftDrawX, drawY, leftDrawX + imageSize, drawY + imageSize, m_noHealthImageHandle, true);
+		int leftDrawX = (screenW * 0.5f) - kWarningImageSize - (kWarningImageSpacing * 0.5f);
+		DrawExtendGraph(leftDrawX, drawY, leftDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
 
-		int rightDrawX = (screenW / 2) + (imageSpacing / 2);
-		DrawExtendGraph(rightDrawX, drawY, rightDrawX + imageSize, drawY + imageSize, m_noAmmoImageHandle, true);
+		int rightDrawX = (screenW * 0.5f) + (kWarningImageSpacing * 0.5f);
+		DrawExtendGraph(rightDrawX, drawY, rightDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
 
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 	else if (m_isLowHealth)
 	{
 		// フェードイン・アウトのアルファ値を計算
-		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
-		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
 		int alphaInt = static_cast<int>(alpha * 255);
 
 		// 画像の描画サイズと位置
-		const int imageSize = 128;
-		int drawX = (screenW - imageSize) / 2;
-		int drawY = (screenH - imageSize) / 2 + 160;
+		int drawX = (screenW - kWarningImageSize) * 0.5f;
+		int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
 
 		// 画像を描画
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noHealthImageHandle, true);
+		DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
 
 		// テキストを描画
 		const char* text = "体力低下";
 		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) / 2;
-		int textY = drawY + imageSize + 5;
-		unsigned int textColor = (alphaInt << 24) | 0xffffff;
+		int textX = (screenW - textWidth) * 0.5f;
+		int textY = drawY + kWarningImageSize + kWarningTextYOffset;
+		unsigned int textColor = (alphaInt << 24) | kColorWhite;
 		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 	else if (m_isLowAmmo || m_showNoAmmoWarning)
 	{
 		// フェードイン・アウトのアルファ値を計算
-		float fadeSpeed = 1.5f; // フェードの速さ（1サイクルあたりの秒数）
-		float alpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / fadeSpeed) + 1.0f) * 0.5f;
+		float alpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
 		int alphaInt = static_cast<int>(alpha * 255);
 
 		// 画像の描画サイズと位置
-		const int imageSize = 128;
-		int drawX = (screenW - imageSize) / 2;
-		int drawY = (screenH - imageSize) / 2 + 160;
+		int drawX = (screenW - kWarningImageSize) * 0.5f;
+		int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
 
 		// 画像を描画
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-		DrawExtendGraph(drawX, drawY, drawX + imageSize, drawY + imageSize, m_noAmmoImageHandle, true);
+		DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
 
 		// テキストを描画
 		const char* text = (m_showNoAmmoWarning) ? "残弾なし" : "残弾僅か";
 		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) / 2;
-		int textY = drawY + imageSize + 5;
-		unsigned int textColor = (alphaInt << 24) | 0xffffff;
+		int textX = (screenW - textWidth) * 0.5f;
+		int textY = drawY + kWarningImageSize + kWarningTextYOffset;
+		unsigned int textColor = (alphaInt << 24) | kColorWhite;
 		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 
 	/*剣の描画*/
 	// 画面サイズに応じてスケーリング
-	float baseScreenW = 640.0f;
-	float baseScreenH = 480.0f;
-	float scaleW = screenW / baseScreenW;
-	float scaleH = screenH / baseScreenH;
+	float scaleW = screenW / kSwordBaseScreenW;
+	float scaleH = screenH / kSwordBaseScreenH;
 	float scaleAvg = (scaleW + scaleH) * 0.5f;
 
 	// カメラオフセット設定
@@ -815,10 +900,10 @@ void Player::Draw()
 		totalCameraOffset    = VAdd(totalCameraOffset, landingSwayOffset);
 		totalCameraOffset    = VAdd(totalCameraOffset, jumpSwayOffset);
 	}
-	VECTOR swordCamPos = VGet(0, 0, -35.0f * scaleAvg);
+	VECTOR swordCamPos = VGet(0, 0, kSwordCamZ * scaleAvg);
 	swordCamPos.x += totalCameraOffset.x;
 	swordCamPos.y += totalCameraOffset.y;
-	VECTOR swordCamTarget = VGet(totalCameraOffset.x * 0.3f, totalCameraOffset.y * 0.3f, 0);
+	VECTOR swordCamTarget = VGet(totalCameraOffset.x * kSwordCamTargetFactor, totalCameraOffset.y * kSwordCamTargetFactor, 0);
 	SetCameraPositionAndTarget_UpVecY(swordCamPos, swordCamTarget);
 
 	// 描画するかどうかのフラグ
@@ -831,8 +916,8 @@ void Player::Draw()
 	if (shouldDrawSword)
 	{
 		// 待機状態の剣の位置と回転を定義
-		VECTOR waitPos    = VAdd(VGet(-20.0f * scaleW, -30.0f * scaleH, -10.0f), m_swordSwayOffset);
-		VECTOR waitRotVec = VAdd(VGet(0.0f, 30.0f, 0.0f), m_swordSwayRotOffset);
+		VECTOR waitPos    = VAdd(VGet(kSwordWaitX * scaleW, kSwordWaitY * scaleH, kSwordWaitZ), m_swordSwayOffset);
+		VECTOR waitRotVec = VAdd(VGet(0.0f, kSwordWaitRotY, 0.0f), m_swordSwayRotOffset);
 		// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
 		MATRIX matWaitRot  = MGetRotY(waitRotVec.y);
 		MATRIX matWaitPos  = MGetTranslate(waitPos);
@@ -846,12 +931,12 @@ void Player::Draw()
 			animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
 
 			// 回転角度を計算 (左 -> 右)
-			float startAngle   = 25.0f * (DX_PI_F / 180.0f);
-			float endAngle     = 180.0f * (DX_PI_F / 180.0f);
+			float startAngle   = kSwordAnimStartAngle * (DX_PI_F / 180.0f);
+			float endAngle     = kSwordAnimEndAngle * (DX_PI_F / 180.0f);
 			float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
 
 			// モデルのローカル座標におけるピボット（手持ち部分）の位置
-			VECTOR pivotOffset = VGet(0.0f, 0.0f, -20.0f);
+			VECTOR pivotOffset = VGet(0.0f, 0.0f, kSwordPivotZ);
 
 			// 行列を使ってピボット回転を実装
 			MATRIX matPivotTrans    = MGetTranslate(VScale(pivotOffset, -1.0f));
@@ -867,7 +952,7 @@ void Player::Draw()
 
 		// モデルに最終的な変換行列を適用
 		MV1SetMatrix(m_swordModelHandle, finalMatrix);
-		MV1SetScale(m_swordModelHandle, VGet(0.5f * scaleAvg, 0.5f * scaleAvg, 0.5f * scaleAvg));
+		MV1SetScale(m_swordModelHandle, VGet(kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg));
 		MV1DrawModel(m_swordModelHandle);
 	}
 
@@ -880,72 +965,63 @@ void Player::Draw()
 	}
 	
 	// 枠
-	DrawBox(kTackleGaugeX - 1, kTackleGaugeY - 1, kTackleGaugeX + kTackleGaugeWidth + 1, kTackleGaugeY + kTackleGaugeHeight + 1, 0x5050C8, false);
+	DrawBox(kTackleGaugeX - 1, kTackleGaugeY - 1, kTackleGaugeX + kTackleGaugeWidth + 1, kTackleGaugeY + kTackleGaugeHeight + 1, kColorTackleGaugeBorder, false);
 
 	// ゲージ本体
 	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
 	int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
-	DrawBox(kTackleGaugeX, kTackleGaugeY, kTackleGaugeX + tackleFilledWidth, kTackleGaugeY + kTackleGaugeHeight, 0x50B4ff, true);
+	DrawBox(kTackleGaugeX, kTackleGaugeY, kTackleGaugeX + tackleFilledWidth, kTackleGaugeY + kTackleGaugeHeight, kColorTackleGaugeFill, true);
 
 	// 剣の画像を描画
-	const int kSwordImageWidth = 64; // 調整後の幅
-	const int kSwordImageHeight = 96; // 調整後の高さ
-
-	int swordImageX = kTackleGaugeX + kTackleGaugeWidth + 10; // ゲージの右側に配置
+	int swordImageX = kTackleGaugeX + kTackleGaugeWidth + kSwordImageGaugeSpacing; // ゲージの右側に配置
 	int swordImageY = kTackleGaugeY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
 
 	// クールダウン中は半透明、準備完了時は不透明
-	int alpha = (m_tackleCooldown > 0) ? 128 : 255;
+	int alpha = (m_tackleCooldown > 0) ? kSwordImageCooldownAlpha : kSwordImageActiveAlpha;
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 	DrawExtendGraph(swordImageX, swordImageY, swordImageX + kSwordImageWidth, swordImageY + kSwordImageHeight, m_swordImageHandle, true);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
 
 	// HPバーのパラメータ
-    const int barWidth  = 200;
-    const int barHeight = 24;
-    const int margin    = 30;
-	const int healthUiImageWidth = 64;
-	const int healthUiImageHeight = 64;
-	const int healthUiImageX = margin;
-	const int healthUiImageY = screenH - barHeight - margin + (barHeight - healthUiImageHeight) / 2;
-	DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + healthUiImageWidth, healthUiImageY + healthUiImageHeight, m_healthUiImageHandle, true);
-    const int barX      = healthUiImageX + healthUiImageWidth + 10;
-    const int barY      = screenH - barHeight - margin;
+	const int healthUiImageX = kHpBarMargin;
+	const int healthUiImageY = screenH - kHpBarHeight - kHpBarMargin + (kHpBarHeight - kHealthUiImageSize) * 0.5f;
+	DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + kHealthUiImageSize, healthUiImageY + kHealthUiImageSize, m_healthUiImageHandle, true);
+    const int barX      = healthUiImageX + kHealthUiImageSize + kHealthUiImageBarSpacing;
+    const int barY      = screenH - kHpBarHeight - kHpBarMargin;
 
     // 最大HP
-    const float maxHP = 100.0f; 
     float hp = m_health;
 
     if (hp < 0) hp = 0;
-    if (hp > maxHP) hp = maxHP;
+    if (hp > kMaxHp) hp = kMaxHp;
 
     float hpAnim = m_healthBarAnim;
 
     if (hpAnim < 0) hpAnim = 0;
-    if (hpAnim > maxHP) hpAnim = maxHP;
+    if (hpAnim > kMaxHp) hpAnim = kMaxHp;
 
     // HP割合
-    float hpRate = hp / maxHP;
-    float hpAnimRate = hpAnim / maxHP;
+    float hpRate = hp / kMaxHp;
+    float hpAnimRate = hpAnim / kMaxHp;
 
     // 背景
-    DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x505050, true);
+    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg, true);
 
     // ダメージ分（アニメーション中の減少分）
     if (hpAnim > hp) 
 	{
-        int animStart = barX + static_cast<int>(barWidth * hpRate);
-        int animEnd   = barX + static_cast<int>(barWidth * hpAnimRate);
-        DrawBox(animStart, barY, animEnd, barY + barHeight, 0xFFD700, true);
+        int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
+        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
+        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage, true);
     }
     // HPバー本体
-    DrawBox(barX, barY, barX + static_cast<int>(barWidth * hpRate), barY + barHeight, 0xff4040, true);
+    DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
 
     // 枠
-    DrawBox(barX, barY, barX + barWidth, barY + barHeight, 0x000000, false);
+    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
 
     // HP数値
-    DrawFormatStringToHandle(barX + 8, barY + 2, 0xffffff, m_hpFontHandle, "%.0f / %.0f", hp, maxHP);
+    DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f / %.0f", hp, kMaxHp);
 
 	// ダメージエフェクト描画
 	DrawEffectFeedback(m_damageEffect);
@@ -1004,14 +1080,14 @@ void Player::TakeDamage(float damage)
 	// HPバーアニメーション用タイマーをリセット
 	m_healthBarAnimTimer = 0.0f;
 	// ダメージエフェクトを発動
-	m_damageEffect.Trigger(30.0f, 255, 0, 0); 
+	m_damageEffect.Trigger(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB); 
 	// 被弾SEを再生
 	PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 
 	// カメラシェイクを発生
 	if (m_pCamera)
 	{
-		m_pCamera->Shake(5.0f, 15);
+		m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
 	}
 }
 
@@ -1039,8 +1115,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	VECTOR gunDir = GetGunRot();
 
     // 画面中央から出ているように見せるため、カメラ前方に小さくオフセット
-    constexpr float kCameraMuzzleOffset = 10.0f;
-    VECTOR spawnPos = VAdd(cameraPos, VScale(cameraForward, kCameraMuzzleOffset));
+    VECTOR spawnPos = VAdd(cameraPos, VScale(cameraForward, 0.0f));
 
     // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
     bullets.emplace_back(spawnPos, cameraForward, m_bulletPower);
@@ -1060,7 +1135,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	// カメラシェイクを発生
 	if (m_pCamera)
 	{
-		m_pCamera->Shake(6.0f, 8); // 強さ・フレーム数
+		m_pCamera->Shake(kShootShakePower, kShootShakeDuration); // 強さ・フレーム数
 	}
 }
 
@@ -1147,7 +1222,7 @@ void Player::AddHp(float value)
         m_health = 0.0f; // 体力が負にならないように制限
     }
     // 回復時にエフェクトを発動
-    m_healEffect.Trigger(45.0f, 0, 255, 0);
+    m_healEffect.Trigger(kHealEffectDuration, kHealEffectColorR, kHealEffectColorG, kHealEffectColorB);
 }
 
 void Player::AddAmmo(int value)
@@ -1155,5 +1230,5 @@ void Player::AddAmmo(int value)
     m_ammo += value;
     if (m_ammo < 0) m_ammo = 0;
     // 弾薬取得時にエフェクトを発動
-    m_ammoEffect.Trigger(45.0f, 255, 128, 0);
+    m_ammoEffect.Trigger(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
 }
