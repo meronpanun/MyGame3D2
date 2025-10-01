@@ -81,7 +81,6 @@ TutorialManager::TutorialManager() :
     // フォントの作成
     m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_japaneseFontHandle != -1);
-
     m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_japaneseLargeFontHandle != -1);
 }

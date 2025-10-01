@@ -597,7 +597,7 @@ void EnemyAcid::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 
 void EnemyAcid::SetModelHandle(int handle)
 {
-    if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
+    MV1DeleteModel(m_modelHandle);
     m_modelHandle = MV1DuplicateModel(handle);
 }
 

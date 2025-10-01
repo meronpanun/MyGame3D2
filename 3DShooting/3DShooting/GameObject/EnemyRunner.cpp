@@ -548,7 +548,7 @@ void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 
 void EnemyRunner::SetModelHandle(int handle)
 {
-    if (m_modelHandle != -1) MV1DeleteModel(m_modelHandle);
+    MV1DeleteModel(m_modelHandle);
     m_modelHandle = MV1DuplicateModel(handle);
 }
 

@@ -58,13 +58,13 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene) :
 
 SceneTitle::~SceneTitle()
 {
-    // フォントハンドルの削除
+    // フォントハンドルの解放
 	DeleteFontToHandle(m_fontHandle); 
 
-	// 画像のハンドルを削除
+	// 画像の解放
 	DeleteGraph(m_titleLogo);
 
-	// サウンドを削除
+	// サウンドの解放
 	DeleteSoundMem(m_bgmHandle);
 	DeleteSoundMem(m_confirmSEHandle);
 }
