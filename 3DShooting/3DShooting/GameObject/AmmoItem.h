@@ -30,6 +30,9 @@ public:
 	/// <returns>true: 使用済み, false: 未使用</returns>
 	bool IsUsed() const override { return m_isUsed; }
 
+	static void LoadModel();
+	static void DeleteModel();
+
 private:
 	VECTOR m_pos;
 	SphereCollider m_collider;
@@ -43,5 +46,7 @@ private:
 	bool m_isHit;
 	bool m_isUsed;
 	bool m_isDropping;
+
+	static int s_modelHandle;
 };
 

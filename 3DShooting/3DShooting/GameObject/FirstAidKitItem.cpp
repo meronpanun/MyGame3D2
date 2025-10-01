@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cmath>
 
+int FirstAidKitItem::s_modelHandle = -1;
+
 namespace
 {
 	// 初期半径
@@ -28,8 +30,8 @@ FirstAidKitItem::FirstAidKitItem():
 	m_velocityY(0.0f),
 	m_rotY(0.0f)
 {
-	// モデルの読み込み
-	m_modelHandle = MV1LoadModel("data/model/FirstAidKit.mv1");
+	// モデルの複製
+	m_modelHandle = MV1DuplicateModel(s_modelHandle);
 	assert(m_modelHandle != -1);
 }
 
@@ -37,6 +39,24 @@ FirstAidKitItem::~FirstAidKitItem()
 {
 	// モデルの解放
 	MV1DeleteModel(m_modelHandle);
+}
+
+void FirstAidKitItem::LoadModel()
+{
+	if (s_modelHandle == -1)
+	{
+		s_modelHandle = MV1LoadModel("data/model/FirstAidKit.mv1");
+		assert(s_modelHandle != -1);
+	}
+}
+
+void FirstAidKitItem::DeleteModel()
+{
+	if (s_modelHandle != -1)
+	{
+		MV1DeleteModel(s_modelHandle);
+		s_modelHandle = -1;
+	}
 }
 
 void FirstAidKitItem::Init()

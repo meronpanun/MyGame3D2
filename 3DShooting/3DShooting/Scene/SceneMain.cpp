@@ -135,6 +135,10 @@ SceneMain::~SceneMain()
     MV1DeleteModel(m_skyDomeHandle);    
 	DeleteGraph(m_dotHandle);
 
+	// アイテムモデルの解放
+	FirstAidKitItem::DeleteModel();
+	AmmoItem::DeleteModel();
+
     // BGMの解放
     DeleteSoundMem(m_bgmHandle);
 
@@ -151,6 +155,10 @@ void SceneMain::Init()
 
     // 非同期読み込みを有効化
     SetUseASyncLoadFlag(true);
+
+    // アイテムモデルの読み込み
+	FirstAidKitItem::LoadModel();
+	AmmoItem::LoadModel();
 
     // 重いリソースの非同期読み込みを開始
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");

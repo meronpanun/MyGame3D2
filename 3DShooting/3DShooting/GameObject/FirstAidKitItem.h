@@ -22,6 +22,9 @@ public:
 	void SetPos(const VECTOR& pos) override { m_pos = pos; }
 	bool IsUsed() const override { return m_isUsed; }
 
+	static void LoadModel();
+	static void DeleteModel();
+
 private:
 	VECTOR m_pos;
 
@@ -36,5 +39,7 @@ private:
 	bool m_isHit;      // プレイヤーと接触したかどうか
 	bool m_isUsed;     // アイテムが使用されたかどうか
 	bool m_isDropping; // 落下中かどうか
+
+	static int s_modelHandle;
 };
 
