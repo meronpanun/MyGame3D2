@@ -18,34 +18,34 @@ namespace
     constexpr float kCheckAnimDuration = 0.3f; // チェックマークのアニメーション時間
 
     // UI関連
-    constexpr int kFontSize               = 22;   // チュートリアルメッセージのフォントサイズ
-    constexpr int kDefaultFontSize        = 16;   // デフォルトのフォントサイズ
-    constexpr int kMessageOffsetX         = 420;  // メッセージのXオフセット
-    constexpr int kInitialYPos            = 40;   // メッセージの初期Y座標
-    constexpr int kLineSpacing            = 40;   // メッセージの行間
-    constexpr int kCheckMarkBaseSize      = 40;   // チェックマークの基本サイズ
-    constexpr int kCheckMarkOffsetXMove   = 280;  // 移動チェックマークのXオフセット
-    constexpr int kCheckMarkOffsetXOthers = 340;  // それ以外のチェックマークのXオフセット
-    constexpr int kCheckMarkOffsetY       = 20;   // チェックマークのYオフセット
-    constexpr float kCheckMarkAnimScale   = 2.0f; // チェックマークアニメーションの最大スケール
+    constexpr int   kFontSize               = 22;   // チュートリアルメッセージのフォントサイズ
+    constexpr int   kDefaultFontSize        = 16;   // デフォルトのフォントサイズ
+    constexpr int   kMessageOffsetX         = 420;  // メッセージのXオフセット
+    constexpr int   kInitialYPos            = 40;   // メッセージの初期Y座標
+    constexpr int   kLineSpacing            = 40;   // メッセージの行間
+    constexpr int   kCheckMarkBaseSize      = 40;   // チェックマークの基本サイズ
+    constexpr int   kCheckMarkOffsetXMove   = 280;  // 移動チェックマークのXオフセット
+    constexpr int   kCheckMarkOffsetXOthers = 340;  // それ以外のチェックマークのXオフセット
+    constexpr int   kCheckMarkOffsetY       = 20;   // チェックマークのYオフセット
+    constexpr float kCheckMarkAnimScale     = 2.0f; // チェックマークアニメーションの最大スケール
 
     // UIボックス関連
-    constexpr int kBoxPaddingX = 20;  // ボックスの左右パディング
-    constexpr int kBoxPaddingY = 40;  // ボックスの上下パディング
-    constexpr int kBoxAlpha    = 180; // ボックスのアルファ値
+    constexpr int   kBoxPaddingX = 20;  // ボックスの左右パディング
+    constexpr int   kBoxPaddingY = 40;  // ボックスの上下パディング
+    constexpr int   kBoxAlpha    = 180; // ボックスのアルファ値
     constexpr unsigned int kBoxColor = 0x000000; // ボックスの色
 
     // タイトル関連
-    constexpr int kTitleFontSize = 28;       // タイトルのフォントサイズ
-    constexpr int kTitleOffsetY  = 10;       // タイトルのYオフセット
-    constexpr int kTitleColor    = 0xFFFFFF; // タイトルの色
-    constexpr char kTitleText[]  = "[チュートリアル]"; // タイトルテキスト
+    constexpr int   kTitleFontSize = 28;       // タイトルのフォントサイズ
+    constexpr int   kTitleOffsetY  = 10;       // タイトルのYオフセット
+    constexpr int   kTitleColor    = 0xFFFFFF; // タイトルの色
+    constexpr char  kTitleText[]   = "[チュートリアル]"; // タイトルテキスト
 
     // 各メッセージの長さ（ピクセル）
-    constexpr int kMsgWidthWASD  = 260; // "WASDで移動しよう!" の幅
-    constexpr int kMsgWidthMouse = 320; // "マウスで視点を動かそう!" の幅
-    constexpr int kMsgWidthJump  = 320; // "スペースキーでジャンプ!" の幅
-    constexpr int kMsgWidthRun   = 320; // "Shift+Wで走ろう!" の幅
+    constexpr int   kMsgWidthWASD  = 260; // "WASDで移動しよう!" の幅
+    constexpr int   kMsgWidthMouse = 320; // "マウスで視点を動かそう!" の幅
+    constexpr int   kMsgWidthJump  = 320; // "スペースキーでジャンプ!" の幅
+    constexpr int   kMsgWidthRun   = 320; // "Shift+Wで走ろう!" の幅
 
 	// マウスの移動量しきい値
 	constexpr float kMouseMovementThreshold = 5.0f; // マウスの移動量閾値
