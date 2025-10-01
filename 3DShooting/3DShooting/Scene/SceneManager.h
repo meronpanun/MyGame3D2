@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "SceneBase.h"
 
 class SceneTitle;
@@ -13,6 +13,13 @@ class SceneGameOver;
 class SceneManager
 {
 public:
+	enum class FadeState
+	{
+		Idle,
+		FadingOut,
+		FadingIn
+	};
+
 	SceneManager();
 	~SceneManager();
 
@@ -26,11 +33,16 @@ public:
 	/// <param name="newScene">新しいシーンのポインタ</param>
 	void RequestChangeScene(SceneBase* newScene);
 
+	/// <summary>
+	/// 現在のシーンを取得
+	/// </summary>
+	/// <returns>現在のシーンのポインタ</returns>
 	SceneBase* GetCurrentScene() const { return m_pCurrentScene; }
 
 private:
 	SceneBase* m_pCurrentScene;
 	SceneBase* m_pNextScene;
+	SceneBase* m_pSceneToChange; // 遷移先のシーンを一時的に保持
 
 	// SceneManagerで管理するシーン
 	SceneTitle*    m_pTitle;
@@ -43,4 +55,9 @@ private:
 	int m_loadingAnimTimer;   // ロードアニメーションのタイマー
 
 	bool m_isExternalSceneChange; // 外部からのシーン変更要求フラグ
+
+	// フェード処理用
+	FadeState m_fadeState;
+	int m_fadeAlpha;
+	int m_fadeSpeed;
 };

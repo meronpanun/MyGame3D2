@@ -150,7 +150,6 @@ void SceneTitle::Draw()
     );
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // フェードイン完了後、「ゲームスタート」の文字を表示
     if (m_isFadeComplete)
     {
         const char* gameStartText = "Press Left Click to Start Game";
