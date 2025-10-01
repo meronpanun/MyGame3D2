@@ -33,7 +33,7 @@ namespace
 
     // ジャンプ時の揺れ関連の定数
     constexpr float kJumpSwaySpeed   = 20.0f; // 揺れの速さ
-    constexpr float kJumpSwayDamping = 0.85f;  // 揺れの減衰率
+    constexpr float kJumpSwayDamping = 0.85f; // 揺れの減衰率
 
     // カメラを左右に振った際の横揺れのパラメータ
 	constexpr float kSwayAmount    = 0.15f;  // Swayの強さ
@@ -99,6 +99,7 @@ void Camera::Update()
     // シェイク処理
     if (m_shakeDuration > 0)
     {
+		// ランダムなオフセットを生成
         m_shakeOffset.x = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeOffset.y = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
         m_shakeOffset.z = (rand() / (float)RAND_MAX - 0.5f) * 2.0f * m_shakeIntensity;
@@ -186,6 +187,7 @@ void Camera::Update()
     SetCameraNearFar(kCameraNear, kCameraFar);
 }
 
+// 揺れ効果を更新
 void Camera::UpdateSway()
 {
     // Yawの差分に基づいてSwayを計算
@@ -197,6 +199,7 @@ void Camera::UpdateSway()
     m_swayRotOffset.z *= kSwayDamping;
 }
 
+// Head Bobbingを更新
 void Camera::UpdateHeadBobbing()
 {
     // 目標値を設定
@@ -226,7 +229,7 @@ void Camera::UpdateHeadBobbing()
     // タイマーを更新（移動中のみ）
     if (m_isMoving && m_headBobIntensity > 0.1f)
     {
-        m_headBobTimer += m_headBobSpeed * (1.0f / 60.0f); // 60FPS基準
+        m_headBobTimer += m_headBobSpeed * (1.0f / 60.0f);
     }
 
     // Head Bobbingオフセットを計算
@@ -242,19 +245,21 @@ void Camera::UpdateHeadBobbing()
         // 走行時の追加要素
         if (m_isRunning)
         {
-            // より細かい振動を追加（呼吸や歩幅の不規則性を表現）
-            float verticalNoise = sinf(m_headBobTimer * 2.5f) * m_headBobIntensity * kRunVerticalNoiseStrength;
-            float horizontalNoise = cosf(m_headBobTimer * 1.8f) * m_headBobIntensity * kRunHorizontalNoiseStrength;
+            // より細かい振動を追加
+			// 縦揺れと横揺れに異なる周波数の正弦波を加える
+			float verticalNoise   = sinf(m_headBobTimer * 2.5f) * m_headBobIntensity * kRunVerticalNoiseStrength;   // sin波で少し変化をつける
+			float horizontalNoise = cosf(m_headBobTimer * 1.8f) * m_headBobIntensity * kRunHorizontalNoiseStrength; // cos波で少し変化をつける
 
-            verticalBob += verticalNoise;
+			// 基本の揺れにノイズを加算
+            verticalBob   += verticalNoise;
             horizontalBob += horizontalNoise;
 
             // より滑らかなロール要素を追加
             float rollBob = sinf(m_headBobTimer * 0.6f) * m_headBobIntensity * kBobRollStrength;
             horizontalBob += rollBob;
 
-            // ランニング時の息づかいを表現する微細な縦揺れ
-            float breathingBob = sinf(m_headBobTimer * 3.2f) * m_headBobIntensity * 0.05f;
+            // 微細な縦揺れ
+            float breathingBob = sinf(m_headBobTimer * 3.2f) * m_headBobIntensity * 0.05f; 
             verticalBob += breathingBob;
         }
 
@@ -267,34 +272,40 @@ void Camera::UpdateHeadBobbing()
     }
 }
 
+// 線形補間
 float Camera::Lerp(float current, float target, float speed)
 {
     return current + (target - current) * speed;
 }
 
+// Head Bobbingの状態を設定
 void Camera::SetHeadBobbingState(bool isMoving, bool isRunning)
 {
-    m_isMoving = isMoving;
+    m_isMoving  = isMoving;
     m_isRunning = isRunning;
 }
 
+// 着地時の揺れを適用
 void Camera::ApplyLandingSway(float intensity)
 {
     m_landingSwayIntensity = intensity;
     m_landingSwayTimer = 0.0f;
 }
 
+// 着地時の揺れオフセットを取得
 VECTOR Camera::GetLandingSwayOffset() const
 {
     return m_landingSwayOffset;
 }
 
+// ジャンプ時の揺れを適用
 void Camera::ApplyJumpSway(float intensity)
 {
 	m_jumpSwayIntensity = intensity;
 	m_jumpSwayTimer = 0.0f;
 }
 
+// ジャンプ時の揺れオフセットを取得
 VECTOR Camera::GetJumpSwayOffset() const
 {
 	return m_jumpSwayOffset;
@@ -313,33 +324,39 @@ void Camera::SetCameraToDxLib()
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
 }
 
+// カメラの視野角を設定
 void Camera::SetFOV(float fov)
 {
     m_targetFov = fov;
 }
 
+// カメラの視野角を取得
 float Camera::GetFOV() const
 {
     return m_fov;
 }
 
+// カメラの視野角をデフォルトに戻す
 void Camera::ResetFOV()
 {
     m_targetFov = m_defaultFov;
 }
 
+// カメラのオフセットをリセット
 void Camera::ResetOffset()
 {
     m_offset = m_defaultOffset;
 }
 
+// 目標視野角を設定
 void Camera::SetTargetFOV(float fov)
 {
     m_targetFov = fov;
 }
 
+// シェイク効果
 void Camera::Shake(float intensity, float duration)
 {
     m_shakeIntensity = intensity;
-    m_shakeDuration = duration;
+    m_shakeDuration  = duration;
 }

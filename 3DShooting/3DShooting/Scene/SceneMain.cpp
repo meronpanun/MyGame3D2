@@ -40,13 +40,13 @@ namespace
 	constexpr int   kButtonSpacing      = 20;   // ボタン間のスペース
 
 	// ゲームクリアシーンへの遷移遅延フレーム数
-	constexpr int kClearSceneDelayFrames = 60; 
+	constexpr int   kClearSceneDelayFrames = 60; 
 
 	// 戻るボタンとオプションボタンの座標
-	constexpr int kReturnButtonX = 210; // 戻るボタンのX座標
-	constexpr int kReturnButtonY = 290; // 戻るボタンのY座標
-	constexpr int kOptionButtonX = 210; // オプションボタンのX座標
-	constexpr int kOptionButtonY = 120; // オプションボタンのY座標
+	constexpr int   kReturnButtonX = 210; // 戻るボタンのX座標
+	constexpr int   kReturnButtonY = 290; // 戻るボタンのY座標
+	constexpr int   kOptionButtonX = 210; // オプションボタンのX座標
+	constexpr int   kOptionButtonY = 120; // オプションボタンのY座標
 
     // カメラの回転速度
 	constexpr float kCameraRotaSpeed = 0.0001f; 
@@ -57,11 +57,7 @@ namespace
 
     // アイテムドロップ時の初期上昇量
     constexpr float kDropInitialHeight = 140.0f; 
-
-	// Road_floorオブジェトの範囲
-	constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // 床の最小座標
-	constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
-
+	
     // 環境光設定
 	constexpr float kAmbientLightR = 0.5f; // 環境光の赤成分
 	constexpr float kAmbientLightG = 0.5f; // 環境光の緑成分
@@ -69,25 +65,29 @@ namespace
 	constexpr float kAmbientLightA = 1.0f; // 環境光のアルファ成分
 
     // ヒットマーク関連
-	constexpr int kHitMarkLineLength    = 8;  // ラインの長さ
-	constexpr int kHitMarkCenterSpacing = 4;  // 中央の間隔幅
-	constexpr int kHitMarkLineThickness = 2;  // ラインの太さ
-    constexpr int kHitMarkDuration      = 25; // 表示時間
-	constexpr int kHitMarkDoubleLineOffset = 2; // ダブルラインのオフセット
+	constexpr int   kHitMarkLineLength       = 8;  // ラインの長さ
+	constexpr int   kHitMarkCenterSpacing    = 4;  // 中央の間隔幅
+	constexpr int   kHitMarkLineThickness    = 2;  // ラインの太さ
+    constexpr int   kHitMarkDuration         = 25; // 表示時間
+	constexpr int   kHitMarkDoubleLineOffset = 2;  // ダブルラインのオフセット
 
 	// スコアポップアップ関連
-	constexpr int kScorePopupX        = 80;  // スコアポップアップのX座標
-	constexpr int kScorePopupY        = 60;  // スコアポップアップのY座標
-	constexpr int kPopupOffsetY       = 32;  // ポップアップのYオフセット
-    constexpr int kPopupDuration      = 60;  // 表示時間
-    constexpr int kTotalScoreDuration = 120; // 合計スコアの表示時間
+	constexpr int   kScorePopupX        = 80;  // スコアポップアップのX座標
+	constexpr int   kScorePopupY        = 60;  // スコアポップアップのY座標
+	constexpr int   kPopupOffsetY       = 32;  // ポップアップのYオフセット
+    constexpr int   kPopupDuration      = 60;  // 表示時間
+    constexpr int   kTotalScoreDuration = 120; // 合計スコアの表示時間
 
-	// レティクルサイズ
-	constexpr int kDotSize = 64; 
+	// レティクル表示位置補正値
+	constexpr int   kReticleOffset = 64; 
 
     // 画面中央サイズ
-	constexpr int kScreenCenterX = Game::kScreenWidth * 0.5f;  // 画面中央のX座標
-	constexpr int kScreenCenterY = Game::kScreenHeigth * 0.5f; // 画面中央のY座標
+	constexpr int   kScreenCenterX = Game::kScreenWidth * 0.5f;  
+	constexpr int   kScreenCenterY = Game::kScreenHeigth * 0.5f; 
+
+    // Road_floorオブジェトの範囲
+    constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // 床の最小座標
+    constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
 }
 
 SceneMain* g_sceneMainInstance = nullptr;
@@ -525,7 +525,7 @@ void SceneMain::Draw()
 
     m_pDirectionIndicator->Draw();
 
-    DrawGraph(kScreenCenterX - kDotSize * 0.5f, kScreenCenterY - kDotSize * 0.5f, m_dotHandle, true);
+    DrawGraph(kScreenCenterX - kReticleOffset * 0.5f, kScreenCenterY - kReticleOffset * 0.5f, m_dotHandle, true);
 
     // スコアポップアップ描画
     bool showScorePopup = !m_scorePopups.empty();

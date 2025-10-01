@@ -13,13 +13,13 @@
 namespace
 {
     // UI定数
-	constexpr int kIndentWidth         = 20;  // インデント幅
-	constexpr int kItemWidth           = 200; // アイテムの幅
-	constexpr int kItemHeight          = 15;  // アイテムの高さ
-	constexpr int kTextLineSpacing     = 20;  // テキスト行間隔
-	constexpr int kIndicatorOffsetX    = -10; // インジケーターのXオフセット
-	constexpr int kIndicatorTextOffset = 10;  // インジケーターとテキストの間隔
-	constexpr int kIndicatorOffsetY    = 14;  // インジケーターのYオフセット
+	constexpr int   kIndentWidth          = 20;  // インデント幅
+	constexpr int   kItemWidth            = 200; // アイテムの幅
+	constexpr int   kItemHeight           = 15;  // アイテムの高さ
+	constexpr int   kTextLineSpacing      = 20;  // テキスト行間隔
+	constexpr int   kIndicatorOffsetX     = -10; // インジケーターのXオフセット
+	constexpr int   kIndicatorTextOffset  = 10;  // インジケーターとテキストの間隔
+	constexpr int   kIndicatorOffsetY     = 14;  // インジケーターのYオフセット
     constexpr float kIndicatorClosedAngle = -DX_PI_F * 0.5f; // 90度時計回り
 }
 

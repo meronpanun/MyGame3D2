@@ -7,11 +7,11 @@
 
 namespace
 {
-	constexpr int kButtonWidth   = 220;  // ボタンの幅
-	constexpr int kButtonHeight  = 60;   // ボタンの高さ
-	constexpr int kButtonSpacing = 40;   // ボタン間のスペース
-    constexpr int kBgImageSize   = 1024; // 背景画像のサイズ
-    constexpr float kScrollSpeed = 1.0f; // 背景のスクロール速度
+	constexpr int   kButtonWidth   = 220;  // ボタンの幅
+	constexpr int   kButtonHeight  = 60;   // ボタンの高さ
+	constexpr int   kButtonSpacing = 40;   // ボタン間のスペース
+    constexpr int   kBgImageSize   = 1024; // 背景画像のサイズ
+    constexpr float kScrollSpeed   = 1.0f; // 背景のスクロール速度
 }
 
 SceneGameOver::SceneGameOver(int wave, int killCount, int score) : 

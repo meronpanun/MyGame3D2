@@ -30,11 +30,11 @@ namespace
 	constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径
 
 	// 追跡関連
-	constexpr int kAttackEndDelay = 10; 
+	constexpr int   kAttackEndDelay = 10; 
 	// 追跡速度
 	constexpr float kChaseSpeed = 4.0f; // 走る敵の追跡速度
 
-	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
+	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; 
 }
 
 EnemyRunner::EnemyRunner() :

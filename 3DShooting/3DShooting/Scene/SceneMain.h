@@ -52,19 +52,39 @@ public:
 	/// <param name="sensitivity">感度</param>
 	void SetCameraSensitivity(float sensitivity);
 
-	// プレイヤーの弾が敵にヒットした際に呼ばれる(ヒットマーク表示用)
+	/// <summary>
+	/// プレイヤーの弾が敵にヒットした際に呼ばれる(ヒットマーク表示用)
+	/// </summary>
+	/// <param name="part">ヒットした部位</param>
 	void OnPlayerBulletHitEnemy(EnemyBase::HitPart part);
 
-	// スコアポップアップを追加する関数
+	/// <summary>
+	/// スコアポップアップを追加
+	/// </summary>
+	/// <param name="score">加算スコア</param>
+	/// <param name="isHeadShot">ヘッドショットならtrue</param>
+	/// <param name="combo">コンボ数</param>
 	void AddScorePopup(int score, bool isHeadShot, int combo);
 
 public:
 	static bool  s_isSkipTutorial; // チュートリアルスキップフラグ
 
+	/// <summary>
+	/// シングルトンインスタンスを取得
+	/// </summary>
+	/// <returns>シングルトンインスタンス</returns>
 	static SceneMain* Instance();
+
+	/// <summary>
+	/// WaveManagerを取得
+	/// </summary>
+	/// <returns>WaveManagerのポインタ</returns>
 	WaveManager* GetWaveManager() const { return m_pWaveManager.get(); }
 
-	// ゲーム経過時間（秒）を取得
+	/// <summary>
+	/// ゲーム経過時間（秒）を取得
+	/// </summary>
+	/// <returns>経過時間（秒）</returns>
 	static float GetElapsedTime() { return s_elapsedTime; }
 private:
 	void DrawPauseMenu();
