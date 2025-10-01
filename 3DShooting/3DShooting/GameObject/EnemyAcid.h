@@ -74,6 +74,11 @@ public:
     /// </summary>
 	/// <param name="damage">受けるダメージ量</param>
     void TakeDamage(float damage) override;
+
+    /// <summary>
+	/// タックルダメージを受ける処理 
+    /// </summary>
+	/// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
 private:

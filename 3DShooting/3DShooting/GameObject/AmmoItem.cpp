@@ -75,7 +75,7 @@ void AmmoItem::Update(Player* player)
 	const Collider* playerCollider = dynamic_cast<const Collider*>(player->GetBodyCollider().get());
 	m_isHit = m_collider.IsIntersects(playerCollider);
 
-	// 弾薬が満タンかどうかは問わず、当たれば回復
+	// 当たれば弾薬加算
 	if (m_isHit)
 	{
 		PlaySoundMem(player->GetAmmoItemSEHandle(), DX_PLAYTYPE_BACK); // 弾薬アイテムSE再生

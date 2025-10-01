@@ -5,7 +5,7 @@
 namespace
 {
 	// 弾の速度
-	constexpr float kBulletSpeed = 50.0f;
+	constexpr float kBulletSpeed = 60.0f;
 
 	// プレイヤーからの画面外判定距離
 	constexpr float kPlayerBoundaryDistance = 2000.0f;

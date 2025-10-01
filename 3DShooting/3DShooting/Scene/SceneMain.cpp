@@ -20,6 +20,7 @@
 #include "ScoreManager.h"
 #include "TutorialManager.h"
 #include "Effect.h"
+#include "DirectionIndicator.h"
 #include <cassert>
 #include <algorithm>
 #include <string>
@@ -172,8 +173,10 @@ void SceneMain::Init()
 	m_pStage->Init();
 
 	m_pWaveManager = std::make_shared<WaveManager>();
-	m_pWaveManager->Init();
+	    m_pWaveManager->Init();
 	
+	    m_pDirectionIndicator = std::make_unique<DirectionIndicator>();
+	    m_pDirectionIndicator->Init(m_pPlayer.get());	
 	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
 	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
 
@@ -451,6 +454,7 @@ SceneBase* SceneMain::Update()
 		return new SceneGameOver(wave, killCount, score);
     }
     m_pWaveManager->Update();
+    m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList());
 
     // ウェーブ3終了後の遅延処理
     if (m_pWaveManager->GetCurrentWave() > 3)
@@ -518,6 +522,8 @@ void SceneMain::Draw()
     }
 
     m_pPlayer->Draw();
+
+    m_pDirectionIndicator->Draw();
 
     DrawGraph(kScreenCenterX - kDotSize * 0.5f, kScreenCenterY - kDotSize * 0.5f, m_dotHandle, true);
 

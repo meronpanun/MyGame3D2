@@ -18,7 +18,16 @@ public:
 	void Update(Player* player) override;
 	void Draw() override;
 
+	/// <summary>
+	/// 位置設定
+	/// </summary>
+	/// <param name="pos">位置</param>
 	void SetPos(const VECTOR& pos) override { m_pos = pos; }
+
+	/// <summary>
+	/// 使用済みかどうか
+	/// </summary>
+	/// <returns>true: 使用済み, false: 未使用</returns>
 	bool IsUsed() const override { return m_isUsed; }
 
 private:

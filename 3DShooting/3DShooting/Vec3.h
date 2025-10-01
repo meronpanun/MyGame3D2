@@ -29,6 +29,14 @@ public:
 		z = posZ;
 	}
 
+	// VECTORから変換するコンストラクタ
+	Vec3(const VECTOR& v)
+	{
+		x = v.x;
+		y = v.y;
+		z = v.z;
+	}
+
 	// 座標設定関数
 	void SetPos(float a, float b, float c)
 	{
@@ -119,7 +127,7 @@ public:
 	}
 
     // DxライブラリのVECTORにキャストする
-	VECTOR ToDxVECTOR()
+	VECTOR ToDxVECTOR() const 
 	{
 		VECTOR dxVec;
 
@@ -129,5 +137,6 @@ public:
 
 		return dxVec;
 	}
+
 };
 

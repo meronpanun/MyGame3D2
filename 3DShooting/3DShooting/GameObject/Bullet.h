@@ -44,6 +44,10 @@ public:
     /// </summary>
     void Deactivate();
 
+    /// <summary>
+	/// 弾のダメージを取得
+    /// </summary>
+	/// <returns>ダメージ値</returns>
     float GetDamage() const { return m_damage; }
 
 private:

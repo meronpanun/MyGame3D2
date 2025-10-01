@@ -52,6 +52,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene) :
     m_confirmSEHandle = LoadSoundMem("data/sound/SE/ConfirmButton.mp3");
     assert(m_confirmSEHandle != -1);
 
+	// フォントの作成
     m_fontHandle = CreateFontToHandle("Arial Black", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }
 

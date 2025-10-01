@@ -19,6 +19,7 @@ class ItemBase;
 class Stage;
 class WaveManager;
 class Effect;
+class DirectionIndicator;
 
 /// <summary>
 /// メインシーンクラス
@@ -81,6 +82,7 @@ private:
     std::vector<EnemyBase*> m_enemyList;
     std::vector<std::shared_ptr<ItemBase>> m_items;
     std::unique_ptr<TutorialManager> m_pTutorialManager;
+    std::unique_ptr<DirectionIndicator> m_pDirectionIndicator;
 
     // 状態管理
     bool  m_isPaused;                  // 一時停止中か
