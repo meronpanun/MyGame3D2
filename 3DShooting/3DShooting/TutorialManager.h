@@ -19,10 +19,21 @@ public:
 		None,
 		Move,			 // WASD操作
 		View,		     // 視点操作
-		Completed,		 // チュートリアル完了
 		Jump,			 // ジャンプ操作
 		Run,             // 走る操作
+		Completed,		 // チュートリアル完了
 		CompletedDisplay // チュートリアル完了後の待機中
+	};
+
+	/// <summary>
+	/// UIアニメーションの状態
+	/// </summary>
+	enum class UIState
+	{
+		Hidden,
+		Entering,
+		OnScreen,
+		Exiting
 	};
 
 	void Init();
@@ -48,8 +59,12 @@ public:
 	bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
 
 private:
+    void UpdateUI(); // UIアニメーション用の更新関数
+
+private:
 	Vec2 m_prevMousePos;
 	Step m_step;
+	UIState m_uiState; // UIの状態
 
 	// リソース関連
 	int m_checkMarkHandle;         // チェックマーク画像のハンドル
@@ -69,6 +84,7 @@ private:
 	bool m_isMoveDone;		   // WASD操作が完了したか
 
 	// アニメーション関連
+	float m_uiXOffset;         // UIのX座標オフセット
 	float m_moveCheckAnimTime; // WASD操作のアニメーションタイマー
 	float m_viewCheckAnimTime; // 視点操作のアニメーションタイマー
 	float m_runCheckAnimTime;  // 走る操作のアニメーションタイマー

@@ -31,21 +31,18 @@ namespace
 
     // UIボックス関連
     constexpr int   kBoxPaddingX = 20;  // ボックスの左右パディング
-    constexpr int   kBoxPaddingY = 40;  // ボックスの上下パディング
+    constexpr int   kBoxPaddingY = 10;  // ボックスの上下パディング
     constexpr int   kBoxAlpha    = 180; // ボックスのアルファ値
     constexpr unsigned int kBoxColor = 0x000000; // ボックスの色
+
+    // アニメーション関連
+    constexpr float kUIAnimationSpeed = 15.0f; // UIがスライドする速度
+    constexpr float kUIOffscreenOffsetX = 500.0f; // UIの画面外オフセット
 
     // タイトル関連
     constexpr int   kTitleFontSize = 28;       // タイトルのフォントサイズ
     constexpr int   kTitleOffsetY  = 10;       // タイトルのYオフセット
     constexpr int   kTitleColor    = 0xFFFFFF; // タイトルの色
-    constexpr char  kTitleText[]   = "[チュートリアル]"; // タイトルテキスト
-
-    // 各メッセージの長さ（ピクセル）
-    constexpr int   kMsgWidthWASD  = 260; // "WASDで移動しよう!" の幅
-    constexpr int   kMsgWidthMouse = 320; // "マウスで視点を動かそう!" の幅
-    constexpr int   kMsgWidthJump  = 320; // "スペースキーでジャンプ!" の幅
-    constexpr int   kMsgWidthRun   = 320; // "Shift+Wで走ろう!" の幅
 
 	// マウスの移動量しきい値
 	constexpr float kMouseMovementThreshold = 5.0f; // マウスの移動量閾値
@@ -53,6 +50,8 @@ namespace
 
 TutorialManager::TutorialManager() : 
     m_step(Step::None),
+    m_uiState(UIState::Hidden),
+    m_uiXOffset(kUIOffscreenOffsetX),
     m_isMoveDone(false),
     m_isViewDone(false),
     m_checkMarkHandle(-1),
@@ -98,10 +97,48 @@ TutorialManager::~TutorialManager()
 void TutorialManager::Init()
 {
     m_step = Step::Move;
+    m_uiState = UIState::Hidden; //最初は隠しておく
+}
+
+void TutorialManager::UpdateUI()
+{
+    switch (m_uiState)
+    {
+    case UIState::Hidden:
+        // 新しいステップが始まったらEntering状態へ
+        if (m_step != Step::None && m_step != Step::Completed)
+        {
+            m_uiState = UIState::Entering;
+        }
+        break;
+    case UIState::Entering:
+        m_uiXOffset -= kUIAnimationSpeed;
+        if (m_uiXOffset <= 0.0f)
+        {
+            m_uiXOffset = 0.0f;
+            m_uiState = UIState::OnScreen;
+        }
+        break;
+    case UIState::OnScreen:
+        // ステップ完了を待つ
+        break;
+    case UIState::Exiting:
+        m_uiXOffset += kUIAnimationSpeed;
+        if (m_uiXOffset >= kUIOffscreenOffsetX)
+        {
+            m_uiXOffset = kUIOffscreenOffsetX;
+            m_uiState = UIState::Hidden;
+            // 次のステップへ
+            m_step = static_cast<Step>(static_cast<int>(m_step) + 1);
+        }
+        break;
+    }
 }
 
 void TutorialManager::Update()
 {
+    UpdateUI();
+
     // チュートリアル完了後の待機演出
     if (m_isCompletedDisplay)
     {
@@ -111,6 +148,7 @@ void TutorialManager::Update()
             m_isCompletedDisplay = false;
             m_step = Step::Completed;
         }
+        return; // 待機中は他の処理をしない
     }
 
     // アニメタイマーを進める
@@ -119,190 +157,167 @@ void TutorialManager::Update()
     if (m_isJumpCheckAnim) m_jumpCheckAnimTime += kFrameTime;
     if (m_isRunCheckAnim)  m_runCheckAnimTime  += kFrameTime;
 
-    if (m_isCompletedDisplay) return;
-    if (m_step == Step::Completed) return;
+    // UIが表示されているときだけ入力チェック
+    if (m_uiState != UIState::OnScreen) return;
 
-    // 1.WASD移動
-    if (!m_isMoveDone) 
+    switch (m_step)
     {
-        bool isMoving = CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_A) ||
-                        CheckHitKey(KEY_INPUT_S) || CheckHitKey(KEY_INPUT_D);
-        if (isMoving) 
+    case Step::Move:
+        if (!m_isMoveDone) 
         {
-            m_moveAccumTime += kFrameTime;
+            bool isMoving = CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_A) ||
+                            CheckHitKey(KEY_INPUT_S) || CheckHitKey(KEY_INPUT_D);
+            if (isMoving) m_moveAccumTime += kFrameTime;
+            if (m_moveAccumTime >= kMoveAccumGoalTime) 
+            {
+                m_isMoveDone = true;
+                m_isMoveCheckAnim = true;
+                m_moveCheckAnimTime = 0.0f;
+            }
         }
-        if (m_moveAccumTime >= kMoveAccumGoalTime) 
+        else if (m_moveCheckAnimTime >= kCheckAnimDuration) // チェックアニメ完了後
         {
-            m_isMoveDone          = true;
-            m_isMoveCheckAnim     = true;
-            m_moveCheckAnimTime = 0.0f;
-            m_step = Step::View;
+            m_uiState = UIState::Exiting; // 退場開始
         }
-    }
-    // 2.視点操作
-    else if (!m_isViewDone) 
-    {
-        Vec2 now = Mouse::GetPos();
-        float dx = now.x - m_prevMousePos.x;
-        float dy = now.y - m_prevMousePos.y;
-        bool isViewing = (std::abs(dx) > kMouseMovementThreshold || std::abs(dy) > kMouseMovementThreshold);
-        if (isViewing) 
+        break;
+
+    case Step::View:
+        if (!m_isViewDone) 
         {
-            m_viewAccumTime += kFrameTime;
+            Vec2 now = Mouse::GetPos();
+            float dx = now.x - m_prevMousePos.x;
+            float dy = now.y - m_prevMousePos.y;
+            if (std::abs(dx) > kMouseMovementThreshold || std::abs(dy) > kMouseMovementThreshold) 
+            {
+                m_viewAccumTime += kFrameTime;
+            }
+            if (m_viewAccumTime >= kViewAccumGoalTime) 
+            {
+                m_isViewDone = true;
+                m_isViewCheckAnim = true;
+                m_viewCheckAnimTime = 0.0f;
+            }
+            m_prevMousePos = now;
         }
-        if (m_viewAccumTime >= kViewAccumGoalTime) 
+        else if (m_viewCheckAnimTime >= kCheckAnimDuration)
         {
-            m_isViewDone          = true;
-            m_isViewCheckAnim     = true;
-            m_viewCheckAnimTime = 0.0f;
-            m_step = Step::Jump;
+            m_uiState = UIState::Exiting;
         }
-        m_prevMousePos = now;
-    }
-    // 3.ジャンプ
-    else if (!m_isJumpDone) 
-    {
-        if (CheckHitKey(KEY_INPUT_SPACE)) 
+        break;
+
+    case Step::Jump:
+        if (!m_isJumpDone) 
         {
-            m_jumpAccumTime += kFrameTime;
+            if (CheckHitKey(KEY_INPUT_SPACE)) m_jumpAccumTime += kFrameTime;
+            if (m_jumpAccumTime >= kJumpAccumGoalTime) 
+            {
+                m_isJumpDone = true;
+                m_isJumpCheckAnim = true;
+                m_jumpCheckAnimTime = 0.0f;
+            }
         }
-        if (m_jumpAccumTime >= kJumpAccumGoalTime) 
+        else if (m_jumpCheckAnimTime >= kCheckAnimDuration)
         {
-            m_isJumpDone          = true;
-            m_isJumpCheckAnim     = true;
-            m_jumpCheckAnimTime = 0.0f;
-            m_step = Step::Run;
+            m_uiState = UIState::Exiting;
         }
-    }
-    // 4.走る（シフト+W）
-    else if (!m_isRunDone) 
-    {
-        if (CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT)) 
+        break;
+
+    case Step::Run:
+        if (!m_isRunDone) 
         {
-            m_runAccumTime += kFrameTime;
+            if (CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT)) 
+            {
+                m_runAccumTime += kFrameTime;
+            }
+            if (m_runAccumTime >= kRunAccumGoalTime) 
+            {
+                m_isRunDone = true;
+                m_isRunCheckAnim = true;
+                m_runCheckAnimTime = 0.0f;
+            }
         }
-        if (m_runAccumTime >= kRunAccumGoalTime) 
+        else if (m_runCheckAnimTime >= kCheckAnimDuration)
         {
-            m_isRunDone          = true;
-            m_isRunCheckAnim     = true;
-            m_runCheckAnimTime = 0.0f;
-            m_isCompletedDisplay = true;
-            m_completeWaitTime   = 0.0f;
+            m_uiState = UIState::Exiting;
+            m_isCompletedDisplay = true; // 最後のチュートリアルなので完了演出へ
+            m_completeWaitTime = 0.0f;
         }
+        break;
     }
 }
 
 void TutorialManager::Draw(int screenW, int screenH)
 {
-    // 完了演出中も含めて表示
-    if (m_step == Step::None) return;
-    if (m_step == Step::Completed && !m_isCompletedDisplay) return;
+    if (m_uiState == UIState::Hidden) return;
 
-    // UIボックスの描画範囲を計算
-    int boxX1 = screenW - kMessageOffsetX - kBoxPaddingX;
-    int boxY1 = kInitialYPos - kBoxPaddingY;
-    int boxX2 = screenW - kBoxPaddingX;
-    int boxY2 = kInitialYPos + kLineSpacing * 4 + kBoxPaddingY + kTitleFontSize + kTitleOffsetY; // タイトル分も考慮
+    const char* text = "";
+    bool is_done = false;
+    bool is_check_anim = false;
+    float check_anim_time = 0.0f;
+
+    switch (m_step)
+    {
+    case Step::Move:
+        text = "WASDで移動しよう!";
+        is_done = m_isMoveDone;
+        is_check_anim = m_isMoveCheckAnim;
+        check_anim_time = m_moveCheckAnimTime;
+        break;
+    case Step::View:
+        text = "マウスで視点を動かそう!";
+        is_done = m_isViewDone;
+        is_check_anim = m_isViewCheckAnim;
+        check_anim_time = m_viewCheckAnimTime;
+        break;
+    case Step::Jump:
+        text = "スペースキーでジャンプ!";
+        is_done = m_isJumpDone;
+        is_check_anim = m_isJumpCheckAnim;
+        check_anim_time = m_jumpCheckAnimTime;
+        break;
+    case Step::Run:
+        text = "Shift+Wで走ろう!";
+        is_done = m_isRunDone;
+        is_check_anim = m_isRunCheckAnim;
+        check_anim_time = m_runCheckAnimTime;
+        break;
+    default:
+        return;
+    }
+
+    int text_width = GetDrawStringWidthToHandle(text, strlen(text), m_japaneseFontHandle);
+    int box_width = text_width + kCheckMarkBaseSize + kBoxPaddingX * 2;
+    int box_height = kCheckMarkBaseSize + kBoxPaddingY * 2;
+
+    int box_x = screenW - box_width - 20 + m_uiXOffset;
+    int box_y = 20;
 
     // 半透明の背景ボックスを描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-    DrawBox(boxX1, boxY1, boxX2, boxY2, kBoxColor, true);
+    DrawBox(box_x, box_y, box_x + box_width, box_y + box_height, kBoxColor, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // タイトル表示
-    DrawFormatStringToHandle(screenW - kMessageOffsetX, kInitialYPos - kTitleFontSize - kTitleOffsetY, kTitleColor, m_japaneseLargeFontHandle, kTitleText);
+    // テキストを描画
+    int text_x = box_x + kBoxPaddingX;
+    int text_y = box_y + (box_height - kFontSize) / 2;
+    DrawStringToHandle(text_x, text_y, text, 0xffffff, m_japaneseFontHandle);
 
-    int x = screenW - kMessageOffsetX;
-    int y = kInitialYPos;
-
-    // 1. WASD
-    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "WASDで移動しよう!");
-    if (m_isMoveDone && m_checkMarkHandle >= 0)
+    // チェックマークを描画
+    if (is_done && m_checkMarkHandle >= 0)
     {
         float scale = 1.0f;
-        if (m_isMoveCheckAnim && m_moveCheckAnimTime < kCheckAnimDuration)
+        if (is_check_anim && check_anim_time < kCheckAnimDuration)
         {
-            float t = m_moveCheckAnimTime / kCheckAnimDuration;
+            float t = check_anim_time / kCheckAnimDuration;
             scale = kCheckMarkAnimScale - t;
             if (scale < 1.0f) scale = 1.0f;
         }
-        else 
-        {
-            m_isMoveCheckAnim = false;
-        }
-        int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthWASD + kCheckMarkOffsetY;
-        int cy = y + kCheckMarkOffsetY;
-        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
-    }
-    y += kLineSpacing;
 
-    // 2. 視点
-    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "マウスで視点を動かそう!");
-    if (m_isViewDone && m_checkMarkHandle >= 0) 
-    {
-        float scale = 1.0f;
-        if (m_isViewCheckAnim && m_viewCheckAnimTime < kCheckAnimDuration) 
-        {
-            float t = m_viewCheckAnimTime / kCheckAnimDuration;
-            scale = kCheckMarkAnimScale - t;
-            if (scale < 1.0f) scale = 1.0f;
-        }
-        else 
-        {
-            m_isViewCheckAnim = false;
-        }
         int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthMouse + kCheckMarkOffsetY;
-        int cy = y + kCheckMarkOffsetY;
-        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
+        int cx = text_x + text_width + kBoxPaddingX + (kCheckMarkBaseSize / 2);
+        int cy = box_y + box_height / 2;
+        DrawExtendGraph(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, m_checkMarkHandle, true);
     }
-    y += kLineSpacing;
-
-    // 3. ジャンプ
-    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "スペースキーでジャンプ!");
-    if (m_isJumpDone && m_checkMarkHandle >= 0) 
-    {
-        float scale = 1.0f;
-        if (m_isJumpCheckAnim && m_jumpCheckAnimTime < kCheckAnimDuration) 
-        {
-            float t = m_jumpCheckAnimTime / kCheckAnimDuration;
-            scale = kCheckMarkAnimScale - t;
-            if (scale < 1.0f) scale = 1.0f;
-        }
-        else 
-        {
-            m_isJumpCheckAnim = false;
-        }
-        int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthJump + kCheckMarkOffsetY;
-        int cy = y + kCheckMarkOffsetY;
-        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
-    }
-    y += kLineSpacing;
-
-    // 4. 走る
-    DrawFormatStringToHandle(x, y, 0xffffff, m_japaneseFontHandle, "Shift+Wで走ろう!");
-    if (m_isRunDone && m_checkMarkHandle >= 0)
-    {
-        float scale = 1.0f;
-        if (m_isRunCheckAnim && m_runCheckAnimTime < kCheckAnimDuration) 
-        {
-            float t = m_runCheckAnimTime / kCheckAnimDuration;
-            scale = kCheckMarkAnimScale - t;
-            if (scale < 1.0f) scale = 1.0f;
-        }
-        else
-        {
-            m_isRunCheckAnim = false;
-        }
-        int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = x + kMsgWidthRun + kCheckMarkOffsetY;
-        int cy = y + kCheckMarkOffsetY;
-        DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f, cy + size * 0.5f, m_checkMarkHandle, true);
-    }
-
-    
 }
 
 // チュートリアルがアクティブかどうか
