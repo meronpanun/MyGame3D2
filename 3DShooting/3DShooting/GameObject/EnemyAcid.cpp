@@ -208,6 +208,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     ball.pos = spawnPos;
     ball.dir = vel;
     ball.active = true;
+    ball.damage = m_attackPower;
     m_acidBalls.push_back(ball);
 }
 

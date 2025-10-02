@@ -87,7 +87,7 @@ public:
 
 private:
 	/// <summary>
-	/// 酸の弾クラス
+	/// 酸の弾構造体
 	/// </summary>
 	struct AcidBall
 	{
@@ -96,7 +96,7 @@ private:
 
         bool active = false;
         float radius = 12.0f;
-        float damage = 30.0f;
+        float damage = 0.0f;
 
         void Update() 
         {

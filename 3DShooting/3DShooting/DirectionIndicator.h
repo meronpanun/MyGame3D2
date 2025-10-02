@@ -20,6 +20,6 @@ public:
 
 private:
     Player* m_pPlayer;
-    std::vector<Vec3> m_allEnemyPositions;
-    int m_indicatorImage;
+	std::vector<Vec3> m_allEnemyPositions; // 全ての敵の位置
+	int m_indicatorImage; // 方向インジケーターの画像ハンドル
 };
