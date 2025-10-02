@@ -14,17 +14,6 @@ namespace
 
 int DirectionIndicator::s_indicatorImage = -1;
 
-void DirectionIndicator::LoadResources()
-{
-    s_indicatorImage = LoadGraph("data/image/DirectionIndicator.png");
-	assert(s_indicatorImage != -1);
-}
-
-void DirectionIndicator::DeleteResources()
-{
-    DeleteGraph(s_indicatorImage);
-}
-
 DirectionIndicator::DirectionIndicator() :
     m_pPlayer(nullptr)
 {
@@ -32,6 +21,17 @@ DirectionIndicator::DirectionIndicator() :
 
 DirectionIndicator::~DirectionIndicator()
 {
+}
+
+void DirectionIndicator::LoadResources()
+{
+    s_indicatorImage = LoadGraph("data/image/DirectionIndicator.png");
+    assert(s_indicatorImage != -1);
+}
+
+void DirectionIndicator::DeleteResources()
+{
+    DeleteGraph(s_indicatorImage);
 }
 
 void DirectionIndicator::Init(Player* player)

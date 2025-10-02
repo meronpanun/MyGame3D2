@@ -324,7 +324,7 @@
               "RelativeDocumentMoniker": "3DShooting\\DirectionIndicator.h",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\DirectionIndicator.h",
               "RelativeToolTip": "3DShooting\\DirectionIndicator.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAAAcAAAAAAAAAAAArwCEAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-09-30T07:43:30.343Z",
               "EditorCaption": ""
@@ -351,8 +351,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyAcid.cpp",
               "ViewState": "AgIAAB4AAAAAAAAAAAAAAC0AAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T07:16:01.609Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T07:16:01.609Z"
             },
             {
               "$type": "Document",
@@ -422,7 +421,7 @@
               "RelativeDocumentMoniker": "3DShooting\\DirectionIndicator.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\DirectionIndicator.cpp",
               "RelativeToolTip": "3DShooting\\DirectionIndicator.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAB8AAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-09-30T07:43:40.739Z",
               "EditorCaption": ""
@@ -437,8 +436,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.cpp",
               "ViewState": "AgIAAPQAAAAAAAAAAAArwJMDAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T04:54:25.216Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T04:54:25.216Z"
             },
             {
               "$type": "Document",
@@ -654,7 +652,8 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneTitle.cpp",
               "ViewState": "AgIAACEAAAAAAAAAAAAAAD8AAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T04:46:19.392Z"
+              "WhenOpened": "2025-09-09T04:46:19.392Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
