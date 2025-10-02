@@ -58,12 +58,6 @@ public:
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
     /// <summary>
-	/// モデルハンドルを設定する
-    /// </summary>
-	/// <param name="handle">モデルハンドル</param>
-    void SetModelHandle(int handle);
-
-    /// <summary>
 	/// モデルハンドルを取得する
     /// </summary>
 	/// <returns>モデルハンドル</returns>
@@ -81,7 +75,20 @@ public:
 	/// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
+    /// <summary>
+	/// モデルの読み込み(共有)
+    /// </summary>
+    static void LoadModel();
+
+    /// <summary>
+	/// モデルの解放(共有)
+    /// </summary>
+    static void DeleteModel();
+
 private:
+	/// <summary>
+	/// 酸の弾クラス
+	/// </summary>
 	struct AcidBall
 	{
 		VECTOR pos; // 弾の位置
@@ -142,4 +149,6 @@ private:
     bool m_hasAttacked;       // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
     bool m_isItemDropped;     // アイテムドロップ済みフラグ
+
+    static int s_modelHandle; // 共有モデルハンドル
 };

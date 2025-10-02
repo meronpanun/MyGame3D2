@@ -58,20 +58,26 @@ public:
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
     /// <summary>
-	/// モデルハンドルを設定する
+	/// ダメージを受ける処理
     /// </summary>
-	/// <param name="handle">モデルハンドル</param>
-    void SetModelHandle(int handle);
+	/// <param name="damage">受けるダメージ量</param>
+    void TakeDamage(float damage) override;
 
     /// <summary>
-	/// モデルハンドルを取得する
+	/// タックルダメージを受ける処理
     /// </summary>
-	/// <returns>モデルハンドル</returns>
-    int GetModelHandle() const { return m_modelHandle; }
-
-    // ダメージ処理
-    void TakeDamage(float damage) override;
+	/// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
+
+    /// <summary>
+	/// モデルの読み込み(共有)
+    /// </summary>
+    static void LoadModel();
+
+    /// <summary>
+	/// モデルの解放(共有)
+    /// </summary>
+    static void DeleteModel();
 
 private:
     /// <summary>
@@ -112,4 +118,6 @@ private:
     bool m_isAttackHit;       // 攻撃がヒットしたかどうか
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
     bool m_isItemDropped;     // アイテムドロップ済みフラグ
+
+    static int s_modelHandle; // 共有モデルハンドル
 };

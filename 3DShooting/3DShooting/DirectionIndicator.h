@@ -5,6 +5,9 @@
 class Player;
 class EnemyBase;
 
+/// <summary>
+/// 方向インジケータークラス
+/// </summary>
 class DirectionIndicator
 {
 public:

@@ -283,7 +283,7 @@ Player::Player() :
 	m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
 	assert(m_tackleSEHandle != -1);
 	m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
-	assert(m_ammoItemSEHandle != -1);
+	assert(m_recoverySEHandle != -1);
 
     // フォントの作成
     m_fontHandle = CreateFontToHandle(kDefaultFontName, kAmmoFont, kDefaultFontThickness, kDefaultFontType);

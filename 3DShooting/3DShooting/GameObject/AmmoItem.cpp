@@ -42,20 +42,13 @@ AmmoItem::~AmmoItem()
 
 void AmmoItem::LoadModel()
 {
-	if (s_modelHandle == -1)
-	{
-		s_modelHandle = MV1LoadModel("data/model/AmmoBox.mv1");
-		assert(s_modelHandle != -1);
-	}
+	s_modelHandle = MV1LoadModel("data/model/AmmoBox.mv1");
+	assert(s_modelHandle != -1);
 }
 
 void AmmoItem::DeleteModel()
 {
-	if (s_modelHandle != -1)
-	{
-		MV1DeleteModel(s_modelHandle);
-		s_modelHandle = -1;
-	}
+	MV1DeleteModel(s_modelHandle);
 }
 
 void AmmoItem::Init()

@@ -36,8 +36,12 @@ namespace
     // 追跡関連
     constexpr float kChaseSpeed        = 2.0f; // 追跡速度
     constexpr float kChaseStopDistance = 50;   // 追跡停止距離
-	constexpr int   kAttackEndDelay    = 55;   // 攻撃後の硬直時間
+
+    // 攻撃後の硬直時間
+	constexpr int kAttackEndDelay = 20; 
 }
+
+int EnemyNormal::s_modelHandle = -1;
 
 EnemyNormal::EnemyNormal() :
     m_headPosOffset{ kHeadShotPositionOffset },
@@ -52,9 +56,8 @@ EnemyNormal::EnemyNormal() :
 	m_chaseSpeed(kChaseSpeed),
 	m_isItemDropped(false)
 {
-    // モデルの読み込み
-    m_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
-    assert(m_modelHandle != -1);
+    // モデルの複製
+    m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
     // コライダーの初期化
     m_pBodyCollider        = std::make_shared<CapsuleCollider>();
@@ -65,6 +68,19 @@ EnemyNormal::EnemyNormal() :
 
 EnemyNormal::~EnemyNormal()
 {
+	// モデルの解放
+    MV1DeleteModel(m_modelHandle);
+}
+
+void EnemyNormal::LoadModel()
+{
+    s_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
+    assert(s_modelHandle != -1);
+}
+
+void EnemyNormal::DeleteModel()
+{
+    MV1DeleteModel(s_modelHandle);
 }
 
 void EnemyNormal::Init()
@@ -91,12 +107,13 @@ void EnemyNormal::Init()
             break;
         }
     }
-    
 
     // ここで一度「絶対にWalkでない値」にリセット
-    m_currentAnimState = AnimState::Dead;
+    // 初期アニメーションを強制的に再生させるため
+	m_currentAnimState = AnimState::Dead; 
 
-    ChangeAnimation(AnimState::Walk, true); // 初期化時に歩行アニメーションを開始
+    // 初期化時に歩行アニメーションを開始
+    ChangeAnimation(AnimState::Walk, true); 
 }
 
 // アニメーションを変更する
@@ -143,7 +160,7 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
 // プレイヤーに攻撃可能かどうかを判定
 bool EnemyNormal::CanAttackPlayer(const Player& player)
 {
-    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+    int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R"); 
     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
     if (handRIndex == -1 || handLIndex == -1) return false;
 
@@ -157,12 +174,6 @@ bool EnemyNormal::CanAttackPlayer(const Player& player)
     return m_pAttackHitCollider->IsIntersects(playerBodyCollider.get());
 }
 
-// モデルハンドルを設定する
-void EnemyNormal::SetModelHandle(int handle)
-{
-    MV1DeleteModel(m_modelHandle);
-    m_modelHandle = MV1DuplicateModel(handle);
-}
 
 void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
 {
@@ -290,8 +301,8 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         }
     }
 
-    // アニメーション時間の更新
-    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) // アニメーションがアタッチされている場合のみ時間を更新
+    // アニメーションがアタッチされている場合のみ時間を更新
+    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
     {
         m_animTime += 1.0f;
 
@@ -301,7 +312,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
         if (m_currentAnimState == AnimState::Attack)
         {
-            // ここは何もしない（歩行アニメーションへの遷移はディレイタイマーでのみ行う）
+            // ここは何もしない
         }
         else if (m_currentAnimState == AnimState::Dead)
         {
@@ -562,7 +573,7 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTO
     return HitPart::None;
 }
 
-// ダメージ計算処理
+// 部位ごとのダメージ計算処理
 float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
 {
     if (part == HitPart::Head)
@@ -576,12 +587,13 @@ float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
     return 0.0f;
 }
 
-// アイテムドロップ時のコールバック関数を設定する
+// アイテムドロップ時のコールバック関数
 void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
 
+// ダメージ処理
 void EnemyNormal::TakeDamage(float damage)
 {
     EnemyBase::TakeDamage(damage);
@@ -598,6 +610,7 @@ void EnemyNormal::TakeDamage(float damage)
     }
 }
 
+// タックル攻撃のダメージ処理
 void EnemyNormal::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);

@@ -41,6 +41,8 @@ namespace
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 }
 
+int EnemyAcid::s_modelHandle = -1;
+
 EnemyAcid::EnemyAcid() :
     m_headPosOffset{ kHeadShotPositionOffset },
     m_animTime(0.0f),
@@ -52,9 +54,8 @@ EnemyAcid::EnemyAcid() :
 	m_backAnimCount(0),
 	m_isItemDropped(false)
 {
-	// モデルの読み込み
-    m_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
-    assert(m_modelHandle != -1);
+	// モデルの複製
+    m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
     // コライダーの初期化
     m_pBodyCollider        = std::make_shared<CapsuleCollider>();
@@ -70,6 +71,19 @@ EnemyAcid::EnemyAcid() :
 
 EnemyAcid::~EnemyAcid()
 {
+	// モデルの解放
+    MV1DeleteModel(m_modelHandle);
+}
+
+void EnemyAcid::LoadModel() 
+{
+    s_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
+    assert(s_modelHandle != -1);
+}
+
+void EnemyAcid::DeleteModel()
+{
+    MV1DeleteModel(s_modelHandle);
 }
 
 void EnemyAcid::Init()
@@ -80,7 +94,6 @@ void EnemyAcid::Init()
 
     m_isAlive = true;
     m_isDeadAnimPlaying = false;
-    m_isItemDropped = false;
 
     // CSVからAcidEnemyのTransform情報を取得
     auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -98,7 +111,8 @@ void EnemyAcid::Init()
     }
     
     // ここで一度「絶対にRunでない値」にリセット
-    m_currentAnimState = AnimState::Dead; // 初期アニメーションを強制的に再生させるため
+    // 初期アニメーションを強制的に再生させるため
+	m_currentAnimState = AnimState::Dead;
 
     // 初期化時に歩行アニメーションを開始
     ChangeAnimation(AnimState::Walk, true); 
@@ -203,7 +217,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     {
         if (!m_isDeadAnimPlaying) 
         {
-            // スコア加算処理はTakeDamageで行うのでここでは不要
             ChangeAnimation(AnimState::Dead, false);
             m_isDeadAnimPlaying = true;
             m_animTime = 0.0f; // アニメーション時間をリセット
@@ -220,7 +233,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
         if (m_animTime >= currentAnimTotalTime) 
         {
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
+            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
             {
                 MV1DetachAnim(m_modelHandle, 0);
                 m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
@@ -519,11 +532,13 @@ void EnemyAcid::DrawCollisionDebug() const
 #endif
 }
 
+// どこに当たったのか判定する
 EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
-    VECTOR hitPosHead, hitPosBody;
-    float hitDistSqHead = FLT_MAX;
-    float hitDistSqBody = FLT_MAX;
+    
+	VECTOR hitPosHead, hitPosBody; // 当たった位置
+	float hitDistSqHead = FLT_MAX;
+    float hitDistSqBody = FLT_MAX; 
 
     // 頭のフレーム位置を取得してコライダー中心に設定
     int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
@@ -535,7 +550,7 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     // モデルのHipsフレームの位置を取得してボディコライダーの基点とする
     int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
     VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
-
+    
     VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight * 0.5f, 0));
     VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight * 0.5f, 0));
     m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
@@ -577,6 +592,7 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     return HitPart::None;
 }
 
+// 部位ごとのダメージ計算
 float EnemyAcid::CalcDamage(float bulletDamage, HitPart part) const
 {
     if (part == HitPart::Head)
@@ -590,17 +606,14 @@ float EnemyAcid::CalcDamage(float bulletDamage, HitPart part) const
     return 0.0f;
 }
 
+// アイテムドロップ時のコールバック関数
 void EnemyAcid::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
 
-void EnemyAcid::SetModelHandle(int handle)
-{
-    MV1DeleteModel(m_modelHandle);
-    m_modelHandle = MV1DuplicateModel(handle);
-}
 
+// ダメージ処理
 void EnemyAcid::TakeDamage(float damage)
 {
     EnemyBase::TakeDamage(damage);
@@ -619,6 +632,7 @@ void EnemyAcid::TakeDamage(float damage)
     }
 }
 
+// タックル攻撃のダメージ処理
 void EnemyAcid::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);

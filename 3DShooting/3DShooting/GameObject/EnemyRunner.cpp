@@ -31,11 +31,12 @@ namespace
 
 	// 追跡関連
 	constexpr int   kAttackEndDelay = 10; 
-	// 追跡速度
 	constexpr float kChaseSpeed = 4.0f; // 走る敵の追跡速度
 
 	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; 
 }
+
+int EnemyRunner::s_modelHandle = -1;
 
 EnemyRunner::EnemyRunner() :
 	m_headPosOffset{ kHeadShotPositionOffset },
@@ -50,9 +51,8 @@ EnemyRunner::EnemyRunner() :
 	m_chaseSpeed(kChaseSpeed),
 	m_isItemDropped(false)
 {
-	// モデルの読み込み
-	m_modelHandle = MV1LoadModel("data/model/RunnerZombie.mv1");
-	assert(m_modelHandle != -1);
+	// モデルの複製
+	m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
 	// コライダーの初期化
 	m_pBodyCollider		   = std::make_shared<CapsuleCollider>();
@@ -63,6 +63,19 @@ EnemyRunner::EnemyRunner() :
 
 EnemyRunner::~EnemyRunner()
 {
+	// モデルの解放
+    MV1DeleteModel(m_modelHandle);
+}
+
+void EnemyRunner::LoadModel()
+{
+    s_modelHandle = MV1LoadModel("data/model/RunnerZombie.mv1");
+    assert(s_modelHandle != -1);
+}
+
+void EnemyRunner::DeleteModel()
+{
+    MV1DeleteModel(s_modelHandle);
 }
 
 void EnemyRunner::Init()
@@ -85,7 +98,11 @@ void EnemyRunner::Init()
         }
     }
 
+	// ここで一度「絶対にWalkでない値」にリセット
+    // 初期アニメーションを強制的に再生させるため
     m_currentAnimState = AnimState::Dead;
+
+	// 初期化時に走行アニメーションを開始
     ChangeAnimation(AnimState::Run, true);
 }
 
@@ -528,6 +545,7 @@ EnemyBase::HitPart EnemyRunner::CheckHitPart(const VECTOR& rayStart, const VECTO
 	return HitPart::None;
 }
 
+// 部位ごとのダメージ計算
 float EnemyRunner::CalcDamage(float bulletDamage, HitPart part) const
 {
 	if (part == HitPart::Head)
@@ -541,17 +559,13 @@ float EnemyRunner::CalcDamage(float bulletDamage, HitPart part) const
 	return 0.0f;
 }
 
+// アイテムドロップ時のコールバック関数
 void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
 	m_onDropItem = cb;
 }
 
-void EnemyRunner::SetModelHandle(int handle)
-{
-    MV1DeleteModel(m_modelHandle);
-    m_modelHandle = MV1DuplicateModel(handle);
-}
-
+// ダメージ処理
 void EnemyRunner::TakeDamage(float damage)
 {
     EnemyBase::TakeDamage(damage);
@@ -570,6 +584,7 @@ void EnemyRunner::TakeDamage(float damage)
     }
 }
 
+// タックル攻撃のダメージ処理
 void EnemyRunner::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);

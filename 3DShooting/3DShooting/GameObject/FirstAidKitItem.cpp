@@ -43,20 +43,13 @@ FirstAidKitItem::~FirstAidKitItem()
 
 void FirstAidKitItem::LoadModel()
 {
-	if (s_modelHandle == -1)
-	{
-		s_modelHandle = MV1LoadModel("data/model/FirstAidKit.mv1");
-		assert(s_modelHandle != -1);
-	}
+	s_modelHandle = MV1LoadModel("data/model/FirstAidKit.mv1");
+	assert(s_modelHandle != -1);
 }
 
 void FirstAidKitItem::DeleteModel()
 {
-	if (s_modelHandle != -1)
-	{
-		MV1DeleteModel(s_modelHandle);
-		s_modelHandle = -1;
-	}
+	MV1DeleteModel(s_modelHandle);
 }
 
 void FirstAidKitItem::Init()

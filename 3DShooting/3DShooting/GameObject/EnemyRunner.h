@@ -49,29 +49,20 @@ public:
 	/// タックルダメージを受ける処理
 	/// </summary>
 	void ResetTackleHitFlag() { m_isTackleHit = false; }
-
+	
 	/// <summary>
 	/// アイテムドロップ時のコールバック関数を設定する
 	/// </summary>
 	/// <param name="cb">コールバック関数</param>
 	void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
-
-	/// <summary>
-	/// モデルハンドルを設定する
-	/// </summary>
-	/// <param name="handle">モデルハンドル</param>
-	void SetModelHandle(int handle);
-
-	/// <summary>
-	/// モデルハンドルを取得する
-	/// </summary>
-	/// <returns>モデルハンドル</returns>
-	int GetModelHandle() const { return m_modelHandle; }
-
+	
 	// ダメージ処理
 	void TakeDamage(float damage) override;
 	void TakeTackleDamage(float damage) override;
-
+	
+	static void LoadModel();
+	static void DeleteModel();
+	
 private:
 	/// <summary>
 	/// アニメーションを変更する
@@ -79,17 +70,17 @@ private:
 	/// <param name="newAnimState">新しいアニメーション状態</param>
 	/// <param name="loop">ループ再生するかどうか</param>
 	void ChangeAnimation(AnimState newAnimState, bool loop);
-
+	
 	/// <summary>
 	/// プレイヤーに攻撃可能かどうかを判定
 	/// </summary>
 	/// <param name="player">プレイヤーオブジェクト</param>
 	/// <returns>攻撃可能ならtrue</returns>
 	bool CanAttackPlayer(const Player& player);
-
+	
 private:
 	VECTOR m_headPosOffset; // ヘッドショット判定用座標
-
+	
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
 	std::shared_ptr<SphereCollider>  m_pHeadCollider;  // 頭のコライダー
 	std::shared_ptr<SphereCollider>  m_pAttackRangeCollider; // 攻撃範囲のコライダー
@@ -97,18 +88,20 @@ private:
 
 	// アイテムドロップ時のコールバック関数
 	std::function<void(const VECTOR&)> m_onDropItem;
-
+	
 	AnimState m_currentAnimState;	     // 現在のアニメーション状態
 	AnimationManager m_animationManager; // EnemyRunnerがアニメーションマネージャーを所有
-
+	
 	int m_lastTackleId;        // 最後にタックルを受けたID
 	int m_attackEndDelayTimer; // 攻撃終了までの遅延タイマー
-
+	
 	float m_animTime;   // アニメーションの経過時間
 	float m_chaseSpeed; // 追跡速度
-
+	
 	bool m_isTackleHit;		  // 1フレームで複数回ダメージを受けないためのフラグ
 	bool m_isAttackHit;	      // 攻撃がヒットしたかどうか
 	bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
 	bool m_isItemDropped;     // アイテムドロップ済みフラグ
+	
+    static int s_modelHandle; // 共有モデルハンドル
 };

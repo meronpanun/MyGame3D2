@@ -67,15 +67,10 @@ WaveManager::WaveManager() :
     m_waveImageAnimInitialHoldDuration(30),
     m_isWaveImageAnimating(false)
 {
-    // 敵のテンプレートを作成
-    m_pEnemyNormalTemplate = std::make_shared<EnemyNormal>();
-    m_pEnemyNormalTemplate->Init();
-
-    m_pEnemyRunnerTemplate = std::make_shared<EnemyRunner>();
-    m_pEnemyRunnerTemplate->Init();
-
-    m_pEnemyAcidTemplate = std::make_shared<EnemyAcid>();
-    m_pEnemyAcidTemplate->Init();
+    // 敵のモデルをロード
+    EnemyNormal::LoadModel();
+    EnemyRunner::LoadModel();
+    EnemyAcid::LoadModel();
 
     // ウェーブ画像の読み込み
     m_waveImages[0] = LoadGraph("data/image/wave1.png");
@@ -85,6 +80,11 @@ WaveManager::WaveManager() :
 
 WaveManager::~WaveManager()
 {
+    // 敵のモデルを解放
+    EnemyNormal::DeleteModel();
+    EnemyRunner::DeleteModel();
+    EnemyAcid::DeleteModel();
+
 	// 画像の解放
 	for (int i = 0; i < 3; ++i)
 	{
@@ -102,58 +102,41 @@ void WaveManager::Init()
     m_enemyList.clear();
     m_spawnInfoList.clear();
 
-    // 敵のテンプレートを初期化
-    if (m_pEnemyNormalTemplate)
-    {
-        m_pEnemyNormalTemplate->Init();
-    }
-    if (m_pEnemyRunnerTemplate)
-    {
-        m_pEnemyRunnerTemplate->Init();
-    }
-    if (m_pEnemyAcidTemplate)
-    {
-        m_pEnemyAcidTemplate->Init();
-    }
-
-	// ウェーブデータをロード
+    // ウェーブデータをロード
     LoadWaveData();
 
     // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
     std::map<int, int> normalPerWave, runnerPerWave, acidPerWave;
-    for (const auto& wave : m_waveDataList) 
+    for (const auto& wave : m_waveDataList)
     {
         if (wave.enemyType == "NormalEnemy") normalPerWave[wave.wave] += wave.count;
         if (wave.enemyType == "RunnerEnemy") runnerPerWave[wave.wave] += wave.count;
-        if (wave.enemyType == "AcidEnemy")   acidPerWave[wave.wave]   += wave.count;
+        if (wave.enemyType == "AcidEnemy")   acidPerWave[wave.wave] += wave.count;
     }
     int maxNormal = 0, maxRunner = 0, maxAcid = 0;
-	// 各ウェーブでの最大出現数を計算
+    // 各ウェーブでの最大出現数を計算
     for (const auto& [wave, cnt] : normalPerWave) maxNormal = (std::max)(maxNormal, cnt);
     for (const auto& [wave, cnt] : runnerPerWave) maxRunner = (std::max)(maxRunner, cnt);
-    for (const auto& [wave, cnt] : acidPerWave)   maxAcid   = (std::max)(maxAcid, cnt);
+    for (const auto& [wave, cnt] : acidPerWave)   maxAcid = (std::max)(maxAcid, cnt);
 
     // その数だけ各プールを確保
-    for (int i = m_enemyNormalPool.size(); i < maxNormal; ++i) 
+    for (int i = m_enemyNormalPool.size(); i < maxNormal; ++i)
     {
         auto pEnemy = std::make_shared<EnemyNormal>();
-        if (m_pEnemyNormalTemplate) pEnemy->SetModelHandle(m_pEnemyNormalTemplate->GetModelHandle());
         pEnemy->Init();
         pEnemy->SetActive(false);
         m_enemyNormalPool.push_back(pEnemy);
     }
-    for (int i = m_enemyRunnerPool.size(); i < maxRunner; ++i) 
+    for (int i = m_enemyRunnerPool.size(); i < maxRunner; ++i)
     {
         auto pEnemy = std::make_shared<EnemyRunner>();
-        if (m_pEnemyRunnerTemplate) pEnemy->SetModelHandle(m_pEnemyRunnerTemplate->GetModelHandle());
         pEnemy->Init();
         pEnemy->SetActive(false);
         m_enemyRunnerPool.push_back(pEnemy);
     }
-    for (int i = m_enemyAcidPool.size(); i < maxAcid; ++i) 
+    for (int i = m_enemyAcidPool.size(); i < maxAcid; ++i)
     {
         auto pEnemy = std::make_shared<EnemyAcid>();
-        if (m_pEnemyAcidTemplate) pEnemy->SetModelHandle(m_pEnemyAcidTemplate->GetModelHandle());
         pEnemy->Init();
         pEnemy->SetActive(false);
         m_enemyAcidPool.push_back(pEnemy);
@@ -209,6 +192,7 @@ void WaveManager::Init()
         }
     });
 }
+
 
 void WaveManager::Update()
 {
@@ -291,19 +275,6 @@ void WaveManager::Update()
 // GetEnemyListをアクティブな敵のみ返すようにする
 void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, Effect* pEffect)
 {
-    // 死亡時コールバックを毎フレーム再設定（プール再利用対策）
-    auto deathTypeCallback = [this](const VECTOR& pos, EnemyBase::LastDamageType type) {
-        if (m_currentWave == 1)
-        {
-            if (type == EnemyBase::LastDamageType::Shot)   m_isShotTutorialCleared   = true;
-            if (type == EnemyBase::LastDamageType::Tackle) m_isTackleTutorialCleared = true;
-        }
-    };
-	// 各敵プールの死亡時コールバックを設定
-    for (auto& enemy : m_enemyNormalPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
-    for (auto& enemy : m_enemyRunnerPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
-    for (auto& enemy : m_enemyAcidPool)   enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
-
     VECTOR playerPos = player.GetPos();
     // アクティブな敵リストを作成
     std::vector<EnemyBase*> activeEnemies;
@@ -642,10 +613,6 @@ std::shared_ptr<EnemyNormal> WaveManager::GetPooledNormalEnemy()
 
     // プールに空きがなければ新規生成
     auto pEnemy = std::make_shared<EnemyNormal>();
-    if (m_pEnemyNormalTemplate) 
-    {
-        pEnemy->SetModelHandle(m_pEnemyNormalTemplate->GetModelHandle());
-    }
     pEnemy->Init();
     m_enemyNormalPool.push_back(pEnemy);
     return pEnemy;
@@ -665,10 +632,6 @@ std::shared_ptr<EnemyRunner> WaveManager::GetPooledRunnerEnemy()
 
 	// プールに空きがなければ新規生成
     auto pEnemy = std::make_shared<EnemyRunner>();
-    if (m_pEnemyRunnerTemplate) 
-    {
-        pEnemy->SetModelHandle(m_pEnemyRunnerTemplate->GetModelHandle());
-    }
     pEnemy->Init();
     m_enemyRunnerPool.push_back(pEnemy);
     return pEnemy;
@@ -688,10 +651,6 @@ std::shared_ptr<EnemyAcid> WaveManager::GetPooledAcidEnemy()
 
 	// プールに空きがなければ新規生成
     auto pEnemy = std::make_shared<EnemyAcid>();
-    if (m_pEnemyAcidTemplate) 
-    {
-        pEnemy->SetModelHandle(m_pEnemyAcidTemplate->GetModelHandle());
-    }
     pEnemy->Init();
     m_enemyAcidPool.push_back(pEnemy);
     return pEnemy;
@@ -856,4 +815,31 @@ void WaveManager::DrawDebugInfo()
     char totalEnemyInfo[256];
     sprintf_s(totalEnemyInfo, "Total:%d", m_totalSpawnedCount);
     DrawString(kDebugInfoPosX + kDebugInfoSpacing * 4, kDebugInfoPosY, totalEnemyInfo, 0xffffff);
+}
+
+int WaveManager::GetAliveEnemyCount() const
+{
+    int aliveCount = 0;
+    for (const auto& pEnemy : m_enemyNormalPool)
+    {
+        if (pEnemy->IsActive() && pEnemy->IsAlive())
+        {
+            aliveCount++;
+        }
+    }
+    for (const auto& pEnemy : m_enemyRunnerPool)
+    {
+        if (pEnemy->IsActive() && pEnemy->IsAlive())
+        {
+            aliveCount++;
+        }
+    }
+    for (const auto& pEnemy : m_enemyAcidPool)
+    {
+        if (pEnemy->IsActive() && pEnemy->IsAlive())
+        {
+            aliveCount++;
+        }
+    }
+    return aliveCount;
 }

@@ -69,7 +69,6 @@ public:
 		Tackle
 	};
 
-	virtual void SetModelHandle(int handle) {}
 	virtual int GetModelHandle() const { return -1; }
 
 	/// <summary>

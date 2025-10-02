@@ -135,6 +135,12 @@ public:
 	/// <returns>タックルチュートリアルがクリアされていればtrue</returns>
     bool IsTackleTutorialCleared() const { return m_isTackleTutorialCleared; }
 
+    /// <summary>
+    /// 生存している敵の数を取得
+    /// </summary>
+    /// <returns>生存している敵の数</returns>
+    int GetAliveEnemyCount() const;
+
 private:
     /// <summary>
 	/// ウェーブデータを読み込む
@@ -186,11 +192,6 @@ private:
 
     // 敵のパラメータを保持
     std::vector<ObjectTransformData> m_enemyData; 
-
-    // 敵のテンプレート
-    std::shared_ptr<EnemyNormal> m_pEnemyNormalTemplate;
-    std::shared_ptr<EnemyRunner> m_pEnemyRunnerTemplate;
-    std::shared_ptr<EnemyAcid>   m_pEnemyAcidTemplate;
 
 	// 敵のプール
     std::vector<std::shared_ptr<EnemyNormal>> m_enemyNormalPool;
