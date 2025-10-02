@@ -396,7 +396,7 @@
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\Player.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\Player.cpp",
               "RelativeToolTip": "3DShooting\\GameObject\\Player.cpp",
-              "ViewState": "AgIAAJkCAAAAAAAAAAArwC8EAAANAAAAAAAAAA==",
+              "ViewState": "AgIAABYEAAAAAAAAAAArwCwEAABHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-09-09T04:54:25.216Z",
               "EditorCaption": ""
@@ -423,8 +423,7 @@
               "RelativeToolTip": "3DShooting\\TutorialManager.cpp",
               "ViewState": "AgIAAMUAAAAAAAAAAAArwCkAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-12T02:23:56.649Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-12T02:23:56.649Z"
             },
             {
               "$type": "Document",
@@ -436,8 +435,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.cpp",
               "ViewState": "AgIAAPoBAAAAAAAAAAArwA8CAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T05:09:25.577Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:09:25.577Z"
             },
             {
               "$type": "Document",

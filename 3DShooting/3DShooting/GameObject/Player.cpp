@@ -1050,15 +1050,24 @@ void Player::Draw()
     // 背景
     DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg, true);
 
-    // ダメージ分（アニメーション中の減少分）
-    if (hpAnim > hp) 
-	{
+    // HPバー本体（実際の体力を反映）
+    DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
+
+    // アニメーションバー（ゴーストバー）
+    if (m_healthBarAnim > m_health)
+    {
+        // ダメージ時（黄色いバー）
         int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
         int animEnd   = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
         DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage, true);
     }
-    // HPバー本体
-    DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
+    else if (m_healthBarAnim < m_health)
+    {
+        // 回復時（明るい緑のバー）
+        int animStart = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
+        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpRate);
+        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, 0x90EE90, true);
+    }
 
     // 枠
     DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
