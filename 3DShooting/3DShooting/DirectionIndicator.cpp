@@ -12,19 +12,26 @@ namespace
 	constexpr float kIndicatorRadius = 150.0f;
 }
 
-DirectionIndicator::DirectionIndicator() :
-    m_pPlayer(nullptr),
-    m_indicatorImage(-1)
+int DirectionIndicator::s_indicatorImage = -1;
+
+void DirectionIndicator::LoadResources()
 {
-	// 画像の読み込み
-    m_indicatorImage = LoadGraph("data/image/DirectionIndicator.png");
-	assert(m_indicatorImage != -1);
+    s_indicatorImage = LoadGraph("data/image/DirectionIndicator.png");
+	assert(s_indicatorImage != -1);
+}
+
+void DirectionIndicator::DeleteResources()
+{
+    DeleteGraph(s_indicatorImage);
+}
+
+DirectionIndicator::DirectionIndicator() :
+    m_pPlayer(nullptr)
+{
 }
 
 DirectionIndicator::~DirectionIndicator()
 {
-	// 画像の解放
-    DeleteGraph(m_indicatorImage);
 }
 
 void DirectionIndicator::Init(Player* player)
@@ -58,7 +65,7 @@ void DirectionIndicator::Update(const std::vector<std::shared_ptr<EnemyBase>>& e
 void DirectionIndicator::Draw()
 {
     // プレイヤーが存在しないか、敵がいない場合は描画しない
-	if (!m_pPlayer || m_allEnemyPositions.empty() || m_indicatorImage == -1) return; 
+	if (!m_pPlayer || m_allEnemyPositions.empty() || s_indicatorImage == -1) return; 
 
 	// カメラの取得
     const auto& camera = m_pPlayer->GetCamera();
@@ -94,6 +101,6 @@ void DirectionIndicator::Draw()
         float indicatorY = centerY - kIndicatorRadius * cos(angle);
 
         // インジケーターを描画
-        DrawRotaGraphF(indicatorX, indicatorY, 0.1, angle, m_indicatorImage, true);
+        DrawRotaGraphF(indicatorX, indicatorY, 0.1, angle, s_indicatorImage, true);
     }
 }

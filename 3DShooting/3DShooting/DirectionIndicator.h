@@ -18,8 +18,18 @@ public:
     void Update(const std::vector<std::shared_ptr<EnemyBase>>& enemies);
     void Draw();
 
+    /// <summary>
+	/// 共有リソースの読み込み
+    /// </summary>
+    static void LoadResources(); 
+
+    /// <summary>
+    /// 
+    /// </summary>
+    static void DeleteResources();
+
 private:
     Player* m_pPlayer;
 	std::vector<Vec3> m_allEnemyPositions; // 全ての敵の位置
-	int m_indicatorImage; // 方向インジケーターの画像ハンドル
+	static int s_indicatorImage; // 方向インジケーターの画像ハンドル
 };

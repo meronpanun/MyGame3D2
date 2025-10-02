@@ -135,13 +135,15 @@ SceneMain::~SceneMain()
     MV1DeleteModel(m_skyDomeHandle);    
 	DeleteGraph(m_dotHandle);
 
-	// アイテムモデルの解放
-	FirstAidKitItem::DeleteModel();
-	AmmoItem::DeleteModel();
-
-    // BGMの解放
-    DeleteSoundMem(m_bgmHandle);
-
+	    // アイテムモデルの解放
+		FirstAidKitItem::DeleteModel();
+		AmmoItem::DeleteModel();
+	
+	    // インジケーター画像の解放
+	    DirectionIndicator::DeleteResources();
+	
+	    // BGMの解放
+	    DeleteSoundMem(m_bgmHandle);
     // フォントの解放
     DeleteFontToHandle(m_scoreFontHandle);
 }
@@ -159,6 +161,9 @@ void SceneMain::Init()
     // アイテムモデルの読み込み
 	FirstAidKitItem::LoadModel();
 	AmmoItem::LoadModel();
+
+    // インジケーター画像の読み込み
+    DirectionIndicator::LoadResources();
 
     // 重いリソースの非同期読み込みを開始
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
