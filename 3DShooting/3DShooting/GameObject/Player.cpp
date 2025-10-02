@@ -674,15 +674,27 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 
-	// HPバーアニメーション（ダメージ分を徐々に減らす）
-	if (m_healthBarAnim > m_health) 
+	// HPバーアニメーション
+	if (m_healthBarAnim != m_health)
 	{
-		m_healthBarAnim -= kHpBarAnimSpeed;
-		if (m_healthBarAnim < m_health) m_healthBarAnim = m_health;
-	} 
-	else 
-	{
-		m_healthBarAnim = m_health;
+		if (m_healthBarAnim > m_health)
+		{
+			// ダメージ: アニメーション値を減少させる
+			m_healthBarAnim -= kHpBarAnimSpeed;
+			if (m_healthBarAnim < m_health)
+			{
+				m_healthBarAnim = m_health;
+			}
+		}
+		else
+		{
+			// 回復: アニメーション値を増加させる
+			m_healthBarAnim += kHpBarAnimSpeed;
+			if (m_healthBarAnim > m_health)
+			{
+				m_healthBarAnim = m_health;
+			}
+		}
 	}
 
 	// 弾薬低下の警告表示処理
@@ -1052,7 +1064,7 @@ void Player::Draw()
     DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
 
     // HP数値
-    DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f / %.0f", hp, kMaxHp);
+    DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f", m_healthBarAnim);
 
 	// ダメージエフェクト描画
 	DrawEffectFeedback(m_damageEffect);
