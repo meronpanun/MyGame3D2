@@ -31,7 +31,6 @@ namespace
 
 	// 追跡関連
 	constexpr int   kAttackEndDelay = 10; 
-	constexpr float kChaseSpeed = 4.0f; // 走る敵の追跡速度
 
 	constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; 
 }
@@ -48,7 +47,7 @@ EnemyRunner::EnemyRunner() :
 	m_currentAnimState(AnimState::Run),
 	m_attackEndDelayTimer(0),
 	m_isDeadAnimPlaying(false),
-	m_chaseSpeed(kChaseSpeed),
+	m_chaseSpeed(0.0f),
 	m_isItemDropped(false)
 {
 	// モデルの複製

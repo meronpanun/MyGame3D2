@@ -34,7 +34,6 @@ namespace
     constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
 
     // 追跡関連
-    constexpr float kChaseSpeed        = 2.0f; // 追跡速度
     constexpr float kChaseStopDistance = 50;   // 追跡停止距離
 
     // 攻撃後の硬直時間
@@ -53,7 +52,7 @@ EnemyNormal::EnemyNormal() :
     m_currentAnimState(AnimState::Walk),
     m_attackEndDelayTimer(0),
     m_isDeadAnimPlaying(false),
-	m_chaseSpeed(kChaseSpeed),
+	m_chaseSpeed(0.0f),
 	m_isItemDropped(false)
 {
     // モデルの複製
@@ -247,7 +246,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         {
             VECTOR dir = VNorm(toPlayer);
             float moveDist = disToPlayer - kChaseStopDistance;
-            float step = (std::min)(moveDist, kChaseSpeed); // 1フレームで進みすぎない
+            float step = (std::min)(moveDist, m_chaseSpeed); // 1フレームで進みすぎない
             m_pos.x += dir.x * step;
             m_pos.z += dir.z * step;
         }

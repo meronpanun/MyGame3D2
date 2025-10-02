@@ -37,7 +37,6 @@ namespace
     constexpr int   kAttackEndDelay    = 30;      // 攻撃後の硬直時間
 
     // 追跡関連（遠距離型なので、近づきすぎたら離れる）
-    constexpr float kChaseSpeed = 2.0f; // 追跡速度
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 }
 
@@ -52,7 +51,8 @@ EnemyAcid::EnemyAcid() :
     m_attackEndDelayTimer(0),
     m_acidBulletSpawnOffset({ 0.0f, 100.0f, 0.0f }),
 	m_backAnimCount(0),
-	m_isItemDropped(false)
+	m_isItemDropped(false),
+	m_chaseSpeed(0.0f)
 {
 	// モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -344,8 +344,8 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 ChangeAnimation(AnimState::Back, true);
             }
             VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
-            m_pos.x += dirAway.x * kChaseSpeed;
-            m_pos.z += dirAway.z * kChaseSpeed;
+            m_pos.x += dirAway.x * m_chaseSpeed;
+            m_pos.z += dirAway.z * m_chaseSpeed;
         }
         else
         {
@@ -366,8 +366,8 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             ChangeAnimation(AnimState::Walk, true);
         }
         VECTOR dirTowards = VNorm(VSub(playerPos, m_pos));
-        m_pos.x += dirTowards.x * kChaseSpeed;
-        m_pos.z += dirTowards.z * kChaseSpeed;
+        m_pos.x += dirTowards.x * m_chaseSpeed;
+        m_pos.z += dirTowards.z * m_chaseSpeed;
     }
 
     // 攻撃アニメーション中の酸弾発射タイミング

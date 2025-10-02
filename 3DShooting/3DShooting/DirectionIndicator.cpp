@@ -84,8 +84,8 @@ void DirectionIndicator::Draw()
 		dirToEnemy.Normalize();
 
         // プレイヤー前方ベクトルと敵への方向ベクトルのなす角度を計算
-		// atan2を使って、右回りを正とする角度を求める
-        float angle = atan2(dirToEnemy.x * playerForward.z - dirToEnemy.z * playerForward.x, 
+		// atan2を使用して、-πからπの範囲で角度を取得
+        float angle = atan2(dirToEnemy.x * playerForward.z - dirToEnemy.z * playerForward.x,  
                               dirToEnemy.x * playerForward.x + dirToEnemy.z * playerForward.z);
 
         // インジケーターの位置を計算
