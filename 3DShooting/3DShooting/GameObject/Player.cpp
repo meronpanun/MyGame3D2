@@ -234,10 +234,11 @@ Player::Player() :
     m_showNoAmmoWarning(false),
 	m_isLowHealth(false),
 	m_lowHealthBlinkTimer(0.0f),
-    m_gunSwayOffset(VGet(0, 0, 0)),
-    m_gunSwayRotOffset(VGet(0, 0, 0)),
-    m_swordSwayOffset(VGet(0, 0, 0)),
-    m_swordSwayRotOffset(VGet(0, 0, 0))
+	m_ammoTextFlashTimer(0.0f),
+	m_gunSwayOffset(VGet(0, 0, 0)),
+	m_gunSwayRotOffset(VGet(0, 0, 0)),
+	m_swordSwayOffset(VGet(0, 0, 0)),
+	m_swordSwayRotOffset(VGet(0, 0, 0))
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -751,6 +752,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_ammoEffect.alpha -= 1.0f / m_ammoEffect.duration;
 		if (m_ammoEffect.alpha < 0) m_ammoEffect.alpha = 0;
 	}
+
+	// 残弾数テキストのフラッシュタイマー更新
+    if (m_ammoTextFlashTimer > 0.0f)
+    {
+        m_ammoTextFlashTimer -= 1.0f;
+    }
 }
 
 void Player::Draw()
@@ -805,8 +812,32 @@ void Player::Draw()
 	}
 	else
 	{
-		// 弾薬が少ない場合は赤色で表示
+		// デフォルトの色を決定
 		int textColor = m_isLowAmmo ? kColorLowAmmo : kColorWhite;
+
+		// フラッシュタイマーが作動中なら色を補間
+		if (m_ammoTextFlashTimer > 0.0f)
+		{
+			float flashProgress = m_ammoTextFlashTimer / 60.0f;
+
+			// ターゲットの色（デフォルト色）のRGB成分
+			int targetR = (textColor >> 16) & 0xFF;
+			int targetG = (textColor >> 8) & 0xFF;
+			int targetB = textColor & 0xFF;
+
+			// フラッシュの色（黄色）のRGB成分
+			int flashR = 255;
+			int flashG = 255;
+			int flashB = 0;
+
+			// 線形補間
+			int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
+			int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
+			int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
+
+			textColor = GetColor(currentR, currentG, currentB);
+		}
+
 		DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
 	}
 
@@ -1231,4 +1262,5 @@ void Player::AddAmmo(int value)
     if (m_ammo < 0) m_ammo = 0;
     // 弾薬取得時にエフェクトを発動
     m_ammoEffect.Trigger(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
+    m_ammoTextFlashTimer = 60.0f; // テキストフラッシュタイマーを開始
 }

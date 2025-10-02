@@ -273,6 +273,7 @@ private:
 
 	int   m_warningFontHandle; // 警告用フォントハンドル
 	bool  m_showNoAmmoWarning; // 弾薬切れ警告表示フラグ
+	float m_ammoTextFlashTimer;  // 弾薬テキストのフラッシュタイマー
 	
 	// Sway管理
 	VECTOR m_gunSwayOffset;

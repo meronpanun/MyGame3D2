@@ -9,7 +9,7 @@ namespace
     constexpr float kCameraXPos = 8.0f;             // カメラのX軸
     constexpr float kCameraYPos = 90.0f;            // カメラのY軸
     constexpr float kCameraZPos = 20.0f;            // カメラのZ軸
-    constexpr float kCameraNear = 1.0f;             // カメラの近くの距離
+    constexpr float kCameraNear = 10.0f;            // カメラの近くの距離
     constexpr float kCameraFar = 15000.0f;          // カメラの遠くの距離
 
     // Head Bobbing関連の定数
