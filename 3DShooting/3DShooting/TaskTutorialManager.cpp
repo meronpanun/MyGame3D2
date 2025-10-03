@@ -1,5 +1,6 @@
 ﻿#include "TaskTutorialManager.h"
 #include "WaveManager.h"
+#include "Player.h"
 #include "DxLib.h"
 #include <string>
 
@@ -31,6 +32,7 @@ TaskTutorialManager* TaskTutorialManager::GetInstance()
 
 TaskTutorialManager::TaskTutorialManager() :
     m_pWaveManager(nullptr),
+    m_pPlayer(nullptr),
     m_step(TaskStep::None),
     m_shootKills(0),
     m_tackleKills(0),
@@ -48,9 +50,10 @@ TaskTutorialManager::~TaskTutorialManager()
     }
 }
 
-void TaskTutorialManager::Init(WaveManager* pWaveManager)
+void TaskTutorialManager::Init(WaveManager* pWaveManager, Player* pPlayer)
 {
     m_pWaveManager = pWaveManager;
+    m_pPlayer = pPlayer;
     m_step = TaskStep::Shoot; // 最初のタスクは射撃
     m_shootKills = 0;
     m_tackleKills = 0;
@@ -58,6 +61,10 @@ void TaskTutorialManager::Init(WaveManager* pWaveManager)
     if (m_pWaveManager)
     {
         m_pWaveManager->SpawnTutorialWave(1);
+    }
+    if (m_pPlayer)
+    {
+        m_pPlayer->SetAttackRestrictions(AttackType::Shoot);
     }
 }
 
@@ -95,12 +102,20 @@ void TaskTutorialManager::Update()
             {
                 m_pWaveManager->SpawnTutorialWave(2);
             }
+            if (m_pPlayer)
+            {
+                m_pPlayer->SetAttackRestrictions(AttackType::Tackle);
+            }
         }
         break;
     case TaskStep::Tackle:
         if (m_tackleKills >= kTackleKillGoal)
         {
             m_step = TaskStep::Completed; // チュートリアル完了
+            if (m_pPlayer)
+            {
+                m_pPlayer->SetAttackRestrictions(AttackType::None);
+            }
         }
         break;
     case TaskStep::Completed:

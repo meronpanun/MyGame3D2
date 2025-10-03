@@ -451,7 +451,7 @@ SceneBase* SceneMain::Update()
     // 古いチュートリアルが完了したら、新しいタスクチュートリアルを初期化
     else if (m_pTutorialManager && m_pTutorialManager->IsCompleted() && !m_isTaskTutorialInitialized)
     {
-        TaskTutorialManager::GetInstance()->Init(m_pWaveManager.get());
+        TaskTutorialManager::GetInstance()->Init(m_pWaveManager.get(), m_pPlayer.get());
         m_isTaskTutorialInitialized = true;
         m_pTutorialManager = nullptr; // 古いチュートリアルマネージャはもう不要
         // ここでreturnせず、タスクチュートリアルの更新ブロックに処理を流す

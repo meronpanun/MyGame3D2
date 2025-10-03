@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
+#include "AttackType.h"
 #include <vector>
 #include <memory>
 
@@ -163,14 +164,20 @@ public:
 	/// <param name="isInvincible">無敵にするかどうか</param>
 	void SetInvincible(bool isInvincible) { m_isInvincible = isInvincible; }
 
-	/// <summary>
-	/// 無敵モードかどうかを取得する
-	/// </summary>
-	/// <returns>無敵モードならtrue</returns>
-	bool IsInvincible() const { return m_isInvincible; }
-
-private:
-	/// <summary>
+	    /// <summary>
+	    /// 無敵モードかどうかを取得する
+	    /// </summary>
+	    /// <returns>無敵モードならtrue</returns>
+	    bool IsInvincible() const { return m_isInvincible; }
+	
+	    /// <summary>
+	    /// 攻撃制限を設定する
+	    /// </summary>
+	    /// <param name="allowedAttack">許可する攻撃タイプ</param>
+	    void SetAttackRestrictions(AttackType allowedAttack);
+	
+	private:
+	    AttackType m_allowedAttackType = AttackType::None;	/// <summary>
 	/// 弾を発射する
 	/// </summary>
 	void Shoot(std::vector<Bullet>& bullets);

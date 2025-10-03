@@ -444,7 +444,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃（タックル中は射撃不可）
-	if (!m_isTackling && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
+	if ((m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 
@@ -461,7 +461,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance);
 
 	// 右クリックでタックル開始
-	if (!m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
+	if ((m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Tackle) && !m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
 	{
 		m_isTackling = true;
 		m_isSwordAnimating = true; // 剣のアニメーション開始
@@ -1294,4 +1294,9 @@ void Player::AddAmmo(int value)
     // 弾薬取得時にエフェクトを発動
     m_ammoEffect.Trigger(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
     m_ammoTextFlashTimer = 60.0f; // テキストフラッシュタイマーを開始
+}
+
+void Player::SetAttackRestrictions(AttackType allowedAttack)
+{
+    m_allowedAttackType = allowedAttack;
 }

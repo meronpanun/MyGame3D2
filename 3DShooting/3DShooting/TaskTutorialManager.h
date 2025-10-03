@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include "AttackType.h"
 
-class WaveManager;
+class WaveManager; // 前方宣言
+class Player;      // 前方宣言
 
 class TaskTutorialManager
 {
@@ -9,7 +10,7 @@ public:
     // シングルトンインスタンスを取得
     static TaskTutorialManager* GetInstance();
 
-    void Init(WaveManager* pWaveManager);
+    void Init(WaveManager* pWaveManager, Player* pPlayer);
     void Update();
     void Draw();
 
@@ -37,6 +38,7 @@ private:
     static TaskTutorialManager* m_instance;
 
     WaveManager* m_pWaveManager; // WaveManagerへのポインタ
+    Player* m_pPlayer;           // Playerへのポインタ
 
     TaskStep m_step;
     int m_shootKills;
