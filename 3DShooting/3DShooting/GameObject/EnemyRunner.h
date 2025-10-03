@@ -57,7 +57,7 @@ public:
 	void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 	
 	// ダメージ処理
-	void TakeDamage(float damage) override;
+	void TakeDamage(float damage, AttackType type) override;
 	void TakeTackleDamage(float damage) override;
 	
 	static void LoadModel();

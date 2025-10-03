@@ -4,6 +4,7 @@
 #include "EffekseerForDXLib.h"
 #include "ScoreManager.h"
 #include "TutorialManager.h"
+#include "TaskTutorialManager.h"
 #include <memory>
 #include <chrono>
 #include <vector>
@@ -101,7 +102,7 @@ private:
 	std::unique_ptr<Effect> m_pEffect;
     std::vector<EnemyBase*> m_enemyList;
     std::vector<std::shared_ptr<ItemBase>> m_items;
-    std::unique_ptr<TutorialManager> m_pTutorialManager;
+
     std::unique_ptr<DirectionIndicator> m_pDirectionIndicator;
 
     // 状態管理
@@ -133,6 +134,7 @@ private:
     std::deque<ScorePopup> m_scorePopups;
     int m_totalScorePopupTimer;        // 合計スコア表示用タイマー
     int m_lastTotalScorePopupValue;    // 合計スコアポップアップ用一時保存値
+    std::unique_ptr<TutorialManager> m_pTutorialManager;
 
     // 経過時間管理
     std::chrono::steady_clock::time_point m_pauseStartTime;
@@ -142,6 +144,7 @@ private:
     static float s_elapsedTime;        // ゲーム経過時間（秒）
 
     bool m_isPlayerInit;
+    bool m_isTaskTutorialInitialized; // タスクチュートリアルが初期化済みか
 };
 
 

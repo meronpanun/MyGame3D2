@@ -19,6 +19,7 @@
 #include "WaveManager.h"
 #include "ScoreManager.h"
 #include "TutorialManager.h"
+#include "TaskTutorialManager.h"
 #include "Effect.h"
 #include "DirectionIndicator.h"
 #include <cassert>
@@ -111,7 +112,6 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_wave1DropCount(0),
 	m_totalScorePopupTimer(0),
 	m_lastTotalScorePopupValue(0),
-	m_pTutorialManager(std::make_unique<TutorialManager>()),
     m_bgmHandle(-1),
     m_isBGMStarted(false),
     m_isLoading(true),  
@@ -119,6 +119,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_clearSceneDelayTimer(-1),
 	m_scoreFontHandle(-1),
 	m_isPlayerInit(false),
+	m_isTaskTutorialInitialized(false),
 	m_pEffect(std::make_unique<Effect>())
 {
     g_sceneMainInstance = this;
@@ -440,35 +441,85 @@ SceneBase* SceneMain::Update()
         return this;
     }
 
-    // チュートリアル有効時または完了演出中はチュートリアルのみ進行（敵出現・更新・描画も完全スキップ）
-    if (!m_isReturningFromOption && !m_isReturningFromOtherScene &&
-        m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()))
+    // 古いチュートリアルマネージャの更新
+    if (m_pTutorialManager && !m_pTutorialManager->IsCompleted())
     {
         m_pTutorialManager->Update();
-        m_pPlayer->Update({});
+        m_pPlayer->Update({}); // プレイヤーは古いチュートリアル中も移動可能
         return this;
     }
-    // ↓ここから通常進行
-    std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
-    std::vector<EnemyBase*> enemyPtrList;
-    for (std::shared_ptr<EnemyBase>& enemy : enemyList) 
+    // 古いチュートリアルが完了したら、新しいタスクチュートリアルを初期化
+    else if (m_pTutorialManager && m_pTutorialManager->IsCompleted() && !m_isTaskTutorialInitialized)
     {
-        enemyPtrList.push_back(enemy.get());
+        TaskTutorialManager::GetInstance()->Init(m_pWaveManager.get());
+        m_isTaskTutorialInitialized = true;
+        m_pTutorialManager = nullptr; // 古いチュートリアルマネージャはもう不要
+        // ここでreturnせず、タスクチュートリアルの更新ブロックに処理を流す
     }
-    m_pPlayer->Update(enemyPtrList);
-    if (m_pPlayer->GetHealth() <= 0.0f) 
-    {
-        int wave = m_pWaveManager->GetCurrentWave();
-        int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
-        int score = ScoreManager::Instance().GetTotalScore();
-		// BGMを停止
-        StopSoundMem(m_bgmHandle);
-		return new SceneGameOver(wave, killCount, score);
-    }
-    m_pWaveManager->Update();
-    m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList());
 
+    // タスクチュートリアルが完了していない間
+    if (!TaskTutorialManager::GetInstance()->IsCompleted())
+    {
+        TaskTutorialManager::GetInstance()->Update();
+        // タスクチュートリアル中はWaveManagerの通常の更新は行わない
+        // ただし、敵の更新とプレイヤーの更新は必要
+        
+        // WaveManagerからアクティブな敵のリストを取得してプレイヤーを更新
+        std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
+        std::vector<EnemyBase*> enemyPtrList;
+        for (std::shared_ptr<EnemyBase>& enemy : enemyList)
+        {
+            enemyPtrList.push_back(enemy.get());
+        }
+        m_pPlayer->Update(enemyPtrList); // プレイヤーは敵を撃ったりタックルしたりするために敵で更新する必要がある
+        m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pEffect.get()); // 敵も更新する必要がある
+        
+        // アイテム、スコアポップアップなどの更新はタスクチュートリアル中でも実行
+        for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
+        m_items.erase(
+            std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }),
+            m_items.end()
+        );
+        if (m_hitMarkTimer > 0) { --m_hitMarkTimer; }
+        for (auto& popup : m_scorePopups) { popup.timer--; }
+        while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) { m_scorePopups.pop_front(); }
+        if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; }
+        ScoreManager::Instance().Update();
+
+                // ゲームオーバーチェックもここで実行
+                if (m_pPlayer->GetHealth() <= 0.0f)
+                {
+                    int wave = m_pWaveManager->GetCurrentWave();
+                    int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+                    int score = ScoreManager::Instance().GetTotalScore();
+                    StopSoundMem(m_bgmHandle);
+                    return new SceneGameOver(wave, killCount, score);
+                }
+        
+                m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
+        
+                return this; // タスクチュートリアル中に留まる
+            }
+        
+            // ↓ここから通常進行 (両方のチュートリアルが完了した場合のみ)
+            m_pWaveManager->Update(); // メインのウェーブマネージャを更新
+        
+            std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
+            std::vector<EnemyBase*> enemyPtrList;
+            for (std::shared_ptr<EnemyBase>& enemy : enemyList) 
+            {
+                enemyPtrList.push_back(enemy.get());
+            }
+            m_pPlayer->Update(enemyPtrList);
+            if (m_pPlayer->GetHealth() <= 0.0f) 
+            {
+                int wave = m_pWaveManager->GetCurrentWave();
+                int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+                int score = ScoreManager::Instance().GetTotalScore();
+                StopSoundMem(m_bgmHandle);
+                return new SceneGameOver(wave, killCount, score);
+            }
+        
     // ウェーブ3終了後の遅延処理
     if (m_pWaveManager->GetCurrentWave() > 3)
     {
@@ -497,16 +548,16 @@ SceneBase* SceneMain::Update()
     );
 
     // ヒットマークタイマー更新
-	if (m_hitMarkTimer > 0) { --m_hitMarkTimer; }
+    if (m_hitMarkTimer > 0) { --m_hitMarkTimer; }
 
     // スコアポップアップタイマー更新
-	for (auto& popup : m_scorePopups) { popup.timer--; } 
+    for (auto& popup : m_scorePopups) { popup.timer--; } 
 
     // タイマー切れのポップアップ削除
-	while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) { m_scorePopups.pop_front(); } 
+    while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0) { m_scorePopups.pop_front(); } 
 
     // 合計スコアポップアップタイマー更新
-	if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; } 
+    if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; } 
     ScoreManager::Instance().Update();
     return this;
 }
@@ -525,11 +576,20 @@ void SceneMain::Draw()
         item->Draw();
     }
 
-    // チュートリアル中または完了演出中は敵描画もスキップ
-    bool isWave1Tutorial = (!m_isReturningFromOption && !m_isReturningFromOtherScene &&
-        m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()));
-    if (!isWave1Tutorial)
+    // 古いチュートリアルUI描画
+    if (m_pTutorialManager)
+    {
+        m_pTutorialManager->Draw(screenW, screenH);
+    }
+    // タスクチュートリアルUI描画
+    else if (!TaskTutorialManager::GetInstance()->IsCompleted())
+    {
+        TaskTutorialManager::GetInstance()->Draw();
+        // タスクチュートリアル中は敵を描画する
+        m_pWaveManager->DrawEnemies();
+    }
+    // メインゲームループ中の敵描画 (両方のチュートリアルが完了した場合)
+    else
     {
         m_pWaveManager->DrawEnemies();
     }
@@ -640,19 +700,15 @@ void SceneMain::Draw()
         if (m_hitMarkType == EnemyBase::HitPart::Head)
         {
             int offset = kHitMarkDoubleLineOffset;
-            // Top-left
             DrawLine(kScreenCenterX - kHitMarkLineLength - offset, kScreenCenterY - kHitMarkLineLength + offset,
                 kScreenCenterX - kHitMarkCenterSpacing - offset, kScreenCenterY - kHitMarkCenterSpacing + offset,
                 color, kHitMarkLineThickness);
-            // Bottom-right
             DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset, kScreenCenterY + kHitMarkCenterSpacing - offset,
                 kScreenCenterX + kHitMarkLineLength + offset, kScreenCenterY + kHitMarkLineLength - offset,
                 color, kHitMarkLineThickness);
-            // Bottom-left
             DrawLine(kScreenCenterX - kHitMarkLineLength - offset, kScreenCenterY + kHitMarkLineLength - offset,
                 kScreenCenterX - kHitMarkCenterSpacing - offset, kScreenCenterY + kHitMarkCenterSpacing - offset,
                 color, kHitMarkLineThickness);
-            // Top-right
             DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset, kScreenCenterY - kHitMarkCenterSpacing + offset,
                 kScreenCenterX + kHitMarkLineLength + offset, kScreenCenterY - kHitMarkLineLength + offset,
                 color, kHitMarkLineThickness);
@@ -671,13 +727,8 @@ void SceneMain::Draw()
         DrawPauseMenu();
     }
 
-    // チュートリアルUI描画
-    if (!m_isReturningFromOption && !m_isReturningFromOtherScene &&
-        m_pTutorialManager && m_pWaveManager->GetCurrentWave() == 1 &&
-        (!m_pTutorialManager->IsCompleted() || m_pTutorialManager->IsCompletedDisplay()))
-    {
-        m_pTutorialManager->Draw(screenW, screenH);
-    }
+    // タスクチュートリアルUI描画
+    TaskTutorialManager::GetInstance()->Draw();
 }
 
 void SceneMain::DrawPauseMenu()
@@ -709,6 +760,8 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
 // プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
 void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part)
 {
+    printf("SceneMain: OnPlayerBulletHitEnemy called with part: %d\n", static_cast<int>(part));
     m_hitMarkTimer = kHitMarkDuration;
     m_hitMarkType = part;
 }
+

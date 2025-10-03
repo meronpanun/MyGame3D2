@@ -63,11 +63,7 @@ public:
 	/// <returns>モデルハンドル</returns>
     int GetModelHandle() const { return m_modelHandle; }
 
-    /// <summary>
-	/// 敵がダメージを受ける処理
-    /// </summary>
-	/// <param name="damage">受けるダメージ量</param>
-    void TakeDamage(float damage) override;
+    void TakeDamage(float damage, AttackType type) override;
 
     /// <summary>
 	/// タックルダメージを受ける処理 

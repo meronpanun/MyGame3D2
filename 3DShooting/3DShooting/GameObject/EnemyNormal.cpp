@@ -593,9 +593,9 @@ void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 }
 
 // ダメージ処理
-void EnemyNormal::TakeDamage(float damage)
+void EnemyNormal::TakeDamage(float damage, AttackType type)
 {
-    EnemyBase::TakeDamage(damage);
+	EnemyBase::TakeDamage(damage, type);
     // HP減算・死亡判定は基底クラスで行う
     if (m_hp <= 0.0f) // 死亡時一度だけ
     {

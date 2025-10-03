@@ -1180,7 +1180,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     VECTOR spawnPos = VAdd(cameraPos, VScale(cameraForward, 0.0f));
 
     // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
-    bullets.emplace_back(spawnPos, cameraForward, m_bulletPower);
+    bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot, m_bulletPower);
 
 	// SEを再生
 	PlaySoundMem(m_shootSEHandle, DX_PLAYTYPE_BACK);

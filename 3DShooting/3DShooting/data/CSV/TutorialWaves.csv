@@ -1,0 +1,3 @@
+Wave,EnemyType,Count,SpawnInterval,StartTime,WaveInterval
+1,NormalEnemy,5,0.5,0,0
+2,NormalEnemy,5,0.5,0,0

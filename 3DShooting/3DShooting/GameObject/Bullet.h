@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
+#include "AttackType.h"
 #include <vector>
 
 /// <summary>
@@ -8,7 +9,7 @@
 class Bullet
 {
 public:
-    Bullet(VECTOR position, VECTOR direction, float damage = 10.0f);
+    Bullet(VECTOR position, VECTOR direction, AttackType attackType, float damage = 10.0f);
     virtual ~Bullet();
 
     void Init();
@@ -50,6 +51,12 @@ public:
 	/// <returns>ダメージ値</returns>
     float GetDamage() const { return m_damage; }
 
+    /// <summary>
+    /// 攻撃の種類を取得
+    /// </summary>
+    /// <returns>攻撃の種類</returns>
+    AttackType GetAttackType() const { return m_attackType; }
+
 private:
     VECTOR m_pos;     // 現在の位置
     VECTOR m_prevPos; // 前フレームの位置 (Rayの始点)
@@ -59,4 +66,5 @@ private:
     float  m_damage;
 
     bool   m_isActive;
+    AttackType m_attackType; // 攻撃の種類
 };

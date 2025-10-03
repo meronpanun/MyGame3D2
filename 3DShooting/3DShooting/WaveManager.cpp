@@ -143,11 +143,11 @@ void WaveManager::Init()
     }
 
     // チュートリアル達成判定用コールバック
-    auto deathTypeCallback = [this](const VECTOR& pos, EnemyBase::LastDamageType type) {
+    auto deathTypeCallback = [this](const VECTOR& pos, AttackType type) {
         if (m_currentWave == 1) 
         {
-            if (type == EnemyBase::LastDamageType::Shot)   m_isShotTutorialCleared   = true;
-            if (type == EnemyBase::LastDamageType::Tackle) m_isTackleTutorialCleared = true;
+            if (type == AttackType::Shoot)   m_isShotTutorialCleared   = true;
+            if (type == AttackType::Tackle) m_isTackleTutorialCleared = true;
         }
     };
 	// 各敵プールの死亡時コールバックを設定
@@ -163,8 +163,8 @@ void WaveManager::Init()
 			// チュートリアル達成判定
             if (m_currentWave == 1) 
             {
-                if (enemy->GetLastDamageType() == EnemyBase::LastDamageType::Shot)   m_isShotTutorialCleared   = true;
-                if (enemy->GetLastDamageType() == EnemyBase::LastDamageType::Tackle) m_isTackleTutorialCleared = true;
+                if (enemy->GetLastAttackType() == AttackType::Shoot)   m_isShotTutorialCleared   = true;
+                if (enemy->GetLastAttackType() == AttackType::Tackle) m_isTackleTutorialCleared = true;
             }
             return true;
         };
@@ -396,6 +396,12 @@ void WaveManager::DrawEnemies()
 void WaveManager::SetOnEnemyDeathCallback(std::function<void(const VECTOR&)> callback)
 {
     m_onEnemyDeathCallback = callback;
+}
+
+// 敵ヒット時のコールバックを設定
+void WaveManager::SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart)> cb)
+{
+    m_onEnemyHitCallback = cb;
 }
 
 // Road_floorオブジェクトの範囲を設定
@@ -842,4 +848,64 @@ int WaveManager::GetAliveEnemyCount() const
         }
     }
     return aliveCount;
+}
+
+void WaveManager::SpawnTutorialWave(int tutorialWaveId)
+{
+    // 既存の敵をすべて非アクティブ化し、m_enemyListをクリア
+    for (auto& pEnemy : m_enemyNormalPool) pEnemy->SetActive(false);
+    for (auto& pEnemy : m_enemyRunnerPool) pEnemy->SetActive(false);
+    for (auto& pEnemy : m_enemyAcidPool)   pEnemy->SetActive(false);
+    m_enemyList.clear();
+
+    std::ifstream file("data/CSV/TutorialWaves.csv");
+    if (!file.is_open())
+    {
+        printf("Error: Cannot open TutorialWaves.csv\n");
+        return;
+    }
+
+    std::string line;
+    std::getline(file, line); // ヘッダー行をスキップ
+
+    std::vector<WaveData> tutorialWaves;
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string token;
+        WaveData waveData;
+        if (!std::getline(ss, token, ',')) continue;
+        waveData.wave = std::stoi(token);
+        if (!std::getline(ss, token, ',')) continue;
+        waveData.enemyType = token;
+        if (!std::getline(ss, token, ',')) continue;
+        waveData.count = std::stoi(token);
+        if (!std::getline(ss, token, ',')) continue;
+        waveData.spawnInterval = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue;
+        waveData.startTime = std::stof(token);
+        if (std::getline(ss, token, ',')) waveData.waveInterval = std::stof(token);
+        else waveData.waveInterval = 0.0f;
+        tutorialWaves.push_back(waveData);
+    }
+
+    for (const auto& waveData : tutorialWaves)
+    {
+        if (waveData.wave == tutorialWaveId)
+        {
+            for (int i = 0; i < waveData.count; ++i)
+            {
+                VECTOR playerPos = VGet(0,0,0); // プレイヤー位置を仮定
+                VECTOR spawnPos = GenerateRandomSpawnPos(playerPos);
+                std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(waveData.enemyType, spawnPos);
+                // CreateEnemyはプールから敵を取得し、アクティブに設定する
+                // m_enemyListには後でアクティブな敵をすべて追加する
+            }
+        }
+    }
+
+    // すべてのプールからアクティブな敵をm_enemyListに追加
+    for (auto& pEnemy : m_enemyNormalPool) { if (pEnemy->IsActive()) m_enemyList.push_back(pEnemy); }
+    for (auto& pEnemy : m_enemyRunnerPool) { if (pEnemy->IsActive()) m_enemyList.push_back(pEnemy); }
+    for (auto& pEnemy : m_enemyAcidPool)   { if (pEnemy->IsActive()) m_enemyList.push_back(pEnemy); }
 }

@@ -2,6 +2,7 @@
 #include "Bullet.h"
 #include "Collider.h"
 #include "Effect.h"
+#include "TaskTutorialManager.h"
 
 namespace
 {
@@ -68,8 +69,7 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
     {
         auto& bullet = bullets[hitBulletIndex];
         float damage = CalcDamage(bullet.GetDamage(), determinedHitPart);
-        m_lastDamageType = LastDamageType::Shot; // ここでのみShotにセット
-        TakeDamage(damage);
+        TakeDamage(damage, bullet.GetAttackType()); // 攻撃種別を渡す
 
         m_lastHitPart = determinedHitPart;
         m_hitDisplayTimer = kDefaultHitDisplayDuration;
@@ -84,28 +84,35 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
         bullet.Deactivate(); // 敵に当たった弾は非アクティブにする
 
         // ヒット時コールバック（ヒットマーク用）
-        if (m_onHitCallback) m_onHitCallback(determinedHitPart);
+        if (m_onHitCallback) 
+        {
+            printf("EnemyBase: Hit callback triggered with part: %d\n", static_cast<int>(determinedHitPart));
+            m_onHitCallback(determinedHitPart);
+        }
     }
 }
 
 // 敵がダメージを受ける処理
-void EnemyBase::TakeDamage(float damage)
+void EnemyBase::TakeDamage(float damage, AttackType type)
 {
-    // m_lastDamageTypeはここで上書きしない
+    m_lastAttackType = type;
     m_hp -= damage;
     if (m_hp <= 0.0f)
     {
         m_hp = 0.0f;
-        m_isAlive = false;
-        if (m_onDeathWithTypeCallback) m_onDeathWithTypeCallback(m_pos, m_lastDamageType);
+        if (m_isAlive)
+        {
+            m_isAlive = false;
+            TaskTutorialManager::GetInstance()->NotifyEnemyKilled(m_lastAttackType);
+            if (m_onDeathWithTypeCallback) m_onDeathWithTypeCallback(m_pos, m_lastAttackType);
+        }
     }
 }
 
 // 敵がタックルダメージを受ける処理
 void EnemyBase::TakeTackleDamage(float damage)
 {
-    m_lastDamageType = LastDamageType::Tackle;
-    TakeDamage(damage);
+    TakeDamage(damage, AttackType::Tackle);
     m_lastHitPart = HitPart::Body;
     m_hitDisplayTimer = kDefaultHitDisplayDuration;
 }

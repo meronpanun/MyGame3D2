@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include "TransformDataLoader.h"
+#include "EnemyBase.h"
 #include <vector>
 #include <memory>
 #include <string>
 #include <functional>
 
-class EnemyBase;
 class EnemyNormal;
 class EnemyRunner;
 class EnemyAcid;
@@ -66,7 +66,7 @@ public:
 	/// 敵ヒット時のコールバックを設定
     /// </summary>
 	/// <param name="cb">コールバック関数</param>
-    void SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart)> cb) { m_onEnemyHitCallback = cb; }
+    void SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart)> cb);
 
     /// <summary>
 	/// Road_floorオブジェクトの範囲を設定
@@ -140,6 +140,12 @@ public:
     /// </summary>
     /// <returns>生存している敵の数</returns>
     int GetAliveEnemyCount() const;
+
+    /// <summary>
+    /// チュートリアル用の敵をスポーンさせる
+    /// </summary>
+    /// <param name="tutorialWaveId">チュートリアルウェーブのID</param>
+    void SpawnTutorialWave(int tutorialWaveId);
 
 private:
     /// <summary>

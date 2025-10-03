@@ -11,13 +11,14 @@ namespace
 	constexpr float kPlayerBoundaryDistance = 2000.0f;
 }
 
-Bullet::Bullet(VECTOR position, VECTOR direction, float damage) :
+Bullet::Bullet(VECTOR position, VECTOR direction, AttackType attackType, float damage) :
 	m_pos(position),
 	m_prevPos(position), 
 	m_dir(direction),
 	m_speed(kBulletSpeed),
 	m_isActive(true),
-	m_damage(damage)
+	m_damage(damage),
+	m_attackType(attackType)
 {
 }
 

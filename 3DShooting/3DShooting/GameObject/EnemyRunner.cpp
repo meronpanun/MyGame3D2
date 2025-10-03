@@ -565,14 +565,12 @@ void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 }
 
 // ダメージ処理
-void EnemyRunner::TakeDamage(float damage)
+void EnemyRunner::TakeDamage(float damage, AttackType type)
 {
-    EnemyBase::TakeDamage(damage);
-    m_hp -= damage;
+    EnemyBase::TakeDamage(damage, type);
+    // HP減算・死亡判定は基底クラスで行う
     if (m_hp <= 0.0f) // 死亡時一度だけ
     {
-        m_hp = 0.0f;
-        m_isAlive = false;
         if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
         bool isHeadShot = (m_lastHitPart == HitPart::Head);
         int addScore = ScoreManager::Instance().AddScore(isHeadShot);
