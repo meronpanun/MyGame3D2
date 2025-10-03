@@ -10,7 +10,8 @@ namespace
 {
     // 時間関連
     constexpr float kFrameTime         = 1.0f / 60.0f; // 1フレームの時間
-    constexpr float kCompleteWaitTime  = 1.0f; // チュートリアル完了後の待機時間
+    constexpr float kCompleteWaitTime  = 2.0f; // チュートリアル完了後の待機時間
+    constexpr float kStepCompleteWaitTime = 1.5f; // ステップ完了後の待機時間
     constexpr float kMoveAccumGoalTime = 2.0f; // 移動チュートリアルの目標累積時間
     constexpr float kViewAccumGoalTime = 1.0f; // 視点チュートリアルの目標累積時間
     constexpr float kJumpAccumGoalTime = 0.2f; // ジャンプチュートリアルの目標累積時間
@@ -71,7 +72,9 @@ TutorialManager::TutorialManager() :
     m_isJumpCheckAnim(false),
     m_jumpCheckAnimTime(0.0f),
     m_isRunCheckAnim(false),
-    m_runCheckAnimTime(0.0f)
+    m_runCheckAnimTime(0.0f),
+    m_stepCompleteWaitTime(0.0f),
+    m_isStepCompleted(false)
 {
 	// チェックマーク画像の読み込み
     m_checkMarkHandle = LoadGraph("data/image/CheckMark.png");
@@ -128,6 +131,14 @@ void TutorialManager::UpdateUI()
         {
             m_uiXOffset = kUIOffscreenOffsetX;
             m_uiState = UIState::Hidden;
+
+            // 最後のステップだったら完了演出へ
+            if (m_step == Step::Run)
+            {
+                m_isCompletedDisplay = true;
+                m_completeWaitTime = 0.0f;
+            }
+
             // 次のステップへ
             m_step = static_cast<Step>(static_cast<int>(m_step) + 1);
         }
@@ -157,94 +168,107 @@ void TutorialManager::Update()
     if (m_isJumpCheckAnim) m_jumpCheckAnimTime += kFrameTime;
     if (m_isRunCheckAnim)  m_runCheckAnimTime  += kFrameTime;
 
-    // UIが表示されているときだけ入力チェック
-    if (m_uiState != UIState::OnScreen) return;
-
-    switch (m_step)
-    {
-    case Step::Move:
-        if (!m_isMoveDone) 
+        // UIが表示されているときだけ入力チェック
+        if (m_uiState != UIState::OnScreen) return;
+    
+        // ステップ完了後の待機処理
+        if (m_isStepCompleted)
         {
-            bool isMoving = CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_A) ||
-                            CheckHitKey(KEY_INPUT_S) || CheckHitKey(KEY_INPUT_D);
-            if (isMoving) m_moveAccumTime += kFrameTime;
-            if (m_moveAccumTime >= kMoveAccumGoalTime) 
+            m_stepCompleteWaitTime += kFrameTime;
+            if (m_stepCompleteWaitTime >= kStepCompleteWaitTime)
             {
-                m_isMoveDone = true;
-                m_isMoveCheckAnim = true;
-                m_moveCheckAnimTime = 0.0f;
+                m_isStepCompleted = false;
+                m_uiState = UIState::Exiting; // 退場開始
             }
+            return; // 待機中は他の入力を受け付けない
         }
-        else if (m_moveCheckAnimTime >= kCheckAnimDuration) // チェックアニメ完了後
+    
+        switch (m_step)
         {
-            m_uiState = UIState::Exiting; // 退場開始
-        }
-        break;
-
-    case Step::View:
-        if (!m_isViewDone) 
-        {
-            Vec2 now = Mouse::GetPos();
-            float dx = now.x - m_prevMousePos.x;
-            float dy = now.y - m_prevMousePos.y;
-            if (std::abs(dx) > kMouseMovementThreshold || std::abs(dy) > kMouseMovementThreshold) 
+        case Step::Move:
+            if (!m_isMoveDone)
             {
-                m_viewAccumTime += kFrameTime;
+                bool isMoving = CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_A) ||
+                                CheckHitKey(KEY_INPUT_S) || CheckHitKey(KEY_INPUT_D);
+                if (isMoving) m_moveAccumTime += kFrameTime;
+                if (m_moveAccumTime >= kMoveAccumGoalTime)
+                {
+                    m_isMoveDone = true;
+                    m_isMoveCheckAnim = true;
+                    m_moveCheckAnimTime = 0.0f;
+                }
             }
-            if (m_viewAccumTime >= kViewAccumGoalTime) 
+            else if (m_moveCheckAnimTime >= kCheckAnimDuration) // チェックアニメ完了後
             {
-                m_isViewDone = true;
-                m_isViewCheckAnim = true;
-                m_viewCheckAnimTime = 0.0f;
+                m_isStepCompleted = true; // 待機開始
+                m_stepCompleteWaitTime = 0.0f;
             }
-            m_prevMousePos = now;
-        }
-        else if (m_viewCheckAnimTime >= kCheckAnimDuration)
-        {
-            m_uiState = UIState::Exiting;
-        }
-        break;
-
-    case Step::Jump:
-        if (!m_isJumpDone) 
-        {
-            if (CheckHitKey(KEY_INPUT_SPACE)) m_jumpAccumTime += kFrameTime;
-            if (m_jumpAccumTime >= kJumpAccumGoalTime) 
+            break;
+    
+        case Step::View:
+            if (!m_isViewDone)
             {
-                m_isJumpDone = true;
-                m_isJumpCheckAnim = true;
-                m_jumpCheckAnimTime = 0.0f;
+                Vec2 now = Mouse::GetPos();
+                float dx = now.x - m_prevMousePos.x;
+                float dy = now.y - m_prevMousePos.y;
+                if (std::abs(dx) > kMouseMovementThreshold || std::abs(dy) > kMouseMovementThreshold)
+                {
+                    m_viewAccumTime += kFrameTime;
+                }
+                if (m_viewAccumTime >= kViewAccumGoalTime)
+                {
+                    m_isViewDone = true;
+                    m_isViewCheckAnim = true;
+                    m_viewCheckAnimTime = 0.0f;
+                }
+                m_prevMousePos = now;
             }
-        }
-        else if (m_jumpCheckAnimTime >= kCheckAnimDuration)
-        {
-            m_uiState = UIState::Exiting;
-        }
-        break;
-
-    case Step::Run:
-        if (!m_isRunDone) 
-        {
-            if (CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT)) 
+            else if (m_viewCheckAnimTime >= kCheckAnimDuration)
             {
-                m_runAccumTime += kFrameTime;
+                m_isStepCompleted = true; // 待機開始
+                m_stepCompleteWaitTime = 0.0f;
             }
-            if (m_runAccumTime >= kRunAccumGoalTime) 
+            break;
+    
+        case Step::Jump:
+            if (!m_isJumpDone)
             {
-                m_isRunDone = true;
-                m_isRunCheckAnim = true;
-                m_runCheckAnimTime = 0.0f;
+                if (CheckHitKey(KEY_INPUT_SPACE)) m_jumpAccumTime += kFrameTime;
+                if (m_jumpAccumTime >= kJumpAccumGoalTime)
+                {
+                    m_isJumpDone = true;
+                    m_isJumpCheckAnim = true;
+                    m_jumpCheckAnimTime = 0.0f;
+                }
             }
-        }
-        else if (m_runCheckAnimTime >= kCheckAnimDuration)
-        {
-            m_uiState = UIState::Exiting;
-            m_isCompletedDisplay = true; // 最後のチュートリアルなので完了演出へ
-            m_completeWaitTime = 0.0f;
-        }
-        break;
-    }
-}
+            else if (m_jumpCheckAnimTime >= kCheckAnimDuration)
+            {
+                m_isStepCompleted = true; // 待機開始
+                m_stepCompleteWaitTime = 0.0f;
+            }
+            break;
+    
+        case Step::Run:
+            if (!m_isRunDone)
+            {
+                if (CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT))
+                {
+                    m_runAccumTime += kFrameTime;
+                }
+                if (m_runAccumTime >= kRunAccumGoalTime)
+                {
+                    m_isRunDone = true;
+                    m_isRunCheckAnim = true;
+                    m_runCheckAnimTime = 0.0f;
+                }
+            }
+            else if (m_runCheckAnimTime >= kCheckAnimDuration)
+            {
+                m_isStepCompleted = true; // 待機開始
+                m_stepCompleteWaitTime = 0.0f;
+            }
+            break;
+        }}
 
 void TutorialManager::Draw(int screenW, int screenH)
 {

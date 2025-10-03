@@ -59,7 +59,7 @@ public:
 	bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
 
 private:
-    void UpdateUI(); // UIアニメーション用の更新関数
+	void UpdateUI(); // UIアニメーション用の更新関数
 
 private:
 	Vec2 m_prevMousePos;
@@ -82,6 +82,10 @@ private:
 	bool m_isJumpDone;         // ジャンプ操作が完了したか
 	bool m_isViewDone;		   // 視点操作が完了したか
 	bool m_isMoveDone;		   // WASD操作が完了したか
+
+	// ステップ完了後の待機
+	float m_stepCompleteWaitTime; // ステップ完了後の待機タイマー
+	bool m_isStepCompleted;     // ステップ完了後の待機中フラグ
 
 	// アニメーション関連
 	float m_uiXOffset;         // UIのX座標オフセット
