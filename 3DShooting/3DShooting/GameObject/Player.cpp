@@ -782,106 +782,107 @@ void Player::Draw()
 	int screenH = Game::kScreenHeigth;
 	GetScreenState(&screenW, &screenH, NULL);
 
-		// HPバーのY座標を計算
-		const int barY = screenH - kHpBarHeight - kHpBarMargin;
+	// HPバーのY座標を計算
+	const int barY = screenH - kHpBarHeight - kHpBarMargin;
 	
-		// タックルUIのY座標をHPバーに合わせる
-		const int tackleUIY = barY;
+	// タックルUIのY座標をHPバーに合わせる
+	const int tackleUIY = barY;
 	
-		// 銃UIをタックルUIの上に配置
-		int gunImageY = tackleUIY - kGunImageHeight - kGunImageMarginY;
-		int gunImageX = screenW - kGunImageWidth - kGunImageMarginX;
+	// 銃UIをタックルUIの上に配置
+	int gunImageY = tackleUIY - kGunImageHeight - kGunImageMarginY;
+	int gunImageX = screenW - kGunImageWidth - kGunImageMarginX;
 	
-		// 銃UI画像の描画
-		int gunHandle = m_gunImageHandle;
-		if (m_ammo == 0 && !m_isInfiniteAmmo)
+	// 銃UI画像の描画
+	int gunHandle = m_gunImageHandle;
+	if (m_ammo == 0 && !m_isInfiniteAmmo)
+	{
+		gunHandle = m_noAmmoGunImageHandle;
+	}
+	else if (m_isLowAmmo)
+	{
+		gunHandle = m_lowAmmoGunImageHandle;
+	}
+	DrawExtendGraph(gunImageX, gunImageY, gunImageX + kGunImageWidth, gunImageY + kGunImageHeight, gunHandle, true);
+	
+	// 残弾数の表示
+	// 弾薬UI全体の幅を計算
+	int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
+	int ammoUIWidth = kAmmoImageSize + kAmmoImageTextSpacing + ammoTextWidth;
+	
+	// 弾薬UIのX座標 
+	int ammoUIX = gunImageX + (kGunImageWidth * 0.5f) - (ammoUIWidth * 0.5f) + kAmmoUIGunCenterOffsetX;
+	// 弾薬UIのY座標 
+	int ammoUIY = gunImageY + kGunImageHeight - kAmmoImageSize - kAmmoUIYOffset;
+	
+	// ammo画像の描画
+	int ammoImageX = ammoUIX;
+	int ammoImageY = ammoUIY;
+	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageSize, ammoImageY + kAmmoImageSize, m_ammoImageHandle, true);
+	
+	// 弾薬数のテキスト描画
+	int ammoTextX = ammoImageX + kAmmoImageSize + kAmmoImageTextSpacing;
+	int ammoTextY = ammoUIY + (kAmmoImageSize - kAmmoTextHeight) * 0.5f;
+	
+	// 弾薬無限モードの場合は「∞」を表示
+	if (m_isInfiniteAmmo)
+	{
+		DrawFormatStringToHandle(ammoTextX, ammoTextY, kColorWhite, m_fontHandle, "∞");
+	}
+	else
+	{
+		// デフォルトの色を決定
+		int textColor = m_isLowAmmo ? kColorLowAmmo : kColorWhite;
+	
+		// フラッシュタイマーが作動中なら色を補間
+		if (m_ammoTextFlashTimer > 0.0f)
 		{
-			gunHandle = m_noAmmoGunImageHandle;
-		}
-		else if (m_isLowAmmo)
-		{
-			gunHandle = m_lowAmmoGunImageHandle;
-		}
-		DrawExtendGraph(gunImageX, gunImageY, gunImageX + kGunImageWidth, gunImageY + kGunImageHeight, gunHandle, true);
+			float flashProgress = m_ammoTextFlashTimer / 60.0f;
 	
-		// 残弾数の表示
-		// 弾薬UI全体の幅を計算
-		int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
-		int ammoUIWidth = kAmmoImageSize + kAmmoImageTextSpacing + ammoTextWidth;
+			// ターゲットの色（デフォルト色）のRGB成分
+			int targetR = (textColor >> 16) & 0xFF;
+			int targetG = (textColor >> 8) & 0xFF;
+			int targetB = textColor & 0xFF;
 	
-		// 弾薬UIのX座標 
-		int ammoUIX = gunImageX + (kGunImageWidth * 0.5f) - (ammoUIWidth * 0.5f) + kAmmoUIGunCenterOffsetX;
-		// 弾薬UIのY座標 
-		int ammoUIY = gunImageY + kGunImageHeight - kAmmoImageSize - kAmmoUIYOffset;
+			// フラッシュの色（黄色）のRGB成分
+			int flashR = 255;
+			int flashG = 255;
+			int flashB = 0;
 	
-		// ammo画像の描画
-		int ammoImageX = ammoUIX;
-		int ammoImageY = ammoUIY;
-		DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageSize, ammoImageY + kAmmoImageSize, m_ammoImageHandle, true);
+			// 線形補間
+			int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
+			int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
+			int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
 	
-		// 弾薬数のテキスト描画
-		int ammoTextX = ammoImageX + kAmmoImageSize + kAmmoImageTextSpacing;
-		int ammoTextY = ammoUIY + (kAmmoImageSize - kAmmoTextHeight) * 0.5f;
-	
-		// 弾薬無限モードの場合は「∞」を表示
-		if (m_isInfiniteAmmo)
-		{
-			DrawFormatStringToHandle(ammoTextX, ammoTextY, kColorWhite, m_fontHandle, "∞");
-		}
-		else
-		{
-			// デフォルトの色を決定
-			int textColor = m_isLowAmmo ? kColorLowAmmo : kColorWhite;
-	
-			// フラッシュタイマーが作動中なら色を補間
-			if (m_ammoTextFlashTimer > 0.0f)
-			{
-				float flashProgress = m_ammoTextFlashTimer / 60.0f;
-	
-				// ターゲットの色（デフォルト色）のRGB成分
-				int targetR = (textColor >> 16) & 0xFF;
-				int targetG = (textColor >> 8) & 0xFF;
-				int targetB = textColor & 0xFF;
-	
-				// フラッシュの色（黄色）のRGB成分
-				int flashR = 255;
-				int flashG = 255;
-				int flashB = 0;
-	
-				// 線形補間
-				int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
-				int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
-				int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
-	
-				textColor = GetColor(currentR, currentG, currentB);
-			}
-	
-			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
+			textColor = GetColor(currentR, currentG, currentB);
 		}
 	
-		// 剣とゲージを合わせたUI全体の幅を計算
-		int tackleUIWidth = kTackleGaugeWidth + kSwordImageGaugeSpacing + kSwordImageWidth;
+		DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
+	}
 	
-		// タックルUIのX座標を画面右端に合わせる
-		int tackleGaugeX = screenW - tackleUIWidth - kHpBarMargin; // HPバーと同じマージンを使用
+	// 剣とゲージを合わせたUI全体の幅を計算
+	int tackleUIWidth = kTackleGaugeWidth + kSwordImageGaugeSpacing + kSwordImageWidth;
 	
-		// 枠
-		DrawBox(tackleGaugeX - 1, tackleUIY - 1, tackleGaugeX + kTackleGaugeWidth + 1, tackleUIY + kTackleGaugeHeight + 1, kColorTackleGaugeBorder, false);
+	// タックルUIのX座標を画面右端に合わせる
+	int tackleGaugeX = screenW - tackleUIWidth - kHpBarMargin; // HPバーと同じマージンを使用
 	
-		// ゲージ本体
-		float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
-		int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
-		DrawBox(tackleGaugeX, tackleUIY, tackleGaugeX + tackleFilledWidth, tackleUIY + kTackleGaugeHeight, kColorTackleGaugeFill, true);
+	// 枠
+	DrawBox(tackleGaugeX - 1, tackleUIY - 1, tackleGaugeX + kTackleGaugeWidth + 1, tackleUIY + kTackleGaugeHeight + 1, kColorTackleGaugeBorder, false);
 	
-		// 剣の画像を描画
-		int swordImageX = tackleGaugeX + kTackleGaugeWidth + kSwordImageGaugeSpacing; // ゲージの右側に配置
-		int swordImageY = tackleUIY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
+	// ゲージ本体
+	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
+	int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
+	DrawBox(tackleGaugeX, tackleUIY, tackleGaugeX + tackleFilledWidth, tackleUIY + kTackleGaugeHeight, kColorTackleGaugeFill, true);
 	
-		// クールダウン中は半透明、準備完了時は不透明
-		int alpha = (m_tackleCooldown > 0) ? kSwordImageCooldownAlpha : kSwordImageActiveAlpha;
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-		DrawExtendGraph(swordImageX, swordImageY, swordImageX + kSwordImageWidth, swordImageY + kSwordImageHeight, m_swordImageHandle, true);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
+	// 剣の画像を描画
+	int swordImageX = tackleGaugeX + kTackleGaugeWidth + kSwordImageGaugeSpacing; // ゲージの右側に配置
+	int swordImageY = tackleUIY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
+	
+	// クールダウン中は半透明、準備完了時は不透明
+	int alpha = (m_tackleCooldown > 0) ? kSwordImageCooldownAlpha : kSwordImageActiveAlpha;
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+	DrawExtendGraph(swordImageX, swordImageY, swordImageX + kSwordImageWidth, swordImageY + kSwordImageHeight, m_swordImageHandle, true);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
+
 	// 警告表示ロジック
 	if (m_isLowHealth && (m_isLowAmmo || m_showNoAmmoWarning))
 	{

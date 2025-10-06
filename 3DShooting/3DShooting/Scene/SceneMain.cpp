@@ -136,15 +136,15 @@ SceneMain::~SceneMain()
     MV1DeleteModel(m_skyDomeHandle);    
 	DeleteGraph(m_dotHandle);
 
-	    // アイテムモデルの解放
-		FirstAidKitItem::DeleteModel();
-		AmmoItem::DeleteModel();
+	// アイテムモデルの解放
+	FirstAidKitItem::DeleteModel();
+	AmmoItem::DeleteModel();
 	
-	    // インジケーター画像の解放
-	    DirectionIndicator::DeleteResources();
+	// インジケーター画像の解放
+	DirectionIndicator::DeleteResources();
 	
-	    // BGMの解放
-	    DeleteSoundMem(m_bgmHandle);
+	// BGMの解放
+	DeleteSoundMem(m_bgmHandle);
     // フォントの解放
     DeleteFontToHandle(m_scoreFontHandle);
 }
@@ -187,10 +187,10 @@ void SceneMain::Init()
 	m_pStage->Init();
 
 	m_pWaveManager = std::make_shared<WaveManager>();
-	    m_pWaveManager->Init();
+	m_pWaveManager->Init();
 	
-	    m_pDirectionIndicator = std::make_unique<DirectionIndicator>();
-	    m_pDirectionIndicator->Init(m_pPlayer.get());	
+	m_pDirectionIndicator = std::make_unique<DirectionIndicator>();
+	m_pDirectionIndicator->Init(m_pPlayer.get());	
 	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
 	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
 
@@ -486,39 +486,40 @@ SceneBase* SceneMain::Update()
         if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; }
         ScoreManager::Instance().Update();
 
-                // ゲームオーバーチェックもここで実行
-                if (m_pPlayer->GetHealth() <= 0.0f)
-                {
-                    int wave = m_pWaveManager->GetCurrentWave();
-                    int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
-                    int score = ScoreManager::Instance().GetTotalScore();
-                    StopSoundMem(m_bgmHandle);
-                    return new SceneGameOver(wave, killCount, score);
-                }
+        // ゲームオーバーチェックもここで実行
+        if (m_pPlayer->GetHealth() <= 0.0f)
+        {
+            int wave = m_pWaveManager->GetCurrentWave();
+            int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+            int score = ScoreManager::Instance().GetTotalScore();
+            StopSoundMem(m_bgmHandle);
+            return new SceneGameOver(wave, killCount, score);
+        }
         
-                m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
+        m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
         
-                return this; // タスクチュートリアル中に留まる
-            }
+        return this; // タスクチュートリアル中に留まる
+    }
         
-            // ↓ここから通常進行 (両方のチュートリアルが完了した場合のみ)
-            m_pWaveManager->Update(); // メインのウェーブマネージャを更新
+    // ここから通常進行 (両方のチュートリアルが完了した場合のみ)
+    m_pWaveManager->Update(); // メインのウェーブマネージャを更新
         
-            std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
-            std::vector<EnemyBase*> enemyPtrList;
-            for (std::shared_ptr<EnemyBase>& enemy : enemyList) 
-            {
-                enemyPtrList.push_back(enemy.get());
-            }
-            m_pPlayer->Update(enemyPtrList);
-            if (m_pPlayer->GetHealth() <= 0.0f) 
-            {
-                int wave = m_pWaveManager->GetCurrentWave();
-                int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
-                int score = ScoreManager::Instance().GetTotalScore();
-                StopSoundMem(m_bgmHandle);
-                return new SceneGameOver(wave, killCount, score);
-            }
+    std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
+    std::vector<EnemyBase*> enemyPtrList;
+    for (std::shared_ptr<EnemyBase>& enemy : enemyList) 
+    {
+        enemyPtrList.push_back(enemy.get());
+    }
+    m_pPlayer->Update(enemyPtrList);
+
+    if (m_pPlayer->GetHealth() <= 0.0f) 
+    {
+        int wave = m_pWaveManager->GetCurrentWave();
+        int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+        int score = ScoreManager::Instance().GetTotalScore();
+        StopSoundMem(m_bgmHandle);
+        return new SceneGameOver(wave, killCount, score);
+    }
         
     // ウェーブ3終了後の遅延処理
     if (m_pWaveManager->GetCurrentWave() > 3)

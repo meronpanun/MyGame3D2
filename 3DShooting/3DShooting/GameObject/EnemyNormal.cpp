@@ -469,8 +469,8 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
 void EnemyNormal::Draw()
 {
-    // m_currentAnimHandle は AnimationManager 内部で管理される
-    if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return; // 死亡アニメーション終了後も描画しない
+    // 死亡アニメーション終了後も描画しない
+    if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return; 
 
     MV1DrawModel(m_modelHandle);
 

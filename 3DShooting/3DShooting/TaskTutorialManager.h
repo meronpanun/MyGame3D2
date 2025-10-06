@@ -1,18 +1,24 @@
 ﻿#pragma once
 #include "AttackType.h"
 
-class WaveManager; // 前方宣言
-class Player;      // 前方宣言
+class WaveManager;
+class Player;     
 
+/// <summary>
+/// タスク型チュートリアルマネージャークラス
+/// </summary>
 class TaskTutorialManager
 {
 public:
-    // シングルトンインスタンスを取得
-    static TaskTutorialManager* GetInstance();
+    TaskTutorialManager();
+    ~TaskTutorialManager();
 
     void Init(WaveManager* pWaveManager, Player* pPlayer);
     void Update();
     void Draw();
+
+    // シングルトンインスタンスを取得
+    static TaskTutorialManager* GetInstance();
 
     // 敵が倒されたことを通知する
     void NotifyEnemyKilled(AttackType attackType);
@@ -29,9 +35,6 @@ private:
         Tackle, // タックルタスク
         Completed // 全て完了
     };
-
-    TaskTutorialManager();
-    ~TaskTutorialManager();
     TaskTutorialManager(const TaskTutorialManager&) = delete;
     TaskTutorialManager& operator=(const TaskTutorialManager&) = delete;
 

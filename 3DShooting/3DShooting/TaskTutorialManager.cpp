@@ -119,7 +119,6 @@ void TaskTutorialManager::Update()
         }
         break;
     case TaskStep::Completed:
-        // 何か完了演出などを入れたい場合はここに書く
         break;
     default:
         break;

@@ -302,7 +302,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 				}
 				break;
 			default:
-				break; // 不明な要素は無視
+				break;
 			}
 			index++;
 		}
