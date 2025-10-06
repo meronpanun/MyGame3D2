@@ -70,6 +70,10 @@ private:
 	int m_checkMarkHandle;         // チェックマーク画像のハンドル
 	int m_japaneseFontHandle;      // 日本語フォントハンドル
 	int m_japaneseLargeFontHandle; // 日本語ラージフォントハンドル
+	int m_wKeyHandle;
+	int m_aKeyHandle;
+	int m_sKeyHandle;
+	int m_dKeyHandle;
 
 	// チュートリアル進行関連
 	float m_completeWaitTime;  // チュートリアル完了後の待機タイマー

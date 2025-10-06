@@ -80,6 +80,16 @@ TutorialManager::TutorialManager() :
     m_checkMarkHandle = LoadGraph("data/image/CheckMark.png");
     assert(m_checkMarkHandle != -1);
 
+    // キー画像の読み込み
+    m_wKeyHandle = LoadGraph("data/image/W.png");
+    m_aKeyHandle = LoadGraph("data/image/A.png");
+    m_sKeyHandle = LoadGraph("data/image/S.png");
+    m_dKeyHandle = LoadGraph("data/image/D.png");
+    assert(m_wKeyHandle != -1);
+    assert(m_aKeyHandle != -1);
+    assert(m_sKeyHandle != -1);
+    assert(m_dKeyHandle != -1);
+
     // フォントの作成
     m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     assert(m_japaneseFontHandle != -1);
@@ -91,6 +101,12 @@ TutorialManager::~TutorialManager()
 {
 	// チェックマーク画像の解放
     DeleteGraph(m_checkMarkHandle);
+
+    // キー画像の解放
+    DeleteGraph(m_wKeyHandle);
+    DeleteGraph(m_aKeyHandle);
+    DeleteGraph(m_sKeyHandle);
+    DeleteGraph(m_dKeyHandle);
 
     // フォントの解放
     DeleteFontToHandle(m_japaneseFontHandle);
@@ -282,11 +298,62 @@ void TutorialManager::Draw(int screenW, int screenH)
 
     switch (m_step)
     {
-    case Step::Move:
-        text = "WASDで移動しよう!";
-        is_done = m_isMoveDone;
-        is_check_anim = m_isMoveCheckAnim;
-        check_anim_time = m_moveCheckAnimTime;
+        case Step::Move:
+        {
+            is_done = m_isMoveDone;
+            is_check_anim = m_isMoveCheckAnim;
+            check_anim_time = m_moveCheckAnimTime;
+
+            constexpr int kKeyImageSize = 40;
+            constexpr int kKeyImageSpacing = 5;
+            const char* remaining_text = "で移動しよう!";
+            int remaining_text_width = GetDrawStringWidthToHandle(remaining_text, strlen(remaining_text), m_japaneseFontHandle);
+
+            int images_width = kKeyImageSize * 4 + kKeyImageSpacing * 3;
+            int box_width = images_width + remaining_text_width + kCheckMarkBaseSize + kBoxPaddingX * 2;
+            int box_height = kKeyImageSize + kBoxPaddingY * 2;
+
+            int box_x = screenW - box_width - 20 + m_uiXOffset;
+            int box_y = 20;
+
+            // 半透明の背景ボックスを描画
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
+            DrawBox(box_x, box_y, box_x + box_width, box_y + box_height, kBoxColor, true);
+            SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+            // キー画像を描画
+            int image_x = box_x + kBoxPaddingX;
+            int image_y = box_y + kBoxPaddingY;
+            DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize, image_y + kKeyImageSize, m_wKeyHandle, true);
+            image_x += kKeyImageSize + kKeyImageSpacing;
+            DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize, image_y + kKeyImageSize, m_aKeyHandle, true);
+            image_x += kKeyImageSize + kKeyImageSpacing;
+            DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize, image_y + kKeyImageSize, m_sKeyHandle, true);
+            image_x += kKeyImageSize + kKeyImageSpacing;
+            DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize, image_y + kKeyImageSize, m_dKeyHandle, true);
+
+            // 残りのテキストを描画
+            int text_x = image_x + kKeyImageSize + kKeyImageSpacing;
+            int text_y = box_y + (box_height - kFontSize) / 2;
+            DrawStringToHandle(text_x, text_y, remaining_text, 0xffffff, m_japaneseFontHandle);
+
+            // チェックマークを描画
+            if (is_done && m_checkMarkHandle >= 0)
+            {
+                float scale = 1.0f;
+                if (is_check_anim && check_anim_time < kCheckAnimDuration)
+                {
+                    float t = check_anim_time / kCheckAnimDuration;
+                    scale = kCheckMarkAnimScale - t;
+                    if (scale < 1.0f) scale = 1.0f;
+                }
+
+                int size = static_cast<int>(kCheckMarkBaseSize * scale);
+                int cx = text_x + remaining_text_width + kBoxPaddingX + (kCheckMarkBaseSize / 2);
+                int cy = box_y + box_height / 2;
+                DrawExtendGraph(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, m_checkMarkHandle, true);
+            }
+        }
         break;
     case Step::View:
         text = "マウスで視点を動かそう!";
@@ -310,38 +377,41 @@ void TutorialManager::Draw(int screenW, int screenH)
         return;
     }
 
-    int text_width = GetDrawStringWidthToHandle(text, strlen(text), m_japaneseFontHandle);
-    int box_width = text_width + kCheckMarkBaseSize + kBoxPaddingX * 2;
-    int box_height = kCheckMarkBaseSize + kBoxPaddingY * 2;
-
-    int box_x = screenW - box_width - 20 + m_uiXOffset;
-    int box_y = 20;
-
-    // 半透明の背景ボックスを描画
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-    DrawBox(box_x, box_y, box_x + box_width, box_y + box_height, kBoxColor, true);
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-    // テキストを描画
-    int text_x = box_x + kBoxPaddingX;
-    int text_y = box_y + (box_height - kFontSize) / 2;
-    DrawStringToHandle(text_x, text_y, text, 0xffffff, m_japaneseFontHandle);
-
-    // チェックマークを描画
-    if (is_done && m_checkMarkHandle >= 0)
+    if (m_step != Step::Move)
     {
-        float scale = 1.0f;
-        if (is_check_anim && check_anim_time < kCheckAnimDuration)
-        {
-            float t = check_anim_time / kCheckAnimDuration;
-            scale = kCheckMarkAnimScale - t;
-            if (scale < 1.0f) scale = 1.0f;
-        }
+        int text_width = GetDrawStringWidthToHandle(text, strlen(text), m_japaneseFontHandle);
+        int box_width = text_width + kCheckMarkBaseSize + kBoxPaddingX * 2;
+        int box_height = kCheckMarkBaseSize + kBoxPaddingY * 2;
 
-        int size = static_cast<int>(kCheckMarkBaseSize * scale);
-        int cx = text_x + text_width + kBoxPaddingX + (kCheckMarkBaseSize / 2);
-        int cy = box_y + box_height / 2;
-        DrawExtendGraph(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, m_checkMarkHandle, true);
+        int box_x = screenW - box_width - 20 + m_uiXOffset;
+        int box_y = 20;
+
+        // 半透明の背景ボックスを描画
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
+        DrawBox(box_x, box_y, box_x + box_width, box_y + box_height, kBoxColor, true);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+        // テキストを描画
+        int text_x = box_x + kBoxPaddingX;
+        int text_y = box_y + (box_height - kFontSize) / 2;
+        DrawStringToHandle(text_x, text_y, text, 0xffffff, m_japaneseFontHandle);
+
+        // チェックマークを描画
+        if (is_done && m_checkMarkHandle >= 0)
+        {
+            float scale = 1.0f;
+            if (is_check_anim && check_anim_time < kCheckAnimDuration)
+            {
+                float t = check_anim_time / kCheckAnimDuration;
+                scale = kCheckMarkAnimScale - t;
+                if (scale < 1.0f) scale = 1.0f;
+            }
+
+            int size = static_cast<int>(kCheckMarkBaseSize * scale);
+            int cx = text_x + text_width + kBoxPaddingX + (kCheckMarkBaseSize / 2);
+            int cy = box_y + box_height / 2;
+            DrawExtendGraph(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2, m_checkMarkHandle, true);
+        }
     }
 }
 
