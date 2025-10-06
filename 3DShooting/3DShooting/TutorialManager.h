@@ -74,22 +74,26 @@ private:
 	int m_aKeyHandle;
 	int m_sKeyHandle;
 	int m_dKeyHandle;
+	int m_mouseMoveHorHandle;
+	int m_spaceKeyHandle;
+	int m_leftShiftKeyHandle;
+	int m_crossHandle;
 
 	// チュートリアル進行関連
-	float m_completeWaitTime;  // チュートリアル完了後の待機タイマー
-	float m_runAccumTime;      // 走る操作累積時間
-	float m_jumpAccumTime;     // ジャンプ操作累積時間
-	float m_viewAccumTime;     // 視点操作累積時間
-	float m_moveAccumTime;     // WASD操作累積時間
-	bool m_isCompletedDisplay; // 完了演出表示中フラグ
-	bool m_isRunDone;          // 走る操作が完了したか
-	bool m_isJumpDone;         // ジャンプ操作が完了したか
-	bool m_isViewDone;		   // 視点操作が完了したか
-	bool m_isMoveDone;		   // WASD操作が完了したか
+	float m_completeWaitTime;   // チュートリアル完了後の待機タイマー
+	float m_runAccumTime;       // 走る操作累積時間
+	float m_jumpAccumTime;      // ジャンプ操作累積時間
+	float m_viewAccumTime;      // 視点操作累積時間
+	float m_moveAccumTime;      // WASD操作累積時間
+	bool  m_isCompletedDisplay; // 完了演出表示中フラグ
+	bool  m_isRunDone;          // 走る操作が完了したか
+	bool  m_isJumpDone;         // ジャンプ操作が完了したか
+	bool  m_isViewDone;		    // 視点操作が完了したか
+	bool  m_isMoveDone;		    // WASD操作が完了したか
 
 	// ステップ完了後の待機
 	float m_stepCompleteWaitTime; // ステップ完了後の待機タイマー
-	bool m_isStepCompleted;     // ステップ完了後の待機中フラグ
+	bool  m_isStepCompleted;      // ステップ完了後の待機中フラグ
 
 	// アニメーション関連
 	float m_uiXOffset;         // UIのX座標オフセット
@@ -97,8 +101,8 @@ private:
 	float m_viewCheckAnimTime; // 視点操作のアニメーションタイマー
 	float m_runCheckAnimTime;  // 走る操作のアニメーションタイマー
 	float m_jumpCheckAnimTime; // ジャンプ操作のアニメーションタイマー
-	bool m_isMoveCheckAnim;	   // WASD操作のアニメーションが進行中か
-	bool m_isViewCheckAnim;    // 視点操作のアニメーションが進行中か
-	bool m_isJumpCheckAnim;    // ジャンプ操作のアニメーションが進行中か
-	bool m_isRunCheckAnim;     // 走る操作のアニメーションが進行中か
+	bool  m_isMoveCheckAnim;   // WASD操作のアニメーションが進行中か
+	bool  m_isViewCheckAnim;   // 視点操作のアニメーションが進行中か
+	bool  m_isJumpCheckAnim;   // ジャンプ操作のアニメーションが進行中か
+	bool  m_isRunCheckAnim;    // 走る操作のアニメーションが進行中か
 };
