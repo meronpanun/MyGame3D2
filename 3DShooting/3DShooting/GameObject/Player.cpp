@@ -365,8 +365,6 @@ void Player::Init()
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
-    m_pCamera->Update(); // カメラの更新
-
 	if (m_isDead)
 	{
 		DeathUpdate();
@@ -683,6 +681,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_pCamera->SetHeadBobbingState(isMoving, isRunning);
 	}
+
+	// カメラの更新
+	m_pCamera->Update();
 
 	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 
