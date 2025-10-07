@@ -49,6 +49,7 @@ Camera::Camera() :
     m_playerPos(VGet(0, 0, 0)),
     m_yaw(DX_PI_F),
     m_pitch(0.0f),
+	m_roll(0.0f),
     m_sensitivity(0.1f),
     m_fov(DX_PI_F * 0.5f),
     m_defaultFov(DX_PI_F * 0.5f), 
@@ -71,7 +72,10 @@ Camera::Camera() :
     m_prevYaw(0.0f),
     m_yawDelta(0.0f),
     m_swayOffset(VGet(0, 0, 0)),
-    m_swayRotOffset(VGet(0, 0, 0))
+    m_swayRotOffset(VGet(0, 0, 0)),
+	m_isDeathAnimationPlaying(false),
+	m_deathAnimationTimer(0.0f),
+	m_hasBounced(false)
 {
 }
 
@@ -89,8 +93,57 @@ void Camera::Init()
 
 void Camera::Update()
 {
-    // マウスの移動量に基づいてカメラの回転角度を更新
-    Mouse::UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
+    // 死亡アニメーション再生中かどうか
+    if (m_isDeathAnimationPlaying)
+    {
+        const float fallDuration = 1.5f;
+        const float bounceDuration = 0.5f;
+        const float totalDuration = fallDuration + bounceDuration;
+
+        float progress = m_deathAnimationTimer / totalDuration;
+        if (progress > 1.0f) progress = 1.0f;
+
+        float fallProgress = m_deathAnimationTimer / fallDuration;
+        if (fallProgress > 1.0f) fallProgress = 1.0f;
+
+		// イージングを使って自然な落下を表現
+        float easeInFallProgress = fallProgress * fallProgress * fallProgress;
+
+        m_pitch = -kPitchLimit * (1.0f - easeInFallProgress) - (DX_PI_F / 2.0f) * easeInFallProgress;
+        m_offset.y = kCameraYPos * (1.0f - easeInFallProgress);
+        m_offset.x = kCameraXPos * (1.0f - easeInFallProgress) - 20.0f * easeInFallProgress;
+        m_roll = (DX_PI_F / 4.0f) * easeInFallProgress; // 45度傾ける
+
+        if (m_deathAnimationTimer > fallDuration)
+        {
+            if (!m_hasBounced)
+            {
+                Shake(10.0f, 30);
+                m_hasBounced = true;
+            }
+
+            float bounceTimer = m_deathAnimationTimer - fallDuration;
+            float bounceProgress = bounceTimer / bounceDuration;
+
+            float amplitudeY = 8.0f;
+            float amplitudePitch = 0.1f;
+            float decay = 5.0f; 
+            float frequency = 3.0f;
+
+            float bounceY = amplitudeY * exp(-decay * bounceProgress) * cos(frequency * 2.0f * DX_PI_F * bounceProgress);
+            m_offset.y += bounceY;
+
+            float bouncePitch = amplitudePitch * exp(-decay * bounceProgress) * cos(frequency * 2.0f * DX_PI_F * bounceProgress);
+            m_pitch += bouncePitch;
+        }
+    }
+    else
+    {
+        // マウスの移動量に基づいてカメラの回転角度を更新
+        Mouse::UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
+        m_roll = 0.0f; // 通常時はロールなし
+        m_hasBounced = false; // リセット
+    }
 
     // Yawの差分を計算
     m_yawDelta = m_yaw - m_prevYaw;
@@ -161,7 +214,8 @@ void Camera::Update()
     // カメラの回転行列を作成
     MATRIX rotYaw    = MGetRotY(m_yaw);
     MATRIX rotPitch  = MGetRotX(-m_pitch);
-    MATRIX cameraRot = MMult(rotPitch, rotYaw);
+    MATRIX rotRoll   = MGetRotZ(m_roll); // Z軸回転
+    MATRIX cameraRot = MMult(MMult(rotRoll, rotPitch), rotYaw);
 
     // カメラの向きを計算
     VECTOR forward = VTransform(VGet(0.0f, 0.0f, 1.0f), cameraRot);
@@ -359,4 +413,10 @@ void Camera::Shake(float intensity, float duration)
 {
     m_shakeIntensity = intensity;
     m_shakeDuration  = duration;
+}
+
+void Camera::PlayDeathAnimation(float timer)
+{
+	m_isDeathAnimationPlaying = true;
+	m_deathAnimationTimer = timer;
 }

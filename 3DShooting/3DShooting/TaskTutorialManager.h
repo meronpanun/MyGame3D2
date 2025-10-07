@@ -26,6 +26,12 @@ public:
     // チュートリアルが完了したか
     bool IsCompleted() const;
 
+    // 状態をリセットする
+    void Reset();
+
+    // チュートリアルをスキップする
+    void Skip(WaveManager* pWaveManager);
+
 private:
     // チュートリアルの進行ステップ
     enum class TaskStep

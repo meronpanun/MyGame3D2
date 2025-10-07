@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "TransformDataLoader.h"
 #include "EnemyBase.h"
+#include <cstdio>
 #include <vector>
 #include <memory>
 #include <string>

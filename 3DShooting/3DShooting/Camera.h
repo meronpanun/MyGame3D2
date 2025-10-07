@@ -159,6 +159,12 @@ public:
 	/// </summary>
 	/// <returns>Yawの差分</returns>
 	float GetYawDelta() const { return m_yawDelta; }
+
+	/// <summary>
+	/// 死亡アニメーションを再生
+	/// </summary>
+	/// <param name="timer">アニメーションタイマー</param>
+	void PlayDeathAnimation(float timer);
 	
 private:
 	/// <summary>
@@ -191,6 +197,7 @@ private:
 	// 回転管理
 	float m_yaw;             // ヨー角度
 	float m_pitch;           // ピッチ角度
+	float m_roll;            // ロール角度
 	float m_sensitivity;     // カメラの感度
 	float m_prevYaw;         // 前フレームのヨー角度
 	float m_yawDelta;        // ヨー角度の差分
@@ -229,4 +236,9 @@ private:
 	// Sway管理
 	VECTOR m_swayOffset;
 	VECTOR m_swayRotOffset;
+
+	// 死亡アニメーション管理
+	bool m_isDeathAnimationPlaying; // 死亡アニメーション再生中か
+	float m_deathAnimationTimer;    // 死亡アニメーションのタイマー
+	bool m_hasBounced;              // バウンドしたか
 };

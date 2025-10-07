@@ -14,8 +14,8 @@ namespace
     constexpr int kTaskTextX = 20;
     constexpr int kTaskTextY = 20;
     constexpr int kTaskFontSize = 24;
-    constexpr unsigned int kTaskTextColor = 0xFFFFFF; // 白色
     constexpr int kTaskFontThickness = 2;
+    constexpr unsigned int kTaskTextColor = 0xFFFFFF;
 }
 
 // 静的メンバ変数の実体を定義
@@ -89,6 +89,21 @@ void TaskTutorialManager::NotifyEnemyKilled(AttackType attackType)
     }
 }
 
+void TaskTutorialManager::Reset()
+{
+    m_step = TaskStep::None;
+    m_shootKills = 0;
+    m_tackleKills = 0;
+    m_pWaveManager = nullptr;
+    m_pPlayer = nullptr;
+}
+
+void TaskTutorialManager::Skip(WaveManager* pWaveManager)
+{
+    m_step = TaskStep::Completed;
+    m_pWaveManager = pWaveManager;
+}
+
 
 void TaskTutorialManager::Update()
 {
@@ -147,7 +162,6 @@ void TaskTutorialManager::Draw()
         DrawStringToHandle(kTaskTextX, kTaskTextY + kTaskFontSize + 5, taskText.c_str(), kTaskTextColor, m_fontHandle);
         break;
     case TaskStep::Completed:
-        DrawStringToHandle(kTaskTextX, kTaskTextY, "チュートリアル完了！", kTaskTextColor, m_fontHandle);
         break;
     default:
         break;

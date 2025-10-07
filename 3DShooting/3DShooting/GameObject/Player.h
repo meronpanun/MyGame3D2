@@ -170,18 +170,29 @@ public:
 	    /// <returns>無敵モードならtrue</returns>
 	    bool IsInvincible() const { return m_isInvincible; }
 	
-	    /// <summary>
-	    /// 攻撃制限を設定する
-	    /// </summary>
-	    /// <param name="allowedAttack">許可する攻撃タイプ</param>
-	    void SetAttackRestrictions(AttackType allowedAttack);
-	
-	private:
-	    AttackType m_allowedAttackType = AttackType::None;	/// <summary>
-	/// 弾を発射する
-	/// </summary>
-	void Shoot(std::vector<Bullet>& bullets);
-
+	    	/// <summary>
+	    	/// 攻撃制限を設定する
+	    	/// </summary>
+	    	/// <param name="allowedAttack">許可する攻撃タイプ</param>
+	    	void SetAttackRestrictions(AttackType allowedAttack);
+	    
+	    	/// <summary>
+	    	/// プレイヤーが死亡しているかどうか
+	    	/// </summary>
+	    	/// <returns>死亡しているならtrue</returns>
+	    	bool IsDead() const { return m_isDead; }
+	    
+	    private:
+	    	AttackType m_allowedAttackType = AttackType::None;
+	    	/// <summary>
+	    	/// 死亡時の更新処理
+	    	/// </summary>
+	    	void DeathUpdate();
+	    
+	    	/// <summary>
+	    	/// 弾を発射する
+	    	/// </summary>
+	    	void Shoot(std::vector<Bullet>& bullets);
 	/// <summary>
 	/// 銃の位置を取得する
 	/// </summary>
@@ -287,4 +298,8 @@ private:
 	VECTOR m_gunSwayRotOffset;
 	VECTOR m_swordSwayOffset;
 	VECTOR m_swordSwayRotOffset;
+
+	// 死亡関連
+	bool m_isDead;         // 死亡フラグ
+	float m_deathTimer;      // 死亡アニメーションタイマー
 };

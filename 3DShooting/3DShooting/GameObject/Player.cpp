@@ -236,7 +236,9 @@ Player::Player() :
 	m_gunSwayOffset(VGet(0, 0, 0)),
 	m_gunSwayRotOffset(VGet(0, 0, 0)),
 	m_swordSwayOffset(VGet(0, 0, 0)),
-	m_swordSwayRotOffset(VGet(0, 0, 0))
+	m_swordSwayRotOffset(VGet(0, 0, 0)),
+	m_isDead(false),
+	m_deathTimer(0.0f)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -363,6 +365,20 @@ void Player::Init()
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
+    m_pCamera->Update(); // カメラの更新
+
+	if (m_isDead)
+	{
+		DeathUpdate();
+		return;
+	}
+
+	if (m_health <= 0.0f)
+	{
+		m_isDead = true;
+		m_deathTimer = 0.0f;
+	}
+
     unsigned char keyState[256];
     GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
 
@@ -386,8 +402,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
             m_swordAnimTimer = 0.0f;
         }
     }
-
-    m_pCamera->Update(); // カメラの更新
 
     // Swayの計算
     float yawDelta = m_pCamera->GetYawDelta();
@@ -778,313 +792,316 @@ void Player::Draw()
 	// 弾の描画
 	Bullet::DrawBullets(m_bullets);
 
-	int screenW = Game::kScreenWidth;
-	int screenH = Game::kScreenHeigth;
-	GetScreenState(&screenW, &screenH, NULL);
+	if (!m_isDead)
+	{
+		int screenW = Game::kScreenWidth;
+		int screenH = Game::kScreenHeigth;
+		GetScreenState(&screenW, &screenH, NULL);
 
-	// HPバーのY座標を計算
-	const int barY = screenH - kHpBarHeight - kHpBarMargin;
-	
-	// タックルUIのY座標をHPバーに合わせる
-	const int tackleUIY = barY;
-	
-	// 銃UIをタックルUIの上に配置
-	int gunImageY = tackleUIY - kGunImageHeight - kGunImageMarginY;
-	int gunImageX = screenW - kGunImageWidth - kGunImageMarginX;
-	
-	// 銃UI画像の描画
-	int gunHandle = m_gunImageHandle;
-	if (m_ammo == 0 && !m_isInfiniteAmmo)
-	{
-		gunHandle = m_noAmmoGunImageHandle;
-	}
-	else if (m_isLowAmmo)
-	{
-		gunHandle = m_lowAmmoGunImageHandle;
-	}
-	DrawExtendGraph(gunImageX, gunImageY, gunImageX + kGunImageWidth, gunImageY + kGunImageHeight, gunHandle, true);
-	
-	// 残弾数の表示
-	// 弾薬UI全体の幅を計算
-	int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
-	int ammoUIWidth = kAmmoImageSize + kAmmoImageTextSpacing + ammoTextWidth;
-	
-	// 弾薬UIのX座標 
-	int ammoUIX = gunImageX + (kGunImageWidth * 0.5f) - (ammoUIWidth * 0.5f) + kAmmoUIGunCenterOffsetX;
-	// 弾薬UIのY座標 
-	int ammoUIY = gunImageY + kGunImageHeight - kAmmoImageSize - kAmmoUIYOffset;
-	
-	// ammo画像の描画
-	int ammoImageX = ammoUIX;
-	int ammoImageY = ammoUIY;
-	DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageSize, ammoImageY + kAmmoImageSize, m_ammoImageHandle, true);
-	
-	// 弾薬数のテキスト描画
-	int ammoTextX = ammoImageX + kAmmoImageSize + kAmmoImageTextSpacing;
-	int ammoTextY = ammoUIY + (kAmmoImageSize - kAmmoTextHeight) * 0.5f;
-	
-	// 弾薬無限モードの場合は「∞」を表示
-	if (m_isInfiniteAmmo)
-	{
-		DrawFormatStringToHandle(ammoTextX, ammoTextY, kColorWhite, m_fontHandle, "∞");
-	}
-	else
-	{
-		// デフォルトの色を決定
-		int textColor = m_isLowAmmo ? kColorLowAmmo : kColorWhite;
-	
-		// フラッシュタイマーが作動中なら色を補間
-		if (m_ammoTextFlashTimer > 0.0f)
+		// HPバーのY座標を計算
+		const int barY = screenH - kHpBarHeight - kHpBarMargin;
+		
+		// タックルUIのY座標をHPバーに合わせる
+		const int tackleUIY = barY;
+		
+		// 銃UIをタックルUIの上に配置
+		int gunImageY = tackleUIY - kGunImageHeight - kGunImageMarginY;
+		int gunImageX = screenW - kGunImageWidth - kGunImageMarginX;
+		
+		// 銃UI画像の描画
+		int gunHandle = m_gunImageHandle;
+		if (m_ammo == 0 && !m_isInfiniteAmmo)
 		{
-			float flashProgress = m_ammoTextFlashTimer / 60.0f;
-	
-			// ターゲットの色（デフォルト色）のRGB成分
-			int targetR = (textColor >> 16) & 0xFF;
-			int targetG = (textColor >> 8) & 0xFF;
-			int targetB = textColor & 0xFF;
-	
-			// フラッシュの色（黄色）のRGB成分
-			int flashR = 255;
-			int flashG = 255;
-			int flashB = 0;
-	
-			// 線形補間
-			int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
-			int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
-			int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
-	
-			textColor = GetColor(currentR, currentG, currentB);
+			gunHandle = m_noAmmoGunImageHandle;
 		}
-	
-		DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
-	}
-	
-	// 剣とゲージを合わせたUI全体の幅を計算
-	int tackleUIWidth = kTackleGaugeWidth + kSwordImageGaugeSpacing + kSwordImageWidth;
-	
-	// タックルUIのX座標を画面右端に合わせる
-	int tackleGaugeX = screenW - tackleUIWidth - kHpBarMargin; // HPバーと同じマージンを使用
-	
-	// 枠
-	DrawBox(tackleGaugeX - 1, tackleUIY - 1, tackleGaugeX + kTackleGaugeWidth + 1, tackleUIY + kTackleGaugeHeight + 1, kColorTackleGaugeBorder, false);
-	
-	// ゲージ本体
-	float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
-	int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
-	DrawBox(tackleGaugeX, tackleUIY, tackleGaugeX + tackleFilledWidth, tackleUIY + kTackleGaugeHeight, kColorTackleGaugeFill, true);
-	
-	// 剣の画像を描画
-	int swordImageX = tackleGaugeX + kTackleGaugeWidth + kSwordImageGaugeSpacing; // ゲージの右側に配置
-	int swordImageY = tackleUIY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
-	
-	// クールダウン中は半透明、準備完了時は不透明
-	int alpha = (m_tackleCooldown > 0) ? kSwordImageCooldownAlpha : kSwordImageActiveAlpha;
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-	DrawExtendGraph(swordImageX, swordImageY, swordImageX + kSwordImageWidth, swordImageY + kSwordImageHeight, m_swordImageHandle, true);
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
-
-	// 警告表示ロジック
-	if (m_isLowHealth && (m_isLowAmmo || m_showNoAmmoWarning))
-	{
-		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-		int alphaInt = static_cast<int>(alpha * 255);
-
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-
-		const char* text = "体力低下";
-		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) * 0.5f;
-		int textY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset + kWarningImageSize + kWarningTextYOffset;
-		unsigned int textColor = (alphaInt << 24) | kColorWhite;
-		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-
-		int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
-
-		int leftDrawX = (screenW * 0.5f) - kWarningImageSize - (kWarningImageSpacing * 0.5f);
-		DrawExtendGraph(leftDrawX, drawY, leftDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
-
-		int rightDrawX = (screenW * 0.5f) + (kWarningImageSpacing * 0.5f);
-		DrawExtendGraph(rightDrawX, drawY, rightDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
-
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	}
-	else if (m_isLowHealth)
-	{
-		// フェードイン・アウトのアルファ値を計算
-		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-		int alphaInt = static_cast<int>(alpha * 255);
-
-		// 画像の描画サイズと位置
-		int drawX = (screenW - kWarningImageSize) * 0.5f;
-		int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
-
-		// 画像を描画
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-		DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
-
-		// テキストを描画
-		const char* text = "体力低下";
-		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) * 0.5f;
-		int textY = drawY + kWarningImageSize + kWarningTextYOffset;
-		unsigned int textColor = (alphaInt << 24) | kColorWhite;
-		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	}
-	else if (m_isLowAmmo || m_showNoAmmoWarning)
-	{
-		// フェードイン・アウトのアルファ値を計算
-		float alpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-		int alphaInt = static_cast<int>(alpha * 255);
-
-		// 画像の描画サイズと位置
-		int drawX = (screenW - kWarningImageSize) * 0.5f;
-		int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
-
-		// 画像を描画
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-		DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
-
-		// テキストを描画
-		const char* text = (m_showNoAmmoWarning) ? "残弾なし" : "残弾僅か";
-		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) * 0.5f;
-		int textY = drawY + kWarningImageSize + kWarningTextYOffset;
-		unsigned int textColor = (alphaInt << 24) | kColorWhite;
-		DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	}
-
-	/*剣の描画*/
-	// 画面サイズに応じてスケーリング
-	float scaleW = screenW / kSwordBaseScreenW;
-	float scaleH = screenH / kSwordBaseScreenH;
-	float scaleAvg = (scaleW + scaleH) * 0.5f;
-
-	// カメラオフセット設定
-	VECTOR totalCameraOffset = VGet(0, 0, 0);
-	if (m_pCamera)
-	{
-		VECTOR shakeOffset       = m_pCamera->GetShakeOffset();
-		VECTOR headBobOffset     = m_pCamera->GetHeadBobOffset();
-		VECTOR landingSwayOffset = m_pCamera->GetLandingSwayOffset();
-		VECTOR jumpSwayOffset    = m_pCamera->GetJumpSwayOffset();
-		totalCameraOffset    = VAdd(shakeOffset, headBobOffset);
-		totalCameraOffset    = VAdd(totalCameraOffset, landingSwayOffset);
-		totalCameraOffset    = VAdd(totalCameraOffset, jumpSwayOffset);
-	}
-	VECTOR swordCamPos = VGet(0, 0, kSwordCamZ * scaleAvg);
-	swordCamPos.x += totalCameraOffset.x;
-	swordCamPos.y += totalCameraOffset.y;
-	VECTOR swordCamTarget = VGet(totalCameraOffset.x * kSwordCamTargetFactor, totalCameraOffset.y * kSwordCamTargetFactor, 0);
-	SetCameraPositionAndTarget_UpVecY(swordCamPos, swordCamTarget);
-
-	// 描画するかどうかのフラグ
-	bool shouldDrawSword = (m_tackleCooldown <= 0) || m_isSwordAnimating;
-	if (!m_isSwordAnimating && m_tackleCooldown > 0) 
-	{
-		shouldDrawSword = false; // クールダウン中は非表示
-	}
-
-	if (shouldDrawSword)
-	{
-		// 待機状態の剣の位置と回転を定義
-		VECTOR waitPos    = VAdd(VGet(kSwordWaitX * scaleW, kSwordWaitY * scaleH, kSwordWaitZ), m_swordSwayOffset);
-		VECTOR waitRotVec = VAdd(VGet(0.0f, kSwordWaitRotY, 0.0f), m_swordSwayRotOffset);
-		// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
-		MATRIX matWaitRot  = MGetRotY(waitRotVec.y);
-		MATRIX matWaitPos  = MGetTranslate(waitPos);
-		MATRIX waitMatrix  = MMult(matWaitRot, matWaitPos);
-		MATRIX finalMatrix = waitMatrix;
-
-		if (m_isSwordAnimating)
+		else if (m_isLowAmmo)
 		{
-			float animProgress = m_swordAnimTimer / m_swordAnimDuration;
-			// イージング
-			animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
+			gunHandle = m_lowAmmoGunImageHandle;
+		}
+		DrawExtendGraph(gunImageX, gunImageY, gunImageX + kGunImageWidth, gunImageY + kGunImageHeight, gunHandle, true);
+		
+		// 残弾数の表示
+		// 弾薬UI全体の幅を計算
+		int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
+		int ammoUIWidth = kAmmoImageSize + kAmmoImageTextSpacing + ammoTextWidth;
+		
+		// 弾薬UIのX座標 
+		int ammoUIX = gunImageX + (kGunImageWidth * 0.5f) - (ammoUIWidth * 0.5f) + kAmmoUIGunCenterOffsetX;
+		// 弾薬UIのY座標 
+		int ammoUIY = gunImageY + kGunImageHeight - kAmmoImageSize - kAmmoUIYOffset;
+		
+		// ammo画像の描画
+		int ammoImageX = ammoUIX;
+		int ammoImageY = ammoUIY;
+		DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageSize, ammoImageY + kAmmoImageSize, m_ammoImageHandle, true);
+		
+		// 弾薬数のテキスト描画
+		int ammoTextX = ammoImageX + kAmmoImageSize + kAmmoImageTextSpacing;
+		int ammoTextY = ammoUIY + (kAmmoImageSize - kAmmoTextHeight) * 0.5f;
+		
+		// 弾薬無限モードの場合は「∞」を表示
+		if (m_isInfiniteAmmo)
+		{
+			DrawFormatStringToHandle(ammoTextX, ammoTextY, kColorWhite, m_fontHandle, "∞");
+		}
+		else
+		{
+			// デフォルトの色を決定
+			int textColor = m_isLowAmmo ? kColorLowAmmo : kColorWhite;
+		
+			// フラッシュタイマーが作動中なら色を補間
+			if (m_ammoTextFlashTimer > 0.0f)
+			{
+				float flashProgress = m_ammoTextFlashTimer / 60.0f;
+		
+				// ターゲットの色（デフォルト色）のRGB成分
+				int targetR = (textColor >> 16) & 0xFF;
+				int targetG = (textColor >> 8) & 0xFF;
+				int targetB = textColor & 0xFF;
+		
+				// フラッシュの色（黄色）のRGB成分
+				int flashR = 255;
+				int flashG = 255;
+				int flashB = 0;
+		
+				// 線形補間
+				int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
+				int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
+				int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
+		
+				textColor = GetColor(currentR, currentG, currentB);
+			}
+		
+			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
+		}
+		
+		// 剣とゲージを合わせたUI全体の幅を計算
+		int tackleUIWidth = kTackleGaugeWidth + kSwordImageGaugeSpacing + kSwordImageWidth;
+		
+		// タックルUIのX座標を画面右端に合わせる
+		int tackleGaugeX = screenW - tackleUIWidth - kHpBarMargin; // HPバーと同じマージンを使用
+		
+		// 枠
+		DrawBox(tackleGaugeX - 1, tackleUIY - 1, tackleGaugeX + kTackleGaugeWidth + 1, tackleUIY + kTackleGaugeHeight + 1, kColorTackleGaugeBorder, false);
+		
+		// ゲージ本体
+		float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
+		int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
+		DrawBox(tackleGaugeX, tackleUIY, tackleGaugeX + tackleFilledWidth, tackleUIY + kTackleGaugeHeight, kColorTackleGaugeFill, true);
+		
+		// 剣の画像を描画
+		int swordImageX = tackleGaugeX + kTackleGaugeWidth + kSwordImageGaugeSpacing; // ゲージの右側に配置
+		int swordImageY = tackleUIY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
+		
+		// クールダウン中は半透明、準備完了時は不透明
+		int alpha = (m_tackleCooldown > 0) ? kSwordImageCooldownAlpha : kSwordImageActiveAlpha;
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+		DrawExtendGraph(swordImageX, swordImageY, swordImageX + kSwordImageWidth, swordImageY + kSwordImageHeight, m_swordImageHandle, true);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
 
-			// 回転角度を計算 (左 -> 右)
-			float startAngle   = kSwordAnimStartAngle * (DX_PI_F / 180.0f);
-			float endAngle     = kSwordAnimEndAngle * (DX_PI_F / 180.0f);
-			float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
+		// 警告表示ロジック
+		if (m_isLowHealth && (m_isLowAmmo || m_showNoAmmoWarning))
+		{
+			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+			int alphaInt = static_cast<int>(alpha * 255);
 
-			// モデルのローカル座標におけるピボット（手持ち部分）の位置
-			VECTOR pivotOffset = VGet(0.0f, 0.0f, kSwordPivotZ);
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
 
-			// 行列を使ってピボット回転を実装
-			MATRIX matPivotTrans    = MGetTranslate(VScale(pivotOffset, -1.0f));
-			MATRIX matRotate        = MGetRotY(currentAngle);
-			MATRIX matPivotTransInv = MGetTranslate(pivotOffset);
+			const char* text = "体力低下";
+			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+			int textX = (screenW - textWidth) * 0.5f;
+			int textY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset + kWarningImageSize + kWarningTextYOffset;
+			unsigned int textColor = (alphaInt << 24) | kColorWhite;
+			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 
-			// 最終的な行列をMMultで計算
-			// finalMatrix = (待機時の行列) -> (ピボットを原点へ) -> (回転) -> (ピボットを戻す)
-			MATRIX tempMat1 = MMult(waitMatrix, matPivotTrans);
-			MATRIX tempMat2 = MMult(tempMat1, matRotate);
-			finalMatrix     = MMult(tempMat2, matPivotTransInv);
+			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
+
+			int leftDrawX = (screenW * 0.5f) - kWarningImageSize - (kWarningImageSpacing * 0.5f);
+			DrawExtendGraph(leftDrawX, drawY, leftDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
+
+			int rightDrawX = (screenW * 0.5f) + (kWarningImageSpacing * 0.5f);
+			DrawExtendGraph(rightDrawX, drawY, rightDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
+
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+		}
+		else if (m_isLowHealth)
+		{
+			// フェードイン・アウトのアルファ値を計算
+			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+			int alphaInt = static_cast<int>(alpha * 255);
+
+			// 画像の描画サイズと位置
+			int drawX = (screenW - kWarningImageSize) * 0.5f;
+			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
+
+			// 画像を描画
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+			DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
+
+			// テキストを描画
+			const char* text = "体力低下";
+			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+			int textX = (screenW - textWidth) * 0.5f;
+			int textY = drawY + kWarningImageSize + kWarningTextYOffset;
+			unsigned int textColor = (alphaInt << 24) | kColorWhite;
+			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+		}
+		else if (m_isLowAmmo || m_showNoAmmoWarning)
+		{
+			// フェードイン・アウトのアルファ値を計算
+			float alpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+			int alphaInt = static_cast<int>(alpha * 255);
+
+			// 画像の描画サイズと位置
+			int drawX = (screenW - kWarningImageSize) * 0.5f;
+			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
+
+			// 画像を描画
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+			DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
+
+			// テキストを描画
+			const char* text = (m_showNoAmmoWarning) ? "残弾なし" : "残弾僅か";
+			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+			int textX = (screenW - textWidth) * 0.5f;
+			int textY = drawY + kWarningImageSize + kWarningTextYOffset;
+			unsigned int textColor = (alphaInt << 24) | kColorWhite;
+			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
 
-		// モデルに最終的な変換行列を適用
-		MV1SetMatrix(m_swordModelHandle, finalMatrix);
-		MV1SetScale(m_swordModelHandle, VGet(kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg));
-		MV1DrawModel(m_swordModelHandle);
+		/*剣の描画*/
+		// 画面サイズに応じてスケーリング
+		float scaleW = screenW / kSwordBaseScreenW;
+		float scaleH = screenH / kSwordBaseScreenH;
+		float scaleAvg = (scaleW + scaleH) * 0.5f;
+
+		// カメラオフセット設定
+		VECTOR totalCameraOffset = VGet(0, 0, 0);
+		if (m_pCamera)
+		{
+			VECTOR shakeOffset       = m_pCamera->GetShakeOffset();
+			VECTOR headBobOffset     = m_pCamera->GetHeadBobOffset();
+			VECTOR landingSwayOffset = m_pCamera->GetLandingSwayOffset();
+			VECTOR jumpSwayOffset    = m_pCamera->GetJumpSwayOffset();
+			totalCameraOffset    = VAdd(shakeOffset, headBobOffset);
+			totalCameraOffset    = VAdd(totalCameraOffset, landingSwayOffset);
+			totalCameraOffset    = VAdd(totalCameraOffset, jumpSwayOffset);
+		}
+		VECTOR swordCamPos = VGet(0, 0, kSwordCamZ * scaleAvg);
+		swordCamPos.x += totalCameraOffset.x;
+		swordCamPos.y += totalCameraOffset.y;
+		VECTOR swordCamTarget = VGet(totalCameraOffset.x * kSwordCamTargetFactor, totalCameraOffset.y * kSwordCamTargetFactor, 0);
+		SetCameraPositionAndTarget_UpVecY(swordCamPos, swordCamTarget);
+
+		// 描画するかどうかのフラグ
+		bool shouldDrawSword = (m_tackleCooldown <= 0) || m_isSwordAnimating;
+		if (!m_isSwordAnimating && m_tackleCooldown > 0) 
+		{
+			shouldDrawSword = false; // クールダウン中は非表示
+		}
+
+		if (shouldDrawSword)
+		{
+			// 待機状態の剣の位置と回転を定義
+			VECTOR waitPos    = VAdd(VGet(kSwordWaitX * scaleW, kSwordWaitY * scaleH, kSwordWaitZ), m_swordSwayOffset);
+			VECTOR waitRotVec = VAdd(VGet(0.0f, kSwordWaitRotY, 0.0f), m_swordSwayRotOffset);
+			// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
+			MATRIX matWaitRot  = MGetRotY(waitRotVec.y);
+			MATRIX matWaitPos  = MGetTranslate(waitPos);
+			MATRIX waitMatrix  = MMult(matWaitRot, matWaitPos);
+			MATRIX finalMatrix = waitMatrix;
+
+			if (m_isSwordAnimating)
+			{
+				float animProgress = m_swordAnimTimer / m_swordAnimDuration;
+				// イージング
+				animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
+
+				// 回転角度を計算 (左 -> 右)
+				float startAngle   = kSwordAnimStartAngle * (DX_PI_F / 180.0f);
+				float endAngle     = kSwordAnimEndAngle * (DX_PI_F / 180.0f);
+				float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
+
+				// モデルのローカル座標におけるピボット（手持ち部分）の位置
+				VECTOR pivotOffset = VGet(0.0f, 0.0f, kSwordPivotZ);
+
+				// 行列を使ってピボット回転を実装
+				MATRIX matPivotTrans    = MGetTranslate(VScale(pivotOffset, -1.0f));
+				MATRIX matRotate        = MGetRotY(currentAngle);
+				MATRIX matPivotTransInv = MGetTranslate(pivotOffset);
+
+				// 最終的な行列をMMultで計算
+				// finalMatrix = (待機時の行列) -> (ピボットを原点へ) -> (回転) -> (ピボットを戻す)
+				MATRIX tempMat1 = MMult(waitMatrix, matPivotTrans);
+				MATRIX tempMat2 = MMult(tempMat1, matRotate);
+				finalMatrix     = MMult(tempMat2, matPivotTransInv);
+			}
+
+			// モデルに最終的な変換行列を適用
+			MV1SetMatrix(m_swordModelHandle, finalMatrix);
+			MV1SetScale(m_swordModelHandle, VGet(kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg));
+			MV1DrawModel(m_swordModelHandle);
+		}
+
+		// メインカメラに戻す
+		m_pCamera->SetCameraToDxLib();
+
+		if (m_pEffect)
+		{
+			m_pEffect->Draw(); // エフェクトの描画
+		}
+		
+		// HPバーのパラメータ
+		const int healthUiImageX = kHpBarMargin;
+		const int healthUiImageY = screenH - kHpBarHeight - kHpBarMargin + (kHpBarHeight - kHealthUiImageSize) * 0.5f;
+		DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + kHealthUiImageSize, healthUiImageY + kHealthUiImageSize, m_healthUiImageHandle, true);
+	    const int barX      = healthUiImageX + kHealthUiImageSize + kHealthUiImageBarSpacing;
+
+	    // 最大HP
+	    float hp = m_health;
+
+	    if (hp < 0) hp = 0;
+	    if (hp > kMaxHp) hp = kMaxHp;
+
+	    float hpAnim = m_healthBarAnim;
+
+	    if (hpAnim < 0) hpAnim = 0;
+	    if (hpAnim > kMaxHp) hpAnim = kMaxHp;
+
+	    // HP割合
+	    float hpRate = hp / kMaxHp;
+	    float hpAnimRate = hpAnim / kMaxHp;
+
+	    // 背景
+	    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg, true);
+
+	    // HPバー本体（実際の体力を反映）
+	    DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
+
+	    // アニメーションバー（ゴーストバー）
+	    if (m_healthBarAnim > m_health)
+	    {
+	        // ダメージ時（黄色いバー）
+	        int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
+	        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
+	        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage, true);
+	    }
+	    else if (m_healthBarAnim < m_health)
+	    {
+	        // 回復時（明るい緑のバー）
+	        int animStart = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
+	        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpRate);
+	        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, 0x90EE90, true);
+	    }
+
+	    // 枠
+	    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
+
+	    // HP数値
+	    DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f", m_healthBarAnim);
 	}
-
-	// メインカメラに戻す
-	m_pCamera->SetCameraToDxLib();
-
-	if (m_pEffect)
-	{
-		m_pEffect->Draw(); // エフェクトの描画
-	}
-	
-	// HPバーのパラメータ
-	const int healthUiImageX = kHpBarMargin;
-	const int healthUiImageY = screenH - kHpBarHeight - kHpBarMargin + (kHpBarHeight - kHealthUiImageSize) * 0.5f;
-	DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + kHealthUiImageSize, healthUiImageY + kHealthUiImageSize, m_healthUiImageHandle, true);
-    const int barX      = healthUiImageX + kHealthUiImageSize + kHealthUiImageBarSpacing;
-
-    // 最大HP
-    float hp = m_health;
-
-    if (hp < 0) hp = 0;
-    if (hp > kMaxHp) hp = kMaxHp;
-
-    float hpAnim = m_healthBarAnim;
-
-    if (hpAnim < 0) hpAnim = 0;
-    if (hpAnim > kMaxHp) hpAnim = kMaxHp;
-
-    // HP割合
-    float hpRate = hp / kMaxHp;
-    float hpAnimRate = hpAnim / kMaxHp;
-
-    // 背景
-    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg, true);
-
-    // HPバー本体（実際の体力を反映）
-    DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
-
-    // アニメーションバー（ゴーストバー）
-    if (m_healthBarAnim > m_health)
-    {
-        // ダメージ時（黄色いバー）
-        int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
-        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage, true);
-    }
-    else if (m_healthBarAnim < m_health)
-    {
-        // 回復時（明るい緑のバー）
-        int animStart = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpRate);
-        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, 0x90EE90, true);
-    }
-
-    // 枠
-    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
-
-    // HP数値
-    DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f", m_healthBarAnim);
 
 	// ダメージエフェクト描画
 	DrawEffectFeedback(m_damageEffect);
@@ -1130,9 +1147,22 @@ void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
     }
 }
 
+void Player::DeathUpdate()
+{
+    m_healthBarAnim = 0.0f; // HPバーを即座に0にする
+
+	if (m_pCamera)
+	{
+		m_pCamera->PlayDeathAnimation(m_deathTimer);
+	}
+
+	m_deathTimer += 1.0f / 60.0f;
+}
+
 // ダメージを受ける処理
 void Player::TakeDamage(float damage)
 {
+	if (m_isDead) return; // 死亡中はダメージを受けない
 	if (m_isInvincible) return; // 無敵モード中はダメージを受けない
 
 	m_health -= damage; // ダメージを適用

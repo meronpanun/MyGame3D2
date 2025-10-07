@@ -22,6 +22,7 @@
 #include "TaskTutorialManager.h"
 #include "Effect.h"
 #include "DirectionIndicator.h"
+#include <cstdio>
 #include <cassert>
 #include <algorithm>
 #include <string>
@@ -119,8 +120,9 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_clearSceneDelayTimer(-1),
 	m_scoreFontHandle(-1),
 	m_isPlayerInit(false),
-	m_isTaskTutorialInitialized(false),
-	m_pEffect(std::make_unique<Effect>())
+	m_isTaskTutorialInit(false),
+	m_pEffect(std::make_unique<Effect>()),
+	m_gameOverDelayTimer(-1)
 {
     g_sceneMainInstance = this;
 
@@ -319,6 +321,16 @@ void SceneMain::Init()
 
     // BGM再生フラグをリセット
     m_isBGMStarted = false;
+
+    // チュートリアルマネージャーをリセットまたはスキップ
+    if (m_isReturningFromOtherScene)
+    {
+        TaskTutorialManager::GetInstance()->Skip(m_pWaveManager.get());
+    }
+    else
+    {
+        TaskTutorialManager::GetInstance()->Reset();
+    }
     
     // 非同期読み込みを無効化
     SetUseASyncLoadFlag(false);
@@ -449,10 +461,10 @@ SceneBase* SceneMain::Update()
         return this;
     }
     // 古いチュートリアルが完了したら、新しいタスクチュートリアルを初期化
-    else if (m_pTutorialManager && m_pTutorialManager->IsCompleted() && !m_isTaskTutorialInitialized)
+    else if (m_pTutorialManager && m_pTutorialManager->IsCompleted() && !m_isTaskTutorialInit)
     {
         TaskTutorialManager::GetInstance()->Init(m_pWaveManager.get(), m_pPlayer.get());
-        m_isTaskTutorialInitialized = true;
+        m_isTaskTutorialInit = true;
         m_pTutorialManager = nullptr; // 古いチュートリアルマネージャはもう不要
         // ここでreturnせず、タスクチュートリアルの更新ブロックに処理を流す
     }
@@ -486,16 +498,27 @@ SceneBase* SceneMain::Update()
         if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; }
         ScoreManager::Instance().Update();
 
-        // ゲームオーバーチェックもここで実行
-        if (m_pPlayer->GetHealth() <= 0.0f)
-        {
-            int wave = m_pWaveManager->GetCurrentWave();
-            int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
-            int score = ScoreManager::Instance().GetTotalScore();
-            StopSoundMem(m_bgmHandle);
-            return new SceneGameOver(wave, killCount, score);
-        }
-        
+                // ゲームオーバーチェックもここで実行
+                if (m_pPlayer->IsDead())
+                {
+                    if (m_gameOverDelayTimer == -1)
+                    {
+                        m_gameOverDelayTimer = 180; // 3秒の遅延
+                    }
+                    else if (m_gameOverDelayTimer > 0)
+                    {
+                        m_gameOverDelayTimer--;
+                    }
+                    else
+                    {
+                        int wave = m_pWaveManager->GetCurrentWave();
+                        int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+                        int score = ScoreManager::Instance().GetTotalScore();
+                        StopSoundMem(m_bgmHandle);
+                        return new SceneGameOver(wave, killCount, score);
+                    }
+                }
+                
         m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
         
         return this; // タスクチュートリアル中に留まる
@@ -512,13 +535,24 @@ SceneBase* SceneMain::Update()
     }
     m_pPlayer->Update(enemyPtrList);
 
-    if (m_pPlayer->GetHealth() <= 0.0f) 
+    if (m_pPlayer->IsDead()) 
     {
-        int wave = m_pWaveManager->GetCurrentWave();
-        int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
-        int score = ScoreManager::Instance().GetTotalScore();
-        StopSoundMem(m_bgmHandle);
-        return new SceneGameOver(wave, killCount, score);
+        if (m_gameOverDelayTimer == -1)
+        {
+            m_gameOverDelayTimer = 180; // 3秒の遅延
+        }
+        else if (m_gameOverDelayTimer > 0)
+        {
+            m_gameOverDelayTimer--;
+        }
+        else
+        {
+            int wave = m_pWaveManager->GetCurrentWave();
+            int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+            int score = ScoreManager::Instance().GetTotalScore();
+            StopSoundMem(m_bgmHandle);
+            return new SceneGameOver(wave, killCount, score);
+        }
     }
         
     // ウェーブ3終了後の遅延処理
@@ -597,9 +631,11 @@ void SceneMain::Draw()
 
     m_pPlayer->Draw();
 
-    m_pDirectionIndicator->Draw();
-
-    DrawGraph(kScreenCenterX - kReticleOffset * 0.5f, kScreenCenterY - kReticleOffset * 0.5f, m_dotHandle, true);
+    if (!m_pPlayer->IsDead())
+    {
+        m_pDirectionIndicator->Draw();
+        DrawGraph(kScreenCenterX - kReticleOffset * 0.5f, kScreenCenterY - kReticleOffset * 0.5f, m_dotHandle, true);
+    }
 
     // スコアポップアップ描画
     bool showScorePopup = !m_scorePopups.empty();

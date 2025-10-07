@@ -144,7 +144,8 @@ private:
     static float s_elapsedTime;        // ゲーム経過時間（秒）
 
     bool m_isPlayerInit;
-    bool m_isTaskTutorialInitialized; // タスクチュートリアルが初期化済みか
+	int m_gameOverDelayTimer; // ゲームオーバー遅延タイマー
+	bool m_isTaskTutorialInit;
 };
 
 
