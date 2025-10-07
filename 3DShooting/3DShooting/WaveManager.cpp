@@ -669,6 +669,7 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
     m_currentSpawnIndex = 0;
     m_spawnTimer = 0.0f;
     m_isWaveActive = true;
+    m_enemyList.clear(); // 敵リストをクリア
 
     // ウェーブ画像アニメーションを開始
     m_isWaveImageAnimating = true;
