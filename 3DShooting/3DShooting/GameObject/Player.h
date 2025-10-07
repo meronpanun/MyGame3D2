@@ -164,35 +164,36 @@ public:
 	/// <param name="isInvincible">無敵にするかどうか</param>
 	void SetInvincible(bool isInvincible) { m_isInvincible = isInvincible; }
 
-	    /// <summary>
-	    /// 無敵モードかどうかを取得する
-	    /// </summary>
-	    /// <returns>無敵モードならtrue</returns>
-	    bool IsInvincible() const { return m_isInvincible; }
+	/// <summary>
+	/// 無敵モードかどうかを取得する
+	/// </summary>
+	/// <returns>無敵モードならtrue</returns>
+	bool IsInvincible() const { return m_isInvincible; }
 	
-	    	/// <summary>
-	    	/// 攻撃制限を設定する
-	    	/// </summary>
-	    	/// <param name="allowedAttack">許可する攻撃タイプ</param>
-	    	void SetAttackRestrictions(AttackType allowedAttack);
+	/// <summary>
+	/// 攻撃制限を設定する
+	/// </summary>
+	/// <param name="allowedAttack">許可する攻撃タイプ</param>
+	void SetAttackRestrictions(AttackType allowedAttack);
+	  
+	/// <summary>
+	/// プレイヤーが死亡しているかどうか
+	/// </summary>
+	/// <returns>死亡しているならtrue</returns>
+	bool IsDead() const { return m_isDead; }
 	    
-	    	/// <summary>
-	    	/// プレイヤーが死亡しているかどうか
-	    	/// </summary>
-	    	/// <returns>死亡しているならtrue</returns>
-	    	bool IsDead() const { return m_isDead; }
+private:
+   	AttackType m_allowedAttackType = AttackType::None;
+   	/// <summary>
+   	/// 死亡時の更新処理
+   	/// </summary>
+   	void DeathUpdate();
 	    
-	    private:
-	    	AttackType m_allowedAttackType = AttackType::None;
-	    	/// <summary>
-	    	/// 死亡時の更新処理
-	    	/// </summary>
-	    	void DeathUpdate();
-	    
-	    	/// <summary>
-	    	/// 弾を発射する
-	    	/// </summary>
-	    	void Shoot(std::vector<Bullet>& bullets);
+   	/// <summary>
+   	/// 弾を発射する
+   	/// </summary>
+   	void Shoot(std::vector<Bullet>& bullets);
+
 	/// <summary>
 	/// 銃の位置を取得する
 	/// </summary>

@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <functional>
 
 class EnemyNormal;
 class EnemyRunner;

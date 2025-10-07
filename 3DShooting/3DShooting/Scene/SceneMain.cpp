@@ -498,26 +498,26 @@ SceneBase* SceneMain::Update()
         if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; }
         ScoreManager::Instance().Update();
 
-                // ゲームオーバーチェックもここで実行
-                if (m_pPlayer->IsDead())
-                {
-                    if (m_gameOverDelayTimer == -1)
-                    {
-                        m_gameOverDelayTimer = 180; // 3秒の遅延
-                    }
-                    else if (m_gameOverDelayTimer > 0)
-                    {
-                        m_gameOverDelayTimer--;
-                    }
-                    else
-                    {
-                        int wave = m_pWaveManager->GetCurrentWave();
-                        int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
-                        int score = ScoreManager::Instance().GetTotalScore();
-                        StopSoundMem(m_bgmHandle);
-                        return new SceneGameOver(wave, killCount, score);
-                    }
-                }
+        // ゲームオーバーチェックもここで実行
+        if (m_pPlayer->IsDead())
+        {
+            if (m_gameOverDelayTimer == -1)
+            {
+                m_gameOverDelayTimer = 180; // 3秒の遅延
+            }
+            else if (m_gameOverDelayTimer > 0)
+            {
+                m_gameOverDelayTimer--;
+            }
+            else
+            {
+                int wave = m_pWaveManager->GetCurrentWave();
+                int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
+                int score = ScoreManager::Instance().GetTotalScore();
+                StopSoundMem(m_bgmHandle);
+                return new SceneGameOver(wave, killCount, score);
+            }
+        }
                 
         m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
         
@@ -798,7 +798,6 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
 // プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
 void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part)
 {
-    printf("SceneMain: OnPlayerBulletHitEnemy called with part: %d\n", static_cast<int>(part));
     m_hitMarkTimer = kHitMarkDuration;
     m_hitMarkType = part;
 }

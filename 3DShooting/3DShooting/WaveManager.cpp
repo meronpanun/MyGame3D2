@@ -577,7 +577,6 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
     }
     else
     {
-        printf("Warning: Unknown enemy type: %s\n", enemyType.c_str());
         return nullptr;
     }
 
@@ -598,7 +597,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
             pEnemy->SetOnHitCallback(m_onEnemyHitCallback);
         }
         printf("Created enemy: %s at position (%.2f, %.2f, %.2f)\n",
-            enemyType.c_str(), pEnemy->GetPos().x, pEnemy->GetPos().y, pEnemy->GetPos().z);
+        enemyType.c_str(), pEnemy->GetPos().x, pEnemy->GetPos().y, pEnemy->GetPos().z);
         m_totalSpawnedCount++;
     }
 
@@ -685,8 +684,6 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
         m_isWave1Loaded = false;
     }
 
-    printf("Starting Wave %d\n", m_currentWave);
-
     // 現在のwaveのデータを取得
     std::vector<WaveData> currentWaveData;
     for (const WaveData& waveData : m_waveDataList)
@@ -696,8 +693,6 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
             currentWaveData.push_back(waveData);
         }
     }
-
-     printf("Found %d enemy types for Wave %d\n", static_cast<int>(currentWaveData.size()), m_currentWave);
 
     // 出現情報を作成
     for (const WaveData& waveData : currentWaveData)
@@ -862,7 +857,6 @@ void WaveManager::SpawnTutorialWave(int tutorialWaveId)
     std::ifstream file("data/CSV/TutorialWaves.csv");
     if (!file.is_open())
     {
-        printf("Error: Cannot open TutorialWaves.csv\n");
         return;
     }
 
