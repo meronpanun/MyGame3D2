@@ -399,6 +399,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
         m_pEffect->Update(); // エフェクトの更新
     }
 
+	// カメラの更新
+	m_pCamera->Update();
+
 	// プレイヤーのカプセルコライダーを毎フレーム更新
 	VECTOR center = m_modelPos;
 	center.y += kPlayerColliderYOffset; // 足元から腰～胸あたりを中心に
@@ -665,9 +668,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_pCamera->SetHeadBobbingState(isMoving, isRunning);
 	}
-
-	// カメラの更新
-	m_pCamera->Update();
 
 	if (m_isDead)
 	{
