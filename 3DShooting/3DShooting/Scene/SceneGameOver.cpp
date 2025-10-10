@@ -35,7 +35,7 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score) :
     assert(m_backgroundHandle != -1);
 
     // ゲームオーバー画像のロード
-    m_gameOverImageHandle = LoadGraph("data/image/GameOver.png");
+    m_gameOverImageHandle = LoadGraph("data/image/GameOverZombie.png");
     assert(m_gameOverImageHandle != -1);
 
     // フォントの作成
@@ -170,7 +170,35 @@ void SceneGameOver::Draw()
     }
 
     // ゲームオーバー画像を描画
-    DrawExtendGraph(0, -200, screenW, screenH - 100, m_gameOverImageHandle, true);
+    float imageAspect = 1024.0f / 1110.0f;  
+    float screenAspect = (float)screenW / (float)screenH; 
+
+    int drawWidth, drawHeight, drawX, drawY;
+
+    if (imageAspect > screenAspect) 
+    {
+        // 画像が横長の場合、幅に合わせてベースサイズを決定
+        drawWidth = screenW;
+        drawHeight = (int)(screenW / imageAspect);
+    }
+    else 
+    {
+        // 画像が縦長の場合、高さに合わせてベースサイズを決定
+        drawHeight = screenH;
+        drawWidth = (int)(screenH * imageAspect);
+    }
+
+    // 縮小スケール
+    const float kScale = 0.6f;
+    drawWidth  = (int)(drawWidth  * kScale);
+    drawHeight = (int)(drawHeight * kScale);
+
+    // 画面上部に配置
+    const int kTopMargin = (int)(screenH * 0.08f);
+    drawX = (screenW - drawWidth) / 2;
+    drawY = kTopMargin;
+
+    DrawExtendGraph(drawX, drawY, drawX + drawWidth, drawY + drawHeight, m_gameOverImageHandle, true);
 
     char waveStr[64];
     sprintf_s(waveStr, sizeof(waveStr), "到達ウェーブ: %d", m_wave);
