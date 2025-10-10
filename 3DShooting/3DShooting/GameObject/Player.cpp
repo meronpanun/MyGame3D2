@@ -229,7 +229,7 @@ Player::Player() :
 	m_isLowAmmo(false),
 	m_lowAmmoBlinkTimer(0.0f),
 	m_showLowAmmoWarning(false),
-    m_showNoAmmoWarning(false),
+    m_isNoAmmoWarning(false),
 	m_isLowHealth(false),
 	m_lowHealthBlinkTimer(0.0f),
 	m_ammoTextFlashTimer(0.0f),
@@ -273,7 +273,7 @@ Player::Player() :
 	assert(m_healthUiImageHandle != -1);
 
 	// 剣UI画像の読み込み
-	m_swordImageHandle = LoadGraph("data/image/sword.png");
+	m_swordImageHandle = LoadGraph("data/image/Sword.png");
 	assert(m_swordImageHandle != -1);
 
 	// SEの読み込み
@@ -715,19 +715,19 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_isLowAmmo = false;
 		m_lowAmmoBlinkTimer += kDeltaTime; // タイマー更新
-		m_showNoAmmoWarning = true;
+		m_isNoAmmoWarning = true;
 	}
 	else if (m_ammo <= kLowAmmoThreshold && !m_isInfiniteAmmo)
 	{
 		m_isLowAmmo = true;
 		m_lowAmmoBlinkTimer += kDeltaTime; // タイマー更新
-		m_showNoAmmoWarning = false;
+		m_isNoAmmoWarning = false;
 	}
 	else
 	{
 		m_isLowAmmo = false;
 		m_lowAmmoBlinkTimer = 0.0f;
-		m_showNoAmmoWarning = false;
+		m_isNoAmmoWarning = false;
 	}
 		
 	// 体力低下の警告表示処理
@@ -901,7 +901,7 @@ void Player::Draw()
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
 
 		// 警告表示ロジック
-		if (m_isLowHealth && (m_isLowAmmo || m_showNoAmmoWarning))
+		if (m_isLowHealth && (m_isLowAmmo || m_isNoAmmoWarning))
 		{
 			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
 			int alphaInt = static_cast<int>(alpha * 255);
@@ -948,7 +948,7 @@ void Player::Draw()
 			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
-		else if (m_isLowAmmo || m_showNoAmmoWarning)
+		else if (m_isLowAmmo || m_isNoAmmoWarning)
 		{
 			// フェードイン・アウトのアルファ値を計算
 			float alpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
@@ -963,7 +963,7 @@ void Player::Draw()
 			DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
 
 			// テキストを描画
-			const char* text = (m_showNoAmmoWarning) ? "残弾なし" : "残弾僅か";
+			const char* text = (m_isNoAmmoWarning) ? "残弾なし" : "残弾僅か";
 			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
 			int textX = (screenW - textWidth) * 0.5f;
 			int textY = drawY + kWarningImageSize + kWarningTextYOffset;
