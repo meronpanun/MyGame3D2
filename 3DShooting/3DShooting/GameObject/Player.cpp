@@ -365,18 +365,6 @@ void Player::Init()
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
-	if (m_isDead)
-	{
-		DeathUpdate();
-		return;
-	}
-
-	if (m_health <= 0.0f)
-	{
-		m_isDead = true;
-		m_deathTimer = 0.0f;
-	}
-
     unsigned char keyState[256];
     GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
 
@@ -684,6 +672,18 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	// カメラの更新
 	m_pCamera->Update();
+
+	if (m_isDead)
+	{
+		DeathUpdate();
+		return;
+	}
+
+	if (m_health <= 0.0f)
+	{
+		m_isDead = true;
+		m_deathTimer = 0.0f;
+	}
 
 	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 
