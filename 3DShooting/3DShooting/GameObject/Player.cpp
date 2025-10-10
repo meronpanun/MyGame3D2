@@ -55,7 +55,6 @@ namespace
 	constexpr float kLimitMoveZ = 2800.0f;
 
 	// カメラを左右に振った際の横揺れ関連の定数
-	constexpr float kGunSwayAmount   = 0.2f;  // 銃モデルの揺れの強さ
 	constexpr float kSwordSwayAmount = 0.6f;  // 剣モデルの揺れの強さ
 	constexpr float kSwayDamping     = 0.9f;  // 剣モデルの揺れの減衰率
 
@@ -392,10 +391,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     // Swayの計算
     float yawDelta = m_pCamera->GetYawDelta();
 
-    m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
     m_swordSwayOffset.x -= yawDelta * kSwordSwayAmount;
-
-    m_gunSwayOffset.x *= kSwayDamping;
     m_swordSwayOffset.x *= kSwayDamping;
 
     if (m_pEffect)
