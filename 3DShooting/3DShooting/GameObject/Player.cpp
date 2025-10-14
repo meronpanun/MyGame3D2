@@ -442,8 +442,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	// マウスの左クリックで射撃（タックル中は射撃不可）
-	if ((m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
+	// マウスの左クリックで射撃（タックル中は射撃不可、死亡中も射撃不可）
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 
@@ -459,8 +459,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// 地面にいるかどうかの判定
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance);
 
-	// 右クリックでタックル開始
-	if ((m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Tackle) && !m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
+	// 右クリックでタックル開始（死亡中はタックル不可）
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Tackle) && !m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
 	{
 		m_isTackling = true;
 		m_isSwordAnimating = true; // 剣のアニメーション開始
@@ -615,8 +615,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		moveDir.z += cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f);
 	}
 
-	// スペースキーを押した瞬間のみジャンプ
-	if (keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
+	// スペースキーを押した瞬間のみジャンプ（死亡中はジャンプ不可）
+	if (!m_isDead && keyState[KEY_INPUT_SPACE] && !m_prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !m_isTackling)
 	{
 		m_jumpVelocity = kJumpPower;
 		m_isJumping = true;
@@ -644,8 +644,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	// 移動方向がある場合
-	if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+	// 移動方向がある場合（死亡中は移動不可）
+	if (!m_isDead && (moveDir.x != 0.0f || moveDir.z != 0.0f))
 	{
 		// 移動方向の長さを計算
 		float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
