@@ -195,7 +195,7 @@ void SceneGameOver::Draw()
 
     // 画面上部に配置
     const int kTopMargin = (int)(screenH * 0.08f);
-    drawX = (screenW - drawWidth) / 2;
+    drawX = (screenW - drawWidth) * 0.5f;
     drawY = kTopMargin;
 
     DrawExtendGraph(drawX, drawY, drawX + drawWidth, drawY + drawHeight, m_gameOverImageHandle, true);

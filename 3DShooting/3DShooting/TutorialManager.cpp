@@ -34,6 +34,7 @@ namespace
 	constexpr int   kKeyImageWidth          = 80;   // キー画像の幅
 	constexpr int   kKeyImageHeight         = 40;   // キー画像の高さ
 	constexpr int   kShiftImageWidth        = 80;   // Shiftキー画像の幅
+	constexpr float kCheckMarkDrawSize      = 1.0f; // チャックマーク画像の大きさ
 
     // UIボックス関連
     constexpr int   kBoxPaddingX = 20;  // ボックスの左右パディング
@@ -50,7 +51,7 @@ namespace
     constexpr int   kTitleOffsetY  = 10;       // タイトルのYオフセット
     constexpr int   kTitleColor    = 0xFFFFFF; // タイトルの色
 
-	// マウスの移動量しきい値
+	// マウスの移動量閾値
 	constexpr float kMouseMovementThreshold = 5.0f; // マウスの移動量閾値
 }
 
@@ -510,7 +511,7 @@ void TutorialManager::Draw(int screenW, int screenH)
             // チェックマークを描画
             if (is_done && m_checkMarkHandle >= 0)
             {
-                float scale = 1.0f;
+                float scale = kCheckMarkDrawSize;
                 if (is_check_anim && check_anim_time < kCheckAnimDuration)
                 {
                     float t = check_anim_time / kCheckAnimDuration;
@@ -536,7 +537,7 @@ void TutorialManager::Draw(int screenW, int screenH)
         int box_height = kCheckMarkBaseSize + kBoxPaddingY * 2;
 
         int box_x = screenW - box_width - 20 + m_uiXOffset;
-        int box_y = 20;
+        int box_y = 20; 
 
         // 半透明の背景ボックスを描画
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);

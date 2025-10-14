@@ -5,6 +5,7 @@ C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DS
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(111,24): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(114,24): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(116,24): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(198,35): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(205,67): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(205,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(209,67): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
@@ -22,9 +23,8 @@ C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DS
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(233,94): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(233,41): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
   コード生成しています。
-  1 of 3459 functions (<0.1%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+  All 3459 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   コード生成が終了しました。
 EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\x64\Release\3DShooting.exe

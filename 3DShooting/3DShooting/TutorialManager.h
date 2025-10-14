@@ -59,7 +59,10 @@ public:
 	bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
 
 private:
-	void UpdateUI(); // UIアニメーション用の更新関数
+	/// <summary>
+	/// UIアニメーション用の更新
+	/// </summary>
+	void UpdateUI();
 
 private:
 	Vec2 m_prevMousePos;
