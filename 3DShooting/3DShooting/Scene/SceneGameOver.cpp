@@ -12,6 +12,7 @@ namespace
 	constexpr int   kButtonSpacing = 40;   // ボタン間のスペース
     constexpr int   kBgImageSize   = 1024; // 背景画像のサイズ
     constexpr float kScrollSpeed   = 1.0f; // 背景のスクロール速度
+    constexpr int   kImageChangeInterval = 3; // 画像切り替え間隔（フレーム数）
 }
 
 SceneGameOver::SceneGameOver(int wave, int killCount, int score) : 
@@ -22,7 +23,10 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score) :
     m_isBGMStarted(false), 
     m_backgroundHandle(-1), 
     m_scrollX(0.0f), 
-    m_scrollY(0.0f)
+    m_scrollY(0.0f),
+    m_currentImageIndex(0),
+    m_imageChangeTimer(0),
+    m_imageChangeInterval(kImageChangeInterval)
 {
     // BGMのロード
     m_bgmHandle = LoadSoundMem("data/sound/BGM/GameOverBGM.mp3");
@@ -37,6 +41,10 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score) :
     // ゲームオーバー画像のロード
     m_gameOverImageHandle = LoadGraph("data/image/GameOverZombie.png");
     assert(m_gameOverImageHandle != -1);
+    m_gameOverImageHandle2 = LoadGraph("data/image/GameOverZombie2.png");
+    assert(m_gameOverImageHandle2 != -1);
+    m_gameOverImageHandle3 = LoadGraph("data/image/GameOverZombie3.png");
+    assert(m_gameOverImageHandle3 != -1);
 
     // フォントの作成
     m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -60,6 +68,8 @@ SceneGameOver::~SceneGameOver()
     // 背景画像の解放
     DeleteGraph(m_backgroundHandle);
     DeleteGraph(m_gameOverImageHandle);
+    DeleteGraph(m_gameOverImageHandle2);
+    DeleteGraph(m_gameOverImageHandle3);
 
     // フォントの解放
     DeleteFontToHandle(m_japaneseFontHandle);
@@ -99,6 +109,19 @@ SceneBase* SceneGameOver::Update()
     // スコア演出用の更新
     ScoreManager::Instance().Update();
 
+    // 画像切り替え演出の更新
+    m_imageChangeTimer++;
+    if (m_imageChangeTimer >= m_imageChangeInterval)
+    {
+        // ランダムで画像を選択（0:通常, 1:乱れ2, 2:乱れ3）
+        m_currentImageIndex = rand() % 3;
+        
+        m_imageChangeTimer = 0;
+        
+        // より頻繁な切り替え
+        m_imageChangeInterval = 5 + (rand() % 20);
+    }
+ 
     if (Mouse::IsTriggerLeft())
     {
         int screenW, screenH;
@@ -189,7 +212,7 @@ void SceneGameOver::Draw()
     }
 
     // 縮小スケール
-    const float kScale = 0.6f;
+    const float kScale = 0.4f;
     drawWidth  = (int)(drawWidth  * kScale);
     drawHeight = (int)(drawHeight * kScale);
 
@@ -198,7 +221,25 @@ void SceneGameOver::Draw()
     drawX = (screenW - drawWidth) * 0.5f;
     drawY = kTopMargin;
 
-    DrawExtendGraph(drawX, drawY, drawX + drawWidth, drawY + drawHeight, m_gameOverImageHandle, true);
+    // 現在の画像インデックスに応じて画像を選択
+    int currentImageHandle;
+    switch (m_currentImageIndex)
+    {
+         case 0:
+             currentImageHandle = m_gameOverImageHandle;
+             break;
+         case 1:
+             currentImageHandle = m_gameOverImageHandle2;
+             break;
+         case 2:
+             currentImageHandle = m_gameOverImageHandle3;
+             break;
+        default:
+             currentImageHandle = m_gameOverImageHandle;
+             break;
+    }  
+    // 画像を描画
+    DrawExtendGraph(drawX, drawY, drawX + drawWidth, drawY + drawHeight, currentImageHandle, true);
 
     char waveStr[64];
     sprintf_s(waveStr, sizeof(waveStr), "到達ウェーブ: %d", m_wave);

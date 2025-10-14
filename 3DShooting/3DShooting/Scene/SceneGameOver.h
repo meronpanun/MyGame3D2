@@ -18,6 +18,8 @@ private:
     // リソース管理
     int m_backgroundHandle;          // 背景画像のハンドル
     int m_gameOverImageHandle;       // ゲームオーバー画像のハンドル
+    int m_gameOverImageHandle2;      // ゲームオーバー画像2（乱れた画像）
+    int m_gameOverImageHandle3;      // ゲームオーバー画像3（乱れた画像）
     int m_bgmHandle;                 // ゲームオーバーBGMのハンドル
     int m_returnSEHandle;            // 戻るボタンSEのハンドル
 
@@ -38,5 +40,10 @@ private:
 
 	// BGM管理
     bool m_isBGMStarted;             // BGM再生済みフラグ
+
+    // 演出管理
+    int m_currentImageIndex;         // 現在表示中の画像インデックス（0:通常, 1:乱れ2, 2:乱れ3）
+    int m_imageChangeTimer;          // 画像切り替えタイマー
+    int m_imageChangeInterval;       // 画像切り替え間隔（フレーム数）
 };
 

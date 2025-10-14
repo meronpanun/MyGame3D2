@@ -469,7 +469,7 @@ SceneBase* SceneMain::Update()
     {
         TaskTutorialManager::GetInstance()->Init(m_pWaveManager.get(), m_pPlayer.get());
         m_isTaskTutorialInit = true;
-        m_pTutorialManager = nullptr; // 古いチュートリアルマネージャはもう不要
+        m_pTutorialManager = nullptr;
         // ここでreturnせず、タスクチュートリアルの更新ブロックに処理を流す
     }
 
@@ -543,7 +543,7 @@ SceneBase* SceneMain::Update()
     {
         if (m_gameOverDelayTimer == -1)
         {
-            m_gameOverDelayTimer = 180; // 3秒の遅延
+            m_gameOverDelayTimer = 180;
         }
         else if (m_gameOverDelayTimer > 0)
         {

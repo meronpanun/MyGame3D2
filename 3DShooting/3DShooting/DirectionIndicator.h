@@ -14,8 +14,8 @@ struct AttackedEnemyInfo
     float displayTime;  // 表示残り時間
     float maxDisplayTime; // 最大表示時間
     
-    AttackedEnemyInfo(const Vec3& pos, float maxTime) 
-        : position(pos), displayTime(maxTime), maxDisplayTime(maxTime) {}
+    AttackedEnemyInfo(const Vec3& pos, float maxTime) :
+        position(pos), displayTime(maxTime), maxDisplayTime(maxTime) {}
 };
 
 /// <summary>
