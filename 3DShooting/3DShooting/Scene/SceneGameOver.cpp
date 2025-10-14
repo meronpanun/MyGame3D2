@@ -119,7 +119,7 @@ SceneBase* SceneGameOver::Update()
         m_imageChangeTimer = 0;
         
         // より頻繁な切り替え
-        m_imageChangeInterval = 5 + (rand() % 20);
+        m_imageChangeInterval = 5 + (rand() % 30);
     }
  
     if (Mouse::IsTriggerLeft())
