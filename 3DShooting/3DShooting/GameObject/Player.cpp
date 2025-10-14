@@ -13,6 +13,7 @@
 #include "DebugUtil.h"	
 #include "CapsuleCollider.h"
 #include "TransformDataLoader.h"
+#include "DirectionIndicator.h"
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -237,7 +238,8 @@ Player::Player() :
 	m_swordSwayOffset(VGet(0, 0, 0)),
 	m_swordSwayRotOffset(VGet(0, 0, 0)),
 	m_isDead(false),
-	m_deathTimer(0.0f)
+	m_deathTimer(0.0f),
+	m_pDirectionIndicator(nullptr)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -1157,7 +1159,7 @@ void Player::DeathUpdate()
 }
 
 // ダメージを受ける処理
-void Player::TakeDamage(float damage)
+void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 {
 	if (m_isDead) return; // 死亡中はダメージを受けない
 	if (m_isInvincible) return; // 無敵モード中はダメージを受けない
@@ -1178,6 +1180,12 @@ void Player::TakeDamage(float damage)
 	if (m_pCamera)
 	{
 		m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+	}
+
+	// 方向インジケーターに攻撃者の位置を通知
+	if (m_pDirectionIndicator && (attackerPos.x != 0.0f || attackerPos.z != 0.0f))
+	{
+		m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
 	}
 }
 

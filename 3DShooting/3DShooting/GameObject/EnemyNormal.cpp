@@ -437,7 +437,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
                 if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
                 {
-                    const_cast<Player&>(player).TakeDamage(m_attackPower); // プレイヤーにダメージ
+                    const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
                     m_isAttackHit = true;
                 }
             }

@@ -457,7 +457,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         SphereCollider acidCol(ball.pos, ball.radius);
         if (acidCol.IsIntersects(playerCol.get()))
         {
-            const_cast<Player&>(player).TakeDamage(ball.damage);
+            const_cast<Player&>(player).TakeDamage(ball.damage, m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
             ball.active = false;
         }
     }

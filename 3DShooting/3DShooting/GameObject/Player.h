@@ -10,6 +10,7 @@ class Bullet;
 class EnemyBase;
 class EnemyNormal;
 class CapsuleCollider;
+class DirectionIndicator;
 
 /// <summary>
 /// プレイヤークラス
@@ -69,7 +70,8 @@ public:
 	/// プレイヤーがダメージを受ける
 	/// </summary>
 	/// <param name="damage">受けるダメージ量</param>
-	void TakeDamage(float damage);
+	/// <param name="attackerPos">攻撃者の位置（オプション）</param>
+	void TakeDamage(float damage, const VECTOR& attackerPos = VGet(0, 0, 0));
 
 	/// <summary>
 	/// プレイヤーの位置を取得する
@@ -181,6 +183,12 @@ public:
 	/// </summary>
 	/// <returns>死亡しているならtrue</returns>
 	bool IsDead() const { return m_isDead; }
+
+	/// <summary>
+	/// 方向インジケーターを設定する
+	/// </summary>
+	/// <param name="directionIndicator">方向インジケーターのポインタ</param>
+	void SetDirectionIndicator(DirectionIndicator* directionIndicator) { m_pDirectionIndicator = directionIndicator; }
 	    
 private:
    	AttackType m_allowedAttackType = AttackType::None;
@@ -303,4 +311,7 @@ private:
 	// 死亡関連
 	bool m_isDead;         // 死亡フラグ
 	float m_deathTimer;      // 死亡アニメーションタイマー
+
+	// 方向インジケーター
+	DirectionIndicator* m_pDirectionIndicator; // 方向インジケーターのポインタ
 };

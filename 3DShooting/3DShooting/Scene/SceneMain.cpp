@@ -192,7 +192,11 @@ void SceneMain::Init()
 	m_pWaveManager->Init();
 	
 	m_pDirectionIndicator = std::make_unique<DirectionIndicator>();
-	m_pDirectionIndicator->Init(m_pPlayer.get());	
+	m_pDirectionIndicator->Init(m_pPlayer.get());
+	
+	// プレイヤーに方向インジケーターを設定
+	m_pPlayer->SetDirectionIndicator(m_pDirectionIndicator.get());
+	
 	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
 	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
 
