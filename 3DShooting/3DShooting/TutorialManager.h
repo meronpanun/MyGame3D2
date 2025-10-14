@@ -30,10 +30,10 @@ public:
 	/// </summary>
 	enum class UIState
 	{
-		Hidden,
-		Entering,
-		OnScreen,
-		Exiting
+		Hidden,   // 隠れている
+		Entering, // 画面に入ってくる
+		OnScreen, // 画面に表示されている
+		Exiting   // 画面から出ていく
 	};
 
 	void Init();
