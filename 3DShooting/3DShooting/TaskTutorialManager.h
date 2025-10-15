@@ -38,7 +38,9 @@ private:
     {
         None,
         Shoot,  // 射撃タスク
+        ShootCompleteDelay, // 射撃タスク完了後の待機
         Tackle, // タックルタスク
+        TackleCompleteDelay, // タックルタスク完了後の待機
         Completed // 全て完了
     };
     TaskTutorialManager(const TaskTutorialManager&) = delete;
@@ -67,4 +69,15 @@ private:
     // タスク内容フェードイン用
     int m_taskAlpha;
     float m_taskFadeSpeed;
+
+    // アニメーション後の待機タイマー
+    int m_animationWaitTimer;
+
+    // プログレスバーアニメーション用
+    float m_displayedShootProgress; // 射撃タスクの表示用進捗
+    float m_displayedTackleProgress; // タックルタスクの表示用進捗
+    float m_progressAnimSpeed; // 進捗バーのアニメーション速度
+
+    // ステップ移行の遅延タイマー
+    int m_transitionDelayTimer;
 };

@@ -45,7 +45,12 @@ TaskTutorialManager::TaskTutorialManager() :
     m_titleAnimSpeed(5.0f),
     m_isTitleAnimFinished(false),
     m_taskAlpha(0),
-    m_taskFadeSpeed(5.0f)
+    m_taskFadeSpeed(5.0f),
+    m_animationWaitTimer(0),
+    m_displayedShootProgress(0.0f),
+    m_displayedTackleProgress(0.0f),
+    m_progressAnimSpeed(0.02f),
+    m_transitionDelayTimer(0)
 {
     // フォントの作成
     m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 32, kTaskFontThickness, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -72,10 +77,14 @@ void TaskTutorialManager::Init(WaveManager* pWaveManager, Player* pPlayer)
     m_shootKills = 0;
     m_tackleKills = 0;
 
-    // Animation reset
-    m_titlePosX = -300.0f; // Start off-screen
+	// アニメション初期化
+	m_titlePosX = -300.0f; // 画面外からスタート
     m_isTitleAnimFinished = false;
     m_taskAlpha = 0;
+    m_animationWaitTimer = 0;
+    m_displayedShootProgress = 0.0f;
+    m_displayedTackleProgress = 0.0f;
+    m_transitionDelayTimer = 0;
 
     if (m_pWaveManager)
     {
@@ -123,10 +132,34 @@ void TaskTutorialManager::Skip(WaveManager* pWaveManager)
     m_pWaveManager = pWaveManager;
 }
 
-
 void TaskTutorialManager::Update()
 {
-    // Title animation
+    // プログレスバーのアニメーション
+    if (m_step == TaskStep::Shoot || m_step == TaskStep::ShootCompleteDelay)
+    {
+        float targetProgress = static_cast<float>(m_shootKills) / kShootKillGoal;
+        if (m_displayedShootProgress < targetProgress)
+        {
+            m_displayedShootProgress += m_progressAnimSpeed;
+            if (m_displayedShootProgress > targetProgress)
+            {
+                m_displayedShootProgress = targetProgress;
+            }
+        }
+    }
+    else if (m_step == TaskStep::Tackle || m_step == TaskStep::TackleCompleteDelay)
+    {
+        float targetProgress = static_cast<float>(m_tackleKills) / kTackleKillGoal;
+        if (m_displayedTackleProgress < targetProgress)
+        {
+            m_displayedTackleProgress += m_progressAnimSpeed;
+            if (m_displayedTackleProgress > targetProgress)
+            {
+                m_displayedTackleProgress = targetProgress;
+            }
+        }
+    }
+
     if (!m_isTitleAnimFinished)
     {
         m_titlePosX += m_titleAnimSpeed;
@@ -134,17 +167,25 @@ void TaskTutorialManager::Update()
         {
             m_titlePosX = kTaskTextX;
             m_isTitleAnimFinished = true;
+            m_animationWaitTimer = 60; // 60フレーム待機
         }
     }
     else
     {
-        // Task fade-in
-        if (m_taskAlpha < 255)
+        if (m_animationWaitTimer > 0)
         {
-            m_taskAlpha += m_taskFadeSpeed;
-            if (m_taskAlpha > 255)
+            m_animationWaitTimer--;
+        }
+        else
+        {
+            // Task fade-in
+            if (m_taskAlpha < 255)
             {
-                m_taskAlpha = 255;
+                m_taskAlpha += m_taskFadeSpeed;
+                if (m_taskAlpha > 255)
+                {
+                    m_taskAlpha = 255;
+                }
             }
         }
     }
@@ -154,12 +195,22 @@ void TaskTutorialManager::Update()
     case TaskStep::Shoot:
         if (m_shootKills >= kShootKillGoal)
         {
+            m_step = TaskStep::ShootCompleteDelay;
+            m_transitionDelayTimer = 120; // 120フレーム待機
+        }
+        break;
+    case TaskStep::ShootCompleteDelay:
+        m_transitionDelayTimer--;
+        if (m_transitionDelayTimer <= 0)
+        {
             m_step = TaskStep::Tackle; // 次のステップへ
 
-            // Reset animation for tackle tutorial
             m_titlePosX = -300.0f;
             m_isTitleAnimFinished = false;
             m_taskAlpha = 0;
+            m_animationWaitTimer = 0;
+            m_displayedShootProgress = 0.0f;
+            m_displayedTackleProgress = 0.0f;
 
             if (m_pWaveManager)
             {
@@ -173,6 +224,14 @@ void TaskTutorialManager::Update()
         break;
     case TaskStep::Tackle:
         if (m_tackleKills >= kTackleKillGoal)
+        {
+            m_step = TaskStep::TackleCompleteDelay;
+            m_transitionDelayTimer = 120; // 120フレーム待機
+        }
+        break;
+    case TaskStep::TackleCompleteDelay:
+        m_transitionDelayTimer--;
+        if (m_transitionDelayTimer <= 0)
         {
             m_step = TaskStep::Completed; // チュートリアル完了
             if (m_pPlayer)
@@ -199,9 +258,12 @@ void TaskTutorialManager::Draw()
 
     switch (m_step)
     {
+    case TaskStep::ShootCompleteDelay:
     case TaskStep::Shoot:
     {
-        taskText = std::to_string(m_shootKills) + " / " + std::to_string(kShootKillGoal);
+        int displayedKills = static_cast<int>(m_displayedShootProgress * kShootKillGoal);
+        if (displayedKills > kShootKillGoal) { displayedKills = kShootKillGoal; }
+        taskText = std::to_string(displayedKills) + " / " + std::to_string(kShootKillGoal);
 
         // Constants for layout
         constexpr int kTitleFontSize = 32;
@@ -230,17 +292,30 @@ void TaskTutorialManager::Draw()
             DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor, m_taskFontHandle);
 
             // 進捗
-            DrawStringToHandle(kTaskTextX, taskY + kTaskFontSize + 10, taskText.c_str(), kTaskTextColor, m_taskFontHandle);
+            constexpr int kBarMaxWidth = 150;
+            constexpr int kBarHeight = 15;
+            int barY = taskY + kTaskFontSize + 10;
+            float progress = m_displayedShootProgress;
+            int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+
+            unsigned int barColor = (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
+
+            DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight, GetColor(100, 100, 100), true);
+            DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight, barColor, true);
+
+            DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(), kTaskTextColor, m_taskFontHandle);
 
             SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
         }
     }
     break;
+    case TaskStep::TackleCompleteDelay:
     case TaskStep::Tackle:
     {
-        taskText = std::to_string(m_tackleKills) + " / " + std::to_string(kTackleKillGoal);
+        int displayedKills = static_cast<int>(m_displayedTackleProgress * kTackleKillGoal);
+        if (displayedKills > kTackleKillGoal) { displayedKills = kTackleKillGoal; }
+        taskText = std::to_string(displayedKills) + " / " + std::to_string(kTackleKillGoal);
 
-        // Constants for layout
         constexpr int kTitleFontSize = 32;
         constexpr int kTaskFontSize = 20;
         constexpr int kDiamondSize = 20;
@@ -267,7 +342,18 @@ void TaskTutorialManager::Draw()
             DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor, m_taskFontHandle);
 
             // 進捗
-            DrawStringToHandle(kTaskTextX, taskY + kTaskFontSize + 10, taskText.c_str(), kTaskTextColor, m_taskFontHandle);
+            constexpr int kBarMaxWidth = 150;
+            constexpr int kBarHeight = 15;
+            int barY = taskY + kTaskFontSize + 10;
+            float progress = m_displayedTackleProgress;
+            int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+
+            unsigned int barColor = (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
+
+            DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight, GetColor(100, 100, 100), true);
+            DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight, barColor, true);
+
+            DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(), kTaskTextColor, m_taskFontHandle);
 
             SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
         }
