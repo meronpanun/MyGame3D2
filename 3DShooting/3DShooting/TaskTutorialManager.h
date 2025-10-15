@@ -53,5 +53,18 @@ private:
     int m_shootKills;
     int m_tackleKills;
 
-    int m_fontHandle; // 文字描画用のフォントハンドル
+    int m_titleFontHandle; // タイトル用のフォントハンドル
+    int m_taskFontHandle; // タスク内容用のフォントハンドル
+    int m_diamondImg;
+    int m_mouseLeftImg;
+    int m_mouseRightImg;
+
+    // タイトルアニメーション用
+    float m_titlePosX;
+    float m_titleAnimSpeed;
+    bool m_isTitleAnimFinished;
+
+    // タスク内容フェードイン用
+    int m_taskAlpha;
+    float m_taskFadeSpeed;
 };
