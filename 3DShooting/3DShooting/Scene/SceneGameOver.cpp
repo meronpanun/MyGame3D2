@@ -217,7 +217,7 @@ void SceneGameOver::Draw()
     drawHeight = (int)(drawHeight * kScale);
 
     // 画面上部に配置
-    const int kTopMargin = (int)(screenH * 0.08f);
+    const int kTopMargin = (int)(screenH * 0.04f);
     drawX = (screenW - drawWidth) * 0.5f;
     drawY = kTopMargin;
 
@@ -242,8 +242,8 @@ void SceneGameOver::Draw()
     DrawExtendGraph(drawX, drawY, drawX + drawWidth, drawY + drawHeight, currentImageHandle, true);
 
     char waveStr[64];
-    sprintf_s(waveStr, sizeof(waveStr), "到達ウェーブ: %d", m_wave);
-    DrawFormatStringToHandle(screenW * 0.5f - 200, screenH * 0.5f - 20, 0xffffff, m_japaneseLargeFontHandle, "%s", waveStr);
+    sprintf_s(waveStr, sizeof(waveStr), "%dウェーブ生き残った", m_wave);
+    DrawFormatStringToHandle(screenW * 0.5f - 180, screenH * 0.5f - 40, 0xffffff, m_japaneseLargeFontHandle, "%s", waveStr);
 
     char killStr[64];
     sprintf_s(killStr, sizeof(killStr), "倒した敵の数: %d", m_killCount);
