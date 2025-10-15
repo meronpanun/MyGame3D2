@@ -52,7 +52,7 @@ namespace
     constexpr int   kTitleColor    = 0xFFFFFF; // タイトルの色
 
 	// マウスの移動量閾値
-	constexpr float kMouseMovementThreshold = 5.0f; // マウスの移動量閾値
+	constexpr float kMouseMovementThreshold = 5.0f;
 }
 
 TutorialManager::TutorialManager() : 
