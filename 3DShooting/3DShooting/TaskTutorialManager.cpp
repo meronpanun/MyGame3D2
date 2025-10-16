@@ -265,7 +265,6 @@ void TaskTutorialManager::Draw()
         if (displayedKills > kShootKillGoal) { displayedKills = kShootKillGoal; }
         taskText = std::to_string(displayedKills) + " / " + std::to_string(kShootKillGoal);
 
-        // Constants for layout
         constexpr int kTitleFontSize = 32;
         constexpr int kTaskFontSize = 20;
         constexpr int kDiamondSize = 20;
