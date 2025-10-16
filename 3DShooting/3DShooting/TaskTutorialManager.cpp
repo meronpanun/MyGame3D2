@@ -271,7 +271,7 @@ void TaskTutorialManager::Draw()
     {
         int displayedKills = static_cast<int>(m_displayedShootProgress * kShootKillGoal);
         if (displayedKills > kShootKillGoal) { displayedKills = kShootKillGoal; }
-        taskText = std::to_string(displayedKills) + " / " + std::to_string(kShootKillGoal);
+        taskText = std::to_string(displayedKills) + "/" + std::to_string(kShootKillGoal);
 
 
         // タイトル
@@ -314,7 +314,7 @@ void TaskTutorialManager::Draw()
     {
         int displayedKills = static_cast<int>(m_displayedTackleProgress * kTackleKillGoal);
         if (displayedKills > kTackleKillGoal) { displayedKills = kTackleKillGoal; }
-        taskText = std::to_string(displayedKills) + " / " + std::to_string(kTackleKillGoal);
+        taskText = std::to_string(displayedKills) + "/" + std::to_string(kTackleKillGoal);
 
         // タイトル
         DrawStringToHandle(m_titlePosX, kTaskTextY, "タックル訓練", kTaskTextColor, m_titleFontHandle);
