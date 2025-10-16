@@ -16,6 +16,14 @@ namespace
     constexpr int kTaskFontSize = 24;
     constexpr int kTaskFontThickness = 2;
     constexpr unsigned int kTaskTextColor = 0xFFFFFF;
+
+    constexpr int kTitleFontSize = 32;
+    constexpr int kDiamondSize = 20;
+    constexpr int kMouseImgSize = 24;
+    constexpr int kSpacing = 5;
+
+    constexpr int kBarMaxWidth = 150;
+    constexpr int kBarHeight = 15;
 }
 
 // 静的メンバ変数の実体を定義
@@ -265,11 +273,6 @@ void TaskTutorialManager::Draw()
         if (displayedKills > kShootKillGoal) { displayedKills = kShootKillGoal; }
         taskText = std::to_string(displayedKills) + " / " + std::to_string(kShootKillGoal);
 
-        constexpr int kTitleFontSize = 32;
-        constexpr int kTaskFontSize = 20;
-        constexpr int kDiamondSize = 20;
-        constexpr int kMouseImgSize = 24;
-        constexpr int kSpacing = 5;
 
         // タイトル
         DrawStringToHandle(m_titlePosX, kTaskTextY, "射撃訓練", kTaskTextColor, m_titleFontHandle);
@@ -291,15 +294,13 @@ void TaskTutorialManager::Draw()
             DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor, m_taskFontHandle);
 
             // 進捗
-            constexpr int kBarMaxWidth = 150;
-            constexpr int kBarHeight = 15;
             int barY = taskY + kTaskFontSize + 10;
             float progress = m_displayedShootProgress;
             int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
 
-            unsigned int barColor = (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
+            unsigned int barColor = (progress >= 1.0f) ? 0x00ff80 : 0x6496ff;
 
-            DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight, GetColor(100, 100, 100), true);
+            DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight, 0x646464, true);
             DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight, barColor, true);
 
             DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(), kTaskTextColor, m_taskFontHandle);
@@ -314,12 +315,6 @@ void TaskTutorialManager::Draw()
         int displayedKills = static_cast<int>(m_displayedTackleProgress * kTackleKillGoal);
         if (displayedKills > kTackleKillGoal) { displayedKills = kTackleKillGoal; }
         taskText = std::to_string(displayedKills) + " / " + std::to_string(kTackleKillGoal);
-
-        constexpr int kTitleFontSize = 32;
-        constexpr int kTaskFontSize = 20;
-        constexpr int kDiamondSize = 20;
-        constexpr int kMouseImgSize = 24;
-        constexpr int kSpacing = 5;
 
         // タイトル
         DrawStringToHandle(m_titlePosX, kTaskTextY, "タックル訓練", kTaskTextColor, m_titleFontHandle);
@@ -341,8 +336,6 @@ void TaskTutorialManager::Draw()
             DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor, m_taskFontHandle);
 
             // 進捗
-            constexpr int kBarMaxWidth = 150;
-            constexpr int kBarHeight = 15;
             int barY = taskY + kTaskFontSize + 10;
             float progress = m_displayedTackleProgress;
             int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
