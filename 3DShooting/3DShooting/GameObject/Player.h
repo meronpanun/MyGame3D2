@@ -296,7 +296,7 @@ private:
 	// 剣のアニメーション関連
 	bool  m_isSwordAnimating;  // 剣がアニメーション中か
 	float m_swordAnimTimer;    // 剣のアニメーションタイマー
-	int   m_swordAnimDuration; // 剣のアニメーション時間
+	float m_swordAnimDuration; // 剣のアニメーション時間
 
 	int   m_warningFontHandle;  // 警告用フォントハンドル
 	bool  m_isNoAmmoWarning;  // 弾薬切れ警告表示フラグ

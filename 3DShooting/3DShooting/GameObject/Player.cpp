@@ -41,9 +41,6 @@ namespace
 	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅（半径）
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
 
-	constexpr int   kTackleGaugeWidth  = 200;  
-	constexpr int   kTackleGaugeHeight = 16;   
-
 	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f; // カプセルコライダーの高さ
 	constexpr float kCapsuleRadius = 50.0f;  // カプセルコライダーの半径
@@ -85,11 +82,11 @@ namespace
 	constexpr float kSwordWaitY				  = -30.0f; 
 	constexpr float kSwordWaitZ				  = -10.0f;
 	constexpr float kSwordWaitRotY			  = 30.0f; 
-	constexpr float kSwordAnimStartAngle      = 25.0f;  // 振りかぶり開始角度
+	constexpr float kSwordAnimStartAngle      = 20.0f;  // 振りかぶり開始角度
 	constexpr float kSwordAnimEndAngle        = 180.0f; // 振り下ろし終了角度
-	constexpr float kSwordPivotZ			  = -20.0f; // 剣の回転軸のZ位置
+	constexpr float kSwordPivotZ			  = -25.0f; // 剣の回転軸のZ位置
 	constexpr float kSwordModelScale          = 0.5f;   // 剣モデルのスケール
-	constexpr float kDefaultSwordAnimDuration = 0.05f;  // 剣振りアニメーションのデフォルト時間
+	constexpr float kDefaultSwordAnimDuration = 0.1f;   // 剣振りアニメーションのデフォルト時間
 
 	// 剣UI関連
 	constexpr int   kSwordImageWidth         = 64;
@@ -874,29 +871,62 @@ void Player::Draw()
 			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
 		}
 		
-		// 剣とゲージを合わせたUI全体の幅を計算
-		int tackleUIWidth = kTackleGaugeWidth + kSwordImageGaugeSpacing + kSwordImageWidth;
-		
-		// タックルUIのX座標を画面右端に合わせる
-		int tackleGaugeX = screenW - tackleUIWidth - kHpBarMargin; // HPバーと同じマージンを使用
-		
-		// 枠
-		DrawBox(tackleGaugeX - 1, tackleUIY - 1, tackleGaugeX + kTackleGaugeWidth + 1, tackleUIY + kTackleGaugeHeight + 1, kColorTackleGaugeBorder, false);
-		
-		// ゲージ本体
+		// タックルゲージの描画
 		float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
-		int tackleFilledWidth = static_cast<int>(kTackleGaugeWidth * tackleRate);
-		DrawBox(tackleGaugeX, tackleUIY, tackleGaugeX + tackleFilledWidth, tackleUIY + kTackleGaugeHeight, kColorTackleGaugeFill, true);
-		
-		// 剣の画像を描画
-		int swordImageX = tackleGaugeX + kTackleGaugeWidth + kSwordImageGaugeSpacing; // ゲージの右側に配置
-		int swordImageY = tackleUIY + (kTackleGaugeHeight - kSwordImageHeight) * 0.5f; // ゲージと中央揃え
-		
-		// クールダウン中は半透明、準備完了時は不透明
-		int alpha = (m_tackleCooldown > 0) ? kSwordImageCooldownAlpha : kSwordImageActiveAlpha;
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-		DrawExtendGraph(swordImageX, swordImageY, swordImageX + kSwordImageWidth, swordImageY + kSwordImageHeight, m_swordImageHandle, true);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0); // ブレンドモードを元に戻す
+		if (tackleRate < 0.0f) tackleRate = 0.0f;
+		if (tackleRate > 1.0f) tackleRate = 1.0f;
+
+		// 剣のテクスチャサイズを取得
+		int swordTexW, swordTexH;
+		GetGraphSize(m_swordImageHandle, &swordTexW, &swordTexH);
+
+		// 新しい剣ゲージのサイズと位置
+		// 幅を固定し、アスペクト比を維持するように高さを計算
+		const int swordGaugeWidth = 200;
+		const int swordGaugeHeight = (int)((float)swordGaugeWidth * swordTexW / swordTexH);
+		float scale = (float)swordGaugeWidth / swordTexH;
+
+		int swordGaugeX = screenW - swordGaugeWidth - kHpBarMargin;
+		int swordGaugeY = tackleUIY - (swordGaugeHeight - kHpBarHeight) * 0.5f; // HPバーと中央揃え
+
+		// ゲージの背景（半透明の剣）
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
+		DrawRotaGraph3F(
+			swordGaugeX + swordGaugeWidth * 0.5f, 
+			swordGaugeY + swordGaugeHeight * 0.5f, 
+			swordTexW * 0.5f,
+			swordTexH * 0.5f,
+			scale,
+			scale,
+			-DX_PI_F * 0.5f, 
+			m_swordImageHandle,
+			true
+		);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+		// ゲージ本体
+		if (tackleRate > 0.0f)
+		{
+			int filledWidth = (int)(swordGaugeWidth * tackleRate);
+			// 描画範囲を設定してクリッピング
+			SetDrawArea(swordGaugeX, swordGaugeY, swordGaugeX + filledWidth, swordGaugeY + swordGaugeHeight);
+
+			// 剣を満タン状態で描画（SetDrawAreaでクリッピングされる）
+			DrawRotaGraph3F(
+				swordGaugeX + swordGaugeWidth * 0.5f,
+				swordGaugeY + swordGaugeHeight * 0.5f,
+				swordTexW * 0.5f,
+				swordTexH * 0.5f,
+				scale,
+				scale,
+				-DX_PI_F * 0.5f,
+				m_swordImageHandle,
+				true
+			);
+
+			// 描画範囲をリセット
+			SetDrawArea(0, 0, screenW, screenH);
+		}
 
 		// 警告表示ロジック
 		if (m_isLowHealth && (m_isLowAmmo || m_isNoAmmoWarning))

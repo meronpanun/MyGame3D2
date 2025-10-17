@@ -109,7 +109,7 @@ void Camera::Update()
 		// イージングを使って自然な落下を表現
         float easeInFallProgress = fallProgress * fallProgress * fallProgress;
 
-        m_pitch = -kPitchLimit * (1.0f - easeInFallProgress) - (DX_PI_F / 2.0f) * easeInFallProgress;
+        m_pitch = -kPitchLimit * (1.0f - easeInFallProgress) - (DX_PI_F * 0.5f) * easeInFallProgress;
         m_offset.y = kCameraYPos * (1.0f - easeInFallProgress);
         m_offset.x = kCameraXPos * (1.0f - easeInFallProgress) - 20.0f * easeInFallProgress;
         m_roll = (DX_PI_F / 4.0f) * easeInFallProgress; // 45度傾ける

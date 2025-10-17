@@ -1,7 +1,32 @@
-﻿  TaskTutorialManager.cpp
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\TaskTutorialManager.cpp(191,32): warning C4244: '+=': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\TaskTutorialManager.cpp(277,28): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\TaskTutorialManager.cpp(319,28): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+﻿  Camera.cpp
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Camera.cpp(415,24): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
+  Player.cpp
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
+  
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(470,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(821,78): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(825,15): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(836,17): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(890,19): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(940,59): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(941,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(942,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(946,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(948,18): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(951,19): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(963,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(964,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(972,59): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(973,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(986,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(987,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(995,59): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(996,14): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(1087,68): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(1087,28): warning C4244: '初期化中': 'float' から 'const int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(1151,21): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(1152,21): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
   コード生成しています。
   1 of 3477 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
