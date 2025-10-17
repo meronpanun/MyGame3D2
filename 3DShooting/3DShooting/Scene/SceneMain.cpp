@@ -30,6 +30,7 @@
 // static変数の定義
 float SceneMain::s_elapsedTime = 0.0f;
 bool  SceneMain::s_isSkipTutorial = false;
+bool  SceneMain::s_isLowHealthTutorialShown = false;
 
 namespace
 {
@@ -306,15 +307,11 @@ void SceneMain::Init()
         }
     });
 
-    // チュートリアルマネージャ生成・初期化（他シーンから戻った場合、またはデバッグフラグがtrueの場合はスキップ）
+    // チュートリアルマネージャ生成・初期化
+    m_pTutorialManager = std::make_unique<TutorialManager>();
     if (!m_isReturningFromOption && !m_isReturningFromOtherScene && !s_isSkipTutorial)
     {
-        m_pTutorialManager = std::make_unique<TutorialManager>();
         m_pTutorialManager->Init();
-    }
-    else
-    {
-        m_pTutorialManager = nullptr;
     }
 
     // ヒットマーク用コールバックをWaveManagerに設定
@@ -457,20 +454,30 @@ SceneBase* SceneMain::Update()
         return this;
     }
 
-    // 古いチュートリアルマネージャの更新
-    if (m_pTutorialManager && !m_pTutorialManager->IsCompleted())
+    // チュートリアルマネージャの更新
+    if (m_pTutorialManager)
     {
         m_pTutorialManager->Update();
-        m_pPlayer->Update({}); // プレイヤーは古いチュートリアル中も移動可能
+
+        // 低体力チュートリアルの表示
+        if (m_pPlayer && m_pPlayer->IsLowHealth() && !s_isLowHealthTutorialShown)
+        {
+            m_pTutorialManager->AddMessage("回復アイテム", "敵を倒すと回復アイテムをドロップする。\n生き残りたければ積極的に行動せよ");
+            s_isLowHealthTutorialShown = true;
+        }
+    }
+
+    // 基本操作チュートリアル中の処理
+    if (m_pTutorialManager && m_pTutorialManager->IsActive())
+    {
+        m_pPlayer->Update({}); // プレイヤーはチュートリアル中も移動可能
         return this;
     }
-    // 古いチュートリアルが完了したら、新しいタスクチュートリアルを初期化
+    // 基本操作チュートリアルが完了したら、タスクチュートリアルを初期化
     else if (m_pTutorialManager && m_pTutorialManager->IsCompleted() && !m_isTaskTutorialInit)
     {
         TaskTutorialManager::GetInstance()->Init(m_pWaveManager.get(), m_pPlayer.get());
         m_isTaskTutorialInit = true;
-        m_pTutorialManager = nullptr;
-        // ここでreturnせず、タスクチュートリアルの更新ブロックに処理を流す
     }
 
     // タスクチュートリアルが完了していない間
@@ -620,6 +627,12 @@ void SceneMain::Draw()
     if (m_pTutorialManager)
     {
         m_pTutorialManager->Draw(screenW, screenH);
+    }
+
+    // 基本操作チュートリアル中は敵などを描画しない
+    if (m_pTutorialManager && m_pTutorialManager->IsActive())
+    {
+        // 何もしない（プレイヤー描画は下で行う）
     }
     // タスクチュートリアルUI描画
     else if (!TaskTutorialManager::GetInstance()->IsCompleted())

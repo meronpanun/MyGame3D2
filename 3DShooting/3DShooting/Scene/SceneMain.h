@@ -146,6 +146,5 @@ private:
     bool m_isPlayerInit;
 	int m_gameOverDelayTimer; // ゲームオーバー遅延タイマー
 	bool m_isTaskTutorialInit;
-};
-
-
+	    static bool s_isLowHealthTutorialShown; // 低体力チュートリアル表示済みフラグ
+	};

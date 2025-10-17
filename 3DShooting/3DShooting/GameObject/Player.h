@@ -173,7 +173,12 @@ public:
 	bool IsInvincible() const { return m_isInvincible; }
 	
 	/// <summary>
-	/// 攻撃制限を設定する
+	/// 体力が低下しているかどうかを取得する
+	/// </summary>
+	/// <returns>体力が低下しているならtrue</returns>
+	bool IsLowHealth() const { return m_isLowHealth; }
+		
+		/// <summary>	/// 攻撃制限を設定する
 	/// </summary>
 	/// <param name="allowedAttack">許可する攻撃タイプ</param>
 	void SetAttackRestrictions(AttackType allowedAttack);
