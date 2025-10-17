@@ -429,7 +429,7 @@
               "RelativeDocumentMoniker": "3DShooting\\TutorialManager.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\TutorialManager.cpp",
               "RelativeToolTip": "3DShooting\\TutorialManager.cpp",
-              "ViewState": "AgIAAGgCAAAAAAAAAAAAAKoCAAADAAAAAAAAAA==",
+              "ViewState": "AgIAAFwCAAAAAAAAAAAAAIwCAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-09-12T02:23:56.649Z",
               "EditorCaption": ""
@@ -444,8 +444,7 @@
               "RelativeToolTip": "3DShooting\\TransformDataLoader.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-08T07:07:45.958Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-08T07:07:45.958Z"
             },
             {
               "$type": "Document",
@@ -481,8 +480,7 @@
               "RelativeToolTip": "3DShooting\\TutorialManager.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAFQAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-08T07:02:18.486Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-08T07:02:18.486Z"
             },
             {
               "$type": "Document",
@@ -530,8 +528,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.h",
               "ViewState": "AgIAAJ8AAAAAAAAAAAAowLIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-09T05:10:55.215Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:10:55.215Z"
             },
             {
               "$type": "Document",
@@ -579,8 +576,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.cpp",
               "ViewState": "AgIAAHEDAAAAAAAAAAAowIkDAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T04:54:25.216Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T04:54:25.216Z"
             },
             {
               "$type": "Document",
@@ -604,8 +600,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneManager.cpp",
               "ViewState": "AgIAABgAAAAAAAAAAAAAAIIAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T05:09:20.403Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:09:20.403Z"
             },
             {
               "$type": "Document",
@@ -629,8 +624,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.h",
               "ViewState": "AgIAAHwAAAAAAAAAAAAiwJMAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-09T05:11:27.933Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:11:27.933Z"
             },
             {
               "$type": "Document",
@@ -642,8 +636,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.cpp",
               "ViewState": "AgIAAL4BAAAAAAAAAAAowNABAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-09T05:09:25.577Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-09T05:09:25.577Z"
             },
             {
               "$type": "Document",
@@ -703,8 +696,7 @@
               "RelativeToolTip": "3DShooting\\main.cpp",
               "ViewState": "AgIAAAEAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-09-12T02:19:57.244Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-12T02:19:57.244Z"
             },
             {
               "$type": "Document",
