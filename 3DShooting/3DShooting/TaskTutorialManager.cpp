@@ -186,7 +186,6 @@ void TaskTutorialManager::Update()
         }
         else
         {
-            // Task fade-in
             if (m_taskAlpha < 255)
             {
                 m_taskAlpha += m_taskFadeSpeed;
