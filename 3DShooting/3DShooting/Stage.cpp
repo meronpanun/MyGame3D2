@@ -5,7 +5,7 @@
 void Stage::Init()
 {
 	TransformDataLoader loader;
-	auto objectDataList = loader.LoadDataCSV("Data/CSV/stage.csv");
+	auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
 
 	for (const auto& data : objectDataList)
 	{
