@@ -162,7 +162,7 @@ void SceneManager::Draw()
 	if (m_fadeAlpha > 0)
 	{
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
-		DrawBox(0, 0, 1280, 720, 0x000000, TRUE);
+		DrawBox(0, 0, 1920, 1080, 0x000000, true);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 
