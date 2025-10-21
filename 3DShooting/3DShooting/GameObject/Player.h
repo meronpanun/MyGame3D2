@@ -304,7 +304,7 @@ private:
 	float m_swordAnimDuration; // 剣のアニメーション時間
 
 	int   m_warningFontHandle;  // 警告用フォントハンドル
-	bool  m_isNoAmmoWarning;  // 弾薬切れ警告表示フラグ
+	bool  m_isNoAmmoWarning;    // 弾薬切れ警告表示フラグ
 	float m_ammoTextFlashTimer; // 弾薬テキストのフラッシュタイマー
 	
 	// Sway管理
@@ -314,9 +314,9 @@ private:
 	VECTOR m_swordSwayRotOffset;
 
 	// 死亡関連
-	bool m_isDead;         // 死亡フラグ
-	float m_deathTimer;      // 死亡アニメーションタイマー
+	bool m_isDead;      // 死亡フラグ
+	float m_deathTimer; // 死亡アニメーションタイマー
 
 	// 方向インジケーター
-	DirectionIndicator* m_pDirectionIndicator; // 方向インジケーターのポインタ
+	DirectionIndicator* m_pDirectionIndicator;
 };
