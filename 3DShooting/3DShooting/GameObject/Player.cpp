@@ -53,8 +53,12 @@ namespace
 	constexpr float kLimitMoveZ = 2800.0f;
 
 	// カメラを左右に振った際の横揺れ関連の定数
-	constexpr float kSwordSwayAmount = 0.6f;  // 剣モデルの揺れの強さ
+	constexpr float kSwordSwayAmount = 4.0f;  // 剣モデルの揺れの強さ
 	constexpr float kSwayDamping     = 0.9f;  // 剣モデルの揺れの減衰率
+
+	// 銃の揺れ関連の定数
+	constexpr float kGunSwayAmount   = 0.02f;  // 銃モデルの揺れの強さ (剣より小さく設定)
+	constexpr float kGunSwayDamping  = 0.95f; // 銃モデルの揺れの減衰率 (剣より大きく設定し、より早く収束させる)
 
 	// Update関連
 	constexpr float kFrameRate						= 60.0f; 
@@ -393,13 +397,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     m_swordSwayOffset.x -= yawDelta * kSwordSwayAmount;
     m_swordSwayOffset.x *= kSwayDamping;
 
+    // 銃のSwayの計算
+    m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
+    m_gunSwayOffset.x *= kGunSwayDamping;
+    m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f; // 回転の揺れも追加
+    m_gunSwayRotOffset.y *= kGunSwayDamping;
+
     if (m_pEffect)
     {
         m_pEffect->Update(); // エフェクトの更新
     }
-
-	// カメラの更新
-	m_pCamera->Update();
 
 	// プレイヤーのカプセルコライダーを毎フレーム更新
 	VECTOR center = m_modelPos;
@@ -422,6 +429,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	
 	// モデルの回転を設定
 	MV1SetRotationXYZ(m_modelHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f), m_gunSwayRotOffset));
+
+	// カメラの更新
+	m_pCamera->Update();
 
 	// タックルクールタイム減少
 	if (m_tackleCooldown > 0)
