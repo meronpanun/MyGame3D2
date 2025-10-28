@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
 #include "AttackType.h"
+#include "ShellCasing.h"
 #include <vector>
 #include <memory>
 
@@ -112,7 +113,7 @@ public:
 	void GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const;
 
 	/// <summary>
-	/// プレイヤーの体力を取得する
+    /// プレイヤーの体力を取得する
 	/// </summary>
 	/// <returns>プレイヤーの体力</returns>
 	float GetHealth() const { return m_health; }
@@ -213,15 +214,16 @@ private:
 	/// <returns>銃の位置</returns>
 	VECTOR GetGunPos() const;
 	VECTOR GetGunRot() const;
+	VECTOR GetEjectionPortPos() const;
 
 	void DrawEffectFeedback(EffectFeedback& effect);
 
 private:
+	std::vector<ShellCasing>     m_shellCasings;
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
 	std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
-	std::shared_ptr<EnemyNormal> m_pEnemy;       // 敵のポインタ
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー
 
 	// プレイヤーの位置を保持するメンバー変数
@@ -254,6 +256,7 @@ private:
 	int   m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int   m_ammoItemSEHandle;			   // 弾薬アイテムSEのハンドル
 	int   m_landingSEHandle;			   // 着地SEのハンドル
+	int   m_ejectionPortFrame;			   // 薬莢排出口フレーム
 	int   m_noAmmoImageHandle;			   // 弾薬切れUI画像のハンドル
 	int   m_gunImageHandle;				   // 銃UI画像のハンドル
 	int   m_lowAmmoGunImageHandle;         // 弾が少ない時の銃UI画像のハンドル

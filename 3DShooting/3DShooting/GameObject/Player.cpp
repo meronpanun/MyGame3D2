@@ -188,7 +188,6 @@ Player::Player() :
 	m_pEffect(nullptr),
 	m_pCamera(std::make_shared<Camera>()),
 	m_pDebugCamera(std::make_shared<Camera>()),
-	m_pEnemy(std::make_shared<EnemyNormal>()),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>()),
 	m_isMoving(false),
 	m_isWasRunning(false),
@@ -245,6 +244,9 @@ Player::Player() :
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
 	assert(m_modelHandle != -1);
+
+	// 薬莢排出口フレームのインデックスを検索
+	m_ejectionPortFrame = MV1SearchFrame(m_modelHandle, "AR_M_Ejection_Port");
 
 	// 剣モデルの読み込み
 	m_swordModelHandle = MV1LoadModel("data/model/Sword.mv1");
@@ -788,6 +790,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     {
         m_ammoTextFlashTimer -= 1.0f;
     }
+
+	ShellCasing::UpdateShellCasings(m_shellCasings);
 }
 
 void Player::Draw()
@@ -797,6 +801,8 @@ void Player::Draw()
 
 	// 弾の描画
 	Bullet::DrawBullets(m_bullets);
+
+	ShellCasing::DrawShellCasings(m_shellCasings);
 
 	if (!m_isDead)
 	{
@@ -1258,6 +1264,11 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
     bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot, m_bulletPower);
 
+	// 薬莢を生成
+	VECTOR ejectionPos = GetEjectionPortPos();
+	VECTOR ejectionDir = VGet(sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f), 0.5f, cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f));
+	m_shellCasings.emplace_back(ejectionPos, ejectionDir);
+
 	// SEを再生
 	PlaySoundMem(m_shootSEHandle, DX_PLAYTYPE_BACK);
 
@@ -1303,6 +1314,29 @@ VECTOR Player::GetGunRot() const
 		sinf(m_pCamera->GetPitch()),
 		cosf(m_pCamera->GetPitch()) * cosf(m_pCamera->GetYaw())
 	);
+}
+
+// 薬莢の排出位置を取得
+VECTOR Player::GetEjectionPortPos() const
+{
+	if (m_ejectionPortFrame != -1)
+	{
+		return MV1GetFramePosition(m_modelHandle, m_ejectionPortFrame);
+	}
+	//else
+	//{
+	//	// フレームが見つからなかった場合のフォールバック処理
+	//	// (以前のオフセットベースの計算を流用)
+	//	VECTOR modelOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);
+	//	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
+	//	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
+	//	MATRIX modelRot = MMult(rotPitch, rotYaw);
+	//	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
+	//	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);
+	//	VECTOR ejectionOffset = VGet(kMuzzleFlashEffectOffsetX + 20.0f, kMuzzleFlashEffectOffsetY + 10.0f, kMuzzleFlashEffectOffsetZ - 20.0f);
+	//	VECTOR ejectionPos = VTransform(ejectionOffset, modelRot);
+	//	return VAdd(modelPosition, ejectionPos);
+	//}
 }
 
 std::shared_ptr<CapsuleCollider> Player::GetBodyCollider() const
