@@ -214,8 +214,17 @@ private:
 	/// <returns>銃の位置</returns>
 	VECTOR GetGunPos() const;
 	VECTOR GetGunRot() const;
+
+	/// <summary>
+	/// 薬莢排出口の位置を取得する
+	/// </summary>
+	/// <returns>薬莢排出口の位置</returns>
 	VECTOR GetEjectionPortPos() const;
 
+	/// <summary>
+	/// エフェクトフィードバックを描画する
+	/// </summary>
+	/// <param name="effect">エフェクトフィードバック構造体</param>
 	void DrawEffectFeedback(EffectFeedback& effect);
 
 private:
@@ -263,13 +272,13 @@ private:
 	int   m_noAmmoGunImageHandle;          // 弾が0の時の銃UI画像のハンドル
 	int   m_healthUiImageHandle;		   // HPUI画像のハンドル
 
-	bool  m_isLowAmmo;          // 弾薬が少ないかどうかのフラグ
-	float m_lowAmmoBlinkTimer;  // 弾薬切れUIの点滅タイマー
-	bool  m_showLowAmmoWarning; // 弾薬切れUIの表示フラグ
+	bool  m_isLowAmmo;					   // 弾薬が少ないかどうかのフラグ
+	float m_lowAmmoBlinkTimer;			   // 弾薬切れUIの点滅タイマー
+	bool  m_showLowAmmoWarning;			   // 弾薬切れUIの表示フラグ
 
-	int   m_noHealthImageHandle;         // 体力低下UI画像のハンドル
-	bool  m_isLowHealth;                 // 体力が少ないかどうかのフラグ
-	float m_lowHealthBlinkTimer;         // 体力低下UIの点滅タイマー
+	int   m_noHealthImageHandle;           // 体力低下UI画像のハンドル
+	bool  m_isLowHealth;                   // 体力が少ないかどうかのフラグ
+	float m_lowHealthBlinkTimer;           // 体力低下UIの点滅タイマー
 
 	float m_health;				// 現在の体力
 	float m_healthBarAnim;		// HPバーのアニメーション用体力値

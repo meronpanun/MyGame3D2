@@ -142,6 +142,7 @@ SceneMain::~SceneMain()
 	// アイテムモデルの解放
 	FirstAidKitItem::DeleteModel();
 	AmmoItem::DeleteModel();
+	ShellCasing::DeleteModel();
 	
 	// インジケーター画像の解放
 	DirectionIndicator::DeleteResources();
@@ -165,6 +166,7 @@ void SceneMain::Init()
     // アイテムモデルの読み込み
 	FirstAidKitItem::LoadModel();
 	AmmoItem::LoadModel();
+	ShellCasing::LoadModel();
 
     // インジケーター画像の読み込み
     DirectionIndicator::LoadResources();

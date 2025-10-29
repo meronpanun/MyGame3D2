@@ -1323,20 +1323,6 @@ VECTOR Player::GetEjectionPortPos() const
 	{
 		return MV1GetFramePosition(m_modelHandle, m_ejectionPortFrame);
 	}
-	//else
-	//{
-	//	// フレームが見つからなかった場合のフォールバック処理
-	//	// (以前のオフセットベースの計算を流用)
-	//	VECTOR modelOffset = VGet(kGunOffsetX, kGunOffsetY, kGunOffsetZ);
-	//	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
-	//	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
-	//	MATRIX modelRot = MMult(rotPitch, rotYaw);
-	//	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
-	//	VECTOR modelPosition = VAdd(m_modelPos, rotatedModelOffset);
-	//	VECTOR ejectionOffset = VGet(kMuzzleFlashEffectOffsetX + 20.0f, kMuzzleFlashEffectOffsetY + 10.0f, kMuzzleFlashEffectOffsetZ - 20.0f);
-	//	VECTOR ejectionPos = VTransform(ejectionOffset, modelRot);
-	//	return VAdd(modelPosition, ejectionPos);
-	//}
 }
 
 std::shared_ptr<CapsuleCollider> Player::GetBodyCollider() const
