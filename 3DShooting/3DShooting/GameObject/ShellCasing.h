@@ -3,7 +3,7 @@
 #include <vector>
 
 /// <summary>
-/// 
+/// 弾丸の薬莢クラス
 /// </summary>
 class ShellCasing
 {
@@ -14,15 +14,15 @@ public:
     void Draw() const;
 
     /// <summary>
-	/// 
+	/// 薬莢の更新
     /// </summary>
-	/// <param name="shellCasings">
+	/// <param name="shellCasings">薬莢コンテナ</param>
     static void UpdateShellCasings(std::vector<ShellCasing>& shellCasings);
 
     /// <summary>
-	/// 
+	/// 薬莢の描画
     /// </summary>
-	/// <param name="shellCasings">
+	/// <param name="shellCasings">薬莢コンテナ</param>
     static void DrawShellCasings(const std::vector<ShellCasing>& shellCasings);
 
 public:
