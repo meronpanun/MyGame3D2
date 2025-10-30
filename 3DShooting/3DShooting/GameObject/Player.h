@@ -251,8 +251,8 @@ private:
 	int   m_hpFontHandle;			       // HPフォントハンドル
 	int   m_initialAmmo;				   // 初期弾薬数
 	int   m_modelHandle;			       // プレイヤーモデルのハンドル
-	int   m_swordModelHandle;			   // 剣モデルのハンドル
-	int   m_swordImageHandle;			   // 剣のUI画像のハンドル
+	int   m_shieldModelHandle;			   // 盾モデルのハンドル
+	int   m_shieldImageHandle;			   // 盾のUI画像のハンドル
 	int   m_ammoImageHandle;			   // 弾のハンドル
 	int   m_shootSEHandle;			       // シュートのSEハンドル
 	int   m_playerHitSEHandle;		       // 被弾SEのハンドル
@@ -310,10 +310,10 @@ private:
 	bool  m_isInvincible;   // 無敵モードかどうか
 	bool  m_isInfiniteAmmo; // 弾薬無限モードかどうか
 
-	// 剣のアニメーション関連
-	bool  m_isSwordAnimating;  // 剣がアニメーション中か
-	float m_swordAnimTimer;    // 剣のアニメーションタイマー
-	float m_swordAnimDuration; // 剣のアニメーション時間
+	// 盾のアニメーション関連
+	bool  m_isShieldAnimating;  // 盾がアニメーション中か
+	float m_shieldAnimTimer;    // 盾のアニメーションタイマー
+	float m_shieldAnimDuration; // 盾のアニメーション時間
 
 	int   m_warningFontHandle;  // 警告用フォントハンドル
 	bool  m_isNoAmmoWarning;    // 弾薬切れ警告表示フラグ
@@ -322,8 +322,8 @@ private:
 	// Sway管理
 	VECTOR m_gunSwayOffset;
 	VECTOR m_gunSwayRotOffset;
-	VECTOR m_swordSwayOffset;
-	VECTOR m_swordSwayRotOffset;
+	VECTOR m_shieldSwayOffset;
+	VECTOR m_shieldSwayRotOffset;
 
 	// 死亡関連
 	bool m_isDead;      // 死亡フラグ

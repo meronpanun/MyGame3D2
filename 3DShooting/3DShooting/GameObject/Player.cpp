@@ -53,8 +53,8 @@ namespace
 	constexpr float kLimitMoveZ = 2800.0f;
 
 	// カメラを左右に振った際の横揺れ関連の定数
-	constexpr float kSwordSwayAmount = 4.0f;  // 剣モデルの揺れの強さ
-	constexpr float kSwayDamping     = 0.9f;  // 剣モデルの揺れの減衰率
+	constexpr float kShieldSwayAmount = 4.0f;  // 盾モデルの揺れの強さ
+	constexpr float kShieldSwayDamping     = 0.9f;  // 盾モデルの揺れの減衰率
 
 	// 銃の揺れ関連の定数
 	constexpr float kGunSwayAmount   = 0.02f;  // 銃モデルの揺れの強さ (剣より小さく設定)
@@ -77,27 +77,24 @@ namespace
 	constexpr float kWarningBlinkSpeed				= 1.5f;   // 警告UIの点滅速度
 	constexpr float kLowHealthEffectMaxAlpha		= 0.7f;   // 体力低下UIの最大アルファ値
 	 
-	// 剣関連
-	constexpr float kSwordBaseScreenW         = 640.0f; 
-	constexpr float kSwordBaseScreenH         = 480.0f;
-	constexpr float kSwordCamZ                = -35.0f;
-	constexpr float kSwordCamTargetFactor     = 0.3f;   // 補正値
-	constexpr float kSwordWaitX				  = -20.0f; 
-	constexpr float kSwordWaitY				  = -30.0f; 
-	constexpr float kSwordWaitZ				  = -10.0f;
-	constexpr float kSwordWaitRotY			  = 30.0f; 
-	constexpr float kSwordAnimStartAngle      = 20.0f;  // 振りかぶり開始角度
-	constexpr float kSwordAnimEndAngle        = 180.0f; // 振り下ろし終了角度
-	constexpr float kSwordPivotZ			  = -25.0f; // 剣の回転軸のZ位置
-	constexpr float kSwordModelScale          = 0.5f;   // 剣モデルのスケール
-	constexpr float kDefaultSwordAnimDuration = 0.1f;   // 剣振りアニメーションのデフォルト時間
+	// 盾関連
+	constexpr float kShieldBaseScreenW         = 640.0f; 
+	constexpr float kShieldBaseScreenH         = 480.0f;
+	constexpr float kShieldCamZ                = -35.0f;
+	constexpr float kShieldCamTargetFactor     = 0.3f;   // 補正値
+	constexpr float kShieldWaitX				  = -20.0f; 
+	constexpr float kShieldWaitY				  = -30.0f; 
+	constexpr float kShieldWaitZ				  = -10.0f;
+	constexpr float kShieldWaitRotY			  = 30.0f; 
+	constexpr float kShieldPivotZ			  = -25.0f; // 盾の回転軸のZ位置
+	constexpr float kShieldModelScale          = 0.5f;   // 盾モデルのスケール
 
-	// 剣UI関連
-	constexpr int   kSwordImageWidth         = 64;
-	constexpr int   kSwordImageHeight        = 96; 
-	constexpr int   kSwordImageGaugeSpacing  = 10;  // 剣UIとクールダウンゲージの間隔
-	constexpr int   kSwordImageActiveAlpha   = 255; // 使用可能な剣UIのアルファ値
-	constexpr int   kSwordImageCooldownAlpha = 128; // クールダウン中の剣UIのアルファ値
+	// 盾UI関連
+	constexpr int   kShieldImageWidth         = 64;
+	constexpr int   kShieldImageHeight        = 96; 
+	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
+	constexpr int   kShieldImageActiveAlpha   = 255; // 使用可能な盾UIのアルファ値
+	constexpr int   kShieldImageCooldownAlpha = 128; // クールダウン中の盾UIのアルファ値
 
 	// フォント関連
 	constexpr int   kDefaultFontThickness  = 3;  // フォントの太さ
@@ -175,8 +172,8 @@ namespace
 
 Player::Player() :
 	m_modelHandle(-1),
-	m_swordModelHandle(-1),
-	m_swordImageHandle(-1),
+	m_shieldModelHandle(-1),
+	m_shieldImageHandle(-1),
 	m_ammoImageHandle(-1),
 	m_shootSEHandle(-1),
 	m_playerHitSEHandle(-1),
@@ -218,9 +215,9 @@ Player::Player() :
 	m_tackleCooldownMax(0.0f),
 	m_tackleSpeed(0.0f),
 	m_tackleDamage(0.0f),
-	m_isSwordAnimating(false),
-	m_swordAnimTimer(0.0f),
-	m_swordAnimDuration(kDefaultSwordAnimDuration),
+	m_isShieldAnimating(false),
+	m_shieldAnimTimer(0.0f),
+	m_shieldAnimDuration(0.1f),
 	m_concentrationLineEffectHandle(-1),
 	m_noAmmoImageHandle(-1),
 	m_gunImageHandle(-1),
@@ -235,8 +232,8 @@ Player::Player() :
 	m_ammoTextFlashTimer(0.0f),
 	m_gunSwayOffset(VGet(0, 0, 0)),
 	m_gunSwayRotOffset(VGet(0, 0, 0)),
-	m_swordSwayOffset(VGet(0, 0, 0)),
-	m_swordSwayRotOffset(VGet(0, 0, 0)),
+	m_shieldSwayOffset(VGet(0, 0, 0)),
+	m_shieldSwayRotOffset(VGet(0, 0, 0)),
 	m_isDead(false),
 	m_deathTimer(0.0f),
 	m_pDirectionIndicator(nullptr),
@@ -250,9 +247,9 @@ Player::Player() :
 	// 薬莢排出口フレームのインデックスを検索
 	m_ejectionPortFrame = MV1SearchFrame(m_modelHandle, "AR_M_Ejection_Port");
 
-	// 剣モデルの読み込み
-	m_swordModelHandle = MV1LoadModel("data/model/Shield.mv1");
-	assert(m_swordModelHandle != -1);
+	// 盾モデルの読み込み
+	m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
+	assert(m_shieldModelHandle != -1);
 
 	// 弾画像の読み込み
 	m_ammoImageHandle = LoadGraph("data/image/ammo.png");
@@ -278,9 +275,9 @@ Player::Player() :
 	m_healthUiImageHandle = LoadGraph("data/image/HealthUI.png");
 	assert(m_healthUiImageHandle != -1);
 
-	// 剣UI画像の読み込み
-	m_swordImageHandle = LoadGraph("data/image/Sword.png");
-	assert(m_swordImageHandle != -1);
+	// 盾UI画像の読み込み
+	m_shieldImageHandle = LoadGraph("data/image/ShieldUI.png");
+	assert(m_shieldImageHandle != -1);
 
 	// ロックオンUI画像の読み込み
 	m_lockOnUIHandle = LoadGraph("data/image/LockOnUI.png");
@@ -309,7 +306,7 @@ Player::~Player()
 {
 	// モデルの解放
 	MV1DeleteModel(m_modelHandle);
-	MV1DeleteModel(m_swordModelHandle);
+	MV1DeleteModel(m_shieldModelHandle);
 
 	// 画像の解放
 	DeleteGraph(m_ammoImageHandle);
@@ -319,7 +316,7 @@ Player::~Player()
 	DeleteGraph(m_lowAmmoGunImageHandle);
 	DeleteGraph(m_noAmmoGunImageHandle);
 	DeleteGraph(m_healthUiImageHandle);
-	DeleteGraph(m_swordImageHandle);
+	DeleteGraph(m_shieldImageHandle);
 	DeleteGraph(m_lockOnUIHandle);
 
 	// SEの解放
@@ -389,22 +386,22 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     // プレイヤーの位置をカメラに設定
     m_pCamera->SetPlayerPos(m_modelPos);
 
-    // 剣のアニメーションタイマー更新
-    if (m_isSwordAnimating)
+    // 盾のアニメーションタイマー更新
+    if (m_isShieldAnimating)
     {
-        m_swordAnimTimer += kDeltaTime;
-        if (m_swordAnimTimer >= m_swordAnimDuration)
+        m_shieldAnimTimer += kDeltaTime;
+        if (m_shieldAnimTimer >= m_shieldAnimDuration)
         {
-            m_isSwordAnimating = false;
-            m_swordAnimTimer = 0.0f;
+            m_isShieldAnimating = false;
+            m_shieldAnimTimer = 0.0f;
         }
     }
 
     // Swayの計算
     float yawDelta = m_pCamera->GetYawDelta();
 
-    m_swordSwayOffset.x -= yawDelta * kSwordSwayAmount;
-    m_swordSwayOffset.x *= kSwayDamping;
+    m_shieldSwayOffset.x -= yawDelta * kShieldSwayAmount;
+    m_shieldSwayOffset.x *= kShieldSwayDamping;
 
     // 銃のSwayの計算
     m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
@@ -528,8 +525,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	if (m_isLockingOn && m_lockedOnEnemy && Mouse::IsTriggerLeft())
 	{
 		m_isTackling = true;
-		m_isSwordAnimating = true; // 剣のアニメーション開始
-		m_swordAnimTimer = 0.0f;   // タイマーリセット
 
 		PlaySoundMem(m_tackleSEHandle, DX_PLAYTYPE_BACK); // タックルSE再生
 		m_tackleFrame = kTackleDuration;
@@ -962,30 +957,30 @@ void Player::Draw()
 		if (tackleRate < 0.0f) tackleRate = 0.0f;
 		if (tackleRate > 1.0f) tackleRate = 1.0f;
 
-		// 剣のテクスチャサイズを取得
-		int swordTexW, swordTexH;
-		GetGraphSize(m_swordImageHandle, &swordTexW, &swordTexH);
+		// 盾のテクスチャサイズを取得
+		int shieldTexW, shieldTexH;
+		GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
 
-		// 新しい剣ゲージのサイズと位置
+		// 新しい盾ゲージのサイズと位置
 		// 幅を固定し、アスペクト比を維持するように高さを計算
-		const int swordGaugeWidth = 200;
-		const int swordGaugeHeight = (int)((float)swordGaugeWidth * swordTexW / swordTexH);
-		float scale = (float)swordGaugeWidth / swordTexH;
+		const int shieldGaugeWidth = 200;
+		const int shieldGaugeHeight = (int)((float)shieldGaugeWidth * shieldTexW / shieldTexH);
+		float scale = (float)shieldGaugeWidth / shieldTexH;
 
-		int swordGaugeX = screenW - swordGaugeWidth - kHpBarMargin;
-		int swordGaugeY = tackleUIY - (swordGaugeHeight - kHpBarHeight) * 0.5f; // HPバーと中央揃え
+		int shieldGaugeX = screenW - shieldGaugeWidth - kHpBarMargin;
+		int shieldGaugeY = tackleUIY - (shieldGaugeHeight - kHpBarHeight) * 0.5f; // HPバーと中央揃え
 
-		// ゲージの背景（半透明の剣）
+		// ゲージの背景（半透明の盾）
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
 		DrawRotaGraph3F(
-			swordGaugeX + swordGaugeWidth * 0.5f, 
-			swordGaugeY + swordGaugeHeight * 0.5f, 
-			swordTexW * 0.5f,
-			swordTexH * 0.5f,
+			shieldGaugeX + shieldGaugeWidth * 0.5f, 
+			shieldGaugeY + shieldGaugeHeight * 0.5f, 
+			shieldTexW * 0.5f,
+			shieldTexH * 0.5f,
 			scale,
 			scale,
 			-DX_PI_F * 0.5f, 
-			m_swordImageHandle,
+			m_shieldImageHandle,
 			true
 		);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -993,20 +988,20 @@ void Player::Draw()
 		// ゲージ本体
 		if (tackleRate > 0.0f)
 		{
-			int filledWidth = (int)(swordGaugeWidth * tackleRate);
+			int filledWidth = (int)(shieldGaugeWidth * tackleRate);
 			// 描画範囲を設定してクリッピング
-			SetDrawArea(swordGaugeX, swordGaugeY, swordGaugeX + filledWidth, swordGaugeY + swordGaugeHeight);
+			SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth, shieldGaugeY + shieldGaugeHeight);
 
-			// 剣を満タン状態で描画（SetDrawAreaでクリッピングされる）
+			// 盾を満タン状態で描画（SetDrawAreaでクリッピングされる）
 			DrawRotaGraph3F(
-				swordGaugeX + swordGaugeWidth * 0.5f,
-				swordGaugeY + swordGaugeHeight * 0.5f,
-				swordTexW * 0.5f,
-				swordTexH * 0.5f,
+				shieldGaugeX + shieldGaugeWidth * 0.5f,
+				shieldGaugeY + shieldGaugeHeight * 0.5f,
+				shieldTexW * 0.5f,
+				shieldTexH * 0.5f,
 				scale,
 				scale,
 				-DX_PI_F * 0.5f,
-				m_swordImageHandle,
+				m_shieldImageHandle,
 				true
 			);
 
@@ -1086,10 +1081,10 @@ void Player::Draw()
 			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
 
-		/*剣の描画*/
+		/*盾の描画*/
 		// 画面サイズに応じてスケーリング
-		float scaleW = screenW / kSwordBaseScreenW;
-		float scaleH = screenH / kSwordBaseScreenH;
+		float scaleW = screenW / kShieldBaseScreenW;
+		float scaleH = screenH / kShieldBaseScreenH;
 		float scaleAvg = (scaleW + scaleH) * 0.5f;
 
 		// カメラオフセット設定
@@ -1104,60 +1099,29 @@ void Player::Draw()
 			totalCameraOffset    = VAdd(totalCameraOffset, landingSwayOffset);
 			totalCameraOffset    = VAdd(totalCameraOffset, jumpSwayOffset);
 		}
-		VECTOR swordCamPos = VGet(0, 0, kSwordCamZ * scaleAvg);
-		swordCamPos.x += totalCameraOffset.x;
-		swordCamPos.y += totalCameraOffset.y;
-		VECTOR swordCamTarget = VGet(totalCameraOffset.x * kSwordCamTargetFactor, totalCameraOffset.y * kSwordCamTargetFactor, 0);
-		SetCameraPositionAndTarget_UpVecY(swordCamPos, swordCamTarget);
+		VECTOR shieldCamPos = VGet(0, 0, kShieldCamZ * scaleAvg);
+		shieldCamPos.x += totalCameraOffset.x;
+		shieldCamPos.y += totalCameraOffset.y;
+		VECTOR shieldCamTarget = VGet(totalCameraOffset.x * kShieldCamTargetFactor, totalCameraOffset.y * kShieldCamTargetFactor, 0);
+		SetCameraPositionAndTarget_UpVecY(shieldCamPos, shieldCamTarget);
 
 		// 描画するかどうかのフラグ
-		bool shouldDrawSword = (m_tackleCooldown <= 0) || m_isSwordAnimating;
-		if (!m_isSwordAnimating && m_tackleCooldown > 0) 
-		{
-			shouldDrawSword = false; // クールダウン中は非表示
-		}
+		bool shouldDrawShield = (m_tackleCooldown <= 0); // クールダウンが終わっていれば表示
 
-		if (shouldDrawSword)
+		if (shouldDrawShield)
 		{
-			// 待機状態の剣の位置と回転を定義
-			VECTOR waitPos    = VAdd(VGet(kSwordWaitX * scaleW, kSwordWaitY * scaleH, kSwordWaitZ), m_swordSwayOffset);
-			VECTOR waitRotVec = VAdd(VGet(0.0f, kSwordWaitRotY, 0.0f), m_swordSwayRotOffset);
+			// 待機状態の盾の位置と回転を定義
+			VECTOR waitPos    = VAdd(VGet(kShieldWaitX * scaleW, kShieldWaitY * scaleH, kShieldWaitZ), m_shieldSwayOffset);
+			VECTOR waitRotVec = VAdd(VGet(0.0f, kShieldWaitRotY, 0.0f), m_shieldSwayRotOffset);
 			// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
 			MATRIX matWaitRot  = MGetRotY(waitRotVec.y);
 			MATRIX matWaitPos  = MGetTranslate(waitPos);
-			MATRIX waitMatrix  = MMult(matWaitRot, matWaitPos);
-			MATRIX finalMatrix = waitMatrix;
-
-			if (m_isSwordAnimating)
-			{
-				float animProgress = m_swordAnimTimer / m_swordAnimDuration;
-				// イージング
-				animProgress = -0.5f * (cosf(DX_PI_F * animProgress) - 1.0f);
-
-				// 回転角度を計算 (左 -> 右)
-				float startAngle   = kSwordAnimStartAngle * (DX_PI_F / 180.0f);
-				float endAngle     = kSwordAnimEndAngle * (DX_PI_F / 180.0f);
-				float currentAngle = startAngle + (endAngle - startAngle) * animProgress;
-
-				// モデルのローカル座標におけるピボット（手持ち部分）の位置
-				VECTOR pivotOffset = VGet(0.0f, 0.0f, kSwordPivotZ);
-
-				// 行列を使ってピボット回転を実装
-				MATRIX matPivotTrans    = MGetTranslate(VScale(pivotOffset, -1.0f));
-				MATRIX matRotate        = MGetRotY(currentAngle);
-				MATRIX matPivotTransInv = MGetTranslate(pivotOffset);
-
-				// 最終的な行列をMMultで計算
-				// finalMatrix = (待機時の行列) -> (ピボットを原点へ) -> (回転) -> (ピボットを戻す)
-				MATRIX tempMat1 = MMult(waitMatrix, matPivotTrans);
-				MATRIX tempMat2 = MMult(tempMat1, matRotate);
-				finalMatrix     = MMult(tempMat2, matPivotTransInv);
-			}
+			MATRIX finalMatrix  = MMult(matWaitRot, matWaitPos);
 
 			// モデルに最終的な変換行列を適用
-			MV1SetMatrix(m_swordModelHandle, finalMatrix);
-			MV1SetScale(m_swordModelHandle, VGet(kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg, kSwordModelScale * scaleAvg));
-			MV1DrawModel(m_swordModelHandle);
+			MV1SetMatrix(m_shieldModelHandle, finalMatrix);
+			MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
+			MV1DrawModel(m_shieldModelHandle);
 		}
 
 		// メインカメラに戻す
