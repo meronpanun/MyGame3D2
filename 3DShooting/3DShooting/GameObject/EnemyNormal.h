@@ -76,10 +76,9 @@ public:
 
     /// <summary>
 	/// モデルの解放(共有)
-    /// </summary>
-    static void DeleteModel();
+	/// </summary>
+	static void DeleteModel();private:
 
-private:
     /// <summary>
 	/// アニメーションを変更する
     /// </summary>

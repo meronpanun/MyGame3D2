@@ -109,11 +109,11 @@ public:
 	virtual void SetHp(float hp) { m_hp = hp; }
 	
 	/// <summary>
-	///	死亡コールバックを設定する
+	/// 死亡コールバックを設定する
 	/// </summary>
 	/// <param name="callback">死亡時に呼ばれるコールバック関数</param>
-	virtual void SetOnDeathCallback(std::function<void(const VECTOR&)> callback) { m_onDeathCallback = callback; }
-	
+	virtual void SetOnDeathCallback(std::function<void(const VECTOR&)> callback) { m_onDeathCallback = callback; }	
+
 	/// <summary>
 	/// 派生クラスでどこに当たったか判定する仮想関数
 	/// </summary>

@@ -5,12 +5,12 @@
 #include "Game.h" 
 #include "Mouse.h"
 #include "Camera.h"
-#include "Effect.h"	
+#include "Effect.h"
 #include "Bullet.h"
 #include "SceneManager.h"
 #include "SceneMain.h"
 #include "SceneGameOver.h"
-#include "DebugUtil.h"	
+#include "DebugUtil.h"
 #include "CapsuleCollider.h"
 #include "TransformDataLoader.h"
 #include "DirectionIndicator.h"
@@ -239,7 +239,9 @@ Player::Player() :
 	m_swordSwayRotOffset(VGet(0, 0, 0)),
 	m_isDead(false),
 	m_deathTimer(0.0f),
-	m_pDirectionIndicator(nullptr)
+	m_pDirectionIndicator(nullptr),
+	m_isLockingOn(false),
+	m_lockedOnEnemy(nullptr)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -249,7 +251,7 @@ Player::Player() :
 	m_ejectionPortFrame = MV1SearchFrame(m_modelHandle, "AR_M_Ejection_Port");
 
 	// 剣モデルの読み込み
-	m_swordModelHandle = MV1LoadModel("data/model/Sword.mv1");
+	m_swordModelHandle = MV1LoadModel("data/model/Shield.mv1");
 	assert(m_swordModelHandle != -1);
 
 	// 弾画像の読み込み
@@ -279,6 +281,10 @@ Player::Player() :
 	// 剣UI画像の読み込み
 	m_swordImageHandle = LoadGraph("data/image/Sword.png");
 	assert(m_swordImageHandle != -1);
+
+	// ロックオンUI画像の読み込み
+	m_lockOnUIHandle = LoadGraph("data/image/LockOnUI.png");
+	assert(m_lockOnUIHandle != -1);
 
 	// SEの読み込み
 	m_shootSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
@@ -314,6 +320,7 @@ Player::~Player()
 	DeleteGraph(m_noAmmoGunImageHandle);
 	DeleteGraph(m_healthUiImageHandle);
 	DeleteGraph(m_swordImageHandle);
+	DeleteGraph(m_lockOnUIHandle);
 
 	// SEの解放
 	DeleteSoundMem(m_shootSEHandle);
@@ -454,7 +461,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃（タックル中は射撃不可、死亡中も射撃不可）
-	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isLockingOn && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 
@@ -470,8 +477,55 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// 地面にいるかどうかの判定
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance);
 
-	// 右クリックでタックル開始（死亡中はタックル不可）
-	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Tackle) && !m_isTackling && m_tackleCooldown <= 0 && Mouse::IsTriggerRight())
+	// 右クリック長押しでロックオン
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Tackle) && !m_isTackling && m_tackleCooldown <= 0 && Mouse::IsPressRight())
+	{
+		m_isLockingOn = true;
+		m_lockedOnEnemy = nullptr; // 毎フレームリセット
+
+		constexpr float kLockOnAngleCos = 0.966f; // cos(15度)
+		float minScreenDistSq = -1.0f;
+
+		VECTOR camPos = m_pCamera->GetPos();
+		VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+
+		for (EnemyBase* enemy : enemyList)
+		{
+			if (!enemy || !enemy->IsAlive()) continue;
+
+			VECTOR enemyPos = enemy->GetPos();
+			enemyPos.y += 70.0f; // 敵の胴体あたりをターゲットにするためのオフセット
+			VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
+
+			// プレイヤーの前方一定角度内にいるか
+			if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
+			{
+				VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+				
+				// 画面内にいるか
+				if (screenPos.z > 0)
+				{
+					float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
+					float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
+					float distSq = dx * dx + dy * dy;
+
+					if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+					{
+						minScreenDistSq = distSq;
+						m_lockedOnEnemy = enemy;
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		m_isLockingOn = false;
+		m_lockedOnEnemy = nullptr;
+	}
+
+	// ロックオン中に左クリックでタックル
+	if (m_isLockingOn && m_lockedOnEnemy && Mouse::IsTriggerLeft())
 	{
 		m_isTackling = true;
 		m_isSwordAnimating = true; // 剣のアニメーション開始
@@ -482,16 +536,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
 		m_tackleId++; // タックルごとにIDを更新
 
-		// カメラの向きで3D正規化ベクトルを作成
-		float yaw   = m_pCamera->GetYaw();
-		float pitch = m_pCamera->GetPitch();
-
-		// タックル方向を計算
-		m_tackleDir = VGet(
-			cosf(pitch) * sinf(yaw),
-			sinf(pitch),
-			cosf(pitch) * cosf(yaw)
-		);
+		// ロックオンした敵の方向をタックル方向とする
+		m_tackleDir = VNorm(VSub(m_lockedOnEnemy->GetPos(), m_modelPos));
 
 		// タックル開始時にFOVを広げ、カメラを後ろに引く
 		if (m_pCamera)
@@ -507,7 +553,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 				m_concentrationLineEffectHandle = m_pEffect->PlayConcentrationLine(0.0f, 0.0f, 0.0f, kConcentrationLineEffectScale);
 			}
 		}
+		m_isLockingOn = false; // タックル開始したらロックオン解除
+		m_lockedOnEnemy = nullptr;
 	}
+
 
 	// タックル中の処理
 	if (m_isTackling)
@@ -798,6 +847,27 @@ void Player::Draw()
 {
 	// プレイヤーモデルの描画
 	MV1DrawModel(m_modelHandle); 
+
+	// ロックオンUIの描画
+	if (m_lockedOnEnemy)
+	{
+		constexpr float kLockOnUISize = 64.0f;
+		constexpr float kLockOnUIYOffset = 90.0f; // UIを足元から上に移動させるためのオフセット
+
+		VECTOR enemyPos = m_lockedOnEnemy->GetPos();
+		enemyPos.y += kLockOnUIYOffset; // Y座標を調整して体の中心に近づける
+		VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+
+		if (screenPos.z > 0) // 画面内にあるか
+		{
+			float halfSize = kLockOnUISize / 2.0f;
+			DrawExtendGraph(
+				screenPos.x - halfSize, screenPos.y - halfSize,
+				screenPos.x + halfSize, screenPos.y + halfSize,
+				m_lockOnUIHandle, true
+			);
+		}
+	}
 
 	// 弾の描画
 	Bullet::DrawBullets(m_bullets);

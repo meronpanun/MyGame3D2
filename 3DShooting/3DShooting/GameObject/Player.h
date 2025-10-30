@@ -331,4 +331,9 @@ private:
 
 	// 方向インジケーター
 	DirectionIndicator* m_pDirectionIndicator;
+
+	// ロックオン関連
+	bool m_isLockingOn;         // ロックオン中か
+	EnemyBase* m_lockedOnEnemy; // ロックオンした敵
+	int m_lockOnUIHandle;       // ロックオンUIのハンドル
 };
