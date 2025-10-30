@@ -78,16 +78,15 @@ namespace
 	constexpr float kLowHealthEffectMaxAlpha		= 0.7f;   // 体力低下UIの最大アルファ値
 	 
 	// 盾関連
-	constexpr float kShieldBaseScreenW         = 640.0f; 
-	constexpr float kShieldBaseScreenH         = 480.0f;
-	constexpr float kShieldCamZ                = -35.0f;
-	constexpr float kShieldCamTargetFactor     = 0.3f;   // 補正値
-	constexpr float kShieldWaitX				  = -20.0f; 
-	constexpr float kShieldWaitY				  = -30.0f; 
-	constexpr float kShieldWaitZ				  = -10.0f;
-	constexpr float kShieldWaitRotY			  = 30.0f; 
-	constexpr float kShieldPivotZ			  = -25.0f; // 盾の回転軸のZ位置
-	constexpr float kShieldModelScale          = 0.5f;   // 盾モデルのスケール
+	constexpr float kShieldBaseScreenW     = 640.0f; 
+	constexpr float kShieldBaseScreenH     = 480.0f;
+	constexpr float kShieldCamZ            = -35.0f;
+	constexpr float kShieldCamTargetFactor = 0.3f;   // 補正値
+	constexpr float kShieldWaitX		   = -25.0f; 
+	constexpr float kShieldWaitY		   = -45.0f; 
+	constexpr float kShieldWaitZ		   = -10.0f;
+	constexpr float kShieldPivotZ		   = -25.0f; // 盾の回転軸のZ位置
+	constexpr float kShieldModelScale      = 2.0f;   // 盾モデルのスケール
 
 	// 盾UI関連
 	constexpr int   kShieldImageWidth         = 64;
@@ -863,6 +862,16 @@ void Player::Draw()
 			);
 		}
 	}
+	else if (m_isLockingOn) // ロックオンしようとしているが、ターゲットがいない場合
+	{
+		const char* text = "ターゲットなし";
+		int screenW, screenH;
+		GetScreenState(&screenW, &screenH, NULL);
+		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+		int textX = (screenW - textWidth) / 2;
+		int textY = screenH / 2 + 30; // レティクルの少し下に表示
+		DrawStringToHandle(textX, textY, text, kColorWhite, m_warningFontHandle);
+	}
 
 	// 弾の描画
 	Bullet::DrawBullets(m_bullets);
@@ -1110,16 +1119,12 @@ void Player::Draw()
 
 		if (shouldDrawShield)
 		{
-			// 待機状態の盾の位置と回転を定義
+			// 待機状態の盾の位置を定義
 			VECTOR waitPos    = VAdd(VGet(kShieldWaitX * scaleW, kShieldWaitY * scaleH, kShieldWaitZ), m_shieldSwayOffset);
-			VECTOR waitRotVec = VAdd(VGet(0.0f, kShieldWaitRotY, 0.0f), m_shieldSwayRotOffset);
-			// 待機状態の基本となる変換行列を作成 (回転 * 平行移動)
-			MATRIX matWaitRot  = MGetRotY(waitRotVec.y);
-			MATRIX matWaitPos  = MGetTranslate(waitPos);
-			MATRIX finalMatrix  = MMult(matWaitRot, matWaitPos);
 
-			// モデルに最終的な変換行列を適用
-			MV1SetMatrix(m_shieldModelHandle, finalMatrix);
+			// モデルの位置と回転を直接設定
+			MV1SetPosition(m_shieldModelHandle, waitPos);
+			MV1SetRotationXYZ(m_shieldModelHandle, VGet(0, DX_PI_F, 0));
 			MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
 			MV1DrawModel(m_shieldModelHandle);
 		}
