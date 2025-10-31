@@ -320,6 +320,7 @@ private:
 	float m_ammoTextFlashTimer; // 弾薬テキストのフラッシュタイマー
 	
 	// Sway管理
+	float  m_idleSwayTimer;      // 待機時の揺れタイマー
 	VECTOR m_gunSwayOffset;
 	VECTOR m_gunSwayRotOffset;
 	VECTOR m_shieldSwayOffset;
@@ -338,6 +339,7 @@ private:
 	int m_lockOnUIHandle;       // ロックオンUIのハンドル
 
 	// ガード関連
+	bool  m_ignoreGuardInput;   // ガード入力を無視するか
 	bool  m_isGuarding;         // ガード中か
 	float m_guardAnimTimer;     // ガードアニメーションのタイマー
 	float m_guardAnimDuration;  // ガードアニメーションの時間

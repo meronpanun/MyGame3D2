@@ -76,6 +76,8 @@ namespace
 	constexpr float kLowHealthThreshold				= 30.0f;  // 体力が少ないと判断する閾値
 	constexpr float kWarningBlinkSpeed				= 1.5f;   // 警告UIの点滅速度
 	constexpr float kLowHealthEffectMaxAlpha		= 0.7f;   // 体力低下UIの最大アルファ値
+	constexpr float kIdleSwaySpeed					= 1.5f;   // 揺れの速さ
+	constexpr float kIdleSwayAmount					= 0.04f;  // 揺れの量
 	 
 	// 盾関連
 	constexpr float kShieldBaseScreenW     = 640.0f; 
@@ -230,6 +232,7 @@ Player::Player() :
 	m_isLowHealth(false),
 	m_lowHealthBlinkTimer(0.0f),
 	m_ammoTextFlashTimer(0.0f),
+	m_idleSwayTimer(0.0f),
 	m_gunSwayOffset(VGet(0, 0, 0)),
 	m_gunSwayRotOffset(VGet(0, 0, 0)),
 	m_shieldSwayOffset(VGet(0, 0, 0)),
@@ -241,7 +244,8 @@ Player::Player() :
 	m_lockedOnEnemy(nullptr),
 	m_isGuarding(false),
 	m_guardAnimTimer(0.0f),
-	m_guardAnimDuration(kGuardAnimDuration)
+	m_guardAnimDuration(kGuardAnimDuration),
+	m_ignoreGuardInput(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -412,6 +416,22 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f; // 回転の揺れも追加
     m_gunSwayRotOffset.y *= kGunSwayDamping;
 
+    // 待機時の揺れ
+    m_idleSwayTimer += kDeltaTime;
+    if (!m_isMoving)
+    {
+        // サイン波とコサイン波を使って、ゆっくりとした円運動のような揺れを生成
+        VECTOR idleSway = VGet(
+            sinf(m_idleSwayTimer * kIdleSwaySpeed * 2.0f) * kIdleSwayAmount,
+            cosf(m_idleSwayTimer * kIdleSwaySpeed) * kIdleSwayAmount,
+            0.0f
+        );
+
+        // 既存のSwayに加算
+        m_gunSwayOffset = VAdd(m_gunSwayOffset, idleSway);
+        m_shieldSwayOffset = VAdd(m_shieldSwayOffset, idleSway);
+    }
+
     if (m_pEffect)
     {
         m_pEffect->Update(); // エフェクトの更新
@@ -483,7 +503,11 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance);
 
 	// 右クリック長押しでガード＆ロックオン
-	if (!m_isDead && !m_isTackling && Mouse::IsPressRight())
+	if (!Mouse::IsPressRight())
+	{
+		m_ignoreGuardInput = false;
+	}
+	if (!m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput)
 	{
 		m_isGuarding = true;
 		m_isLockingOn = true;
@@ -620,6 +644,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		if (m_tackleFrame <= 0)
 		{
 			m_isTackling = false;
+			m_ignoreGuardInput = true; // ガード入力を無視
 
 			// タックル終了時にFOVとカメラオフセットを元に戻す
 			if (m_pCamera)
@@ -1162,6 +1187,23 @@ void Player::Draw()
 
 		// 進行度に応じて回転を補間
 		VECTOR currentRot = VAdd(waitRot, VScale(VSub(guardRot, waitRot), easeProgress));
+
+		// タックル中の盾アニメーション
+		if (m_isTackling)
+		{
+			constexpr float kTackleShieldThrust = 20.0f; // タックル時の盾を突き出す量
+			currentPos = guardPos; // ガード位置（中央）を基準にする
+			currentPos.z += kTackleShieldThrust;
+			currentRot = guardRot; // 回転もガード状態（正面）にする
+		}
+
+		// ガード中は小刻みに揺らす
+		if (m_isGuarding)
+		{
+			constexpr float kGuardShakeAmount = 0.4f; // 揺れの量
+			currentPos.x += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
+			currentPos.y += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
+		}
 
 		// モデルの位置と回転を直接設定
 		MV1SetPosition(m_shieldModelHandle, currentPos);
