@@ -336,4 +336,9 @@ private:
 	bool m_isLockingOn;         // ロックオン中か
 	EnemyBase* m_lockedOnEnemy; // ロックオンした敵
 	int m_lockOnUIHandle;       // ロックオンUIのハンドル
+
+	// ガード関連
+	bool  m_isGuarding;         // ガード中か
+	float m_guardAnimTimer;     // ガードアニメーションのタイマー
+	float m_guardAnimDuration;  // ガードアニメーションの時間
 };

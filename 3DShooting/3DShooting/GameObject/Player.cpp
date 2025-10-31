@@ -82,11 +82,12 @@ namespace
 	constexpr float kShieldBaseScreenH     = 480.0f;
 	constexpr float kShieldCamZ            = -35.0f;
 	constexpr float kShieldCamTargetFactor = 0.3f;   // 補正値
-	constexpr float kShieldWaitX		   = -25.0f; 
+	constexpr float kShieldWaitX		   = -20.0f; 
 	constexpr float kShieldWaitY		   = -45.0f; 
 	constexpr float kShieldWaitZ		   = -10.0f;
 	constexpr float kShieldPivotZ		   = -25.0f; // 盾の回転軸のZ位置
 	constexpr float kShieldModelScale      = 2.0f;   // 盾モデルのスケール
+	constexpr float kGuardAnimDuration     = 0.1f;   // ガードアニメーションの時間
 
 	// 盾UI関連
 	constexpr int   kShieldImageWidth         = 64;
@@ -237,7 +238,10 @@ Player::Player() :
 	m_deathTimer(0.0f),
 	m_pDirectionIndicator(nullptr),
 	m_isLockingOn(false),
-	m_lockedOnEnemy(nullptr)
+	m_lockedOnEnemy(nullptr),
+	m_isGuarding(false),
+	m_guardAnimTimer(0.0f),
+	m_guardAnimDuration(kGuardAnimDuration)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -429,6 +433,11 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
 	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
 
+	// ガードアニメーションの進行度を計算（イージング付き）
+	float guardAnimProgress = m_guardAnimTimer / m_guardAnimDuration;
+	float gunOffsetY = -200.0f * (1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f)); // イージング
+	modelPos.y += gunOffsetY;
+
 	// モデルの位置を設定
 	MV1SetPosition(m_modelHandle, VAdd(modelPos, m_gunSwayOffset));
 	
@@ -456,8 +465,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	// マウスの左クリックで射撃（タックル中は射撃不可、死亡中も射撃不可）
-	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isLockingOn && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
+	// マウスの左クリックで射撃（タックル中、ガード中は射撃不可、死亡中も射撃不可）
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isGuarding && !m_isLockingOn && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 
@@ -473,9 +482,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// 地面にいるかどうかの判定
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance);
 
-	// 右クリック長押しでロックオン
-	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Tackle) && !m_isTackling && m_tackleCooldown <= 0 && Mouse::IsPressRight())
+	// 右クリック長押しでガード＆ロックオン
+	if (!m_isDead && !m_isTackling && Mouse::IsPressRight())
 	{
+		m_isGuarding = true;
 		m_isLockingOn = true;
 		m_lockedOnEnemy = nullptr; // 毎フレームリセット
 
@@ -497,7 +507,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
 			{
 				VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
-				
+
 				// 画面内にいるか
 				if (screenPos.z > 0)
 				{
@@ -516,12 +526,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 	else
 	{
+		m_isGuarding = false;
 		m_isLockingOn = false;
 		m_lockedOnEnemy = nullptr;
 	}
 
 	// ロックオン中に左クリックでタックル
-	if (m_isLockingOn && m_lockedOnEnemy && Mouse::IsTriggerLeft())
+	if (m_isLockingOn && m_lockedOnEnemy && Mouse::IsTriggerLeft() && m_tackleCooldown <= 0)
 	{
 		m_isTackling = true;
 
@@ -551,6 +562,23 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_lockedOnEnemy = nullptr;
 	}
 
+	// ガードアニメーションタイマーの更新
+	if (m_isGuarding)
+	{
+		m_guardAnimTimer += kDeltaTime;
+		if (m_guardAnimTimer > m_guardAnimDuration)
+		{
+			m_guardAnimTimer = m_guardAnimDuration;
+		}
+	}
+	else
+	{
+		m_guardAnimTimer -= kDeltaTime;
+		if (m_guardAnimTimer < 0.0f)
+		{
+			m_guardAnimTimer = 0.0f;
+		}
+	}
 
 	// タックル中の処理
 	if (m_isTackling)
@@ -842,6 +870,18 @@ void Player::Draw()
 	// プレイヤーモデルの描画
 	MV1DrawModel(m_modelHandle); 
 
+	// ガード中にターゲットがいない場合にテキストを表示
+	if (m_isGuarding && !m_lockedOnEnemy)
+	{
+		const char* text = "ターゲットなし";
+		int screenW, screenH;
+		GetScreenState(&screenW, &screenH, NULL);
+		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+		int textX = (screenW - textWidth) / 2;
+		int textY = screenH / 2 + 30; // レティクルの少し下に表示
+		DrawStringToHandle(textX, textY, text, kColorWhite, m_warningFontHandle);
+	}
+
 	// ロックオンUIの描画
 	if (m_lockedOnEnemy)
 	{
@@ -861,16 +901,6 @@ void Player::Draw()
 				m_lockOnUIHandle, true
 			);
 		}
-	}
-	else if (m_isLockingOn) // ロックオンしようとしているが、ターゲットがいない場合
-	{
-		const char* text = "ターゲットなし";
-		int screenW, screenH;
-		GetScreenState(&screenW, &screenH, NULL);
-		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) / 2;
-		int textY = screenH / 2 + 30; // レティクルの少し下に表示
-		DrawStringToHandle(textX, textY, text, kColorWhite, m_warningFontHandle);
 	}
 
 	// 弾の描画
@@ -1114,20 +1144,30 @@ void Player::Draw()
 		VECTOR shieldCamTarget = VGet(totalCameraOffset.x * kShieldCamTargetFactor, totalCameraOffset.y * kShieldCamTargetFactor, 0);
 		SetCameraPositionAndTarget_UpVecY(shieldCamPos, shieldCamTarget);
 
-		// 描画するかどうかのフラグ
-		bool shouldDrawShield = (m_tackleCooldown <= 0); // クールダウンが終わっていれば表示
+		// ガードアニメーションの進行度を計算
+		float guardAnimProgress = m_guardAnimTimer / m_guardAnimDuration;
+		float easeProgress = 1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f); // イージング
 
-		if (shouldDrawShield)
-		{
-			// 待機状態の盾の位置を定義
-			VECTOR waitPos    = VAdd(VGet(kShieldWaitX * scaleW, kShieldWaitY * scaleH, kShieldWaitZ), m_shieldSwayOffset);
+		// 待機位置とガード位置を定義
+		VECTOR waitPos = VAdd(VGet(kShieldWaitX * scaleW, kShieldWaitY * scaleH, kShieldWaitZ), m_shieldSwayOffset);
+		VECTOR guardPos = VGet(0.0f, kShieldWaitY * scaleH, -15.0f); // 中央の位置
 
-			// モデルの位置と回転を直接設定
-			MV1SetPosition(m_shieldModelHandle, waitPos);
-			MV1SetRotationXYZ(m_shieldModelHandle, VGet(0, DX_PI_F, 0));
-			MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
-			MV1DrawModel(m_shieldModelHandle);
-		}
+		// 進行度に応じて位置を補間
+		VECTOR currentPos = VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
+
+		// 待機回転とガード回転を定義
+		constexpr float kShieldWaitAngleY = -0.3f; // 待機時のY軸回転角度
+		VECTOR waitRot = VGet(0.0f, DX_PI_F + kShieldWaitAngleY, 0.0f);
+		VECTOR guardRot = VGet(0.0f, DX_PI_F, 0.0f);
+
+		// 進行度に応じて回転を補間
+		VECTOR currentRot = VAdd(waitRot, VScale(VSub(guardRot, waitRot), easeProgress));
+
+		// モデルの位置と回転を直接設定
+		MV1SetPosition(m_shieldModelHandle, currentPos);
+		MV1SetRotationXYZ(m_shieldModelHandle, currentRot);
+		MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
+		MV1DrawModel(m_shieldModelHandle);
 
 		// メインカメラに戻す
 		m_pCamera->SetCameraToDxLib();
