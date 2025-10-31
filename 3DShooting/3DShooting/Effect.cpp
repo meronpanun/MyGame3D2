@@ -1,10 +1,20 @@
 ﻿#include "Effect.h"
 #include "EffekseerForDXLib.h"
 #include <assert.h>
-
 #include <string>
 #include <vector>
 #include <time.h>
+
+namespace
+{
+	// 各エフェクト拡大率
+	constexpr float kMuzzleFlashEffectScale       = 2.0f; 
+	constexpr float kMuzzleFlashEffectScale2      = 3.0f; 
+	constexpr float kMuzzleFlashEffectScale3      = 3.5f; 
+	constexpr float kLossOfBloodEffectScale       = 2.5f;
+	constexpr float kConcentrationLineEffectScale = 1.0f;
+	constexpr float kGuardEffectScale             = 10.5f;
+}
 
 Effect::Effect():
 	m_lossOfBloodEffectHandle(-1),
@@ -15,22 +25,26 @@ Effect::Effect():
 	srand(time(NULL));
 
 	// エフェクトハンドルの読み込み
-	m_muzzleFlashEffectHandles[0] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", 2.0f);
-	m_muzzleFlashEffectHandles[1] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash2.efkefc", 2.0f);
-	m_muzzleFlashEffectHandles[2] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash3.efkefc", 2.0f);
-	m_muzzleFlashEffectHandles[3] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash4.efkefc", 3.5f);
-	m_muzzleFlashEffectHandles[4] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", 3.0f);
+	m_muzzleFlashEffectHandles[0] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", kMuzzleFlashEffectScale);
+	m_muzzleFlashEffectHandles[1] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash2.efkefc", kMuzzleFlashEffectScale);
+	m_muzzleFlashEffectHandles[2] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash3.efkefc", kMuzzleFlashEffectScale);
+	m_muzzleFlashEffectHandles[3] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash4.efkefc", kMuzzleFlashEffectScale3);
+	m_muzzleFlashEffectHandles[4] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale2);
 	for (int i = 0; i < 5; ++i)
 	{
 		assert(m_muzzleFlashEffectHandles[i] != -1);
 	}
 
 	// 出血エフェクトハンドルの読み込み
-	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", 2.5f);
+	m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", kLossOfBloodEffectScale);
 	assert(m_lossOfBloodEffectHandle != -1);
 	// 集中線エフェクトハンドルの読み込み
-	m_concentrationLineEffectHandle = LoadEffekseerEffect("data/Effekseer/ConcentrationLine.efkefc", 1.0f);
+	m_concentrationLineEffectHandle = LoadEffekseerEffect("data/Effekseer/ConcentrationLine.efkefc", kConcentrationLineEffectScale);
 	assert(m_concentrationLineEffectHandle != -1);
+
+	// ガードエフェクトハンドルの読み込み
+	m_guardEffectHandle = LoadEffekseerEffect("data/Effekseer/Circle.efkefc", kGuardEffectScale);
+	assert(m_guardEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -42,6 +56,7 @@ Effect::~Effect()
 	}
 	DeleteEffekseerEffect(m_lossOfBloodEffectHandle);
 	DeleteEffekseerEffect(m_concentrationLineEffectHandle);
+	DeleteEffekseerEffect(m_guardEffectHandle);
 }
 
 void Effect::Init()
@@ -100,6 +115,22 @@ int Effect::PlayConcentrationLine(float x, float y, float z, float scale)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
 			SetScalePlayingEffekseer3DEffect(handle, scale, scale, scale);
+		}
+		return handle;
+	}
+	return -1;
+}
+
+// ガードエフェクトを再生する
+int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, float rotZ)
+{
+	if (m_guardEffectHandle != -1)
+	{
+		int handle = PlayEffekseer3DEffect(m_guardEffectHandle);
+		if (handle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
 		}
 		return handle;
 	}

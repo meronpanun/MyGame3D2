@@ -90,6 +90,9 @@ namespace
 	constexpr float kShieldPivotZ		   = -25.0f; // 盾の回転軸のZ位置
 	constexpr float kShieldModelScale      = 2.0f;   // 盾モデルのスケール
 	constexpr float kGuardAnimDuration     = 0.1f;   // ガードアニメーションの時間
+    constexpr float kGuardEffectOffsetZ     = 60.0f;  // ガードエフェクトのZ軸オフセット
+    constexpr float kGuardEffectOffsetX    = 10.0f;  // ガードエフェクトのX軸オフセット
+	constexpr int   kGuardEffectDuration   = 60;     // ガードエフェクトの持続フレーム数
 
 	// 盾UI関連
 	constexpr int   kShieldImageWidth         = 64;
@@ -243,8 +246,11 @@ Player::Player() :
 	m_isLockingOn(false),
 	m_lockedOnEnemy(nullptr),
 	m_isGuarding(false),
+	m_wasGuarding(false),
 	m_guardAnimTimer(0.0f),
 	m_guardAnimDuration(kGuardAnimDuration),
+	m_guardEffectHandle(-1),
+	m_guardEffectTimer(0),
 	m_ignoreGuardInput(false)
 {
 	// プレイヤーモデルの読み込み
@@ -511,7 +517,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_isGuarding = true;
 		m_isLockingOn = true;
-		m_lockedOnEnemy = nullptr; // 毎フレームリセット
+		m_lockedOnEnemy = nullptr; // ロックオンターゲット検索前にリセット
 
 		constexpr float kLockOnAngleCos = 0.966f; // cos(15度)
 		float minScreenDistSq = -1.0f;
@@ -555,7 +561,60 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_lockedOnEnemy = nullptr;
 	}
 
-	// ロックオン中に左クリックでタックル
+	// ガード開始時にエフェクトを再生
+	if (m_isGuarding && !m_wasGuarding)
+	{
+		if (m_pEffect)
+		{
+			float pitch = -m_pCamera->GetPitch();
+			float yaw = m_pCamera->GetYaw();
+			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
+			VECTOR right = VGet(sinf(yaw + DX_PI_F * 0.5f), 0, cosf(yaw + DX_PI_F * 0.5f));
+			VECTOR effectPos = VAdd(m_modelPos, VAdd(VScale(forward, kGuardEffectOffsetZ), VScale(right, kGuardEffectOffsetX)));
+			m_guardEffectHandle = m_pEffect->PlayGuardEffect(effectPos.x, effectPos.y, effectPos.z, pitch, yaw, 0.0f);
+			m_guardEffectTimer = kGuardEffectDuration; 
+		}
+	}
+	// ガード終了時（解除された場合）
+	else if (!m_isGuarding && m_wasGuarding)
+	{
+		if (m_guardEffectHandle != -1)
+		{
+			StopEffekseer3DEffect(m_guardEffectHandle);
+			m_guardEffectHandle = -1;
+		}
+		m_guardEffectTimer = 0; // タイマーをリセット
+	}
+	    
+	// ガードエフェクトのタイマー処理と追従
+	if (m_guardEffectTimer > 0)
+	{
+		m_guardEffectTimer--; // タイマーをデクリメント
+	  
+		if (m_guardEffectHandle != -1)
+		{
+			float yaw = m_pCamera->GetYaw();
+			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
+			VECTOR right = VGet(sinf(yaw + DX_PI_F * 0.5f), 0, cosf(yaw + DX_PI_F * 0.5f));
+	     	VECTOR effectPos = VAdd(m_modelPos, VAdd(VScale(forward, kGuardEffectOffsetZ), VScale(right, kGuardEffectOffsetX))); 
+	        SetPosPlayingEffekseer3DEffect(m_guardEffectHandle, effectPos.x, effectPos.y, effectPos.z);
+	    
+	    	float pitch = -m_pCamera->GetPitch();
+	    	SetRotationPlayingEffekseer3DEffect(m_guardEffectHandle, pitch, yaw, 0.0f);
+	   	}
+	    
+	   	// タイマーが切れたらエフェクトを停止
+	    if (m_guardEffectTimer <= 0)
+	    {
+	    	if (m_guardEffectHandle != -1)
+	    	{
+	    		StopEffekseer3DEffect(m_guardEffectHandle);
+	    		m_guardEffectHandle = -1;
+	    	}
+	    }
+	}
+	    
+    // ロックオン中に左クリックでタックル	
 	if (m_isLockingOn && m_lockedOnEnemy && Mouse::IsTriggerLeft() && m_tackleCooldown <= 0)
 	{
 		m_isTackling = true;
@@ -789,6 +848,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
+
+	m_wasGuarding = m_isGuarding;
 
 	// HPバーアニメーション
 	if (m_healthBarAnim != m_health)

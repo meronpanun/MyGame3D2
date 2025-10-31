@@ -341,6 +341,10 @@ private:
 	// ガード関連
 	bool  m_ignoreGuardInput;   // ガード入力を無視するか
 	bool  m_isGuarding;         // ガード中か
+	bool  m_wasGuarding;        // 前フレームでガードしていたか
 	float m_guardAnimTimer;     // ガードアニメーションのタイマー
 	float m_guardAnimDuration;  // ガードアニメーションの時間
+	int   m_guardEffectHandle;    // ガードエフェクトのハンドル
+	int   m_guardEffectTimer;     // ガードエフェクトのタイマー
+	float m_guardEffectScale;   // ガードエフェクトのスケール
 };
