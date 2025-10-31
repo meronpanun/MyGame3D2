@@ -17,6 +17,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include "PlayerConfig.h"
 
 namespace
 {
@@ -251,7 +252,10 @@ Player::Player() :
 	m_guardAnimDuration(kGuardAnimDuration),
 	m_guardEffectHandle(-1),
 	m_guardEffectTimer(0),
-	m_ignoreGuardInput(false)
+	m_ignoreGuardInput(false),
+	m_shieldDurability(PlayerConfig::MAX_SHIELD_DURABILITY),
+	m_maxShieldDurability(PlayerConfig::MAX_SHIELD_DURABILITY),
+	m_isShieldBroken(false)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -365,6 +369,9 @@ void Player::Init()
 			m_runSpeed			= data.runSpeed;
 			m_initialAmmo		= data.initialAmmo;
 			m_bulletPower		= data.bulletPower;
+			m_shieldDurability = PlayerConfig::MAX_SHIELD_DURABILITY; // 最大耐久値に設定
+			m_maxShieldDurability = PlayerConfig::MAX_SHIELD_DURABILITY; // 最大耐久値を設定
+			m_isShieldBroken = false; // 盾は壊れていない
 			MV1SetScale(m_modelHandle, data.scale);
 			MV1SetRotationXYZ(m_modelHandle, data.rot);
 			break;
@@ -559,6 +566,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_isGuarding = false;
 		m_isLockingOn = false;
 		m_lockedOnEnemy = nullptr;
+		// ガード解除時に盾の耐久値を回復させる
+		m_shieldDurability += PlayerConfig::SHIELD_REGEN_RATE * kDeltaTime;
+		if (m_shieldDurability > m_maxShieldDurability)
+		{
+			m_shieldDurability = m_maxShieldDurability;
+			m_isShieldBroken = false; // 完全回復したら壊れていない状態に
+		}
 	}
 
 	// ガード開始時にエフェクトを再生
@@ -1077,10 +1091,10 @@ void Player::Draw()
 			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
 		}
 		
-		// タックルゲージの描画
-		float tackleRate = 1.0f - (m_tackleCooldown / static_cast<float>(m_tackleCooldownMax));
-		if (tackleRate < 0.0f) tackleRate = 0.0f;
-		if (tackleRate > 1.0f) tackleRate = 1.0f;
+		// 盾耐久値の描画
+		float shieldDurabilityRate = m_shieldDurability / m_maxShieldDurability;
+		if (shieldDurabilityRate < 0.0f) shieldDurabilityRate = 0.0f;
+		if (shieldDurabilityRate > 1.0f) shieldDurabilityRate = 1.0f;
 
 		// 盾のテクスチャサイズを取得
 		int shieldTexW, shieldTexH;
@@ -1111,9 +1125,9 @@ void Player::Draw()
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 		// ゲージ本体
-		if (tackleRate > 0.0f)
+		if (shieldDurabilityRate > 0.0f)
 		{
-			int filledWidth = (int)(shieldGaugeWidth * tackleRate);
+			int filledWidth = (int)(shieldGaugeWidth * shieldDurabilityRate);
 			// 描画範囲を設定してクリッピング
 			SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth, shieldGaugeY + shieldGaugeHeight);
 
@@ -1132,6 +1146,26 @@ void Player::Draw()
 
 			// 描画範囲をリセット
 			SetDrawArea(0, 0, screenW, screenH);
+		}
+		// 盾が壊れている場合は赤く点滅させる
+		if (m_isShieldBroken)
+		{
+			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+			int alphaInt = static_cast<int>(alpha * 255);
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+			DrawRotaGraph3F(
+				shieldGaugeX + shieldGaugeWidth * 0.5f,
+				shieldGaugeY + shieldGaugeHeight * 0.5f,
+				shieldTexW * 0.5f,
+				shieldTexH * 0.5f,
+				scale,
+				scale,
+				-DX_PI_F * 0.5f,
+				m_shieldImageHandle,
+				true,
+				GetColor(255, 0, 0) // 赤色で描画
+			);
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
 
 		// 警告表示ロジック
@@ -1389,8 +1423,50 @@ void Player::DeathUpdate()
 // ダメージを受ける処理
 void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 {
-	if (m_isDead) return; // 死亡中はダメージを受けない
-	if (m_isInvincible) return; // 無敵モード中はダメージを受けない
+	if (m_isDead)
+	{
+		return;
+	}
+
+	if (m_isInvincible)
+	{
+		return;
+	}
+
+	if (m_isGuarding && !m_isShieldBroken) // ガード中で盾が壊れていなければ
+	{
+		m_shieldDurability -= damage; // 盾の耐久値を減らす
+		if (m_shieldDurability <= 0.0f)
+		{
+			m_shieldDurability = 0.0f;
+			m_isShieldBroken = true; // 盾が壊れた
+			// 盾が完全に壊れたら、残りのダメージをプレイヤーが受ける
+			float remainingDamage = -m_shieldDurability; // 正の値に変換
+			if (remainingDamage > 0) {
+				m_health -= remainingDamage; // 残ったダメージをHPに適用
+			    // HPバーアニメーション用タイマーをリセット
+	            m_healthBarAnimTimer = 0.0f;
+	            // ダメージエフェクトを発動
+	            m_damageEffect.Trigger(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB); 
+	            // 被弾SEを再生
+	            PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+
+	            // カメラシェイクを発生
+	            if (m_pCamera)
+	            {
+	            	m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+	            }
+
+	            // 方向インジケーターに攻撃者の位置を通知
+	            if (m_pDirectionIndicator && (attackerPos.x != 0.0f || attackerPos.z != 0.0f))
+	            {
+	            	m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
+	            }
+			}
+		}
+		return; // 盾で防いだ場合はここで処理を終了
+	}
+
 
 	m_health -= damage; // ダメージを適用
 	if (m_health < 0.0f)

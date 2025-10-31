@@ -315,6 +315,10 @@ private:
 	float m_shieldAnimTimer;    // 盾のアニメーションタイマー
 	float m_shieldAnimDuration; // 盾のアニメーション時間
 
+	float m_shieldDurability;   // 盾の耐久値
+	float m_maxShieldDurability; // 盾の最大耐久値
+	bool  m_isShieldBroken;     // 盾が壊れているか
+
 	int   m_warningFontHandle;  // 警告用フォントハンドル
 	bool  m_isNoAmmoWarning;    // 弾薬切れ警告表示フラグ
 	float m_ammoTextFlashTimer; // 弾薬テキストのフラッシュタイマー
