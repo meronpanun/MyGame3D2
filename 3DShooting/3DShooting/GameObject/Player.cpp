@@ -1100,14 +1100,14 @@ void Player::Draw()
 		int shieldTexW, shieldTexH;
 		GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
 
-		// 新しい盾ゲージのサイズと位置
+		// 盾ゲージのサイズと位置
 		// 幅を固定し、アスペクト比を維持するように高さを計算
 		const int shieldGaugeWidth = 200;
 		const int shieldGaugeHeight = (int)((float)shieldGaugeWidth * shieldTexW / shieldTexH);
 		float scale = (float)shieldGaugeWidth / shieldTexH;
 
 		int shieldGaugeX = screenW - shieldGaugeWidth - kHpBarMargin;
-		int shieldGaugeY = tackleUIY - (shieldGaugeHeight - kHpBarHeight) * 0.5f; // HPバーと中央揃え
+		int shieldGaugeY = tackleUIY - (shieldGaugeHeight - kHpBarHeight) * 0.5f; 
 
 		// ゲージの背景（半透明の盾）
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
@@ -1131,7 +1131,7 @@ void Player::Draw()
 			// 描画範囲を設定してクリッピング
 			SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth, shieldGaugeY + shieldGaugeHeight);
 
-			// 盾を満タン状態で描画（SetDrawAreaでクリッピングされる）
+			// 盾を満タン状態で描画
 			DrawRotaGraph3F(
 				shieldGaugeX + shieldGaugeWidth * 0.5f,
 				shieldGaugeY + shieldGaugeHeight * 0.5f,
@@ -1146,26 +1146,6 @@ void Player::Draw()
 
 			// 描画範囲をリセット
 			SetDrawArea(0, 0, screenW, screenH);
-		}
-		// 盾が壊れている場合は赤く点滅させる
-		if (m_isShieldBroken)
-		{
-			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-			int alphaInt = static_cast<int>(alpha * 255);
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-			DrawRotaGraph3F(
-				shieldGaugeX + shieldGaugeWidth * 0.5f,
-				shieldGaugeY + shieldGaugeHeight * 0.5f,
-				shieldTexW * 0.5f,
-				shieldTexH * 0.5f,
-				scale,
-				scale,
-				-DX_PI_F * 0.5f,
-				m_shieldImageHandle,
-				true,
-				GetColor(255, 0, 0) // 赤色で描画
-			);
-			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
 
 		// 警告表示ロジック
