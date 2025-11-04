@@ -1358,7 +1358,7 @@ void Player::Draw()
 			// 回復アニメーション
 			if (m_isShieldRecovering)
 			{
-				easedProgress = 1.0f - powf(1.0f - animProgress, kShieldAnimEasingPower); // Ease-out
+				easedProgress = 1.0f - powf(1.0f - animProgress, kShieldAnimEasingPower);
 				// 下から元の位置へ
 				float startY = kShieldAnimRecoverStartYOffset;
 				float endY = currentPos.y;
@@ -1367,7 +1367,7 @@ void Player::Draw()
 			// 破壊アニメーション
 			else
 			{
-				easedProgress = powf(animProgress, kShieldAnimEasingPower); // Ease-in
+				easedProgress = powf(animProgress, kShieldAnimEasingPower);
 				// 左斜め上を向いて下に消える
 				float targetRotY = kShieldAnimBreakRotY; // 左斜め上
 				float targetRotX = kShieldAnimBreakRotX;
@@ -1530,6 +1530,14 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		if (m_pCamera)
 		{
 			m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+		}
+
+		// 盾の前方にスパークエフェクトを再生
+		if (m_pEffect)
+		{
+			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
+			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 50.0f)); // 盾の前方あたり
+			m_pEffect->PlaySparkEffect(effectPos.x, effectPos.y, effectPos.z);
 		}
 
 					if (m_shieldDurability <= 0.0f)

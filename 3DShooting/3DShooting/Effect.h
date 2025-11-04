@@ -36,10 +36,19 @@ public:
 	/// <param name="rotZ">Z軸回転</param>
 	int PlayGuardEffect(float x, float y, float z, float rotX, float rotY, float rotZ);
 
+	/// <summary>
+	/// スパークエフェクトを再生する
+	/// </summary>
+	/// <param name="x">X座標</param>
+	/// <param name="y">Y座標</param>
+	/// <param name="z">Z座標</param>
+	void PlaySparkEffect(float x, float y, float z);
+
 private:
 	int m_muzzleFlashEffectHandles[5]; // マズルフラッシュのエフェクトハンドル配列
 	int m_lossOfBloodEffectHandle; // 出血エフェクトハンドル
 	int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int m_guardEffectHandle; // ガードエフェクトハンドル
+	int m_sparkEffectHandle; // スパークエフェクトハンドル
 };
 

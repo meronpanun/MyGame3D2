@@ -45,6 +45,10 @@ Effect::Effect():
 	// ガードエフェクトハンドルの読み込み
 	m_guardEffectHandle = LoadEffekseerEffect("data/Effekseer/Circle.efkefc", kGuardEffectScale);
 	assert(m_guardEffectHandle != -1);
+
+	// スパークエフェクトハンドルの読み込み
+	m_sparkEffectHandle = LoadEffekseerEffect("data/Effekseer/Spark2.efkefc", 20.0f);
+	assert(m_sparkEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -57,6 +61,7 @@ Effect::~Effect()
 	DeleteEffekseerEffect(m_lossOfBloodEffectHandle);
 	DeleteEffekseerEffect(m_concentrationLineEffectHandle);
 	DeleteEffekseerEffect(m_guardEffectHandle);
+	DeleteEffekseerEffect(m_sparkEffectHandle);
 }
 
 void Effect::Init()
@@ -136,3 +141,17 @@ int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, f
 	}
 	return -1;
 }
+
+// スパークエフェクトを再生する
+void Effect::PlaySparkEffect(float x, float y, float z)
+{
+	if (m_sparkEffectHandle != -1)
+	{
+		int handle = PlayEffekseer3DEffect(m_sparkEffectHandle);
+		if (handle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+		}
+	}
+}
+
