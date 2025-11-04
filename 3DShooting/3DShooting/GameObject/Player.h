@@ -316,7 +316,9 @@ private:
 	float m_shieldAnimDuration; // 盾のアニメーション時間
 
 	float m_shieldDurability;   // 盾の耐久値
+	float m_shieldBarAnim;      // 盾のUIアニメーション用の耐久値
 	float m_maxShieldDurability; // 盾の最大耐久値
+	float m_shieldRegenRate;     // 盾の回復速度
 	bool  m_isShieldBroken;     // 盾が壊れているか
 
 	int   m_warningFontHandle;  // 警告用フォントハンドル

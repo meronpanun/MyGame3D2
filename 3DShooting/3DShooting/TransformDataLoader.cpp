@@ -6,7 +6,7 @@
 namespace
 {
 	// 名前、位置、回転、スケール、攻撃力、体力、追跡速度、タックルクールタイム、タックル速度、タックルダメージの要素数
-	constexpr int kElementNum = 22; 
+	constexpr int kElementNum = 24; 
 
 	// Unityの座標系からDxLibの座標系への変換係数
 	constexpr float kUnityToDxPos = 100.0f; 
@@ -299,6 +299,32 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 				catch (const std::exception&) 
 				{
 					data.tackleDamage = 0.0f;
+				}
+				break;
+			case 22: // MaxShieldDurability
+				try
+				{
+					if (!element.empty())
+					{
+						data.maxShieldDurability = std::stof(element);
+					}
+				}
+				catch (const std::exception&)
+				{
+					data.maxShieldDurability = 0.0f;
+				}
+				break;
+			case 23: // ShieldRegenRate
+				try
+				{
+					if (!element.empty())
+					{
+						data.shieldRegenRate = std::stof(element);
+					}
+				}
+				catch (const std::exception&)
+				{
+					data.shieldRegenRate = 0.0f;
 				}
 				break;
 			default:

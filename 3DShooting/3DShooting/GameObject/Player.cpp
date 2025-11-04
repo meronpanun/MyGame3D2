@@ -17,7 +17,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
-#include "PlayerConfig.h"
+
 
 namespace
 {
@@ -253,8 +253,9 @@ Player::Player() :
 	m_guardEffectHandle(-1),
 	m_guardEffectTimer(0),
 	m_ignoreGuardInput(false),
-	m_shieldDurability(PlayerConfig::MAX_SHIELD_DURABILITY),
-	m_maxShieldDurability(PlayerConfig::MAX_SHIELD_DURABILITY),
+	m_shieldDurability(0.0f),
+	m_shieldBarAnim(0.0f),
+	m_maxShieldDurability(0.0f),
 	m_isShieldBroken(false)
 {
 	// プレイヤーモデルの読み込み
@@ -369,8 +370,10 @@ void Player::Init()
 			m_runSpeed			= data.runSpeed;
 			m_initialAmmo		= data.initialAmmo;
 			m_bulletPower		= data.bulletPower;
-			m_shieldDurability = PlayerConfig::MAX_SHIELD_DURABILITY; // 最大耐久値に設定
-			m_maxShieldDurability = PlayerConfig::MAX_SHIELD_DURABILITY; // 最大耐久値を設定
+			m_shieldDurability = data.maxShieldDurability; // 最大耐久値に設定
+			m_shieldBarAnim = data.maxShieldDurability; // UIの初期値も最大に
+			m_maxShieldDurability = data.maxShieldDurability; // 最大耐久値を設定
+			m_shieldRegenRate = data.shieldRegenRate; // 回復速度を設定
 			m_isShieldBroken = false; // 盾は壊れていない
 			MV1SetScale(m_modelHandle, data.scale);
 			MV1SetRotationXYZ(m_modelHandle, data.rot);
@@ -520,7 +523,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_ignoreGuardInput = false;
 	}
-	if (!m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput)
+	if (!m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput && !m_isShieldBroken)
 	{
 		m_isGuarding = true;
 		m_isLockingOn = true;
@@ -567,7 +570,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_isLockingOn = false;
 		m_lockedOnEnemy = nullptr;
 		// ガード解除時に盾の耐久値を回復させる
-		m_shieldDurability += PlayerConfig::SHIELD_REGEN_RATE * kDeltaTime;
+		m_shieldDurability += m_shieldRegenRate * kDeltaTime;
 		if (m_shieldDurability > m_maxShieldDurability)
 		{
 			m_shieldDurability = m_maxShieldDurability;
@@ -888,6 +891,27 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
+	// 盾バーアニメーション
+	if (m_shieldBarAnim != m_shieldDurability)
+	{
+		if (m_shieldBarAnim > m_shieldDurability)
+		{
+			m_shieldBarAnim -= kHpBarAnimSpeed;
+			if (m_shieldBarAnim < m_shieldDurability)
+			{
+				m_shieldBarAnim = m_shieldDurability;
+			}
+		}
+		else
+		{
+			m_shieldBarAnim += kHpBarAnimSpeed;
+			if (m_shieldBarAnim > m_shieldDurability)
+			{
+				m_shieldBarAnim = m_shieldDurability;
+			}
+		}
+	}
+
 	// 弾薬低下の警告表示処理
 	if (m_ammo == 0 && !m_isInfiniteAmmo)
 	{
@@ -1092,7 +1116,7 @@ void Player::Draw()
 		}
 		
 		// 盾耐久値の描画
-		float shieldDurabilityRate = m_shieldDurability / m_maxShieldDurability;
+		float shieldDurabilityRate = m_shieldBarAnim / m_maxShieldDurability;
 		if (shieldDurabilityRate < 0.0f) shieldDurabilityRate = 0.0f;
 		if (shieldDurabilityRate > 1.0f) shieldDurabilityRate = 1.0f;
 
@@ -1422,13 +1446,21 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 	if (m_isGuarding && !m_isShieldBroken) // ガード中で盾が壊れていなければ
 	{
 		m_shieldDurability -= damage; // 盾の耐久値を減らす
+
+		// カメラシェイクを発生
+		if (m_pCamera)
+		{
+			m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+		}
+
 		if (m_shieldDurability <= 0.0f)
 		{
 			m_shieldDurability = 0.0f;
 			m_isShieldBroken = true; // 盾が壊れた
 			// 盾が完全に壊れたら、残りのダメージをプレイヤーが受ける
 			float remainingDamage = -m_shieldDurability; // 正の値に変換
-			if (remainingDamage > 0) {
+			if (remainingDamage > 0)
+			{
 				m_health -= remainingDamage; // 残ったダメージをHPに適用
 			    // HPバーアニメーション用タイマーをリセット
 	            m_healthBarAnimTimer = 0.0f;
