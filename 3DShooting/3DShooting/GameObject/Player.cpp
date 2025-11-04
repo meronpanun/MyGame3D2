@@ -1413,6 +1413,12 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		return;
 	}
 
+	// 方向インジケーターに攻撃者の位置を通知
+	if (m_pDirectionIndicator && (attackerPos.x != 0.0f || attackerPos.z != 0.0f))
+	{
+		m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
+	}
+
 	if (m_isGuarding && !m_isShieldBroken) // ガード中で盾が壊れていなければ
 	{
 		m_shieldDurability -= damage; // 盾の耐久値を減らす
@@ -1447,6 +1453,11 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		return; // 盾で防いだ場合はここで処理を終了
 	}
 
+	// 方向インジケーターに攻撃者の位置を通知
+	if (m_pDirectionIndicator && (attackerPos.x != 0.0f || attackerPos.z != 0.0f))
+	{
+		m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
+	}
 
 	m_health -= damage; // ダメージを適用
 	if (m_health < 0.0f)
@@ -1464,12 +1475,6 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 	if (m_pCamera)
 	{
 		m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
-	}
-
-	// 方向インジケーターに攻撃者の位置を通知
-	if (m_pDirectionIndicator && (attackerPos.x != 0.0f || attackerPos.z != 0.0f))
-	{
-		m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
 	}
 }
 
