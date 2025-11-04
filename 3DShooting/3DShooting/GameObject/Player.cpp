@@ -95,6 +95,13 @@ namespace
     constexpr float kGuardEffectOffsetX    = 10.0f;  // ガードエフェクトのX軸オフセット
 	constexpr int   kGuardEffectDuration   = 60;     // ガードエフェクトの持続フレーム数
 
+	// 盾アニメーション関連
+	constexpr float kShieldAnimRecoverStartYOffset = -200.0f; // 回復アニメーション開始時のYオフセット
+	constexpr float kShieldAnimBreakEndYOffset     = -200.0f; // 破壊アニメーション終了時のYオフセット
+	constexpr float kShieldAnimBreakRotY           = DX_PI_F * 1.25f; // 破壊アニメーション時のY軸回転
+	constexpr float kShieldAnimBreakRotX           = DX_PI_F * 0.25f; // 破壊アニメーション時のX軸回転
+	constexpr float kShieldAnimEasingPower         = 3.0f;    // アニメーションのイージングの強さ
+
 	// 盾UI関連
 	constexpr int   kShieldImageWidth         = 64;
 	constexpr int   kShieldImageHeight        = 96; 
@@ -134,6 +141,8 @@ namespace
 	constexpr int   kTakeDamageShakeDuration = 15;   // 攻撃を受けた時の揺れの持続時間
 	constexpr float kShootShakePower		 = 6.0f; // 撃った時の揺れの強さ
 	constexpr int   kShootShakeDuration      = 8;    // 撃った時の揺れの持続時間
+	constexpr float kShieldBreakGunShakePower = 10.0f; // 盾破壊時の銃の揺れの強さ
+	constexpr float kShieldBreakGunShakeDuration = 30.0f; // 盾破壊時の銃の揺れの持続時間
 
 	// 銃UI関連
 	constexpr int   kGunImageWidth   = 200;
@@ -222,8 +231,9 @@ Player::Player() :
 	m_tackleSpeed(0.0f),
 	m_tackleDamage(0.0f),
 	m_isShieldAnimating(false),
+	m_isShieldRecovering(false),
 	m_shieldAnimTimer(0.0f),
-	m_shieldAnimDuration(0.1f),
+	m_shieldAnimDuration(1.0f),
 	m_concentrationLineEffectHandle(-1),
 	m_noAmmoImageHandle(-1),
 	m_gunImageHandle(-1),
@@ -241,6 +251,10 @@ Player::Player() :
 	m_gunSwayRotOffset(VGet(0, 0, 0)),
 	m_shieldSwayOffset(VGet(0, 0, 0)),
 	m_shieldSwayRotOffset(VGet(0, 0, 0)),
+	// 銃のシェイク関連
+	m_gunShakeOffset(VGet(0, 0, 0)),
+	m_gunShakeTimer(0.0f),
+	m_gunShakePower(0.0f),
 	m_isDead(false),
 	m_deathTimer(0.0f),
 	m_pDirectionIndicator(nullptr),
@@ -420,10 +434,22 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
         }
     }
 
-    // Swayの計算
-    float yawDelta = m_pCamera->GetYawDelta();
-
-    m_shieldSwayOffset.x -= yawDelta * kShieldSwayAmount;
+    	// Swayの計算
+        float yawDelta = m_pCamera->GetYawDelta();
+    
+        // 銃のシェイク処理
+        if (m_gunShakeTimer > 0.0f)
+        {
+            m_gunShakeTimer -= 1.0f;
+            float shake = sinf(m_gunShakeTimer) * m_gunShakePower;
+            m_gunShakeOffset.x = ((float)rand() / RAND_MAX - 0.5f) * shake;
+            m_gunShakeOffset.y = ((float)rand() / RAND_MAX - 0.5f) * shake;
+            if (m_gunShakeTimer <= 0.0f)
+            {
+                m_gunShakeOffset = VGet(0, 0, 0);
+            }
+        }
+        m_shieldSwayOffset.x -= yawDelta * kShieldSwayAmount;
     m_shieldSwayOffset.x *= kShieldSwayDamping;
 
     // 銃のSwayの計算
@@ -475,7 +501,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	modelPos.y += gunOffsetY;
 
 	// モデルの位置を設定
-	MV1SetPosition(m_modelHandle, VAdd(modelPos, m_gunSwayOffset));
+	MV1SetPosition(m_modelHandle, VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset));
 	
 	// モデルの回転を設定
 	MV1SetRotationXYZ(m_modelHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f), m_gunSwayRotOffset));
@@ -564,22 +590,39 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			}
 		}
 	}
-	else
-	{
-		m_isGuarding = false;
-		m_isLockingOn = false;
-		m_lockedOnEnemy = nullptr;
-		// ガード解除時に盾の耐久値を回復させる
-		m_shieldDurability += m_shieldRegenRate * kDeltaTime;
-		if (m_shieldDurability > m_maxShieldDurability)
+		else
 		{
-			m_shieldDurability = m_maxShieldDurability;
-			m_isShieldBroken = false; // 完全回復したら壊れていない状態に
+			m_isGuarding = false;
+			m_isLockingOn = false;
+			m_lockedOnEnemy = nullptr;
+	
+			// 盾が壊れていない場合のみ回復
+			if (!m_isShieldBroken)
+			{
+				m_shieldDurability += m_shieldRegenRate * kDeltaTime;
+				if (m_shieldDurability > m_maxShieldDurability)
+				{
+					m_shieldDurability = m_maxShieldDurability;
+				}
+			}
+			// 盾が壊れている場合は、回復しきったらアニメーションを開始
+			else
+			{
+				m_shieldDurability += m_shieldRegenRate * kDeltaTime;
+				if (m_shieldDurability >= m_maxShieldDurability)
+				{
+					m_shieldDurability = m_maxShieldDurability;
+					m_isShieldBroken = false; // 壊れていない状態に
+	
+					// 回復アニメーション開始
+					m_isShieldAnimating = true;
+					m_isShieldRecovering = true;
+					m_shieldAnimTimer = 0.0f;
+				}
+			}
 		}
-	}
-
 	// ガード開始時にエフェクトを再生
-	if (m_isGuarding && !m_wasGuarding)
+	if (m_isGuarding && !m_wasGuarding && !m_isShieldAnimating)
 	{
 		if (m_pEffect)
 		{
@@ -1304,11 +1347,47 @@ void Player::Draw()
 			currentPos.y += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
 		}
 
+		// 盾のアニメーション処理
+		if (m_isShieldAnimating)
+		{
+			float animProgress = m_shieldAnimTimer / m_shieldAnimDuration;
+
+			// イージング適用
+			float easedProgress;
+
+			// 回復アニメーション
+			if (m_isShieldRecovering)
+			{
+				easedProgress = 1.0f - powf(1.0f - animProgress, kShieldAnimEasingPower); // Ease-out
+				// 下から元の位置へ
+				float startY = kShieldAnimRecoverStartYOffset;
+				float endY = currentPos.y;
+				currentPos.y = startY + (endY - startY) * easedProgress;
+			}
+			// 破壊アニメーション
+			else
+			{
+				easedProgress = powf(animProgress, kShieldAnimEasingPower); // Ease-in
+				// 左斜め上を向いて下に消える
+				float targetRotY = kShieldAnimBreakRotY; // 左斜め上
+				float targetRotX = kShieldAnimBreakRotX;
+				currentRot.y = currentRot.y + (targetRotY - currentRot.y) * easedProgress;
+				currentRot.x = currentRot.x + (targetRotX - currentRot.x) * easedProgress;
+
+				float endY = kShieldAnimBreakEndYOffset;
+				currentPos.y = currentPos.y + (endY - currentPos.y) * easedProgress;
+			}
+		}
+
 		// モデルの位置と回転を直接設定
 		MV1SetPosition(m_shieldModelHandle, currentPos);
 		MV1SetRotationXYZ(m_shieldModelHandle, currentRot);
 		MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
-		MV1DrawModel(m_shieldModelHandle);
+		// 盾が壊れていない、またはアニメーション中のみ描画
+		if (!m_isShieldBroken || m_isShieldAnimating)
+		{
+			MV1DrawModel(m_shieldModelHandle);
+		}
 
 		// メインカメラに戻す
 		m_pCamera->SetCameraToDxLib();
@@ -1453,11 +1532,24 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 			m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
 		}
 
-		if (m_shieldDurability <= 0.0f)
-		{
-			m_shieldDurability = 0.0f;
-			m_isShieldBroken = true; // 盾が壊れた
-			// 盾が完全に壊れたら、残りのダメージをプレイヤーが受ける
+					if (m_shieldDurability <= 0.0f)
+					{
+						m_shieldDurability = 0.0f;
+						m_isShieldBroken = true; // 盾が壊れた
+		
+										// 盾破壊アニメーション開始
+		
+										m_isShieldAnimating = true;
+		
+										m_isShieldRecovering = false;
+		
+										m_shieldAnimTimer = 0.0f;
+		
+						
+		
+										// 銃を揺らす
+		
+										ShakeGun(kShieldBreakGunShakePower, kShieldBreakGunShakeDuration);			// 盾が完全に壊れたら、残りのダメージをプレイヤーが受ける
 			float remainingDamage = -m_shieldDurability; // 正の値に変換
 			if (remainingDamage > 0)
 			{
@@ -1670,4 +1762,10 @@ void Player::AddAmmo(int value)
 void Player::SetAttackRestrictions(AttackType allowedAttack)
 {
     m_allowedAttackType = allowedAttack;
+}
+
+void Player::ShakeGun(float power, float duration)
+{
+	m_gunShakePower = power;
+	m_gunShakeTimer = duration;
 }

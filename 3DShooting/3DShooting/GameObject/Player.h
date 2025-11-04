@@ -195,6 +195,13 @@ public:
 	/// </summary>
 	/// <param name="directionIndicator">方向インジケーターのポインタ</param>
 	void SetDirectionIndicator(DirectionIndicator* directionIndicator) { m_pDirectionIndicator = directionIndicator; }
+
+	/// <summary>
+	/// 銃を揺らす
+	/// </summary>
+	/// <param name="power">揺れの強さ</param>
+	/// <param name="duration">揺れの持続時間</param>
+	void ShakeGun(float power, float duration);
 	    
 private:
    	AttackType m_allowedAttackType = AttackType::None;
@@ -312,6 +319,7 @@ private:
 
 	// 盾のアニメーション関連
 	bool  m_isShieldAnimating;  // 盾がアニメーション中か
+	bool  m_isShieldRecovering; // 盾が回復中か
 	float m_shieldAnimTimer;    // 盾のアニメーションタイマー
 	float m_shieldAnimDuration; // 盾のアニメーション時間
 
@@ -331,6 +339,11 @@ private:
 	VECTOR m_gunSwayRotOffset;
 	VECTOR m_shieldSwayOffset;
 	VECTOR m_shieldSwayRotOffset;
+
+	// 銃のシェイク関連
+	VECTOR m_gunShakeOffset;      // 銃のシェイクオフセット
+	float  m_gunShakeTimer;       // 銃のシェイクタイマー
+	float  m_gunShakePower;       // 銃のシェイクの強さ
 
 	// 死亡関連
 	bool m_isDead;      // 死亡フラグ
