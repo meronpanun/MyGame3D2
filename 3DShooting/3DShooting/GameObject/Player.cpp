@@ -559,6 +559,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		m_lockedOnEnemy = nullptr; // ロックオンターゲット検索前にリセット
 
 		constexpr float kLockOnAngleCos = 0.966f; // cos(15度)
+		constexpr float kLockOnMaxScreenOffsetY = 100.0f; // 画面中央からの垂直方向の最大オフセット
 		float minScreenDistSq = -1.0f;
 
 		VECTOR camPos = m_pCamera->GetPos();
@@ -577,12 +578,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			{
 				VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
 
-				// 画面内にいるか
+				// 画面内にいるか、かつ垂直方向の範囲内か
 				if (screenPos.z > 0)
 				{
 					float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
 					float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
-					float distSq = dx * dx + dy * dy;
+
+					// 垂直方向の範囲チェック
+					if (fabs(dy) < kLockOnMaxScreenOffsetY)
+					{
+						float distSq = dx * dx + dy * dy;
 
 					if (minScreenDistSq < 0 || distSq < minScreenDistSq)
 					{
@@ -590,6 +595,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 						m_lockedOnEnemy = enemy;
 					}
 				}
+			}
 			}
 		}
 	}
@@ -685,7 +691,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		if (m_sparkEffectHandle != -1)
 		{
 			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
-			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 50.0f)); // 盾の前方あたり
+			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 80.0f)); // 盾の前方あたり
 			SetPosPlayingEffekseer3DEffect(m_sparkEffectHandle, effectPos.x, effectPos.y, effectPos.z);
 		}
 	    
@@ -1561,7 +1567,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		if (m_pEffect)
 		{
 			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
-			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 50.0f)); // 盾の前方あたり
+			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 80.0f)); // 盾の前方あたり
 			m_sparkEffectHandle = m_pEffect->PlaySparkEffect(effectPos.x, effectPos.y, effectPos.z);
 			m_sparkEffectTimer = 30;
 		}
