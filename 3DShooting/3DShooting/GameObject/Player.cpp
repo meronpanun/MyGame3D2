@@ -266,6 +266,8 @@ Player::Player() :
 	m_guardAnimDuration(kGuardAnimDuration),
 	m_guardEffectHandle(-1),
 	m_guardEffectTimer(0),
+	m_sparkEffectHandle(-1),
+	m_sparkEffectTimer(0),
 	m_ignoreGuardInput(false),
 	m_shieldDurability(0.0f),
 	m_shieldBarAnim(0.0f),
@@ -434,22 +436,23 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
         }
     }
 
-    	// Swayの計算
-        float yawDelta = m_pCamera->GetYawDelta();
+	// Swayの計算
+	float yawDelta = m_pCamera->GetYawDelta();
     
-        // 銃のシェイク処理
-        if (m_gunShakeTimer > 0.0f)
-        {
-            m_gunShakeTimer -= 1.0f;
-            float shake = sinf(m_gunShakeTimer) * m_gunShakePower;
-            m_gunShakeOffset.x = ((float)rand() / RAND_MAX - 0.5f) * shake;
-            m_gunShakeOffset.y = ((float)rand() / RAND_MAX - 0.5f) * shake;
-            if (m_gunShakeTimer <= 0.0f)
-            {
-                m_gunShakeOffset = VGet(0, 0, 0);
-            }
-        }
-        m_shieldSwayOffset.x -= yawDelta * kShieldSwayAmount;
+	// 銃のシェイク処理
+	if (m_gunShakeTimer > 0.0f)
+	{
+		m_gunShakeTimer -= 1.0f;
+		float shake = sinf(m_gunShakeTimer) * m_gunShakePower;
+		m_gunShakeOffset.x = ((float)rand() / RAND_MAX - 0.5f) * shake;
+		m_gunShakeOffset.y = ((float)rand() / RAND_MAX - 0.5f) * shake;
+		if (m_gunShakeTimer <= 0.0f)
+		{
+			m_gunShakeOffset = VGet(0, 0, 0);
+		}
+	}
+    
+	m_shieldSwayOffset.x -= yawDelta * kShieldSwayAmount;
     m_shieldSwayOffset.x *= kShieldSwayDamping;
 
     // 銃のSwayの計算
@@ -590,37 +593,37 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			}
 		}
 	}
-		else
+	else
+	{
+		m_isGuarding = false;
+		m_isLockingOn = false;
+		m_lockedOnEnemy = nullptr;
+	
+		// 盾が壊れていない場合のみ回復
+		if (!m_isShieldBroken)
 		{
-			m_isGuarding = false;
-			m_isLockingOn = false;
-			m_lockedOnEnemy = nullptr;
-	
-			// 盾が壊れていない場合のみ回復
-			if (!m_isShieldBroken)
+			m_shieldDurability += m_shieldRegenRate * kDeltaTime;
+			if (m_shieldDurability > m_maxShieldDurability)
 			{
-				m_shieldDurability += m_shieldRegenRate * kDeltaTime;
-				if (m_shieldDurability > m_maxShieldDurability)
-				{
-					m_shieldDurability = m_maxShieldDurability;
-				}
-			}
-			// 盾が壊れている場合は、回復しきったらアニメーションを開始
-			else
-			{
-				m_shieldDurability += m_shieldRegenRate * kDeltaTime;
-				if (m_shieldDurability >= m_maxShieldDurability)
-				{
-					m_shieldDurability = m_maxShieldDurability;
-					m_isShieldBroken = false; // 壊れていない状態に
-	
-					// 回復アニメーション開始
-					m_isShieldAnimating = true;
-					m_isShieldRecovering = true;
-					m_shieldAnimTimer = 0.0f;
-				}
+				m_shieldDurability = m_maxShieldDurability;
 			}
 		}
+		// 盾が壊れている場合は、回復しきったらアニメーションを開始
+		else
+		{
+			m_shieldDurability += m_shieldRegenRate * kDeltaTime;
+			if (m_shieldDurability >= m_maxShieldDurability)
+			{
+				m_shieldDurability = m_maxShieldDurability;
+				m_isShieldBroken = false; // 壊れていない状態に
+	
+				// 回復アニメーション開始
+				m_isShieldAnimating = true;
+				m_isShieldRecovering = true;
+				m_shieldAnimTimer = 0.0f;
+			}
+		}
+	}
 	// ガード開始時にエフェクトを再生
 	if (m_isGuarding && !m_wasGuarding && !m_isShieldAnimating)
 	{
@@ -664,16 +667,38 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	   	}
 	    
 	   	// タイマーが切れたらエフェクトを停止
-	    if (m_guardEffectTimer <= 0)
-	    {
-	    	if (m_guardEffectHandle != -1)
-	    	{
-	    		StopEffekseer3DEffect(m_guardEffectHandle);
-	    		m_guardEffectHandle = -1;
-	    	}
-	    }
+		if (m_guardEffectTimer <= 0)
+		{
+			if (m_guardEffectHandle != -1)
+			{
+				StopEffekseer3DEffect(m_guardEffectHandle);
+				m_guardEffectHandle = -1;
+			}
+		}
 	}
 	    
+	// スパークエフェクトのタイマー処理と追従
+	if (m_sparkEffectTimer > 0)
+	{
+		m_sparkEffectTimer--; // タイマーをデクリメント
+	    
+		if (m_sparkEffectHandle != -1)
+		{
+			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
+			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 50.0f)); // 盾の前方あたり
+			SetPosPlayingEffekseer3DEffect(m_sparkEffectHandle, effectPos.x, effectPos.y, effectPos.z);
+		}
+	    
+		// タイマーが切れたらエフェクトを停止
+		if (m_sparkEffectTimer <= 0)
+		{
+			if (m_sparkEffectHandle != -1)
+			{
+				StopEffekseer3DEffect(m_sparkEffectHandle);
+				m_sparkEffectHandle = -1;
+			}
+		}
+	}	    
     // ロックオン中に左クリックでタックル	
 	if (m_isLockingOn && m_lockedOnEnemy && Mouse::IsTriggerLeft() && m_tackleCooldown <= 0)
 	{
@@ -1537,27 +1562,23 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		{
 			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
 			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 50.0f)); // 盾の前方あたり
-			m_pEffect->PlaySparkEffect(effectPos.x, effectPos.y, effectPos.z);
+			m_sparkEffectHandle = m_pEffect->PlaySparkEffect(effectPos.x, effectPos.y, effectPos.z);
+			m_sparkEffectTimer = 30;
 		}
 
-					if (m_shieldDurability <= 0.0f)
-					{
-						m_shieldDurability = 0.0f;
-						m_isShieldBroken = true; // 盾が壊れた
+		if (m_shieldDurability <= 0.0f)
+		{
+			m_shieldDurability = 0.0f;
+			m_isShieldBroken = true; // 盾が壊れた
 		
-										// 盾破壊アニメーション開始
-		
-										m_isShieldAnimating = true;
-		
-										m_isShieldRecovering = false;
-		
-										m_shieldAnimTimer = 0.0f;
-		
+			// 盾破壊アニメーション開始
+			m_isShieldAnimating = true;
+			m_isShieldRecovering = false;
+			m_shieldAnimTimer = 0.0f;
+
 						
-		
-										// 銃を揺らす
-		
-										ShakeGun(kShieldBreakGunShakePower, kShieldBreakGunShakeDuration);			// 盾が完全に壊れたら、残りのダメージをプレイヤーが受ける
+			// 銃を揺らす
+			ShakeGun(kShieldBreakGunShakePower, kShieldBreakGunShakeDuration);
 			float remainingDamage = -m_shieldDurability; // 正の値に変換
 			if (remainingDamage > 0)
 			{

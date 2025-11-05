@@ -42,7 +42,7 @@ public:
 	/// <param name="x">X座標</param>
 	/// <param name="y">Y座標</param>
 	/// <param name="z">Z座標</param>
-	void PlaySparkEffect(float x, float y, float z);
+	int PlaySparkEffect(float x, float y, float z);
 
 private:
 	int m_muzzleFlashEffectHandles[5]; // マズルフラッシュのエフェクトハンドル配列

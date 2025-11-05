@@ -363,7 +363,9 @@ private:
 	bool  m_wasGuarding;        // 前フレームでガードしていたか
 	float m_guardAnimTimer;     // ガードアニメーションのタイマー
 	float m_guardAnimDuration;  // ガードアニメーションの時間
-	int   m_guardEffectHandle;    // ガードエフェクトのハンドル
-	int   m_guardEffectTimer;     // ガードエフェクトのタイマー
+	int m_guardEffectHandle;    // ガードエフェクトのハンドル
+	int m_guardEffectTimer;     // ガードエフェクトのタイマー
+	int m_sparkEffectHandle;    // スパークエフェクトのハンドル
+	int m_sparkEffectTimer;     // スパークエフェクトのタイマー
 	float m_guardEffectScale;   // ガードエフェクトのスケール
 };

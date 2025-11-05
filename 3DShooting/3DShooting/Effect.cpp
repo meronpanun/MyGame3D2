@@ -14,6 +14,7 @@ namespace
 	constexpr float kLossOfBloodEffectScale       = 2.5f;
 	constexpr float kConcentrationLineEffectScale = 1.0f;
 	constexpr float kGuardEffectScale             = 10.5f;
+	constexpr float kSparkEffectScale             = 20.0f;
 }
 
 Effect::Effect():
@@ -47,7 +48,7 @@ Effect::Effect():
 	assert(m_guardEffectHandle != -1);
 
 	// スパークエフェクトハンドルの読み込み
-	m_sparkEffectHandle = LoadEffekseerEffect("data/Effekseer/Spark2.efkefc", 20.0f);
+	m_sparkEffectHandle = LoadEffekseerEffect("data/Effekseer/Spark.efkefc", kSparkEffectScale);
 	assert(m_sparkEffectHandle != -1);
 }
 
@@ -143,7 +144,7 @@ int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, f
 }
 
 // スパークエフェクトを再生する
-void Effect::PlaySparkEffect(float x, float y, float z)
+int Effect::PlaySparkEffect(float x, float y, float z)
 {
 	if (m_sparkEffectHandle != -1)
 	{
@@ -152,6 +153,8 @@ void Effect::PlaySparkEffect(float x, float y, float z)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
 		}
+		return handle;
 	}
+	return -1;
 }
 
