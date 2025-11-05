@@ -31,7 +31,7 @@ namespace
     constexpr int   kAttackCooldownMax = 160;     // 攻撃クールダウン時間
     constexpr float kAttackPower       = 30.0f;   // 攻撃力
     constexpr float kAttackRangeRadius = 1000.0f; // 攻撃範囲の半径
-    constexpr float kAcidBulletSpeed   = 10.0f;   // 酸弾の速度
+    constexpr float kAcidBulletSpeed   = 5.0f;    // 酸弾の速度
     constexpr float kAcidBulletRadius  = 10.0f;   // 酸弾の半径
     constexpr float kAcidBulletGravity = 0.4f;    // 酸弾の重力加速度
     constexpr int   kAttackEndDelay    = 30;      // 攻撃後の硬直時間
@@ -264,6 +264,48 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             }
             m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
         }
+        // 死亡アニメーション中は、敵のモデル更新や行動ロジックはスキップ
+        // ただし、生成済みの酸弾は引き続き処理する
+    }
+
+    // AcidBallの更新とプレイヤーへの当たり判定
+    // 敵の生死に関わらず、生成された酸弾は最後まで処理を継続する
+    for (auto& ball : m_acidBalls)
+    {
+        if (!ball.active) continue;
+        ball.Update();
+
+		if (ball.effectHandle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(ball.effectHandle, ball.pos.x, ball.pos.y, ball.pos.z);
+		}
+
+        std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
+        SphereCollider acidCol(ball.pos, ball.radius);
+        if (acidCol.IsIntersects(playerCol.get()))
+        {
+            const_cast<Player&>(player).TakeDamage(ball.damage, m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
+            ball.active = false;
+			if (ball.effectHandle != -1)
+			{
+				StopEffekseer3DEffect(ball.effectHandle);
+				ball.effectHandle = -1;
+			}
+        }
+
+		if (ball.pos.y < 0.0f) // 地面で消滅
+		{
+			ball.active = false;
+			if (ball.effectHandle != -1)
+			{
+				StopEffekseer3DEffect(ball.effectHandle);
+				ball.effectHandle = -1;
+			}
+		}
+    }
+
+    if (m_hp <= 0.0f)
+    {
         return;
     }
 
@@ -534,7 +576,7 @@ void EnemyAcid::Draw()
     DrawCollisionDebug();
 
     // 体力デバッグ表示
-    DebugUtil::DrawFormat(20, 100, "Acid HP: %.1f", m_hp);
+	DebugUtil::DrawFormat(20, 100, 0xffffff, "EnemyAcid HP: %.1f", m_hp);
 #endif
 }
 
