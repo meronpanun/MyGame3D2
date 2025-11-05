@@ -356,6 +356,7 @@ private:
 	bool m_isLockingOn;         // ロックオン中か
 	EnemyBase* m_lockedOnEnemy; // ロックオンした敵
 	int m_lockOnUIHandle;       // ロックオンUIのハンドル
+	bool m_isTargetAvailable;   // ロックオン可能な敵がいるか
 
 	// ガード関連
 	bool  m_ignoreGuardInput;   // ガード入力を無視するか

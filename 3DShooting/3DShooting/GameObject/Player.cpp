@@ -259,6 +259,7 @@ Player::Player() :
 	m_pDirectionIndicator(nullptr),
 	m_isLockingOn(false),
 	m_lockedOnEnemy(nullptr),
+	m_isTargetAvailable(false),
 	m_isGuarding(false),
 	m_wasGuarding(false),
 	m_guardAnimTimer(0.0f),
@@ -551,15 +552,11 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 		m_ignoreGuardInput = false;
 	}
-	if (!m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput && !m_isShieldBroken)
+	// ロックオン可能な敵がいるかどうかの判定
+	m_isTargetAvailable = false;
 	{
-		m_isGuarding = true;
-		m_isLockingOn = true;
-		m_lockedOnEnemy = nullptr; // ロックオンターゲット検索前にリセット
-
 		constexpr float kLockOnAngleCos = 0.966f; // cos(15度)
 		constexpr float kLockOnMaxScreenOffsetY = 100.0f; // 画面中央からの垂直方向の最大オフセット
-		float minScreenDistSq = -1.0f;
 
 		VECTOR camPos = m_pCamera->GetPos();
 		VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
@@ -586,19 +583,73 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 					// 垂直方向の範囲チェック
 					if (fabs(dy) < kLockOnMaxScreenOffsetY)
 					{
-						float distSq = dx * dx + dy * dy;
+						m_isTargetAvailable = true;
+						break; // 1体でも見つかればOK
+					}
+				}
+			}
+		}
+	}
 
-						if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+	// 右クリック長押しでガード	
+	if (!m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput && !m_isShieldBroken)
+	{
+		m_isGuarding = true;
+
+		// タックルクールダウン中でない場合のみロックオンを許可
+		if (m_tackleCooldown <= 0)
+		{
+			m_isLockingOn = true;
+			m_lockedOnEnemy = nullptr; // ロックオンターゲット検索前にリセット
+
+			constexpr float kLockOnAngleCos = 0.966f; // cos(15度)
+			constexpr float kLockOnMaxScreenOffsetY = 100.0f; // 画面中央からの垂直方向の最大オフセット
+			float minScreenDistSq = -1.0f;
+
+			VECTOR camPos = m_pCamera->GetPos();
+			VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+
+			for (EnemyBase* enemy : enemyList)
+			{
+				if (!enemy || !enemy->IsAlive()) continue;
+
+				VECTOR enemyPos = enemy->GetPos();
+				enemyPos.y += 70.0f; // 敵の胴体あたりをターゲットにするためのオフセット
+				VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
+
+				// プレイヤーの前方一定角度内にいるか
+				if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
+				{
+					VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+
+					// 画面内にいるか、かつ垂直方向の範囲内か
+					if (screenPos.z > 0)
+					{
+						float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
+						float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
+
+						// 垂直方向の範囲チェック
+						if (fabs(dy) < kLockOnMaxScreenOffsetY)
 						{
-							minScreenDistSq = distSq;
-							m_lockedOnEnemy = enemy;
+							float distSq = dx * dx + dy * dy;
+
+							if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+							{
+								minScreenDistSq = distSq;
+								m_lockedOnEnemy = enemy;
+							}
+				
 						}
-			
+
 					}
 
 				}
-
 			}
+		}
+		else
+		{
+			m_isLockingOn = false;
+			m_lockedOnEnemy = nullptr;
 		}
 	}
 	else
@@ -1071,7 +1122,7 @@ void Player::Draw()
 	MV1DrawModel(m_modelHandle); 
 
 	// ガード中にターゲットがいない場合にテキストを表示
-	if (m_isGuarding && !m_lockedOnEnemy)
+	if (m_isGuarding && !m_lockedOnEnemy && !m_isTargetAvailable)
 	{
 		const char* text = "ターゲットなし";
 		int screenW, screenH;
