@@ -1,12 +1,12 @@
 ﻿#pragma once
 #include "EnemyBase.h"
-#include <vector>
-#include <string>
-#include <functional>
-#include <memory>
 #include "AnimationManager.h" 
 #include "SphereCollider.h"   
 #include "CapsuleCollider.h"  
+#include <string>
+#include <vector>
+#include <functional>
+#include <memory>
 
 
 class Player;
@@ -92,6 +92,7 @@ public:
         bool active = false;
         float radius = 12.0f;
         float damage = 0.0f;
+		int effectHandle = -1;
 
         void Update() 
         {
@@ -121,7 +122,8 @@ public:
     /// </summary>
 	/// <param name="bullets">弾のリスト</param>
 	/// <param name="player">プレイヤーオブジェクト</param>
-    void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player);
+	/// <param name="pEffect">エフェクトオブジェクト</param>
+    void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect);
 
 private:
     VECTOR m_headPosOffset;              // ヘッドショット判定用オフセット座標

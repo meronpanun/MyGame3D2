@@ -50,6 +50,10 @@ Effect::Effect():
 	// スパークエフェクトハンドルの読み込み
 	m_sparkEffectHandle = LoadEffekseerEffect("data/Effekseer/Spark.efkefc", kSparkEffectScale);
 	assert(m_sparkEffectHandle != -1);
+
+	// 酸エフェクトハンドルの読み込み
+	m_acidEffectHandle = LoadEffekseerEffect("data/Effekseer/AcidParry.efkefc", 15.0f);
+	assert(m_acidEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -63,6 +67,7 @@ Effect::~Effect()
 	DeleteEffekseerEffect(m_concentrationLineEffectHandle);
 	DeleteEffekseerEffect(m_guardEffectHandle);
 	DeleteEffekseerEffect(m_sparkEffectHandle);
+	DeleteEffekseerEffect(m_acidEffectHandle);
 }
 
 void Effect::Init()
@@ -149,6 +154,21 @@ int Effect::PlaySparkEffect(float x, float y, float z)
 	if (m_sparkEffectHandle != -1)
 	{
 		int handle = PlayEffekseer3DEffect(m_sparkEffectHandle);
+		if (handle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+		}
+		return handle;
+	}
+	return -1;
+}
+
+// 酸エフェクトを再生する
+int Effect::PlayAcidEffect(float x, float y, float z)
+{
+	if (m_acidEffectHandle != -1)
+	{
+		int handle = PlayEffekseer3DEffect(m_acidEffectHandle);
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);

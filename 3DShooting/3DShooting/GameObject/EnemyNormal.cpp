@@ -19,7 +19,6 @@ namespace
     constexpr char kWalkAnimName[]   = "WALK"; // 歩行アニメーション
     constexpr char kDeadAnimName[]   = "DEAD"; // 死亡アニメーション
 
-    constexpr VECTOR kInitialPosition        = { 0.0f, -30.0f, 300.0f };
     constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセットに変更
 
     // カプセルコライダーのサイズを定義

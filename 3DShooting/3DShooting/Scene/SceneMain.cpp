@@ -608,6 +608,7 @@ SceneBase* SceneMain::Update()
     if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; } 
     m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
     ScoreManager::Instance().Update();
+    m_pEffect->Update();
     return this;
 }
 
@@ -650,6 +651,8 @@ void SceneMain::Draw()
     }
 
     m_pPlayer->Draw();
+
+    m_pEffect->Draw();
 
     if (!m_pPlayer->IsDead())
     {

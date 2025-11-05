@@ -6,6 +6,7 @@
 #include "CapsuleCollider.h" 
 #include "SceneMain.h"
 #include "TransformDataLoader.h"
+#include "Effect.h"
 #include <cassert>       
 #include <algorithm>     
 #include <cmath> 
@@ -19,7 +20,6 @@ namespace
     constexpr char kBackAnimName[]   = "Armature|BACK"; // 後退アニメーション
     constexpr char kDeadAnimName[]   = "Armature|DEAD"; // 死亡アニメーション
 
-    constexpr VECTOR kInitialPosition = { -50.0f, -30.0f, 300.0f };  // 初期位置
     constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
 
     // コライダーのサイズを定義
@@ -49,7 +49,7 @@ EnemyAcid::EnemyAcid() :
     m_onDropItem(nullptr),
     m_hasAttacked(false),
     m_attackEndDelayTimer(0),
-    m_acidBulletSpawnOffset({ 0.0f, 100.0f, 0.0f }),
+    m_acidBulletSpawnOffset({ 0.0f, 0.0f, 0.0f }),
 	m_backAnimCount(0),
 	m_isItemDropped(false),
 	m_chaseSpeed(0.0f)
@@ -73,6 +73,14 @@ EnemyAcid::~EnemyAcid()
 {
 	// モデルの解放
     MV1DeleteModel(m_modelHandle);
+
+	for (auto& ball : m_acidBalls)
+	{
+		if (ball.effectHandle != -1)
+		{
+			StopEffekseer3DEffect(ball.effectHandle);
+		}
+	}
 }
 
 void EnemyAcid::LoadModel() 
@@ -181,17 +189,16 @@ bool EnemyAcid::CanAttackPlayer(const Player& player)
 }
 
 // 酸を吐く攻撃を行う
-void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player)
+void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect)
 {
     // 発射位置
-    int mouthIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+    int mouthIndex = MV1SearchFrame(m_modelHandle, "mixamorig:JawDowm");
     VECTOR spawnPos = m_pos;
     if (mouthIndex != -1) 
     {
         spawnPos = MV1GetFramePosition(m_modelHandle, mouthIndex);
     }
     spawnPos = VAdd(spawnPos, m_acidBulletSpawnOffset);
-
     // プレイヤーの位置
     VECTOR target = player.GetPos();
 
@@ -209,6 +216,10 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     ball.dir = vel;
     ball.active = true;
     ball.damage = m_attackPower;
+	if (pEffect)
+	{
+		ball.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
+	}
     m_acidBalls.push_back(ball);
 }
 
@@ -376,7 +387,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kAttackAnimName);
         if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.3f)
         {
-            ShootAcidBullet(bullets, player);
+            ShootAcidBullet(bullets, player, pEffect);
             m_hasAttacked = true;
         }
         if (m_animTime >= totalAttackAnimTime)
@@ -453,13 +464,34 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     {
         if (!ball.active) continue;
         ball.Update();
+
+		if (ball.effectHandle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(ball.effectHandle, ball.pos.x, ball.pos.y, ball.pos.z);
+		}
+
         std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
         SphereCollider acidCol(ball.pos, ball.radius);
         if (acidCol.IsIntersects(playerCol.get()))
         {
             const_cast<Player&>(player).TakeDamage(ball.damage, m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
             ball.active = false;
+			if (ball.effectHandle != -1)
+			{
+				StopEffekseer3DEffect(ball.effectHandle);
+				ball.effectHandle = -1;
+			}
         }
+
+		if (ball.pos.y < 0.0f) // 地面で消滅
+		{
+			ball.active = false;
+			if (ball.effectHandle != -1)
+			{
+				StopEffekseer3DEffect(ball.effectHandle);
+				ball.effectHandle = -1;
+			}
+		}
     }
 
     // 攻撃クールダウンと攻撃後硬直の減算処理を追加
@@ -495,23 +527,14 @@ void EnemyAcid::Draw()
         // 死亡アニメーションが完全に終了したらモデルを描画しない
         return;
     }
-
-    // AcidBallの描画
-    for (const auto& ball : m_acidBalls) 
-    {
-        if (!ball.active) continue;
-        DrawSphere3D(ball.pos, ball.radius, 8, 0x00ff00, 0x008800, true);
-    }
-
     MV1DrawModel(m_modelHandle);
-
 
 #ifdef _DEBUG
     // デバッグ用の当たり判定描画
     DrawCollisionDebug();
 
     // 体力デバッグ表示
-    DebugUtil::DrawFormat(20, 100, 0x008800, "Acid HP: %.1f", m_hp);
+    DebugUtil::DrawFormat(20, 100, "Acid HP: %.1f", m_hp);
 #endif
 }
 
