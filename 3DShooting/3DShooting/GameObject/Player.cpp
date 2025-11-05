@@ -251,7 +251,6 @@ Player::Player() :
 	m_gunSwayRotOffset(VGet(0, 0, 0)),
 	m_shieldSwayOffset(VGet(0, 0, 0)),
 	m_shieldSwayRotOffset(VGet(0, 0, 0)),
-	// 銃のシェイク関連
 	m_gunShakeOffset(VGet(0, 0, 0)),
 	m_gunShakeTimer(0.0f),
 	m_gunShakePower(0.0f),
@@ -589,13 +588,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 					{
 						float distSq = dx * dx + dy * dy;
 
-					if (minScreenDistSq < 0 || distSq < minScreenDistSq)
-					{
-						minScreenDistSq = distSq;
-						m_lockedOnEnemy = enemy;
+						if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+						{
+							minScreenDistSq = distSq;
+							m_lockedOnEnemy = enemy;
+						}
+			
 					}
+
 				}
-			}
+
 			}
 		}
 	}
