@@ -458,7 +458,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
     // 銃のSwayの計算
     m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
     m_gunSwayOffset.x *= kGunSwayDamping;
-    m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f; // 回転の揺れも追加
+    m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f; 
     m_gunSwayRotOffset.y *= kGunSwayDamping;
 
     // 待機時の揺れ
@@ -500,7 +500,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	// ガードアニメーションの進行度を計算（イージング付き）
 	float guardAnimProgress = m_guardAnimTimer / m_guardAnimDuration;
-	float gunOffsetY = -200.0f * (1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f)); // イージング
+	float gunOffsetY = -200.0f * (1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f));
 	modelPos.y += gunOffsetY;
 
 	// モデルの位置を設定

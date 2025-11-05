@@ -97,7 +97,6 @@ public:
         void Update() 
         {
             if (!active) return;
-            dir.y -= 0.4f; // 重力
             pos = VAdd(pos, dir);
             if (pos.y < 0.0f) active = false; // 地面で消滅
         }
