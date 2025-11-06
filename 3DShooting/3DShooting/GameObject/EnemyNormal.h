@@ -77,7 +77,13 @@ public:
     /// <summary>
 	/// モデルの解放(共有)
 	/// </summary>
-	static void DeleteModel();private:
+	static void DeleteModel();
+
+	/// <summary>
+	/// ボディコライダーを取得する
+	/// </summary>
+	/// <returns>ボディコライダー</returns>
+	std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;private:
 
     /// <summary>
 	/// アニメーションを変更する

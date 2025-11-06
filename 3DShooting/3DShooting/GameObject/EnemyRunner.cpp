@@ -586,3 +586,8 @@ void EnemyRunner::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);
 }
+
+std::shared_ptr<CapsuleCollider> EnemyRunner::GetBodyCollider() const
+{
+	return m_pBodyCollider;
+}

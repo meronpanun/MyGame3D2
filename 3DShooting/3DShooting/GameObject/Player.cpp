@@ -14,6 +14,7 @@
 #include "CapsuleCollider.h"
 #include "TransformDataLoader.h"
 #include "DirectionIndicator.h"
+#include "ShellCasing.h"
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -183,6 +184,9 @@ namespace
 	constexpr unsigned int kColorHpBarDamage	   = 0xFFD700;
 	constexpr unsigned int kColorHpBarFill		   = 0xff4040;
 	constexpr unsigned int kColorHpBarBorder       = 0x000000;
+
+	// パリィ受付フレーム数
+	constexpr int kParryFrame = 1020;
 }
 
 Player::Player() :
@@ -272,7 +276,8 @@ Player::Player() :
 	m_shieldDurability(0.0f),
 	m_shieldBarAnim(0.0f),
 	m_maxShieldDurability(0.0f),
-	m_isShieldBroken(false)
+	m_isShieldBroken(false),
+	m_guardTimer(0)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -992,6 +997,15 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
+
+	if (m_isGuarding)
+	{
+		m_guardTimer++;
+	}
+	else
+	{
+		m_guardTimer = 0;
+	}
 
 	m_wasGuarding = m_isGuarding;
 
@@ -1856,4 +1870,9 @@ void Player::ShakeGun(float power, float duration)
 {
 	m_gunShakePower = power;
 	m_gunShakeTimer = duration;
+}
+
+bool Player::IsJustGuarded() const
+{
+	return m_isGuarding && (m_guardTimer > 0 && m_guardTimer <= kParryFrame);
 }

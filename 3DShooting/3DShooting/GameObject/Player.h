@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
 #include "AttackType.h"
-#include "ShellCasing.h"
+#include "Camera.h"
 #include <vector>
 #include <memory>
 
@@ -12,6 +12,7 @@ class EnemyBase;
 class EnemyNormal;
 class CapsuleCollider;
 class DirectionIndicator;
+class ShellCasing;
 
 /// <summary>
 /// プレイヤークラス
@@ -61,11 +62,11 @@ public:
 		int    tackleId = 0;       // タックルID
 	};
 
-	/// <summary>
-	/// カメラを取得する
-	/// </summary>
-	/// <returns>カメラのポインタ</returns>
-	std::shared_ptr<Camera> GetCamera() const { return m_pCamera; }
+	// カメラを取得する
+	const std::shared_ptr<Camera>& GetCamera() const { return m_pCamera; }
+
+    // 弾を撃つ
+    void Shoot(std::vector<Bullet>& bullets);
 
 	/// <summary>
 	/// プレイヤーがダメージを受ける
@@ -104,31 +105,23 @@ public:
 	/// <returns>タックル情報</returns>
 	TackleInfo GetTackleInfo() const;
 
-	/// <summary>
-	/// プレイヤーのカプセル当たり判定情報を取得
-	/// </summary>
-	/// <param name="capA">カプセルのA端点</param>
-	/// <param name="capB">カプセルのB端点</param>
-	/// <param name="radius">カプセルの半径</param>
+	// カプセル情報を取得
 	void GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const;
 
-	/// <summary>
-    /// プレイヤーの体力を取得する
-	/// </summary>
-	/// <returns>プレイヤーの体力</returns>
+	// パリィが成功したかどうか
+	bool IsJustGuarded() const;
+
+    // 体力を加算する
+    void AddHp(float value);
+
+    // プレイヤーがガード中かどうか
+    bool IsGuarding() const { return m_isGuarding; }
+
+	// 体力を取得する
 	float GetHealth() const { return m_health; }
 
-	/// <summary>
-	/// 最大体力を取得する
-	/// </summary>
-	/// <returns>最大体力</returns>
+	// 最大体力を取得する
 	float GetMaxHealth() const { return m_maxHealth; }
-
-	/// <summary>
-	/// 体力を回復する
-	/// </summary>
-	/// <param name="value">回復量</param>
-	void AddHp(float value);
 
 	/// <summary>
 	/// 弾薬回復用関数（上限なし）
@@ -209,11 +202,6 @@ private:
    	/// 死亡時の更新処理
    	/// </summary>
    	void DeathUpdate();
-	    
-   	/// <summary>
-   	/// 弾を発射する
-   	/// </summary>
-   	void Shoot(std::vector<Bullet>& bullets);
 
 	/// <summary>
 	/// 銃の位置を取得する
@@ -327,8 +315,12 @@ private:
 	float m_shieldBarAnim;      // 盾のUIアニメーション用の耐久値
 	float m_maxShieldDurability; // 盾の最大耐久値
 	float m_shieldRegenRate;     // 盾の回復速度
-	bool  m_isShieldBroken;     // 盾が壊れているか
+	bool m_isShieldBroken; // 盾が壊れているか
+	int m_guardTimer;      // ガードしてからのフレーム数
 
+
+
+private:
 	int   m_warningFontHandle;  // 警告用フォントハンドル
 	bool  m_isNoAmmoWarning;    // 弾薬切れ警告表示フラグ
 	float m_ammoTextFlashTimer; // 弾薬テキストのフラッシュタイマー

@@ -29,11 +29,8 @@ namespace
 
     // 攻撃関連（遠距離攻撃に特化）
     constexpr int   kAttackCooldownMax = 160;     // 攻撃クールダウン時間
-    constexpr float kAttackPower       = 30.0f;   // 攻撃力
     constexpr float kAttackRangeRadius = 1000.0f; // 攻撃範囲の半径
     constexpr float kAcidBulletSpeed   = 5.0f;    // 酸弾の速度
-    constexpr float kAcidBulletRadius  = 10.0f;   // 酸弾の半径
-    constexpr int   kAttackEndDelay    = 30;      // 攻撃後の硬直時間
 
     // 追跡関連（遠距離型なので、近づきすぎたら離れる）
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
@@ -95,7 +92,6 @@ void EnemyAcid::DeleteModel()
 
 void EnemyAcid::Init()
 {
-    m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
     m_attackCooldown = 0; // 最初は攻撃可能にしておく
 
@@ -203,18 +199,20 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
 
     // 直線的な攻撃処理
     VECTOR toTarget = VSub(target, spawnPos);
-    VECTOR vel = VScale(VNorm(toTarget), kAcidBulletSpeed);
-
+    
     AcidBall ball;
     ball.pos = spawnPos;
-    ball.dir = vel;
+    ball.dir = VNorm(toTarget);
+    ball.speed = kAcidBulletSpeed;
     ball.active = true;
-    ball.damage = m_attackPower;
-	if (pEffect)
-	{
-		ball.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
-	}
-    m_acidBalls.push_back(ball);
+    	ball.damage = m_attackPower;
+    	ball.owner = this;
+    	ball.isReflected = false;
+    	if (pEffect)
+    	{
+    		ball.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
+    	}
+        m_acidBalls.push_back(ball);
 }
 
 void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
@@ -262,40 +260,113 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         // ただし、生成済みの酸弾は引き続き処理する
     }
 
-    // AcidBallの更新とプレイヤーへの当たり判定
-    // 敵の生死に関わらず、生成された酸弾は最後まで処理を継続する
+    // AcidBallの更新と当たり判定
     for (auto& ball : m_acidBalls)
     {
         if (!ball.active) continue;
         ball.Update();
 
-		if (ball.effectHandle != -1)
-		{
-			SetPosPlayingEffekseer3DEffect(ball.effectHandle, ball.pos.x, ball.pos.y, ball.pos.z);
-		}
-
-        std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
-        SphereCollider acidCol(ball.pos, ball.radius);
-        if (acidCol.IsIntersects(playerCol.get()))
+        if (ball.effectHandle != -1)
         {
-            const_cast<Player&>(player).TakeDamage(ball.damage, m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
-            ball.active = false;
-			if (ball.effectHandle != -1)
-			{
-				StopEffekseer3DEffect(ball.effectHandle);
-				ball.effectHandle = -1;
-			}
+            SetPosPlayingEffekseer3DEffect(ball.effectHandle, ball.pos.x, ball.pos.y, ball.pos.z);
         }
 
-		if (ball.pos.y < 0.0f) // 地面で消滅
-		{
-			ball.active = false;
-			if (ball.effectHandle != -1)
-			{
-				StopEffekseer3DEffect(ball.effectHandle);
-				ball.effectHandle = -1;
-			}
-		}
+        // まだ反射されていない弾の処理
+        if (!ball.isReflected)
+        {
+            std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
+            SphereCollider acidCol(ball.pos, ball.radius);
+
+            // プレイヤーのコライダーと衝突しているか
+            if (acidCol.IsIntersects(playerCol.get()))
+            {
+                // プレイヤーがガード中か
+                if (player.IsGuarding())
+                {
+                    // パリィ成功か (ジャストガードか)
+                    if (player.IsJustGuarded())
+                    {
+                        // パリィ成功SEなどをここに追加
+
+                        // playerからカメラを取得
+                        const auto& playerCam = player.GetCamera();
+                        if (playerCam)
+                        {
+                            // カメラの前方ベクトルを計算
+                            VECTOR camForward = VNorm(VSub(playerCam->GetTarget(), playerCam->GetPos()));
+                            // プレイヤーの足元から、盾があるであろう前方少し上の位置を計算
+                            VECTOR shieldPos = player.GetPos();
+                            shieldPos.y += 50.0f; // 少し上に
+                            shieldPos = VAdd(shieldPos, VScale(camForward, 60.0f)); // 前方に60
+
+                            // パリィ成功時の処理
+                            ball.isReflected = true;
+
+                            // 反射方向を「盾の位置」から「敵の位置」へ
+                            VECTOR reflectDir = VNorm(VSub(this->GetPos(), shieldPos));
+                            ball.dir = reflectDir;
+
+                            // 反射した弾の速度を上げる
+                            ball.speed *= 1.5f;
+                        }
+                    }
+                    else
+                    {
+                        // 通常ガード時の処理
+                        const_cast<Player&>(player).TakeDamage(ball.damage, m_pos);
+                        ball.active = false;
+                        if (ball.effectHandle != -1)
+                        {
+                            StopEffekseer3DEffect(ball.effectHandle);
+                            ball.effectHandle = -1;
+                        }
+                    }
+                }
+                else
+                {
+                    // ガードしていない場合
+                    const_cast<Player&>(player).TakeDamage(ball.damage, m_pos);
+                    ball.active = false;
+                    if (ball.effectHandle != -1)
+                    {
+                        StopEffekseer3DEffect(ball.effectHandle);
+                        ball.effectHandle = -1;
+                    }
+                }
+            }
+        }
+        // 反射された弾の処理
+        else
+        {
+            // この弾の所有者(ball.owner)と当たり判定を行う
+            if (ball.owner) // ownerがnullptrでないことを確認
+            {
+                SphereCollider reflectedAcidCol(ball.pos, ball.radius);
+                // 敵の体のコライダーと判定
+                if (reflectedAcidCol.IsIntersects(this->GetBodyCollider().get()))
+                {
+                    // 自分自身にダメージ
+                    this->TakeDamage(ball.damage, AttackType::Shoot); // AttackTypeは適切なものを選ぶ
+                    ball.active = false;
+                    if (ball.effectHandle != -1)
+                    { 
+                        StopEffekseer3DEffect(ball.effectHandle);
+                        ball.effectHandle = -1;
+                    }
+                }
+            }
+        }
+
+        // 地面に着弾
+        if (ball.pos.y < 0.0f)
+        {
+            ball.active = false;
+            if (ball.effectHandle != -1)
+            {
+                StopEffekseer3DEffect(ball.effectHandle);
+                ball.effectHandle = -1;
+            }
+        }
     }
 
     if (m_hp <= 0.0f)
@@ -694,4 +765,9 @@ void EnemyAcid::TakeDamage(float damage, AttackType type)
 void EnemyAcid::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);
+}
+
+std::shared_ptr<CapsuleCollider> EnemyAcid::GetBodyCollider() const
+{
+	return m_pBodyCollider;
 }

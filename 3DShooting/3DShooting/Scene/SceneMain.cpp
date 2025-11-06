@@ -22,6 +22,7 @@
 #include "TaskTutorialManager.h"
 #include "Effect.h"
 #include "DirectionIndicator.h"
+#include "ShellCasing.h"
 #include <cstdio>
 #include <cassert>
 #include <algorithm>

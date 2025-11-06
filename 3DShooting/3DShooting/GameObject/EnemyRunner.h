@@ -62,6 +62,12 @@ public:
 	
 	static void LoadModel();
 	static void DeleteModel();
+
+	/// <summary>
+	/// ボディコライダーを取得する
+	/// </summary>
+	/// <returns>ボディコライダー</returns>
+	std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 	
 private:
 	/// <summary>

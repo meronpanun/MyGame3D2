@@ -167,7 +167,13 @@ public:
 	/// 最後に当たった部位を取得する
 	/// </summary>
 	/// <param name="cb">最後に当たった部位</param>
-	void SetOnDeathWithTypeCallback(std::function<void(const VECTOR&, AttackType)> cb) { m_onDeathWithTypeCallback = cb; }
+	virtual void SetOnDeathWithTypeCallback(std::function<void(const VECTOR&, AttackType)> cb) { m_onDeathWithTypeCallback = cb; }
+
+	/// <summary>
+	/// ボディコライダーを取得する
+	/// </summary>
+	/// <returns>ボディコライダー</returns>
+	virtual std::shared_ptr<CapsuleCollider> GetBodyCollider() const = 0;
 	
 protected:
     /// <summary>

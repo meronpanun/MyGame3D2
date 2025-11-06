@@ -79,7 +79,13 @@ public:
     /// <summary>
 	/// モデルの解放(共有)
 	/// </summary>
-	static void DeleteModel();private:
+	static void DeleteModel();
+
+	/// <summary>
+	/// ボディコライダーを取得する
+	/// </summary>
+	/// <returns>ボディコライダー</returns>
+	std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;private:
 
 	/// <summary>
 	/// 酸の弾構造体
@@ -89,17 +95,31 @@ public:
 		VECTOR pos; // 弾の位置
 		VECTOR dir; // 弾の進行方向
 
-        bool active = false;
-        float radius = 12.0f;
-        float damage = 0.0f;
+		bool active = false;
+		float radius = 12.0f;
+		float damage = 0.0f;
+		float speed = 5.0f; // 弾の速度
 		int effectHandle = -1;
+		bool isReflected = false; // パリィで反射されたか
+		EnemyBase* owner = nullptr; // この弾の所有者
 
-        void Update() 
-        {
-            if (!active) return;
-            pos = VAdd(pos, dir);
-            if (pos.y < 0.0f) active = false; // 地面で消滅
-        }
+		void Update()
+		{
+			if (!active) return;
+
+			// 反射された弾はオーナーを追尾する
+			if (isReflected && owner)
+			{
+				VECTOR targetPos = owner->GetPos();
+				// 敵の中心あたりを狙うオフセット
+				targetPos.y += 50.0f;
+				VECTOR newDir = VNorm(VSub(targetPos, pos));
+				dir = newDir;
+			}
+
+			pos = VAdd(pos, VScale(dir, speed));
+			if (pos.y < 0.0f) active = false; // 地面で消滅
+		}
 	};
 
     /// <summary>

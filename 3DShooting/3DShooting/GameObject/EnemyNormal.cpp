@@ -28,7 +28,6 @@ namespace
 
     // 攻撃関連
     constexpr int   kAttackCooldownMax = 45;     // 攻撃クールダウン時間
-    constexpr float kAttackPower       = 20.0f;  // 攻撃力
     constexpr float kAttackHitRadius   = 45.0f;  // 攻撃の当たり判定半径
     constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
 
@@ -83,7 +82,6 @@ void EnemyNormal::DeleteModel()
 
 void EnemyNormal::Init()
 {
-    m_attackPower = kAttackPower;
     m_attackCooldownMax = kAttackCooldownMax;
 
     m_isAlive       = true;
@@ -612,4 +610,9 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
 void EnemyNormal::TakeTackleDamage(float damage)
 {
     EnemyBase::TakeTackleDamage(damage);
+}
+
+std::shared_ptr<CapsuleCollider> EnemyNormal::GetBodyCollider() const
+{
+	return m_pBodyCollider;
 }
