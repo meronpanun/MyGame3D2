@@ -205,14 +205,14 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     ball.dir = VNorm(toTarget);
     ball.speed = kAcidBulletSpeed;
     ball.active = true;
-    	ball.damage = m_attackPower;
-    	ball.owner = this;
-    	ball.isReflected = false;
-    	if (pEffect)
-    	{
-    		ball.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
-    	}
-        m_acidBalls.push_back(ball);
+    ball.damage = m_attackPower;
+    ball.owner = this;
+    ball.isReflected = false;
+    if (pEffect)
+    {
+    	ball.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
+    }
+    m_acidBalls.push_back(ball);
 }
 
 void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)

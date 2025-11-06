@@ -361,4 +361,5 @@ private:
 	int m_sparkEffectHandle;    // スパークエフェクトのハンドル
 	int m_sparkEffectTimer;     // スパークエフェクトのタイマー
 	float m_guardEffectScale;   // ガードエフェクトのスケール
+	int m_parryEffectHandle;    // パリィエフェクトのハンドル
 };

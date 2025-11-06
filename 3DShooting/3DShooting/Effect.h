@@ -52,6 +52,14 @@ public:
 	/// <param name="z">Z座標</param>
 	int PlayAcidEffect(float x, float y, float z);
 
+	/// <summary>
+	/// パリィエフェクトを再生する
+	/// </summary>
+	/// <param name="x">X座標</param>
+	/// <param name="y">Y座標</param>
+	/// <param name="z">Z座標</param>
+	int PlayParryEffect(float x, float y, float z);
+
 private:
 	int m_muzzleFlashEffectHandles[5]; // マズルフラッシュのエフェクトハンドル配列
 	int m_lossOfBloodEffectHandle; // 出血エフェクトハンドル
@@ -59,5 +67,6 @@ private:
 	int m_guardEffectHandle; // ガードエフェクトハンドル
 	int m_sparkEffectHandle; // スパークエフェクトハンドル
 	int m_acidEffectHandle; // 酸エフェクトハンドル
+	int m_parryEffectHandle; // パリィエフェクトハンドル
 };
 

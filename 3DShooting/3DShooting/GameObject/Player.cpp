@@ -186,7 +186,7 @@ namespace
 	constexpr unsigned int kColorHpBarBorder       = 0x000000;
 
 	// パリィ受付フレーム数
-	constexpr int kParryFrame = 1020;
+	constexpr int kParryFrame = 120;
 }
 
 Player::Player() :
@@ -277,7 +277,8 @@ Player::Player() :
 	m_shieldBarAnim(0.0f),
 	m_maxShieldDurability(0.0f),
 	m_isShieldBroken(false),
-	m_guardTimer(0)
+	m_guardTimer(0),
+	m_parryEffectHandle(-1)
 {
 	// プレイヤーモデルの読み込み
 	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
@@ -1481,6 +1482,20 @@ void Player::Draw()
 		MV1SetPosition(m_shieldModelHandle, currentPos);
 		MV1SetRotationXYZ(m_shieldModelHandle, currentRot);
 		MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
+
+		// パリィエフェクトの位置を更新
+		if (m_parryEffectHandle != -1)
+		{
+			if (IsEffekseer3DEffectPlaying(m_parryEffectHandle))
+			{
+				SetPosPlayingEffekseer3DEffect(m_parryEffectHandle, currentPos.x, currentPos.y, currentPos.z);
+			}
+			else
+			{
+				m_parryEffectHandle = -1;
+			}
+		}
+
 		// 盾が壊れていない、またはアニメーション中のみ描画
 		if (!m_isShieldBroken || m_isShieldAnimating)
 		{
@@ -1622,21 +1637,32 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 
 	if (m_isGuarding && !m_isShieldBroken) // ガード中で盾が壊れていなければ
 	{
-		m_shieldDurability -= damage; // 盾の耐久値を減らす
-
-		// カメラシェイクを発生
-		if (m_pCamera)
+		// パリィ成功
+		if (IsJustGuarded())
 		{
-			m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+			if (m_pEffect)
+			{
+				m_parryEffectHandle = m_pEffect->PlayParryEffect(0, 60, 0);
+			}
 		}
-
-		// 盾の前方にスパークエフェクトを再生
-		if (m_pEffect)
+		else
 		{
-			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
-			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 80.0f)); // 盾の前方あたり
-			m_sparkEffectHandle = m_pEffect->PlaySparkEffect(effectPos.x, effectPos.y, effectPos.z);
-			m_sparkEffectTimer = 30;
+			m_shieldDurability -= damage; // 盾の耐久値を減らす
+
+			// カメラシェイクを発生
+			if (m_pCamera)
+			{
+				m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+			}
+
+			// 盾の前方にスパークエフェクトを再生
+			if (m_pEffect)
+			{
+				VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
+				VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 80.0f)); // 盾の前方あたり
+				m_sparkEffectHandle = m_pEffect->PlaySparkEffect(effectPos.x, effectPos.y, effectPos.z);
+				m_sparkEffectTimer = 30;
+			}
 		}
 
 		if (m_shieldDurability <= 0.0f)
