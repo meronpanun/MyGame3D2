@@ -286,8 +286,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                     // パリィ成功か (ジャストガードか)
                     if (player.IsJustGuarded())
                     {
-                        // パリィ成功SEなどをここに追加
-
                         // playerからカメラを取得
                         const auto& playerCam = player.GetCamera();
                         if (playerCam)
@@ -298,6 +296,9 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                             VECTOR shieldPos = player.GetPos();
                             shieldPos.y += 50.0f; // 少し上に
                             shieldPos = VAdd(shieldPos, VScale(camForward, 60.0f)); // 前方に60
+
+                            // 計算した盾の位置でエフェクトを再生
+                            const_cast<Player&>(player).PlayParryEffect(shieldPos);
 
                             // パリィ成功時の処理
                             ball.isReflected = true;

@@ -195,6 +195,11 @@ public:
 	/// <param name="power">揺れの強さ</param>
 	/// <param name="duration">揺れの持続時間</param>
 	void ShakeGun(float power, float duration);
+
+	/// <summary>
+	/// パリィエフェクトを再生する
+	/// </summary>
+	void PlayParryEffect(const VECTOR& pos);
 	    
 private:
    	AttackType m_allowedAttackType = AttackType::None;

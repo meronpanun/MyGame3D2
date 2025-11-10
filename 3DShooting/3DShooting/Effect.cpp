@@ -56,8 +56,8 @@ Effect::Effect():
 	assert(m_acidEffectHandle != -1);
 
 	// パリィエフェクトハンドルの読み込み
-	m_parryEffectHandle = LoadEffekseerEffect("data/Effekseer/Ring.efkefc", 10.0f);
-	assert(m_parryEffectHandle != -1);
+	//m_parryEffectHandle = LoadEffekseerEffect("data/Effekseer/Ring.efkefc", 20.0f);
+	//assert(m_parryEffectHandle != -1);
 }
 
 Effect::~Effect()
