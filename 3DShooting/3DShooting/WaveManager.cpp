@@ -317,6 +317,27 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
 // 敵の一括描画
 void WaveManager::DrawEnemies()
 {
+	// 敵の描画
+    for (auto& pEnemy : m_enemyNormalPool) 
+    {
+        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        pEnemy->Draw();
+    }
+    for (auto& pEnemy : m_enemyRunnerPool) 
+    {
+        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        pEnemy->Draw();
+    }
+    for (auto& pEnemy : m_enemyAcidPool) 
+    {
+        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        pEnemy->Draw();
+    }
+}
+
+// ウェーブUIの描画
+void WaveManager::DrawWaveUI()
+{
     // ウェーブ中は常に画像を表示
     if (!m_isAllWavesCompleted && m_currentWave >= 1 && m_currentWave <= 3 && (m_isWaveImageAnimating || m_isWaveActive))
     {
@@ -372,23 +393,6 @@ void WaveManager::DrawEnemies()
         }
 
         DrawExtendGraph(currentX, currentY, currentX + currentDrawW, currentY + currentDrawH, img, true);
-    }
-
-	// 敵の描画
-    for (auto& pEnemy : m_enemyNormalPool) 
-    {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
-        pEnemy->Draw();
-    }
-    for (auto& pEnemy : m_enemyRunnerPool) 
-    {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
-        pEnemy->Draw();
-    }
-    for (auto& pEnemy : m_enemyAcidPool) 
-    {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
-        pEnemy->Draw();
     }
 }
 

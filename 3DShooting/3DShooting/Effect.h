@@ -23,7 +23,7 @@ public:
 
 	void PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ);
 
-	int PlayConcentrationLine(float x, float y, float z, float scale);
+	int PlayConcentrationLine(float x, float y, float z);
 
 	/// <summary>
 	/// ガードエフェクトを再生する

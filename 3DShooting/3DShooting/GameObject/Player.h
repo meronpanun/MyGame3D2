@@ -25,7 +25,9 @@ public:
 
 	void Init();
 	void Update(const std::vector<EnemyBase*>& enemyList);
-	void Draw();
+	void Draw3D();
+	void DrawShield();
+	void DrawUI();
 
 	/// <summary>
 	/// エフェクトフィードバック構造体

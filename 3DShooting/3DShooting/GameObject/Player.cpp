@@ -68,7 +68,6 @@ namespace
 	constexpr float kPlayerColliderYOffset		    = 60.0f;  
 	constexpr float kTackleFov						= 100.0f; // タックル中のカメラFOV
 	constexpr float kTackleCameraZOffset            = 30.0f;  // タックル中のカメラZオフセット
-	constexpr float kConcentrationLineEffectScale   = 20.0f;  // 集中線エフェクトのスケール
 	constexpr float kConcentrationLineEffectZOffset = 15.0f;  // 集中線エフェクトのZオフセット
 	constexpr float kGroundCheckTolerance			= 0.01f;  // 地面接地判定の許容誤差
 	constexpr float kJumpSwayPower					= 5.0f;   // ジャンプ時の揺れの強さ　
@@ -788,7 +787,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			// 集中線エフェクトを再生
 			if (m_pEffect)
 			{
-				m_concentrationLineEffectHandle = m_pEffect->PlayConcentrationLine(0.0f, 0.0f, 0.0f, kConcentrationLineEffectScale);
+				m_concentrationLineEffectHandle = m_pEffect->PlayConcentrationLine(0.0f, 0.0f, 0.0f);
 			}
 		}
 		m_isLockingOn = false; // タックル開始したらロックオン解除
@@ -1131,11 +1130,131 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	ShellCasing::UpdateShellCasings(m_shellCasings);
 }
 
-void Player::Draw()
+void Player::Draw3D()
 {
 	// プレイヤーモデルの描画
-	MV1DrawModel(m_modelHandle); 
+	MV1DrawModel(m_modelHandle);
 
+	// 弾の描画
+	Bullet::DrawBullets(m_bullets);
+
+	ShellCasing::DrawShellCasings(m_shellCasings);
+}
+
+void Player::DrawShield()
+{
+	int screenW, screenH;
+	GetScreenState(&screenW, &screenH, NULL);
+
+	/*盾の描画*/
+	// 画面サイズに応じてスケーリング
+	float scaleW = screenW / kShieldBaseScreenW;
+	float scaleH = screenH / kShieldBaseScreenH;
+	float scaleAvg = (scaleW + scaleH) * 0.5f;
+
+	// カメラオフセット設定
+	VECTOR totalCameraOffset = VGet(0, 0, 0);
+	if (m_pCamera)
+	{
+		VECTOR shakeOffset = m_pCamera->GetShakeOffset();
+		VECTOR headBobOffset = m_pCamera->GetHeadBobOffset();
+		VECTOR landingSwayOffset = m_pCamera->GetLandingSwayOffset();
+		VECTOR jumpSwayOffset = m_pCamera->GetJumpSwayOffset();
+		totalCameraOffset = VAdd(shakeOffset, headBobOffset);
+		totalCameraOffset = VAdd(totalCameraOffset, landingSwayOffset);
+		totalCameraOffset = VAdd(totalCameraOffset, jumpSwayOffset);
+	}
+	VECTOR shieldCamPos = VGet(0, 0, kShieldCamZ * scaleAvg);
+	shieldCamPos.x += totalCameraOffset.x;
+	shieldCamPos.y += totalCameraOffset.y;
+	VECTOR shieldCamTarget = VGet(totalCameraOffset.x * kShieldCamTargetFactor, totalCameraOffset.y * kShieldCamTargetFactor, 0);
+	SetCameraPositionAndTarget_UpVecY(shieldCamPos, shieldCamTarget);
+
+	// ガードアニメーションの進行度を計算
+	float guardAnimProgress = m_guardAnimTimer / m_guardAnimDuration;
+	float easeProgress = 1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f); // イージング
+
+	// 待機位置とガード位置を定義
+	VECTOR waitPos = VAdd(VGet(kShieldWaitX * scaleW, kShieldWaitY * scaleH, kShieldWaitZ), m_shieldSwayOffset);
+	VECTOR guardPos = VGet(0.0f, kShieldWaitY * scaleH, -15.0f); // 中央の位置
+
+	// 進行度に応じて位置を補間
+	VECTOR currentPos = VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
+
+	// 待機回転とガード回転を定義
+	constexpr float kShieldWaitAngleY = -0.3f; // 待機時のY軸回転角度
+	VECTOR waitRot = VGet(0.0f, DX_PI_F + kShieldWaitAngleY, 0.0f);
+	VECTOR guardRot = VGet(0.0f, DX_PI_F, 0.0f);
+
+	// 進行度に応じて回転を補間
+	VECTOR currentRot = VAdd(waitRot, VScale(VSub(guardRot, waitRot), easeProgress));
+
+	// タックル中の盾アニメーション
+	if (m_isTackling)
+	{
+		constexpr float kTackleShieldThrust = 20.0f; // タックル時の盾を突き出す量
+		currentPos = guardPos; // ガード位置（中央）を基準にする
+		currentPos.z += kTackleShieldThrust;
+		currentRot = guardRot; // 回転もガード状態（正面）にする
+	}
+
+	// ガード中は小刻みに揺らす
+	if (m_isGuarding)
+	{
+		constexpr float kGuardShakeAmount = 0.4f; // 揺れの量
+		currentPos.x += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
+		currentPos.y += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
+	}
+
+	// 盾のアニメーション処理
+	if (m_isShieldAnimating)
+	{
+		float animProgress = m_shieldAnimTimer / m_shieldAnimDuration;
+
+		// イージング適用
+		float easedProgress;
+
+		// 回復アニメーション
+		if (m_isShieldRecovering)
+		{
+			easedProgress = 1.0f - powf(1.0f - animProgress, kShieldAnimEasingPower);
+			// 下から元の位置へ
+			float startY = kShieldAnimRecoverStartYOffset;
+			float endY = currentPos.y;
+			currentPos.y = startY + (endY - startY) * easedProgress;
+		}
+		// 破壊アニメーション
+		else
+		{
+			easedProgress = powf(animProgress, kShieldAnimEasingPower);
+			// 左斜め上を向いて下に消える
+			float targetRotY = kShieldAnimBreakRotY; // 左斜め上
+			float targetRotX = kShieldAnimBreakRotX;
+			currentRot.y = currentRot.y + (targetRotY - currentRot.y) * easedProgress;
+			currentRot.x = currentRot.x + (targetRotX - currentRot.x) * easedProgress;
+
+			float endY = kShieldAnimBreakEndYOffset;
+			currentPos.y = currentPos.y + (endY - currentPos.y) * easedProgress;
+		}
+	}
+
+	// モデルの位置と回転を直接設定
+	MV1SetPosition(m_shieldModelHandle, currentPos);
+	MV1SetRotationXYZ(m_shieldModelHandle, currentRot);
+	MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
+
+	// 盾が壊れていない、またはアニメーション中のみ描画
+	if (!m_isShieldBroken || m_isShieldAnimating)
+	{
+		MV1DrawModel(m_shieldModelHandle);
+	}
+
+	// メインカメラに戻す
+	m_pCamera->SetCameraToDxLib();
+}
+
+void Player::DrawUI()
+{
 	// ガード中にターゲットがいない場合にテキストを表示
 	if (m_isGuarding && !m_lockedOnEnemy && !m_isTargetAvailable)
 	{
@@ -1169,11 +1288,6 @@ void Player::Draw()
 		}
 	}
 
-	// 弾の描画
-	Bullet::DrawBullets(m_bullets);
-
-	ShellCasing::DrawShellCasings(m_shellCasings);
-
 	if (!m_isDead)
 	{
 		int screenW = Game::kScreenWidth;
@@ -1182,14 +1296,14 @@ void Player::Draw()
 
 		// HPバーのY座標を計算
 		const int barY = screenH - kHpBarHeight - kHpBarMargin;
-		
+
 		// タックルUIのY座標をHPバーに合わせる
 		const int tackleUIY = barY;
-		
+
 		// 銃UIをタックルUIの上に配置
 		int gunImageY = tackleUIY - kGunImageHeight - kGunImageMarginY;
 		int gunImageX = screenW - kGunImageWidth - kGunImageMarginX;
-		
+
 		// 銃UI画像の描画
 		int gunHandle = m_gunImageHandle;
 		if (m_ammo == 0 && !m_isInfiniteAmmo)
@@ -1201,26 +1315,26 @@ void Player::Draw()
 			gunHandle = m_lowAmmoGunImageHandle;
 		}
 		DrawExtendGraph(gunImageX, gunImageY, gunImageX + kGunImageWidth, gunImageY + kGunImageHeight, gunHandle, true);
-		
+
 		// 残弾数の表示
 		// 弾薬UI全体の幅を計算
 		int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
 		int ammoUIWidth = kAmmoImageSize + kAmmoImageTextSpacing + ammoTextWidth;
-		
+
 		// 弾薬UIのX座標 
 		int ammoUIX = gunImageX + (kGunImageWidth * 0.5f) - (ammoUIWidth * 0.5f) + kAmmoUIGunCenterOffsetX;
 		// 弾薬UIのY座標 
 		int ammoUIY = gunImageY + kGunImageHeight - kAmmoImageSize - kAmmoUIYOffset;
-		
+
 		// ammo画像の描画
 		int ammoImageX = ammoUIX;
 		int ammoImageY = ammoUIY;
 		DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageSize, ammoImageY + kAmmoImageSize, m_ammoImageHandle, true);
-		
+
 		// 弾薬数のテキスト描画
 		int ammoTextX = ammoImageX + kAmmoImageSize + kAmmoImageTextSpacing;
 		int ammoTextY = ammoUIY + (kAmmoImageSize - kAmmoTextHeight) * 0.5f;
-		
+
 		// 弾薬無限モードの場合は「∞」を表示
 		if (m_isInfiniteAmmo)
 		{
@@ -1230,33 +1344,33 @@ void Player::Draw()
 		{
 			// デフォルトの色を決定
 			int textColor = m_isLowAmmo ? kColorLowAmmo : kColorWhite;
-		
+
 			// フラッシュタイマーが作動中なら色を補間
 			if (m_ammoTextFlashTimer > 0.0f)
 			{
 				float flashProgress = m_ammoTextFlashTimer / 60.0f;
-		
+
 				// ターゲットの色（デフォルト色）のRGB成分
 				int targetR = (textColor >> 16) & 0xFF;
 				int targetG = (textColor >> 8) & 0xFF;
 				int targetB = textColor & 0xFF;
-		
+
 				// フラッシュの色（黄色）のRGB成分
 				int flashR = 255;
 				int flashG = 255;
 				int flashB = 0;
-		
+
 				// 線形補間
 				int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
 				int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
 				int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
-		
+
 				textColor = GetColor(currentR, currentG, currentB);
 			}
-		
+
 			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
 		}
-		
+
 		// 盾耐久値の描画
 		float shieldDurabilityRate = m_shieldBarAnim / m_maxShieldDurability;
 		if (shieldDurabilityRate < 0.0f) shieldDurabilityRate = 0.0f;
@@ -1273,18 +1387,18 @@ void Player::Draw()
 		float scale = (float)shieldGaugeWidth / shieldTexH;
 
 		int shieldGaugeX = screenW - shieldGaugeWidth - kHpBarMargin;
-		int shieldGaugeY = tackleUIY - (shieldGaugeHeight - kHpBarHeight) * 0.5f; 
+		int shieldGaugeY = tackleUIY - (shieldGaugeHeight - kHpBarHeight) * 0.5f;
 
 		// ゲージの背景（半透明の盾）
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
 		DrawRotaGraph3F(
-			shieldGaugeX + shieldGaugeWidth * 0.5f, 
-			shieldGaugeY + shieldGaugeHeight * 0.5f, 
+			shieldGaugeX + shieldGaugeWidth * 0.5f,
+			shieldGaugeY + shieldGaugeHeight * 0.5f,
 			shieldTexW * 0.5f,
 			shieldTexH * 0.5f,
 			scale,
 			scale,
-			-DX_PI_F * 0.5f, 
+			-DX_PI_F * 0.5f,
 			m_shieldImageHandle,
 			true
 		);
@@ -1386,175 +1500,68 @@ void Player::Draw()
 			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
 
-		/*盾の描画*/
-		// 画面サイズに応じてスケーリング
-		float scaleW = screenW / kShieldBaseScreenW;
-		float scaleH = screenH / kShieldBaseScreenH;
-		float scaleAvg = (scaleW + scaleH) * 0.5f;
-
-		// カメラオフセット設定
-		VECTOR totalCameraOffset = VGet(0, 0, 0);
-		if (m_pCamera)
-		{
-			VECTOR shakeOffset       = m_pCamera->GetShakeOffset();
-			VECTOR headBobOffset     = m_pCamera->GetHeadBobOffset();
-			VECTOR landingSwayOffset = m_pCamera->GetLandingSwayOffset();
-			VECTOR jumpSwayOffset    = m_pCamera->GetJumpSwayOffset();
-			totalCameraOffset    = VAdd(shakeOffset, headBobOffset);
-			totalCameraOffset    = VAdd(totalCameraOffset, landingSwayOffset);
-			totalCameraOffset    = VAdd(totalCameraOffset, jumpSwayOffset);
-		}
-		VECTOR shieldCamPos = VGet(0, 0, kShieldCamZ * scaleAvg);
-		shieldCamPos.x += totalCameraOffset.x;
-		shieldCamPos.y += totalCameraOffset.y;
-		VECTOR shieldCamTarget = VGet(totalCameraOffset.x * kShieldCamTargetFactor, totalCameraOffset.y * kShieldCamTargetFactor, 0);
-		SetCameraPositionAndTarget_UpVecY(shieldCamPos, shieldCamTarget);
-
-		// ガードアニメーションの進行度を計算
-		float guardAnimProgress = m_guardAnimTimer / m_guardAnimDuration;
-		float easeProgress = 1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f); // イージング
-
-		// 待機位置とガード位置を定義
-		VECTOR waitPos = VAdd(VGet(kShieldWaitX * scaleW, kShieldWaitY * scaleH, kShieldWaitZ), m_shieldSwayOffset);
-		VECTOR guardPos = VGet(0.0f, kShieldWaitY * scaleH, -15.0f); // 中央の位置
-
-		// 進行度に応じて位置を補間
-		VECTOR currentPos = VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
-
-		// 待機回転とガード回転を定義
-		constexpr float kShieldWaitAngleY = -0.3f; // 待機時のY軸回転角度
-		VECTOR waitRot = VGet(0.0f, DX_PI_F + kShieldWaitAngleY, 0.0f);
-		VECTOR guardRot = VGet(0.0f, DX_PI_F, 0.0f);
-
-		// 進行度に応じて回転を補間
-		VECTOR currentRot = VAdd(waitRot, VScale(VSub(guardRot, waitRot), easeProgress));
-
-		// タックル中の盾アニメーション
-		if (m_isTackling)
-		{
-			constexpr float kTackleShieldThrust = 20.0f; // タックル時の盾を突き出す量
-			currentPos = guardPos; // ガード位置（中央）を基準にする
-			currentPos.z += kTackleShieldThrust;
-			currentRot = guardRot; // 回転もガード状態（正面）にする
-		}
-
-		// ガード中は小刻みに揺らす
-		if (m_isGuarding)
-		{
-			constexpr float kGuardShakeAmount = 0.4f; // 揺れの量
-			currentPos.x += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
-			currentPos.y += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
-		}
-
-		// 盾のアニメーション処理
-		if (m_isShieldAnimating)
-		{
-			float animProgress = m_shieldAnimTimer / m_shieldAnimDuration;
-
-			// イージング適用
-			float easedProgress;
-
-			// 回復アニメーション
-			if (m_isShieldRecovering)
-			{
-				easedProgress = 1.0f - powf(1.0f - animProgress, kShieldAnimEasingPower);
-				// 下から元の位置へ
-				float startY = kShieldAnimRecoverStartYOffset;
-				float endY = currentPos.y;
-				currentPos.y = startY + (endY - startY) * easedProgress;
-			}
-			// 破壊アニメーション
-			else
-			{
-				easedProgress = powf(animProgress, kShieldAnimEasingPower);
-				// 左斜め上を向いて下に消える
-				float targetRotY = kShieldAnimBreakRotY; // 左斜め上
-				float targetRotX = kShieldAnimBreakRotX;
-				currentRot.y = currentRot.y + (targetRotY - currentRot.y) * easedProgress;
-				currentRot.x = currentRot.x + (targetRotX - currentRot.x) * easedProgress;
-
-				float endY = kShieldAnimBreakEndYOffset;
-				currentPos.y = currentPos.y + (endY - currentPos.y) * easedProgress;
-			}
-		}
-
-		// モデルの位置と回転を直接設定
-		MV1SetPosition(m_shieldModelHandle, currentPos);
-		MV1SetRotationXYZ(m_shieldModelHandle, currentRot);
-		MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg, kShieldModelScale * scaleAvg));
-
-		// 盾が壊れていない、またはアニメーション中のみ描画
-		if (!m_isShieldBroken || m_isShieldAnimating)
-		{
-			MV1DrawModel(m_shieldModelHandle);
-		}
-
-		// メインカメラに戻す
-		m_pCamera->SetCameraToDxLib();
-
 		if (m_pEffect)
 		{
 			m_pEffect->Draw(); // エフェクトの描画
 		}
-		
+
 		// HPバーのパラメータ
 		const int healthUiImageX = kHpBarMargin;
 		const int healthUiImageY = screenH - kHpBarHeight - kHpBarMargin + (kHpBarHeight - kHealthUiImageSize) * 0.5f;
 		DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + kHealthUiImageSize, healthUiImageY + kHealthUiImageSize, m_healthUiImageHandle, true);
-	    const int barX      = healthUiImageX + kHealthUiImageSize + kHealthUiImageBarSpacing;
+		const int barX = healthUiImageX + kHealthUiImageSize + kHealthUiImageBarSpacing;
 
-	    // 最大HP
-	    float hp = m_health;
+		// 最大HP
+		float hp = m_health;
 
-	    if (hp < 0) hp = 0;
-	    if (hp > kMaxHp) hp = kMaxHp;
+		if (hp < 0) hp = 0;
+		if (hp > kMaxHp) hp = kMaxHp;
 
-	    float hpAnim = m_healthBarAnim;
+		float hpAnim = m_healthBarAnim;
 
-	    if (hpAnim < 0) hpAnim = 0;
-	    if (hpAnim > kMaxHp) hpAnim = kMaxHp;
+		if (hpAnim < 0) hpAnim = 0;
+		if (hpAnim > kMaxHp) hpAnim = kMaxHp;
 
-	    // HP割合
-	    float hpRate = hp / kMaxHp;
-	    float hpAnimRate = hpAnim / kMaxHp;
+		// HP割合
+		float hpRate = hp / kMaxHp;
+		float hpAnimRate = hpAnim / kMaxHp;
 
-	    // 背景
-	    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg, true);
+		// 背景
+		DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg, true);
 
-	    // HPバー本体（実際の体力を反映）
-	    DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
+		// HPバー本体（実際の体力を反映）
+		DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
 
-	    // アニメーションバー（ゴーストバー）
-	    if (m_healthBarAnim > m_health)
-	    {
-	        // ダメージ時（黄色いバー）
-	        int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
-	        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-	        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage, true);
-	    }
-	    else if (m_healthBarAnim < m_health)
-	    {
-	        // 回復時（明るい緑のバー）
-	        int animStart = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-	        int animEnd   = barX + static_cast<int>(kHpBarWidth * hpRate);
-	        DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, 0x90EE90, true);
-	    }
+		// アニメーションバー（ゴーストバー）
+		if (m_healthBarAnim > m_health)
+		{
+			// ダメージ時（黄色いバー）
+			int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
+			int animEnd = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
+			DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage, true);
+		}
+		else if (m_healthBarAnim < m_health)
+		{
+			// 回復時（明るい緑のバー）
+			int animStart = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
+			int animEnd = barX + static_cast<int>(kHpBarWidth * hpRate);
+			DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, 0x90EE90, true);
+		}
 
-	    // 枠
-	    DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
+		// 枠
+		DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
 
-	    // HP数値
-	    DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f", m_healthBarAnim);
+		// HP数値
+		DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f", m_healthBarAnim);
 	}
-
 	// ダメージエフェクト描画
 	DrawEffectFeedback(m_damageEffect);
 
 	// 回復エフェクト描画
 	DrawEffectFeedback(m_healEffect);
 
-    // 弾薬エフェクト描画
-    DrawEffectFeedback(m_ammoEffect);
+	// 弾薬エフェクト描画
+	DrawEffectFeedback(m_ammoEffect);
 }
 
 void Player::DrawEffectFeedback(Player::EffectFeedback& effect)

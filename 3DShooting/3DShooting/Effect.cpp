@@ -12,7 +12,7 @@ namespace
 	constexpr float kMuzzleFlashEffectScale2      = 3.0f; 
 	constexpr float kMuzzleFlashEffectScale3      = 3.5f; 
 	constexpr float kLossOfBloodEffectScale       = 2.5f;
-	constexpr float kConcentrationLineEffectScale = 1.0f;
+	constexpr float kConcentrationLineEffectScale = 20.0f;
 	constexpr float kGuardEffectScale             = 10.5f;
 	constexpr float kSparkEffectScale             = 20.0f;
 }
@@ -122,7 +122,7 @@ void Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, 
 }
 
 // 集中線エフェクトを再生する
-int Effect::PlayConcentrationLine(float x, float y, float z, float scale)
+int Effect::PlayConcentrationLine(float x, float y, float z)
 {
 	if (m_concentrationLineEffectHandle != -1)
 	{
@@ -130,7 +130,6 @@ int Effect::PlayConcentrationLine(float x, float y, float z, float scale)
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
-			SetScalePlayingEffekseer3DEffect(handle, scale, scale, scale);
 		}
 		return handle;
 	}

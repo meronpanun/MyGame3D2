@@ -93,6 +93,11 @@ public:
     void DrawEnemies();
 
     /// <summary>
+    /// ウェーブUIの描画
+    /// </summary>
+    void DrawWaveUI();
+
+    /// <summary>
 	/// 現在のウェーブがアクティブかどうかを取得
     /// </summary>
 	/// <returns>現在のウェーブがアクティブならtrue</returns>

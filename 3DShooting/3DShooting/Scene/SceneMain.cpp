@@ -609,7 +609,6 @@ SceneBase* SceneMain::Update()
     if (m_totalScorePopupTimer > 0) { m_totalScorePopupTimer--; } 
     m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
     ScoreManager::Instance().Update();
-    m_pEffect->Update();
     return this;
 }
 
@@ -651,15 +650,23 @@ void SceneMain::Draw()
         m_pWaveManager->DrawEnemies();
     }
 
-    m_pPlayer->Draw();
+    m_pPlayer->Draw3D();
 
     m_pEffect->Draw();
+
+    // ここからUI描画
+    m_pPlayer->DrawShield();
 
     if (!m_pPlayer->IsDead())
     {
         m_pDirectionIndicator->Draw();
         DrawGraph(kScreenCenterX - kReticleOffset * 0.5f, kScreenCenterY - kReticleOffset * 0.5f, m_dotHandle, true);
     }
+
+    // ウェーブUIの描画
+    m_pWaveManager->DrawWaveUI();
+
+    m_pPlayer->DrawUI();
 
     // スコアポップアップ描画
     bool showScorePopup = !m_scorePopups.empty();
