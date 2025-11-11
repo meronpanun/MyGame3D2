@@ -167,6 +167,18 @@ public:
 	/// </summary>
 	/// <returns>無敵モードならtrue</returns>
 	bool IsInvincible() const { return m_isInvincible; }
+
+	/// <summary>
+	/// ロックオン可能な敵がいるかどうかを取得する
+	/// </summary>
+	/// <returns>ロックオン可能な敵がいるならtrue</returns>
+	bool IsTargetAvailable() const { return m_isTargetAvailable; }
+
+	/// <summary>
+	/// 敵に照準が合っているかどうかを取得する
+	/// </summary>
+	/// <returns>照準が合っているならtrue</returns>
+	bool IsAimingAtEnemy() const;
 	
 	/// <summary>
 	/// 体力が低下しているかどうかを取得する
@@ -356,6 +368,7 @@ private:
 	EnemyBase* m_lockedOnEnemy; // ロックオンした敵
 	int m_lockOnUIHandle;       // ロックオンUIのハンドル
 	bool m_isTargetAvailable;   // ロックオン可能な敵がいるか
+	bool m_isAimingAtEnemy;     // 敵に照準が合っているか
 
 	// ガード関連
 	bool  m_ignoreGuardInput;   // ガード入力を無視するか
@@ -364,7 +377,6 @@ private:
 	float m_guardAnimTimer;     // ガードアニメーションのタイマー
 	float m_guardAnimDuration;  // ガードアニメーションの時間
 	int m_guardEffectHandle;    // ガードエフェクトのハンドル
-	int m_guardEffectTimer;     // ガードエフェクトのタイマー
 	int m_sparkEffectHandle;    // スパークエフェクトのハンドル
 	int m_sparkEffectTimer;     // スパークエフェクトのタイマー
 	float m_guardEffectScale;   // ガードエフェクトのスケール

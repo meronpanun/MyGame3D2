@@ -117,11 +117,12 @@ private:
     EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
 
 	// リソース管理
-    int   m_skyDomeHandle;             // スカイドーム画像ハンドル
-    int   m_dotHandle;                 // ドット画像ハンドル
-    int   m_scoreFontHandle;           // スコアポップアップ用フォントハンドル
-    int   m_bgmHandle;                 // BGMハンドル
-    bool  m_isBGMStarted;              // BGM再生済みフラグ
+    int   m_skyDomeHandle;     // スカイドーム画像ハンドル
+    int   m_dotDefaultHandle;          
+    int   m_dotOnTargetHandle;         
+    int   m_scoreFontHandle;   // スコアポップアップ用フォントハンドル
+    int   m_bgmHandle;         // BGMハンドル
+    bool  m_isBGMStarted;      // BGM再生済みフラグ
 
     // スコアポップアップ管理
     struct ScorePopup
@@ -146,5 +147,5 @@ private:
     bool m_isPlayerInit;
 	int m_gameOverDelayTimer; // ゲームオーバー遅延タイマー
 	bool m_isTaskTutorialInit;
-	    static bool s_isLowHealthTutorialShown; // 低体力チュートリアル表示済みフラグ
-	};
+    static bool s_isLowHealthTutorialShown; // 低体力チュートリアル表示済みフラグ
+};

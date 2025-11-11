@@ -53,7 +53,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene) :
     assert(m_confirmSEHandle != -1);
 
 	// フォントの作成
-    m_fontHandle = CreateFontToHandle("Arial Black", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_fontHandle = CreateFontToHandle("Arial Black", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }
 
 SceneTitle::~SceneTitle()
@@ -156,7 +156,7 @@ void SceneTitle::Draw()
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_fontHandle);
         
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-		DrawFormatStringToHandle((Game::kScreenWidth - textWidth) * 0.5f, 500, 0xffffff, m_fontHandle, gameStartText);
+		DrawFormatStringToHandle((Game::kScreenWidth - textWidth) * 0.5f, 750, 0xffffff, m_fontHandle, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 }

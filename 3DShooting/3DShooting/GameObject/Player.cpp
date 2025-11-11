@@ -59,8 +59,8 @@ namespace
 	constexpr float kShieldSwayDamping     = 0.9f;  // 盾モデルの揺れの減衰率
 
 	// 銃の揺れ関連の定数
-	constexpr float kGunSwayAmount   = 0.02f;  // 銃モデルの揺れの強さ (剣より小さく設定)
-	constexpr float kGunSwayDamping  = 0.95f; // 銃モデルの揺れの減衰率 (剣より大きく設定し、より早く収束させる)
+	constexpr float kGunSwayAmount   = 0.02f;  // 銃モデルの揺れの強さ 
+	constexpr float kGunSwayDamping  = 0.95f; // 銃モデルの揺れの減衰率 
 
 	// Update関連
 	constexpr float kFrameRate						= 60.0f; 
@@ -93,7 +93,6 @@ namespace
 	constexpr float kGuardAnimDuration     = 0.1f;   // ガードアニメーションの時間
     constexpr float kGuardEffectOffsetZ    = 60.0f;  // ガードエフェクトのZ軸オフセット
     constexpr float kGuardEffectOffsetX    = 10.0f;  // ガードエフェクトのX軸オフセット
-	constexpr int   kGuardEffectDuration   = 60;     // ガードエフェクトの持続フレーム数
 
 	// 盾アニメーション関連
 	constexpr float kShieldAnimRecoverStartYOffset = -200.0f; // 回復アニメーション開始時のYオフセット
@@ -108,6 +107,7 @@ namespace
 	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
 	constexpr int   kShieldImageActiveAlpha   = 255; // 使用可能な盾UIのアルファ値
 	constexpr int   kShieldImageCooldownAlpha = 128; // クールダウン中の盾UIのアルファ値
+	constexpr int   kShieldUIYPosition		  = 780;
 
 	// フォント関連
 	constexpr int   kDefaultFontThickness  = 3;  // フォントの太さ
@@ -147,16 +147,14 @@ namespace
 	// 銃UI関連
 	constexpr int   kGunImageWidth   = 200;
 	constexpr int   kGunImageHeight  = 133;
-	constexpr int   kGunImageMarginX = 20;
-	constexpr int   kGunImageMarginY = 20; 
+	constexpr int   kGunImageMarginX = 40;
+	constexpr int   kGunImageMarginY = -60;
 
 	// 弾薬UI関連
-	constexpr int   kAmmoImageSize          = 48;   
 	constexpr int   kAmmoTextHeight		    = 32;   
 	constexpr char  kAmmoTextMaxWidthStr[]  = "999";
-	constexpr int   kAmmoImageTextSpacing   = 10; 
-	constexpr int   kAmmoUIYOffset		    = 105;
-	constexpr int   kAmmoUIGunCenterOffsetX = 20; 
+	constexpr int   kAmmoTextGunOffsetX     = 20; // 銃画像からのXオフセット
+	constexpr int   kAmmoTextGunOffsetY     = -15;  // 銃画像からのYオフセット
 
 	// 警告UI関連
 	constexpr int   kWarningImageSize    = 128; 
@@ -192,7 +190,6 @@ Player::Player() :
 	m_modelHandle(-1),
 	m_shieldModelHandle(-1),
 	m_shieldImageHandle(-1),
-	m_ammoImageHandle(-1),
 	m_shootSEHandle(-1),
 	m_playerHitSEHandle(-1),
 	m_tackleSEHandle(-1),
@@ -263,12 +260,12 @@ Player::Player() :
 	m_isLockingOn(false),
 	m_lockedOnEnemy(nullptr),
 	m_isTargetAvailable(false),
+	m_isAimingAtEnemy(false),
 	m_isGuarding(false),
 	m_wasGuarding(false),
 	m_guardAnimTimer(0.0f),
 	m_guardAnimDuration(kGuardAnimDuration),
 	m_guardEffectHandle(-1),
-	m_guardEffectTimer(0),
 	m_sparkEffectHandle(-1),
 	m_sparkEffectTimer(0),
 	m_ignoreGuardInput(false),
@@ -289,10 +286,6 @@ Player::Player() :
 	// 盾モデルの読み込み
 	m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
 	assert(m_shieldModelHandle != -1);
-
-	// 弾画像の読み込み
-	m_ammoImageHandle = LoadGraph("data/image/ammo.png");
-	assert(m_ammoImageHandle != -1);
 
 	// 弾薬切れ画像の読み込み
 	m_noAmmoImageHandle = LoadGraph("data/image/NoAmmo.png");
@@ -348,7 +341,6 @@ Player::~Player()
 	MV1DeleteModel(m_shieldModelHandle);
 
 	// 画像の解放
-	DeleteGraph(m_ammoImageHandle);
 	DeleteGraph(m_noAmmoImageHandle);
 	DeleteGraph(m_noHealthImageHandle);
 	DeleteGraph(m_gunImageHandle);
@@ -379,23 +371,23 @@ void Player::Init()
 	{
 		if (data.name == "Player") 
 		{
-			m_pos				= data.pos;
-			m_modelPos			= data.pos;
-			m_scale				= data.scale;
-			m_health			= data.hp;
-			m_maxHealth			= data.hp;
-			m_moveSpeed		    = data.speed;
-			m_tackleCooldownMax = data.tackleCooldown;
-			m_tackleSpeed		= data.tackleSpeed;
-			m_tackleDamage		= data.tackleDamage;
-			m_runSpeed			= data.runSpeed;
-			m_initialAmmo		= data.initialAmmo;
-			m_bulletPower		= data.bulletPower;
-			m_shieldDurability = data.maxShieldDurability; // 最大耐久値に設定
-			m_shieldBarAnim = data.maxShieldDurability; // UIの初期値も最大に
+			m_pos				  = data.pos;
+			m_modelPos			  = data.pos;
+			m_scale				  = data.scale;
+			m_health			  = data.hp;
+			m_maxHealth			  = data.hp;
+			m_moveSpeed		      = data.speed;
+			m_tackleCooldownMax   = data.tackleCooldown;
+			m_tackleSpeed		  = data.tackleSpeed;
+			m_tackleDamage		  = data.tackleDamage;
+			m_runSpeed			  = data.runSpeed;
+			m_initialAmmo		  = data.initialAmmo;
+			m_bulletPower		  = data.bulletPower;
+			m_shieldDurability	  = data.maxShieldDurability; // 最大耐久値に設定
+			m_shieldBarAnim		  = data.maxShieldDurability; // UIの初期値も最大に
 			m_maxShieldDurability = data.maxShieldDurability; // 最大耐久値を設定
-			m_shieldRegenRate = data.shieldRegenRate; // 回復速度を設定
-			m_isShieldBroken = false; // 盾は壊れていない
+			m_shieldRegenRate	  = data.shieldRegenRate; // 回復速度を設定
+			m_isShieldBroken	  = false; // 盾は壊れていない
 			MV1SetScale(m_modelHandle, data.scale);
 			MV1SetRotationXYZ(m_modelHandle, data.rot);
 			break;
@@ -596,6 +588,30 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
+	// 敵に照準が合っているかどうかの判定
+	m_isAimingAtEnemy = false;
+	VECTOR camPos = m_pCamera->GetPos();
+	VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+	VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f)); 
+
+	for (const auto& enemy : enemyList)
+	{
+		if (!enemy || !enemy->IsAlive())
+		{
+			continue;
+		}
+
+		VECTOR hitPos;
+		float hitDistSq;
+		EnemyBase::HitPart part = enemy->CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
+
+		if (part == EnemyBase::HitPart::Body || part == EnemyBase::HitPart::Head)
+		{
+			m_isAimingAtEnemy = true;
+			break;
+		}
+	}
+
 	// 右クリック長押しでガード	
 	if (!m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput && !m_isShieldBroken)
 	{
@@ -699,7 +715,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			VECTOR right = VGet(sinf(yaw + DX_PI_F * 0.5f), 0, cosf(yaw + DX_PI_F * 0.5f));
 			VECTOR effectPos = VAdd(m_modelPos, VAdd(VScale(forward, kGuardEffectOffsetZ), VScale(right, kGuardEffectOffsetX)));
 			m_guardEffectHandle = m_pEffect->PlayGuardEffect(effectPos.x, effectPos.y, effectPos.z, pitch, yaw, 0.0f);
-			m_guardEffectTimer = kGuardEffectDuration; 
 		}
 	}
 	// ガード終了時（解除された場合）
@@ -710,35 +725,19 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			StopEffekseer3DEffect(m_guardEffectHandle);
 			m_guardEffectHandle = -1;
 		}
-		m_guardEffectTimer = 0; // タイマーをリセット
 	}
-	    
-	// ガードエフェクトのタイマー処理と追従
-	if (m_guardEffectTimer > 0)
+
+	// ガード中はエフェクトを追従させる
+	if (m_isGuarding && m_guardEffectHandle != -1)
 	{
-		m_guardEffectTimer--; // タイマーをデクリメント
-	  
-		if (m_guardEffectHandle != -1)
-		{
-			float yaw = m_pCamera->GetYaw();
-			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
-			VECTOR right = VGet(sinf(yaw + DX_PI_F * 0.5f), 0, cosf(yaw + DX_PI_F * 0.5f));
-	     	VECTOR effectPos = VAdd(m_modelPos, VAdd(VScale(forward, kGuardEffectOffsetZ), VScale(right, kGuardEffectOffsetX))); 
-	        SetPosPlayingEffekseer3DEffect(m_guardEffectHandle, effectPos.x, effectPos.y, effectPos.z);
-	    
-	    	float pitch = -m_pCamera->GetPitch();
-	    	SetRotationPlayingEffekseer3DEffect(m_guardEffectHandle, pitch, yaw, 0.0f);
-	   	}
-	    
-	   	// タイマーが切れたらエフェクトを停止
-		if (m_guardEffectTimer <= 0)
-		{
-			if (m_guardEffectHandle != -1)
-			{
-				StopEffekseer3DEffect(m_guardEffectHandle);
-				m_guardEffectHandle = -1;
-			}
-		}
+		float yaw = m_pCamera->GetYaw();
+		VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
+		VECTOR right = VGet(sinf(yaw + DX_PI_F * 0.5f), 0, cosf(yaw + DX_PI_F * 0.5f));
+		VECTOR effectPos = VAdd(m_modelPos, VAdd(VScale(forward, kGuardEffectOffsetZ), VScale(right, kGuardEffectOffsetX)));
+		SetPosPlayingEffekseer3DEffect(m_guardEffectHandle, effectPos.x, effectPos.y, effectPos.z);
+
+		float pitch = -m_pCamera->GetPitch();
+		SetRotationPlayingEffekseer3DEffect(m_guardEffectHandle, pitch, yaw, 0.0f);
 	}
 	    
 	// スパークエフェクトのタイマー処理と追従
@@ -1317,23 +1316,11 @@ void Player::DrawUI()
 		DrawExtendGraph(gunImageX, gunImageY, gunImageX + kGunImageWidth, gunImageY + kGunImageHeight, gunHandle, true);
 
 		// 残弾数の表示
-		// 弾薬UI全体の幅を計算
 		int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
-		int ammoUIWidth = kAmmoImageSize + kAmmoImageTextSpacing + ammoTextWidth;
-
-		// 弾薬UIのX座標 
-		int ammoUIX = gunImageX + (kGunImageWidth * 0.5f) - (ammoUIWidth * 0.5f) + kAmmoUIGunCenterOffsetX;
-		// 弾薬UIのY座標 
-		int ammoUIY = gunImageY + kGunImageHeight - kAmmoImageSize - kAmmoUIYOffset;
-
-		// ammo画像の描画
-		int ammoImageX = ammoUIX;
-		int ammoImageY = ammoUIY;
-		DrawExtendGraph(ammoImageX, ammoImageY, ammoImageX + kAmmoImageSize, ammoImageY + kAmmoImageSize, m_ammoImageHandle, true);
-
-		// 弾薬数のテキスト描画
-		int ammoTextX = ammoImageX + kAmmoImageSize + kAmmoImageTextSpacing;
-		int ammoTextY = ammoUIY + (kAmmoImageSize - kAmmoTextHeight) * 0.5f;
+		
+		// 弾薬数のテキスト描画位置
+		int ammoTextX = gunImageX - kAmmoTextGunOffsetX - ammoTextWidth;
+		int ammoTextY = gunImageY + (kGunImageHeight - kAmmoTextHeight) * 0.5f + kAmmoTextGunOffsetY;
 
 		// 弾薬無限モードの場合は「∞」を表示
 		if (m_isInfiniteAmmo)
@@ -1381,13 +1368,13 @@ void Player::DrawUI()
 		GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
 
 		// 盾ゲージのサイズと位置
-		// 幅を固定し、アスペクト比を維持するように高さを計算
-		const int shieldGaugeWidth = 200;
-		const int shieldGaugeHeight = (int)((float)shieldGaugeWidth * shieldTexW / shieldTexH);
-		float scale = (float)shieldGaugeWidth / shieldTexH;
+		// 高さを固定し、アスペクト比を維持するように幅を計算 (縦向き)
+		const int shieldGaugeHeight = 200; // 縦向きのゲージの高さ
+		const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW / shieldTexH); // 縦向きのゲージの幅
+		float scale = (float)shieldGaugeHeight / shieldTexH;
 
 		int shieldGaugeX = screenW - shieldGaugeWidth - kHpBarMargin;
-		int shieldGaugeY = tackleUIY - (shieldGaugeHeight - kHpBarHeight) * 0.5f;
+		int shieldGaugeY = kShieldUIYPosition;
 
 		// ゲージの背景（半透明の盾）
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
@@ -1398,7 +1385,7 @@ void Player::DrawUI()
 			shieldTexH * 0.5f,
 			scale,
 			scale,
-			-DX_PI_F * 0.5f,
+			0.0f,
 			m_shieldImageHandle,
 			true
 		);
@@ -1419,7 +1406,7 @@ void Player::DrawUI()
 				shieldTexH * 0.5f,
 				scale,
 				scale,
-				-DX_PI_F * 0.5f,
+				0.0f,
 				m_shieldImageHandle,
 				true
 			);
@@ -1879,6 +1866,11 @@ void Player::ShakeGun(float power, float duration)
 {
 	m_gunShakePower = power;
 	m_gunShakeTimer = duration;
+}
+
+bool Player::IsAimingAtEnemy() const
+{
+	return m_isAimingAtEnemy;
 }
 
 bool Player::IsJustGuarded() const

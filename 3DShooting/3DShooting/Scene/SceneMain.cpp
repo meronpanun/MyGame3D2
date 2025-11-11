@@ -108,7 +108,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_cameraSensitivity(Game::g_cameraSensitivity),
     m_pCamera(std::make_unique<Camera>()),
     m_skyDomeHandle(-1),
-    m_dotHandle(-1),
+    m_dotDefaultHandle(-1),
+    m_dotOnTargetHandle(-1),
     m_hitMarkTimer(0),
 	m_isWave1FirstAidDropped(false),
 	m_isWave1AmmoDropped(false),
@@ -138,7 +139,8 @@ SceneMain::~SceneMain()
 {
 	// モデルやリソースの解放
     MV1DeleteModel(m_skyDomeHandle);    
-	DeleteGraph(m_dotHandle);
+	DeleteGraph(m_dotDefaultHandle);
+	DeleteGraph(m_dotOnTargetHandle);
 
 	// アイテムモデルの解放
 	FirstAidKitItem::DeleteModel();
@@ -174,7 +176,8 @@ void SceneMain::Init()
 
     // 重いリソースの非同期読み込みを開始
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
-    m_dotHandle     = LoadGraph("data/image/Dot.png");
+    m_dotDefaultHandle     = LoadGraph("data/image/DotDefault.png");
+    m_dotOnTargetHandle    = LoadGraph("data/image/DotOnTarget.png");
     m_bgmHandle     = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
 
     m_pPlayer = std::make_unique<Player>();
@@ -659,14 +662,21 @@ void SceneMain::Draw()
 
     if (!m_pPlayer->IsDead())
     {
-        m_pDirectionIndicator->Draw();
-        DrawGraph(kScreenCenterX - kReticleOffset * 0.5f, kScreenCenterY - kReticleOffset * 0.5f, m_dotHandle, true);
+        // ターゲットが利用可能な場合はdot2を描画し、そうでない場合はdotを描画
+        int currentDotHandle = m_pPlayer->IsAimingAtEnemy() ? m_dotOnTargetHandle : m_dotDefaultHandle;
+        DrawGraph(kScreenCenterX - kReticleOffset * 0.5f, kScreenCenterY - kReticleOffset * 0.5f, currentDotHandle, true);
     }
 
     // ウェーブUIの描画
     m_pWaveManager->DrawWaveUI();
 
     m_pPlayer->DrawUI();
+
+    // 方向インジケーターUIの描画
+    if (!m_pPlayer->IsDead())
+    {
+        m_pDirectionIndicator->Draw();
+    }
 
     // スコアポップアップ描画
     bool showScorePopup = !m_scorePopups.empty();

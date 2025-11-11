@@ -1,5 +1,4 @@
 ﻿#include "SceneManager.h"
-#include <string>
 #include "SceneTitle.h"
 #include "SceneMain.h"
 #include "SceneResult.h"
@@ -7,6 +6,8 @@
 #include "SceneGameOver.h"
 #include "DebugUtil.h"
 #include "Mouse.h"
+#include "Game.h"
+#include <string>
 #include <DxLib.h>
 
 SceneManager::SceneManager() :
@@ -162,7 +163,7 @@ void SceneManager::Draw()
 	if (m_fadeAlpha > 0)
 	{
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
-		DrawBox(0, 0, 1920, 1080, 0x000000, true);
+		DrawBox(0, 0, Game::kScreenWidth, Game::kScreenHeigth, 0x000000, true);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 

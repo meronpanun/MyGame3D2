@@ -82,7 +82,7 @@ void DirectionIndicator::Draw()
     // プレイヤーの前方ベクトル
     Vec3 playerForward = VSub(camera->GetTarget(), camera->GetPos());
     playerForward.y = 0;
-    playerForward.Normalize(); 
+    playerForward.Normalize();
 
 	// 攻撃された敵に対してインジケーターを描画
     for (const auto& attackedEnemy : m_attackedEnemies)

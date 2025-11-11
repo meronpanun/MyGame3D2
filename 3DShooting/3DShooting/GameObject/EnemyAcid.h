@@ -8,7 +8,6 @@
 #include <functional>
 #include <memory>
 
-
 class Player;
 class Collider;
 
@@ -63,6 +62,11 @@ public:
 	/// <returns>モデルハンドル</returns>
     int GetModelHandle() const { return m_modelHandle; }
 
+    /// <summary>
+	/// ダメージを受ける処理
+    /// </summary>
+	/// <param name="damage">受けるダメージ量</param>
+	/// <param name="type">攻撃の種類</param>
     void TakeDamage(float damage, AttackType type) override;
 
     /// <summary>
