@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <vector>
 
 /// <summary>
 /// エフェクトクラス
@@ -19,9 +20,9 @@ public:
 	/// <param name="x">X座標</param>
 	/// <param name="y">Y座標</param>
 	/// <param name="z">Z座標</param>
-	void PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ);
+	int PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ);
 
-	void PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ);
+	int PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ);
 
 	int PlayConcentrationLine(float x, float y, float z);
 
@@ -60,6 +61,11 @@ public:
 	/// <param name="z">Z座標</param>
 	int PlayParryEffect(float x, float y, float z);
 
+	/// <summary>
+	/// 再生中のエフェクトをすべて停止する
+	/// </summary>
+	void StopAllEffects();
+
 private:
 	int m_muzzleFlashEffectHandles[5]; // マズルフラッシュのエフェクトハンドル配列
 	int m_lossOfBloodEffectHandle; // 出血エフェクトハンドル
@@ -68,5 +74,7 @@ private:
 	int m_sparkEffectHandle; // スパークエフェクトハンドル
 	int m_acidEffectHandle; // 酸エフェクトハンドル
 	int m_parryEffectHandle; // パリィエフェクトハンドル
+
+	std::vector<int> m_playingEffectHandles; // 再生中のエフェクトハンドル
 };
 

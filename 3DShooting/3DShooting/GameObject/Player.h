@@ -3,7 +3,6 @@
 #include "AttackType.h"
 #include "Camera.h"
 #include <vector>
-#include <memory>
 
 class Camera;
 class Effect;
@@ -214,6 +213,12 @@ public:
 	/// パリィエフェクトを再生する
 	/// </summary>
 	void PlayParryEffect(const VECTOR& pos);
+
+	/// <summary>
+	/// エフェクトを設定する
+	/// </summary>
+	/// <param name="pEffect">エフェクトのポインタ</param>
+	void SetEffect(Effect* pEffect) { m_pEffect = pEffect; }
 	    
 private:
    	AttackType m_allowedAttackType = AttackType::None;
@@ -245,7 +250,7 @@ private:
 	std::vector<ShellCasing>     m_shellCasings;
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
-	std::shared_ptr<Effect>	     m_pEffect;		 // エフェクトのポインタ
+	Effect*	     m_pEffect;		 // エフェクトのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー
 

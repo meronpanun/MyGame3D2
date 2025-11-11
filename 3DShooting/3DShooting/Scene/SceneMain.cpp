@@ -181,6 +181,7 @@ void SceneMain::Init()
     m_bgmHandle     = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
 
     m_pPlayer = std::make_unique<Player>();
+	m_pPlayer->SetEffect(m_pEffect.get());
     Game::m_pPlayer = m_pPlayer.get();
 
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();
@@ -842,3 +843,10 @@ void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part)
     m_hitMarkType = part;
 }
 
+void SceneMain::StopAllEffects()
+{
+	if (m_pEffect)
+	{
+		m_pEffect->StopAllEffects();
+	}
+}

@@ -87,6 +87,12 @@ public:
 	/// </summary>
 	/// <returns>経過時間（秒）</returns>
 	static float GetElapsedTime() { return s_elapsedTime; }
+
+	/// <summary>
+	/// すべてのエフェクトを停止する
+	/// </summary>
+	void StopAllEffects();
+
 private:
 	void DrawPauseMenu();
 

@@ -19,7 +19,6 @@
 #include <cassert>
 #include <algorithm>
 
-
 namespace
 {
 	// 銃のオフセット
@@ -107,7 +106,7 @@ namespace
 	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
 	constexpr int   kShieldImageActiveAlpha   = 255; // 使用可能な盾UIのアルファ値
 	constexpr int   kShieldImageCooldownAlpha = 128; // クールダウン中の盾UIのアルファ値
-	constexpr int   kShieldUIYPosition		  = 780;
+	constexpr int   kShieldUIYPosition		  = 420;
 
 	// フォント関連
 	constexpr int   kDefaultFontThickness  = 3;  // フォントの太さ
@@ -137,11 +136,11 @@ namespace
 	constexpr int   kAmmoEffectColorB     = 0;
 
 	// カメラシェイク
-	constexpr float kTakeDamageShakePower    = 5.0f; // 攻撃を受けた時の揺れの強さ
-	constexpr int   kTakeDamageShakeDuration = 15;   // 攻撃を受けた時の揺れの持続時間
-	constexpr float kShootShakePower		 = 6.0f; // 撃った時の揺れの強さ
-	constexpr int   kShootShakeDuration      = 8;    // 撃った時の揺れの持続時間
-	constexpr float kShieldBreakGunShakePower = 10.0f; // 盾破壊時の銃の揺れの強さ
+	constexpr float kTakeDamageShakePower		 = 5.0f;  // 攻撃を受けた時の揺れの強さ
+	constexpr int   kTakeDamageShakeDuration	 = 15;    // 攻撃を受けた時の揺れの持続時間
+	constexpr float kShootShakePower			 = 6.0f;  // 撃った時の揺れの強さ
+	constexpr int   kShootShakeDuration			 = 8;     // 撃った時の揺れの持続時間
+	constexpr float kShieldBreakGunShakePower    = 10.0f; // 盾破壊時の銃の揺れの強さ
 	constexpr float kShieldBreakGunShakeDuration = 30.0f; // 盾破壊時の銃の揺れの持続時間
 
 	// 銃UI関連
@@ -394,11 +393,6 @@ void Player::Init()
 		}
 	}
 
-	if (!m_pEffect) 
-	{
-		m_pEffect = std::make_shared<Effect>();
-		m_pEffect->Init();
-	}
 	m_pCamera->Init(); // カメラの初期化
 
 	m_shootCooldown = 1.0f / m_shootRate; // 発射クールタイムを設定
@@ -832,7 +826,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			if (!enemy) continue;
 
 			// 敵の更新処理
-			enemy->Update(m_bullets, tackleInfo, *this, enemyList, m_pEffect.get());
+			enemy->Update(m_bullets, tackleInfo, *this, enemyList, m_pEffect);
 		}
 
 #ifdef _DEBUG
@@ -891,7 +885,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	for (EnemyBase* enemy : enemyList)
 	{
 		if (!enemy) continue;
-		enemy->Update(m_bullets, tackleInfo, *this, enemyList, m_pEffect.get());
+		enemy->Update(m_bullets, tackleInfo, *this, enemyList, m_pEffect);
 	}
 	
 	// 弾の更新

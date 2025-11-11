@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <time.h>
+#include <algorithm>
 
 namespace
 {
@@ -92,7 +93,7 @@ void Effect::Draw()
 }
 
 // マズルフラッシュを再生する
-void Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ)
+int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
 	int index = rand() % 5;
 	if (m_muzzleFlashEffectHandles[index] != -1)
@@ -102,12 +103,15 @@ void Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, 
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
 			SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
+			m_playingEffectHandles.push_back(handle);
 		}
+		return handle;
 	}
+	return -1;
 }
 
 // 出血エフェクトを再生する
-void Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ)
+int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
 	if (m_lossOfBloodEffectHandle != -1)
 	{
@@ -117,8 +121,11 @@ void Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, 
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
 			SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
 			SetSpeedPlayingEffekseer3DEffect(handle, 5.0f); // 再生速度を5倍に
+			m_playingEffectHandles.push_back(handle);
 		}
+		return handle;
 	}
+	return -1;
 }
 
 // 集中線エフェクトを再生する
@@ -130,6 +137,7 @@ int Effect::PlayConcentrationLine(float x, float y, float z)
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			m_playingEffectHandles.push_back(handle);
 		}
 		return handle;
 	}
@@ -146,6 +154,7 @@ int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, f
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
 			SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
+			m_playingEffectHandles.push_back(handle);
 		}
 		return handle;
 	}
@@ -161,6 +170,7 @@ int Effect::PlaySparkEffect(float x, float y, float z)
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			m_playingEffectHandles.push_back(handle);
 		}
 		return handle;
 	}
@@ -176,6 +186,7 @@ int Effect::PlayAcidEffect(float x, float y, float z)
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			m_playingEffectHandles.push_back(handle);
 		}
 		return handle;
 	}
@@ -191,9 +202,18 @@ int Effect::PlayParryEffect(float x, float y, float z)
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			m_playingEffectHandles.push_back(handle);
 		}
 		return handle;
 	}
 	return -1;
 }
 
+void Effect::StopAllEffects()
+{
+	for (int handle : m_playingEffectHandles)
+	{
+		StopEffekseer3DEffect(handle);
+	}
+	m_playingEffectHandles.clear();
+}

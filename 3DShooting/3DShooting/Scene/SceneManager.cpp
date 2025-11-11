@@ -127,10 +127,19 @@ void SceneManager::Update()
 				}
 			}
 
+			// 現在のシーンがSceneMainなら、エフェクトをすべて停止する
+			if (SceneMain* mainScene = dynamic_cast<SceneMain*>(m_pCurrentScene))
+			{
+				mainScene->StopAllEffects();
+			}
+
 			m_pCurrentScene = m_pSceneToChange;
 			m_pCurrentScene->Init();
 			m_pSceneToChange = nullptr;
 			m_fadeState = FadeState::FadingIn;
+			// シーン遷移直後のフレームで、前のシーンでの入力がトリガーされてしまうのを防ぐため、
+			// マウスの入力ログを意図的に更新してトリガー判定を無効化する。
+			Mouse::Update();
 		}
 	}
 
