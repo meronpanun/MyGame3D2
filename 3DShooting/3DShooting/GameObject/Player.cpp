@@ -182,7 +182,7 @@ namespace
 	constexpr unsigned int kColorHpBarBorder       = 0x000000;
 
 	// パリィ受付フレーム数
-	constexpr int kParryFrame = 120;
+	constexpr int kParryFrame = 60;
 }
 
 Player::Player() :

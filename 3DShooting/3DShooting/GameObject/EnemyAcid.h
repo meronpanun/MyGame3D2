@@ -89,7 +89,14 @@ public:
 	/// ボディコライダーを取得する
 	/// </summary>
 	/// <returns>ボディコライダー</returns>
-	std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;private:
+	std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
+    
+    /// <summary>
+    /// パリィされた時に呼び出される
+    /// </summary>
+    void OnParried();
+
+private:
 
 	/// <summary>
 	/// 酸の弾構造体
@@ -169,6 +176,15 @@ private:
     bool m_hasAttacked;       // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
     bool m_isItemDropped;     // アイテムドロップ済みフラグ
+    bool m_isStunned;         // 怯み状態か
+    int m_stunTimer;          // 怯みタイマー
 
     static int s_modelHandle; // 共有モデルハンドル
+
+#ifdef _DEBUG
+    bool m_shouldDrawParryCollider; // パリィコライダーを描画するか
+    VECTOR m_debugParryCapA;        // デバッグ用パリィカプセルのA点
+    VECTOR m_debugParryCapB;        // デバッグ用パリィカプセルのB点
+    float m_debugParryRadius;       // デバッグ用パリィカプセルの半径
+#endif
 };

@@ -34,6 +34,10 @@ namespace
 
     // 追跡関連（遠距離型なので、近づきすぎたら離れる）
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
+
+    // スタン関連
+    constexpr int kStunDuration = 120;           // スタンの総持続時間
+    constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
 }
 
 int EnemyAcid::s_modelHandle = -1;
@@ -48,7 +52,9 @@ EnemyAcid::EnemyAcid() :
     m_acidBulletSpawnOffset({ 0.0f, 0.0f, 0.0f }),
 	m_backAnimCount(0),
 	m_isItemDropped(false),
-	m_chaseSpeed(0.0f)
+	m_chaseSpeed(0.0f),
+    m_isStunned(false),
+    m_stunTimer(0)
 {
 	// モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -217,6 +223,42 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
 
 void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
 {
+#ifdef _DEBUG
+    m_shouldDrawParryCollider = false;
+#endif
+
+    // 怯み状態の処理
+    if (m_isStunned)
+    {
+        m_stunTimer--;
+        if (m_stunTimer <= 0)
+        {
+            m_isStunned = false;
+            // スタンからの復帰時の行動を決定
+            if (CanAttackPlayer(player))
+            {
+                ChangeAnimation(AnimState::Attack, false);
+                m_hasAttacked = false;
+                m_attackCooldown = m_attackCooldownMax;
+            }
+            else
+            {
+                ChangeAnimation(AnimState::Walk, true); // 歩行状態に戻す
+            }
+        }
+        else
+        {
+            // アニメーションをkStunAnimFrameLimitで停止
+            if (m_animTime < kStunAnimFrameLimit)
+            {
+                m_animTime += 1.0f;
+            }
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+        MV1SetPosition(m_modelHandle, m_pos); // 怯み中もモデルの位置は更新
+        return; // 他のAIロジックをスキップ
+    }
+
     if (m_hp <= 0.0f) 
     {
         if (!m_isDeadAnimPlaying) 
@@ -274,59 +316,79 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         // まだ反射されていない弾の処理
         if (!ball.isReflected)
         {
-            std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
             SphereCollider acidCol(ball.pos, ball.radius);
+            bool hitDetected = false;
 
-            // プレイヤーのコライダーと衝突しているか
-            if (acidCol.IsIntersects(playerCol.get()))
+            // パリィ判定を先に行う
+            if (player.IsJustGuarded())
             {
-                // プレイヤーがガード中か
-                if (player.IsGuarding())
+                // パリィ用の拡大コライダーを作成
+                VECTOR playerCapA, playerCapB;
+                float playerRadius;
+                player.GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
+
+                // 半径を1.5倍にしてパリィ判定を甘くする
+                float parryRadius = playerRadius * 1.5f;
+                CapsuleCollider parryCollider(playerCapA, playerCapB, parryRadius);
+
+#ifdef _DEBUG
+                // デバッグ描画用に情報を保存
+                m_shouldDrawParryCollider = true;
+                m_debugParryCapA = playerCapA;
+                m_debugParryCapB = playerCapB;
+                m_debugParryRadius = parryRadius;
+#endif
+
+                if (acidCol.IsIntersects(&parryCollider))
                 {
-                    // パリィ成功か (ジャストガードか)
-                    if (player.IsJustGuarded())
+                    // パリィ成功
+                    hitDetected = true;
+                    ball.isReflected = true;
+
+                    // プレイヤーSからカメラを取得
+                    const auto& playerCam = player.GetCamera();
+                    if (playerCam)
                     {
-                        // playerからカメラを取得
-                        const auto& playerCam = player.GetCamera();
-                        if (playerCam)
-                        {
-                            // カメラの前方ベクトルを計算
-                            VECTOR camForward = VNorm(VSub(playerCam->GetTarget(), playerCam->GetPos()));
-                            // プレイヤーの足元から、盾があるであろう前方少し上の位置を計算
-                            VECTOR shieldPos = player.GetPos();
-                            shieldPos.y += 50.0f; // 少し上に
-                            shieldPos = VAdd(shieldPos, VScale(camForward, 60.0f)); // 前方に60
+                        // カメラの前方ベクトルを計算
+                        VECTOR camForward = VNorm(VSub(playerCam->GetTarget(), playerCam->GetPos()));
+                        // プレイヤーの足元から、盾があるであろう前方少し上の位置を計算
+                        VECTOR shieldPos = player.GetPos();
+                        shieldPos.y += 50.0f; // 少し上に
+                        shieldPos = VAdd(shieldPos, VScale(camForward, 60.0f)); // 前方に60
 
-                            // 計算した盾の位置でエフェクトを再生
-                            const_cast<Player&>(player).PlayParryEffect(shieldPos);
+                        // 計算した盾の位置でエフェクトを再生
+                        const_cast<Player&>(player).PlayParryEffect(shieldPos);
 
-                            // パリィ成功時の処理
-                            ball.isReflected = true;
+                        // 反射方向を「盾の位置」から「敵の位置」へ
+                        VECTOR reflectDir = VNorm(VSub(this->GetPos(), shieldPos));
+                        ball.dir = reflectDir;
 
-                            // 反射方向を「盾の位置」から「敵の位置」へ
-                            VECTOR reflectDir = VNorm(VSub(this->GetPos(), shieldPos));
-                            ball.dir = reflectDir;
+                        // 反射した弾の速度を上げる
+                        ball.speed *= 1.5f;
+                    }
+                }
+            }
 
-                            // 反射した弾の速度を上げる
-                            ball.speed *= 1.5f;
-                        }
+            // パリィが成功しなかった場合、通常の当たり判定を行う
+            if (!hitDetected)
+            {
+                std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
+                if (acidCol.IsIntersects(playerCol.get()))
+                {
+                    hitDetected = true;
+                    // 通常ガードか、被弾か
+                    if (player.IsGuarding())
+                    {
+                        // 通常ガード時の処理（ダメージを受ける）
+                        const_cast<Player&>(player).TakeDamage(ball.damage, m_pos);
                     }
                     else
                     {
-                        // 通常ガード時の処理
+                        // ガードしていない場合
                         const_cast<Player&>(player).TakeDamage(ball.damage, m_pos);
-                        ball.active = false;
-                        if (ball.effectHandle != -1)
-                        {
-                            StopEffekseer3DEffect(ball.effectHandle);
-                            ball.effectHandle = -1;
-                        }
                     }
-                }
-                else
-                {
-                    // ガードしていない場合
-                    const_cast<Player&>(player).TakeDamage(ball.damage, m_pos);
+
+                    // 弾を非アクティブ化
                     ball.active = false;
                     if (ball.effectHandle != -1)
                     {
@@ -348,9 +410,11 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 {
                     // 自分自身にダメージ
                     this->TakeDamage(ball.damage, AttackType::Shoot); // AttackTypeは適切なものを選ぶ
+                    // 敵を怯ませる
+                    this->OnParried();
                     ball.active = false;
                     if (ball.effectHandle != -1)
-                    { 
+                    {
                         StopEffekseer3DEffect(ball.effectHandle);
                         ball.effectHandle = -1;
                     }
@@ -368,6 +432,12 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 ball.effectHandle = -1;
             }
         }
+    }
+
+    // パリィによってスタン状態になった場合、そのフレームの残りのAI処理をスキップする
+    if (m_isStunned)
+    {
+        return;
     }
 
     if (m_hp <= 0.0f)
@@ -617,6 +687,19 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     }
 }
 
+void EnemyAcid::OnParried()
+{
+    // 既に怯んでいるか、死んでいる場合は何もしない
+    if (m_isStunned || m_hp <= 0.0f)
+    {
+        return;
+    }
+
+    m_isStunned = true;
+    m_stunTimer = kStunDuration; // 怯み時間（アニメーション50F + 硬直30F）
+    ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションを怯みモーションとして再生
+}
+
 void EnemyAcid::Draw()
 {
     // 死亡時も死亡アニメーションが終わるまでは描画する
@@ -660,6 +743,10 @@ void EnemyAcid::DrawCollisionDebug() const
     if (m_pAttackRangeCollider)
     {
         DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 16, 0x00ffff);
+    }
+    if (m_shouldDrawParryCollider)
+    {
+        DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0x0000ff);
     }
 #endif
 }
