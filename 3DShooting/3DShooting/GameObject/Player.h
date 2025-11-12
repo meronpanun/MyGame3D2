@@ -4,6 +4,13 @@
 #include "Camera.h"
 #include <vector>
 
+// 武器の種類
+enum class WeaponType
+{
+	AssaultRifle, // アサルトライフル
+	Shotgun       // ショットガン
+};
+
 class Camera;
 class Effect;
 class Bullet;
@@ -268,12 +275,14 @@ private:
 
 	int   m_fontHandle;					   // フォントハンドル
 	int   m_hpFontHandle;			       // HPフォントハンドル
-	int   m_aRInitAmmo;		   // 初期弾薬数
-	int   m_aRHandle;			   // アサルトライフルモデルのハンドル
+	int   m_aRInitAmmo;		               // 初期弾薬数
+	int   m_aRHandle;					   // アサルトライフルモデルのハンドル
+	int   m_sGHandle;					   // ショットガンモデルのハンドル
 	int   m_shieldModelHandle;			   // 盾モデルのハンドル
 	int   m_shieldImageHandle;			   // 盾のUI画像のハンドル
 	int   m_ammoImageHandle;			   // 弾のハンドル
 	int   m_shotSEHandle;			       // ショットのSEハンドル
+	int   m_sGShotSEHandle;				   // ショットガンのショットSEハンドル
 	int   m_playerHitSEHandle;		       // 被弾SEのハンドル
 	int   m_tackleSEHandle;				   // タックルSEのハンドル
 	int   m_recoverySEHandle;			   // 回復アイテムSEのハンドル
@@ -289,6 +298,9 @@ private:
 	int   m_aRImageHandle;	               // アサルトライフルUI画像のハンドル
 	int   m_lowAmmoARImageHandle;          // 弾が少ない時のアサルトライフルUI画像のハンドル
 	int   m_noAmmoARImageHandle;           // 弾が0の時のアサルトライフルUI画像のハンドル
+	int   m_sGImageHandle;                 // ショットガンUI画像のハンドル
+	int   m_lowAmmoSGImageHandle;          // 弾が少ない時のショットガンUI画像のハンドル
+	int   m_noAmmoSGImageHandle;           // 弾が0の時のショットガンUI画像のハンドル
 	int   m_healthUiImageHandle;		   // HPUI画像のハンドル
 
 	bool  m_isLowAmmo;					   // 弾薬が少ないかどうかのフラグ
@@ -384,4 +396,12 @@ private:
 	int m_sparkEffectTimer;     // スパークエフェクトのタイマー
 	float m_guardEffectScale;   // ガードエフェクトのスケール
 	int m_parryEffectHandle;    // パリィエフェクトのハンドル
+
+	WeaponType m_currentWeaponType = WeaponType::AssaultRifle; // 現在装備している武器の種類
+
+	/// <summary>
+	/// 武器を切り替える
+	/// </summary>
+	/// <param name="weaponType">切り替える武器の種類</param>
+	void SwitchWeapon(WeaponType weaponType);
 };

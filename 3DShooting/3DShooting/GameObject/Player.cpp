@@ -21,15 +21,25 @@
 
 namespace
 {
-	// 銃のオフセット
+	// アサルトライフルオフセット
 	constexpr float kAROffsetX = 80.0f;
 	constexpr float kAROffsetY = 20.0f;
 	constexpr float kAROffsetZ = 60.0f;
 
-	// マズルフラッシュエフェクトのオフセット
+	// アサルトライフルマズルフラッシュエフェクトのオフセット
 	constexpr float kARMuzzleFlashEffectOffsetX = -20.0f;
 	constexpr float kARMuzzleFlashEffectOffsetY = 30.0f;
 	constexpr float kARMuzzleFlashEffectOffsetZ = 80.0f;
+
+	// ショットガンオフセット
+	constexpr float kSGOffsetX = 80.0f;
+	constexpr float kSGOffsetY = -30.0f;
+	constexpr float kSGOffsetZ = 60.0f;
+
+	// ショットガンマズルフラッシュエフェクトのオフセット
+	constexpr float kSGMuzzleFlashEffectOffsetX = -20.0f;
+	constexpr float kSGMuzzleFlashEffectOffsetY = 30.0f;
+	constexpr float kSGMuzzleFlashEffectOffsetZ = 80.0f;
 
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.35f; // 重力の強さ
@@ -48,6 +58,11 @@ namespace
 
 	// 1秒あたりの発射回数
 	constexpr float kARShootRate = 10.0f;
+	constexpr float kSGShootRate = 1.5f; // ショットガンの1秒あたりの発射回数
+
+	// 弾の威力
+	constexpr float kARBulletPower = 10.0f; // アサルトライフルの弾の威力
+	constexpr float kSGBulletPower = 20.0f; // ショットガンの弾の威力
 
 	// X,Z座標の移動範囲制限
 	constexpr float kLimitMoveX = 2800.0f;
@@ -55,10 +70,10 @@ namespace
 
 	// カメラを左右に振った際の横揺れ関連の定数
 	constexpr float kShieldSwayAmount = 4.0f;  // 盾モデルの揺れの強さ
-	constexpr float kShieldSwayDamping     = 0.9f;  // 盾モデルの揺れの減衰率
+	constexpr float kShieldSwayDamping = 0.9f;  // 盾モデルの揺れの減衰率
 
 	// 銃の揺れ関連の定数
-	constexpr float kGunSwayAmount   = 0.02f;  // 銃モデルの揺れの強さ 
+	constexpr float kGunSwayAmount   = 0.02f; // 銃モデルの揺れの強さ 
 	constexpr float kGunSwayDamping  = 0.95f; // 銃モデルの揺れの減衰率 
 
 	// Update関連
@@ -149,6 +164,12 @@ namespace
 	constexpr int   kARImageMarginX = 40;
 	constexpr int   kARImageMarginY = -60;
 
+	// ショットガンUI関連
+	constexpr int   kSGImageWidth   = 200;
+	constexpr int   kSGImageHeight  = 133;
+	constexpr int   kSGImageMarginX = 40;
+	constexpr int   kSGImageMarginY = -60;
+
 	// 弾薬UI関連
 	constexpr int   kAmmoTextHeight		    = 32;   
 	constexpr char  kAmmoTextMaxWidthStr[]  = "999";
@@ -187,9 +208,11 @@ namespace
 
 Player::Player() :
 	m_aRHandle(-1),
+	m_sGHandle(-1),
 	m_shieldModelHandle(-1),
 	m_shieldImageHandle(-1),
 	m_shotSEHandle(-1),
+	m_sGShotSEHandle(-1),
 	m_playerHitSEHandle(-1),
 	m_tackleSEHandle(-1),
 	m_recoverySEHandle(-1),
@@ -221,7 +244,7 @@ Player::Player() :
 	m_healEffectTimer(0.0f),
 	m_ammoEffectAlpha(0.0f),
 	m_ammoEffectTimer(0.0f),
-	m_shootCooldown(0.0f),
+	m_shootCooldown(1.0f / kARShootRate), 
 	m_shootCooldownTimer(0.0f),
 	m_aRShootRate(kARShootRate),
 	m_isInvincible(false),
@@ -238,6 +261,9 @@ Player::Player() :
 	m_aRImageHandle(-1),
 	m_lowAmmoARImageHandle(-1),
 	m_noAmmoARImageHandle(-1),
+	m_sGImageHandle(-1),
+	m_lowAmmoSGImageHandle(-1),
+	m_noAmmoSGImageHandle(-1),
 	m_isLowAmmo(false),
 	m_lowAmmoBlinkTimer(0.0f),
 	m_showLowAmmoWarning(false),
@@ -279,6 +305,10 @@ Player::Player() :
 	m_aRHandle = MV1LoadModel("data/model/AR.mv1");
 	assert(m_aRHandle != -1);
 
+	// ショットガンモデルの読み込み
+	m_sGHandle = MV1LoadModel("data/model/SG.mv1");
+	assert(m_sGHandle != -1);
+
 	// 薬莢排出口フレームのインデックスを検索
 	m_ejectionPortFrame = MV1SearchFrame(m_aRHandle, "AR_M_Ejection_Port");
 
@@ -302,6 +332,14 @@ Player::Player() :
 	m_noAmmoARImageHandle = LoadGraph("data/image/NoAmmoARUI.png");
 	assert(m_noAmmoARImageHandle != -1);
 
+	// ショットガンUI画像の読み込み
+	m_sGImageHandle = LoadGraph("data/image/SGUI.png");
+	assert(m_sGImageHandle != -1);
+	m_lowAmmoSGImageHandle = LoadGraph("data/image/LowAmmoSGUI.png");
+	assert(m_lowAmmoSGImageHandle != -1);
+	m_noAmmoSGImageHandle = LoadGraph("data/image/NoAmmoSGUI.png");
+	assert(m_noAmmoSGImageHandle != -1);
+
 	// HPUI画像の読み込み
 	m_healthUiImageHandle = LoadGraph("data/image/HealthUI.png");
 	assert(m_healthUiImageHandle != -1);
@@ -317,6 +355,8 @@ Player::Player() :
 	// SEの読み込み
 	m_shotSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
 	assert(m_shotSEHandle != -1);
+	m_sGShotSEHandle = LoadSoundMem("data/sound/SE/ShotgunShot.mp3");
+	assert(m_sGShotSEHandle != -1);
 	m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
 	assert(m_playerHitSEHandle != -1);
 	m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
@@ -337,6 +377,7 @@ Player::~Player()
 {
 	// モデルの解放
 	MV1DeleteModel(m_aRHandle);
+	MV1DeleteModel(m_sGHandle);
 	MV1DeleteModel(m_shieldModelHandle);
 
 	// 画像の解放
@@ -345,12 +386,16 @@ Player::~Player()
 	DeleteGraph(m_aRImageHandle);
 	DeleteGraph(m_lowAmmoARImageHandle);
 	DeleteGraph(m_noAmmoARImageHandle);
+	DeleteGraph(m_sGImageHandle);
+	DeleteGraph(m_lowAmmoSGImageHandle);
+	DeleteGraph(m_noAmmoSGImageHandle);
 	DeleteGraph(m_healthUiImageHandle);
 	DeleteGraph(m_shieldImageHandle);
 	DeleteGraph(m_lockOnUIHandle);
 
 	// SEの解放
 	DeleteSoundMem(m_shotSEHandle);
+	DeleteSoundMem(m_sGShotSEHandle);
 	DeleteSoundMem(m_playerHitSEHandle);
 	DeleteSoundMem(m_tackleSEHandle);
 	DeleteSoundMem(m_recoverySEHandle);
@@ -389,13 +434,16 @@ void Player::Init()
 			m_isShieldBroken	   = false; // 盾は壊れていない
 			MV1SetScale(m_aRHandle, data.scale);
 			MV1SetRotationXYZ(m_aRHandle, data.rot);
+			MV1SetScale(m_sGHandle, data.scale);
+			MV1SetRotationXYZ(m_sGHandle, data.rot);
 			break;
 		}
 	}
 
 	m_pCamera->Init(); // カメラの初期化
 
-	m_shootCooldown = 1.0f / m_aRShootRate; // 発射クールタイムを設定
+	// 初期武器を設定
+	SwitchWeapon(WeaponType::AssaultRifle);
 
 	// CSVの初期弾薬数を反映
 	m_ammo = m_aRInitAmmo;
@@ -405,6 +453,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
     unsigned char keyState[256];
     GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+
+	// 武器切り替え
+	if (keyState[KEY_INPUT_1] && !m_prevKeyState[KEY_INPUT_1])
+	{
+		SwitchWeapon(WeaponType::AssaultRifle);
+	}
+	else if (keyState[KEY_INPUT_2] && !m_prevKeyState[KEY_INPUT_2])
+	{
+		SwitchWeapon(WeaponType::Shotgun);
+	}
 
     // クールタイムタイマー減算
     if (m_shootCooldownTimer > 0.0f) 
@@ -482,7 +540,29 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	m_pBodyCollider->SetRadius(kCapsuleRadius);
 
 	// モデルの位置と回転を更新
-	VECTOR modelOffset	  = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
+	VECTOR modelOffset;
+	int currentModelHandle = -1;
+
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		modelOffset = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
+		currentModelHandle = m_aRHandle;
+		MV1SetVisible(m_sGHandle, FALSE); // ショットガンを非表示
+		MV1SetVisible(m_aRHandle, TRUE);  // アサルトライフルを表示
+		break;
+	case WeaponType::Shotgun:
+		modelOffset = VGet(kSGOffsetX, kSGOffsetY, kSGOffsetZ);
+		currentModelHandle = m_sGHandle;
+		MV1SetVisible(m_aRHandle, FALSE); // アサルトライフルを非表示
+		MV1SetVisible(m_sGHandle, TRUE);  // ショットガンを表示
+		break;
+	default:
+		modelOffset = VGet(0, 0, 0);
+		currentModelHandle = -1;
+		break;
+	}
+
 	MATRIX rotYaw		  = MGetRotY(m_pCamera->GetYaw());
 	MATRIX rotPitch		  = MGetRotX(-m_pCamera->GetPitch());
 	MATRIX modelRot		  = MMult(rotPitch, rotYaw);
@@ -495,10 +575,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	modelPos.y += gunOffsetY;
 
 	// モデルの位置を設定
-	MV1SetPosition(m_aRHandle, VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset));
-	
-	// モデルの回転を設定
-	MV1SetRotationXYZ(m_aRHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f), m_gunSwayRotOffset));
+	if (currentModelHandle != -1)
+	{
+		MV1SetPosition(currentModelHandle, VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset));
+		
+		// モデルの回転を設定
+		MV1SetRotationXYZ(currentModelHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f), m_gunSwayRotOffset));
+	}
 
 	// カメラの更新
 	m_pCamera->Update();
@@ -1125,8 +1208,18 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 void Player::Draw3D()
 {
-	// アサルトライフルモデルの描画
-	MV1DrawModel(m_aRHandle);
+	// 現在の武器モデルの描画
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		MV1DrawModel(m_aRHandle);
+		break;
+	case WeaponType::Shotgun:
+		MV1DrawModel(m_sGHandle);
+		break;
+	default:
+		break;
+	}
 
 	// 弾の描画
 	Bullet::DrawBullets(m_bullets);
@@ -1298,16 +1391,58 @@ void Player::DrawUI()
 		int gunImageX = screenW - kARImageWidth - kARImageMarginX;
 
 		// 銃UI画像の描画
-		int gunHandle = m_aRImageHandle;
-		if (m_ammo == 0 && !m_isInfiniteAmmo)
+		int gunHandle = -1;
+		int gunImageWidth = 0;
+		int gunImageHeight = 0;
+		int gunImageMarginX = 0;
+		int gunImageMarginY = 0;
+
+		switch (m_currentWeaponType)
 		{
-			gunHandle = m_noAmmoARImageHandle;
+		case WeaponType::AssaultRifle:
+			gunImageWidth = kARImageWidth;
+			gunImageHeight = kARImageHeight;
+			gunImageMarginX = kARImageMarginX;
+			gunImageMarginY = kARImageMarginY;
+			if (m_ammo == 0 && !m_isInfiniteAmmo)
+			{
+				gunHandle = m_noAmmoARImageHandle;
+			}
+			else if (m_isLowAmmo)
+			{
+				gunHandle = m_lowAmmoARImageHandle;
+			}
+			else
+			{
+				gunHandle = m_aRImageHandle;
+			}
+			break;
+		case WeaponType::Shotgun:
+			gunImageWidth = kSGImageWidth;
+			gunImageHeight = kSGImageHeight;
+			gunImageMarginX = kSGImageMarginX;
+			gunImageMarginY = kSGImageMarginY;
+			if (m_ammo == 0 && !m_isInfiniteAmmo)
+			{
+				gunHandle = m_noAmmoSGImageHandle;
+			}
+			else if (m_isLowAmmo)
+			{
+				gunHandle = m_lowAmmoSGImageHandle;
+			}
+			else
+			{
+				gunHandle = m_sGImageHandle;
+			}
+			break;
+		default:
+			break;
 		}
-		else if (m_isLowAmmo)
-		{
-			gunHandle = m_lowAmmoARImageHandle;
-		}
-		DrawExtendGraph(gunImageX, gunImageY, gunImageX + kARImageWidth, gunImageY + kARImageHeight, gunHandle, true);
+
+		gunImageY = tackleUIY - gunImageHeight - gunImageMarginY;
+		gunImageX = screenW - gunImageWidth - gunImageMarginX;
+
+		DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
 
 		// 残弾数の表示
 		int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
@@ -1720,8 +1855,38 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     // 画面中央から出ているように見せるため、カメラ前方に小さくオフセット
     VECTOR spawnPos = VAdd(cameraPos, VScale(cameraForward, 0.0f));
 
-    // 弾丸を発射（起点: 画面中央、方向: レティクル方向）
-    bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot, m_bulletPower);
+	int currentShotSEHandle = -1;
+	int currentModelHandle = -1;
+	VECTOR currentMuzzleFlashOffset = VGet(0, 0, 0);
+
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot, m_bulletPower);
+		currentShotSEHandle = m_shotSEHandle;
+		currentModelHandle = m_aRHandle;
+		currentMuzzleFlashOffset = VGet(kARMuzzleFlashEffectOffsetX, kARMuzzleFlashEffectOffsetY, kARMuzzleFlashEffectOffsetZ);
+		break;
+	case WeaponType::Shotgun:
+		currentShotSEHandle = m_sGShotSEHandle;
+		currentModelHandle = m_sGHandle;
+		currentMuzzleFlashOffset = VGet(kSGMuzzleFlashEffectOffsetX, kSGMuzzleFlashEffectOffsetY, kSGMuzzleFlashEffectOffsetZ);
+		// ショットガンは複数弾をばらけさせて発射
+		for (int i = 0; i < 5; ++i) // 5発の弾を発射
+		{
+			// わずかなランダムなばらつきを生成
+			float spreadX = ((float)GetRand(100) / 100.0f - 0.5f) * 0.1f; // -0.05から0.05の範囲
+			float spreadY = ((float)GetRand(100) / 100.0f - 0.5f) * 0.1f; // -0.05から0.05の範囲
+
+			VECTOR spreadDir = VAdd(cameraForward, VGet(spreadX, spreadY, 0));
+			spreadDir = VNorm(spreadDir); // 正規化
+
+			bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot, m_bulletPower);
+		}
+		break;
+	default:
+		break;
+	}
 
 	// 薬莢を生成
 	VECTOR ejectionPos = GetEjectionPortPos();
@@ -1729,7 +1894,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	m_shellCasings.emplace_back(ejectionPos, ejectionDir);
 
 	// SEを再生
-	PlaySoundMem(m_shotSEHandle, DX_PLAYTYPE_BACK);
+	PlaySoundMem(currentShotSEHandle, DX_PLAYTYPE_BACK);
 
 	float rotX = -m_pCamera->GetPitch();
 	float rotY = m_pCamera->GetYaw();
@@ -1750,19 +1915,39 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 // 銃の位置を取得
 VECTOR Player::GetGunPos() const
 {
+	VECTOR modelOffset;
+	VECTOR muzzleFlashOffset;
+	int currentModelHandle = -1;
+
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		modelOffset = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
+		muzzleFlashOffset = VGet(kARMuzzleFlashEffectOffsetX, kARMuzzleFlashEffectOffsetY, kARMuzzleFlashEffectOffsetZ);
+		currentModelHandle = m_aRHandle;
+		break;
+	case WeaponType::Shotgun:
+		modelOffset = VGet(kSGOffsetX, kSGOffsetY, kSGOffsetZ);
+		muzzleFlashOffset = VGet(kSGMuzzleFlashEffectOffsetX, kSGMuzzleFlashEffectOffsetY, kSGMuzzleFlashEffectOffsetZ);
+		currentModelHandle = m_sGHandle;
+		break;
+	default:
+		modelOffset = VGet(0, 0, 0);
+		muzzleFlashOffset = VGet(0, 0, 0);
+		break;
+	}
+
 	// モデルのオフセットと回転を計算
-	VECTOR modelOffset        = VGet(kAROffsetX, kAROffsetY, kAROffsetZ); // モデルのオフセット
 	MATRIX rotYaw             = MGetRotY(m_pCamera->GetYaw());        // カメラのヨー回転
 	MATRIX rotPitch           = MGetRotX(-m_pCamera->GetPitch());	  // カメラのピッチ回転
 	MATRIX modelRot           = MMult(rotPitch, rotYaw);			  // モデルの回転行列を計算
 	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);	  // オフセットを回転
-	VECTOR modelPosition      = VAdd(m_modelPos, rotatedModelOffset); // モデルの位置とオフセットを組み合わせて銃の位置を計算
+	VECTOR gunBasePosition    = VAdd(m_modelPos, rotatedModelOffset); // 銃の基準位置を計算
 
-	VECTOR gunOffset = VGet(kARMuzzleFlashEffectOffsetX, kARMuzzleFlashEffectOffsetY, kARMuzzleFlashEffectOffsetZ); // マズルフラッシュのオフセット
-	VECTOR gunPos    = VTransform(gunOffset, modelRot); // 銃のオフセットを回転
+	VECTOR rotatedMuzzleFlashOffset = VTransform(muzzleFlashOffset, modelRot); // マズルフラッシュのオフセットを回転
 
 	// 銃の位置を計算して返す
-	return VAdd(modelPosition, gunPos);
+	return VAdd(gunBasePosition, rotatedMuzzleFlashOffset);
 }
 
 // 銃の向きを取得
@@ -1778,10 +1963,30 @@ VECTOR Player::GetGunRot() const
 // 薬莢の排出位置を取得
 VECTOR Player::GetEjectionPortPos() const
 {
-	if (m_ejectionPortFrame != -1)
+	int currentModelHandle = -1;
+	const char* frameName = nullptr;
+
+	switch (m_currentWeaponType)
 	{
-		return MV1GetFramePosition(m_aRHandle, m_ejectionPortFrame);
+	case WeaponType::AssaultRifle:
+		currentModelHandle = m_aRHandle;
+		frameName = "AR_M_Ejection_Port";
+		break;
+	case WeaponType::Shotgun:
+		currentModelHandle = m_sGHandle;
+		frameName = "SG_M_Ejection_Port";
+		break;
+	default:
+		return VGet(0, 0, 0); // デフォルト値を返すか、エラー処理
 	}
+
+	int ejectionPortFrame = MV1SearchFrame(currentModelHandle, frameName);
+
+	if (ejectionPortFrame != -1)
+	{
+		return MV1GetFramePosition(currentModelHandle, ejectionPortFrame);
+	}
+	return VGet(0, 0, 0); // フレームが見つからない場合はデフォルト値を返す
 }
 
 std::shared_ptr<CapsuleCollider> Player::GetBodyCollider() const
@@ -1878,4 +2083,50 @@ void Player::PlayParryEffect(const VECTOR& pos)
     {
         m_pEffect->PlayParryEffect(pos.x, pos.y, pos.z);
     }
+}
+
+void Player::SwitchWeapon(WeaponType weaponType)
+{
+	if (m_currentWeaponType == weaponType)
+	{
+		return; // 同じ武器なら切り替えない
+	}
+
+	// 現在の武器を非表示にする
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		MV1SetVisible(m_aRHandle, FALSE);
+		break;
+	case WeaponType::Shotgun:
+		MV1SetVisible(m_sGHandle, FALSE);
+		break;
+	default:
+		break;
+	}
+
+	m_currentWeaponType = weaponType;
+
+	// 武器に応じたパラメータを設定
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		m_shootCooldown = 1.0f / kARShootRate;
+		m_bulletPower = kARBulletPower;
+		m_ejectionPortFrame = MV1SearchFrame(m_aRHandle, "AR_M_Ejection_Port");
+		MV1SetScale(m_aRHandle, m_scale); // アサルトライフルモデルにスケールを適用
+		MV1SetRotationXYZ(m_aRHandle, VGet(0.0f, DX_PI_F, 0.0f)); // アサルトライフルモデルに回転を適用
+		MV1SetVisible(m_aRHandle, TRUE); // アサルトライフルを表示
+		break;
+	case WeaponType::Shotgun:
+		m_shootCooldown = 1.0f / kSGShootRate;
+		m_bulletPower = kSGBulletPower;
+		m_ejectionPortFrame = MV1SearchFrame(m_sGHandle, "SG_M_Ejection_Port");
+		MV1SetScale(m_sGHandle, m_scale); // ショットガンモデルにスケールを適用
+		MV1SetRotationXYZ(m_sGHandle, VGet(0.0f, DX_PI_F, 0.0f)); // ショットガンモデルに回転を適用
+		MV1SetVisible(m_sGHandle, TRUE); // ショットガンを表示
+		break;
+	default:
+		break;
+	}
 }

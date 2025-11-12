@@ -20,7 +20,7 @@ struct ObjectTransformData
 	float tackleSpeed    = 0.0f; // タックル時の速度
 	float tackleDamage   = 0.0f; // タックルダメージ
 	float runSpeed       = 0.0f; // プレイヤー用の走る速度
-	float bulletPower    = 0.0f; // プレイヤー用の弾の威力
+	float bulletPower    = 0.0f; // アサルトライフル用の弾の威力
 	int   aRInitAmmo = 0;    // アサルトライフル用の初期弾薬数
 	float maxShieldDurability = 0.0f; // 盾の最大耐久値
 	float shieldRegenRate = 0.0f;     // 盾の回復速度
