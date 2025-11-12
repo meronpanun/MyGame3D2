@@ -298,7 +298,7 @@
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\Player.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\Player.cpp",
               "RelativeToolTip": "3DShooting\\GameObject\\Player.cpp",
-              "ViewState": "AgIAABUBAAAAAAAAAAAjwC0BAAA+AAAAAAAAAA==",
+              "ViewState": "AgIAAA8BAAAAAAAAAAAjwBkBAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-10-21T03:20:57.771Z",
               "EditorCaption": ""
@@ -313,8 +313,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyAcid.cpp",
               "ViewState": "AgIAAB4AAAAAAAAAAAAAACkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-28T08:05:08.32Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-28T08:05:08.32Z"
             },
             {
               "$type": "Document",

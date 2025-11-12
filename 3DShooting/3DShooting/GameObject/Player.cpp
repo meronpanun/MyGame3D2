@@ -276,7 +276,7 @@ Player::Player() :
 	m_parryEffectHandle(-1)
 {
 	// プレイヤーモデルの読み込み
-	m_modelHandle = MV1LoadModel("data/model/AR_M.mv1");
+	m_modelHandle = MV1LoadModel("data/model/AR.mv1");
 	assert(m_modelHandle != -1);
 
 	// 薬莢排出口フレームのインデックスを検索
