@@ -295,11 +295,11 @@ Player::Player() :
 	assert(m_noHealthImageHandle != -1);
 
 	// 銃UI画像の読み込み
-	m_gunImageHandle = LoadGraph("data/image/Gun.png");
+	m_gunImageHandle = LoadGraph("data/image/ARUI.png");
 	assert(m_gunImageHandle != -1);
-	m_lowAmmoGunImageHandle = LoadGraph("data/image/LowAmmoGun.png");
+	m_lowAmmoGunImageHandle = LoadGraph("data/image/LowAmmoARUI.png");
 	assert(m_lowAmmoGunImageHandle != -1);
-	m_noAmmoGunImageHandle = LoadGraph("data/image/NoAmmoGun.png");
+	m_noAmmoGunImageHandle = LoadGraph("data/image/NoAmmoARUI.png");
 	assert(m_noAmmoGunImageHandle != -1);
 
 	// HPUI画像の読み込み
