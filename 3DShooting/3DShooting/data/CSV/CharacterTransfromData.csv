@@ -1,4 +1,4 @@
-d,PosX,PosY,PosZ,RotX,RotY,RotZ,ScaleX,ScaleY,ScaleZ,Attack,HP,NormalChaseSpeed,RunnerChaseSpeed,AcidChaseSpeed,Speed,RunSpeed,InitialAmmo,BulletPower,TackleCooldown,TackleSpeed,TackleDamage,MaxShieldDurability,ShieldRegenRate
+d,PosX,PosY,PosZ,RotX,RotY,RotZ,ScaleX,ScaleY,ScaleZ,Attack,HP,NormalChaseSpeed,RunnerChaseSpeed,AcidChaseSpeed,Speed,RunSpeed,ARInitAmmo,BulletPower,TackleCooldown,TackleSpeed,TackleDamage,MaxShieldDurability,ShieldRegenRate
 NormalEnemy,0,-0.5,3,0,0,0,0.8,0.8,0.8,20,100,2,,,,,,,,,,,
 RunnerEnemy,5,-0.5,3,0,0,0,0.7,0.7,0.7,15,200,,4,,,,,,,,,,
 AcidEnemy,-5,-0.5,3,0,0,0,1,1,1,1,250,,,2,,,,,,,,,

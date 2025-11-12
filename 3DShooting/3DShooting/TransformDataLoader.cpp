@@ -241,12 +241,12 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 				{
 					if (!element.empty()) 
 					{
-						data.initialAmmo = std::stoi(element);
+						data.aRInitAmmo = std::stoi(element);
 					}
 				} 
 				catch (const std::exception&) 
 				{
-					data.initialAmmo = 0;
+					data.aRInitAmmo = 0;
 				}
 				break;
 			case 18: // BulletPower（プレイヤー用）

@@ -250,9 +250,9 @@ private:
 	std::vector<ShellCasing>     m_shellCasings;
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
 	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
-	Effect*	     m_pEffect;		 // エフェクトのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー
+	Effect* m_pEffect; // エフェクトのポインタ
 
 	// プレイヤーの位置を保持するメンバー変数
 	VECTOR m_pos;
@@ -268,12 +268,12 @@ private:
 
 	int   m_fontHandle;					   // フォントハンドル
 	int   m_hpFontHandle;			       // HPフォントハンドル
-	int   m_initialAmmo;				   // 初期弾薬数
-	int   m_modelHandle;			       // プレイヤーモデルのハンドル
+	int   m_aRInitAmmo;		   // 初期弾薬数
+	int   m_aRHandle;			   // アサルトライフルモデルのハンドル
 	int   m_shieldModelHandle;			   // 盾モデルのハンドル
 	int   m_shieldImageHandle;			   // 盾のUI画像のハンドル
 	int   m_ammoImageHandle;			   // 弾のハンドル
-	int   m_shootSEHandle;			       // シュートのSEハンドル
+	int   m_shotSEHandle;			       // ショットのSEハンドル
 	int   m_playerHitSEHandle;		       // 被弾SEのハンドル
 	int   m_tackleSEHandle;				   // タックルSEのハンドル
 	int   m_recoverySEHandle;			   // 回復アイテムSEのハンドル
@@ -286,9 +286,9 @@ private:
 	int   m_landingSEHandle;			   // 着地SEのハンドル
 	int   m_ejectionPortFrame;			   // 薬莢排出口フレーム
 	int   m_noAmmoImageHandle;			   // 弾薬切れUI画像のハンドル
-	int   m_gunImageHandle;				   // 銃UI画像のハンドル
-	int   m_lowAmmoGunImageHandle;         // 弾が少ない時の銃UI画像のハンドル
-	int   m_noAmmoGunImageHandle;          // 弾が0の時の銃UI画像のハンドル
+	int   m_aRImageHandle;	               // アサルトライフルUI画像のハンドル
+	int   m_lowAmmoARImageHandle;          // 弾が少ない時のアサルトライフルUI画像のハンドル
+	int   m_noAmmoARImageHandle;           // 弾が0の時のアサルトライフルUI画像のハンドル
 	int   m_healthUiImageHandle;		   // HPUI画像のハンドル
 
 	bool  m_isLowAmmo;					   // 弾薬が少ないかどうかのフラグ
@@ -318,7 +318,7 @@ private:
 	float m_ammoEffectAlpha;    // 弾薬エフェクト用アルファ値
 	float m_shootCooldown;      // 発射クールタイム
 	float m_shootCooldownTimer; // クールタイムタイマー
-	float m_shootRate;          // 1秒あたりの発射回数
+	float m_aRShootRate;        // アサルトライフルの1秒あたりの発射回数
 
 	bool  m_isMoving;	    // プレイヤーが移動中かどうか
 	bool  m_isJumping;	    // プレイヤーがジャンプ中かどうか
@@ -341,8 +341,6 @@ private:
 	float m_shieldRegenRate;     // 盾の回復速度
 	bool m_isShieldBroken; // 盾が壊れているか
 	int m_guardTimer;      // ガードしてからのフレーム数
-
-
 
 private:
 	int   m_warningFontHandle;  // 警告用フォントハンドル
