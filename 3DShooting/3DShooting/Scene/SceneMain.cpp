@@ -23,6 +23,7 @@
 #include "Effect.h"
 #include "DirectionIndicator.h"
 #include "ShellCasing.h"
+#include "AnimationManager.h"
 #include <cstdio>
 #include <cassert>
 #include <algorithm>
@@ -125,6 +126,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_isPlayerInit(false),
 	m_isTaskTutorialInit(false),
 	m_pEffect(std::make_unique<Effect>()),
+	m_pAnimManager(std::make_unique<AnimationManager>()),
 	m_gameOverDelayTimer(-1)
 {
     g_sceneMainInstance = this;
@@ -182,6 +184,7 @@ void SceneMain::Init()
 
     m_pPlayer = std::make_unique<Player>();
 	m_pPlayer->SetEffect(m_pEffect.get());
+	m_pPlayer->SetAnimationManager(m_pAnimManager.get());
     Game::m_pPlayer = m_pPlayer.get();
 
 	m_pEnemyNormal = std::make_shared<EnemyNormal>();

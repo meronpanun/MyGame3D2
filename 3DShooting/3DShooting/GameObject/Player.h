@@ -19,6 +19,7 @@ class EnemyNormal;
 class CapsuleCollider;
 class DirectionIndicator;
 class ShellCasing;
+class AnimationManager;
 
 /// <summary>
 /// プレイヤークラス
@@ -226,6 +227,12 @@ public:
 	/// </summary>
 	/// <param name="pEffect">エフェクトのポインタ</param>
 	void SetEffect(Effect* pEffect) { m_pEffect = pEffect; }
+
+	/// <summary>
+	/// アニメーションマネージャーを設定する
+	/// </summary>
+	/// <param name="pAnimManager">アニメーションマネージャーのポインタ</param>
+	void SetAnimationManager(AnimationManager* pAnimManager) { m_pAnimManager = pAnimManager; }
 	    
 private:
    	AttackType m_allowedAttackType = AttackType::None;
@@ -260,6 +267,9 @@ private:
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー
 	Effect* m_pEffect; // エフェクトのポインタ
+	AnimationManager* m_pAnimManager; // アニメーションマネージャーのポインタ
+	bool m_isSGAnimPlaying;
+	float m_sGAnimTime;
 
 	// プレイヤーの位置を保持するメンバー変数
 	VECTOR m_pos;

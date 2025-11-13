@@ -21,6 +21,7 @@ class Stage;
 class WaveManager;
 class Effect;
 class DirectionIndicator;
+class AnimationManager;
 
 /// <summary>
 /// メインシーンクラス
@@ -106,6 +107,7 @@ private:
     std::shared_ptr<Stage> m_pStage;
     std::shared_ptr<WaveManager> m_pWaveManager;
 	std::unique_ptr<Effect> m_pEffect;
+	std::unique_ptr<AnimationManager> m_pAnimManager;
     std::vector<EnemyBase*> m_enemyList;
     std::vector<std::shared_ptr<ItemBase>> m_items;
 

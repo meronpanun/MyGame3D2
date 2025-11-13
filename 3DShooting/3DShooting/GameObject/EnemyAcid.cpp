@@ -637,41 +637,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         m_hitDisplayTimer--;
     }
 
-    // AcidBallの更新とプレイヤーへの当たり判定
-    for (auto& ball : m_acidBalls)
-    {
-        if (!ball.active) continue;
-        ball.Update();
-
-		if (ball.effectHandle != -1)
-		{
-			SetPosPlayingEffekseer3DEffect(ball.effectHandle, ball.pos.x, ball.pos.y, ball.pos.z);
-		}
-
-        std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
-        SphereCollider acidCol(ball.pos, ball.radius);
-        if (acidCol.IsIntersects(playerCol.get()))
-        {
-            const_cast<Player&>(player).TakeDamage(ball.damage, m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
-            ball.active = false;
-			if (ball.effectHandle != -1)
-			{
-				StopEffekseer3DEffect(ball.effectHandle);
-				ball.effectHandle = -1;
-			}
-        }
-
-		if (ball.pos.y < 0.0f) // 地面で消滅
-		{
-			ball.active = false;
-			if (ball.effectHandle != -1)
-			{
-				StopEffekseer3DEffect(ball.effectHandle);
-				ball.effectHandle = -1;
-			}
-		}
-    }
-
     // 攻撃クールダウンと攻撃後硬直の減算処理を追加
     if (m_attackCooldown > 0)
     {

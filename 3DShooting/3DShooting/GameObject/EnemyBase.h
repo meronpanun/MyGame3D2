@@ -60,8 +60,6 @@ public:
 		Dead     // 死亡
 	};
 
-
-
 	virtual int GetModelHandle() const { return -1; }
 
 	/// <summary>

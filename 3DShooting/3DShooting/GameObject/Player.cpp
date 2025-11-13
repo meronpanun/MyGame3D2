@@ -15,6 +15,7 @@
 #include "TransformDataLoader.h"
 #include "DirectionIndicator.h"
 #include "ShellCasing.h"
+#include "AnimationManager.h"
 #include <cmath>
 #include <cassert>
 #include <algorithm>
@@ -58,7 +59,7 @@ namespace
 
 	// 1秒あたりの発射回数
 	constexpr float kARShootRate = 10.0f;
-	constexpr float kSGShootRate = 1.5f; // ショットガンの1秒あたりの発射回数
+	constexpr float kSGShootRate = 1.0f; // ショットガンの1秒あたりの発射回数
 
 	// 弾の威力
 	constexpr float kARBulletPower = 10.0f; // アサルトライフルの弾の威力
@@ -69,7 +70,7 @@ namespace
 	constexpr float kLimitMoveZ = 2800.0f;
 
 	// カメラを左右に振った際の横揺れ関連の定数
-	constexpr float kShieldSwayAmount = 4.0f;  // 盾モデルの揺れの強さ
+	constexpr float kShieldSwayAmount  = 4.0f;  // 盾モデルの揺れの強さ
 	constexpr float kShieldSwayDamping = 0.9f;  // 盾モデルの揺れの減衰率
 
 	// 銃の揺れ関連の定数
@@ -116,12 +117,11 @@ namespace
 	constexpr float kShieldAnimEasingPower         = 3.0f;    // アニメーションのイージングの強さ
 
 	// 盾UI関連
-	constexpr int   kShieldImageWidth         = 64;
-	constexpr int   kShieldImageHeight        = 96; 
 	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
 	constexpr int   kShieldImageActiveAlpha   = 255; // 使用可能な盾UIのアルファ値
 	constexpr int   kShieldImageCooldownAlpha = 128; // クールダウン中の盾UIのアルファ値
 	constexpr int   kShieldUIYPosition		  = 420;
+	constexpr int   kShieldUIYOffset		  = 30; // 盾UIのY軸調整オフセット
 
 	// フォント関連
 	constexpr int   kDefaultFontThickness  = 3;  // フォントの太さ
@@ -166,15 +166,15 @@ namespace
 
 	// ショットガンUI関連
 	constexpr int   kSGImageWidth   = 200;
-	constexpr int   kSGImageHeight  = 133;
+	constexpr int   kSGImageHeight  = 64;
 	constexpr int   kSGImageMarginX = 40;
-	constexpr int   kSGImageMarginY = -60;
+	constexpr int   kSGImageMarginY = -20;
 
 	// 弾薬UI関連
 	constexpr int   kAmmoTextHeight		    = 32;   
 	constexpr char  kAmmoTextMaxWidthStr[]  = "999";
-	constexpr int   kAmmoTextGunOffsetX     = 20; // 銃画像からのXオフセット
-	constexpr int   kAmmoTextGunOffsetY     = -15;  // 銃画像からのYオフセット
+	constexpr int   kAmmoTextGunOffsetX     = 20;   
+	constexpr int   kAmmoTextGunOffsetY     = -15;  
 
 	// 警告UI関連
 	constexpr int   kWarningImageSize    = 128; 
@@ -299,7 +299,10 @@ Player::Player() :
 	m_maxShieldDurability(0.0f),
 	m_isShieldBroken(false),
 	m_guardTimer(0),
-	m_parryEffectHandle(-1)
+	m_parryEffectHandle(-1),
+	m_pAnimManager(nullptr),
+	m_isSGAnimPlaying(false),
+	m_sGAnimTime(0.0f)
 {
 	// アサルトライフルモデルの読み込み
 	m_aRHandle = MV1LoadModel("data/model/AR.mv1");
@@ -453,7 +456,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
     unsigned char keyState[256];
     GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
-
 	// 武器切り替え
 	if (keyState[KEY_INPUT_1] && !m_prevKeyState[KEY_INPUT_1])
 	{
@@ -566,6 +568,30 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	MATRIX rotYaw		  = MGetRotY(m_pCamera->GetYaw());
 	MATRIX rotPitch		  = MGetRotX(-m_pCamera->GetPitch());
 	MATRIX modelRot		  = MMult(rotPitch, rotYaw);
+
+	if (m_isSGAnimPlaying)
+	{
+		m_sGAnimTime += 1.0f; 
+		if (m_pAnimManager)
+		{
+			m_pAnimManager->UpdateAnimationTime(m_sGHandle, m_sGAnimTime);
+		}
+
+		// アニメーションが終了したかチェック
+		float totalTime = m_pAnimManager->GetAnimationTotalTime(m_sGHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames");
+		if (totalTime > 0 && m_sGAnimTime >= totalTime)
+		{
+			m_isSGAnimPlaying = false;
+			// アニメーションをデタッチ
+			int attachIndex = m_pAnimManager->GetCurrentAttachedAnimHandle(m_sGHandle);
+			if (attachIndex != -1)
+			{
+				MV1DetachAnim(m_sGHandle, attachIndex);
+				m_pAnimManager->ResetAttachedAnimHandle(m_sGHandle);
+			}
+		}
+	}
+
 	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
 	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
 
@@ -577,7 +603,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// モデルの位置を設定
 	if (currentModelHandle != -1)
 	{
-		MV1SetPosition(currentModelHandle, VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset));
+		VECTOR finalPos = VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset);
+		MV1SetPosition(currentModelHandle, finalPos);
 		
 		// モデルの回転を設定
 		MV1SetRotationXYZ(currentModelHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f), m_gunSwayRotOffset));
@@ -1447,9 +1474,11 @@ void Player::DrawUI()
 		// 残弾数の表示
 		int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
 		
-		// 弾薬数のテキスト描画位置
-		int ammoTextX = gunImageX - kAmmoTextGunOffsetX - ammoTextWidth;
-		int ammoTextY = gunImageY + (kARImageHeight - kAmmoTextHeight) * 0.5f + kAmmoTextGunOffsetY;
+		// 弾薬数UIの位置をAR基準で固定計算
+		int arGunImageX = screenW - kARImageWidth - kARImageMarginX;
+		int arGunImageY = tackleUIY - kARImageHeight - kARImageMarginY;
+		int ammoTextX = arGunImageX - kAmmoTextGunOffsetX - ammoTextWidth;
+		int ammoTextY = arGunImageY + (kARImageHeight - kAmmoTextHeight) * 0.5f + kAmmoTextGunOffsetY;
 
 		// 弾薬無限モードの場合は「∞」を表示
 		if (m_isInfiniteAmmo)
@@ -1498,12 +1527,12 @@ void Player::DrawUI()
 
 		// 盾ゲージのサイズと位置
 		// 高さを固定し、アスペクト比を維持するように幅を計算 (縦向き)
-		const int shieldGaugeHeight = 200; // 縦向きのゲージの高さ
+		const int shieldGaugeHeight = 150; // 縦向きのゲージの高さ
 		const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW / shieldTexH); // 縦向きのゲージの幅
 		float scale = (float)shieldGaugeHeight / shieldTexH;
 
 		int shieldGaugeX = screenW - shieldGaugeWidth - kHpBarMargin;
-		int shieldGaugeY = kShieldUIYPosition;
+		int shieldGaugeY = kShieldUIYPosition + kShieldUIYOffset;
 
 		// ゲージの背景（半透明の盾）
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
@@ -1766,6 +1795,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 
 		if (m_shieldDurability <= 0.0f)
 		{
+			float remainingDamage = -m_shieldDurability; // 先に超過ダメージを計算
 			m_shieldDurability = 0.0f;
 			m_isShieldBroken = true; // 盾が壊れた
 		
@@ -1777,7 +1807,6 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 						
 			// 銃を揺らす
 			ShakeGun(kShieldBreakGunShakePower, kShieldBreakGunShakeDuration);
-			float remainingDamage = -m_shieldDurability; // 正の値に変換
 			if (remainingDamage > 0)
 			{
 				m_health -= remainingDamage; // 残ったダメージをHPに適用
@@ -1871,6 +1900,12 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 		currentShotSEHandle = m_sGShotSEHandle;
 		currentModelHandle = m_sGHandle;
 		currentMuzzleFlashOffset = VGet(kSGMuzzleFlashEffectOffsetX, kSGMuzzleFlashEffectOffsetY, kSGMuzzleFlashEffectOffsetZ);
+		if (m_pAnimManager)
+		{
+			m_pAnimManager->PlayAnimation(m_sGHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
+			m_isSGAnimPlaying = true;
+			m_sGAnimTime = 0.0f;
+		}
 		// ショットガンは複数弾をばらけさせて発射
 		for (int i = 0; i < 5; ++i) // 5発の弾を発射
 		{
