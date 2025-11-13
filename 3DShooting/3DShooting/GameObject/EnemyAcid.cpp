@@ -227,82 +227,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     m_shouldDrawParryCollider = false;
 #endif
 
-    // 怯み状態の処理
-    if (m_isStunned)
-    {
-        m_stunTimer--;
-        if (m_stunTimer <= 0)
-        {
-            m_isStunned = false;
-            // スタンからの復帰時の行動を決定
-            if (CanAttackPlayer(player))
-            {
-                ChangeAnimation(AnimState::Attack, false);
-                m_hasAttacked = false;
-                m_attackCooldown = m_attackCooldownMax;
-            }
-            else
-            {
-                ChangeAnimation(AnimState::Walk, true); // 歩行状態に戻す
-            }
-        }
-        else
-        {
-            // アニメーションをkStunAnimFrameLimitで停止
-            if (m_animTime < kStunAnimFrameLimit)
-            {
-                m_animTime += 1.0f;
-            }
-            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
-        }
-        MV1SetPosition(m_modelHandle, m_pos); // 怯み中もモデルの位置は更新
-        return; // 他のAIロジックをスキップ
-    }
-
-    if (m_hp <= 0.0f) 
-    {
-        if (!m_isDeadAnimPlaying) 
-        {
-            ChangeAnimation(AnimState::Dead, false);
-            m_isDeadAnimPlaying = true;
-            m_animTime = 0.0f; // アニメーション時間をリセット
-            m_isAlive = true;  // 死亡アニメーション中はtrueのまま
-        }
-        
-        // 死亡アニメーション中もアニメーション時間を更新
-        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-        {
-            m_animTime += 1.0f;
-            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
-        }
-        
-        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
-        if (m_animTime >= currentAnimTotalTime) 
-        {
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-            {
-                MV1DetachAnim(m_modelHandle, 0);
-                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
-            }
-            // アイテムドロップと死亡コールバックを呼び出し
-            if (!m_isItemDropped && m_onDropItem)
-            {
-                m_onDropItem(m_pos);
-                m_onDropItem = nullptr;
-                m_isItemDropped = true;
-            }
-            if (m_onDeathCallback) 
-            {
-                m_onDeathCallback(m_pos);
-                m_onDeathCallback = nullptr; // 一度だけ呼び出す
-            }
-            m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
-        }
-        // 死亡アニメーション中は、敵のモデル更新や行動ロジックはスキップ
-        // ただし、生成済みの酸弾は引き続き処理する
-    }
-
-    // AcidBallの更新と当たり判定
+    // AcidBallの更新と当たり判定をスタン状態に関わらず行う
     for (auto& ball : m_acidBalls)
     {
         if (!ball.active) continue;
@@ -434,14 +359,121 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         }
     }
 
-    // パリィによってスタン状態になった場合、そのフレームの残りのAI処理をスキップする
-    if (m_isStunned)
+    // 弾との当たり判定・ダメージ処理
+    CheckHitAndDamage(bullets, pEffect);
+
+    // タックルダメージ処理
+    if (tackleInfo.isTackling && tackleInfo.tackleId != m_lastTackleId)
     {
-        return;
+        CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
+        if (m_pBodyCollider->IsIntersects(&playerTackleCollider))
+        {
+            TakeTackleDamage(tackleInfo.damage);
+            m_lastTackleId = tackleInfo.tackleId;
+        }
+    }
+    else if (!tackleInfo.isTackling)
+    {
+        ResetTackleHitFlag();
+        m_lastTackleId = -1;
     }
 
-    if (m_hp <= 0.0f)
+    // コライダーの更新
+    int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
+    VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
+
+    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight * 0.5f, 0));
+    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight * 0.5f, 0));
+    m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
+    m_pBodyCollider->SetRadius(::kBodyColliderRadius);
+
+    // ヘッドの位置を取得
+    int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+
+    // 頭の位置を取得してヘッドコライダーの中心を設定
+    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
+    VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
+    m_pHeadCollider->SetCenter(headCenter);
+    m_pHeadCollider->SetRadius(kHeadRadius);
+
+    // 攻撃範囲のコライダーを更新
+    VECTOR attackRangeCenter = m_pos;
+    attackRangeCenter.y += (::kBodyColliderHeight * 0.5f);
+    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+    m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
+
+    // 怯み状態の処理
+    if (m_isStunned)
     {
+        m_stunTimer--;
+        if (m_stunTimer <= 0)
+        {
+            m_isStunned = false;
+            // スタンからの復帰時の行動を決定
+            if (CanAttackPlayer(player))
+            {
+                ChangeAnimation(AnimState::Attack, false);
+                m_hasAttacked = false;
+                m_attackCooldown = m_attackCooldownMax;
+            }
+            else
+            {
+                ChangeAnimation(AnimState::Walk, true); // 歩行状態に戻す
+            }
+        }
+        else
+        {
+            // アニメーションをkStunAnimFrameLimitで停止
+            if (m_animTime < kStunAnimFrameLimit)
+            {
+                m_animTime += 1.0f;
+            }
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+        MV1SetPosition(m_modelHandle, m_pos); // 怯み中もモデルの位置は更新
+        return; // 他のAIロジックをスキップ
+    }
+
+    if (m_hp <= 0.0f) 
+    {
+        if (!m_isDeadAnimPlaying) 
+        {
+            ChangeAnimation(AnimState::Dead, false);
+            m_isDeadAnimPlaying = true;
+            m_animTime = 0.0f; // アニメーション時間をリセット
+            m_isAlive = true;  // 死亡アニメーション中はtrueのまま
+        }
+        
+        // 死亡アニメーション中もアニメーション時間を更新
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+        {
+            m_animTime += 1.0f;
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+        
+        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
+        if (m_animTime >= currentAnimTotalTime) 
+        {
+            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+            {
+                MV1DetachAnim(m_modelHandle, 0);
+                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
+            }
+            // アイテムドロップと死亡コールバックを呼び出し
+            if (!m_isItemDropped && m_onDropItem)
+            {
+                m_onDropItem(m_pos);
+                m_onDropItem = nullptr;
+                m_isItemDropped = true;
+            }
+            if (m_onDeathCallback) 
+            {
+                m_onDeathCallback(m_pos);
+                m_onDeathCallback = nullptr; // 一度だけ呼び出す
+            }
+            m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+        }
+        // 死亡アニメーション中は、敵のモデル更新や行動ロジックはスキップ
         return;
     }
 
@@ -459,30 +491,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         yaw += DX_PI_F;
     }
     MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
-
-    // コライダーの更新
-    int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
-    VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
-
-    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, ::kBodyColliderHeight * 0.5f, 0));
-    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -::kBodyColliderHeight * 0.5f, 0));
-    m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
-    m_pBodyCollider->SetRadius(::kBodyColliderRadius);
-
-	// ヘッドの位置を取得
-    int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
-
-	// 頭の位置を取得してヘッドコライダーの中心を設定
-    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
-    VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
-    m_pHeadCollider->SetCenter(headCenter);
-    m_pHeadCollider->SetRadius(kHeadRadius);
-
-	// 攻撃範囲のコライダーを更新
-    VECTOR attackRangeCenter = m_pos;
-    attackRangeCenter.y += (::kBodyColliderHeight * 0.5f);
-    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
-    m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
     // プレイヤーとの物理衝突判定
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
@@ -611,25 +619,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             }
         }
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
-    }
-
-    // 弾との当たり判定・ダメージ処理
-    CheckHitAndDamage(bullets, pEffect);
-
-    // タックルダメージ処理
-    if (tackleInfo.isTackling && tackleInfo.tackleId != m_lastTackleId)
-    {
-        CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
-        if (m_pBodyCollider->IsIntersects(&playerTackleCollider))
-        {
-            TakeTackleDamage(tackleInfo.damage);
-            m_lastTackleId = tackleInfo.tackleId;
-        }
-    }
-    else if (!tackleInfo.isTackling)
-    {
-        ResetTackleHitFlag();
-        m_lastTackleId = -1;
     }
 
     if (m_hitDisplayTimer > 0)

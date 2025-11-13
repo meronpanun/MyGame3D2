@@ -59,7 +59,7 @@ namespace
 
 	// 1秒あたりの発射回数
 	constexpr float kARShootRate = 10.0f;
-	constexpr float kSGShootRate = 1.0f; 
+	constexpr float kSGShootRate = 1.2f; 
 
 	// X,Z座標の移動範囲制限
 	constexpr float kLimitMoveX = 2800.0f;
@@ -299,7 +299,8 @@ Player::Player() :
 	m_parryEffectHandle(-1),
 	m_pAnimManager(nullptr),
 	m_isSGAnimPlaying(false),
-	m_sGAnimTime(0.0f)
+	m_sGAnimTime(0.0f),
+	m_currentWeaponIndex(0)
 {
 	// アサルトライフルモデルの読み込み
 	m_aRHandle = MV1LoadModel("data/model/AR.mv1");
@@ -446,8 +447,12 @@ void Player::Init()
 
 	m_pCamera->Init(); // カメラの初期化
 
+	// 武器リストの初期化
+	m_weaponTypes.push_back(WeaponType::AssaultRifle);
+	m_weaponTypes.push_back(WeaponType::Shotgun);
+
 	// 初期武器を設定
-	SwitchWeapon(WeaponType::AssaultRifle);
+	SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 
 	// CSVの初期弾薬数を反映
 	m_arAmmo = m_aRInitAmmo;
@@ -466,6 +471,29 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	else if (keyState[KEY_INPUT_2] && !m_prevKeyState[KEY_INPUT_2])
 	{
 		SwitchWeapon(WeaponType::Shotgun);
+	}
+
+	// マウスホイールで武器切り替え
+	int wheelRot = GetMouseWheelRotVol();
+	if (wheelRot != 0)
+	{
+		if (wheelRot > 0)
+		{
+			m_currentWeaponIndex--;
+			if (m_currentWeaponIndex < 0)
+			{
+				m_currentWeaponIndex = m_weaponTypes.size() - 1;
+			}
+		}
+		else
+		{
+			m_currentWeaponIndex++;
+			if (m_currentWeaponIndex >= m_weaponTypes.size())
+			{
+				m_currentWeaponIndex = 0;
+			}
+		}
+		SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 	}
 
     // クールタイムタイマー減算
@@ -552,14 +580,14 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	case WeaponType::AssaultRifle:
 		modelOffset = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
 		currentModelHandle = m_aRHandle;
-		MV1SetVisible(m_sGHandle, FALSE); // ショットガンを非表示
-		MV1SetVisible(m_aRHandle, TRUE);  // アサルトライフルを表示
+		MV1SetVisible(m_sGHandle, false); // ショットガンを非表示
+		MV1SetVisible(m_aRHandle, true);  // アサルトライフルを表示
 		break;
 	case WeaponType::Shotgun:
 		modelOffset = VGet(kSGOffsetX, kSGOffsetY, kSGOffsetZ);
 		currentModelHandle = m_sGHandle;
-		MV1SetVisible(m_aRHandle, FALSE); // アサルトライフルを非表示
-		MV1SetVisible(m_sGHandle, TRUE);  // ショットガンを表示
+		MV1SetVisible(m_aRHandle, false); // アサルトライフルを非表示
+		MV1SetVisible(m_sGHandle, true);  // ショットガンを表示
 		break;
 	default:
 		modelOffset = VGet(0, 0, 0);
@@ -1933,10 +1961,13 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 		break;
 	}
 
-	// 薬莢を生成
-	VECTOR ejectionPos = GetEjectionPortPos();
-	VECTOR ejectionDir = VGet(sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f), 0.5f, cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f));
-	m_shellCasings.emplace_back(ejectionPos, ejectionDir);
+	// 薬莢を生成 (アサルトライフルの場合のみ)
+	if (m_currentWeaponType == WeaponType::AssaultRifle)
+	{
+		VECTOR ejectionPos = GetEjectionPortPos();
+		VECTOR ejectionDir = VGet(sinf(m_pCamera->GetYaw() + DX_PI_F * 0.5f), 0.5f, cosf(m_pCamera->GetYaw() + DX_PI_F * 0.5f));
+		m_shellCasings.emplace_back(ejectionPos, ejectionDir);
+	}
 
 	// SEを再生
 	PlaySoundMem(currentShotSEHandle, DX_PLAYTYPE_BACK);
@@ -2159,11 +2190,21 @@ void Player::SwitchWeapon(WeaponType weaponType)
 {
 	m_currentWeaponType = weaponType;
 
-	// 武器の種類に応じてパラメータを設定
+	// 武器タイプのインデックスを更新
+	for (int i = 0; i < m_weaponTypes.size(); ++i)
+	{
+		if (m_weaponTypes[i] == weaponType)
+		{
+			m_currentWeaponIndex = i;
+			break;
+		}
+	}
+
+	// 武器の種類に応じてクールダウンを設定
 	switch (m_currentWeaponType)
 	{
 	case WeaponType::AssaultRifle:
-		m_shootCooldown = 1.0f / m_aRShootRate;
+		m_shootCooldown = 1.0f / kARShootRate;
 		break;
 	case WeaponType::Shotgun:
 		m_shootCooldown = 1.0f / kSGShootRate;
