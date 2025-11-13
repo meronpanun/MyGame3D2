@@ -59,11 +59,7 @@ namespace
 
 	// 1秒あたりの発射回数
 	constexpr float kARShootRate = 10.0f;
-	constexpr float kSGShootRate = 1.0f; // ショットガンの1秒あたりの発射回数
-
-	// 弾の威力
-	constexpr float kARBulletPower = 10.0f; // アサルトライフルの弾の威力
-	constexpr float kSGBulletPower = 20.0f; // ショットガンの弾の威力
+	constexpr float kSGShootRate = 1.0f; 
 
 	// X,Z座標の移動範囲制限
 	constexpr float kLimitMoveX = 2800.0f;
@@ -217,7 +213,8 @@ Player::Player() :
 	m_tackleSEHandle(-1),
 	m_recoverySEHandle(-1),
 	m_ammoItemSEHandle(-1),
-	m_ammo(0),
+	m_arAmmo(0),
+	m_sgAmmo(0),
 	m_modelPos(VGet(0, 0, 0)),
 	m_pEffect(nullptr),
 	m_pCamera(std::make_shared<Camera>()),
@@ -428,8 +425,12 @@ void Player::Init()
 			m_tackleSpeed		   = data.tackleSpeed;
 			m_tackleDamage		   = data.tackleDamage;
 			m_runSpeed			   = data.runSpeed;
-			m_aRInitAmmo = data.aRInitAmmo;
+			m_aRInitAmmo           = data.aRInitAmmo;
+			m_sgInitAmmo           = data.sgInitAmmo;
+			m_arMaxAmmo            = data.aRInitAmmo;
+			m_sgMaxAmmo            = data.sgInitAmmo;
 			m_bulletPower		   = data.bulletPower;
+			m_sgBulletPower		   = data.sgBulletPower;
 			m_shieldDurability	   = data.maxShieldDurability; // 最大耐久値に設定
 			m_shieldBarAnim		   = data.maxShieldDurability; // UIの初期値も最大に
 			m_maxShieldDurability  = data.maxShieldDurability; // 最大耐久値を設定
@@ -449,7 +450,8 @@ void Player::Init()
 	SwitchWeapon(WeaponType::AssaultRifle);
 
 	// CSVの初期弾薬数を反映
-	m_ammo = m_aRInitAmmo;
+	m_arAmmo = m_aRInitAmmo;
+	m_sgAmmo = m_sgInitAmmo;
 }
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList)
@@ -632,14 +634,21 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃（タックル中、ガード中は射撃不可、死亡中も射撃不可）
-	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isGuarding && !m_isLockingOn && Mouse::IsPressLeft() && (m_ammo > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isGuarding && !m_isLockingOn && Mouse::IsPressLeft() && (GetCurrentAmmo() > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 
 		// 弾薬無限モードでない場合のみ弾薬を減らす
 		if (!m_isInfiniteAmmo)
 		{
-			m_ammo--; // 弾薬を減らす
+			if (m_currentWeaponType == WeaponType::AssaultRifle)
+			{
+				m_arAmmo--;
+			}
+			else if (m_currentWeaponType == WeaponType::Shotgun)
+			{
+				m_sgAmmo--;
+			}
 		}
 
 		m_shootCooldownTimer = m_shootCooldown; // クールタイムリセット
@@ -1157,13 +1166,14 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// 弾薬低下の警告表示処理
-	if (m_ammo == 0 && !m_isInfiniteAmmo)
+	int currentAmmo = GetCurrentAmmo();
+	if (currentAmmo == 0 && !m_isInfiniteAmmo)
 	{
 		m_isLowAmmo = false;
 		m_lowAmmoBlinkTimer += kDeltaTime; // タイマー更新
 		m_isNoAmmoWarning = true;
 	}
-	else if (m_ammo <= kLowAmmoThreshold && !m_isInfiniteAmmo)
+	else if (currentAmmo <= kLowAmmoThreshold && !m_isInfiniteAmmo)
 	{
 		m_isLowAmmo = true;
 		m_lowAmmoBlinkTimer += kDeltaTime; // タイマー更新
@@ -1431,7 +1441,7 @@ void Player::DrawUI()
 			gunImageHeight = kARImageHeight;
 			gunImageMarginX = kARImageMarginX;
 			gunImageMarginY = kARImageMarginY;
-			if (m_ammo == 0 && !m_isInfiniteAmmo)
+			if (m_arAmmo == 0 && !m_isInfiniteAmmo)
 			{
 				gunHandle = m_noAmmoARImageHandle;
 			}
@@ -1449,7 +1459,7 @@ void Player::DrawUI()
 			gunImageHeight = kSGImageHeight;
 			gunImageMarginX = kSGImageMarginX;
 			gunImageMarginY = kSGImageMarginY;
-			if (m_ammo == 0 && !m_isInfiniteAmmo)
+			if (m_sgAmmo == 0 && !m_isInfiniteAmmo)
 			{
 				gunHandle = m_noAmmoSGImageHandle;
 			}
@@ -1513,7 +1523,7 @@ void Player::DrawUI()
 				textColor = GetColor(currentR, currentG, currentB);
 			}
 
-			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", m_ammo);
+			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", GetCurrentAmmo());
 		}
 
 		// 盾耐久値の描画
@@ -1916,7 +1926,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 			VECTOR spreadDir = VAdd(cameraForward, VGet(spreadX, spreadY, 0));
 			spreadDir = VNorm(spreadDir); // 正規化
 
-			bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot, m_bulletPower);
+			bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot, m_sgBulletPower);
 		}
 		break;
 	default:
@@ -1998,28 +2008,12 @@ VECTOR Player::GetGunRot() const
 // 薬莢の排出位置を取得
 VECTOR Player::GetEjectionPortPos() const
 {
-	int currentModelHandle = -1;
-	const char* frameName = nullptr;
-
-	switch (m_currentWeaponType)
-	{
-	case WeaponType::AssaultRifle:
-		currentModelHandle = m_aRHandle;
-		frameName = "AR_M_Ejection_Port";
-		break;
-	case WeaponType::Shotgun:
-		currentModelHandle = m_sGHandle;
-		frameName = "SG_M_Ejection_Port";
-		break;
-	default:
-		return VGet(0, 0, 0); // デフォルト値を返すか、エラー処理
-	}
-
-	int ejectionPortFrame = MV1SearchFrame(currentModelHandle, frameName);
+	// 常にアサルトライフルの薬莢排出口を返す
+	int ejectionPortFrame = MV1SearchFrame(m_aRHandle, "AR_M_Ejection_Port");
 
 	if (ejectionPortFrame != -1)
 	{
-		return MV1GetFramePosition(currentModelHandle, ejectionPortFrame);
+		return MV1GetFramePosition(m_aRHandle, ejectionPortFrame);
 	}
 	return VGet(0, 0, 0); // フレームが見つからない場合はデフォルト値を返す
 }
@@ -2082,13 +2076,48 @@ void Player::AddHp(float value)
     m_healEffect.Trigger(kHealEffectDuration, kHealEffectColorR, kHealEffectColorG, kHealEffectColorB);
 }
 
-void Player::AddAmmo(int value)
+void Player::AddARAmmo(int value)
 {
-    m_ammo += value;
-    if (m_ammo < 0) m_ammo = 0;
+    m_arAmmo += value;
+    if (m_arAmmo > m_arMaxAmmo) m_arAmmo = m_arMaxAmmo;
     // 弾薬取得時にエフェクトを発動
     m_ammoEffect.Trigger(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
     m_ammoTextFlashTimer = 60.0f; // テキストフラッシュタイマーを開始
+}
+
+void Player::AddSGAmmo(int value)
+{
+	m_sgAmmo += value;
+	if (m_sgAmmo > m_sgMaxAmmo) m_sgAmmo = m_sgMaxAmmo;
+	// 弾薬取得時にエフェクトを発動
+	m_ammoEffect.Trigger(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
+	m_ammoTextFlashTimer = 60.0f; // テキストフラッシュタイマーを開始
+}
+
+int Player::GetCurrentAmmo() const
+{
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		return m_arAmmo;
+	case WeaponType::Shotgun:
+		return m_sgAmmo;
+	default:
+		return 0;
+	}
+}
+
+int Player::GetMaxAmmo() const
+{
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		return m_arMaxAmmo;
+	case WeaponType::Shotgun:
+		return m_sgMaxAmmo;
+	default:
+		return 0;
+	}
 }
 
 void Player::SetAttackRestrictions(AttackType allowedAttack)
@@ -2120,46 +2149,24 @@ void Player::PlayParryEffect(const VECTOR& pos)
     }
 }
 
+WeaponType Player::GetCurrentWeaponType() const
+{
+	return m_currentWeaponType;
+}
+
+// 武器を切り替える
 void Player::SwitchWeapon(WeaponType weaponType)
 {
-	if (m_currentWeaponType == weaponType)
-	{
-		return; // 同じ武器なら切り替えない
-	}
-
-	// 現在の武器を非表示にする
-	switch (m_currentWeaponType)
-	{
-	case WeaponType::AssaultRifle:
-		MV1SetVisible(m_aRHandle, FALSE);
-		break;
-	case WeaponType::Shotgun:
-		MV1SetVisible(m_sGHandle, FALSE);
-		break;
-	default:
-		break;
-	}
-
 	m_currentWeaponType = weaponType;
 
-	// 武器に応じたパラメータを設定
+	// 武器の種類に応じてパラメータを設定
 	switch (m_currentWeaponType)
 	{
 	case WeaponType::AssaultRifle:
-		m_shootCooldown = 1.0f / kARShootRate;
-		m_bulletPower = kARBulletPower;
-		m_ejectionPortFrame = MV1SearchFrame(m_aRHandle, "AR_M_Ejection_Port");
-		MV1SetScale(m_aRHandle, m_scale); // アサルトライフルモデルにスケールを適用
-		MV1SetRotationXYZ(m_aRHandle, VGet(0.0f, DX_PI_F, 0.0f)); // アサルトライフルモデルに回転を適用
-		MV1SetVisible(m_aRHandle, TRUE); // アサルトライフルを表示
+		m_shootCooldown = 1.0f / m_aRShootRate;
 		break;
 	case WeaponType::Shotgun:
 		m_shootCooldown = 1.0f / kSGShootRate;
-		m_bulletPower = kSGBulletPower;
-		m_ejectionPortFrame = MV1SearchFrame(m_sGHandle, "SG_M_Ejection_Port");
-		MV1SetScale(m_sGHandle, m_scale); // ショットガンモデルにスケールを適用
-		MV1SetRotationXYZ(m_sGHandle, VGet(0.0f, DX_PI_F, 0.0f)); // ショットガンモデルに回転を適用
-		MV1SetVisible(m_sGHandle, TRUE); // ショットガンを表示
 		break;
 	default:
 		break;

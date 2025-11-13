@@ -133,10 +133,28 @@ public:
 	float GetMaxHealth() const { return m_maxHealth; }
 
 	/// <summary>
-	/// 弾薬回復用関数（上限なし）
+	/// AR弾薬回復用関数
 	/// </summary>
 	/// <param name="value">弾薬数</param>
-	void AddAmmo(int value);
+	void AddARAmmo(int value);
+
+	/// <summary>
+	/// SG弾薬回復用関数
+	/// </summary>
+	/// <param name="value">弾薬数</param>
+	void AddSGAmmo(int value);
+
+	/// <summary>
+	/// 現在の武器の弾薬数を取得する
+	/// </summary>
+	/// <returns>現在の弾薬数</returns>
+	int GetCurrentAmmo() const;
+
+	/// <summary>
+	/// 現在の武器の最大弾薬数を取得する
+	/// </summary>
+	/// <returns>最大弾薬数</returns>
+	int GetMaxAmmo() const;
 
 	/// <summary>
 	/// 弾薬無限モードを設定する
@@ -233,6 +251,8 @@ public:
 	/// </summary>
 	/// <param name="pAnimManager">アニメーションマネージャーのポインタ</param>
 	void SetAnimationManager(AnimationManager* pAnimManager) { m_pAnimManager = pAnimManager; }
+
+	WeaponType GetCurrentWeaponType() const;
 	    
 private:
    	AttackType m_allowedAttackType = AttackType::None;
@@ -260,6 +280,12 @@ private:
 	/// <param name="effect">エフェクトフィードバック構造体</param>
 	void DrawEffectFeedback(EffectFeedback& effect);
 
+	/// <summary>
+	/// 武器を切り替える	
+	/// </summary>
+	/// <param name="weaponType">切り替える武器の種類</param>
+	void SwitchWeapon(WeaponType weaponType);
+
 private:
 	std::vector<ShellCasing>     m_shellCasings;
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
@@ -285,7 +311,10 @@ private:
 
 	int   m_fontHandle;					   // フォントハンドル
 	int   m_hpFontHandle;			       // HPフォントハンドル
-	int   m_aRInitAmmo;		               // 初期弾薬数
+	int   m_aRInitAmmo;		               // ARの初期弾薬数
+	int   m_sgInitAmmo;		               // SGの初期弾薬数
+	int   m_arMaxAmmo;                     // ARの最大弾薬数
+	int   m_sgMaxAmmo;                     // SGの最大弾薬数
 	int   m_aRHandle;					   // アサルトライフルモデルのハンドル
 	int   m_sGHandle;					   // ショットガンモデルのハンドル
 	int   m_shieldModelHandle;			   // 盾モデルのハンドル
@@ -296,7 +325,8 @@ private:
 	int   m_playerHitSEHandle;		       // 被弾SEのハンドル
 	int   m_tackleSEHandle;				   // タックルSEのハンドル
 	int   m_recoverySEHandle;			   // 回復アイテムSEのハンドル
-	int   m_ammo;						   // プレイヤーの弾薬数	
+	int   m_arAmmo;						   // ARの弾薬数	
+	int   m_sgAmmo;						   // SGの弾薬数	
 	int   m_tackleFrame;				   // タックルのフレーム数
 	int   m_tackleCooldown;				   // タックルのクールダウンタイマー
 	int   m_tackleId;					   // タックルID
@@ -329,6 +359,8 @@ private:
 	float m_moveSpeed;			// 移動速度
 	float m_runSpeed;			// 走る速度
 	float m_bulletPower;		// 弾の威力
+	float m_sgBulletPower;     	// SG弾の威力
+	float m_maxShieldDurability;// 盾の最大耐久値
 	float m_tackleCooldownMax;  // タックルクールタイム
 	float m_tackleSpeed;        // タックル時の速度
 	float m_tackleDamage;       // タックルダメージ
@@ -359,7 +391,6 @@ private:
 
 	float m_shieldDurability;   // 盾の耐久値
 	float m_shieldBarAnim;      // 盾のUIアニメーション用の耐久値
-	float m_maxShieldDurability; // 盾の最大耐久値
 	float m_shieldRegenRate;     // 盾の回復速度
 	bool m_isShieldBroken; // 盾が壊れているか
 	int m_guardTimer;      // ガードしてからのフレーム数
@@ -408,10 +439,4 @@ private:
 	int m_parryEffectHandle;    // パリィエフェクトのハンドル
 
 	WeaponType m_currentWeaponType = WeaponType::AssaultRifle; // 現在装備している武器の種類
-
-	/// <summary>
-	/// 武器を切り替える
-	/// </summary>
-	/// <param name="weaponType">切り替える武器の種類</param>
-	void SwitchWeapon(WeaponType weaponType);
 };

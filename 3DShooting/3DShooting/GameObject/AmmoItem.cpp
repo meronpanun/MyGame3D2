@@ -92,7 +92,19 @@ void AmmoItem::Update(Player* player)
 	if (m_isHit)
 	{
 		PlaySoundMem(player->GetAmmoItemSEHandle(), DX_PLAYTYPE_BACK); // 弾薬アイテムSE再生
-		player->AddAmmo(kAmmoAmount); // プレイヤーに弾薬を加算
+		// 現在の武器に応じて弾薬を加算
+		switch (player->GetCurrentWeaponType())
+		{
+		case WeaponType::AssaultRifle:
+			player->AddARAmmo(kAmmoAmount);
+			break;
+		case WeaponType::Shotgun:
+			player->AddSGAmmo(kAmmoAmount);
+			break;
+		default:
+			// どちらでもない場合は何もしない、またはデフォルトの処理
+			break;
+		}
 		m_isUsed = true;
 	}
 }

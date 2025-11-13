@@ -6,7 +6,7 @@
 namespace
 {
 	// 名前、位置、回転、スケール、攻撃力、体力、追跡速度、タックルクールタイム、タックル速度、タックルダメージの要素数
-	constexpr int kElementNum = 24; 
+	constexpr int kElementNum = 26; 
 
 	// Unityの座標系からDxLibの座標系への変換係数
 	constexpr float kUnityToDxPos = 100.0f; 
@@ -236,7 +236,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.runSpeed = 0.0f;
 				}
 				break;
-			case 17: // InitialAmmo（プレイヤー用）
+			case 17: // ARInitialAmmo（プレイヤー用）
 				try
 				{
 					if (!element.empty()) 
@@ -249,7 +249,20 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.aRInitAmmo = 0;
 				}
 				break;
-			case 18: // BulletPower（プレイヤー用）
+			case 18: // SGInitialAmmo（プレイヤー用）
+				try
+				{
+					if (!element.empty())
+					{
+						data.sgInitAmmo = std::stoi(element);
+					}
+				}
+				catch (const std::exception&)
+				{
+					data.sgInitAmmo = 0;
+				}
+				break;
+			case 19: // ARBulletPower（プレイヤー用）
 				try
 				{
 					if (!element.empty()) 
@@ -262,7 +275,20 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.bulletPower = 0.0f;
 				}
 				break;
-			case 19: // TackleCooldown
+			case 20: // SGBulletPower（プレイヤー用）
+				try
+				{
+					if (!element.empty())
+					{
+						data.sgBulletPower = std::stof(element);
+					}
+				}
+				catch (const std::exception&)
+				{
+					data.sgBulletPower = 0.0f;
+				}
+				break;
+			case 21: // TackleCooldown
 				try 
 				{
 					if (!element.empty()) 
@@ -275,7 +301,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.tackleCooldown = 0.0f;
 				}
 				break;
-			case 20: // TackleSpeed
+			case 22: // TackleSpeed
 				try 
 				{
 					if (!element.empty()) 
@@ -288,7 +314,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.tackleSpeed = 0.0f;
 				}
 				break;
-			case 21: // TackleDamage
+			case 23: // TackleDamage
 				try 
 				{
 					if (!element.empty()) 
@@ -301,7 +327,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.tackleDamage = 0.0f;
 				}
 				break;
-			case 22: // MaxShieldDurability
+			case 24: // MaxShieldDurability
 				try
 				{
 					if (!element.empty())
@@ -314,7 +340,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 					data.maxShieldDurability = 0.0f;
 				}
 				break;
-			case 23: // ShieldRegenRate
+			case 25: // ShieldRegenRate
 				try
 				{
 					if (!element.empty())
