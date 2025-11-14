@@ -127,7 +127,9 @@ private:
 	// リソース管理
     int   m_skyDomeHandle;     // スカイドーム画像ハンドル
     int   m_dotDefaultHandle;          
-    int   m_dotOnTargetHandle;         
+    int   m_dotOnTargetHandle;
+	int   m_sgDefaultReticleHandle;
+	int   m_sgOnTargetReticleHandle;
     int   m_scoreFontHandle;   // スコアポップアップ用フォントハンドル
     int   m_bgmHandle;         // BGMハンドル
     bool  m_isBGMStarted;      // BGM再生済みフラグ

@@ -111,6 +111,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_skyDomeHandle(-1),
     m_dotDefaultHandle(-1),
     m_dotOnTargetHandle(-1),
+	m_sgDefaultReticleHandle(-1),
+	m_sgOnTargetReticleHandle(-1),
     m_hitMarkTimer(0),
 	m_isWave1FirstAidDropped(false),
 	m_isWave1AmmoDropped(false),
@@ -143,6 +145,8 @@ SceneMain::~SceneMain()
     MV1DeleteModel(m_skyDomeHandle);    
 	DeleteGraph(m_dotDefaultHandle);
 	DeleteGraph(m_dotOnTargetHandle);
+	DeleteGraph(m_sgDefaultReticleHandle);
+	DeleteGraph(m_sgOnTargetReticleHandle);
 
 	// アイテムモデルの解放
 	FirstAidKitItem::DeleteModel();
@@ -180,6 +184,8 @@ void SceneMain::Init()
     m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
     m_dotDefaultHandle     = LoadGraph("data/image/DotDefault.png");
     m_dotOnTargetHandle    = LoadGraph("data/image/DotOnTarget.png");
+	m_sgDefaultReticleHandle = LoadGraph("data/image/SGDefaultReticl.png");
+	m_sgOnTargetReticleHandle = LoadGraph("data/image/SGOnTargetReticle.png");
     m_bgmHandle     = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
 
     m_pPlayer = std::make_unique<Player>();
@@ -666,9 +672,33 @@ void SceneMain::Draw()
 
     if (!m_pPlayer->IsDead())
     {
-        // ターゲットが利用可能な場合はdot2を描画し、そうでない場合はdotを描画
-        int currentDotHandle = m_pPlayer->IsAimingAtEnemy() ? m_dotOnTargetHandle : m_dotDefaultHandle;
-        DrawGraph(kScreenCenterX - kReticleOffset * 0.5f, kScreenCenterY - kReticleOffset * 0.5f, currentDotHandle, true);
+        int defaultHandle = -1;
+        int onTargetHandle = -1;
+
+        // 武器の種類に応じてハンドルを切り替える
+        switch (m_pPlayer->GetCurrentWeaponType())
+        {
+        case WeaponType::AssaultRifle:
+            defaultHandle = m_dotDefaultHandle;
+            onTargetHandle = m_dotOnTargetHandle;
+            break;
+        case WeaponType::Shotgun:
+            defaultHandle = m_sgDefaultReticleHandle;
+            onTargetHandle = m_sgOnTargetReticleHandle;
+            break;
+        }
+
+        // ターゲットに照準が合っているかに応じてハンドルを決定
+        int currentReticleHandle = m_pPlayer->IsAimingAtEnemy() ? onTargetHandle : defaultHandle;
+        
+        // レティクルを描画
+        if (currentReticleHandle != -1)
+        {
+            int reticleWidth = 0;
+            int reticleHeight = 0;
+            GetGraphSize(currentReticleHandle, &reticleWidth, &reticleHeight);
+            DrawGraph(kScreenCenterX - reticleWidth * 0.5f, kScreenCenterY - reticleHeight * 0.5f, currentReticleHandle, true);
+        }
     }
 
     // ウェーブUIの描画
