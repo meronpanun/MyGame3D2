@@ -40,7 +40,7 @@ namespace
 	// ショットガンマズルフラッシュエフェクトのオフセット
 	constexpr float kSGMuzzleFlashEffectOffsetX = 30.0f;
 	constexpr float kSGMuzzleFlashEffectOffsetY = 60.0f;
-	constexpr float kSGMuzzleFlashEffectOffsetZ = 220.0f;
+	constexpr float kSGMuzzleFlashEffectOffsetZ = 210.0f;
 
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.35f; // 重力の強さ
@@ -198,6 +198,9 @@ namespace
 	constexpr unsigned int kColorHpBarFill		   = 0xff4040;
 	constexpr unsigned int kColorHpBarBorder       = 0x000000;
 
+	// 武器切り替えアニメーション
+	constexpr float kWeaponSwitchDuration = 1.1f; // 武器切り替えアニメーションの時間
+
 	// パリィ受付フレーム数
 	constexpr int kParryFrame = 60;
 }
@@ -241,7 +244,7 @@ Player::Player() :
 	m_healEffectTimer(0.0f),
 	m_ammoEffectAlpha(0.0f),
 	m_ammoEffectTimer(0.0f),
-	m_shootCooldown(1.0f / kARShootRate), 
+	m_shootCooldown(1.0f / kARShootRate),
 	m_shootCooldownTimer(0.0f),
 	m_arShootRate(kARShootRate),
 	m_isInvincible(false),
@@ -264,7 +267,7 @@ Player::Player() :
 	m_isLowAmmo(false),
 	m_lowAmmoBlinkTimer(0.0f),
 	m_showLowAmmoWarning(false),
-    m_isNoAmmoWarning(false),
+	m_isNoAmmoWarning(false),
 	m_isLowHealth(false),
 	m_lowHealthBlinkTimer(0.0f),
 	m_ammoTextFlashTimer(0.0f),
@@ -300,7 +303,10 @@ Player::Player() :
 	m_pAnimManager(nullptr),
 	m_isSGAnimPlaying(false),
 	m_sgAnimTime(0.0f),
-	m_currentWeaponIndex(0)
+	m_currentWeaponIndex(0),
+	m_isSwitchingWeapon(false),
+	m_weaponSwitchTimer(0.0f),
+	m_weaponSwitchDuration(kWeaponSwitchDuration)
 {
 	// アサルトライフルモデルの読み込み
 	m_arHandle = MV1LoadModel("data/model/AR.mv1");
@@ -496,6 +502,17 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 	}
 
+	// 武器切り替えアニメーションの更新
+	if (m_isSwitchingWeapon)
+	{
+		m_weaponSwitchTimer += kDeltaTime;
+		if (m_weaponSwitchTimer >= m_weaponSwitchDuration)
+		{
+			m_isSwitchingWeapon = false;
+			m_weaponSwitchTimer = 0.0f;
+		}
+	}
+
     // クールタイムタイマー減算
     if (m_shootCooldownTimer > 0.0f) 
     {
@@ -572,32 +589,91 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	m_pBodyCollider->SetRadius(kCapsuleRadius);
 
 	// モデルの位置と回転を更新
-	VECTOR modelOffset;
-	int currentModelHandle = -1;
+	MATRIX rotYaw = MGetRotY(m_pCamera->GetYaw());
+	MATRIX rotPitch = MGetRotX(-m_pCamera->GetPitch());
+	MATRIX modelRot = MMult(rotPitch, rotYaw);
 
-	switch (m_currentWeaponType)
+	auto GetWeaponTransform = [&](WeaponType type) {
+		VECTOR offset;
+		int handle = -1;
+		switch (type)
+		{
+		case WeaponType::AssaultRifle:
+			offset = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
+			handle = m_arHandle;
+			break;
+		case WeaponType::Shotgun:
+			offset = VGet(kSGOffsetX, kSGOffsetY, kSGOffsetZ);
+			handle = m_sgHandle;
+			break;
+		}
+		return std::make_tuple(handle, offset);
+	};
+
+	if (m_isSwitchingWeapon)
 	{
-	case WeaponType::AssaultRifle:
-		modelOffset = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
-		currentModelHandle = m_arHandle;
-		MV1SetVisible(m_sgHandle, false); // ショットガンを非表示
-		MV1SetVisible(m_arHandle, true);  // アサルトライフルを表示
-		break;
-	case WeaponType::Shotgun:
-		modelOffset = VGet(kSGOffsetX, kSGOffsetY, kSGOffsetZ);
-		currentModelHandle = m_sgHandle;
-		MV1SetVisible(m_arHandle, false); // アサルトライフルを非表示
-		MV1SetVisible(m_sgHandle, true);  // ショットガンを表示
-		break;
-	default:
-		modelOffset = VGet(0, 0, 0);
-		currentModelHandle = -1;
-		break;
-	}
+		// 前の武器を下に隠す
+		auto [prevHandle, prevOffset] = GetWeaponTransform(m_previousWeaponType);
+		if (prevHandle != -1)
+		{
+			float progress = (std::min)(m_weaponSwitchTimer / (m_weaponSwitchDuration / 2.0f), 1.0f);
+			float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
+			float yOffset = easeOut * 300.0f; // 下に移動
 
-	MATRIX rotYaw		  = MGetRotY(m_pCamera->GetYaw());
-	MATRIX rotPitch		  = MGetRotX(-m_pCamera->GetPitch());
-	MATRIX modelRot		  = MMult(rotPitch, rotYaw);
+			VECTOR rotModelOffset = VTransform(prevOffset, modelRot);
+			VECTOR modelPos = VAdd(m_modelPos, rotModelOffset);
+			modelPos.y -= yOffset;
+
+			VECTOR finalPos = VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset);
+			MV1SetPosition(prevHandle, finalPos);
+			MV1SetRotationXYZ(prevHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f), m_gunSwayRotOffset));
+			MV1SetVisible(prevHandle, true);
+		}
+
+		// 新しい武器を下から出す
+		auto [currentHandle, currentOffset] = GetWeaponTransform(m_currentWeaponType);
+		if (currentHandle != -1)
+		{
+			float progress = (std::max)(0.0f, (m_weaponSwitchTimer - (m_weaponSwitchDuration / 2.0f)) / (m_weaponSwitchDuration / 2.0f));
+			float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
+			float yOffset = (1.0f - easeOut) * 300.0f; // 下から上に移動
+
+			VECTOR rotModelOffset = VTransform(currentOffset, modelRot);
+			VECTOR modelPos = VAdd(m_modelPos, rotModelOffset);
+			modelPos.y -= yOffset;
+
+			VECTOR finalPos = VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset);
+			MV1SetPosition(currentHandle, finalPos);
+			MV1SetRotationXYZ(currentHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f), m_gunSwayRotOffset));
+			MV1SetVisible(currentHandle, true);
+		}
+	}
+	else
+	{
+		// 通常時の武器表示
+		auto [currentHandle, modelOffset] = GetWeaponTransform(m_currentWeaponType);
+		int otherHandle = (m_currentWeaponType == WeaponType::AssaultRifle) ? m_sgHandle : m_arHandle;
+		MV1SetVisible(otherHandle, false);
+
+		if (currentHandle != -1)
+		{
+			MV1SetVisible(currentHandle, true);
+			VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
+			VECTOR modelPos = VAdd(m_modelPos, rotModelOffset);
+
+			// ガードアニメーションの進行度を計算（イージング付き）
+			float guardAnimProgress = m_guardAnimTimer / m_guardAnimDuration;
+			float gunOffsetY = -200.0f * (1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f));
+			modelPos.y += gunOffsetY;
+
+			// モデルの位置を設定
+			VECTOR finalPos = VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset);
+			MV1SetPosition(currentHandle, finalPos);
+
+			// モデルの回転を設定
+			MV1SetRotationXYZ(currentHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F, 0.0f), m_gunSwayRotOffset));
+		}
+	}
 
 	if (m_isSGAnimPlaying)
 	{
@@ -622,24 +698,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR modelPos       = VAdd(m_modelPos, rotModelOffset);
-
-	// ガードアニメーションの進行度を計算（イージング付き）
-	float guardAnimProgress = m_guardAnimTimer / m_guardAnimDuration;
-	float gunOffsetY = -200.0f * (1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f));
-	modelPos.y += gunOffsetY;
-
-	// モデルの位置を設定
-	if (currentModelHandle != -1)
-	{
-		VECTOR finalPos = VAdd(VAdd(modelPos, m_gunSwayOffset), m_gunShakeOffset);
-		MV1SetPosition(currentModelHandle, finalPos);
-		
-		// モデルの回転を設定
-		MV1SetRotationXYZ(currentModelHandle, VAdd(VGet(m_pCamera->GetPitch(), m_pCamera->GetYaw() + DX_PI_F , 0.0f), m_gunSwayRotOffset));
-	}
-
 	// カメラの更新
 	m_pCamera->Update();
 
@@ -662,7 +720,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃（タックル中、ガード中は射撃不可、死亡中も射撃不可）
-	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isGuarding && !m_isLockingOn && Mouse::IsPressLeft() && (GetCurrentAmmo() > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isGuarding && !m_isLockingOn && !m_isSwitchingWeapon && Mouse::IsPressLeft() && (GetCurrentAmmo() > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 
@@ -1273,18 +1331,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 void Player::Draw3D()
 {
-	// 現在の武器モデルの描画
-	switch (m_currentWeaponType)
-	{
-	case WeaponType::AssaultRifle:
-		MV1DrawModel(m_arHandle);
-		break;
-	case WeaponType::Shotgun:
-		MV1DrawModel(m_sgHandle);
-		break;
-	default:
-		break;
-	}
+	// 武器モデルの描画（表示/非表示はUpdateで制御）
+	MV1DrawModel(m_arHandle);
+	MV1DrawModel(m_sgHandle);
 
 	// 弾の描画
 	Bullet::DrawBullets(m_bullets);
@@ -1387,6 +1436,14 @@ void Player::DrawShield()
 			float endY = kShieldAnimBreakEndYOffset;
 			currentPos.y = currentPos.y + (endY - currentPos.y) * easedProgress;
 		}
+	}
+
+	// 武器切り替えアニメーションと連動
+	if (m_isSwitchingWeapon)
+	{
+		float progress = m_weaponSwitchTimer / m_weaponSwitchDuration;
+		float yOffset = sinf(progress * DX_PI_F) * 70.0f; // 武器より少し小さい値で上下
+		currentPos.y -= yOffset;
 	}
 
 	// モデルの位置と回転を直接設定
@@ -2188,23 +2245,22 @@ WeaponType Player::GetCurrentWeaponType() const
 // 武器を切り替える
 void Player::SwitchWeapon(WeaponType weaponType)
 {
-	m_currentWeaponType = weaponType;
-
-	// 武器タイプのインデックスを更新
-	for (int i = 0; i < m_weaponTypes.size(); ++i)
+	// 同じ武器への切り替え、または切り替え中は処理しない
+	if (weaponType == m_currentWeaponType || m_isSwitchingWeapon)
 	{
-		if (m_weaponTypes[i] == weaponType)
-		{
-			m_currentWeaponIndex = i;
-			break;
-		}
+		return;
 	}
+
+	m_isSwitchingWeapon = true;
+	m_weaponSwitchTimer = 0.0f;
+	m_previousWeaponType = m_currentWeaponType;
+	m_currentWeaponType = weaponType;
 
 	// 武器の種類に応じてクールダウンを設定
 	switch (m_currentWeaponType)
 	{
 	case WeaponType::AssaultRifle:
-		m_shootCooldown = 1.0f / kARShootRate;
+		m_shootCooldown = 1.0f / m_arShootRate;
 		break;
 	case WeaponType::Shotgun:
 		m_shootCooldown = 1.0f / kSGShootRate;

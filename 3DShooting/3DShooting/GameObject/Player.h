@@ -439,6 +439,12 @@ private:
 	int m_parryEffectHandle;    // パリィエフェクトのハンドル
 
 	WeaponType m_currentWeaponType = WeaponType::AssaultRifle; // 現在装備している武器の種類
+	WeaponType m_previousWeaponType = WeaponType::AssaultRifle;
 	std::vector<WeaponType> m_weaponTypes; // 装備可能な武器のリスト
 	int m_currentWeaponIndex;              // 現在の武器のインデックス
+
+	// 武器切り替えアニメーション
+	bool  m_isSwitchingWeapon;    // 武器を切り替え中か
+	float m_weaponSwitchTimer;    // 武器切り替えアニメーションのタイマー
+	float m_weaponSwitchDuration; // 武器切り替えアニメーションの時間
 };
