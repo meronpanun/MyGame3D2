@@ -447,4 +447,6 @@ private:
 	bool  m_isSwitchingWeapon;    // 武器を切り替え中か
 	float m_weaponSwitchTimer;    // 武器切り替えアニメーションのタイマー
 	float m_weaponSwitchDuration; // 武器切り替えアニメーションの時間
+	bool  m_prevWeaponHadLowAmmo; // 前の武器が弾薬低下状態だったか
+	bool  m_prevWeaponHadNoAmmo;  // 前の武器が弾薬切れ状態だったか
 };

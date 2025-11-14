@@ -469,37 +469,40 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 {
     unsigned char keyState[256];
     GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
-	// 武器切り替え
-	if (keyState[KEY_INPUT_1] && !m_prevKeyState[KEY_INPUT_1])
+	// 武器切り替え（ガード中は不可）
+	if (!m_isGuarding)
 	{
-		SwitchWeapon(WeaponType::AssaultRifle);
-	}
-	else if (keyState[KEY_INPUT_2] && !m_prevKeyState[KEY_INPUT_2])
-	{
-		SwitchWeapon(WeaponType::Shotgun);
-	}
+		if (keyState[KEY_INPUT_1] && !m_prevKeyState[KEY_INPUT_1])
+		{
+			SwitchWeapon(WeaponType::AssaultRifle);
+		}
+		else if (keyState[KEY_INPUT_2] && !m_prevKeyState[KEY_INPUT_2])
+		{
+			SwitchWeapon(WeaponType::Shotgun);
+		}
 
-	// マウスホイールで武器切り替え
-	int wheelRot = GetMouseWheelRotVol();
-	if (wheelRot != 0)
-	{
-		if (wheelRot > 0)
+		// マウスホイールで武器切り替え
+		int wheelRot = GetMouseWheelRotVol();
+		if (wheelRot != 0)
 		{
-			m_currentWeaponIndex--;
-			if (m_currentWeaponIndex < 0)
+			if (wheelRot > 0)
 			{
-				m_currentWeaponIndex = m_weaponTypes.size() - 1;
+				m_currentWeaponIndex--;
+				if (m_currentWeaponIndex < 0)
+				{
+					m_currentWeaponIndex = m_weaponTypes.size() - 1;
+				}
 			}
-		}
-		else
-		{
-			m_currentWeaponIndex++;
-			if (m_currentWeaponIndex >= m_weaponTypes.size())
+			else
 			{
-				m_currentWeaponIndex = 0;
+				m_currentWeaponIndex++;
+				if (m_currentWeaponIndex >= m_weaponTypes.size())
+				{
+					m_currentWeaponIndex = 0;
+				}
 			}
+			SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 		}
-		SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 	}
 
 	// 武器切り替えアニメーションの更新
@@ -610,7 +613,14 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		return std::make_tuple(handle, offset);
 	};
 
-	if (m_isSwitchingWeapon)
+	// ガード入力中は武器を非表示にする
+	bool isTryingToGuard = !m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput && !m_isShieldBroken;
+	if (isTryingToGuard)
+	{
+		MV1SetVisible(m_arHandle, false);
+		MV1SetVisible(m_sgHandle, false);
+	}
+	else if (m_isSwitchingWeapon)
 	{
 		// 前の武器を下に隠す
 		auto [prevHandle, prevOffset] = GetWeaponTransform(m_previousWeaponType);
@@ -903,8 +913,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			}
 		}
 	}
-	// ガード開始時にエフェクトを再生
-	if (m_isGuarding && !m_wasGuarding && !m_isShieldAnimating)
+	// ガードが完全に有効になったらエフェクトを再生
+	if (m_isGuarding && m_guardEffectHandle == -1 && m_guardAnimTimer >= m_guardAnimDuration && !m_isSwitchingWeapon && !m_isShieldAnimating)
 	{
 		if (m_pEffect)
 		{
@@ -1441,8 +1451,21 @@ void Player::DrawShield()
 	// 武器切り替えアニメーションと連動
 	if (m_isSwitchingWeapon)
 	{
-		float progress = m_weaponSwitchTimer / m_weaponSwitchDuration;
-		float yOffset = sinf(progress * DX_PI_F) * 70.0f; // 武器より少し小さい値で上下
+		float yOffset = 0.0f;
+		float halfDuration = m_weaponSwitchDuration / 2.0f;
+
+		if (m_weaponSwitchTimer < halfDuration) 
+		{
+			float progress = m_weaponSwitchTimer / halfDuration;
+			float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
+			yOffset = easeOut * 70.0f;
+		}
+		else 
+		{
+			float progress = (m_weaponSwitchTimer - halfDuration) / halfDuration;
+			float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
+			yOffset = (1.0f - easeOut) * 70.0f;
+		}
 		currentPos.y -= yOffset;
 	}
 
@@ -1669,74 +1692,96 @@ void Player::DrawUI()
 		}
 
 		// 警告表示ロジック
-		if (m_isLowHealth && (m_isLowAmmo || m_isNoAmmoWarning))
+		// 体力低下と弾薬低下の警告を分離して処理
+		
+		// 1. 体力低下の警告
+		if (m_isLowHealth)
 		{
 			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
 			int alphaInt = static_cast<int>(alpha * 255);
-
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-
-			const char* text = "体力低下";
-			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-			int textX = (screenW - textWidth) * 0.5f;
-			int textY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset + kWarningImageSize + kWarningTextYOffset;
-			unsigned int textColor = (alphaInt << 24) | kColorWhite;
-			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-
-			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
-
-			int leftDrawX = (screenW * 0.5f) - kWarningImageSize - (kWarningImageSpacing * 0.5f);
-			DrawExtendGraph(leftDrawX, drawY, leftDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
-
-			int rightDrawX = (screenW * 0.5f) + (kWarningImageSpacing * 0.5f);
-			DrawExtendGraph(rightDrawX, drawY, rightDrawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
-
-			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-		}
-		else if (m_isLowHealth)
-		{
-			// フェードイン・アウトのアルファ値を計算
-			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-			int alphaInt = static_cast<int>(alpha * 255);
-
-			// 画像の描画サイズと位置
 			int drawX = (screenW - kWarningImageSize) * 0.5f;
 			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
 
-			// 画像を描画
+			// 弾薬警告も表示する必要がある場合は、体力警告を左にずらす
+			if (m_isLowAmmo || m_isNoAmmoWarning || (m_isSwitchingWeapon && (m_prevWeaponHadLowAmmo || m_prevWeaponHadNoAmmo)))
+			{
+				drawX = (screenW * 0.5f) - kWarningImageSize - (kWarningImageSpacing * 0.5f);
+			}
+
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
 			DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
 
-			// テキストを描画
 			const char* text = "体力低下";
 			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-			int textX = (screenW - textWidth) * 0.5f;
+			int textX = drawX + (kWarningImageSize - textWidth) / 2;
 			int textY = drawY + kWarningImageSize + kWarningTextYOffset;
 			unsigned int textColor = (alphaInt << 24) | kColorWhite;
 			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+
 			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
-		else if (m_isLowAmmo || m_isNoAmmoWarning)
-		{
-			// フェードイン・アウトのアルファ値を計算
-			float alpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-			int alphaInt = static_cast<int>(alpha * 255);
 
-			// 画像の描画サイズと位置
+		// 2. 弾薬低下の警告（フェード対応）
+		bool currentNeedsWarning = m_isLowAmmo || m_isNoAmmoWarning;
+		bool prevNeedsWarning = m_prevWeaponHadLowAmmo || m_prevWeaponHadNoAmmo;
+		
+		bool shouldDraw = false;
+		float fadeAlpha = 1.0f;
+
+		if (m_isSwitchingWeapon)
+		{
+			float halfDuration = m_weaponSwitchDuration / 2.0f;
+			if (m_weaponSwitchTimer < halfDuration)
+			{
+				// フェードアウト
+				if (prevNeedsWarning)
+				{
+					shouldDraw = true;
+					fadeAlpha = 1.0f - (m_weaponSwitchTimer / halfDuration);
+				}
+			}
+			else
+			{
+				// フェードイン
+				if (currentNeedsWarning)
+				{
+					shouldDraw = true;
+					fadeAlpha = (m_weaponSwitchTimer - halfDuration) / halfDuration;
+				}
+			}
+		}
+		else if (currentNeedsWarning)
+		{
+			shouldDraw = true;
+		}
+
+		if (shouldDraw)
+		{
+			bool isFadingOut = m_isSwitchingWeapon && (m_weaponSwitchTimer < m_weaponSwitchDuration / 2.0f);
+			bool isNoAmmo = isFadingOut ? m_prevWeaponHadNoAmmo : m_isNoAmmoWarning;
+			const char* text = isNoAmmo ? "残弾なし" : "残弾僅か";
+
+			float blinkAlpha = (sinf(m_lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+			int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * 255);
+
 			int drawX = (screenW - kWarningImageSize) * 0.5f;
 			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
 
-			// 画像を描画
+			// 体力警告も表示する必要がある場合は、弾薬警告を右にずらす
+			if (m_isLowHealth)
+			{
+				drawX = (screenW * 0.5f) + (kWarningImageSpacing * 0.5f);
+			}
+
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
 			DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
 
-			// テキストを描画
-			const char* text = (m_isNoAmmoWarning) ? "残弾なし" : "残弾僅か";
 			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-			int textX = (screenW - textWidth) * 0.5f;
+			int textX = drawX + (kWarningImageSize - textWidth) / 2;
 			int textY = drawY + kWarningImageSize + kWarningTextYOffset;
 			unsigned int textColor = (alphaInt << 24) | kColorWhite;
 			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+
 			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		}
 
@@ -2250,6 +2295,11 @@ void Player::SwitchWeapon(WeaponType weaponType)
 	{
 		return;
 	}
+
+	// 切り替え前の武器の弾薬警告状態を保存
+	const int prevAmmo = GetCurrentAmmo();
+	m_prevWeaponHadLowAmmo = (prevAmmo > 0 && prevAmmo <= kLowAmmoThreshold) && !m_isInfiniteAmmo;
+	m_prevWeaponHadNoAmmo = (prevAmmo == 0) && !m_isInfiniteAmmo;
 
 	m_isSwitchingWeapon = true;
 	m_weaponSwitchTimer = 0.0f;
