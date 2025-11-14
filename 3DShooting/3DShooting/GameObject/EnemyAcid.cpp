@@ -38,6 +38,9 @@ namespace
     // スタン関連
     constexpr int kStunDuration = 120;           // スタンの総持続時間
     constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
+
+    // AcidBallの画面外判定距離
+    constexpr float kAcidBallBoundaryDistance = 2000.0f;
 }
 
 int EnemyAcid::s_modelHandle = -1;
@@ -238,6 +241,22 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             SetPosPlayingEffekseer3DEffect(ball.effectHandle, ball.pos.x, ball.pos.y, ball.pos.z);
         }
 
+        // プレイヤーからの距離を計算
+        VECTOR toPlayer = VSub(ball.pos, player.GetPos());
+        float distanceToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
+
+        // プレイヤーから一定距離以上離れたら非アクティブにする
+        if (distanceToPlayer > kAcidBallBoundaryDistance)
+        {
+            ball.active = false;
+            if (ball.effectHandle != -1)
+            {
+                StopEffekseer3DEffect(ball.effectHandle);
+                ball.effectHandle = -1;
+            }
+            continue; // 以降の処理をスキップ
+        }
+
         // まだ反射されていない弾の処理
         if (!ball.isReflected)
         {
@@ -358,6 +377,10 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             }
         }
     }
+
+    // 非アクティブなAcidBallを削除
+    m_acidBalls.erase(std::remove_if(m_acidBalls.begin(), m_acidBalls.end(), 
+        [](const AcidBall& b) { return !b.active; }), m_acidBalls.end());
 
     // 弾との当たり判定・ダメージ処理
     CheckHitAndDamage(bullets, pEffect);
@@ -812,4 +835,18 @@ void EnemyAcid::TakeTackleDamage(float damage)
 std::shared_ptr<CapsuleCollider> EnemyAcid::GetBodyCollider() const
 {
 	return m_pBodyCollider;
+}
+
+void EnemyAcid::OnDeath()
+{
+    // 死亡時に残っているAcidBallを全て停止
+    for (auto& ball : m_acidBalls)
+    {
+        if (ball.effectHandle != -1)
+        {
+            StopEffekseer3DEffect(ball.effectHandle);
+            ball.effectHandle = -1;
+        }
+    }
+    m_acidBalls.clear(); // 全てのAcidBallをクリア
 }

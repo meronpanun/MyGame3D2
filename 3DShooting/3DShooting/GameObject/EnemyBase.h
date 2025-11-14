@@ -168,6 +168,11 @@ public:
 	virtual void SetOnDeathWithTypeCallback(std::function<void(const VECTOR&, AttackType)> cb) { m_onDeathWithTypeCallback = cb; }
 
 	/// <summary>
+	/// 敵が死亡した際に呼ばれる処理
+	/// </summary>
+	virtual void OnDeath() {}
+
+	/// <summary>
 	/// ボディコライダーを取得する
 	/// </summary>
 	/// <returns>ボディコライダー</returns>

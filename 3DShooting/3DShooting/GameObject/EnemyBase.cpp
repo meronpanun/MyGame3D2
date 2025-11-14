@@ -105,6 +105,7 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
             m_isAlive = false;
             TaskTutorialManager::GetInstance()->NotifyEnemyKilled(m_lastAttackType);
             if (m_onDeathWithTypeCallback) m_onDeathWithTypeCallback(m_pos, m_lastAttackType);
+            OnDeath(); // 敵が死亡した際にOnDeathを呼び出す
         }
     }
 }

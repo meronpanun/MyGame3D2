@@ -96,6 +96,11 @@ public:
     /// </summary>
     void OnParried();
 
+    /// <summary>
+    /// 敵が死亡した際に呼ばれる処理
+    /// </summary>
+    void OnDeath() override;
+
 private:
 
 	/// <summary>
