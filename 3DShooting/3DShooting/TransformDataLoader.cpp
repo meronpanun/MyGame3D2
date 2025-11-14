@@ -241,12 +241,12 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 				{
 					if (!element.empty()) 
 					{
-						data.aRInitAmmo = std::stoi(element);
+						data.arInitAmmo = std::stoi(element);
 					}
 				} 
 				catch (const std::exception&) 
 				{
-					data.aRInitAmmo = 0;
+					data.arInitAmmo = 0;
 				}
 				break;
 			case 18: // SGInitialAmmo（プレイヤー用）

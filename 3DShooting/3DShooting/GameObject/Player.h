@@ -295,7 +295,7 @@ private:
 	Effect* m_pEffect; // エフェクトのポインタ
 	AnimationManager* m_pAnimManager; // アニメーションマネージャーのポインタ
 	bool m_isSGAnimPlaying;
-	float m_sGAnimTime;
+	float m_sgAnimTime;
 
 	// プレイヤーの位置を保持するメンバー変数
 	VECTOR m_pos;
@@ -311,17 +311,17 @@ private:
 
 	int   m_fontHandle;					   // フォントハンドル
 	int   m_hpFontHandle;			       // HPフォントハンドル
-	int   m_aRInitAmmo;		               // ARの初期弾薬数
+	int   m_arInitAmmo;		               // ARの初期弾薬数
 	int   m_sgInitAmmo;		               // SGの初期弾薬数
 	int   m_arMaxAmmo;                     // ARの最大弾薬数
 	int   m_sgMaxAmmo;                     // SGの最大弾薬数
-	int   m_aRHandle;					   // アサルトライフルモデルのハンドル
-	int   m_sGHandle;					   // ショットガンモデルのハンドル
+	int   m_arHandle;					   // アサルトライフルモデルのハンドル
+	int   m_sgHandle;					   // ショットガンモデルのハンドル
 	int   m_shieldModelHandle;			   // 盾モデルのハンドル
 	int   m_shieldImageHandle;			   // 盾のUI画像のハンドル
 	int   m_ammoImageHandle;			   // 弾のハンドル
 	int   m_shotSEHandle;			       // ショットのSEハンドル
-	int   m_sGShotSEHandle;				   // ショットガンのショットSEハンドル
+	int   m_sgShotSEHandle;				   // ショットガンのショットSEハンドル
 	int   m_playerHitSEHandle;		       // 被弾SEのハンドル
 	int   m_tackleSEHandle;				   // タックルSEのハンドル
 	int   m_recoverySEHandle;			   // 回復アイテムSEのハンドル
@@ -335,10 +335,10 @@ private:
 	int   m_landingSEHandle;			   // 着地SEのハンドル
 	int   m_ejectionPortFrame;			   // 薬莢排出口フレーム
 	int   m_noAmmoImageHandle;			   // 弾薬切れUI画像のハンドル
-	int   m_aRImageHandle;	               // アサルトライフルUI画像のハンドル
+	int   m_arImageHandle;	               // アサルトライフルUI画像のハンドル
 	int   m_lowAmmoARImageHandle;          // 弾が少ない時のアサルトライフルUI画像のハンドル
 	int   m_noAmmoARImageHandle;           // 弾が0の時のアサルトライフルUI画像のハンドル
-	int   m_sGImageHandle;                 // ショットガンUI画像のハンドル
+	int   m_sgImageHandle;                 // ショットガンUI画像のハンドル
 	int   m_lowAmmoSGImageHandle;          // 弾が少ない時のショットガンUI画像のハンドル
 	int   m_noAmmoSGImageHandle;           // 弾が0の時のショットガンUI画像のハンドル
 	int   m_healthUiImageHandle;		   // HPUI画像のハンドル
@@ -372,7 +372,7 @@ private:
 	float m_ammoEffectAlpha;    // 弾薬エフェクト用アルファ値
 	float m_shootCooldown;      // 発射クールタイム
 	float m_shootCooldownTimer; // クールタイムタイマー
-	float m_aRShootRate;        // アサルトライフルの1秒あたりの発射回数
+	float m_arShootRate;        // アサルトライフルの1秒あたりの発射回数
 
 	bool  m_isMoving;	    // プレイヤーが移動中かどうか
 	bool  m_isJumping;	    // プレイヤーがジャンプ中かどうか

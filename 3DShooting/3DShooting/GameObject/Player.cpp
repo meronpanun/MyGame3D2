@@ -203,12 +203,12 @@ namespace
 }
 
 Player::Player() :
-	m_aRHandle(-1),
-	m_sGHandle(-1),
+	m_arHandle(-1),
+	m_sgHandle(-1),
 	m_shieldModelHandle(-1),
 	m_shieldImageHandle(-1),
 	m_shotSEHandle(-1),
-	m_sGShotSEHandle(-1),
+	m_sgShotSEHandle(-1),
 	m_playerHitSEHandle(-1),
 	m_tackleSEHandle(-1),
 	m_recoverySEHandle(-1),
@@ -243,7 +243,7 @@ Player::Player() :
 	m_ammoEffectTimer(0.0f),
 	m_shootCooldown(1.0f / kARShootRate), 
 	m_shootCooldownTimer(0.0f),
-	m_aRShootRate(kARShootRate),
+	m_arShootRate(kARShootRate),
 	m_isInvincible(false),
 	m_isInfiniteAmmo(false),
 	m_tackleCooldownMax(0.0f),
@@ -255,10 +255,10 @@ Player::Player() :
 	m_shieldAnimDuration(1.0f),
 	m_concentrationLineEffectHandle(-1),
 	m_noAmmoImageHandle(-1),
-	m_aRImageHandle(-1),
+	m_arImageHandle(-1),
 	m_lowAmmoARImageHandle(-1),
 	m_noAmmoARImageHandle(-1),
-	m_sGImageHandle(-1),
+	m_sgImageHandle(-1),
 	m_lowAmmoSGImageHandle(-1),
 	m_noAmmoSGImageHandle(-1),
 	m_isLowAmmo(false),
@@ -299,19 +299,19 @@ Player::Player() :
 	m_parryEffectHandle(-1),
 	m_pAnimManager(nullptr),
 	m_isSGAnimPlaying(false),
-	m_sGAnimTime(0.0f),
+	m_sgAnimTime(0.0f),
 	m_currentWeaponIndex(0)
 {
 	// アサルトライフルモデルの読み込み
-	m_aRHandle = MV1LoadModel("data/model/AR.mv1");
-	assert(m_aRHandle != -1);
+	m_arHandle = MV1LoadModel("data/model/AR.mv1");
+	assert(m_arHandle != -1);
 
 	// ショットガンモデルの読み込み
-	m_sGHandle = MV1LoadModel("data/model/SG.mv1");
-	assert(m_sGHandle != -1);
+	m_sgHandle = MV1LoadModel("data/model/SG.mv1");
+	assert(m_sgHandle != -1);
 
 	// 薬莢排出口フレームのインデックスを検索
-	m_ejectionPortFrame = MV1SearchFrame(m_aRHandle, "AR_M_Ejection_Port");
+	m_ejectionPortFrame = MV1SearchFrame(m_arHandle, "AR_M_Ejection_Port");
 
 	// 盾モデルの読み込み
 	m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
@@ -326,16 +326,16 @@ Player::Player() :
 	assert(m_noHealthImageHandle != -1);
 
 	// アサルトライフルUI画像の読み込み
-	m_aRImageHandle = LoadGraph("data/image/ARUI.png");
-	assert(m_aRImageHandle != -1);
+	m_arImageHandle = LoadGraph("data/image/ARUI.png");
+	assert(m_arImageHandle != -1);
 	m_lowAmmoARImageHandle = LoadGraph("data/image/LowAmmoARUI.png");
 	assert(m_lowAmmoARImageHandle != -1);
 	m_noAmmoARImageHandle = LoadGraph("data/image/NoAmmoARUI.png");
 	assert(m_noAmmoARImageHandle != -1);
 
 	// ショットガンUI画像の読み込み
-	m_sGImageHandle = LoadGraph("data/image/SGUI.png");
-	assert(m_sGImageHandle != -1);
+	m_sgImageHandle = LoadGraph("data/image/SGUI.png");
+	assert(m_sgImageHandle != -1);
 	m_lowAmmoSGImageHandle = LoadGraph("data/image/LowAmmoSGUI.png");
 	assert(m_lowAmmoSGImageHandle != -1);
 	m_noAmmoSGImageHandle = LoadGraph("data/image/NoAmmoSGUI.png");
@@ -356,8 +356,8 @@ Player::Player() :
 	// SEの読み込み
 	m_shotSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
 	assert(m_shotSEHandle != -1);
-	m_sGShotSEHandle = LoadSoundMem("data/sound/SE/ShotgunShot.mp3");
-	assert(m_sGShotSEHandle != -1);
+	m_sgShotSEHandle = LoadSoundMem("data/sound/SE/ShotgunShot.mp3");
+	assert(m_sgShotSEHandle != -1);
 	m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
 	assert(m_playerHitSEHandle != -1);
 	m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
@@ -377,17 +377,17 @@ Player::Player() :
 Player::~Player()
 {
 	// モデルの解放
-	MV1DeleteModel(m_aRHandle);
-	MV1DeleteModel(m_sGHandle);
+	MV1DeleteModel(m_arHandle);
+	MV1DeleteModel(m_sgHandle);
 	MV1DeleteModel(m_shieldModelHandle);
 
 	// 画像の解放
 	DeleteGraph(m_noAmmoImageHandle);
 	DeleteGraph(m_noHealthImageHandle);
-	DeleteGraph(m_aRImageHandle);
+	DeleteGraph(m_arImageHandle);
 	DeleteGraph(m_lowAmmoARImageHandle);
 	DeleteGraph(m_noAmmoARImageHandle);
-	DeleteGraph(m_sGImageHandle);
+	DeleteGraph(m_sgImageHandle);
 	DeleteGraph(m_lowAmmoSGImageHandle);
 	DeleteGraph(m_noAmmoSGImageHandle);
 	DeleteGraph(m_healthUiImageHandle);
@@ -396,7 +396,7 @@ Player::~Player()
 
 	// SEの解放
 	DeleteSoundMem(m_shotSEHandle);
-	DeleteSoundMem(m_sGShotSEHandle);
+	DeleteSoundMem(m_sgShotSEHandle);
 	DeleteSoundMem(m_playerHitSEHandle);
 	DeleteSoundMem(m_tackleSEHandle);
 	DeleteSoundMem(m_recoverySEHandle);
@@ -426,9 +426,9 @@ void Player::Init()
 			m_tackleSpeed		   = data.tackleSpeed;
 			m_tackleDamage		   = data.tackleDamage;
 			m_runSpeed			   = data.runSpeed;
-			m_aRInitAmmo           = data.aRInitAmmo;
+			m_arInitAmmo           = data.arInitAmmo;
 			m_sgInitAmmo           = data.sgInitAmmo;
-			m_arMaxAmmo            = data.aRInitAmmo;
+			m_arMaxAmmo            = data.arInitAmmo;
 			m_sgMaxAmmo            = data.sgInitAmmo;
 			m_bulletPower		   = data.bulletPower;
 			m_sgBulletPower		   = data.sgBulletPower;
@@ -437,10 +437,10 @@ void Player::Init()
 			m_maxShieldDurability  = data.maxShieldDurability; // 最大耐久値を設定
 			m_shieldRegenRate	   = data.shieldRegenRate; // 回復速度を設定
 			m_isShieldBroken	   = false; // 盾は壊れていない
-			MV1SetScale(m_aRHandle, data.scale);
-			MV1SetRotationXYZ(m_aRHandle, data.rot);
-			MV1SetScale(m_sGHandle, data.scale);
-			MV1SetRotationXYZ(m_sGHandle, data.rot);
+			MV1SetScale(m_arHandle, data.scale);
+			MV1SetRotationXYZ(m_arHandle, data.rot);
+			MV1SetScale(m_sgHandle, data.scale);
+			MV1SetRotationXYZ(m_sgHandle, data.rot);
 			break;
 		}
 	}
@@ -455,7 +455,7 @@ void Player::Init()
 	SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 
 	// CSVの初期弾薬数を反映
-	m_arAmmo = m_aRInitAmmo;
+	m_arAmmo = m_arInitAmmo;
 	m_sgAmmo = m_sgInitAmmo;
 }
 
@@ -579,15 +579,15 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	{
 	case WeaponType::AssaultRifle:
 		modelOffset = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
-		currentModelHandle = m_aRHandle;
-		MV1SetVisible(m_sGHandle, false); // ショットガンを非表示
-		MV1SetVisible(m_aRHandle, true);  // アサルトライフルを表示
+		currentModelHandle = m_arHandle;
+		MV1SetVisible(m_sgHandle, false); // ショットガンを非表示
+		MV1SetVisible(m_arHandle, true);  // アサルトライフルを表示
 		break;
 	case WeaponType::Shotgun:
 		modelOffset = VGet(kSGOffsetX, kSGOffsetY, kSGOffsetZ);
-		currentModelHandle = m_sGHandle;
-		MV1SetVisible(m_aRHandle, false); // アサルトライフルを非表示
-		MV1SetVisible(m_sGHandle, true);  // ショットガンを表示
+		currentModelHandle = m_sgHandle;
+		MV1SetVisible(m_arHandle, false); // アサルトライフルを非表示
+		MV1SetVisible(m_sgHandle, true);  // ショットガンを表示
 		break;
 	default:
 		modelOffset = VGet(0, 0, 0);
@@ -601,23 +601,23 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	if (m_isSGAnimPlaying)
 	{
-		m_sGAnimTime += 1.0f; 
+		m_sgAnimTime += 1.0f; 
 		if (m_pAnimManager)
 		{
-			m_pAnimManager->UpdateAnimationTime(m_sGHandle, m_sGAnimTime);
+			m_pAnimManager->UpdateAnimationTime(m_sgHandle, m_sgAnimTime);
 		}
 
 		// アニメーションが終了したかチェック
-		float totalTime = m_pAnimManager->GetAnimationTotalTime(m_sGHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames");
-		if (totalTime > 0 && m_sGAnimTime >= totalTime)
+		float totalTime = m_pAnimManager->GetAnimationTotalTime(m_sgHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames");
+		if (totalTime > 0 && m_sgAnimTime >= totalTime)
 		{
 			m_isSGAnimPlaying = false;
 			// アニメーションをデタッチ
-			int attachIndex = m_pAnimManager->GetCurrentAttachedAnimHandle(m_sGHandle);
+			int attachIndex = m_pAnimManager->GetCurrentAttachedAnimHandle(m_sgHandle);
 			if (attachIndex != -1)
 			{
-				MV1DetachAnim(m_sGHandle, attachIndex);
-				m_pAnimManager->ResetAttachedAnimHandle(m_sGHandle);
+				MV1DetachAnim(m_sgHandle, attachIndex);
+				m_pAnimManager->ResetAttachedAnimHandle(m_sgHandle);
 			}
 		}
 	}
@@ -1277,10 +1277,10 @@ void Player::Draw3D()
 	switch (m_currentWeaponType)
 	{
 	case WeaponType::AssaultRifle:
-		MV1DrawModel(m_aRHandle);
+		MV1DrawModel(m_arHandle);
 		break;
 	case WeaponType::Shotgun:
-		MV1DrawModel(m_sGHandle);
+		MV1DrawModel(m_sgHandle);
 		break;
 	default:
 		break;
@@ -1479,7 +1479,7 @@ void Player::DrawUI()
 			}
 			else
 			{
-				gunHandle = m_aRImageHandle;
+				gunHandle = m_arImageHandle;
 			}
 			break;
 		case WeaponType::Shotgun:
@@ -1497,7 +1497,7 @@ void Player::DrawUI()
 			}
 			else
 			{
-				gunHandle = m_sGImageHandle;
+				gunHandle = m_sgImageHandle;
 			}
 			break;
 		default:
@@ -1931,18 +1931,18 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	case WeaponType::AssaultRifle:
 		bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot, m_bulletPower);
 		currentShotSEHandle = m_shotSEHandle;
-		currentModelHandle = m_aRHandle;
+		currentModelHandle = m_arHandle;
 		currentMuzzleFlashOffset = VGet(kARMuzzleFlashEffectOffsetX, kARMuzzleFlashEffectOffsetY, kARMuzzleFlashEffectOffsetZ);
 		break;
 	case WeaponType::Shotgun:
-		currentShotSEHandle = m_sGShotSEHandle;
-		currentModelHandle = m_sGHandle;
+		currentShotSEHandle = m_sgShotSEHandle;
+		currentModelHandle = m_sgHandle;
 		currentMuzzleFlashOffset = VGet(kSGMuzzleFlashEffectOffsetX, kSGMuzzleFlashEffectOffsetY, kSGMuzzleFlashEffectOffsetZ);
 		if (m_pAnimManager)
 		{
-			m_pAnimManager->PlayAnimation(m_sGHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
+			m_pAnimManager->PlayAnimation(m_sgHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
 			m_isSGAnimPlaying = true;
-			m_sGAnimTime = 0.0f;
+			m_sgAnimTime = 0.0f;
 		}
 		// ショットガンは複数弾をばらけさせて発射
 		for (int i = 0; i < 5; ++i) // 5発の弾を発射
@@ -2000,12 +2000,12 @@ VECTOR Player::GetGunPos() const
 	case WeaponType::AssaultRifle:
 		modelOffset = VGet(kAROffsetX, kAROffsetY, kAROffsetZ);
 		muzzleFlashOffset = VGet(kARMuzzleFlashEffectOffsetX, kARMuzzleFlashEffectOffsetY, kARMuzzleFlashEffectOffsetZ);
-		currentModelHandle = m_aRHandle;
+		currentModelHandle = m_arHandle;
 		break;
 	case WeaponType::Shotgun:
 		modelOffset = VGet(kSGOffsetX, kSGOffsetY, kSGOffsetZ);
 		muzzleFlashOffset = VGet(kSGMuzzleFlashEffectOffsetX, kSGMuzzleFlashEffectOffsetY, kSGMuzzleFlashEffectOffsetZ);
-		currentModelHandle = m_sGHandle;
+		currentModelHandle = m_sgHandle;
 		break;
 	default:
 		modelOffset = VGet(0, 0, 0);
@@ -2040,11 +2040,11 @@ VECTOR Player::GetGunRot() const
 VECTOR Player::GetEjectionPortPos() const
 {
 	// 常にアサルトライフルの薬莢排出口を返す
-	int ejectionPortFrame = MV1SearchFrame(m_aRHandle, "AR_M_Ejection_Port");
+	int ejectionPortFrame = MV1SearchFrame(m_arHandle, "AR_M_Ejection_Port");
 
 	if (ejectionPortFrame != -1)
 	{
-		return MV1GetFramePosition(m_aRHandle, ejectionPortFrame);
+		return MV1GetFramePosition(m_arHandle, ejectionPortFrame);
 	}
 	return VGet(0, 0, 0); // フレームが見つからない場合はデフォルト値を返す
 }
