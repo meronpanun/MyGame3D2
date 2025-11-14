@@ -38,9 +38,9 @@ namespace
 	constexpr float kSGOffsetZ = 60.0f;
 
 	// ショットガンマズルフラッシュエフェクトのオフセット
-	constexpr float kSGMuzzleFlashEffectOffsetX = -20.0f;
-	constexpr float kSGMuzzleFlashEffectOffsetY = 30.0f;
-	constexpr float kSGMuzzleFlashEffectOffsetZ = 80.0f;
+	constexpr float kSGMuzzleFlashEffectOffsetX = 30.0f;
+	constexpr float kSGMuzzleFlashEffectOffsetY = 60.0f;
+	constexpr float kSGMuzzleFlashEffectOffsetZ = 220.0f;
 
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.35f; // 重力の強さ
