@@ -20,6 +20,7 @@ C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DS
   
   AmmoItem.cpp
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\AmmoItem.cpp(82,37): warning C4305: '-=': 'double' から 'float' へ切り詰めます。
+  Bullet.cpp
   EnemyAcid.cpp
   EnemyBase.cpp
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(25,21): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
@@ -175,6 +176,7 @@ C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DS
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(732,84): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(735,90): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\TutorialManager.cpp(744,84): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+  コンパイル中...
   WaveManager.cpp
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(123,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(130,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
@@ -188,9 +190,9 @@ C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DS
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(491,19): warning C4244:             _Rep=std::chrono::system_clock::rep
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(491,19): warning C4244:         ]
   コード生成しています。
-  10 of 3780 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+  0 of 3780 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    3 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
 EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\x64\Release\3DShooting.exe
