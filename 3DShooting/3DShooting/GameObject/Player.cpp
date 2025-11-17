@@ -149,7 +149,8 @@ namespace
 	// カメラシェイク
 	constexpr float kTakeDamageShakePower		 = 5.0f;  // 攻撃を受けた時の揺れの強さ
 	constexpr int   kTakeDamageShakeDuration	 = 15;    // 攻撃を受けた時の揺れの持続時間
-	constexpr float kShootShakePower			 = 6.0f;  // 撃った時の揺れの強さ
+	constexpr float kARShootShakePower			 = 4.0f;  // ARを撃った時の揺れの強さ
+	constexpr float kSGShootShakePower			 = 32.0f; // SGを撃った時の揺れの強さ
 	constexpr int   kShootShakeDuration			 = 8;     // 撃った時の揺れの持続時間
 	constexpr float kShieldBreakGunShakePower    = 10.0f; // 盾破壊時の銃の揺れの強さ
 	constexpr float kShieldBreakGunShakeDuration = 30.0f; // 盾破壊時の銃の揺れの持続時間
@@ -2028,6 +2029,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	int currentModelHandle = -1;
 	VECTOR currentMuzzleFlashOffset = VGet(0, 0, 0);
 
+	float shakePower = 0.0f;
 	switch (m_currentWeaponType)
 	{
 	case WeaponType::AssaultRifle:
@@ -2035,11 +2037,13 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 		currentShotSEHandle = m_shotSEHandle;
 		currentModelHandle = m_arHandle;
 		currentMuzzleFlashOffset = VGet(kARMuzzleFlashEffectOffsetX, kARMuzzleFlashEffectOffsetY, kARMuzzleFlashEffectOffsetZ);
+		shakePower = kARShootShakePower;
 		break;
 	case WeaponType::Shotgun:
 		currentShotSEHandle = m_sgShotSEHandle;
 		currentModelHandle = m_sgHandle;
 		currentMuzzleFlashOffset = VGet(kSGMuzzleFlashEffectOffsetX, kSGMuzzleFlashEffectOffsetY, kSGMuzzleFlashEffectOffsetZ);
+		shakePower = kSGShootShakePower;
 		if (m_pAnimManager)
 		{
 			m_pAnimManager->PlayAnimation(m_sgHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
@@ -2086,7 +2090,7 @@ void Player::Shoot(std::vector<Bullet>& bullets)
 	// カメラシェイクを発生
 	if (m_pCamera)
 	{
-		m_pCamera->Shake(kShootShakePower, kShootShakeDuration); // 強さ・フレーム数
+		m_pCamera->Shake(shakePower, kShootShakeDuration); // 強さ・フレーム数
 	}
 }
 

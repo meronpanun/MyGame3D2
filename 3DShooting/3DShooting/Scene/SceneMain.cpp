@@ -699,6 +699,16 @@ void SceneMain::Draw()
             GetGraphSize(currentReticleHandle, &reticleWidth, &reticleHeight);
             DrawGraph(kScreenCenterX - reticleWidth * 0.5f, kScreenCenterY - reticleHeight * 0.5f, currentReticleHandle, true);
         }
+
+        // ドットレティクルを常に描画
+        int dotReticleHandle = m_pPlayer->IsAimingAtEnemy() ? m_dotOnTargetHandle : m_dotDefaultHandle;
+        if (dotReticleHandle != -1)
+        {
+            int dotReticleWidth = 0;
+            int dotReticleHeight = 0;
+            GetGraphSize(dotReticleHandle, &dotReticleWidth, &dotReticleHeight);
+            DrawGraph(kScreenCenterX - dotReticleWidth * 0.5f, kScreenCenterY - dotReticleHeight * 0.5f, dotReticleHandle, true);
+        }
     }
 
     // ウェーブUIの描画
