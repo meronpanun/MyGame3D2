@@ -5,7 +5,7 @@
 #include "SceneOption.h"
 #include "SceneGameOver.h"
 #include "DebugUtil.h"
-#include "Mouse.h"
+#include "InputManager.h"
 #include "Game.h"
 #include <string>
 #include <DxLib.h>
@@ -70,7 +70,7 @@ void SceneManager::Init()
 void SceneManager::Update()
 {
     // マウスの入力状態を更新
-    Mouse::Update();
+    InputManager::GetInstance()->Update();
 
 	// フェードイン・アウト処理
 	if (m_fadeState == FadeState::FadingIn)
@@ -139,7 +139,7 @@ void SceneManager::Update()
 			m_fadeState = FadeState::FadingIn;
 			// シーン遷移直後のフレームで、前のシーンでの入力がトリガーされてしまうのを防ぐため、
 			// マウスの入力ログを意図的に更新してトリガー判定を無効化する。
-			Mouse::Update();
+			InputManager::GetInstance()->Update();
 		}
 	}
 

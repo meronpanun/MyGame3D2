@@ -3,7 +3,7 @@
 #include "EffekseerForDXLib.h"
 #include "SceneMain.h"
 #include "SceneTitle.h"
-#include "Mouse.h"
+#include "InputManager.h"
 #include <cassert>
 
 namespace
@@ -112,7 +112,7 @@ SceneBase* SceneResult::Update()
     // スコア演出用の更新
     ScoreManager::Instance().Update();
 
-    if (Mouse::IsTriggerLeft())
+    if (InputManager::GetInstance()->IsTriggerMouseLeft())
     {
         int screenW, screenH;
         GetScreenState(&screenW, &screenH, nullptr);
@@ -131,7 +131,7 @@ SceneBase* SceneResult::Update()
         int retryBtnY1 = btnY;
         int retryBtnX2 = centerX + btnW + btnSpacing * 0.5f;
         int retryBtnY2 = btnY + btnH;
-        Vec2 mousePos = Mouse::GetPos();
+        Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
         if (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 && mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2)
         {
             // BGMを停止

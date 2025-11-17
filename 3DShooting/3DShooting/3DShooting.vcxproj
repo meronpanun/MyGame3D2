@@ -168,7 +168,6 @@
     <ClCompile Include="GameObject\ShellCasing.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="GameObject\Player.cpp" />
     <ClCompile Include="Scene\SceneGameOver.cpp" />
     <ClCompile Include="Scene\SceneBase.cpp" />
@@ -210,7 +209,6 @@
     <ClInclude Include="GameObject\ItemBase.h" />
     <ClInclude Include="GameObject\ShellCasing.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="Mouse.h" />
     <ClInclude Include="GameObject\Player.h" />
     <ClInclude Include="Scene\SceneGameOver.h" />
     <ClInclude Include="Scene\SceneBase.h" />

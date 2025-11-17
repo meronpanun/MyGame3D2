@@ -1,5 +1,5 @@
 ﻿#include "Camera.h"
-#include "Mouse.h"
+#include "InputManager.h"
 #include <cmath>
 
 namespace
@@ -140,7 +140,7 @@ void Camera::Update()
     else
     {
         // マウスの移動量に基づいてカメラの回転角度を更新
-        Mouse::UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
+        InputManager::GetInstance()->UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
         m_roll = 0.0f; // 通常時はロールなし
         m_hasBounced = false; // リセット
     }

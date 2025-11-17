@@ -2,7 +2,7 @@
 #include "EffekseerForDXLib.h"
 #include "Game.h"
 #include "SceneMain.h"
-#include "Mouse.h"
+#include "InputManager.h"
 #include "DebugUtil.h"
 #include <cassert>
 
@@ -123,7 +123,7 @@ SceneBase* SceneTitle::Update()
     }
 
     // マウスの左クリックをチェック
-    if (Mouse::IsTriggerLeft())
+    if (InputManager::GetInstance()->IsTriggerMouseLeft())
     {
         // BGMを停止
         StopSoundMem(m_bgmHandle);
@@ -137,7 +137,7 @@ SceneBase* SceneTitle::Update()
 void SceneTitle::Draw()
 {
     // マウスの位置を取得
-    Vec2 mousePos = Mouse::GetPos();
+    Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
 
     // タイトルロゴの描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);

@@ -3,7 +3,7 @@
 #include "EnemyBase.h"
 #include "EffekseerForDXLib.h"
 #include "Game.h" 
-#include "Mouse.h"
+#include "InputManager.h"
 #include "Camera.h"
 #include "Effect.h"
 #include "Bullet.h"
@@ -59,7 +59,7 @@ namespace
 
 	// 1秒あたりの発射回数
 	constexpr float kARShootRate = 10.0f;
-	constexpr float kSGShootRate = 1.2f; 
+	constexpr float kSGShootRate = 1.3f; 
 
 	// X,Z座標の移動範囲制限
 	constexpr float kLimitMoveX = 2800.0f;
@@ -483,7 +483,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 
 		// マウスホイールで武器切り替え
-		int wheelRot = GetMouseWheelRotVol();
+		int wheelRot = InputManager::GetInstance()->GetMouseWheelRotVol();
 		if (wheelRot != 0)
 		{
 			if (wheelRot > 0)
@@ -615,7 +615,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	};
 
 	// ガード入力中は武器を非表示にする
-	bool isTryingToGuard = !m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput && !m_isShieldBroken;
+	bool isTryingToGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_isShieldBroken;
 	if (isTryingToGuard)
 	{
 		MV1SetVisible(m_arHandle, false);
@@ -731,7 +731,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// マウスの左クリックで射撃（タックル中、ガード中は射撃不可、死亡中も射撃不可）
-	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isGuarding && !m_isLockingOn && !m_isSwitchingWeapon && Mouse::IsPressLeft() && (GetCurrentAmmo() > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
+	if (!m_isDead && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::Shoot) && !m_isTackling && !m_isGuarding && !m_isLockingOn && !m_isSwitchingWeapon && InputManager::GetInstance()->IsPressMouseLeft() && (GetCurrentAmmo() > 0 || m_isInfiniteAmmo) && m_shootCooldownTimer <= 0.0f)
 	{
 		Shoot(m_bullets); // 弾を発射
 
@@ -755,7 +755,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance);
 
 	// 右クリック長押しでガード＆ロックオン
-	if (!Mouse::IsPressRight())
+	if (!InputManager::GetInstance()->IsPressMouseRight())
 	{
 		m_ignoreGuardInput = false;
 	}
@@ -823,7 +823,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	}
 
 	// 右クリック長押しでガード	
-	if (!m_isDead && !m_isTackling && Mouse::IsPressRight() && !m_ignoreGuardInput && !m_isShieldBroken)
+	if (!m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_isShieldBroken)
 	{
 		m_isGuarding = true;
 
@@ -973,7 +973,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}	    
     // ロックオン中に左クリックでタックル	
-	if (m_isLockingOn && m_lockedOnEnemy && Mouse::IsTriggerLeft() && m_tackleCooldown <= 0)
+	if (m_isLockingOn && m_lockedOnEnemy && InputManager::GetInstance()->IsTriggerMouseLeft() && m_tackleCooldown <= 0)
 	{
 		m_isTackling = true;
 

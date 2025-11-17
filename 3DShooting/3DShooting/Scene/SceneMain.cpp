@@ -5,7 +5,7 @@
 #include "SceneGameOver.h" 
 #include "EffekseerForDXLib.h"
 #include "Player.h"
-#include "Mouse.h"
+#include "InputManager.h"
 #include "Game.h"
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
@@ -448,9 +448,9 @@ SceneBase* SceneMain::Update()
 
     if (m_isPaused)
     {
-        if (Mouse::IsTriggerLeft())
+        if (InputManager::GetInstance()->IsTriggerMouseLeft())
         {
-            Vec2 mousePos = Mouse::GetPos();
+            Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
 
             if (mousePos.x >= kReturnButtonX && mousePos.x <= kReturnButtonX + kButtonWidth &&
                 mousePos.y >= kReturnButtonY && mousePos.y <= kReturnButtonY + kButtonHeight)
@@ -855,7 +855,7 @@ void SceneMain::Draw()
 
 void SceneMain::DrawPauseMenu()
 {
-    Vec2 mousePos = Mouse::GetPos();
+    Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128); 
     DrawBox(50, 50, Game::kScreenWidth - 50, Game::kScreenHeigth - 50, 0x000000, true);

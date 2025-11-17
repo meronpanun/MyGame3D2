@@ -2,7 +2,7 @@
 #include "EffekseerForDXLib.h"
 #include "SceneTitle.h"
 #include "SceneMain.h"
-#include "Mouse.h"
+#include "InputManager.h"
 #include <cassert>
 
 namespace
@@ -122,7 +122,7 @@ SceneBase* SceneGameOver::Update()
         m_imageChangeInterval = 5 + (rand() % 30);
     }
  
-    if (Mouse::IsTriggerLeft())
+    if (InputManager::GetInstance()->IsTriggerMouseLeft())
     {
         int screenW, screenH;
         GetScreenState(&screenW, &screenH, nullptr);
@@ -138,7 +138,7 @@ SceneBase* SceneGameOver::Update()
         int retryBtnY1 = baseY;
         int retryBtnX2 = centerX + kButtonWidth + kButtonSpacing * 0.5f;
         int retryBtnY2 = baseY + kButtonHeight;
-        Vec2 mousePos = Mouse::GetPos();
+        Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
         if (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 && mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2)
         {
             // BGMを停止
