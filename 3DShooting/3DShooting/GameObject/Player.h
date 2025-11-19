@@ -2,14 +2,10 @@
 #include "EffekseerForDXLib.h"
 #include "AttackType.h"
 #include "Camera.h"
+#include "PlayerWeaponManager.h"
+#include "PlayerMovement.h"
+#include "PlayerShieldSystem.h"
 #include <vector>
-
-// 武器の種類
-enum class WeaponType
-{
-	AssaultRifle, // アサルトライフル
-	Shotgun       // ショットガン
-};
 
 class Camera;
 class Effect;
@@ -63,18 +59,24 @@ public:
 	/// </summary>
 	struct TackleInfo
 	{
-		VECTOR capA = { 0,0,0 }; // タックル判定カプセルのA点
-		VECTOR capB = { 0,0,0 }; // タックル判定カプセルのB点
+		VECTOR capA = { 0,0,0 };   // タックル判定カプセルのA点
+		VECTOR capB = { 0,0,0 };   // タックル判定カプセルのB点
 		float  radius = 0.0f;      // タックル判定カプセルの半径
 		float  damage = 0.0f;	   // タックルのダメージ量
 		bool   isTackling = false; // タックル中かどうか
 		int    tackleId = 0;       // タックルID
 	};
 
-	// カメラを取得する
+	/// <summary>
+	/// カメラを取得する
+	/// </summary>
+	/// <returns>カメラの共有ポインタ</returns>
 	const std::shared_ptr<Camera>& GetCamera() const { return m_pCamera; }
 
-    // 弾を撃つ
+    /// <summary>
+	/// 弾を撃つ
+    /// </summary>
+	/// <param name="bullets">弾のベクター</param>
     void Shoot(std::vector<Bullet>& bullets);
 
 	/// <summary>
@@ -114,22 +116,42 @@ public:
 	/// <returns>タックル情報</returns>
 	TackleInfo GetTackleInfo() const;
 
-	// カプセル情報を取得
+	/// <summary>
+	/// プレイヤーのカプセルコライダー情報を取得する
+	/// </summary>
+	/// <param name="capA">カプセルのA点</param>
+	/// <param name="capB">カプセルのB点</param>
+	/// <param name="radius">カプセルの半径</param>
 	void GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const;
 
-	// パリィが成功したかどうか
+	/// <summary>
+	/// 直前にガードが成功したかどうか
+	/// </summary>
+	/// <returns>ガード成功ならtrue</returns>
 	bool IsJustGuarded() const;
 
-    // 体力を加算する
+    /// <summary>
+	/// 体力を加算する
+    /// </summary>
+	/// <param name="value">加算する体力値</param>
     void AddHp(float value);
 
-    // プレイヤーがガード中かどうか
-    bool IsGuarding() const { return m_isGuarding; }
+    /// <summary>
+	/// プレイヤーがガード中かどうか
+    /// </summary>
+	/// <returns>ガード中ならtrue</returns>
+    bool IsGuarding() const { return m_shieldSystem.IsGuarding(); }
 
-	// 体力を取得する
+	/// <summary>
+	/// 現在の体力を取得する
+	/// </summary>
+	/// <returns>現在の体力</returns>
 	float GetHealth() const { return m_health; }
 
-	// 最大体力を取得する
+	/// <summary>
+	/// 最大体力を取得する
+	/// </summary>
+	/// <returns>最大体力</returns>
 	float GetMaxHealth() const { return m_maxHealth; }
 
 	/// <summary>
@@ -287,21 +309,22 @@ private:
 	void SwitchWeapon(WeaponType weaponType);
 
 private:
+	// コンポーネント
+	PlayerWeaponManager m_weaponManager;
+	PlayerMovement m_movement;
+	PlayerShieldSystem m_shieldSystem;
+
 	std::vector<ShellCasing>     m_shellCasings;
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
-	std::shared_ptr<Camera>		 m_pDebugCamera; // デバッグ用カメラのポインタ
 	std::vector<Bullet>			 m_bullets;      // 弾の管理
-	std::shared_ptr<CapsuleCollider> m_pBodyCollider; // プレイヤーのカプセルコライダー
 	Effect* m_pEffect; // エフェクトのポインタ
 	AnimationManager* m_pAnimManager; // アニメーションマネージャーのポインタ
-	bool m_isSGAnimPlaying;
-	float m_sgAnimTime;
 
 	// プレイヤーの位置を保持するメンバー変数
 	VECTOR m_pos;
-	VECTOR m_modelPos;
-	VECTOR m_tackleDir; // タックルの方向
-	VECTOR m_scale; // スケール
+	VECTOR m_modelPos; 
+	VECTOR m_tackleDir; 
+	VECTOR m_scale;     
 
 	EffectFeedback m_damageEffect;
 	EffectFeedback m_healEffect;
@@ -315,25 +338,17 @@ private:
 	int   m_sgInitAmmo;		               // SGの初期弾薬数
 	int   m_arMaxAmmo;                     // ARの最大弾薬数
 	int   m_sgMaxAmmo;                     // SGの最大弾薬数
-	int   m_arHandle;					   // アサルトライフルモデルのハンドル
-	int   m_sgHandle;					   // ショットガンモデルのハンドル
-	int   m_shieldModelHandle;			   // 盾モデルのハンドル
 	int   m_shieldImageHandle;			   // 盾のUI画像のハンドル
 	int   m_ammoImageHandle;			   // 弾のハンドル
-	int   m_shotSEHandle;			       // ショットのSEハンドル
-	int   m_sgShotSEHandle;				   // ショットガンのショットSEハンドル
 	int   m_playerHitSEHandle;		       // 被弾SEのハンドル
 	int   m_tackleSEHandle;				   // タックルSEのハンドル
 	int   m_recoverySEHandle;			   // 回復アイテムSEのハンドル
-	int   m_arAmmo;						   // ARの弾薬数	
-	int   m_sgAmmo;						   // SGの弾薬数	
 	int   m_tackleFrame;				   // タックルのフレーム数
 	int   m_tackleCooldown;				   // タックルのクールダウンタイマー
 	int   m_tackleId;					   // タックルID
 	int   m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int   m_ammoItemSEHandle;			   // 弾薬アイテムSEのハンドル
 	int   m_landingSEHandle;			   // 着地SEのハンドル
-	int   m_ejectionPortFrame;			   // 薬莢排出口フレーム
 	int   m_noAmmoImageHandle;			   // 弾薬切れUI画像のハンドル
 	int   m_arImageHandle;	               // アサルトライフルUI画像のハンドル
 	int   m_lowAmmoARImageHandle;          // 弾が少ない時のアサルトライフルUI画像のハンドル
@@ -342,78 +357,43 @@ private:
 	int   m_lowAmmoSGImageHandle;          // 弾が少ない時のショットガンUI画像のハンドル
 	int   m_noAmmoSGImageHandle;           // 弾が0の時のショットガンUI画像のハンドル
 	int   m_healthUiImageHandle;		   // HPUI画像のハンドル
-
-	bool  m_isLowAmmo;					   // 弾薬が少ないかどうかのフラグ
-	float m_lowAmmoBlinkTimer;			   // 弾薬切れUIの点滅タイマー
 	bool  m_showLowAmmoWarning;			   // 弾薬切れUIの表示フラグ
-
 	int   m_noHealthImageHandle;           // 体力低下UI画像のハンドル
 	bool  m_isLowHealth;                   // 体力が少ないかどうかのフラグ
 	float m_lowHealthBlinkTimer;           // 体力低下UIの点滅タイマー
-
-	float m_health;				// 現在の体力
-	float m_healthBarAnim;		// HPバーのアニメーション用体力値
-	float m_healthBarAnimTimer; // HPバーアニメーション用タイマー
-	float m_jumpVelocity;		// ジャンプの速度
-	float m_maxHealth;		    // 最大体力
-	float m_moveSpeed;			// 移動速度
-	float m_runSpeed;			// 走る速度
-	float m_bulletPower;		// 弾の威力
-	float m_sgBulletPower;     	// SG弾の威力
-	float m_maxShieldDurability;// 盾の最大耐久値
-	float m_tackleCooldownMax;  // タックルクールタイム
-	float m_tackleSpeed;        // タックル時の速度
-	float m_tackleDamage;       // タックルダメージ
-	float m_damageEffectTimer;  // ダメージエフェクト用タイマー
-	float m_damageEffectAlpha;  // ダメージエフェクト用アルファ値
-	float m_healEffectTimer;    // ヒールエフェクト用タイマー	
-	float m_healEffectAlpha;    // ヒールエフェクト用アルファ値
-	float m_ammoEffectTimer;    // 弾薬エフェクト用タイマー
-	float m_ammoEffectAlpha;    // 弾薬エフェクト用アルファ値
-	float m_shootCooldown;      // 発射クールタイム
-	float m_shootCooldownTimer; // クールタイムタイマー
-	float m_arShootRate;        // アサルトライフルの1秒あたりの発射回数
-
-	bool  m_isMoving;	    // プレイヤーが移動中かどうか
-	bool  m_isJumping;	    // プレイヤーがジャンプ中かどうか
-	bool  m_wasJumping;	    // 前のフレームでジャンプしていたかどうか
-	bool  m_isWasRunning;   // 前回の移動状態が走っていたかどうか
-	bool  m_hasShot;        // プレイヤーがショット可能かどうか
-	bool  m_isTackling;     // タックル中かどうか
-	bool  m_isInvincible;   // 無敵モードかどうか
-	bool  m_isInfiniteAmmo; // 弾薬無限モードかどうか
-
-	// 盾のアニメーション関連
-	bool  m_isShieldAnimating;  // 盾がアニメーション中か
-	bool  m_isShieldRecovering; // 盾が回復中か
-	float m_shieldAnimTimer;    // 盾のアニメーションタイマー
-	float m_shieldAnimDuration; // 盾のアニメーション時間
-
-	float m_shieldDurability;   // 盾の耐久値
-	float m_shieldBarAnim;      // 盾のUIアニメーション用の耐久値
-	float m_shieldRegenRate;     // 盾の回復速度
-	bool m_isShieldBroken; // 盾が壊れているか
-	int m_guardTimer;      // ガードしてからのフレーム数
-
-private:
-	int   m_warningFontHandle;  // 警告用フォントハンドル
-	bool  m_isNoAmmoWarning;    // 弾薬切れ警告表示フラグ
-	float m_ammoTextFlashTimer; // 弾薬テキストのフラッシュタイマー
+	float m_health;						   // 現在の体力
+	float m_healthBarAnim;				   // HPバーのアニメーション用体力値
+	float m_healthBarAnimTimer;			   // HPバーアニメーション用タイマー
+	float m_maxHealth;					   // 最大体力
+	float m_bulletPower;				   // 弾の威力
+	float m_sgBulletPower;				   // SG弾の威力
+	float m_maxShieldDurability;		   // 盾の最大耐久値
+	float m_tackleCooldownMax;			   // タックルクールタイム
+	float m_tackleSpeed;			       // タックル時の速度
+	float m_tackleDamage;				   // タックルダメージ
+	float m_damageEffectTimer;			   // ダメージエフェクト用タイマー
+	float m_damageEffectAlpha;			   // ダメージエフェクト用アルファ値
+	float m_healEffectTimer;			   // ヒールエフェクト用タイマー	
+	float m_healEffectAlpha;			   // ヒールエフェクト用アルファ値
+	float m_ammoEffectTimer;			   // 弾薬エフェクト用タイマー
+	float m_ammoEffectAlpha;			   // 弾薬エフェクト用アルファ値
+	float m_moveSpeed;				       // 移動速度
+	float m_runSpeed;				       // 走る速度
+	bool  m_hasShot;					   // プレイヤーがショット可能かどうか
+	bool  m_isTackling;					   // タックル中かどうか
+	bool  m_isInvincible;				   // 無敵モードかどうか
+	bool  m_isInfiniteAmmo;				   // 弾薬無限モードかどうか
+	float m_shieldRegenRate;			   // 盾の回復速度
+	int   m_warningFontHandle;			   // 警告用フォントハンドル
+	float m_ammoTextFlashTimer;            // 弾薬テキストのフラッシュタイマー
 	
 	// Sway管理
 	float  m_idleSwayTimer;      // 待機時の揺れタイマー
-	VECTOR m_gunSwayOffset;
-	VECTOR m_gunSwayRotOffset;
-	VECTOR m_shieldSwayOffset;
-	VECTOR m_shieldSwayRotOffset;
-
-	// 銃のシェイク関連
-	VECTOR m_gunShakeOffset;      // 銃のシェイクオフセット
-	float  m_gunShakeTimer;       // 銃のシェイクタイマー
-	float  m_gunShakePower;       // 銃のシェイクの強さ
+	VECTOR m_gunSwayOffset;      // 銃の揺れオフセット
+	VECTOR m_gunSwayRotOffset;   // 銃の回転揺れオフセット
 
 	// 死亡関連
-	bool m_isDead;      // 死亡フラグ
+	bool  m_isDead;     // 死亡フラグ
 	float m_deathTimer; // 死亡アニメーションタイマー
 
 	// 方向インジケーター
@@ -422,31 +402,10 @@ private:
 	// ロックオン関連
 	bool m_isLockingOn;         // ロックオン中か
 	EnemyBase* m_lockedOnEnemy; // ロックオンした敵
-	int m_lockOnUIHandle;       // ロックオンUIのハンドル
+	int  m_lockOnUIHandle;      // ロックオンUIのハンドル
 	bool m_isTargetAvailable;   // ロックオン可能な敵がいるか
 	bool m_isAimingAtEnemy;     // 敵に照準が合っているか
 
 	// ガード関連
 	bool  m_ignoreGuardInput;   // ガード入力を無視するか
-	bool  m_isGuarding;         // ガード中か
-	bool  m_wasGuarding;        // 前フレームでガードしていたか
-	float m_guardAnimTimer;     // ガードアニメーションのタイマー
-	float m_guardAnimDuration;  // ガードアニメーションの時間
-	int m_guardEffectHandle;    // ガードエフェクトのハンドル
-	int m_sparkEffectHandle;    // スパークエフェクトのハンドル
-	int m_sparkEffectTimer;     // スパークエフェクトのタイマー
-	float m_guardEffectScale;   // ガードエフェクトのスケール
-	int m_parryEffectHandle;    // パリィエフェクトのハンドル
-
-	WeaponType m_currentWeaponType = WeaponType::AssaultRifle; // 現在装備している武器の種類
-	WeaponType m_previousWeaponType = WeaponType::AssaultRifle;
-	std::vector<WeaponType> m_weaponTypes; // 装備可能な武器のリスト
-	int m_currentWeaponIndex;              // 現在の武器のインデックス
-
-	// 武器切り替えアニメーション
-	bool  m_isSwitchingWeapon;    // 武器を切り替え中か
-	float m_weaponSwitchTimer;    // 武器切り替えアニメーションのタイマー
-	float m_weaponSwitchDuration; // 武器切り替えアニメーションの時間
-	bool  m_prevWeaponHadLowAmmo; // 前の武器が弾薬低下状態だったか
-	bool  m_prevWeaponHadNoAmmo;  // 前の武器が弾薬切れ状態だったか
 };
