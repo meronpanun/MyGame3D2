@@ -141,9 +141,6 @@
     <ClCompile Include="TaskTutorialManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject\ShellCasing.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="GameObject\PlayerMovement.cpp">
       <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
@@ -152,6 +149,15 @@
     </ClCompile>
     <ClCompile Include="GameObject\PlayerWeaponManager.cpp">
       <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject\PlayerEffectManager.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject\PlayerUI.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject\ShellCasing.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -269,9 +275,6 @@
     <ClInclude Include="AttackType.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject\ShellCasing.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="GameObject\PlayerWeaponManager.h">
       <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
@@ -279,6 +282,15 @@
       <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
     <ClInclude Include="GameObject\PlayerMovement.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject\PlayerEffectManager.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject\PlayerUI.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject\ShellCasing.h">
       <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
   </ItemGroup>

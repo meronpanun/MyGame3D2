@@ -5,6 +5,8 @@
 #include "PlayerWeaponManager.h"
 #include "PlayerMovement.h"
 #include "PlayerShieldSystem.h"
+#include "PlayerUI.h"
+#include "PlayerEffectManager.h"
 #include <vector>
 
 class Camera;
@@ -32,27 +34,6 @@ public:
 	void DrawShield();
 	void DrawUI();
 
-	/// <summary>
-	/// エフェクトフィードバック構造体
-	/// </summary>
-	struct EffectFeedback
-	{
-		int colorR = 255;
-		int colorG = 0;
-		int colorB = 0;
-		float timer = 0.0f;
-		float alpha = 0.0f;
-		float duration = 45.0f;
-		void Trigger(float d, int r, int g, int b)
-		{
-			timer	 = d;
-			alpha    = 1.0f;
-			duration = d;
-			colorR   = r; 
-			colorG   = g; 
-			colorB   = b;
-		}
-	};
 
 	/// <summary>
 	/// タックル情報構造体
@@ -296,11 +277,6 @@ private:
 	/// <returns>薬莢排出口の位置</returns>
 	VECTOR GetEjectionPortPos() const;
 
-	/// <summary>
-	/// エフェクトフィードバックを描画する
-	/// </summary>
-	/// <param name="effect">エフェクトフィードバック構造体</param>
-	void DrawEffectFeedback(EffectFeedback& effect);
 
 	/// <summary>
 	/// 武器を切り替える	
@@ -313,6 +289,8 @@ private:
 	PlayerWeaponManager m_weaponManager;
 	PlayerMovement m_movement;
 	PlayerShieldSystem m_shieldSystem;
+	PlayerUI m_ui;
+	PlayerEffectManager m_effectManager;
 
 	std::vector<ShellCasing>     m_shellCasings;
 	std::shared_ptr<Camera>		 m_pCamera;		 // カメラのポインタ
@@ -324,22 +302,14 @@ private:
 	VECTOR m_pos;
 	VECTOR m_modelPos; 
 	VECTOR m_tackleDir; 
-	VECTOR m_scale;     
-
-	EffectFeedback m_damageEffect;
-	EffectFeedback m_healEffect;
-	EffectFeedback m_ammoEffect;
+	VECTOR m_scale;
 
 	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
 
-	int   m_fontHandle;					   // フォントハンドル
-	int   m_hpFontHandle;			       // HPフォントハンドル
 	int   m_arInitAmmo;		               // ARの初期弾薬数
 	int   m_sgInitAmmo;		               // SGの初期弾薬数
 	int   m_arMaxAmmo;                     // ARの最大弾薬数
 	int   m_sgMaxAmmo;                     // SGの最大弾薬数
-	int   m_shieldImageHandle;			   // 盾のUI画像のハンドル
-	int   m_ammoImageHandle;			   // 弾のハンドル
 	int   m_playerHitSEHandle;		       // 被弾SEのハンドル
 	int   m_tackleSEHandle;				   // タックルSEのハンドル
 	int   m_recoverySEHandle;			   // 回復アイテムSEのハンドル
@@ -349,16 +319,6 @@ private:
 	int   m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int   m_ammoItemSEHandle;			   // 弾薬アイテムSEのハンドル
 	int   m_landingSEHandle;			   // 着地SEのハンドル
-	int   m_noAmmoImageHandle;			   // 弾薬切れUI画像のハンドル
-	int   m_arImageHandle;	               // アサルトライフルUI画像のハンドル
-	int   m_lowAmmoARImageHandle;          // 弾が少ない時のアサルトライフルUI画像のハンドル
-	int   m_noAmmoARImageHandle;           // 弾が0の時のアサルトライフルUI画像のハンドル
-	int   m_sgImageHandle;                 // ショットガンUI画像のハンドル
-	int   m_lowAmmoSGImageHandle;          // 弾が少ない時のショットガンUI画像のハンドル
-	int   m_noAmmoSGImageHandle;           // 弾が0の時のショットガンUI画像のハンドル
-	int   m_healthUiImageHandle;		   // HPUI画像のハンドル
-	bool  m_showLowAmmoWarning;			   // 弾薬切れUIの表示フラグ
-	int   m_noHealthImageHandle;           // 体力低下UI画像のハンドル
 	bool  m_isLowHealth;                   // 体力が少ないかどうかのフラグ
 	float m_lowHealthBlinkTimer;           // 体力低下UIの点滅タイマー
 	float m_health;						   // 現在の体力
@@ -371,12 +331,6 @@ private:
 	float m_tackleCooldownMax;			   // タックルクールタイム
 	float m_tackleSpeed;			       // タックル時の速度
 	float m_tackleDamage;				   // タックルダメージ
-	float m_damageEffectTimer;			   // ダメージエフェクト用タイマー
-	float m_damageEffectAlpha;			   // ダメージエフェクト用アルファ値
-	float m_healEffectTimer;			   // ヒールエフェクト用タイマー	
-	float m_healEffectAlpha;			   // ヒールエフェクト用アルファ値
-	float m_ammoEffectTimer;			   // 弾薬エフェクト用タイマー
-	float m_ammoEffectAlpha;			   // 弾薬エフェクト用アルファ値
 	float m_moveSpeed;				       // 移動速度
 	float m_runSpeed;				       // 走る速度
 	bool  m_hasShot;					   // プレイヤーがショット可能かどうか
@@ -384,7 +338,6 @@ private:
 	bool  m_isInvincible;				   // 無敵モードかどうか
 	bool  m_isInfiniteAmmo;				   // 弾薬無限モードかどうか
 	float m_shieldRegenRate;			   // 盾の回復速度
-	int   m_warningFontHandle;			   // 警告用フォントハンドル
 	float m_ammoTextFlashTimer;            // 弾薬テキストのフラッシュタイマー
 	
 	// Sway管理
@@ -402,7 +355,6 @@ private:
 	// ロックオン関連
 	bool m_isLockingOn;         // ロックオン中か
 	EnemyBase* m_lockedOnEnemy; // ロックオンした敵
-	int  m_lockOnUIHandle;      // ロックオンUIのハンドル
 	bool m_isTargetAvailable;   // ロックオン可能な敵がいるか
 	bool m_isAimingAtEnemy;     // 敵に照準が合っているか
 

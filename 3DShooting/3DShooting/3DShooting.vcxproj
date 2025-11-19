@@ -165,8 +165,10 @@
     <ClCompile Include="GameObject\EnemyRunner.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject\ItemBase.cpp" />
+    <ClCompile Include="GameObject\PlayerEffectManager.cpp" />
     <ClCompile Include="GameObject\PlayerMovement.cpp" />
     <ClCompile Include="GameObject\PlayerShieldSystem.cpp" />
+    <ClCompile Include="GameObject\PlayerUI.cpp" />
     <ClCompile Include="GameObject\PlayerWeaponManager.cpp" />
     <ClCompile Include="GameObject\ShellCasing.cpp" />
     <ClCompile Include="InputManager.cpp" />
@@ -210,8 +212,10 @@
     <ClInclude Include="GameObject\EnemyRunner.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject\ItemBase.h" />
+    <ClInclude Include="GameObject\PlayerEffectManager.h" />
     <ClInclude Include="GameObject\PlayerMovement.h" />
     <ClInclude Include="GameObject\PlayerShieldSystem.h" />
+    <ClInclude Include="GameObject\PlayerUI.h" />
     <ClInclude Include="GameObject\PlayerWeaponManager.h" />
     <ClInclude Include="GameObject\ShellCasing.h" />
     <ClInclude Include="InputManager.h" />

@@ -48,7 +48,7 @@ namespace
 	constexpr float kLowHealthEffectMaxAlpha		= 0.7f;   // 体力低下UIの最大アルファ値
 	constexpr float kIdleSwaySpeed					= 1.5f;   // 揺れの速さ
 	constexpr float kIdleSwayAmount					= 0.04f;  // 揺れの量
-	 
+
 	// 盾UI関連
 	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
 	constexpr int   kShieldImageActiveAlpha   = 255; // 使用可能な盾UIのアルファ値
@@ -138,7 +138,6 @@ namespace
 }
 
 Player::Player() :
-	m_shieldImageHandle(-1),
 	m_playerHitSEHandle(-1),
 	m_tackleSEHandle(-1),
 	m_recoverySEHandle(-1),
@@ -156,26 +155,7 @@ Player::Player() :
 	m_isTackling(false),
 	m_tackleCooldown(0),
 	m_tackleId(0),
-	m_damageEffectAlpha(0.0f),
-	m_damageEffectTimer(0.0f),
-	m_healEffectAlpha(0.0f),
-	m_healEffectTimer(0.0f),
-	m_ammoEffectAlpha(0.0f),
-	m_ammoEffectTimer(0.0f),
-	m_isInvincible(false),
-	m_isInfiniteAmmo(false),
-	m_tackleCooldownMax(0.0f),
-	m_tackleSpeed(0.0f),
-	m_tackleDamage(0.0f),
 	m_concentrationLineEffectHandle(-1),
-	m_noAmmoImageHandle(-1),
-	m_arImageHandle(-1),
-	m_lowAmmoARImageHandle(-1),
-	m_noAmmoARImageHandle(-1),
-	m_sgImageHandle(-1),
-	m_lowAmmoSGImageHandle(-1),
-	m_noAmmoSGImageHandle(-1),
-	m_showLowAmmoWarning(false),
 	m_isLowHealth(false),
 	m_lowHealthBlinkTimer(0.0f),
 	m_ammoTextFlashTimer(0.0f),
@@ -190,45 +170,16 @@ Player::Player() :
 	m_isTargetAvailable(false),
 	m_isAimingAtEnemy(false),
 	m_ignoreGuardInput(false),
+	m_isInvincible(false),
+	m_isInfiniteAmmo(false),
+	m_tackleCooldownMax(0.0f),
+	m_tackleSpeed(0.0f),
+	m_tackleDamage(0.0f),
 	m_maxShieldDurability(0.0f),
 	m_shieldRegenRate(0.0f),
 	m_pAnimManager(nullptr)
 {
-	// 弾薬切れ画像の読み込み
-	m_noAmmoImageHandle = LoadGraph("data/image/NoAmmo.png");
-	assert(m_noAmmoImageHandle != -1);
-
-	// 体力低下画像の読み込み
-	m_noHealthImageHandle = LoadGraph("data/image/NoHealthUI.png");
-	assert(m_noHealthImageHandle != -1);
-
-	// アサルトライフルUI画像の読み込み
-	m_arImageHandle = LoadGraph("data/image/ARUI.png");
-	assert(m_arImageHandle != -1);
-	m_lowAmmoARImageHandle = LoadGraph("data/image/LowAmmoARUI.png");
-	assert(m_lowAmmoARImageHandle != -1);
-	m_noAmmoARImageHandle = LoadGraph("data/image/NoAmmoARUI.png");
-	assert(m_noAmmoARImageHandle != -1);
-
-	// ショットガンUI画像の読み込み
-	m_sgImageHandle = LoadGraph("data/image/SGUI.png");
-	assert(m_sgImageHandle != -1);
-	m_lowAmmoSGImageHandle = LoadGraph("data/image/LowAmmoSGUI.png");
-	assert(m_lowAmmoSGImageHandle != -1);
-	m_noAmmoSGImageHandle = LoadGraph("data/image/NoAmmoSGUI.png");
-	assert(m_noAmmoSGImageHandle != -1);
-
-	// HPUI画像の読み込み
-	m_healthUiImageHandle = LoadGraph("data/image/HealthUI.png");
-	assert(m_healthUiImageHandle != -1);
-
-	// 盾UI画像の読み込み
-	m_shieldImageHandle = LoadGraph("data/image/ShieldUI.png");
-	assert(m_shieldImageHandle != -1);
-
-	// ロックオンUI画像の読み込み
-	m_lockOnUIHandle = LoadGraph("data/image/LockOnUI.png");
-	assert(m_lockOnUIHandle != -1);
+	// UI画像とフォントはPlayerUIクラスで管理
 
 	// SEの読み込み
 	m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
@@ -237,41 +188,17 @@ Player::Player() :
 	assert(m_tackleSEHandle != -1);
 	m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
 	assert(m_recoverySEHandle != -1);
-
-    // フォントの作成
-    m_fontHandle = CreateFontToHandle(kDefaultFontName, kAmmoFont, kDefaultFontThickness, kDefaultFontType);
-    assert(m_fontHandle != -1);
-    m_hpFontHandle = CreateFontToHandle(kDefaultFontName, kHpFont, kDefaultFontThickness, kDefaultFontType);
-    assert(m_hpFontHandle != -1);
-	m_warningFontHandle = CreateFontToHandle(kWarningFontName, kWarningFont, kDefaultFontThickness, kDefaultFontType);
-	assert(m_warningFontHandle != -1);
 }
 
 Player::~Player()
 {
-	// 画像の解放
-	DeleteGraph(m_noAmmoImageHandle);
-	DeleteGraph(m_noHealthImageHandle);
-	DeleteGraph(m_arImageHandle);
-	DeleteGraph(m_lowAmmoARImageHandle);
-	DeleteGraph(m_noAmmoARImageHandle);
-	DeleteGraph(m_sgImageHandle);
-	DeleteGraph(m_lowAmmoSGImageHandle);
-	DeleteGraph(m_noAmmoSGImageHandle);
-	DeleteGraph(m_healthUiImageHandle);
-	DeleteGraph(m_shieldImageHandle);
-	DeleteGraph(m_lockOnUIHandle);
-
 	// SEの解放
 	DeleteSoundMem(m_playerHitSEHandle);
 	DeleteSoundMem(m_tackleSEHandle);
 	DeleteSoundMem(m_recoverySEHandle);
 	DeleteSoundMem(m_ammoItemSEHandle);
 
-    // フォントの解放
-    DeleteFontToHandle(m_fontHandle);
-    DeleteFontToHandle(m_hpFontHandle);
-	DeleteFontToHandle(m_warningFontHandle);
+	// UI画像とフォントはPlayerUIクラスで管理
 }
 
 void Player::Init()
@@ -358,38 +285,38 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			WeaponType nextWeapon = (currentWeapon == WeaponType::AssaultRifle) ? WeaponType::Shotgun : WeaponType::AssaultRifle;
 			m_weaponManager.SwitchWeapon(nextWeapon);
 		}
-	}
+    }
 
     // プレイヤーの位置をカメラに設定
     m_pCamera->SetPlayerPos(m_modelPos);
 
 	// Swayの計算
 	float yawDelta = m_pCamera->GetYawDelta();
-
+    
 	// 盾システムの更新
 	m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding, m_isTackling, isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), yawDelta);
 
 	// 銃のSwayの計算（一時的に保持）
-	m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
-	m_gunSwayOffset.x *= kGunSwayDamping;
-	m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f;
-	m_gunSwayRotOffset.y *= kGunSwayDamping;
+    m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
+    m_gunSwayOffset.x *= kGunSwayDamping;
+    m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f; 
+    m_gunSwayRotOffset.y *= kGunSwayDamping;
 
-	// 待機時の揺れ
+    // 待機時の揺れ
 	m_idleSwayTimer += deltaTime;
 	bool isMoving = m_movement.IsMoving();
 	if (!isMoving)
-	{
-		// サイン波とコサイン波を使って、ゆっくりとした円運動のような揺れを生成
-		VECTOR idleSway = VGet(
-			sinf(m_idleSwayTimer * kIdleSwaySpeed * 2.0f) * kIdleSwayAmount,
-			cosf(m_idleSwayTimer * kIdleSwaySpeed) * kIdleSwayAmount,
-			0.0f
-		);
+    {
+        // サイン波とコサイン波を使って、ゆっくりとした円運動のような揺れを生成
+        VECTOR idleSway = VGet(
+            sinf(m_idleSwayTimer * kIdleSwaySpeed * 2.0f) * kIdleSwayAmount,
+            cosf(m_idleSwayTimer * kIdleSwaySpeed) * kIdleSwayAmount,
+            0.0f
+        );
 
-		// 既存のSwayに加算
-		m_gunSwayOffset = VAdd(m_gunSwayOffset, idleSway);
-	}
+        // 既存のSwayに加算
+        m_gunSwayOffset = VAdd(m_gunSwayOffset, idleSway);
+    }
 
     if (m_pEffect)
     {
@@ -498,60 +425,60 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	// 右クリック長押しでガード
+	// 右クリック長押しでガード	
 	bool shouldGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
 	m_shieldSystem.SetGuarding(shouldGuard);
 	isGuarding = m_shieldSystem.IsGuarding();
 
-	// タックルクールダウン中でない場合のみロックオンを許可
+		// タックルクールダウン中でない場合のみロックオンを許可
 	if (shouldGuard && m_tackleCooldown <= 0)
-	{
-		m_isLockingOn = true;
+		{
+			m_isLockingOn = true;
 		m_lockedOnEnemy = nullptr;
 
 		constexpr float kLockOnAngleCos = 0.966f;
 		constexpr float kLockOnMaxScreenOffsetY = 100.0f;
-		float minScreenDistSq = -1.0f;
+			float minScreenDistSq = -1.0f;
 
-		VECTOR camPos = m_pCamera->GetPos();
-		VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+			VECTOR camPos = m_pCamera->GetPos();
+			VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
 
-		for (EnemyBase* enemy : enemyList)
-		{
-			if (!enemy || !enemy->IsAlive()) continue;
-
-			VECTOR enemyPos = enemy->GetPos();
-			enemyPos.y += 70.0f;
-			VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
-
-			if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
+			for (EnemyBase* enemy : enemyList)
 			{
-				VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+				if (!enemy || !enemy->IsAlive()) continue;
 
-				if (screenPos.z > 0)
+				VECTOR enemyPos = enemy->GetPos();
+			enemyPos.y += 70.0f;
+				VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
+
+				if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
 				{
-					float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
-					float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
+					VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
 
-					if (fabs(dy) < kLockOnMaxScreenOffsetY)
+					if (screenPos.z > 0)
 					{
-						float distSq = dx * dx + dy * dy;
+						float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
+						float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
 
-						if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+						if (fabs(dy) < kLockOnMaxScreenOffsetY)
 						{
-							minScreenDistSq = distSq;
-							m_lockedOnEnemy = enemy;
+							float distSq = dx * dx + dy * dy;
+
+							if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+							{
+								minScreenDistSq = distSq;
+								m_lockedOnEnemy = enemy;
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-	else
-	{
-		m_isLockingOn = false;
-		m_lockedOnEnemy = nullptr;
-	}
+		else
+		{
+			m_isLockingOn = false;
+			m_lockedOnEnemy = nullptr;
+		}
 
 	// ガードエフェクトの更新
 	m_shieldSystem.UpdateGuardEffect(m_pEffect, m_pCamera.get(), m_modelPos, isSwitchingWeapon);
@@ -721,7 +648,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			}
 		}
 	}
-
+		
 	// 体力低下の警告表示処理
 	if (m_health <= kLowHealthThreshold)
 	{
@@ -733,42 +660,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	    m_isLowHealth = false;
 	    m_lowHealthBlinkTimer = 0.0f;
 	}
-	// エフェクトの更新
-	// ダメージエフェクト
-	if (m_damageEffect.timer > 0)
-	{
-	    m_damageEffect.timer -= 1.0f;
-	    m_damageEffect.alpha -= 1.0f / m_damageEffect.duration;
-	    if (m_damageEffect.alpha < 0) m_damageEffect.alpha = 0;
-	}
-	else if (m_isLowHealth)
-	{
-		float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-		m_damageEffect.alpha = alpha * kLowHealthEffectMaxAlpha;
-		m_damageEffect.colorR = 255;
-		m_damageEffect.colorG = 0;
-		m_damageEffect.colorB = 0;
-	}
-    else
-	{
-	    m_damageEffect.alpha = 0.0f;
-	}
-		
-	// 回復エフェクト
-	if (m_healEffect.timer > 0)
-	{
-	    m_healEffect.timer -= 1.0f;
-	    m_healEffect.alpha -= 1.0f / m_healEffect.duration;
-		if (m_healEffect.alpha < 0) m_healEffect.alpha = 0;
-	}
-		
-	// 弾薬エフェクト
-	if (m_ammoEffect.timer > 0)
-	{
-	    m_ammoEffect.timer -= 1.0f;
-		m_ammoEffect.alpha -= 1.0f / m_ammoEffect.duration;
-		if (m_ammoEffect.alpha < 0) m_ammoEffect.alpha = 0;
-	}
+	// エフェクトの更新（PlayerEffectManagerに委譲）
+	m_effectManager.Update(deltaTime, m_isLowHealth, m_lowHealthBlinkTimer);
 
 	// 残弾数テキストのフラッシュタイマー更新
     if (m_ammoTextFlashTimer > 0.0f)
@@ -798,420 +691,21 @@ void Player::DrawShield()
 
 void Player::DrawUI()
 {
-	// ガード中にターゲットがいない場合にテキストを表示
-	if (m_shieldSystem.IsGuarding() && !m_lockedOnEnemy && !m_isTargetAvailable)
-	{
-		const char* text = "ターゲットなし";
-		int screenW, screenH;
-		GetScreenState(&screenW, &screenH, NULL);
-		int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-		int textX = (screenW - textWidth) / 2;
-		int textY = screenH / 2 + 30; // レティクルの少し下に表示
-		DrawStringToHandle(textX, textY, text, kColorWhite, m_warningFontHandle);
-	}
+	// UI描画をPlayerUIクラスに委譲
+	m_ui.Draw(m_isDead, m_shieldSystem.IsGuarding(), m_lockedOnEnemy, m_isTargetAvailable,
+		m_health, m_healthBarAnim, m_maxHealth, m_isLowHealth, m_lowHealthBlinkTimer, m_ammoTextFlashTimer,
+		m_weaponManager, m_shieldSystem);
 
-	// ロックオンUIの描画
-	if (m_lockedOnEnemy)
-	{
-		constexpr float kLockOnUISize = 64.0f;
-		constexpr float kLockOnUIYOffset = 90.0f; // UIを足元から上に移動させるためのオフセット
+	// エフェクトの描画（PlayerEffectManagerに委譲）
+	m_effectManager.Draw();
 
-		VECTOR enemyPos = m_lockedOnEnemy->GetPos();
-		enemyPos.y += kLockOnUIYOffset; // Y座標を調整して体の中心に近づける
-		VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
-
-		if (screenPos.z > 0) // 画面内にあるか
-		{
-			float halfSize = kLockOnUISize / 2.0f;
-			DrawExtendGraph(
-				screenPos.x - halfSize, screenPos.y - halfSize,
-				screenPos.x + halfSize, screenPos.y + halfSize,
-				m_lockOnUIHandle, true
-			);
-		}
-	}
-
-	if (!m_isDead)
-	{
-		int screenW = Game::kScreenWidth;
-		int screenH = Game::kScreenHeigth;
-		GetScreenState(&screenW, &screenH, NULL);
-
-		// HPバーのY座標を計算
-		const int barY = screenH - kHpBarHeight - kHpBarMargin;
-
-		// タックルUIのY座標をHPバーに合わせる
-		const int tackleUIY = barY;
-
-		// アサルトライフルUIをタックルUIの下に配置
-		int gunImageY = tackleUIY - kARImageHeight - kARImageMarginY;
-		int gunImageX = screenW - kARImageWidth - kARImageMarginX;
-
-		// 銃UI画像の描画
-		int gunHandle = -1;
-		int gunImageWidth = 0;
-		int gunImageHeight = 0;
-		int gunImageMarginX = 0;
-		int gunImageMarginY = 0;
-
-		WeaponType currentWeaponType = m_weaponManager.GetCurrentWeaponType();
-		bool isLowAmmo = m_weaponManager.IsLowAmmo();
-		bool isInfiniteAmmo = m_weaponManager.IsInfiniteAmmo();
-		int currentAmmo = m_weaponManager.GetCurrentAmmo();
-		
-		switch (currentWeaponType)
-		{
-		case WeaponType::AssaultRifle:
-			gunImageWidth = kARImageWidth;
-			gunImageHeight = kARImageHeight;
-			gunImageMarginX = kARImageMarginX;
-			gunImageMarginY = kARImageMarginY;
-			if (currentAmmo == 0 && !isInfiniteAmmo)
-			{
-				gunHandle = m_noAmmoARImageHandle;
-			}
-			else if (isLowAmmo)
-			{
-				gunHandle = m_lowAmmoARImageHandle;
-			}
-			else
-			{
-				gunHandle = m_arImageHandle;
-			}
-			break;
-		case WeaponType::Shotgun:
-			gunImageWidth = kSGImageWidth;
-			gunImageHeight = kSGImageHeight;
-			gunImageMarginX = kSGImageMarginX;
-			gunImageMarginY = kSGImageMarginY;
-			if (currentAmmo == 0 && !isInfiniteAmmo)
-			{
-				gunHandle = m_noAmmoSGImageHandle;
-			}
-			else if (isLowAmmo)
-			{
-				gunHandle = m_lowAmmoSGImageHandle;
-			}
-			else
-			{
-				gunHandle = m_sgImageHandle;
-			}
-			break;
-		default:
-			break;
-		}
-
-		gunImageY = tackleUIY - gunImageHeight - gunImageMarginY;
-		gunImageX = screenW - gunImageWidth - gunImageMarginX;
-
-		DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
-
-		// 残弾数の表示
-		int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);
-		
-		// 弾薬数UIの位置をAR基準で固定計算
-		int arGunImageX = screenW - kARImageWidth - kARImageMarginX;
-		int arGunImageY = tackleUIY - kARImageHeight - kARImageMarginY;
-		int ammoTextX = arGunImageX - kAmmoTextGunOffsetX - ammoTextWidth;
-		int ammoTextY = arGunImageY + (kARImageHeight - kAmmoTextHeight) * 0.5f + kAmmoTextGunOffsetY;
-
-		// 弾薬無限モードの場合は「∞」を表示
-		if (isInfiniteAmmo)
-		{
-			DrawFormatStringToHandle(ammoTextX, ammoTextY, kColorWhite, m_fontHandle, "∞");
-		}
-		else
-		{
-			// デフォルトの色を決定
-			int textColor = isLowAmmo ? kColorLowAmmo : kColorWhite;
-
-			// フラッシュタイマーが作動中なら色を補間
-			if (m_ammoTextFlashTimer > 0.0f)
-			{
-				float flashProgress = m_ammoTextFlashTimer / 60.0f;
-
-				// ターゲットの色（デフォルト色）のRGB成分
-				int targetR = (textColor >> 16) & 0xFF;
-				int targetG = (textColor >> 8) & 0xFF;
-				int targetB = textColor & 0xFF;
-
-				// フラッシュの色（黄色）のRGB成分
-				int flashR = 255;
-				int flashG = 255;
-				int flashB = 0;
-
-				// 線形補間
-				int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
-				int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
-				int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
-
-				textColor = GetColor(currentR, currentG, currentB);
-			}
-
-			DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", GetCurrentAmmo());
-		}
-
-		// 盾耐久値の描画
-		float shieldBarAnim = m_shieldSystem.GetBarAnim();
-		float maxShieldDurability = m_shieldSystem.GetMaxDurability();
-		float shieldDurabilityRate = shieldBarAnim / maxShieldDurability;
-		if (shieldDurabilityRate < 0.0f) shieldDurabilityRate = 0.0f;
-		if (shieldDurabilityRate > 1.0f) shieldDurabilityRate = 1.0f;
-
-		// 盾のテクスチャサイズを取得
-		int shieldTexW, shieldTexH;
-		GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
-
-		// 盾ゲージのサイズと位置
-		const int shieldGaugeHeight = 150; // 縦向きのゲージの高さ
-		const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW / shieldTexH); // 縦向きのゲージの幅
-		float scale = (float)shieldGaugeHeight / shieldTexH;
-
-		int shieldGaugeX = screenW - shieldGaugeWidth - kHpBarMargin;
-		int shieldGaugeY = kShieldUIYPosition + kShieldUIYOffset;
-
-		// ゲージの背景（半透明の盾）
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
-		DrawRotaGraph3F(
-			shieldGaugeX + shieldGaugeWidth * 0.5f,
-			shieldGaugeY + shieldGaugeHeight * 0.5f,
-			shieldTexW * 0.5f,
-			shieldTexH * 0.5f,
-			scale,
-			scale,
-			0.0f,
-			m_shieldImageHandle,
-			true
-		);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-		// ゲージ本体
-		if (shieldDurabilityRate > 0.0f)
-		{
-			int filledWidth = (int)(shieldGaugeWidth * shieldDurabilityRate);
-			// 描画範囲を設定してクリッピング
-			SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth, shieldGaugeY + shieldGaugeHeight);
-
-			// 盾を満タン状態で描画
-			DrawRotaGraph3F(
-				shieldGaugeX + shieldGaugeWidth * 0.5f,
-				shieldGaugeY + shieldGaugeHeight * 0.5f,
-				shieldTexW * 0.5f,
-				shieldTexH * 0.5f,
-				scale,
-				scale,
-				0.0f,
-				m_shieldImageHandle,
-				true
-			);
-
-			// 描画範囲をリセット
-			SetDrawArea(0, 0, screenW, screenH);
-		}
-
-		// 警告表示ロジック
-		// 体力低下と弾薬低下の警告を分離して処理
-		// 体力低下の警告
-		if (m_isLowHealth)
-		{
-			float alpha = (sinf(m_lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-			int alphaInt = static_cast<int>(alpha * 255);
-			int drawX = (screenW - kWarningImageSize) * 0.5f;
-			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
-
-			// 弾薬警告も表示する必要がある場合は、体力警告を左にずらす
-			bool isLowAmmoForHealth = m_weaponManager.IsLowAmmo();
-			bool isNoAmmoWarningForHealth = m_weaponManager.IsNoAmmoWarning();
-			bool isSwitchingWeaponForHealth = m_weaponManager.IsSwitchingWeapon();
-			bool prevWeaponHadLowAmmoForHealth = m_weaponManager.GetPrevWeaponHadLowAmmo();
-			bool prevWeaponHadNoAmmoForHealth = m_weaponManager.GetPrevWeaponHadNoAmmo();
-			if (isLowAmmoForHealth || isNoAmmoWarningForHealth || (isSwitchingWeaponForHealth && (prevWeaponHadLowAmmoForHealth || prevWeaponHadNoAmmoForHealth)))
-			{
-				drawX = (screenW * 0.5f) - kWarningImageSize - (kWarningImageSpacing * 0.5f);
-			}
-
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-			DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noHealthImageHandle, true);
-
-			const char* text = "体力低下";
-			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-			int textX = drawX + (kWarningImageSize - textWidth) / 2;
-			int textY = drawY + kWarningImageSize + kWarningTextYOffset;
-			unsigned int textColor = (alphaInt << 24) | kColorWhite;
-			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-
-			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-		}
-
-		// 弾薬低下の警告
-		bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
-		bool prevWeaponHadLowAmmo = m_weaponManager.GetPrevWeaponHadLowAmmo();
-		bool prevWeaponHadNoAmmo = m_weaponManager.GetPrevWeaponHadNoAmmo();
-		float weaponSwitchTimer = m_weaponManager.GetWeaponSwitchTimer();
-		float weaponSwitchDuration = m_weaponManager.GetWeaponSwitchDuration();
-		
-		bool isNoAmmoWarning = m_weaponManager.IsNoAmmoWarning();
-		bool currentNeedsWarning = isLowAmmo || isNoAmmoWarning;
-		bool prevNeedsWarning = prevWeaponHadLowAmmo || prevWeaponHadNoAmmo;
-		
-		bool shouldDraw = false;
-		float fadeAlpha = 1.0f;
-
-		if (isSwitchingWeapon)
-		{
-			float halfDuration = weaponSwitchDuration / 2.0f;
-			if (weaponSwitchTimer < halfDuration)
-			{
-				// フェードアウト
-				if (prevNeedsWarning)
-				{
-					shouldDraw = true;
-					fadeAlpha = 1.0f - (weaponSwitchTimer / halfDuration);
-				}
-			}
-			else
-			{
-				// フェードイン
-				if (currentNeedsWarning)
-				{
-					shouldDraw = true;
-					fadeAlpha = (weaponSwitchTimer - halfDuration) / halfDuration;
-				}
-			}
-		}
-		else if (currentNeedsWarning)
-		{
-			shouldDraw = true;
-		}
-
-		if (shouldDraw)
-		{
-			bool isFadingOut = isSwitchingWeapon && (weaponSwitchTimer < weaponSwitchDuration / 2.0f);
-			bool isNoAmmo = isFadingOut ? prevWeaponHadNoAmmo : isNoAmmoWarning;
-			const char* text = isNoAmmo ? "残弾なし" : "残弾僅か";
-
-			float lowAmmoBlinkTimer = m_weaponManager.GetLowAmmoBlinkTimer();
-			float blinkAlpha = (sinf(lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
-			int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * 255);
-
-			int drawX = (screenW - kWarningImageSize) * 0.5f;
-			int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
-
-			// 体力警告も表示する必要がある場合は、弾薬警告を右にずらす
-			if (m_isLowHealth)
-			{
-				drawX = (screenW * 0.5f) + (kWarningImageSpacing * 0.5f);
-			}
-
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-			DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize, drawY + kWarningImageSize, m_noAmmoImageHandle, true);
-
-			int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-			int textX = drawX + (kWarningImageSize - textWidth) / 2;
-			int textY = drawY + kWarningImageSize + kWarningTextYOffset;
-			unsigned int textColor = (alphaInt << 24) | kColorWhite;
-			DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-
-			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-		}
-
+	// Effekseerエフェクトの描画
 		if (m_pEffect)
 		{
-			m_pEffect->Draw(); // エフェクトの描画
-		}
-
-		// HPバーのパラメータ
-		const int healthUiImageX = kHpBarMargin;
-		const int healthUiImageY = screenH - kHpBarHeight - kHpBarMargin + (kHpBarHeight - kHealthUiImageSize) * 0.5f;
-		DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + kHealthUiImageSize, healthUiImageY + kHealthUiImageSize, m_healthUiImageHandle, true);
-		const int barX = healthUiImageX + kHealthUiImageSize + kHealthUiImageBarSpacing;
-
-		// 最大HP
-		float hp = m_health;
-
-		if (hp < 0) hp = 0;
-		if (hp > kMaxHp) hp = kMaxHp;
-
-		float hpAnim = m_healthBarAnim;
-
-		if (hpAnim < 0) hpAnim = 0;
-		if (hpAnim > kMaxHp) hpAnim = kMaxHp;
-
-		// HP割合
-		float hpRate = hp / kMaxHp;
-		float hpAnimRate = hpAnim / kMaxHp;
-
-		// 背景
-		DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg, true);
-
-		// HPバー本体（実際の体力を反映）
-		DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate), barY + kHpBarHeight, kColorHpBarFill, true);
-
-		// アニメーションバー（ゴーストバー）
-		if (m_healthBarAnim > m_health)
-		{
-			// ダメージ時（黄色いバー）
-			int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
-			int animEnd = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-			DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage, true);
-		}
-		else if (m_healthBarAnim < m_health)
-		{
-			// 回復時（明るい緑のバー）
-			int animStart = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-			int animEnd = barX + static_cast<int>(kHpBarWidth * hpRate);
-			DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, 0x90EE90, true);
-		}
-
-		// 枠
-		DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBorder, false);
-
-		// HP数値
-		DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY, kColorWhite, m_hpFontHandle, "%.0f", m_healthBarAnim);
+		m_pEffect->Draw();
 	}
-	// ダメージエフェクト描画
-	DrawEffectFeedback(m_damageEffect);
-
-	// 回復エフェクト描画
-	DrawEffectFeedback(m_healEffect);
-
-	// 弾薬エフェクト描画
-	DrawEffectFeedback(m_ammoEffect);
 }
 
-void Player::DrawEffectFeedback(Player::EffectFeedback& effect)
-{
-    if (effect.alpha > 0.0f)
-    {
-        int screenW, screenH;
-        GetScreenState(&screenW, &screenH, nullptr);
-        int centerX = screenW * 0.5f;
-        int centerY = screenH * 0.5f;
-        float maxDistance = sqrtf((float)(screenW * screenW + screenH * screenH)) * 0.5f;
-        float edgeWidth = maxDistance * 0.4f;
-        const int stepSize = 8;
-        for (int y = 0; y < screenH; y += stepSize)
-        {
-            for (int x = 0; x < screenW; x += stepSize)
-            {
-                float distanceFromCenter = sqrtf((float)((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)));
-                float distanceFromEdge = maxDistance - distanceFromCenter;
-                float edgeIntensity = 0.0f;
-                if (distanceFromEdge < edgeWidth)
-                {
-                    edgeIntensity = 1.0f - (distanceFromEdge / edgeWidth);
-                }
-                int alpha = static_cast<int>(effect.alpha * 180 * edgeIntensity);
-                if (alpha > 0)
-                {
-                    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-                    DrawBox(x, y, x + stepSize, y + stepSize, GetColor(effect.colorR, effect.colorG, effect.colorB), true);
-                }
-            }
-        }
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    }
-}
 
 void Player::DeathUpdate()
 {
@@ -1261,25 +755,25 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		}
 
 		float remainingDamage = m_shieldSystem.TakeDamage(damage, m_pEffect, m_pCamera.get(), m_modelPos);
-		if (remainingDamage > 0)
-		{
+			if (remainingDamage > 0)
+			{
 			// 銃を揺らす
 			m_weaponManager.ShakeGun(kShieldBreakGunShakePower, kShieldBreakGunShakeDuration);
-			m_health -= remainingDamage; // 残ったダメージをHPに適用
+				m_health -= remainingDamage; // 残ったダメージをHPに適用
 
-			// HPバーアニメーション用タイマーをリセット
-			m_healthBarAnimTimer = 0.0f;
-			// ダメージエフェクトを発動
-			m_damageEffect.Trigger(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB);
-			// 被弾SEを再生
-			PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+			    // HPバーアニメーション用タイマーをリセット
+	            m_healthBarAnimTimer = 0.0f;
+	            // ダメージエフェクトを発動
+			m_effectManager.TriggerDamageEffect(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB);
+	            // 被弾SEを再生
+	            PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 
-			// カメラシェイクを発生
-			if (m_pCamera)
-			{
-				m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
-			}
-		}
+	            // カメラシェイクを発生
+	            if (m_pCamera)
+	            {
+	            	m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+	            }
+	            }
 
 		return; // 盾で防いだ場合はここで処理を終了
 	}
@@ -1299,7 +793,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 	// HPバーアニメーション用タイマーをリセット
 	m_healthBarAnimTimer = 0.0f;
 	// ダメージエフェクトを発動
-	m_damageEffect.Trigger(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB);
+		m_effectManager.TriggerDamageEffect(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB);
 	// 被弾SEを再生
 	PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 
@@ -1404,14 +898,14 @@ void Player::AddHp(float value)
         m_health = 0.0f; // 体力が負にならないように制限
     }
     // 回復時にエフェクトを発動
-    m_healEffect.Trigger(kHealEffectDuration, kHealEffectColorR, kHealEffectColorG, kHealEffectColorB);
+    m_effectManager.TriggerHealEffect(kHealEffectDuration, kHealEffectColorR, kHealEffectColorG, kHealEffectColorB);
 }
 
 void Player::AddARAmmo(int value)
 {
 	m_weaponManager.AddARAmmo(value);
-	// 弾薬取得時にエフェクトを発動
-	m_ammoEffect.Trigger(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
+    // 弾薬取得時にエフェクトを発動
+	m_effectManager.TriggerAmmoEffect(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
 	m_ammoTextFlashTimer = 60.0f;
 }
 
@@ -1419,7 +913,7 @@ void Player::AddSGAmmo(int value)
 {
 	m_weaponManager.AddSGAmmo(value);
 	// 弾薬取得時にエフェクトを発動
-	m_ammoEffect.Trigger(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
+	m_effectManager.TriggerAmmoEffect(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
 	m_ammoTextFlashTimer = 60.0f;
 }
 
