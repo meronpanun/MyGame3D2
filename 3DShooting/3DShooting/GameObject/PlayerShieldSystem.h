@@ -1,8 +1,10 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
+#include <vector>
 
 class Camera;
 class Effect;
+class EnemyBase;
 
 /// <summary>
 /// プレイヤーのガード・盾管理クラス
@@ -134,6 +136,37 @@ public:
 	/// <returns>盾UI画像ハンドル</returns>
 	int GetShieldImageHandle() const;
 
+	/// <summary>
+	/// シールドソーを投げる
+	/// </summary>
+	/// <param name="pCamera">カメラポインタ</param>
+	/// <param name="playerPos">プレイヤー位置</param>
+	/// <returns>投げられたかどうか</returns>
+	bool ThrowShield(Camera* pCamera, const VECTOR& playerPos);
+
+	/// <summary>
+	/// シールドソーの更新処理
+	/// </summary>
+	/// <param name="deltaTime">デルタタイム</param>
+	/// <param name="pCamera">カメラポインタ</param>
+	/// <param name="playerPos">プレイヤー位置</param>
+	/// <param name="enemyList">敵のリスト</param>
+	/// <param name="pEffect">エフェクトポインタ</param>
+	void UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<class EnemyBase*>& enemyList, Effect* pEffect);
+
+	/// <summary>
+	/// シールドソーの3D描画
+	/// </summary>
+	/// <param name="pCamera">カメラポインタ</param>
+	/// <param name="playerPos">プレイヤー位置</param>
+	void DrawShieldThrow(Camera* pCamera, const VECTOR& playerPos) const;
+
+	/// <summary>
+	/// シールドソーが投げられているかどうか
+	/// </summary>
+	/// <returns>投げられているならtrue</returns>
+	bool IsShieldThrown() const { return m_isShieldThrown; }
+
 private:
 	int m_shieldModelHandle;
 	int m_shieldImageHandle;
@@ -168,5 +201,24 @@ private:
 
 	// 武器切り替え状態の記録（エフェクト再生用）
 	bool m_wasSwitchingWeapon;
+
+	// シールドソー関連
+	enum class ShieldThrowState
+	{
+		Idle,      // 待機中
+		Throwing,  // 投げ中（前方移動）
+		Returning  // 戻り中
+	};
+	ShieldThrowState m_shieldThrowState;
+	bool m_isShieldThrown;
+	VECTOR m_shieldThrowPos;      // シールドの現在位置
+	VECTOR m_shieldThrowDir;      // シールドの移動方向（カメラの前方方向）
+	VECTOR m_shieldThrowStartPos; // 投げ始めた位置
+	float m_shieldThrowDistance;  // 投げた距離
+	float m_shieldThrowSpeed;     // シールドの移動速度
+	float m_shieldThrowMaxRange;  // 最大投げ距離
+	float m_shieldThrowDamage;    // シールドソーのダメージ
+	int m_shieldThrowHitEnemyId;  // このフレームでヒットした敵のID（重複ヒット防止用）
+	float m_shieldThrowRotationTimer; // シールドの回転タイマー
 };
 

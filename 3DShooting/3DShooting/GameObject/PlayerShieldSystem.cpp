@@ -3,34 +3,36 @@
 #include "Effect.h"
 #include "Game.h"
 #include "EffekseerForDXLib.h"
+#include "EnemyBase.h"
+#include "CapsuleCollider.h"
 #include <cmath>
 #include <cassert>
 
 namespace
 {
 	// 盾関連
-	constexpr float kShieldBaseScreenW = 640.0f;
-	constexpr float kShieldBaseScreenH = 480.0f;
-	constexpr float kShieldCamZ = -35.0f;
+	constexpr float kShieldBaseScreenW	   = 640.0f;
+	constexpr float kShieldBaseScreenH     = 480.0f;
+	constexpr float kShieldCamZ			   = -35.0f;
 	constexpr float kShieldCamTargetFactor = 0.3f;
-	constexpr float kShieldWaitX = -20.0f;
-	constexpr float kShieldWaitY = -45.0f;
-	constexpr float kShieldWaitZ = -10.0f;
-	constexpr float kShieldPivotZ = -25.0f;
-	constexpr float kShieldModelScale = 2.0f;
-	constexpr float kGuardAnimDuration = 0.1f;
-	constexpr float kGuardEffectOffsetZ = 60.0f;
-	constexpr float kGuardEffectOffsetX = 10.0f;
+	constexpr float kShieldWaitX		   = -20.0f;
+	constexpr float kShieldWaitY		   = -45.0f;
+	constexpr float kShieldWaitZ		   = -10.0f;
+	constexpr float kShieldPivotZ		   = -25.0f;
+	constexpr float kShieldModelScale	   = 2.0f;
+	constexpr float kGuardAnimDuration	   = 0.1f;
+	constexpr float kGuardEffectOffsetZ    = 60.0f;
+	constexpr float kGuardEffectOffsetX    = 10.0f;
 
 	// 盾アニメーション関連
 	constexpr float kShieldAnimRecoverStartYOffset = -200.0f;
-	constexpr float kShieldAnimBreakEndYOffset = -200.0f;
-	constexpr float kShieldAnimBreakRotY = DX_PI_F * 1.25f;
-	constexpr float kShieldAnimBreakRotX = DX_PI_F * 0.25f;
-	constexpr float kShieldAnimEasingPower = 3.0f;
+	constexpr float kShieldAnimBreakEndYOffset     = -200.0f;
+	constexpr float kShieldAnimBreakRotY           = DX_PI_F * 1.25f;
+	constexpr float kShieldAnimBreakRotX           = DX_PI_F * 0.25f;
+	constexpr float kShieldAnimEasingPower         = 3.0f;
 
 	// カメラを左右に振った際の横揺れ関連の定数
-	constexpr float kShieldSwayAmount = 4.0f;
+	constexpr float kShieldSwayAmount  = 4.0f;
 	constexpr float kShieldSwayDamping = 0.9f;
 
 	// Update関連
@@ -42,7 +44,15 @@ namespace
 
 	// タックル関連
 	constexpr float kTackleShieldThrust = 20.0f;
-	constexpr float kGuardShakeAmount = 0.4f;
+	constexpr float kGuardShakeAmount   = 0.4f;
+
+	// シールドソー関連
+	constexpr float kShieldThrowSpeed         = 800.0f;  // シールドの移動速度
+	constexpr float kShieldThrowMaxRange      = 1000.0f; // 最大投げ距離
+	constexpr float kShieldThrowDamage		  = 50.0f;   // シールドソーのダメージ
+	constexpr float kShieldThrowRadius        = 50.0f;   // シールドの当たり判定半径
+	constexpr float kShieldThrowHeight		  = 100.0f;  // シールドの当たり判定の高さ
+	constexpr float kShieldThrowRotationSpeed = 10.0f;   // シールドの回転速度
 }
 
 PlayerShieldSystem::PlayerShieldSystem() :
@@ -67,7 +77,18 @@ PlayerShieldSystem::PlayerShieldSystem() :
 	m_sparkEffectTimer(0),
 	m_shieldSwayOffset(VGet(0, 0, 0)),
 	m_shieldSwayRotOffset(VGet(0, 0, 0)),
-	m_wasSwitchingWeapon(false)
+	m_wasSwitchingWeapon(false),
+	m_shieldThrowState(ShieldThrowState::Idle),
+	m_isShieldThrown(false),
+	m_shieldThrowPos(VGet(0, 0, 0)),
+	m_shieldThrowDir(VGet(0, 0, 0)),
+	m_shieldThrowStartPos(VGet(0, 0, 0)),
+	m_shieldThrowDistance(0.0f),
+	m_shieldThrowSpeed(kShieldThrowSpeed),
+	m_shieldThrowMaxRange(kShieldThrowMaxRange),
+	m_shieldThrowDamage(kShieldThrowDamage),
+	m_shieldThrowHitEnemyId(-1),
+	m_shieldThrowRotationTimer(0.0f)
 {
 	// 盾モデルの読み込み
 	m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
@@ -184,6 +205,12 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& 
 void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration)
 {
 	if (!pCamera) return;
+
+	// シールドソーを投げている場合は通常のシールドを非表示にする
+	if (m_isShieldThrown)
+	{
+		return;
+	}
 
 	int screenW, screenH;
 	GetScreenState(&screenW, &screenH, NULL);
@@ -433,5 +460,237 @@ void PlayerShieldSystem::UpdateSparkEffect(Effect* pEffect, const VECTOR& player
 int PlayerShieldSystem::GetShieldImageHandle() const
 {
 	return m_shieldImageHandle;
+}
+
+bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
+{
+	// 既に投げられている場合は投げられない
+	if (m_isShieldThrown)
+	{
+		return false;
+	}
+
+	// ガード中やタックル中は投げられない
+	if (m_isGuarding || m_isShieldBroken)
+	{
+		return false;
+	}
+
+	if (!pCamera) return false;
+
+	// カメラの前方方向を取得（レティクルの方角）
+	// カメラの位置から注視点への方向がレティクル方向
+	VECTOR camPos = pCamera->GetPos();
+	VECTOR camTarget = pCamera->GetTarget();
+	VECTOR cameraForward = VSub(camTarget, camPos);
+	m_shieldThrowDir = VNorm(cameraForward); // カメラの前方方向ベクトル（レティクル方向）
+
+	// シールドの初期位置を設定
+	constexpr float kShieldThrowStartYOffset = 80.0f; 
+	VECTOR throwStartPos = playerPos;
+	throwStartPos.y += kShieldThrowStartYOffset; 
+	m_shieldThrowStartPos = throwStartPos;
+	m_shieldThrowPos = m_shieldThrowStartPos;
+	m_shieldThrowDistance = 0.0f;
+	m_shieldThrowState = ShieldThrowState::Throwing;
+	m_isShieldThrown = true;
+	m_shieldThrowHitEnemyId = -1;
+	m_shieldThrowRotationTimer = 0.0f; // 回転タイマーをリセット
+
+	return true;
+}
+
+void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
+{
+	if (!m_isShieldThrown) return;
+
+	// シールドの回転タイマーを更新
+	m_shieldThrowRotationTimer += deltaTime * kShieldThrowRotationSpeed;
+
+	if (m_shieldThrowState == ShieldThrowState::Throwing)
+	{
+		// カメラの前方方向（レティクルの方角）に向かって移動
+		VECTOR moveDelta = VScale(m_shieldThrowDir, m_shieldThrowSpeed * deltaTime);
+		m_shieldThrowPos = VAdd(m_shieldThrowPos, moveDelta);
+		m_shieldThrowDistance += VSize(moveDelta);
+
+		// 最大距離に達したら戻りモードに切り替え
+		if (m_shieldThrowDistance >= m_shieldThrowMaxRange)
+		{
+			m_shieldThrowState = ShieldThrowState::Returning;
+			m_shieldThrowHitEnemyId = -1; // 戻り時に再度ヒットできるようにリセット
+		}
+	}
+	else if (m_shieldThrowState == ShieldThrowState::Returning)
+	{
+		// プレイヤーの位置にYオフセットを加えた位置（投げ始めた位置と同じ高さ）に向かって移動
+		constexpr float kShieldThrowStartYOffset = 80.0f;
+		VECTOR returnTargetPos = playerPos;
+		returnTargetPos.y += kShieldThrowStartYOffset; // 投げ始めた位置と同じ高さにする
+		
+		VECTOR toReturnTarget = VSub(returnTargetPos, m_shieldThrowPos);
+		float distToReturnTarget = VSize(toReturnTarget);
+		
+		if (distToReturnTarget < 50.0f)
+		{
+			// 戻り位置に到達したら待機モードに戻る
+			m_shieldThrowState = ShieldThrowState::Idle;
+			m_isShieldThrown = false;
+			m_shieldThrowPos = VGet(0, 0, 0);
+			m_shieldThrowDistance = 0.0f;
+			m_shieldThrowHitEnemyId = -1;
+			m_shieldThrowRotationTimer = 0.0f;
+			return;
+		}
+
+		VECTOR returnDir = VNorm(toReturnTarget);
+		VECTOR moveDelta = VScale(returnDir, m_shieldThrowSpeed * deltaTime);
+		m_shieldThrowPos = VAdd(m_shieldThrowPos, moveDelta);
+	}
+
+	// 敵との当たり判定
+	if (m_shieldThrowState == ShieldThrowState::Throwing || m_shieldThrowState == ShieldThrowState::Returning)
+	{
+		// シールドの当たり判定（カプセル形状）
+		VECTOR shieldCapA = VAdd(m_shieldThrowPos, VGet(0, -kShieldThrowHeight * 0.5f, 0));
+		VECTOR shieldCapB = VAdd(m_shieldThrowPos, VGet(0, kShieldThrowHeight * 0.5f, 0));
+
+		for (EnemyBase* enemy : enemyList)
+		{
+			if (!enemy || !enemy->IsAlive()) continue;
+
+			// 敵のコライダーを取得
+			auto enemyCollider = enemy->GetBodyCollider();
+			if (!enemyCollider) continue;
+
+			// カプセル同士の当たり判定
+			VECTOR enemyCapA = enemyCollider->GetSegmentA();
+			VECTOR enemyCapB = enemyCollider->GetSegmentB();
+			float enemyRadius = enemyCollider->GetRadius();
+
+			// 簡易的な当たり判定（カプセル間の最短距離を計算）
+			VECTOR shieldCenter = VAdd(shieldCapA, VScale(VSub(shieldCapB, shieldCapA), 0.5f));
+			VECTOR enemyCenter = VAdd(enemyCapA, VScale(VSub(enemyCapB, enemyCapA), 0.5f));
+			VECTOR toEnemy = VSub(enemyCenter, shieldCenter);
+			float dist = VSize(toEnemy);
+			float minDist = kShieldThrowRadius + enemyRadius + kShieldThrowHeight * 0.5f;
+
+			if (dist < minDist)
+			{
+				// 同じ敵に連続でヒットしないようにする
+				// 簡易的なIDとして敵のポインタアドレスを使用
+				int enemyId = reinterpret_cast<intptr_t>(enemy);
+				if (m_shieldThrowHitEnemyId != enemyId)
+				{
+					m_shieldThrowHitEnemyId = enemyId;
+					
+					// ダメージを与える
+					enemy->TakeDamage(m_shieldThrowDamage, AttackType::Shoot);
+
+					// エフェクトを再生
+					if (pEffect)
+					{
+						pEffect->PlaySparkEffect(m_shieldThrowPos.x, m_shieldThrowPos.y, m_shieldThrowPos.z);
+					}
+
+					// 投げ中に敵に当たった場合は戻りモードに切り替え
+					if (m_shieldThrowState == ShieldThrowState::Throwing)
+					{
+						m_shieldThrowState = ShieldThrowState::Returning;
+					}
+				}
+			}
+		}
+	}
+}
+
+void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPos) const
+{
+	if (!m_isShieldThrown || !pCamera) return;
+
+	// メインカメラを設定
+	pCamera->SetCameraToDxLib();
+
+	// シールドの位置と回転を計算
+	VECTOR shieldPos = m_shieldThrowPos;
+	
+	// シールドの向きを計算（移動方向に合わせる）
+	VECTOR forward = m_shieldThrowDir;
+	if (m_shieldThrowState == ShieldThrowState::Returning)
+	{
+		// 戻り中はプレイヤー方向を向く（水平方向のみ）
+		constexpr float kShieldThrowStartYOffset = 80.0f;
+		VECTOR returnTargetPos = playerPos;
+		returnTargetPos.y += kShieldThrowStartYOffset;
+		VECTOR toPlayer = VSub(returnTargetPos, m_shieldThrowPos);
+		forward = VNorm(toPlayer);
+	}
+
+	// クォータニオンを使用して回転を計算
+	// 1. 移動方向への回転（Y軸回転）
+	float baseYaw = atan2f(forward.x, forward.z);
+	float basePitch = -asinf(forward.y); // 視点の上下を考慮したピッチ角度
+	
+	// 2. 横向きにするための回転を決定
+	constexpr float kPitchThreshold = DX_PI_F * 0.25f; // 45度を閾値とする
+	float absPitch = fabsf(basePitch);
+	
+	FLOAT4 rotationQuat;
+	if (absPitch < kPitchThreshold)
+	{
+		// 水平に近い場合：X軸を90度回転して横向きにする
+		VECTOR xAxis = VGet(1.0f, 0.0f, 0.0f);
+		FLOAT4 xRotQuat = QTRot(xAxis, DX_PI_F * 0.5f); // X軸90度回転
+		
+		// Y軸回転（移動方向 + 時間回転）
+		VECTOR yAxis = VGet(0.0f, 1.0f, 0.0f);
+		FLOAT4 yRotQuat = QTRot(yAxis, baseYaw + m_shieldThrowRotationTimer);
+		
+		// クォータニオンの合成（X回転 → Y回転）
+		rotationQuat = QTCross(xRotQuat, yRotQuat);
+	}
+	else
+	{
+		// 上下に角度がついている場合：Z軸を90度回転して横向きにする
+		VECTOR zAxis = VGet(0.0f, 0.0f, 1.0f);
+		FLOAT4 zRotQuat = QTRot(zAxis, DX_PI_F * 0.5f); // Z軸90度回転
+		
+		// ピッチ回転（視点の上下）
+		VECTOR xAxis = VGet(1.0f, 0.0f, 0.0f);
+		FLOAT4 pitchRotQuat = QTRot(xAxis, basePitch);
+		
+		// Y軸回転（移動方向 + 時間回転）
+		VECTOR yAxis = VGet(0.0f, 1.0f, 0.0f);
+		FLOAT4 yRotQuat = QTRot(yAxis, baseYaw + m_shieldThrowRotationTimer);
+		
+		// クォータニオンの合成（Z回転 → ピッチ回転 → Y回転）
+		FLOAT4 tempQuat = QTCross(zRotQuat, pitchRotQuat);
+		rotationQuat = QTCross(tempQuat, yRotQuat);
+	}
+	
+	// クォータニオンから回転行列に変換
+	MATRIX rotMatrix;
+	rotMatrix.m[0][0] = 1.0f - 2.0f * (rotationQuat.y * rotationQuat.y + rotationQuat.z * rotationQuat.z);
+	rotMatrix.m[0][1] = 2.0f * (rotationQuat.x * rotationQuat.y - rotationQuat.z * rotationQuat.w);
+	rotMatrix.m[0][2] = 2.0f * (rotationQuat.x * rotationQuat.z + rotationQuat.y * rotationQuat.w);
+	rotMatrix.m[0][3] = 0.0f;
+	rotMatrix.m[1][0] = 2.0f * (rotationQuat.x * rotationQuat.y + rotationQuat.z * rotationQuat.w);
+	rotMatrix.m[1][1] = 1.0f - 2.0f * (rotationQuat.x * rotationQuat.x + rotationQuat.z * rotationQuat.z);
+	rotMatrix.m[1][2] = 2.0f * (rotationQuat.y * rotationQuat.z - rotationQuat.x * rotationQuat.w);
+	rotMatrix.m[1][3] = 0.0f;
+	rotMatrix.m[2][0] = 2.0f * (rotationQuat.x * rotationQuat.z - rotationQuat.y * rotationQuat.w);
+	rotMatrix.m[2][1] = 2.0f * (rotationQuat.y * rotationQuat.z + rotationQuat.x * rotationQuat.w);
+	rotMatrix.m[2][2] = 1.0f - 2.0f * (rotationQuat.x * rotationQuat.x + rotationQuat.y * rotationQuat.y);
+	rotMatrix.m[2][3] = 0.0f;
+	rotMatrix.m[3][0] = 0.0f;
+	rotMatrix.m[3][1] = 0.0f;
+	rotMatrix.m[3][2] = 0.0f;
+	rotMatrix.m[3][3] = 1.0f;
+
+	// シールドモデルを描画
+	MV1SetPosition(m_shieldModelHandle, shieldPos);
+	MV1SetRotationMatrix(m_shieldModelHandle, rotMatrix);
+	MV1SetScale(m_shieldModelHandle, VGet(kShieldModelScale, kShieldModelScale, kShieldModelScale));
+	MV1DrawModel(m_shieldModelHandle);
 }
 

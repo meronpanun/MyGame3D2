@@ -5,7 +5,7 @@
 namespace
 {
 	// カメラ関連の定数
-    constexpr float kPitchLimit = DX_PI_F / 4.0f;   // カメラの角度を45度に制限
+	constexpr float kPitchLimit = DX_PI_F / 3.0f;   // カメラの上下限界角度
     constexpr float kCameraXPos = 8.0f;             // カメラのX軸
     constexpr float kCameraYPos = 90.0f;            // カメラのY軸
     constexpr float kCameraZPos = 20.0f;            // カメラのZ軸

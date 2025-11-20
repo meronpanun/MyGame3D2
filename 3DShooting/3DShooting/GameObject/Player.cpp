@@ -296,6 +296,15 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// 盾システムの更新
 	m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding, m_isTackling, isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), yawDelta);
 
+	// Rキーでシールドソーを投げる（死亡中、タックル中、ガード中、武器切り替え中は不可）
+	if (!m_isDead && !m_isTackling && !isGuarding && !isSwitchingWeapon && keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
+	{
+		m_shieldSystem.ThrowShield(m_pCamera.get(), m_modelPos);
+	}
+
+	// シールドソーの更新
+	m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, m_pEffect);
+
 	// 銃のSwayの計算（一時的に保持）
     m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
     m_gunSwayOffset.x *= kGunSwayDamping;
@@ -682,6 +691,12 @@ void Player::Draw3D()
 	// 弾と薬莢の描画
 	Bullet::DrawBullets(m_bullets);
 	ShellCasing::DrawShellCasings(m_shellCasings);
+
+	// シールドソーの描画（投げられている場合のみ）
+	if (m_shieldSystem.IsShieldThrown())
+	{
+		m_shieldSystem.DrawShieldThrow(m_pCamera.get(), m_modelPos);
+	}
 }
 
 void Player::DrawShield()

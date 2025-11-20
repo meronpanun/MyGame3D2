@@ -30,7 +30,7 @@ namespace
 	constexpr int   kWarningImageYOffset = 160; 
 	constexpr int   kWarningTextYOffset  = 5;   
 	constexpr int   kWarningImageSpacing = 20;  
-	constexpr float kWarningBlinkSpeed   = 1.5f;   // 警告UIの点滅速度
+	constexpr float kWarningBlinkSpeed   = 1.5f; // 警告UIの点滅速度
 
 	// HpUI関連
 	constexpr int   kHpBarWidth			     = 200;
@@ -43,16 +43,16 @@ namespace
 	constexpr int   kHpTextOffsetY		     = 2;
 
 	// 色関連
-	constexpr unsigned int kColorWhite			   = 0xffffff;
-	constexpr unsigned int kColorLowAmmo           = 0xd3381c;
-	constexpr unsigned int kColorHpBarBg           = 0x505050;
-	constexpr unsigned int kColorHpBarDamage	   = 0xFFD700;
-	constexpr unsigned int kColorHpBarFill		   = 0xff4040;
-	constexpr unsigned int kColorHpBarBorder       = 0x000000;
+	constexpr unsigned int kColorWhite		 = 0xffffff;
+	constexpr unsigned int kColorLowAmmo     = 0xd3381c;
+	constexpr unsigned int kColorHpBarBg     = 0x505050;
+	constexpr unsigned int kColorHpBarDamage = 0xFFD700;
+	constexpr unsigned int kColorHpBarFill	 = 0xff4040;
+	constexpr unsigned int kColorHpBarBorder = 0x000000;
 
 	// 盾UI関連
-	constexpr int   kShieldUIYPosition		  = 420;
-	constexpr int   kShieldUIYOffset		  = 30; // 盾UIのY軸調整オフセット
+	constexpr int   kShieldUIYPosition = 420;
+	constexpr int   kShieldUIYOffset   = 30; // 盾UIのY軸調整オフセット
 
 	// フォント関連
 	constexpr int   kDefaultFontThickness  = 3;  // フォントの太さ
@@ -560,5 +560,6 @@ void PlayerUI::DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy, bool isT
 		DrawStringToHandle(textX, textY, text, kColorWhite, m_warningFontHandle);
 	}
 }
+
 
 

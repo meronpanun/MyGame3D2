@@ -8,9 +8,9 @@
 namespace
 {
 	// 重力とジャンプ関連
-	constexpr float kGravity = 0.35f;
+	constexpr float kGravity   = 0.35f;
 	constexpr float kJumpPower = 7.0f;
-	constexpr float kGroundY = 0.0f;
+	constexpr float kGroundY   = 0.0f;
 
 	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f;
@@ -22,9 +22,9 @@ namespace
 
 	// Update関連
 	constexpr float kPlayerColliderYOffset = 60.0f;
-	constexpr float kGroundCheckTolerance = 0.01f;
-	constexpr float kJumpSwayPower = 5.0f;
-	constexpr float kLandingSwayPower = 5.0f;
+	constexpr float kGroundCheckTolerance  = 0.01f;
+	constexpr float kJumpSwayPower         = 5.0f;
+	constexpr float kLandingSwayPower      = 5.0f;
 }
 
 PlayerMovement::PlayerMovement() :

@@ -42,9 +42,9 @@ namespace
 	constexpr int kLowAmmoThreshold = 10;
 
 	// カメラシェイク
-	constexpr float kARShootShakePower = 4.0f;
-	constexpr float kSGShootShakePower = 32.0f;
-	constexpr int kShootShakeDuration = 8;
+	constexpr float kARShootShakePower  = 4.0f;
+	constexpr float kSGShootShakePower  = 32.0f;
+	constexpr int   kShootShakeDuration = 8;
 
 	// Update関連
 	constexpr float kFrameRate = 60.0f;
