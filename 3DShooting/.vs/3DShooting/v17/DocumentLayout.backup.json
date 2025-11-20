@@ -300,8 +300,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyBoss.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-19T09:08:25.486Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T09:08:25.486Z"
             },
             {
               "$type": "Document",
@@ -313,8 +312,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.h",
               "ViewState": "AgIAAE4BAAAAAAAAAAAWwCYAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-10-21T03:20:58.37Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-21T03:20:58.37Z"
             },
             {
               "$type": "Document",
@@ -326,8 +324,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerShieldSystem.h",
               "ViewState": "AgIAAJkAAAAAAAAAAAAAABMAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-19T01:08:46.027Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T01:08:46.027Z"
             },
             {
               "$type": "Document",
@@ -339,8 +336,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerShieldSystem.cpp",
               "ViewState": "AgIAAO0AAAAAAAAAAAAWwAEBAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-19T01:08:45.315Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T01:08:45.315Z"
             },
             {
               "$type": "Document",
@@ -350,7 +346,7 @@
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\PlayerUI.h",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\PlayerUI.h",
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerUI.h",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-11-19T07:41:18.423Z",
               "EditorCaption": ""
@@ -365,8 +361,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerUI.cpp",
               "ViewState": "AgIAAJMAAAAAAAAAAAAAAPEBAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-19T07:40:02.256Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T07:40:02.256Z"
             },
             {
               "$type": "Document",
@@ -378,8 +373,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerEffectManager.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-19T07:41:38.207Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T07:41:38.207Z"
             },
             {
               "$type": "Document",
@@ -391,8 +385,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerEffectManager.cpp",
               "ViewState": "AgIAAE8AAAAAAAAAAAAAABkAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-19T07:39:54.855Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T07:39:54.855Z"
             },
             {
               "$type": "Document",
@@ -404,8 +397,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.cpp",
               "ViewState": "AgIAAHUAAAAAAAAAAAAAALoDAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-21T03:20:57.771Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-21T03:20:57.771Z"
             },
             {
               "$type": "Document",
@@ -417,8 +409,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerMovement.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAEwAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-19T01:08:42.919Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T01:08:42.919Z"
             },
             {
               "$type": "Document",
@@ -430,8 +421,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerMovement.cpp",
               "ViewState": "AgIAAKIAAAAAAAAAAAAWwLkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-19T01:08:43.827Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T01:08:43.827Z"
             },
             {
               "$type": "Document",
@@ -443,8 +433,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerWeaponManager.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABcBAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-19T01:08:46.715Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T01:08:46.715Z"
             },
             {
               "$type": "Document",
@@ -456,8 +445,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerWeaponManager.h",
               "ViewState": "AgIAAHgAAAAAAAAAAAAAAAwAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-19T01:08:48.115Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T01:08:48.115Z"
             },
             {
               "$type": "Document",
@@ -469,8 +457,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\ShellCasing.cpp",
               "ViewState": "AgIAABUAAAAAAAAAAAAAAEIAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-28T09:26:17.275Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-28T09:26:17.275Z"
             },
             {
               "$type": "Document",

@@ -95,3 +95,4 @@ private:
 	int m_warningFontHandle;
 };
 
+
