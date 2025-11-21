@@ -296,14 +296,22 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 	// 盾システムの更新
 	m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding, m_isTackling, isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), yawDelta);
 
+	// 右クリック長押しでガード（UpdateShieldThrowの前に呼ぶ必要がある）
+	bool shouldGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
+	m_shieldSystem.SetGuarding(shouldGuard);
+	bool currentIsGuarding = m_shieldSystem.IsGuarding();
+
 	// Rキーでシールドソーを投げる（死亡中、タックル中、ガード中、武器切り替え中は不可）
-	if (!m_isDead && !m_isTackling && !isGuarding && !isSwitchingWeapon && keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
+	if (!m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon && keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
 	{
 		m_shieldSystem.ThrowShield(m_pCamera.get(), m_modelPos);
 	}
 
-	// シールドソーの更新
-	m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, m_pEffect);
+	// シールドソーの更新（前フレームのガード状態を使用）
+	m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, m_pEffect, currentIsGuarding, m_prevIsGuarding);
+	
+	// 前フレームのガード状態を更新
+	m_prevIsGuarding = currentIsGuarding;
 
 	// 銃のSwayの計算（一時的に保持）
     m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
@@ -434,9 +442,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 		}
 	}
 
-	// 右クリック長押しでガード	
-	bool shouldGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
-	m_shieldSystem.SetGuarding(shouldGuard);
+	// 右クリック長押しでガード（既に上で設定済み）
 	isGuarding = m_shieldSystem.IsGuarding();
 
 		// タックルクールダウン中でない場合のみロックオンを許可

@@ -500,9 +500,27 @@ bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
 	return true;
 }
 
-void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
+void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<EnemyBase*>& enemyList, Effect* pEffect, bool isGuarding, bool wasGuarding)
 {
 	if (!m_isShieldThrown) return;
+
+	// ガード開始時に盾を即座にプレイヤーの位置に戻す
+	if (isGuarding && !wasGuarding && m_isShieldThrown)
+	{
+		// 盾を即座にプレイヤーの位置（Yオフセット付き）に戻す
+		constexpr float kShieldThrowStartYOffset = 80.0f;
+		VECTOR returnTargetPos = playerPos;
+		returnTargetPos.y += kShieldThrowStartYOffset;
+		m_shieldThrowPos = returnTargetPos;
+		
+		// 待機モードに戻す
+		m_shieldThrowState = ShieldThrowState::Idle;
+		m_isShieldThrown = false;
+		m_shieldThrowDistance = 0.0f;
+		m_shieldThrowHitEnemyId = -1;
+		m_shieldThrowRotationTimer = 0.0f;
+		return;
+	}
 
 	// シールドの回転タイマーを更新
 	m_shieldThrowRotationTimer += deltaTime * kShieldThrowRotationSpeed;
@@ -626,66 +644,29 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPo
 		forward = VNorm(toPlayer);
 	}
 
-	// クォータニオンを使用して回転を計算
-	// 1. 移動方向への回転（Y軸回転）
-	float baseYaw = atan2f(forward.x, forward.z);
-	float basePitch = -asinf(forward.y); // 視点の上下を考慮したピッチ角度
+	// 回転を計算
+	// forward方向を向く回転行列を作成
+	float forwardYaw = atan2f(forward.x, forward.z);
+	float forwardPitch = -asinf(forward.y);
 	
-	// 2. 横向きにするための回転を決定
-	constexpr float kPitchThreshold = DX_PI_F * 0.25f; // 45度を閾値とする
-	float absPitch = fabsf(basePitch);
+	// forward方向を向く回転行列（Yaw → Pitch）
+	MATRIX rotYaw = MGetRotY(forwardYaw);
+	MATRIX rotPitch = MGetRotX(forwardPitch);
+	MATRIX rotToForward = MMult(rotPitch, rotYaw);
 	
-	FLOAT4 rotationQuat;
-	if (absPitch < kPitchThreshold)
-	{
-		// 水平に近い場合：X軸を90度回転して横向きにする
-		VECTOR xAxis = VGet(1.0f, 0.0f, 0.0f);
-		FLOAT4 xRotQuat = QTRot(xAxis, DX_PI_F * 0.5f); // X軸90度回転
-		
-		// Y軸回転（移動方向 + 時間回転）
-		VECTOR yAxis = VGet(0.0f, 1.0f, 0.0f);
-		FLOAT4 yRotQuat = QTRot(yAxis, baseYaw + m_shieldThrowRotationTimer);
-		
-		// クォータニオンの合成（X回転 → Y回転）
-		rotationQuat = QTCross(xRotQuat, yRotQuat);
-	}
-	else
-	{
-		// 上下に角度がついている場合：Z軸を90度回転して横向きにする
-		VECTOR zAxis = VGet(0.0f, 0.0f, 1.0f);
-		FLOAT4 zRotQuat = QTRot(zAxis, DX_PI_F * 0.5f); // Z軸90度回転
-		
-		// ピッチ回転（視点の上下）
-		VECTOR xAxis = VGet(1.0f, 0.0f, 0.0f);
-		FLOAT4 pitchRotQuat = QTRot(xAxis, basePitch);
-		
-		// Y軸回転（移動方向 + 時間回転）
-		VECTOR yAxis = VGet(0.0f, 1.0f, 0.0f);
-		FLOAT4 yRotQuat = QTRot(yAxis, baseYaw + m_shieldThrowRotationTimer);
-		
-		// クォータニオンの合成（Z回転 → ピッチ回転 → Y回転）
-		FLOAT4 tempQuat = QTCross(zRotQuat, pitchRotQuat);
-		rotationQuat = QTCross(tempQuat, yRotQuat);
-	}
+	// 横向きにする回転（X軸90度回転）
+	MATRIX rotX = MGetRotX(DX_PI_F * 0.5f);
 	
-	// クォータニオンから回転行列に変換
-	MATRIX rotMatrix;
-	rotMatrix.m[0][0] = 1.0f - 2.0f * (rotationQuat.y * rotationQuat.y + rotationQuat.z * rotationQuat.z);
-	rotMatrix.m[0][1] = 2.0f * (rotationQuat.x * rotationQuat.y - rotationQuat.z * rotationQuat.w);
-	rotMatrix.m[0][2] = 2.0f * (rotationQuat.x * rotationQuat.z + rotationQuat.y * rotationQuat.w);
-	rotMatrix.m[0][3] = 0.0f;
-	rotMatrix.m[1][0] = 2.0f * (rotationQuat.x * rotationQuat.y + rotationQuat.z * rotationQuat.w);
-	rotMatrix.m[1][1] = 1.0f - 2.0f * (rotationQuat.x * rotationQuat.x + rotationQuat.z * rotationQuat.z);
-	rotMatrix.m[1][2] = 2.0f * (rotationQuat.y * rotationQuat.z - rotationQuat.x * rotationQuat.w);
-	rotMatrix.m[1][3] = 0.0f;
-	rotMatrix.m[2][0] = 2.0f * (rotationQuat.x * rotationQuat.z - rotationQuat.y * rotationQuat.w);
-	rotMatrix.m[2][1] = 2.0f * (rotationQuat.y * rotationQuat.z + rotationQuat.x * rotationQuat.w);
-	rotMatrix.m[2][2] = 1.0f - 2.0f * (rotationQuat.x * rotationQuat.x + rotationQuat.y * rotationQuat.y);
-	rotMatrix.m[2][3] = 0.0f;
-	rotMatrix.m[3][0] = 0.0f;
-	rotMatrix.m[3][1] = 0.0f;
-	rotMatrix.m[3][2] = 0.0f;
-	rotMatrix.m[3][3] = 1.0f;
+	// forward方向を軸として回転させる（横向きの状態を維持）
+	// forward方向を軸として回転させるには、forward方向をローカルZ軸として扱い、
+	// そのZ軸周りに回転させる
+	// 回転の順序：forward方向を向く → 横向きにする → forward方向を軸として回転
+	MATRIX rotAroundForward = MGetRotZ(m_shieldThrowRotationTimer); // Z軸周りの回転（横向きの状態）
+	
+	// 合成：forward方向を向く回転 → 横向きにする回転 → forward方向を軸とした回転
+	// 順序：rotToForward → rotX → rotAroundForward
+	MATRIX tempMatrix = MMult(rotX, rotToForward);
+	MATRIX rotMatrix = MMult(rotAroundForward, tempMatrix);
 
 	// シールドモデルを描画
 	MV1SetPosition(m_shieldModelHandle, shieldPos);

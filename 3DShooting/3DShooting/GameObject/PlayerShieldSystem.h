@@ -152,7 +152,9 @@ public:
 	/// <param name="playerPos">プレイヤー位置</param>
 	/// <param name="enemyList">敵のリスト</param>
 	/// <param name="pEffect">エフェクトポインタ</param>
-	void UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<class EnemyBase*>& enemyList, Effect* pEffect);
+	/// <param name="isGuarding">ガード状態</param>
+	/// <param name="wasGuarding">前フレームのガード状態</param>
+	void UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<class EnemyBase*>& enemyList, Effect* pEffect, bool isGuarding, bool wasGuarding);
 
 	/// <summary>
 	/// シールドソーの3D描画

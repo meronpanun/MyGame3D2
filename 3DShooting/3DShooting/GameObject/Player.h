@@ -305,6 +305,7 @@ private:
 	VECTOR m_scale;
 
 	unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
+	bool m_prevIsGuarding = false; // 前フレームのガード状態
 
 	int   m_arInitAmmo;		               // ARの初期弾薬数
 	int   m_sgInitAmmo;		               // SGの初期弾薬数
