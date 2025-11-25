@@ -5,13 +5,18 @@
 void Stage::Init()
 {
 	TransformDataLoader loader;
-	auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
+	// 旧Stage.csvの読み込み処理（コメント化）
+	// auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
+	
+	// MainStageTransformData.csvの読み込み
+	auto objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
 
 	for (const auto& data : objectDataList)
 	{
 		std::string modelPath;
 
-		
+		// 旧モデルの処理（コメント化）
+		/*
 		if (data.name == "UNIConcrete")
 		{
 			modelPath = "Data/Model/UNIConcrete.mv1";
@@ -20,7 +25,6 @@ void Stage::Init()
 		{
 			modelPath = "Data/Model/Road_floor.mv1";
 		}
-
 		else if (data.name == "Hangar_v3")
 		{
 			modelPath = "Data/Model/Hangar_v3.mv1";
@@ -32,6 +36,49 @@ void Stage::Init()
 		else if (data.name == "container")
 		{
 			modelPath = "Data/Model/container.mv1";
+		}
+		*/
+
+		// 新モデルの処理
+		if (data.name == "Barrier_Group_1A")
+		{
+			modelPath = "Data/Model/Barrier_Group_1A.mv1";
+		}
+		else if (data.name == "Basic_Stairs_1B")
+		{
+			modelPath = "Data/Model/Basic_Stairs_1B.mv1";
+		}
+		else if (data.name == "Block_Platform_1B")
+		{
+			modelPath = "Data/Model/Block_Platform_1B.mv1";
+		}
+		else if (data.name == "Block_Platform_Corner_1B(Mirrored)")
+		{
+			modelPath = "Data/Model/Block_Platform_Corner_1B(Mirrored).mv1";
+		}
+		else if (data.name == "Block_Platform_Corner_1B")
+		{
+			modelPath = "Data/Model/Block_Platform_Corner_1B.mv1";
+		}
+		else if (data.name == "Chain")
+		{
+			modelPath = "Data/Model/Chain.mv1";
+		}
+		else if (data.name == "Floor_A")
+		{
+			modelPath = "Data/Model/Floor_A.mv1";
+		}
+		else if (data.name == "Floor_B")
+		{
+			modelPath = "Data/Model/Floor_B.mv1";
+		}
+		else if (data.name == "Prop_Stone_Med_B")
+		{
+			modelPath = "Data/Model/Prop_Stone_Med_B.mv1";
+		}
+		else if (data.name == "Prop_Stone_Med_D")
+		{
+			modelPath = "Data/Model/Prop_Stone_Med_D.mv1";
 		}
 		else
 		{
