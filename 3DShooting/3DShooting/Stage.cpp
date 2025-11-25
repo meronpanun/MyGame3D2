@@ -6,7 +6,7 @@ void Stage::Init()
 {
 	TransformDataLoader loader;
 	// 旧Stage.csvの読み込み処理（コメント化）
-	// auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
+	//auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
 	
 	// MainStageTransformData.csvの読み込み
 	auto objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
@@ -16,28 +16,27 @@ void Stage::Init()
 		std::string modelPath;
 
 		// 旧モデルの処理（コメント化）
-		/*
-		if (data.name == "UNIConcrete")
-		{
-			modelPath = "Data/Model/UNIConcrete.mv1";
-		}
-		else if (data.name == "Road_floor")
-		{
-			modelPath = "Data/Model/Road_floor.mv1";
-		}
-		else if (data.name == "Hangar_v3")
-		{
-			modelPath = "Data/Model/Hangar_v3.mv1";
-		}	
-		else if (data.name == "Hangar")
-		{
-			modelPath = "Data/Model/Hangar.mv1";
-		}	
-		else if (data.name == "container")
-		{
-			modelPath = "Data/Model/container.mv1";
-		}
-		*/
+		//if (data.name == "UNIConcrete")
+		//{
+		//	modelPath = "Data/Model/UNIConcrete.mv1";
+		//}
+		//else if (data.name == "Road_floor")
+		//{
+		//	modelPath = "Data/Model/Road_floor.mv1";
+		//}
+		//else if (data.name == "Hangar_v3")
+		//{
+		//	modelPath = "Data/Model/Hangar_v3.mv1";
+		//}	
+		//else if (data.name == "Hangar")
+		//{
+		//	modelPath = "Data/Model/Hangar.mv1";
+		//}	
+		//else if (data.name == "container")
+		//{
+		//	modelPath = "Data/Model/container.mv1";
+		//}
+		
 
 		// 新モデルの処理
 		if (data.name == "Barrier_Group_1A")

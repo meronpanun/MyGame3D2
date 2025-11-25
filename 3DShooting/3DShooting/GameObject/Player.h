@@ -197,6 +197,18 @@ public:
 	bool IsInvincible() const { return m_isInvincible; }
 
 	/// <summary>
+	/// 飛行モードを設定する
+	/// </summary>
+	/// <param name="isFlightMode">飛行モードにするかどうか</param>
+	void SetFlightMode(bool isFlightMode) { m_isFlightMode = isFlightMode; }
+
+	/// <summary>
+	/// 飛行モードかどうかを取得する
+	/// </summary>
+	/// <returns>飛行モードならtrue</returns>
+	bool IsFlightMode() const { return m_isFlightMode; }
+
+	/// <summary>
 	/// ロックオン可能な敵がいるかどうかを取得する
 	/// </summary>
 	/// <returns>ロックオン可能な敵がいるならtrue</returns>
@@ -338,6 +350,7 @@ private:
 	bool  m_isTackling;					   // タックル中かどうか
 	bool  m_isInvincible;				   // 無敵モードかどうか
 	bool  m_isInfiniteAmmo;				   // 弾薬無限モードかどうか
+	bool  m_isFlightMode;				   // 飛行モードかどうか
 	float m_shieldRegenRate;			   // 盾の回復速度
 	float m_ammoTextFlashTimer;            // 弾薬テキストのフラッシュタイマー
 	

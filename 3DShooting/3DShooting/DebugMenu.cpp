@@ -56,6 +56,19 @@ DebugMenu::DebugMenu()
                         return Game::m_pPlayer->IsInfiniteAmmo() ? "[ON]" : "[OFF]";
                     }
                     return "[N/A]";
+                }},
+                {"Flight Mode", {}, [this]() {
+                    if (Game::m_pPlayer)
+                    {
+                        bool isFlightMode = !Game::m_pPlayer->IsFlightMode();
+                        Game::m_pPlayer->SetFlightMode(isFlightMode);
+                    }
+                }, []() {
+                    if (Game::m_pPlayer)
+                    {
+                        return Game::m_pPlayer->IsFlightMode() ? "[ON]" : "[OFF]";
+                    }
+                    return "[N/A]";
                 }}
             }, nullptr},
             {"Enemy", {}, nullptr}

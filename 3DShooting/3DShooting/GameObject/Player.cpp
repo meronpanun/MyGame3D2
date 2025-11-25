@@ -172,6 +172,7 @@ Player::Player() :
 	m_ignoreGuardInput(false),
 	m_isInvincible(false),
 	m_isInfiniteAmmo(false),
+	m_isFlightMode(false),
 	m_tackleCooldownMax(0.0f),
 	m_tackleSpeed(0.0f),
 	m_tackleDamage(0.0f),
@@ -255,7 +256,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	// タックル中もコライダーを更新する必要があるため、常にUpdateを呼ぶ
 	// ただし、タックル中は移動処理はスキップされる
-	m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling);
+	m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode);
 	
 	// タックル中でない場合は位置を同期
 	if (!m_isTackling)
@@ -286,6 +287,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 			m_weaponManager.SwitchWeapon(nextWeapon);
 		}
     }
+
+	// スペースキー2回押しで飛行モード切り替え機能は削除
+	// 飛行モードはデバッグメニュー（F1キー）からCharacter > Player > Flight Modeで切り替える
 
     // プレイヤーの位置をカメラに設定
     m_pCamera->SetPlayerPos(m_modelPos);

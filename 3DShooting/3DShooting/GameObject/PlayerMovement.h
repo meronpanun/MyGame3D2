@@ -15,7 +15,7 @@ public:
 	~PlayerMovement() = default;
 
 	void Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale);
-	void Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling);
+	void Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, bool isFlightMode);
 
 	/// <summary>
 	/// 位置取得
