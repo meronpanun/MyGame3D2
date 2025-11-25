@@ -322,7 +322,7 @@
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\PlayerShieldSystem.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\PlayerShieldSystem.cpp",
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerShieldSystem.cpp",
-              "ViewState": "AgIAADQBAAAAAAAAAAAjwFAAAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAAC4BAAAAAAAAAAAjwFAAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-11-19T01:08:45.315Z",
               "EditorCaption": ""
@@ -397,8 +397,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\PlayerShieldSystem.h",
               "ViewState": "AgIAAIYAAAAAAAAAAAAjwJoAAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-19T01:08:46.027Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T01:08:46.027Z"
             },
             {
               "$type": "Document",
