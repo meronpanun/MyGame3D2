@@ -3,6 +3,8 @@
 #include "DxLib.h"
 #include <unordered_map>
 #include <cstdio>
+#include <fstream>
+#include <sstream>
 
 void Stage::Init()
 {
@@ -12,6 +14,9 @@ void Stage::Init()
 	
 	// MainStageTransformData.csvの読み込み
 	auto objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
+
+	// ステージ当たり判定データの読み込み
+	LoadCollisionData("Data/CSV/StageCollisionData.csv");
 
 	int loadedCount = 0; // 読み込んだオブジェクト数
 	int skippedCount = 0; // スキップされたオブジェクト数
@@ -104,5 +109,69 @@ void Stage::Draw()
 	for (auto& obj : m_objects)
 	{
 		obj.Draw();
+	}
+
+	// 当たり判定のデバッグ描画
+	for (const auto& col : m_collisionData)
+	{
+		DrawTriangle3D(col.v1, col.v2, col.v3, GetColor(255, 0, 0), FALSE);
+	}
+}
+
+void Stage::LoadCollisionData(const char* fileName)
+{
+	std::ifstream file(fileName);
+	if (!file.is_open())
+	{
+		return;
+	}
+
+	std::string line;
+	bool isHeader = true;
+
+	while (std::getline(file, line))
+	{
+		if (isHeader)
+		{
+			isHeader = false;
+			continue;
+		}
+
+		std::stringstream ss(line);
+		std::string element;
+		StageCollisionData data;
+		int index = 0;
+
+		while (std::getline(ss, element, ','))
+		{
+			if (element.empty())
+			{
+				index++;
+				continue;
+			}
+
+			try
+			{
+				switch (index)
+				{
+				case 0: data.name = element; break;
+				case 1: data.v1.x = std::stof(element); break;
+				case 2: data.v1.y = std::stof(element); break;
+				case 3: data.v1.z = std::stof(element); break;
+				case 4: data.v2.x = std::stof(element); break;
+				case 5: data.v2.y = std::stof(element); break;
+				case 6: data.v2.z = std::stof(element); break;
+				case 7: data.v3.x = std::stof(element); break;
+				case 8: data.v3.y = std::stof(element); break;
+				case 9: data.v3.z = std::stof(element); break;
+				}
+			}
+			catch (...)
+			{
+				// エラー処理（必要に応じてログ出力など）
+			}
+			index++;
+		}
+		m_collisionData.push_back(data);
 	}
 }

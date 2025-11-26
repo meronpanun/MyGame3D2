@@ -23,6 +23,18 @@ public:
 	void Draw();
 
 private:
+	struct StageCollisionData
+	{
+		std::string name;
+		VECTOR v1;
+		VECTOR v2;
+		VECTOR v3;
+	};
+
+private:
 	std::vector<StageObject> m_objects;
+	std::vector<StageCollisionData> m_collisionData;
+
+	void LoadCollisionData(const char* fileName);
 };
 
