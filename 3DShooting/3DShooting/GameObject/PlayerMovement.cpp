@@ -21,9 +21,9 @@ namespace
 	constexpr float kCapsuleHeight = 100.0f;
 	constexpr float kCapsuleRadius = 50.0f;
 
-	// X,Z座標の移動範囲制限
-	constexpr float kLimitMoveX = 2800.0f;
-	constexpr float kLimitMoveZ = 2800.0f;
+	// X,Z座標の移動範囲制限（削除済み）
+	// constexpr float kLimitMoveX = 2800.0f;
+	// constexpr float kLimitMoveZ = 2800.0f;
 
 	// Update関連
 	constexpr float kPlayerColliderYOffset = 60.0f;
@@ -242,12 +242,6 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			pCamera->SetHeadBobbingState(isMoving, isRunning);
 		}
 	}
-
-	// X,Z座標の移動範囲制限
-	if (m_modelPos.x < -kLimitMoveX) m_modelPos.x = -kLimitMoveX;
-	if (m_modelPos.x > kLimitMoveX) m_modelPos.x = kLimitMoveX;
-	if (m_modelPos.z < -kLimitMoveZ) m_modelPos.z = -kLimitMoveZ;
-	if (m_modelPos.z > kLimitMoveZ) m_modelPos.z = kLimitMoveZ;
 }
 
 void PlayerMovement::Jump(Camera* pCamera)

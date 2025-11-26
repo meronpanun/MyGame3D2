@@ -1,21 +1,26 @@
-#include "Stage.h"
+﻿#include "Stage.h"
 #include "TransformDataLoader.h"
+#include "DxLib.h"
 #include <unordered_map>
+#include <cstdio>
 
 void Stage::Init()
 {
 	TransformDataLoader loader;
-	// 旧Stage.csvの読み込み処理（コメント化）
-	//auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
+	// 旧Stage.csvの読み込み処理
+//	auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
 	
 	// MainStageTransformData.csvの読み込み
 	auto objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
+
+	int loadedCount = 0; // 読み込んだオブジェクト数
+	int skippedCount = 0; // スキップされたオブジェクト数
 
 	for (const auto& data : objectDataList)
 	{
 		std::string modelPath;
 
-		// 旧モデルの処理（コメント化）
+		// 旧モデルの処理
 		//if (data.name == "UNIConcrete")
 		//{
 		//	modelPath = "Data/Model/UNIConcrete.mv1";
@@ -36,7 +41,6 @@ void Stage::Init()
 		//{
 		//	modelPath = "Data/Model/container.mv1";
 		//}
-		
 
 		// 新モデルの処理
 		if (data.name == "Barrier_Group_1A")
@@ -81,6 +85,7 @@ void Stage::Init()
 		}
 		else
 		{
+			skippedCount++;
 			continue;
 		}
 
@@ -90,6 +95,7 @@ void Stage::Init()
 		Vec3 scale = { data.scale.x, data.scale.y, data.scale.z };
 		obj.Init(modelPath, pos, rot, scale);
 		m_objects.emplace_back(obj);
+		loadedCount++;
 	}
 }
 

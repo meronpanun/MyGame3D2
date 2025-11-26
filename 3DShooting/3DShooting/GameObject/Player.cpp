@@ -19,6 +19,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include <cstdio>
 
 namespace
 {
@@ -180,8 +181,6 @@ Player::Player() :
 	m_shieldRegenRate(0.0f),
 	m_pAnimManager(nullptr)
 {
-	// UI画像とフォントはPlayerUIクラスで管理
-
 	// SEの読み込み
 	m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
 	assert(m_playerHitSEHandle != -1);
@@ -198,8 +197,6 @@ Player::~Player()
 	DeleteSoundMem(m_tackleSEHandle);
 	DeleteSoundMem(m_recoverySEHandle);
 	DeleteSoundMem(m_ammoItemSEHandle);
-
-	// UI画像とフォントはPlayerUIクラスで管理
 }
 
 void Player::Init()
@@ -725,8 +722,8 @@ void Player::DrawUI()
 	m_effectManager.Draw();
 
 	// Effekseerエフェクトの描画
-		if (m_pEffect)
-		{
+	if (m_pEffect)
+	{
 		m_pEffect->Draw();
 	}
 }

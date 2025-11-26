@@ -1,3 +1,3 @@
-﻿  PlayerShieldSystem.cpp
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\PlayerShieldSystem.cpp(600,17): warning C4244: '初期化中': 'intptr_t' から 'int' への変換です。データが失われる可能性があります。
+﻿  Stage.cpp
+  TransformDataLoader.cpp
   3DShooting.vcxproj -> C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\x64\Debug\3DShooting.exe

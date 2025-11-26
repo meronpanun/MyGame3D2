@@ -8,7 +8,7 @@ namespace
 	// 名前、位置、回転、スケール、攻撃力、体力、追跡速度、タックルクールタイム、タックル速度、タックルダメージの要素数
 	constexpr int kElementNum = 26; 
 
-	// Unityの座標系からDxLibの座標系への変換係数
+	// Unityの座標系からDxLibの座標系への変換係数（位置情報には適用しない）
 	constexpr float kUnityToDxPos = 100.0f; 
 }
 
@@ -25,6 +25,10 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 	{
 		return Object; // 空の配列を返す
 	}
+
+	// 位置情報に100倍のスケールを適用する（Unity側の座標系からDxLibの座標系への変換のため）
+	std::string fileNameStr(fileName);
+	bool applyPositionScale = true; // すべてのCSVファイルで位置情報に100倍のスケールを適用
 
 	// 1行ずつ読み込む
 	std::string line;
@@ -64,7 +68,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 			case 1: // 位置X
 				try 
 				{
-					data.pos.x = std::stof(element) * kUnityToDxPos;
+					data.pos.x = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element);
 				}
 				catch (const std::exception&) 
 				{
@@ -74,7 +78,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 			case 2: // 位置Y
 				try 
 				{
-					data.pos.y = std::stof(element) * kUnityToDxPos;
+					data.pos.y = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element);
 				}
 				catch (const std::exception&) 
 				{
@@ -84,7 +88,7 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 			case 3: // 位置Z
 				try 
 				{
-					data.pos.z = std::stof(element) * kUnityToDxPos;
+					data.pos.z = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element);
 				}
 				catch (const std::exception&) 
 				{
