@@ -240,7 +240,7 @@ void Player::Init()
 	m_pCamera->Init(); // カメラの初期化
 }
 
-void Player::Update(const std::vector<EnemyBase*>& enemyList)
+void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData)
 {
     unsigned char keyState[256];
     GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
@@ -253,7 +253,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList)
 
 	// タックル中もコライダーを更新する必要があるため、常にUpdateを呼ぶ
 	// ただし、タックル中は移動処理はスキップされる
-	m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode);
+	m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode, collisionData);
 	
 	// タックル中でない場合は位置を同期
 	if (!m_isTackling)

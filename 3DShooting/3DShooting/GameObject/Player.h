@@ -9,6 +9,8 @@
 #include "PlayerEffectManager.h"
 #include <vector>
 
+#include "Stage.h"
+
 class Camera;
 class Effect;
 class Bullet;
@@ -29,7 +31,7 @@ public:
 	virtual ~Player();
 
 	void Init();
-	void Update(const std::vector<EnemyBase*>& enemyList);
+	void Update(const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData);
 	void Draw3D();
 	void DrawShield();
 	void DrawUI();

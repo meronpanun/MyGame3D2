@@ -19,10 +19,6 @@ enum class WaveType : int
 class Stage
 {
 public:
-	void Init();
-	void Draw();
-
-private:
 	struct StageCollisionData
 	{
 		std::string name;
@@ -30,6 +26,11 @@ private:
 		VECTOR v2;
 		VECTOR v3;
 	};
+
+	void Init();
+	void Draw();
+
+	const std::vector<StageCollisionData>& GetCollisionData() const { return m_collisionData; }
 
 private:
 	std::vector<StageObject> m_objects;

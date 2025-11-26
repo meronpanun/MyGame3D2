@@ -486,7 +486,7 @@ SceneBase* SceneMain::Update()
     // 基本操作チュートリアル中の処理
     if (m_pTutorialManager && m_pTutorialManager->IsActive())
     {
-        m_pPlayer->Update({}); // プレイヤーはチュートリアル中も移動可能
+        m_pPlayer->Update({}, m_pStage->GetCollisionData()); // プレイヤーはチュートリアル中も移動可能
         return this;
     }
     // 基本操作チュートリアルが完了したら、タスクチュートリアルを初期化
@@ -510,7 +510,7 @@ SceneBase* SceneMain::Update()
         {
             enemyPtrList.push_back(enemy.get());
         }
-        m_pPlayer->Update(enemyPtrList); // プレイヤーは敵を撃ったりタックルしたりするために敵で更新する必要がある
+        m_pPlayer->Update(enemyPtrList, m_pStage->GetCollisionData()); // プレイヤーは敵を撃ったりタックルしたりするために敵で更新する必要がある
         m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pEffect.get()); // 敵も更新する必要がある
         
         // アイテム、スコアポップアップなどの更新はタスクチュートリアル中でも実行
@@ -560,7 +560,7 @@ SceneBase* SceneMain::Update()
     {
         enemyPtrList.push_back(enemy.get());
     }
-    m_pPlayer->Update(enemyPtrList);
+    m_pPlayer->Update(enemyPtrList, m_pStage->GetCollisionData());
 
     if (m_pPlayer->IsDead()) 
     {

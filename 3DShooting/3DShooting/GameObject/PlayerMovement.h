@@ -2,6 +2,9 @@
 #include "EffekseerForDXLib.h"
 #include <memory>
 
+#include "Stage.h"
+#include <vector>
+
 class Camera;
 class CapsuleCollider;
 
@@ -15,7 +18,7 @@ public:
 	~PlayerMovement() = default;
 
 	void Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale);
-	void Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, bool isFlightMode);
+	void Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, bool isFlightMode, const std::vector<Stage::StageCollisionData>& collisionData);
 
 	/// <summary>
 	/// 位置取得
@@ -88,9 +91,12 @@ private:
 	bool m_isJumping;
 	bool m_wasJumping;
 	bool m_isWasRunning;
+	bool m_isGroundedOnStage;
 
 	float m_jumpVelocity;
 
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider;
+
+	void CheckCollision(const std::vector<Stage::StageCollisionData>& collisionData);
 };
 
