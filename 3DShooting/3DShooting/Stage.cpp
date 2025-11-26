@@ -94,14 +94,48 @@ void Stage::Init()
 			continue;
 		}
 
-		StageObject obj;
-		Vec3 pos = { data.pos.x, data.pos.y, data.pos.z };
-		Vec3 rot = { data.rot.x, data.rot.y, data.rot.z };
-		Vec3 scale = { data.scale.x, data.scale.y, data.scale.z };
-		obj.Init(modelPath, pos, rot, scale);
-		m_objects.emplace_back(obj);
-		loadedCount++;
+		// モデルキャッシュの確認
+		int originalHandle = -1;
+		if (m_modelCache.find(modelPath) != m_modelCache.end())
+		{
+			originalHandle = m_modelCache[modelPath];
+		}
+		else
+		{
+			// 新規読み込み
+			originalHandle = MV1LoadModel(modelPath.c_str());
+			if (originalHandle != -1)
+			{
+				m_modelCache[modelPath] = originalHandle;
+			}
+		}
+
+		if (originalHandle != -1)
+		{
+			// モデルの複製
+			int duplicateHandle = MV1DuplicateModel(originalHandle);
+			if (duplicateHandle != -1)
+			{
+				StageObject obj;
+				Vec3 pos = { data.pos.x, data.pos.y, data.pos.z };
+				Vec3 rot = { data.rot.x, data.rot.y, data.rot.z };
+				Vec3 scale = { data.scale.x, data.scale.y, data.scale.z };
+				obj.Init(duplicateHandle, pos, rot, scale);
+				m_objects.emplace_back(std::move(obj));
+				loadedCount++;
+			}
+		}
 	}
+}
+
+Stage::~Stage()
+{
+	// キャッシュされたモデルの解放
+	for (auto& pair : m_modelCache)
+	{
+		MV1DeleteModel(pair.second);
+	}
+	m_modelCache.clear();
 }
 
 void Stage::Draw()

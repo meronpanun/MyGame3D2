@@ -30,11 +30,14 @@ public:
 	void Init();
 	void Draw();
 
+	~Stage();
+
 	const std::vector<StageCollisionData>& GetCollisionData() const { return m_collisionData; }
 
 private:
 	std::vector<StageObject> m_objects;
 	std::vector<StageCollisionData> m_collisionData;
+	std::unordered_map<std::string, int> m_modelCache;
 
 	void LoadCollisionData(const char* fileName);
 };

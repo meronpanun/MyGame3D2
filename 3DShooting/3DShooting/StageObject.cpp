@@ -7,14 +7,9 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-StageObject::StageObject(): 
-	m_modelHandle(-1)
+void StageObject::Init(int duplicateHandle, Vec3 pos, Vec3 rot, Vec3 scale)
 {
-}
-
-void StageObject::Init(const std::string& modelPath, Vec3 pos, Vec3 rot, Vec3 scale)
-{
-	m_modelHandle = MV1LoadModel(modelPath.c_str());
+	m_modelHandle = duplicateHandle;
 	assert(m_modelHandle >= 0);
 
 	// Unity側で既に座標系変換が行われているため、位置はそのまま使用
