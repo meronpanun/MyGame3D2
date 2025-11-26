@@ -27,7 +27,8 @@ public:
 		VECTOR v3;
 	};
 
-	void Init();
+	void LoadStage(bool isTutorial);
+	void Clear();
 	void Draw();
 
 	~Stage();

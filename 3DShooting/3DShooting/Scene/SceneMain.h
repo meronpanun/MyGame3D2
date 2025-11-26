@@ -158,4 +158,7 @@ private:
 	int m_gameOverDelayTimer; // ゲームオーバー遅延タイマー
 	bool m_isTaskTutorialInit;
     static bool s_isLowHealthTutorialShown; // 低体力チュートリアル表示済みフラグ
+
+	bool m_isTutorialStage; // チュートリアルステージかどうか
+	void SwitchToMainStage(); // メインステージへの切り替え
 };

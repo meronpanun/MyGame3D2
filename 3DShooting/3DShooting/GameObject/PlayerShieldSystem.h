@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
-#include <vector>
 #include "Stage.h"
+#include <vector>
 
 class Camera;
 class Effect;

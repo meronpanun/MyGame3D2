@@ -199,7 +199,7 @@ Player::~Player()
 	DeleteSoundMem(m_ammoItemSEHandle);
 }
 
-void Player::Init()
+void Player::Init(bool isTutorial)
 {
 	// CSVからPlayerのTransform情報を取得
 	auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -226,6 +226,13 @@ void Player::Init()
 			m_maxShieldDurability  = data.maxShieldDurability; 
 			m_shieldRegenRate	   = data.shieldRegenRate;
 			
+			// チュートリアルステージの場合は初期位置を(0,0,0)にする
+			if (isTutorial)
+			{
+				m_pos = VGet(0, 0, 0);
+				m_modelPos = VGet(0, 0, 0);
+			}
+
 			// 武器モデルのスケールと回転を設定
 			m_weaponManager.SetWeaponScale(data.scale);
 			m_weaponManager.SetWeaponRotation(data.rot);

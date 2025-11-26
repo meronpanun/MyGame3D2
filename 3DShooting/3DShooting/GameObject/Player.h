@@ -30,7 +30,7 @@ public:
 	Player();
 	virtual ~Player();
 
-	void Init();
+	void Init(bool isTutorial = false);
 	void Update(const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData);
 	void Draw3D();
 	void DrawShield();

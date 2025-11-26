@@ -10,7 +10,6 @@ namespace
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.35f;
 	constexpr float kJumpPower = 7.0f;
-	constexpr float kGroundY   = 0.0f;
 
 	// 飛行モード関連
 	constexpr float kFlightAscendSpeed  = 8.0f;  // 上昇速度
@@ -21,15 +20,12 @@ namespace
 	constexpr float kCapsuleHeight = 100.0f;
 	constexpr float kCapsuleRadius = 50.0f;
 
-	// X,Z座標の移動範囲制限（削除済み）
-	// constexpr float kLimitMoveX = 2800.0f;
-	// constexpr float kLimitMoveZ = 2800.0f;
-
 	// Update関連
 	constexpr float kPlayerColliderYOffset = 60.0f;
 	constexpr float kGroundCheckTolerance  = 0.01f;
 	constexpr float kJumpSwayPower         = 5.0f;
 	constexpr float kLandingSwayPower      = 5.0f;
+
 	// トライアングル上の最近接点を求める関数
 	VECTOR GetClosestPointOnTriangle(const VECTOR& p, const VECTOR& a, const VECTOR& b, const VECTOR& c)
 	{
@@ -303,11 +299,15 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 
 	// 移動後の位置で再度当たり判定を行い、めり込みを解消
 	CheckCollision(collisionData);
+
+	// 移動範囲制限
+	m_modelPos.x = std::clamp(m_modelPos.x, -kLimitMoveX, kLimitMoveX);
+	m_modelPos.z = std::clamp(m_modelPos.z, -kLimitMoveZ, kLimitMoveZ);
 }
 
 void PlayerMovement::Jump(Camera* pCamera)
 {
-	constexpr float kGroundY = 0.0f;
+	// constexpr float kGroundY = 0.0f; // PlayerMovement::kGroundYを使用
 	constexpr float kGroundCheckTolerance = 0.01f;
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance) || m_isGroundedOnStage;
 

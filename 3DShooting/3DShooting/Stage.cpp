@@ -6,17 +6,26 @@
 #include <fstream>
 #include <sstream>
 
-void Stage::Init()
+void Stage::LoadStage(bool isTutorial)
 {
-	TransformDataLoader loader;
-	// 旧Stage.csvの読み込み処理
-//	auto objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
-	
-	// MainStageTransformData.csvの読み込み
-	auto objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
+	Clear();
 
-	// ステージ当たり判定データの読み込み
-	LoadCollisionData("Data/CSV/StageCollisionData.csv");
+	TransformDataLoader loader;
+	std::vector<ObjectTransformData> objectDataList;
+
+	if (isTutorial)
+	{
+		// 旧Stage.csvの読み込み処理 (チュートリアル用)
+		objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
+	}
+	else
+	{
+		// MainStageTransformData.csvの読み込み (メインステージ用)
+		objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
+
+		// ステージ当たり判定データの読み込み (メインステージのみ)
+		LoadCollisionData("Data/CSV/StageCollisionData.csv");
+	}
 
 	int loadedCount = 0; // 読み込んだオブジェクト数
 	int skippedCount = 0; // スキップされたオブジェクト数
@@ -25,70 +34,76 @@ void Stage::Init()
 	{
 		std::string modelPath;
 
-		// 旧モデルの処理
-		//if (data.name == "UNIConcrete")
-		//{
-		//	modelPath = "Data/Model/UNIConcrete.mv1";
-		//}
-		//else if (data.name == "Road_floor")
-		//{
-		//	modelPath = "Data/Model/Road_floor.mv1";
-		//}
-		//else if (data.name == "Hangar_v3")
-		//{
-		//	modelPath = "Data/Model/Hangar_v3.mv1";
-		//}	
-		//else if (data.name == "Hangar")
-		//{
-		//	modelPath = "Data/Model/Hangar.mv1";
-		//}	
-		//else if (data.name == "container")
-		//{
-		//	modelPath = "Data/Model/container.mv1";
-		//}
-
-		// 新モデルの処理
-		if (data.name == "Barrier_Group_1A")
+		if (isTutorial)
 		{
-			modelPath = "Data/Model/Barrier_Group_1A.mv1";
-		}
-		else if (data.name == "Basic_Stairs_1B")
-		{
-			modelPath = "Data/Model/Basic_Stairs_1B.mv1";
-		}
-		else if (data.name == "Block_Platform_1B")
-		{
-			modelPath = "Data/Model/Block_Platform_1B.mv1";
-		}
-		else if (data.name == "Block_Platform_Corner_1B(Mirrored)")
-		{
-			modelPath = "Data/Model/Block_Platform_Corner_1B(Mirrored).mv1";
-		}
-		else if (data.name == "Block_Platform_Corner_1B")
-		{
-			modelPath = "Data/Model/Block_Platform_Corner_1B.mv1";
-		}
-		else if (data.name == "Chain")
-		{
-			modelPath = "Data/Model/Chain.mv1";
-		}
-		else if (data.name == "Floor_A")
-		{
-			modelPath = "Data/Model/Floor_A.mv1";
-		}
-		else if (data.name == "Floor_B")
-		{
-			modelPath = "Data/Model/Floor_B.mv1";
-		}
-		else if (data.name == "Prop_Stone_Med_B")
-		{
-			modelPath = "Data/Model/Prop_Stone_Med_B.mv1";
-		}
-		else if (data.name == "Prop_Stone_Med_D")
-		{
-			modelPath = "Data/Model/Prop_Stone_Med_D.mv1";
+			// 旧モデルの処理
+			if (data.name == "UNIConcrete")
+			{
+				modelPath = "Data/Model/UNIConcrete.mv1";
+			}
+			else if (data.name == "Road_floor")
+			{
+				modelPath = "Data/Model/Road_floor.mv1";
+			}
+			else if (data.name == "Hangar_v3")
+			{
+				modelPath = "Data/Model/Hangar_v3.mv1";
+			}	
+			else if (data.name == "Hangar")
+			{
+				modelPath = "Data/Model/Hangar.mv1";
+			}	
+			else if (data.name == "container")
+			{
+				modelPath = "Data/Model/container.mv1";
+			}
 		}
 		else
+		{
+			// 新モデルの処理
+			if (data.name == "Barrier_Group_1A")
+			{
+				modelPath = "Data/Model/Barrier_Group_1A.mv1";
+			}
+			else if (data.name == "Basic_Stairs_1B")
+			{
+				modelPath = "Data/Model/Basic_Stairs_1B.mv1";
+			}
+			else if (data.name == "Block_Platform_1B")
+			{
+				modelPath = "Data/Model/Block_Platform_1B.mv1";
+			}
+			else if (data.name == "Block_Platform_Corner_1B(Mirrored)")
+			{
+				modelPath = "Data/Model/Block_Platform_Corner_1B(Mirrored).mv1";
+			}
+			else if (data.name == "Block_Platform_Corner_1B")
+			{
+				modelPath = "Data/Model/Block_Platform_Corner_1B.mv1";
+			}
+			else if (data.name == "Chain")
+			{
+				modelPath = "Data/Model/Chain.mv1";
+			}
+			else if (data.name == "Floor_A")
+			{
+				modelPath = "Data/Model/Floor_A.mv1";
+			}
+			else if (data.name == "Floor_B")
+			{
+				modelPath = "Data/Model/Floor_B.mv1";
+			}
+			else if (data.name == "Prop_Stone_Med_B")
+			{
+				modelPath = "Data/Model/Prop_Stone_Med_B.mv1";
+			}
+			else if (data.name == "Prop_Stone_Med_D")
+			{
+				modelPath = "Data/Model/Prop_Stone_Med_D.mv1";
+			}
+		}
+
+		if (modelPath.empty())
 		{
 			skippedCount++;
 			continue;
@@ -126,6 +141,12 @@ void Stage::Init()
 			}
 		}
 	}
+}
+
+void Stage::Clear()
+{
+	m_objects.clear();
+	m_collisionData.clear();
 }
 
 Stage::~Stage()

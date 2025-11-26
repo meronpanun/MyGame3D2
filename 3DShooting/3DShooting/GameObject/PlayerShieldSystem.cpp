@@ -5,6 +5,7 @@
 #include "EffekseerForDXLib.h"
 #include "EnemyBase.h"
 #include "CapsuleCollider.h"
+#include "PlayerMovement.h"
 #include <cmath>
 #include <cassert>
 
@@ -569,6 +570,15 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 	// ステージとの当たり判定
 	if (m_shieldThrowState == ShieldThrowState::Throwing)
 	{
+		// 移動範囲制限と地面との当たり判定
+		if (m_shieldThrowPos.y <= PlayerMovement::kGroundY ||
+			std::abs(m_shieldThrowPos.x) >= PlayerMovement::kLimitMoveX ||
+			std::abs(m_shieldThrowPos.z) >= PlayerMovement::kLimitMoveZ)
+		{
+			m_shieldThrowState = ShieldThrowState::Returning;
+			m_shieldThrowHitEnemyId = -1;
+		}
+
 		for (const auto& col : collisionData)
 		{
 			if (HitCheck_Sphere_Triangle(m_shieldThrowPos, kShieldThrowRadius, col.v1, col.v2, col.v3))

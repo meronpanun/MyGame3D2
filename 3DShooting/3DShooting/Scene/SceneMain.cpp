@@ -129,7 +129,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
 	m_isTaskTutorialInit(false),
 	m_pEffect(std::make_unique<Effect>()),
 	m_pAnimManager(std::make_unique<AnimationManager>()),
-	m_gameOverDelayTimer(-1)
+	m_gameOverDelayTimer(-1),
+	m_isTutorialStage(false)
 {
     g_sceneMainInstance = this;
 
@@ -203,7 +204,18 @@ void SceneMain::Init()
 	m_pEnemyAcid->Init();
 
 	m_pStage = std::make_shared<Stage>();
-	m_pStage->Init();
+	
+	// チュートリアルスキップフラグに応じてステージをロード
+	if (s_isSkipTutorial || m_isReturningFromOtherScene)
+	{
+		m_pStage->LoadStage(false); // メインステージ
+		m_isTutorialStage = false;
+	}
+	else
+	{
+		m_pStage->LoadStage(true); // チュートリアルステージ
+		m_isTutorialStage = true;
+	}
 
 	m_pWaveManager = std::make_shared<WaveManager>();
 	m_pWaveManager->Init();
@@ -367,6 +379,20 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
     m_lastTotalScorePopupValue = static_cast<int>(totalScore * lastComboRate);
 }
 
+void SceneMain::SwitchToMainStage()
+{
+	// メインステージをロード
+	m_pStage->LoadStage(false);
+	m_isTutorialStage = false;
+
+	// プレイヤーの位置をリセット（必要であれば）
+	// m_pPlayer->SetPos(VGet(0, 0, 0)); 
+	// m_pPlayer->Init(); // Initを呼ぶとTransformDataから再読み込みされるので、CSVの初期位置に戻るはず
+
+	// プレイヤーの再初期化（位置などをCSVから再取得）
+	m_pPlayer->Init(false);
+}
+
 SceneBase* SceneMain::Update()
 {
     // ローディング中は他の処理を行わない
@@ -387,7 +413,7 @@ SceneBase* SceneMain::Update()
             // 非同期ロード完了後に1回だけ呼ぶ
             if (!m_isPlayerInit && m_pPlayer)
             {
-                m_pPlayer->Init();
+                m_pPlayer->Init(m_isTutorialStage);
                 m_isPlayerInit = true;
             }
         } 
@@ -552,6 +578,13 @@ SceneBase* SceneMain::Update()
     }
         
     // ここから通常進行 (両方のチュートリアルが完了した場合のみ)
+
+	// チュートリアルステージにいる場合はメインステージに切り替え
+	if (m_isTutorialStage)
+	{
+		SwitchToMainStage();
+	}
+
     m_pWaveManager->Update(); // メインのウェーブマネージャを更新
         
     std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();

@@ -80,6 +80,11 @@ public:
 	/// <returns>許容値</returns>
 	static float GetGroundCheckTolerance() { return 0.01f; }
 
+	// X,Z座標の移動範囲制限
+	static constexpr float kLimitMoveX = 2820.0f;
+	static constexpr float kLimitMoveZ = 2820.0f;
+	static constexpr float kGroundY = 0.0f;
+
 private:
 	VECTOR m_modelPos;
 	VECTOR m_scale;
