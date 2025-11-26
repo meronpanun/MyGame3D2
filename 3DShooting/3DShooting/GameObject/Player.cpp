@@ -309,7 +309,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	}
 
 	// シールドソーの更新（前フレームのガード状態を使用）
-	m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, m_pEffect, currentIsGuarding, m_prevIsGuarding);
+	m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, collisionData, m_pEffect, currentIsGuarding, m_prevIsGuarding);
 	
 	// 前フレームのガード状態を更新
 	m_prevIsGuarding = currentIsGuarding;

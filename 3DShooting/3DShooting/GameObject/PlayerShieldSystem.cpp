@@ -500,7 +500,7 @@ bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
 	return true;
 }
 
-void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<EnemyBase*>& enemyList, Effect* pEffect, bool isGuarding, bool wasGuarding)
+void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect, bool isGuarding, bool wasGuarding)
 {
 	if (!m_isShieldThrown) return;
 
@@ -564,6 +564,22 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 		VECTOR returnDir = VNorm(toReturnTarget);
 		VECTOR moveDelta = VScale(returnDir, m_shieldThrowSpeed * deltaTime);
 		m_shieldThrowPos = VAdd(m_shieldThrowPos, moveDelta);
+	}
+
+	// ステージとの当たり判定
+	if (m_shieldThrowState == ShieldThrowState::Throwing)
+	{
+		for (const auto& col : collisionData)
+		{
+			if (HitCheck_Sphere_Triangle(m_shieldThrowPos, kShieldThrowRadius, col.v1, col.v2, col.v3))
+			{
+				// ステージに当たったら戻りモードに切り替え
+				m_shieldThrowState = ShieldThrowState::Returning;
+				m_shieldThrowHitEnemyId = -1; // 戻り時に再度ヒットできるようにリセット
+
+				break; // 1つでも当たればOK
+			}
+		}
 	}
 
 	// 敵との当たり判定

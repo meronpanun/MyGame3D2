@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
 #include <vector>
+#include "Stage.h"
 
 class Camera;
 class Effect;
@@ -154,7 +155,8 @@ public:
 	/// <param name="pEffect">エフェクトポインタ</param>
 	/// <param name="isGuarding">ガード状態</param>
 	/// <param name="wasGuarding">前フレームのガード状態</param>
-	void UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<class EnemyBase*>& enemyList, Effect* pEffect, bool isGuarding, bool wasGuarding);
+	/// <param name="collisionData">ステージの当たり判定データ</param>
+	void UpdateShieldThrow(float deltaTime, Camera* pCamera, const VECTOR& playerPos, const std::vector<class EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect, bool isGuarding, bool wasGuarding);
 
 	/// <summary>
 	/// シールドソーの3D描画
