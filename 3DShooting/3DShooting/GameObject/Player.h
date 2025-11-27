@@ -7,9 +7,9 @@
 #include "PlayerShieldSystem.h"
 #include "PlayerUI.h"
 #include "PlayerEffectManager.h"
+#include "Stage.h"
 #include <vector>
 
-#include "Stage.h"
 
 class Camera;
 class Effect;

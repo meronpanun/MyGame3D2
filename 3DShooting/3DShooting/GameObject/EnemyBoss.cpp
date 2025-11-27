@@ -39,7 +39,7 @@
 //    ChangeAnimation(AnimState::Idle, true); // 初期アニメーション
 //}
 //
-//void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList)
+//void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect)
 //{
 //    if (m_hp <= 0.0f) 
 //    {

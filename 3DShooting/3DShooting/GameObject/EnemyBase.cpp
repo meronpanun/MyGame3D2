@@ -3,6 +3,8 @@
 #include "Collider.h"
 #include "Effect.h"
 #include "TaskTutorialManager.h"
+#include "Collision.h"
+#include "Stage.h"
 
 namespace
 {
@@ -116,4 +118,14 @@ void EnemyBase::TakeTackleDamage(float damage)
     TakeDamage(damage, AttackType::Tackle);
     m_lastHitPart = HitPart::Body;
     m_hitDisplayTimer = kDefaultHitDisplayDuration;
+}
+
+void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData)
+{
+    // 敵のコライダーのサイズ（仮の値。敵の種類ごとに調整が必要）
+    constexpr float kCapsuleHeight = 100.0f;
+    constexpr float kCapsuleRadius = 30.0f;
+    constexpr float kColliderYOffset = 60.0f;
+
+    Collision::CheckStageCollision(m_pos, kCapsuleHeight, kCapsuleRadius, kColliderYOffset, collisionData);
 }

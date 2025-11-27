@@ -17,7 +17,7 @@ public:
 	PlayerMovement();
 	~PlayerMovement() = default;
 
-	void Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale);
+	void Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale, bool isTutorial);
 	void Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, bool isFlightMode, const std::vector<Stage::StageCollisionData>& collisionData);
 
 	/// <summary>
@@ -97,11 +97,10 @@ private:
 	bool m_wasJumping;
 	bool m_isWasRunning;
 	bool m_isGroundedOnStage;
+	bool m_isTutorial;
 
 	float m_jumpVelocity;
 
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider;
-
-	void CheckCollision(const std::vector<Stage::StageCollisionData>& collisionData);
 };
 

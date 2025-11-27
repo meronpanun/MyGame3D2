@@ -93,30 +93,6 @@ namespace
 	constexpr float kShieldBreakGunShakePower    = 10.0f; // 盾破壊時の銃の揺れの強さ
 	constexpr float kShieldBreakGunShakeDuration = 30.0f; // 盾破壊時の銃の揺れの持続時間
 
-	// アサルトライフルUI関連
-	constexpr int   kARImageWidth   = 200;
-	constexpr int   kARImageHeight  = 133;
-	constexpr int   kARImageMarginX = 40;
-	constexpr int   kARImageMarginY = -60;
-
-	// ショットガンUI関連
-	constexpr int   kSGImageWidth   = 200;
-	constexpr int   kSGImageHeight  = 64;
-	constexpr int   kSGImageMarginX = 40;
-	constexpr int   kSGImageMarginY = -20;
-
-	// 弾薬UI関連
-	constexpr int   kAmmoTextHeight		    = 32;   
-	constexpr char  kAmmoTextMaxWidthStr[]  = "999";
-	constexpr int   kAmmoTextGunOffsetX     = 20;   
-	constexpr int   kAmmoTextGunOffsetY     = -15;  
-
-	// 警告UI関連
-	constexpr int   kWarningImageSize    = 128; 
-	constexpr int   kWarningImageYOffset = 160; 
-	constexpr int   kWarningTextYOffset  = 5;   
-	constexpr int   kWarningImageSpacing = 20;  
-
 	// HpUI関連
 	constexpr int   kHpBarWidth			     = 200;
 	constexpr int   kHpBarHeight		     = 24;
@@ -239,8 +215,8 @@ void Player::Init(bool isTutorial)
 			
 			// コンポーネントの初期化
 			m_weaponManager.Init(m_arInitAmmo, m_sgInitAmmo, m_arMaxAmmo, m_sgMaxAmmo, m_bulletPower, m_sgBulletPower);
-			m_movement.Init(m_modelPos, m_moveSpeed, m_runSpeed, m_scale.x);
-			m_shieldSystem.Init(m_maxShieldDurability, m_shieldRegenRate);
+			m_movement.Init(m_modelPos, m_moveSpeed, m_runSpeed, m_scale.x, isTutorial);
+			m_shieldSystem.Init(m_maxShieldDurability, m_shieldRegenRate, isTutorial);
 			break;
 		}
 	}
@@ -563,7 +539,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 			if (!enemy) continue;
 
 			// 敵の更新処理
-			enemy->Update(m_bullets, tackleInfo, *this, enemyList, m_pEffect);
+			enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect);
 		}
 
 #ifdef _DEBUG
@@ -622,7 +598,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	for (EnemyBase* enemy : enemyList)
 	{
 		if (!enemy) continue;
-		enemy->Update(m_bullets, tackleInfo, *this, enemyList, m_pEffect);
+		enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect);
 	}
 	
 	// 弾の更新

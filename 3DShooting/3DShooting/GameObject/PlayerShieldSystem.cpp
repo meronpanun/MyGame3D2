@@ -53,7 +53,7 @@ namespace
 	constexpr float kShieldThrowDamage		  = 50.0f;   // シールドソーのダメージ
 	constexpr float kShieldThrowRadius        = 50.0f;   // シールドの当たり判定半径
 	constexpr float kShieldThrowHeight		  = 100.0f;  // シールドの当たり判定の高さ
-	constexpr float kShieldThrowRotationSpeed = 10.0f;   // シールドの回転速度
+	constexpr float kShieldThrowRotationSpeed = 20.0f;   // シールドの回転速度
 }
 
 PlayerShieldSystem::PlayerShieldSystem() :
@@ -89,7 +89,8 @@ PlayerShieldSystem::PlayerShieldSystem() :
 	m_shieldThrowMaxRange(kShieldThrowMaxRange),
 	m_shieldThrowDamage(kShieldThrowDamage),
 	m_shieldThrowHitEnemyId(-1),
-	m_shieldThrowRotationTimer(0.0f)
+	m_shieldThrowRotationTimer(0.0f),
+	m_isTutorial(false)
 {
 	// 盾モデルの読み込み
 	m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
@@ -106,13 +107,14 @@ PlayerShieldSystem::~PlayerShieldSystem()
 	DeleteGraph(m_shieldImageHandle);
 }
 
-void PlayerShieldSystem::Init(float maxDurability, float regenRate)
+void PlayerShieldSystem::Init(float maxDurability, float regenRate, bool isTutorial)
 {
 	m_shieldDurability = maxDurability;
 	m_shieldBarAnim = maxDurability;
 	m_maxShieldDurability = maxDurability;
 	m_shieldRegenRate = regenRate;
 	m_isShieldBroken = false;
+	m_isTutorial = isTutorial;
 }
 
 void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta)
@@ -571,12 +573,21 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 	if (m_shieldThrowState == ShieldThrowState::Throwing)
 	{
 		// 移動範囲制限と地面との当たり判定
-		if (m_shieldThrowPos.y <= PlayerMovement::kGroundY ||
-			std::abs(m_shieldThrowPos.x) >= PlayerMovement::kLimitMoveX ||
-			std::abs(m_shieldThrowPos.z) >= PlayerMovement::kLimitMoveZ)
+		if (m_shieldThrowPos.y <= PlayerMovement::kGroundY)
 		{
 			m_shieldThrowState = ShieldThrowState::Returning;
 			m_shieldThrowHitEnemyId = -1;
+		}
+
+		// チュートリアルのみ移動範囲制限を適用
+		if (m_isTutorial)
+		{
+			if (std::abs(m_shieldThrowPos.x) >= PlayerMovement::kLimitMoveX ||
+				std::abs(m_shieldThrowPos.z) >= PlayerMovement::kLimitMoveZ)
+			{
+				m_shieldThrowState = ShieldThrowState::Returning;
+				m_shieldThrowHitEnemyId = -1;
+			}
 		}
 
 		for (const auto& col : collisionData)

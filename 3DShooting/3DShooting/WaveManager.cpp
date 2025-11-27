@@ -273,10 +273,9 @@ void WaveManager::Update()
 }
 
 // GetEnemyListをアクティブな敵のみ返すようにする
-void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, Effect* pEffect)
+void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect)
 {
-    VECTOR playerPos = player.GetPos();
-    // アクティブな敵リストを作成
+    // First, create a list of all active enemies
     std::vector<EnemyBase*> activeEnemies;
     for (auto& pEnemy : m_enemyNormalPool) 
     {
@@ -286,7 +285,12 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
     {
         if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
     }
-    // NormalEnemy
+    for (auto& pEnemy : m_enemyAcidPool)
+    {
+        if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
+    }
+
+    // Now, update each enemy, providing them with the list of other enemies
     for (auto& pEnemy : m_enemyNormalPool)
     {
 		// アクティブで生存している敵のみ更新
@@ -294,23 +298,21 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
         // 自分以外の敵リストを作成
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
-        pEnemy->Update(bullets, tackleInfo, player, others, pEffect);
+        pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
     }
-    // RunnerEnemy
     for (auto& pEnemy : m_enemyRunnerPool)
     {
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
-        pEnemy->Update(bullets, tackleInfo, player, others, pEffect);
+        pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
     }
-    // AcidEnemy
     for (auto& pEnemy : m_enemyAcidPool)
     {
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
-        pEnemy->Update(bullets, tackleInfo, player, others, pEffect);
+        pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
     }
 }
 

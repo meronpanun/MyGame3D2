@@ -169,8 +169,11 @@ bool EnemyRunner::CanAttackPlayer(const Player& player)
 	return m_pAttackHitCollider->IsIntersects(playerBodyCollider.get());
 }
 
-void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
+void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect)
 {
+    // ステージとの当たり判定
+    UpdateStageCollision(collisionData);
+
     if (m_hp <= 0.0f) 
     {
         if (!m_isDeadAnimPlaying) 

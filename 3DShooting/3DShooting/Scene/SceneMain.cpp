@@ -537,7 +537,7 @@ SceneBase* SceneMain::Update()
             enemyPtrList.push_back(enemy.get());
         }
         m_pPlayer->Update(enemyPtrList, m_pStage->GetCollisionData()); // プレイヤーは敵を撃ったりタックルしたりするために敵で更新する必要がある
-        m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pEffect.get()); // 敵も更新する必要がある
+        m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get()); // 敵も更新する必要がある
         
         // アイテム、スコアポップアップなどの更新はタスクチュートリアル中でも実行
         for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
@@ -635,7 +635,7 @@ SceneBase* SceneMain::Update()
 
     // 遅延中は他の処理をスキップ
     if (m_clearSceneDelayTimer != -1) return this;
-    m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pEffect.get());
+    m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get());
     for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
     m_items.erase(
         std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }),

@@ -22,7 +22,7 @@ public:
 	virtual ~EnemyBase() = default;
 
 	virtual void Init() abstract;
-	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect = nullptr) abstract;
+	virtual void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect = nullptr) abstract;
 	virtual void Draw() abstract;
 
 	/// <summary>
@@ -186,6 +186,12 @@ protected:
     /// <param name="part">当たった部位</param>
     /// <returns>計算されたダメージ量</returns>
     virtual float CalcDamage(float bulletDamage, HitPart part) const abstract;
+
+	/// <summary>
+	/// ステージとの当たり判定を更新する
+	/// </summary>
+	/// <param name="collisionData">ステージの当たり判定データ</param>
+	void UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData);
 	
 protected:
     VECTOR m_pos; // 位置

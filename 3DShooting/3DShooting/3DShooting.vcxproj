@@ -153,6 +153,7 @@
     <ClCompile Include="AnimationManager.cpp" />
     <ClCompile Include="CapsuleCollider.cpp" />
     <ClCompile Include="Collider.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="GameObject\FirstAidKitItem.cpp" />
     <ClCompile Include="GameObject\Bullet.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="AnimationManager.h" />
     <ClInclude Include="CapsuleCollider.h" />
     <ClInclude Include="Collider.h" />
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="DebugUtil.h" />
     <ClInclude Include="GameObject\FirstAidKitItem.h" />
     <ClInclude Include="GameObject\Bullet.h" />

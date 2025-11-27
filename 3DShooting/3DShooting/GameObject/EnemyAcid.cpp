@@ -224,8 +224,11 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     m_acidBalls.push_back(ball);
 }
 
-void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect)
+void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect)
 {
+    // ステージとの当たり判定
+    UpdateStageCollision(collisionData);
+
 #ifdef _DEBUG
     m_shouldDrawParryCollider = false;
 #endif

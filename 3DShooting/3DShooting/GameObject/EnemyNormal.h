@@ -22,7 +22,7 @@ public:
     virtual ~EnemyNormal();
 
     void Init() override;
-    void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, Effect* pEffect = nullptr) override;
+    void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect = nullptr) override;
     void Draw() override;
 
     /// <summary>

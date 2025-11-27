@@ -16,7 +16,7 @@ public:
 	PlayerShieldSystem();
 	~PlayerShieldSystem();
 
-	void Init(float maxDurability, float regenRate);
+	void Init(float maxDurability, float regenRate, bool isTutorial);
 	void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta);
 	void Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration);
 
@@ -224,5 +224,6 @@ private:
 	float m_shieldThrowDamage;    // シールドソーのダメージ
 	int m_shieldThrowHitEnemyId;  // このフレームでヒットした敵のID（重複ヒット防止用）
 	float m_shieldThrowRotationTimer; // シールドの回転タイマー
+	bool m_isTutorial;
 };
 
