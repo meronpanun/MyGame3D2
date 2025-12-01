@@ -16,7 +16,7 @@ void Stage::LoadStage(bool isTutorial)
 	if (isTutorial)
 	{
 		// 旧Stage.csvの読み込み処理 (チュートリアル用)
-		objectDataList = loader.LoadDataCSV("Data/CSV/Stage.csv");
+		objectDataList = loader.LoadDataCSV("Data/CSV/TutorialStageTransformData.csv");
 	}
 	else
 	{
@@ -45,15 +45,15 @@ void Stage::LoadStage(bool isTutorial)
 			{
 				modelPath = "Data/Model/Road_floor.mv1";
 			}
-			else if (data.name == "Hangar_v3")
+			else if (data.name == "Hangar_v3_basic")
 			{
 				modelPath = "Data/Model/Hangar_v3.mv1";
 			}	
-			else if (data.name == "Hangar")
+			else if (data.name == "Hangar_v1_full")
 			{
 				modelPath = "Data/Model/Hangar.mv1";
 			}	
-			else if (data.name == "container")
+			else if (data.name == "Cargo_container_v1_LD1close")
 			{
 				modelPath = "Data/Model/container.mv1";
 			}
