@@ -24,7 +24,7 @@ void Stage::LoadStage(bool isTutorial)
 		objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
 
 		// ステージ当たり判定データの読み込み (メインステージのみ)
-		LoadCollisionData("Data/CSV/StageCollisionData.csv");
+		LoadCollisionData("Data/CSV/MainStageCollisionData.csv");
 	}
 
 	int loadedCount = 0; // 読み込んだオブジェクト数
