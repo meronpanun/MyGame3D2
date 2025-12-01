@@ -579,17 +579,6 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 			m_shieldThrowHitEnemyId = -1;
 		}
 
-		// チュートリアルのみ移動範囲制限を適用
-		if (m_isTutorial)
-		{
-			if (std::abs(m_shieldThrowPos.x) >= PlayerMovement::kLimitMoveX ||
-				std::abs(m_shieldThrowPos.z) >= PlayerMovement::kLimitMoveZ)
-			{
-				m_shieldThrowState = ShieldThrowState::Returning;
-				m_shieldThrowHitEnemyId = -1;
-			}
-		}
-
 		for (const auto& col : collisionData)
 		{
 			if (HitCheck_Sphere_Triangle(m_shieldThrowPos, kShieldThrowRadius, col.v1, col.v2, col.v3))

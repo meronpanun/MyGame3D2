@@ -17,7 +17,7 @@ public:
 	PlayerMovement();
 	~PlayerMovement() = default;
 
-	void Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale, bool isTutorial);
+	void Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale);
 	void Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, bool isFlightMode, const std::vector<Stage::StageCollisionData>& collisionData);
 
 	/// <summary>
@@ -80,9 +80,6 @@ public:
 	/// <returns>許容値</returns>
 	static float GetGroundCheckTolerance() { return 0.01f; }
 
-	// X,Z座標の移動範囲制限
-	static constexpr float kLimitMoveX = 2820.0f;
-	static constexpr float kLimitMoveZ = 2820.0f;
 	static constexpr float kGroundY = 0.0f;
 
 private:
@@ -97,7 +94,7 @@ private:
 	bool m_wasJumping;
 	bool m_isWasRunning;
 	bool m_isGroundedOnStage;
-	bool m_isTutorial;
+
 
 	float m_jumpVelocity;
 

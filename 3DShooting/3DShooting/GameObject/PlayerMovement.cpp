@@ -38,19 +38,17 @@ PlayerMovement::PlayerMovement() :
 	m_wasJumping(false),
 	m_isWasRunning(false),
 	m_isGroundedOnStage(false),
-	m_isTutorial(false),
 	m_jumpVelocity(0.0f),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>())
 {
 }
 
-void PlayerMovement::Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale, bool isTutorial)
+void PlayerMovement::Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale)
 {
 	m_modelPos = pos;
 	m_moveSpeed = moveSpeed;
 	m_runSpeed = runSpeed;
 	m_scale = VGet(scale, scale, scale);
-	m_isTutorial = isTutorial;
 }
 
 void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, bool isFlightMode, const std::vector<Stage::StageCollisionData>& collisionData)
@@ -262,12 +260,6 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
     }
 
 
-	// 移動範囲制限（チュートリアルのみ）
-	if (m_isTutorial)
-	{
-		m_modelPos.x = std::clamp(m_modelPos.x, -kLimitMoveX, kLimitMoveX);
-		m_modelPos.z = std::clamp(m_modelPos.z, -kLimitMoveZ, kLimitMoveZ);
-	}
 }
 
 void PlayerMovement::Jump(Camera* pCamera)

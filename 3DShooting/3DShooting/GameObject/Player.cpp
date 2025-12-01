@@ -197,25 +197,9 @@ void Player::Init(bool isTutorial)
 			m_sgInitAmmo           = data.sgInitAmmo;
 			m_arMaxAmmo            = data.arInitAmmo;
 			m_sgMaxAmmo            = data.sgInitAmmo;
-			m_bulletPower		   = data.bulletPower;
-			m_sgBulletPower		   = data.sgBulletPower;
-			m_maxShieldDurability  = data.maxShieldDurability; 
-			m_shieldRegenRate	   = data.shieldRegenRate;
-			
-			// チュートリアルステージの場合は初期位置を(0,0,0)にする
-			if (isTutorial)
-			{
-				m_pos = VGet(0, 0, 0);
-				m_modelPos = VGet(0, 0, 0);
-			}
-
-			// 武器モデルのスケールと回転を設定
-			m_weaponManager.SetWeaponScale(data.scale);
-			m_weaponManager.SetWeaponRotation(data.rot);
-			
 			// コンポーネントの初期化
 			m_weaponManager.Init(m_arInitAmmo, m_sgInitAmmo, m_arMaxAmmo, m_sgMaxAmmo, m_bulletPower, m_sgBulletPower);
-			m_movement.Init(m_modelPos, m_moveSpeed, m_runSpeed, m_scale.x, isTutorial);
+			m_movement.Init(m_modelPos, m_moveSpeed, m_runSpeed, m_scale.x);
 			m_shieldSystem.Init(m_maxShieldDurability, m_shieldRegenRate, isTutorial);
 			break;
 		}
