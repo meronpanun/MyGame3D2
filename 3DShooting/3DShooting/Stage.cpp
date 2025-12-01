@@ -6,6 +6,8 @@
 #include <fstream>
 #include <sstream>
 
+bool Stage::s_isDrawCollision = false;
+
 void Stage::LoadStage(bool isTutorial)
 {
 	Clear();
@@ -167,9 +169,12 @@ void Stage::Draw()
 	}
 
 	// 当たり判定のデバッグ描画
-	for (const auto& col : m_collisionData)
+	if (s_isDrawCollision)
 	{
-		DrawTriangle3D(col.v1, col.v2, col.v3, GetColor(255, 0, 0), FALSE);
+		for (const auto& col : m_collisionData)
+		{
+			DrawTriangle3D(col.v1, col.v2, col.v3, GetColor(255, 0, 0), FALSE);
+		}
 	}
 }
 

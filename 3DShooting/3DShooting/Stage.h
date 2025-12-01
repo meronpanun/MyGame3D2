@@ -35,10 +35,16 @@ public:
 
 	const std::vector<StageCollisionData>& GetCollisionData() const { return m_collisionData; }
 
+	// デバッグ用
+	static void SetDrawCollision(bool isDraw) { s_isDrawCollision = isDraw; }
+	static bool IsDrawCollision() { return s_isDrawCollision; }
+
 private:
 	std::vector<StageObject> m_objects;
 	std::vector<StageCollisionData> m_collisionData;
 	std::unordered_map<std::string, int> m_modelCache;
+
+	static bool s_isDrawCollision;
 
 	void LoadCollisionData(const char* fileName);
 };
