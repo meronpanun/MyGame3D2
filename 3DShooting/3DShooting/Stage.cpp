@@ -173,7 +173,7 @@ void Stage::Draw()
 	{
 		for (const auto& col : m_collisionData)
 		{
-			DrawTriangle3D(col.v1, col.v2, col.v3, GetColor(255, 0, 0), FALSE);
+			DrawTriangle3D(col.v1, col.v2, col.v3, 0xff0000, false);
 		}
 	}
 }
