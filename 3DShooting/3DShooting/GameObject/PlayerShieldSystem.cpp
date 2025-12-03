@@ -107,14 +107,13 @@ PlayerShieldSystem::~PlayerShieldSystem()
 	DeleteGraph(m_shieldImageHandle);
 }
 
-void PlayerShieldSystem::Init(float maxDurability, float regenRate, bool isTutorial)
+void PlayerShieldSystem::Init(float maxDurability, float regenRate)
 {
 	m_shieldDurability = maxDurability;
 	m_shieldBarAnim = maxDurability;
 	m_maxShieldDurability = maxDurability;
 	m_shieldRegenRate = regenRate;
 	m_isShieldBroken = false;
-	m_isTutorial = isTutorial;
 }
 
 void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta)

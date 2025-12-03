@@ -16,7 +16,7 @@ public:
 	PlayerShieldSystem();
 	~PlayerShieldSystem();
 
-	void Init(float maxDurability, float regenRate, bool isTutorial);
+	void Init(float maxDurability, float regenRate);
 	void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta);
 	void Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration);
 

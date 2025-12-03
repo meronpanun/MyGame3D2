@@ -24,94 +24,94 @@
 namespace
 {
 	// タックル関連
-	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
-	constexpr float kTackleHitRange  = 250.0f; // タックルの前方有効距離
+	constexpr int   kTackleDuration = 20;     // タックル持続フレーム数
+	constexpr float kTackleHitRange = 250.0f; // タックルの前方有効距離
 	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅（半径）
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
 
 	// 銃の揺れ関連の定数
-	constexpr float kGunSwayAmount   = 0.7f; // 銃モデルの揺れの強さ 
-	constexpr float kGunSwayDamping  = 0.8f; // 銃モデルの揺れの減衰率 
+	constexpr float kGunSwayAmount = 0.7f; // 銃モデルの揺れの強さ 
+	constexpr float kGunSwayDamping = 0.8f; // 銃モデルの揺れの減衰率 
 
 	// Update関連
-	constexpr float kFrameRate						= 60.0f; 
-	constexpr float kDeltaTime						= 1.0f / kFrameRate; 
-	constexpr float kPlayerColliderYOffset		    = 60.0f;  
-	constexpr float kTackleFov						= 100.0f; // タックル中のカメラFOV
-	constexpr float kTackleCameraZOffset            = 30.0f;  // タックル中のカメラZオフセット
+	constexpr float kFrameRate = 60.0f;
+	constexpr float kDeltaTime = 1.0f / kFrameRate;
+	constexpr float kPlayerColliderYOffset = 60.0f;
+	constexpr float kTackleFov = 100.0f; // タックル中のカメラFOV
+	constexpr float kTackleCameraZOffset = 30.0f;  // タックル中のカメラZオフセット
 	constexpr float kConcentrationLineEffectZOffset = 15.0f;  // 集中線エフェクトのZオフセット
-	constexpr float kJumpSwayPower					= 5.0f;   // ジャンプ時の揺れの強さ　
-	constexpr float kLandingSwayPower				= 5.0f;   // 着地時の揺れの強さ
-	constexpr float kHpBarAnimSpeed					= 1.5f;   // HPバーのアニメーション速度
-	constexpr int   kLowAmmoThreshold				= 10;     // 弾薬が少ないと判断する閾値
-	constexpr float kLowHealthThreshold				= 30.0f;  // 体力が少ないと判断する閾値
-	constexpr float kWarningBlinkSpeed				= 1.5f;   // 警告UIの点滅速度
-	constexpr float kLowHealthEffectMaxAlpha		= 0.7f;   // 体力低下UIの最大アルファ値
-	constexpr float kIdleSwaySpeed					= 1.5f;   // 揺れの速さ
-	constexpr float kIdleSwayAmount					= 0.04f;  // 揺れの量
+	constexpr float kJumpSwayPower = 5.0f;   // ジャンプ時の揺れの強さ　
+	constexpr float kLandingSwayPower = 5.0f;   // 着地時の揺れの強さ
+	constexpr float kHpBarAnimSpeed = 1.5f;   // HPバーのアニメーション速度
+	constexpr int   kLowAmmoThreshold = 10;     // 弾薬が少ないと判断する閾値
+	constexpr float kLowHealthThreshold = 30.0f;  // 体力が少ないと判断する閾値
+	constexpr float kWarningBlinkSpeed = 1.5f;   // 警告UIの点滅速度
+	constexpr float kLowHealthEffectMaxAlpha = 0.7f;   // 体力低下UIの最大アルファ値
+	constexpr float kIdleSwaySpeed = 1.5f;   // 揺れの速さ
+	constexpr float kIdleSwayAmount = 0.04f;  // 揺れの量
 
 	// 盾UI関連
-	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
-	constexpr int   kShieldImageActiveAlpha   = 255; // 使用可能な盾UIのアルファ値
+	constexpr int   kShieldImageGaugeSpacing = 10;  // 盾UIとクールダウンゲージの間隔
+	constexpr int   kShieldImageActiveAlpha = 255; // 使用可能な盾UIのアルファ値
 	constexpr int   kShieldImageCooldownAlpha = 128; // クールダウン中の盾UIのアルファ値
-	constexpr int   kShieldUIYPosition		  = 420;
-	constexpr int   kShieldUIYOffset		  = 30; // 盾UIのY軸調整オフセット
+	constexpr int   kShieldUIYPosition = 420;
+	constexpr int   kShieldUIYOffset = 30; // 盾UIのY軸調整オフセット
 
 	// フォント関連
-	constexpr int   kDefaultFontThickness  = 3;  // フォントの太さ
-	constexpr int   kAmmoFont			   = 32; // 弾薬フォントサイズ
-	constexpr int   kHpFont				   = 20; // HPフォントサイズ
-	constexpr int   kWarningFont		   = 24; // 警告フォントサイズ
-	constexpr char  kDefaultFontName[]     = "Arial Black";
-	constexpr char  kWarningFontName[]     = "HGPｺﾞｼｯｸE";
-	constexpr int   kDefaultFontType	   = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
+	constexpr int   kDefaultFontThickness = 3;  // フォントの太さ
+	constexpr int   kAmmoFont = 32; // 弾薬フォントサイズ
+	constexpr int   kHpFont = 20; // HPフォントサイズ
+	constexpr int   kWarningFont = 24; // 警告フォントサイズ
+	constexpr char  kDefaultFontName[] = "Arial Black";
+	constexpr char  kWarningFontName[] = "HGPｺﾞｼｯｸE";
+	constexpr int   kDefaultFontType = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
 
 	// ダメージエフェクト
 	constexpr float kDamageEffectDuration = 30.0f; // ダメージエフェクトの持続時間
-	constexpr int   kDamageEffectColorR   = 255; 
-	constexpr int   kDamageEffectColorG   = 0;
-	constexpr int   kDamageEffectColorB   = 0;
+	constexpr int   kDamageEffectColorR = 255;
+	constexpr int   kDamageEffectColorG = 0;
+	constexpr int   kDamageEffectColorB = 0;
 
 	// 回復エフェクト
-	constexpr float kHealEffectDuration   = 45.0f; // 回復エフェクトの持続時間
-	constexpr int   kHealEffectColorR     = 0;
-	constexpr int   kHealEffectColorG     = 255;
-	constexpr int   kHealEffectColorB     = 0;
+	constexpr float kHealEffectDuration = 45.0f; // 回復エフェクトの持続時間
+	constexpr int   kHealEffectColorR = 0;
+	constexpr int   kHealEffectColorG = 255;
+	constexpr int   kHealEffectColorB = 0;
 
 	// 弾薬取得エフェクト
-	constexpr float kAmmoEffectDuration   = 45.0f; // 弾薬取得エフェクトの持続時間
-	constexpr int   kAmmoEffectColorR     = 255;
-	constexpr int   kAmmoEffectColorG     = 128;
-	constexpr int   kAmmoEffectColorB     = 0;
+	constexpr float kAmmoEffectDuration = 45.0f; // 弾薬取得エフェクトの持続時間
+	constexpr int   kAmmoEffectColorR = 255;
+	constexpr int   kAmmoEffectColorG = 128;
+	constexpr int   kAmmoEffectColorB = 0;
 
 	// カメラシェイク
-	constexpr float kTakeDamageShakePower		 = 5.0f;  // 攻撃を受けた時の揺れの強さ
-	constexpr int   kTakeDamageShakeDuration	 = 15;    // 攻撃を受けた時の揺れの持続時間
-	constexpr float kARShootShakePower			 = 4.0f;  // ARを撃った時の揺れの強さ
-	constexpr float kSGShootShakePower			 = 32.0f; // SGを撃った時の揺れの強さ
-	constexpr int   kShootShakeDuration			 = 8;     // 撃った時の揺れの持続時間
-	constexpr float kShieldBreakGunShakePower    = 10.0f; // 盾破壊時の銃の揺れの強さ
+	constexpr float kTakeDamageShakePower = 5.0f;  // 攻撃を受けた時の揺れの強さ
+	constexpr int   kTakeDamageShakeDuration = 15;    // 攻撃を受けた時の揺れの持続時間
+	constexpr float kARShootShakePower = 4.0f;  // ARを撃った時の揺れの強さ
+	constexpr float kSGShootShakePower = 32.0f; // SGを撃った時の揺れの強さ
+	constexpr int   kShootShakeDuration = 8;     // 撃った時の揺れの持続時間
+	constexpr float kShieldBreakGunShakePower = 10.0f; // 盾破壊時の銃の揺れの強さ
 	constexpr float kShieldBreakGunShakeDuration = 30.0f; // 盾破壊時の銃の揺れの持続時間
 
 	// HpUI関連
-	constexpr int   kHpBarWidth			     = 200;
-	constexpr int   kHpBarHeight		     = 24;
-	constexpr int   kHpBarMargin			 = 30; 
-	constexpr int   kHealthUiImageSize       = 64; 
-	constexpr int   kHealthUiImageBarSpacing = 10; 
-	constexpr float kMaxHp                   = 100.0f;
-	constexpr int   kHpTextOffsetX		     = 8;
-	constexpr int   kHpTextOffsetY		     = 2;
+	constexpr int   kHpBarWidth = 200;
+	constexpr int   kHpBarHeight = 24;
+	constexpr int   kHpBarMargin = 30;
+	constexpr int   kHealthUiImageSize = 64;
+	constexpr int   kHealthUiImageBarSpacing = 10;
+	constexpr float kMaxHp = 100.0f;
+	constexpr int   kHpTextOffsetX = 8;
+	constexpr int   kHpTextOffsetY = 2;
 
 	// 色関連
-	constexpr unsigned int kColorWhite			   = 0xffffff;
-	constexpr unsigned int kColorLowAmmo           = 0xd3381c;
+	constexpr unsigned int kColorWhite = 0xffffff;
+	constexpr unsigned int kColorLowAmmo = 0xd3381c;
 	constexpr unsigned int kColorTackleGaugeBorder = 0x5050C8;
-	constexpr unsigned int kColorTackleGaugeFill   = 0x50B4ff;
-	constexpr unsigned int kColorHpBarBg           = 0x505050;
-	constexpr unsigned int kColorHpBarDamage	   = 0xFFD700;
-	constexpr unsigned int kColorHpBarFill		   = 0xff4040;
-	constexpr unsigned int kColorHpBarBorder       = 0x000000;
+	constexpr unsigned int kColorTackleGaugeFill = 0x50B4ff;
+	constexpr unsigned int kColorHpBarBg = 0x505050;
+	constexpr unsigned int kColorHpBarDamage = 0xFFD700;
+	constexpr unsigned int kColorHpBarFill = 0xff4040;
+	constexpr unsigned int kColorHpBarBorder = 0x000000;
 }
 
 Player::Player() :
@@ -179,28 +179,37 @@ void Player::Init(bool isTutorial)
 {
 	// CSVからPlayerのTransform情報を取得
 	auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-	for (const auto& data : dataList) 
+	for (const auto& data : dataList)
 	{
-		if (data.name == "Player") 
+		if (data.name == "Player")
 		{
-			m_pos				   = data.pos;
-			m_modelPos			   = data.pos;
-			m_scale				   = data.scale;
-			m_health			   = data.hp;
-			m_maxHealth			   = data.hp;
-			m_moveSpeed		       = data.speed;
-			m_tackleCooldownMax    = data.tackleCooldown;
-			m_tackleSpeed		   = data.tackleSpeed;
-			m_tackleDamage		   = data.tackleDamage;
-			m_runSpeed			   = data.runSpeed;
-			m_arInitAmmo           = data.arInitAmmo;
-			m_sgInitAmmo           = data.sgInitAmmo;
-			m_arMaxAmmo            = data.arInitAmmo;
-			m_sgMaxAmmo            = data.sgInitAmmo;
+			m_pos = data.pos;
+			m_modelPos = data.pos;
+			m_scale = data.scale;
+			m_health = data.hp;
+			m_maxHealth = data.hp;
+			m_moveSpeed = data.speed;
+			m_tackleCooldownMax = data.tackleCooldown;
+			m_tackleSpeed = data.tackleSpeed;
+			m_tackleDamage = data.tackleDamage;
+			m_runSpeed = data.runSpeed;
+			m_arInitAmmo = data.arInitAmmo;
+			m_sgInitAmmo = data.sgInitAmmo;
+			m_arMaxAmmo = data.arInitAmmo;
+			m_sgMaxAmmo = data.sgInitAmmo;
+			m_bulletPower = data.bulletPower;
+			m_sgBulletPower = data.sgBulletPower;
+			m_maxShieldDurability = data.maxShieldDurability;
+			m_shieldRegenRate = data.shieldRegenRate;
+
+			// 武器モデルのスケールと回転を設定
+			m_weaponManager.SetWeaponScale(data.scale);
+			m_weaponManager.SetWeaponRotation(data.rot);
+
 			// コンポーネントの初期化
 			m_weaponManager.Init(m_arInitAmmo, m_sgInitAmmo, m_arMaxAmmo, m_sgMaxAmmo, m_bulletPower, m_sgBulletPower);
 			m_movement.Init(m_modelPos, m_moveSpeed, m_runSpeed, m_scale.x);
-			m_shieldSystem.Init(m_maxShieldDurability, m_shieldRegenRate, isTutorial);
+			m_shieldSystem.Init(m_maxShieldDurability, m_shieldRegenRate);
 			break;
 		}
 	}
@@ -209,8 +218,8 @@ void Player::Init(bool isTutorial)
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData)
 {
-    unsigned char keyState[256];
-    GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+	unsigned char keyState[256];
+	GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
 
 	// コンポーネントの更新
 	float deltaTime = kDeltaTime;
@@ -221,13 +230,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	// タックル中もコライダーを更新する必要があるため、常にUpdateを呼ぶ
 	// ただし、タックル中は移動処理はスキップされる
 	m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode, collisionData);
-	
+
 	// タックル中でない場合は位置を同期
 	if (!m_isTackling)
 	{
 		m_modelPos = m_movement.GetPos(); // 位置を同期
 	}
-	
+
 	m_weaponManager.Update(deltaTime, m_modelPos, m_pCamera.get(), isGuarding, m_isDead, m_isTackling, m_isLockingOn, isSwitchingWeapon, m_allowedAttackType, m_isInfiniteAmmo);
 
 	// 武器切り替え（ガード中は不可）
@@ -250,17 +259,17 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 			WeaponType nextWeapon = (currentWeapon == WeaponType::AssaultRifle) ? WeaponType::Shotgun : WeaponType::AssaultRifle;
 			m_weaponManager.SwitchWeapon(nextWeapon);
 		}
-    }
+	}
 
 	// スペースキー2回押しで飛行モード切り替え機能は削除
 	// 飛行モードはデバッグメニュー（F1キー）からCharacter > Player > Flight Modeで切り替える
 
-    // プレイヤーの位置をカメラに設定
-    m_pCamera->SetPlayerPos(m_modelPos);
+	// プレイヤーの位置をカメラに設定
+	m_pCamera->SetPlayerPos(m_modelPos);
 
 	// Swayの計算
 	float yawDelta = m_pCamera->GetYawDelta();
-    
+
 	// 盾システムの更新
 	m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding, m_isTackling, isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), yawDelta);
 
@@ -277,36 +286,36 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
 	// シールドソーの更新（前フレームのガード状態を使用）
 	m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, collisionData, m_pEffect, currentIsGuarding, m_prevIsGuarding);
-	
+
 	// 前フレームのガード状態を更新
 	m_prevIsGuarding = currentIsGuarding;
 
 	// 銃のSwayの計算（一時的に保持）
-    m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
-    m_gunSwayOffset.x *= kGunSwayDamping;
-    m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f; 
-    m_gunSwayRotOffset.y *= kGunSwayDamping;
+	m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
+	m_gunSwayOffset.x *= kGunSwayDamping;
+	m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f;
+	m_gunSwayRotOffset.y *= kGunSwayDamping;
 
-    // 待機時の揺れ
+	// 待機時の揺れ
 	m_idleSwayTimer += deltaTime;
 	bool isMoving = m_movement.IsMoving();
 	if (!isMoving)
-    {
-        // サイン波とコサイン波を使って、ゆっくりとした円運動のような揺れを生成
-        VECTOR idleSway = VGet(
-            sinf(m_idleSwayTimer * kIdleSwaySpeed * 2.0f) * kIdleSwayAmount,
-            cosf(m_idleSwayTimer * kIdleSwaySpeed) * kIdleSwayAmount,
-            0.0f
-        );
+	{
+		// サイン波とコサイン波を使って、ゆっくりとした円運動のような揺れを生成
+		VECTOR idleSway = VGet(
+			sinf(m_idleSwayTimer * kIdleSwaySpeed * 2.0f) * kIdleSwayAmount,
+			cosf(m_idleSwayTimer * kIdleSwaySpeed) * kIdleSwayAmount,
+			0.0f
+		);
 
-        // 既存のSwayに加算
-        m_gunSwayOffset = VAdd(m_gunSwayOffset, idleSway);
-    }
+		// 既存のSwayに加算
+		m_gunSwayOffset = VAdd(m_gunSwayOffset, idleSway);
+	}
 
-    if (m_pEffect)
-    {
-        m_pEffect->Update(); // エフェクトの更新
-    }
+	if (m_pEffect)
+	{
+		m_pEffect->Update(); // エフェクトの更新
+	}
 
 	// ショットガンアニメーション更新
 	m_weaponManager.UpdateSGAnimation(m_pAnimManager, deltaTime);
@@ -390,7 +399,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	m_isAimingAtEnemy = false;
 	VECTOR camPos = m_pCamera->GetPos();
 	VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
-	VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f)); 
+	VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
 
 	for (const auto& enemy : enemyList)
 	{
@@ -413,61 +422,61 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	// 右クリック長押しでガード（既に上で設定済み）
 	isGuarding = m_shieldSystem.IsGuarding();
 
-		// タックルクールダウン中でない場合のみロックオンを許可
+	// タックルクールダウン中でない場合のみロックオンを許可
 	if (shouldGuard && m_tackleCooldown <= 0)
-		{
-			m_isLockingOn = true;
+	{
+		m_isLockingOn = true;
 		m_lockedOnEnemy = nullptr;
 
 		constexpr float kLockOnAngleCos = 0.966f;
 		constexpr float kLockOnMaxScreenOffsetY = 100.0f;
-			float minScreenDistSq = -1.0f;
+		float minScreenDistSq = -1.0f;
 
-			VECTOR camPos = m_pCamera->GetPos();
-			VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+		VECTOR camPos = m_pCamera->GetPos();
+		VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
 
-			for (EnemyBase* enemy : enemyList)
-			{
-				if (!enemy || !enemy->IsAlive()) continue;
+		for (EnemyBase* enemy : enemyList)
+		{
+			if (!enemy || !enemy->IsAlive()) continue;
 
-				VECTOR enemyPos = enemy->GetPos();
+			VECTOR enemyPos = enemy->GetPos();
 			enemyPos.y += 70.0f;
-				VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
+			VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
 
-				if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
+			if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
+			{
+				VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+
+				if (screenPos.z > 0)
 				{
-					VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+					float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
+					float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
 
-					if (screenPos.z > 0)
+					if (fabs(dy) < kLockOnMaxScreenOffsetY)
 					{
-						float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
-						float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
+						float distSq = dx * dx + dy * dy;
 
-						if (fabs(dy) < kLockOnMaxScreenOffsetY)
+						if (minScreenDistSq < 0 || distSq < minScreenDistSq)
 						{
-							float distSq = dx * dx + dy * dy;
-
-							if (minScreenDistSq < 0 || distSq < minScreenDistSq)
-							{
-								minScreenDistSq = distSq;
-								m_lockedOnEnemy = enemy;
-							}
+							minScreenDistSq = distSq;
+							m_lockedOnEnemy = enemy;
 						}
 					}
 				}
 			}
 		}
-		else
-		{
-			m_isLockingOn = false;
-			m_lockedOnEnemy = nullptr;
-		}
+	}
+	else
+	{
+		m_isLockingOn = false;
+		m_lockedOnEnemy = nullptr;
+	}
 
 	// ガードエフェクトの更新
 	m_shieldSystem.UpdateGuardEffect(m_pEffect, m_pCamera.get(), m_modelPos, isSwitchingWeapon);
-	m_shieldSystem.UpdateSparkEffect(m_pEffect, m_modelPos, m_pCamera.get());	   
+	m_shieldSystem.UpdateSparkEffect(m_pEffect, m_modelPos, m_pCamera.get());
 
-    // ロックオン中に左クリックでタックル	
+	// ロックオン中に左クリックでタックル	
 	if (m_isLockingOn && m_lockedOnEnemy && InputManager::GetInstance()->IsTriggerMouseLeft() && m_tackleCooldown <= 0)
 	{
 		m_isTackling = true;
@@ -502,7 +511,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	if (m_isTackling)
 	{
 		m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
-		
+
 		// m_movementの位置も同期
 		m_movement.SetPos(m_modelPos);
 
@@ -523,7 +532,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 			if (!enemy) continue;
 
 			// 敵の更新処理
-			enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect);
+			enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData);
 		}
 
 #ifdef _DEBUG
@@ -578,13 +587,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	}
 
 	// 各敵に更新処理を行うためのタックル情報を作成
-	TackleInfo tackleInfo{}; 
+	TackleInfo tackleInfo{};
 	for (EnemyBase* enemy : enemyList)
 	{
 		if (!enemy) continue;
-		enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect);
+		enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData);
 	}
-	
+
 	// 弾の更新
 	Bullet::UpdateBullets(m_bullets, m_modelPos);
 
@@ -631,26 +640,26 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 			}
 		}
 	}
-		
+
 	// 体力低下の警告表示処理
 	if (m_health <= kLowHealthThreshold)
 	{
-	    m_isLowHealth = true;
+		m_isLowHealth = true;
 		m_lowHealthBlinkTimer += kDeltaTime; // タイマー更新
 	}
 	else
 	{
-	    m_isLowHealth = false;
-	    m_lowHealthBlinkTimer = 0.0f;
+		m_isLowHealth = false;
+		m_lowHealthBlinkTimer = 0.0f;
 	}
 	// エフェクトの更新（PlayerEffectManagerに委譲）
 	m_effectManager.Update(deltaTime, m_isLowHealth, m_lowHealthBlinkTimer);
 
 	// 残弾数テキストのフラッシュタイマー更新
-    if (m_ammoTextFlashTimer > 0.0f)
-    {
-        m_ammoTextFlashTimer -= 1.0f;
-    }
+	if (m_ammoTextFlashTimer > 0.0f)
+	{
+		m_ammoTextFlashTimer -= 1.0f;
+	}
 
 	ShellCasing::UpdateShellCasings(m_shellCasings);
 }
@@ -698,7 +707,7 @@ void Player::DrawUI()
 
 void Player::DeathUpdate()
 {
-    m_healthBarAnim = 0.0f; // HPバーを即座に0にする
+	m_healthBarAnim = 0.0f; // HPバーを即座に0にする
 
 	if (m_pCamera)
 	{
@@ -744,25 +753,25 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		}
 
 		float remainingDamage = m_shieldSystem.TakeDamage(damage, m_pEffect, m_pCamera.get(), m_modelPos);
-			if (remainingDamage > 0)
-			{
+		if (remainingDamage > 0)
+		{
 			// 銃を揺らす
 			m_weaponManager.ShakeGun(kShieldBreakGunShakePower, kShieldBreakGunShakeDuration);
-				m_health -= remainingDamage; // 残ったダメージをHPに適用
+			m_health -= remainingDamage; // 残ったダメージをHPに適用
 
-			    // HPバーアニメーション用タイマーをリセット
-	            m_healthBarAnimTimer = 0.0f;
-	            // ダメージエフェクトを発動
+			// HPバーアニメーション用タイマーをリセット
+			m_healthBarAnimTimer = 0.0f;
+			// ダメージエフェクトを発動
 			m_effectManager.TriggerDamageEffect(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB);
-	            // 被弾SEを再生
-	            PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+			// 被弾SEを再生
+			PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 
-	            // カメラシェイクを発生
-	            if (m_pCamera)
-	            {
-	            	m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
-	            }
-	            }
+			// カメラシェイクを発生
+			if (m_pCamera)
+			{
+				m_pCamera->Shake(kTakeDamageShakePower, kTakeDamageShakeDuration);
+			}
+		}
 
 		return; // 盾で防いだ場合はここで処理を終了
 	}
@@ -782,7 +791,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 	// HPバーアニメーション用タイマーをリセット
 	m_healthBarAnimTimer = 0.0f;
 	// ダメージエフェクトを発動
-		m_effectManager.TriggerDamageEffect(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB);
+	m_effectManager.TriggerDamageEffect(kDamageEffectDuration, kDamageEffectColorR, kDamageEffectColorG, kDamageEffectColorB);
 	// 被弾SEを再生
 	PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 
@@ -870,30 +879,30 @@ void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
 {
 	// m_movementのコライダーから直接取得
 	auto collider = m_movement.GetBodyCollider();
-	capA   = collider->GetSegmentA();
-	capB   = collider->GetSegmentB();
+	capA = collider->GetSegmentA();
+	capB = collider->GetSegmentB();
 	radius = collider->GetRadius();
 }
 
 void Player::AddHp(float value)
 {
-    m_health += value; // 体力を加算
-    if (m_health > m_maxHealth)
-    {
-        m_health = m_maxHealth; // 最大体力を超えないように制限
-    }
-    if (m_health < 0.0f)
-    {
-        m_health = 0.0f; // 体力が負にならないように制限
-    }
-    // 回復時にエフェクトを発動
-    m_effectManager.TriggerHealEffect(kHealEffectDuration, kHealEffectColorR, kHealEffectColorG, kHealEffectColorB);
+	m_health += value; // 体力を加算
+	if (m_health > m_maxHealth)
+	{
+		m_health = m_maxHealth; // 最大体力を超えないように制限
+	}
+	if (m_health < 0.0f)
+	{
+		m_health = 0.0f; // 体力が負にならないように制限
+	}
+	// 回復時にエフェクトを発動
+	m_effectManager.TriggerHealEffect(kHealEffectDuration, kHealEffectColorR, kHealEffectColorG, kHealEffectColorB);
 }
 
 void Player::AddARAmmo(int value)
 {
 	m_weaponManager.AddARAmmo(value);
-    // 弾薬取得時にエフェクトを発動
+	// 弾薬取得時にエフェクトを発動
 	m_effectManager.TriggerAmmoEffect(kAmmoEffectDuration, kAmmoEffectColorR, kAmmoEffectColorG, kAmmoEffectColorB);
 	m_ammoTextFlashTimer = 60.0f;
 }
@@ -918,7 +927,7 @@ int Player::GetMaxAmmo() const
 
 void Player::SetAttackRestrictions(AttackType allowedAttack)
 {
-    m_allowedAttackType = allowedAttack;
+	m_allowedAttackType = allowedAttack;
 }
 
 void Player::ShakeGun(float power, float duration)
@@ -938,10 +947,10 @@ bool Player::IsJustGuarded() const
 
 void Player::PlayParryEffect(const VECTOR& pos)
 {
-    if (m_pEffect)
-    {
-        m_pEffect->PlayParryEffect(pos.x, pos.y, pos.z);
-    }
+	if (m_pEffect)
+	{
+		m_pEffect->PlayParryEffect(pos.x, pos.y, pos.z);
+	}
 }
 
 WeaponType Player::GetCurrentWeaponType() const
