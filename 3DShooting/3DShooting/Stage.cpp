@@ -7,10 +7,12 @@
 #include <sstream>
 
 bool Stage::s_isDrawCollision = false;
+bool Stage::s_isDrawTutorialCollision = false;
 
 void Stage::LoadStage(bool isTutorial)
 {
 	Clear();
+	m_isTutorial = isTutorial;
 
 	TransformDataLoader loader;
 	std::vector<ObjectTransformData> objectDataList;
@@ -19,13 +21,16 @@ void Stage::LoadStage(bool isTutorial)
 	{
 		// 旧Stage.csvの読み込み処理 (チュートリアル用)
 		objectDataList = loader.LoadDataCSV("Data/CSV/TutorialStageTransformData.csv");
+
+		// ステージ当たり判定データの読み込み (チュートリアル用)
+		LoadCollisionData("Data/CSV/TutorialStageCollisionData.csv");
 	}
 	else
 	{
 		// MainStageTransformData.csvの読み込み (メインステージ用)
 		objectDataList = loader.LoadDataCSV("Data/CSV/MainStageTransformData.csv");
 
-		// ステージ当たり判定データの読み込み (メインステージのみ)
+		// ステージ当たり判定データの読み込み (メインステージ用)
 		LoadCollisionData("Data/CSV/MainStageCollisionData.csv");
 	}
 
@@ -169,7 +174,9 @@ void Stage::Draw()
 	}
 
 	// 当たり判定のデバッグ描画
-	if (s_isDrawCollision)
+	// 当たり判定のデバッグ描画
+	bool isDraw = m_isTutorial ? s_isDrawTutorialCollision : s_isDrawCollision;
+	if (isDraw)
 	{
 		for (const auto& col : m_collisionData)
 		{

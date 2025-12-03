@@ -115,11 +115,17 @@ DebugMenu::DebugMenu()
         }},
         {"Item", {}, nullptr},
         {"Collision", {
-            {"Stage Collision", {}, []() {
+            {"Main Stage Collision", {}, []() {
                 bool isDraw = !Stage::IsDrawCollision();
                 Stage::SetDrawCollision(isDraw);
             }, []() {
                 return Stage::IsDrawCollision() ? "[ON]" : "[OFF]";
+            }},
+            {"Tutorial Stage Collision", {}, []() {
+                bool isDraw = !Stage::IsDrawTutorialCollision();
+                Stage::SetDrawTutorialCollision(isDraw);
+            }, []() {
+                return Stage::IsDrawTutorialCollision() ? "[ON]" : "[OFF]";
             }}
         }}
     };

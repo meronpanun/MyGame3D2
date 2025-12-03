@@ -38,6 +38,8 @@ public:
 	// デバッグ用
 	static void SetDrawCollision(bool isDraw) { s_isDrawCollision = isDraw; }
 	static bool IsDrawCollision() { return s_isDrawCollision; }
+	static void SetDrawTutorialCollision(bool isDraw) { s_isDrawTutorialCollision = isDraw; }
+	static bool IsDrawTutorialCollision() { return s_isDrawTutorialCollision; }
 
 private:
 	std::vector<StageObject> m_objects;
@@ -45,6 +47,8 @@ private:
 	std::unordered_map<std::string, int> m_modelCache;
 
 	static bool s_isDrawCollision;
+	static bool s_isDrawTutorialCollision;
+	bool m_isTutorial;
 
 	void LoadCollisionData(const char* fileName);
 };
