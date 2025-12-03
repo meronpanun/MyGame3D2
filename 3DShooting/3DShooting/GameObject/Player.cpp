@@ -24,72 +24,72 @@
 namespace
 {
 	// タックル関連
-	constexpr int   kTackleDuration = 20;     // タックル持続フレーム数
-	constexpr float kTackleHitRange = 250.0f; // タックルの前方有効距離
+	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
+	constexpr float kTackleHitRange  = 250.0f; // タックルの前方有効距離
 	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅（半径）
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
 
 	// 銃の揺れ関連の定数
-	constexpr float kGunSwayAmount = 0.7f; // 銃モデルの揺れの強さ 
+	constexpr float kGunSwayAmount  = 0.7f; // 銃モデルの揺れの強さ 
 	constexpr float kGunSwayDamping = 0.8f; // 銃モデルの揺れの減衰率 
 
 	// Update関連
-	constexpr float kFrameRate = 60.0f;
-	constexpr float kDeltaTime = 1.0f / kFrameRate;
-	constexpr float kPlayerColliderYOffset = 60.0f;
-	constexpr float kTackleFov = 100.0f; // タックル中のカメラFOV
-	constexpr float kTackleCameraZOffset = 30.0f;  // タックル中のカメラZオフセット
+	constexpr float kFrameRate		         = 60.0f;
+	constexpr float kDeltaTime               = 1.0f / kFrameRate;
+	constexpr float kPlayerColliderYOffset   = 60.0f;
+	constexpr float kTackleFov			     = 100.0f; // タックル中のカメラFOV
+	constexpr float kTackleCameraZOffset     = 30.0f;  // タックル中のカメラZオフセット
 	constexpr float kConcentrationLineEffectZOffset = 15.0f;  // 集中線エフェクトのZオフセット
-	constexpr float kJumpSwayPower = 5.0f;   // ジャンプ時の揺れの強さ　
-	constexpr float kLandingSwayPower = 5.0f;   // 着地時の揺れの強さ
-	constexpr float kHpBarAnimSpeed = 1.5f;   // HPバーのアニメーション速度
-	constexpr int   kLowAmmoThreshold = 10;     // 弾薬が少ないと判断する閾値
-	constexpr float kLowHealthThreshold = 30.0f;  // 体力が少ないと判断する閾値
-	constexpr float kWarningBlinkSpeed = 1.5f;   // 警告UIの点滅速度
+	constexpr float kJumpSwayPower           = 5.0f;   // ジャンプ時の揺れの強さ　
+	constexpr float kLandingSwayPower        = 5.0f;   // 着地時の揺れの強さ
+	constexpr float kHpBarAnimSpeed		     = 1.5f;   // HPバーのアニメーション速度
+	constexpr int   kLowAmmoThreshold        = 10;     // 弾薬が少ないと判断する閾値
+	constexpr float kLowHealthThreshold      = 30.0f;  // 体力が少ないと判断する閾値
+	constexpr float kWarningBlinkSpeed	     = 1.5f;   // 警告UIの点滅速度
 	constexpr float kLowHealthEffectMaxAlpha = 0.7f;   // 体力低下UIの最大アルファ値
-	constexpr float kIdleSwaySpeed = 1.5f;   // 揺れの速さ
-	constexpr float kIdleSwayAmount = 0.04f;  // 揺れの量
+	constexpr float kIdleSwaySpeed			 = 1.5f;   // 揺れの速さ
+	constexpr float kIdleSwayAmount			 = 0.04f;  // 揺れの量
 
 	// 盾UI関連
-	constexpr int   kShieldImageGaugeSpacing = 10;  // 盾UIとクールダウンゲージの間隔
-	constexpr int   kShieldImageActiveAlpha = 255; // 使用可能な盾UIのアルファ値
+	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
+	constexpr int   kShieldImageActiveAlpha   = 255; // 使用可能な盾UIのアルファ値
 	constexpr int   kShieldImageCooldownAlpha = 128; // クールダウン中の盾UIのアルファ値
-	constexpr int   kShieldUIYPosition = 420;
-	constexpr int   kShieldUIYOffset = 30; // 盾UIのY軸調整オフセット
+	constexpr int   kShieldUIYPosition        = 420;
+	constexpr int   kShieldUIYOffset		  = 30;  // 盾UIのY軸調整オフセット
 
 	// フォント関連
 	constexpr int   kDefaultFontThickness = 3;  // フォントの太さ
-	constexpr int   kAmmoFont = 32; // 弾薬フォントサイズ
-	constexpr int   kHpFont = 20; // HPフォントサイズ
-	constexpr int   kWarningFont = 24; // 警告フォントサイズ
-	constexpr char  kDefaultFontName[] = "Arial Black";
-	constexpr char  kWarningFontName[] = "HGPｺﾞｼｯｸE";
-	constexpr int   kDefaultFontType = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
+	constexpr int   kAmmoFont			  = 32; // 弾薬フォントサイズ
+	constexpr int   kHpFont				  = 20; // HPフォントサイズ
+	constexpr int   kWarningFont		  = 24; // 警告フォントサイズ
+	constexpr char  kDefaultFontName[]    = "Arial Black";
+	constexpr char  kWarningFontName[]    = "HGPｺﾞｼｯｸE";
+	constexpr int   kDefaultFontType	  = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
 
 	// ダメージエフェクト
 	constexpr float kDamageEffectDuration = 30.0f; // ダメージエフェクトの持続時間
-	constexpr int   kDamageEffectColorR = 255;
-	constexpr int   kDamageEffectColorG = 0;
-	constexpr int   kDamageEffectColorB = 0;
+	constexpr int   kDamageEffectColorR   = 255;
+	constexpr int   kDamageEffectColorG   = 0;
+	constexpr int   kDamageEffectColorB   = 0;
 
 	// 回復エフェクト
 	constexpr float kHealEffectDuration = 45.0f; // 回復エフェクトの持続時間
-	constexpr int   kHealEffectColorR = 0;
-	constexpr int   kHealEffectColorG = 255;
-	constexpr int   kHealEffectColorB = 0;
+	constexpr int   kHealEffectColorR   = 0;
+	constexpr int   kHealEffectColorG   = 255;
+	constexpr int   kHealEffectColorB   = 0;
 
 	// 弾薬取得エフェクト
 	constexpr float kAmmoEffectDuration = 45.0f; // 弾薬取得エフェクトの持続時間
-	constexpr int   kAmmoEffectColorR = 255;
-	constexpr int   kAmmoEffectColorG = 128;
-	constexpr int   kAmmoEffectColorB = 0;
+	constexpr int   kAmmoEffectColorR   = 255;
+	constexpr int   kAmmoEffectColorG   = 128;
+	constexpr int   kAmmoEffectColorB   = 0;
 
 	// カメラシェイク
-	constexpr float kTakeDamageShakePower = 5.0f;  // 攻撃を受けた時の揺れの強さ
-	constexpr int   kTakeDamageShakeDuration = 15;    // 攻撃を受けた時の揺れの持続時間
-	constexpr float kARShootShakePower = 4.0f;  // ARを撃った時の揺れの強さ
-	constexpr float kSGShootShakePower = 32.0f; // SGを撃った時の揺れの強さ
-	constexpr int   kShootShakeDuration = 8;     // 撃った時の揺れの持続時間
+	constexpr float kTakeDamageShakePower     = 5.0f;  // 攻撃を受けた時の揺れの強さ
+	constexpr int   kTakeDamageShakeDuration  = 15;    // 攻撃を受けた時の揺れの持続時間
+	constexpr float kARShootShakePower        = 4.0f;  // ARを撃った時の揺れの強さ
+	constexpr float kSGShootShakePower        = 32.0f; // SGを撃った時の揺れの強さ
+	constexpr int   kShootShakeDuration       = 8;     // 撃った時の揺れの持続時間
 	constexpr float kShieldBreakGunShakePower = 10.0f; // 盾破壊時の銃の揺れの強さ
 	constexpr float kShieldBreakGunShakeDuration = 30.0f; // 盾破壊時の銃の揺れの持続時間
 
@@ -104,14 +104,14 @@ namespace
 	constexpr int   kHpTextOffsetY = 2;
 
 	// 色関連
-	constexpr unsigned int kColorWhite = 0xffffff;
-	constexpr unsigned int kColorLowAmmo = 0xd3381c;
+	constexpr unsigned int kColorWhite             = 0xffffff;
+	constexpr unsigned int kColorLowAmmo           = 0xd3381c;
 	constexpr unsigned int kColorTackleGaugeBorder = 0x5050C8;
-	constexpr unsigned int kColorTackleGaugeFill = 0x50B4ff;
-	constexpr unsigned int kColorHpBarBg = 0x505050;
-	constexpr unsigned int kColorHpBarDamage = 0xFFD700;
-	constexpr unsigned int kColorHpBarFill = 0xff4040;
-	constexpr unsigned int kColorHpBarBorder = 0x000000;
+	constexpr unsigned int kColorTackleGaugeFill   = 0x50B4ff;
+	constexpr unsigned int kColorHpBarBg           = 0x505050;
+	constexpr unsigned int kColorHpBarDamage       = 0xFFD700;
+	constexpr unsigned int kColorHpBarFill		   = 0xff4040;
+	constexpr unsigned int kColorHpBarBorder       = 0x000000;
 }
 
 Player::Player() :
