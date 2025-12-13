@@ -104,6 +104,8 @@ void WaveManager::Init()
 
     // ウェーブデータをロード
     LoadWaveData();
+    // スポーンエリアデータをロード
+    LoadSpawnAreaData();
 
     // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
     std::map<int, int> normalPerWave, runnerPerWave, acidPerWave;
@@ -335,6 +337,9 @@ void WaveManager::DrawEnemies()
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
         pEnemy->Draw();
     }
+
+    // デバッグ表示：スポーンエリア
+    DrawDebugSpawnAreas();
 }
 
 // ウェーブUIの描画
@@ -473,10 +478,65 @@ void WaveManager::LoadWaveData()
 
         m_waveDataList.push_back(waveData);
 
-        // デバッグ出力
+    // デバッグ出力
         printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f\n",
             waveData.wave, waveData.enemyType.c_str(), waveData.count,
             waveData.spawnInterval, waveData.startTime);
+    }
+}
+
+// SpawnAreaData.csvを読み込む
+void WaveManager::LoadSpawnAreaData()
+{
+    m_spawnAreaList.clear();
+
+    std::ifstream file("data/CSV/SpawnAreaData.csv");
+    if (!file.is_open())
+    {
+        printf("Error: Cannot open SpawnAreaData.csv\n");
+        return;
+    }
+
+    std::string line;
+    // ヘッダー行をスキップ
+    std::getline(file, line);
+
+    // CSVファイルの各行を読み込む
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string token;
+        SpawnAreaInfo info;
+
+        // Type
+        if (!std::getline(ss, token, ',')) continue;
+        info.type = std::stoi(token);
+
+        // PosX, PosY, PosZ
+        float x, y, z;
+        if (!std::getline(ss, token, ',')) continue; x = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; y = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; z = std::stof(token);
+        
+        // Unity座標系からの変換（100倍）
+        info.center = VGet(x * 100.0f, y * 100.0f, z * 100.0f);
+
+        // ScaleX, ScaleY, ScaleZ
+        float sx, sy, sz;
+        if (!std::getline(ss, token, ',')) continue; sx = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; sy = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; sz = std::stof(token);
+
+        // スケールも100倍する
+        info.size = VGet(sx * 100.0f, sy * 100.0f, sz * 100.0f);
+
+        m_spawnAreaList.push_back(info);
+
+        // デバッグ出力
+        printf("Loaded SpawnArea: Type %d, Pos(%.1f, %.1f, %.1f), Size(%.1f, %.1f, %.1f)\n",
+            info.type, 
+            info.center.x, info.center.y, info.center.z,
+            info.size.x, info.size.y, info.size.z);
     }
 }
 
@@ -531,6 +591,69 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
         spawnPos = VGet(x, 0.0f, z);
     }
     return spawnPos;
+}
+
+// 出現位置を生成（エリア定義があればそれを使用、なければランダム）
+VECTOR WaveManager::GenerateSpawnPos(int type, const std::string& enemyType, const VECTOR& playerPos)
+{
+    // タイプに一致するエリアを検索
+    std::vector<SpawnAreaInfo> candidates;
+    for (const auto& area : m_spawnAreaList)
+    {
+        if (area.type == type)
+        {
+            candidates.push_back(area);
+        }
+    }
+
+    // 候補がなければ従来のランダムスポーン
+    if (candidates.empty())
+    {
+        return GenerateRandomSpawnPos(playerPos);
+    }
+
+    // 敵の種類に応じたロジック
+    // AcidEnemy（遠距離）はプレイヤーから離れたエリアを優先
+    std::vector<SpawnAreaInfo> filteredCandidates;
+    bool isLongRange = (enemyType == "AcidEnemy");
+    const float kLongRangeThreshold = 500.0f; // 閾値（5m相当）
+
+    if (isLongRange)
+    {
+        for (const auto& area : candidates)
+        {
+            // 中心点との距離で判定（簡易的）
+            VECTOR diff = VSub(area.center, playerPos);
+            float dist = VSize(diff);
+            if (dist >= kLongRangeThreshold)
+            {
+                filteredCandidates.push_back(area);
+            }
+        }
+        // 条件を満たすエリアがなければ、全ての候補を使用（フォールバック）
+        if (filteredCandidates.empty())
+        {
+            filteredCandidates = candidates;
+        }
+    }
+    else
+    {
+        // 近接などは全ての候補から選択
+        filteredCandidates = candidates;
+    }
+
+    unsigned seed = (unsigned)std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 gen(seed);
+    std::uniform_int_distribution<size_t> distIndex(0, filteredCandidates.size() - 1);
+
+    const SpawnAreaInfo& area = filteredCandidates[distIndex(gen)];
+
+    // エリア内のランダムな位置を生成
+    std::uniform_real_distribution<float> xDist(area.center.x - area.size.x * 0.5f, area.center.x + area.size.x * 0.5f);
+    std::uniform_real_distribution<float> yDist(area.center.y - area.size.y * 0.5f, area.center.y + area.size.y * 0.5f);
+    std::uniform_real_distribution<float> zDist(area.center.z - area.size.z * 0.5f, area.center.z + area.size.z * 0.5f);
+
+    return VGet(xDist(gen), yDist(gen), zDist(gen));
 }
 
 // 敵を生成
@@ -711,7 +834,8 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
 			// 出現位置を生成
             EnemySpawnInfo spawnInfo;
             spawnInfo.enemyType = waveData.enemyType;
-            spawnInfo.spawnPos  = GenerateRandomSpawnPos(playerPos);
+            // 0: Main Stage
+            spawnInfo.spawnPos  = GenerateSpawnPos(0, waveData.enemyType, playerPos);
             spawnInfo.spawnTime = waveData.startTime + (i * waveData.spawnInterval);
             spawnInfo.isSpawned = false;
 
@@ -782,6 +906,29 @@ void WaveManager::OnEnemyDeath(const VECTOR& position)
     if (m_onEnemyDeathCallback)
     {
         m_onEnemyDeathCallback(position);
+    }
+}
+
+// スポーンエリアのデバッグ表示
+void WaveManager::DrawDebugSpawnAreas()
+{
+    // 3D描画設定を保存（必要であれば）
+    // DrawCube3Dはデフォルトでライティングの影響を受けるが、デバッグ用なので
+    // SetUseLighting(FALSE) してもいいが、影響範囲が大きいのでそのままにする。
+    
+    for (const auto& area : m_spawnAreaList)
+    {
+        VECTOR minPos = VSub(area.center, VScale(area.size, 0.5f));
+        VECTOR maxPos = VAdd(area.center, VScale(area.size, 0.5f));
+
+        // 色決定 (Typeによって変える)
+        unsigned int color;
+        if (area.type == 0)      color = GetColor(0, 0, 255);   // Main: Blue
+        else if (area.type == 1) color = GetColor(255, 255, 0); // Tutorial: Yellow
+        else                     color = GetColor(255, 255, 255);
+
+        // ワイヤーフレームで描画 (最後の引数 false で塗りつぶしなし)
+        DrawCube3D(minPos, maxPos, color, color, FALSE);
     }
 }
 
@@ -897,7 +1044,8 @@ void WaveManager::SpawnTutorialWave(int tutorialWaveId)
             for (int i = 0; i < waveData.count; ++i)
             {
                 VECTOR playerPos = VGet(0,0,0); // プレイヤー位置を仮定
-                VECTOR spawnPos = GenerateRandomSpawnPos(playerPos);
+                // 1: Tutorial Stage
+                VECTOR spawnPos = GenerateSpawnPos(1, waveData.enemyType, playerPos);
                 std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(waveData.enemyType, spawnPos);
                 // CreateEnemyはプールから敵を取得し、アクティブに設定する
                 // m_enemyListには後でアクティブな敵をすべて追加する

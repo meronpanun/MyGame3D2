@@ -31,6 +31,14 @@ struct EnemySpawnInfo
 	bool   isSpawned = false; // 出現済みフラグ
 };
 
+// スポーンエリア情報 (SpawnAreaData.csv)
+struct SpawnAreaInfo
+{
+    int type = 0;             // タイプ (0:Main, 1:Tutorial)
+    VECTOR center = {0};      // 中心座標
+    VECTOR size = {0};        // サイズ (Scale)
+};
+
 /// <summary>
 /// ウェーブ管理クラス
 /// </summary>
@@ -78,6 +86,11 @@ public:
 	/// デバッグ情報を表示
     /// </summary>
     void DrawDebugInfo();
+
+    /// <summary>
+    /// スポーンエリアのデバッグ表示（ワイヤーフレーム）
+    /// </summary>
+    void DrawDebugSpawnAreas();
 
     /// <summary>
     /// 敵の一括更新
@@ -165,6 +178,20 @@ private:
     VECTOR GenerateRandomSpawnPos(const VECTOR& playerPos);
 
     /// <summary>
+    /// SpawnAreaData.csvを読み込む
+    /// </summary>
+    void LoadSpawnAreaData();
+
+    /// <summary>
+    /// 出現位置を生成（エリア定義があればそれを使用、なければランダム）
+    /// </summary>
+    /// <param name="type">スポーンエリアのタイプ (0:Main, 1:Tutorial)</param>
+    /// <param name="enemyType">敵の種類</param>
+    /// <param name="playerPos">プレイヤーの位置</param>
+    /// <returns>出現位置</returns>
+    VECTOR GenerateSpawnPos(int type, const std::string& enemyType, const VECTOR& playerPos);
+
+    /// <summary>
     /// 敵を生成
     /// </summary>
 	/// <param name="enemyType">敵の種類</param>
@@ -198,6 +225,7 @@ private:
 	// 敵のリストとテンプレート
     std::vector<WaveData> m_waveDataList;
     std::vector<EnemySpawnInfo> m_spawnInfoList;
+    std::vector<SpawnAreaInfo> m_spawnAreaList; // スポーンエリアのリスト
     std::vector<std::shared_ptr<EnemyBase>> m_enemyList;
 
     // 敵のパラメータを保持
