@@ -1,6 +1,8 @@
 ﻿#include "EffekseerForDXLib.h"
 #include "AmmoItem.h"
 #include "CapsuleCollider.h"
+#include "Collision.h"
+#include "Stage.h"
 #include "Player.h"
 #include "DebugUtil.h"
 #include <cassert>
@@ -60,27 +62,39 @@ void AmmoItem::Init()
 	MV1SetScale(m_modelHandle, VGet(3.0f, 3.0f, 3.0f));
 }
 
-void AmmoItem::Update(Player* player)
+void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData)
 {
 	if (IsUsed()) return;
 
-	// ドロップ演出（落下処理）
-	if (m_isDropping)
-	{
-		m_velocityY -= kDropGravity;
-		m_pos.y += m_velocityY;
-		if (m_pos.y <= kGroundY)
-		{
-			m_pos.y = kGroundY;
-			m_velocityY = 0.0f;
-			m_isDropping = false;
-		}
-	}
-	else
-	{
-		m_rotY += kRotateSpeed;
-		if (m_rotY > DX_TWO_PI) m_rotY -= DX_TWO_PI;
-	}
+    // 重力適用
+    m_velocityY -= kDropGravity;
+    m_pos.y += m_velocityY;
+
+    // 接地判定と衝突解決
+    // アイテム用の簡易的なサイズとオフセットを使用
+    // アイテム用の簡易的なサイズとオフセットを使用
+    constexpr float kItemCollisionHeight = 10.0f;
+    constexpr float kItemCollisionRadius = 60.0f; // 半径を大きくして埋まりを防ぐ
+    constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
+    
+    CollisionResult result = Collision::CheckStageCollision(m_pos, kItemCollisionHeight, kItemCollisionRadius, kItemCollisionYOffset, collisionData);
+
+    // 地面（Y=0）またはステージ上に接地した場合
+    if (result.isGrounded || m_pos.y <= kGroundY)
+    {
+        if (m_pos.y <= kGroundY) m_pos.y = kGroundY;
+        
+        // 接地したらバウンドなどをさせず、停止させる（必要に応じてバウンド処理を追加可能）
+        if (m_velocityY < 0.0f)
+        {
+             m_velocityY = 0.0f;
+             m_isDropping = false;
+        }
+    }
+    
+	// 常に回転させる
+    m_rotY += kRotateSpeed;
+    if (m_rotY > DX_TWO_PI) m_rotY -= DX_TWO_PI;
 
 	m_collider.SetCenter(m_pos);
 	m_collider.SetRadius(m_radius);
@@ -115,4 +129,14 @@ void AmmoItem::Draw()
 	MV1SetPosition(m_modelHandle, m_pos);
 	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, m_rotY, 0.0f));
 	MV1DrawModel(m_modelHandle);
+
+    if (s_isDrawCollision)
+    {
+        DrawCollisionDebug();
+    }
+}
+
+void AmmoItem::DrawCollisionDebug()
+{
+    DebugUtil::DrawSphere(m_collider.GetCenter(), m_collider.GetRadius(), 16, 0xffff00);
 }

@@ -16,8 +16,9 @@ public:
 	virtual ~FirstAidKitItem();
 
 	void Init() override;
-	void Update(Player* player) override;
+	void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) override;
 	void Draw() override;
+	void DrawCollisionDebug() override;
 
 	void SetPos(const VECTOR& pos) override { m_pos = pos; }
 	bool IsUsed() const override { return m_isUsed; }

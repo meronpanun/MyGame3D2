@@ -15,8 +15,9 @@ public:
 	virtual ~AmmoItem();
 
 	void Init() override;
-	void Update(Player* player) override;
+	void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) override;
 	void Draw() override;
+	void DrawCollisionDebug() override;
 
 	/// <summary>
 	/// 位置設定

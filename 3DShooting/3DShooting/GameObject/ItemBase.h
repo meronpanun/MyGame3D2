@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
+#include <vector>
+#include "Stage.h"
 
 class Player;
 
@@ -13,11 +15,20 @@ public:
 	virtual ~ItemBase() = default;
 
 	virtual void Init()   abstract;
-	virtual void Update(Player* player) abstract;
+	virtual void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) abstract;
 	virtual void Draw()   abstract;
 
 	virtual bool IsUsed() const abstract;
 
 	// 位置設定用
+	// 位置設定用
 	virtual void SetPos(const VECTOR& pos) abstract;
+
+	// デバッグ表示用
+	static void SetDrawCollision(bool isDraw) { s_isDrawCollision = isDraw; }
+	static bool IsDrawCollision() { return s_isDrawCollision; }
+
+protected:
+	virtual void DrawCollisionDebug() {}
+	static bool s_isDrawCollision;
 };

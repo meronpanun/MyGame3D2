@@ -385,10 +385,6 @@ void SceneMain::SwitchToMainStage()
 	m_pStage->LoadStage(false);
 	m_isTutorialStage = false;
 
-	// プレイヤーの位置をリセット（必要であれば）
-	// m_pPlayer->SetPos(VGet(0, 0, 0)); 
-	// m_pPlayer->Init(); // Initを呼ぶとTransformDataから再読み込みされるので、CSVの初期位置に戻るはず
-
 	// プレイヤーの再初期化（位置などをCSVから再取得）
 	m_pPlayer->Init(false);
 }
@@ -540,7 +536,7 @@ SceneBase* SceneMain::Update()
         m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get()); // 敵も更新する必要がある
         
         // アイテム、スコアポップアップなどの更新はタスクチュートリアル中でも実行
-        for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
+        for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get(), m_pStage->GetCollisionData()); }
         m_items.erase(
             std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }),
             m_items.end()
@@ -636,7 +632,7 @@ SceneBase* SceneMain::Update()
     // 遅延中は他の処理をスキップ
     if (m_clearSceneDelayTimer != -1) return this;
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get());
-    for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get()); }
+    for (std::shared_ptr<ItemBase>& item : m_items) { item->Update(m_pPlayer.get(), m_pStage->GetCollisionData()); }
     m_items.erase(
         std::remove_if(m_items.begin(), m_items.end(), [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }),
         m_items.end()

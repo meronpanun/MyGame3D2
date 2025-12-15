@@ -9,6 +9,7 @@
 #include "SceneOption.h"
 #include "SceneGameOver.h"
 #include "Stage.h"
+#include "ItemBase.h"
 #include <cassert>
 
 namespace
@@ -113,7 +114,14 @@ DebugMenu::DebugMenu()
                 }
             }}
         }},
-        {"Item", {}, nullptr},
+        {"Item", {
+            {"Show Collision", {}, []() {
+                bool isDraw = !ItemBase::IsDrawCollision();
+                ItemBase::SetDrawCollision(isDraw);
+            }, []() {
+                return ItemBase::IsDrawCollision() ? "[ON]" : "[OFF]";
+            }}
+        }, nullptr},
         {"Collision", {
             {"Main Stage Collision", {}, []() {
                 bool isDraw = !Stage::IsDrawCollision();

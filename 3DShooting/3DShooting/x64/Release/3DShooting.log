@@ -1,9 +1,11 @@
-﻿  Collision.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Collision.cpp(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+﻿  AmmoItem.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\AmmoItem.cpp(97,39): warning C4305: '-=': 'double' から 'float' へ切り詰めます。
+  FirstAidKitItem.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\GameObject\FirstAidKitItem.cpp(100,39): warning C4305: '-=': 'double' から 'float' へ切り詰めます。
   コード生成しています。
-  3 of 4225 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  2 of 4264 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    8 functions had inline decision re-evaluated but remain unchanged
+    4 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
 EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
   3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Release\3DShooting.exe
