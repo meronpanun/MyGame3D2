@@ -91,17 +91,26 @@ CollisionResult Collision::CheckStageCollision(
                 if (distSq < kGroundToleranceSq)
                 {
                     float dist = sqrtf(distSq);
-                    VECTOR normal;
-                    if (dist > 0.0001f)
-                    {
-                        normal = VScale(diff, 1.0f / dist);
-                    }
-                    else
-                    {
                         VECTOR v12 = VSub(data.v2, data.v1);
                         VECTOR v13 = VSub(data.v3, data.v1);
-                        normal = VNorm(VCross(v12, v13));
-                    }
+                        VECTOR triNormal = VNorm(VCross(v12, v13));
+                        
+                        VECTOR normal;
+
+                        if (dist > 0.0001f)
+                        {
+                            normal = VScale(diff, 1.0f / dist);
+                            // 進行可能なスロープ(y > 0.5)の場合は、
+                            // ポリゴンの継ぎ目で引っかからないように面の法線を使用する
+                            if (triNormal.y > 0.5f)
+                            {
+                                normal = triNormal;
+                            }
+                        }
+                        else
+                        {
+                            normal = triNormal;
+                        }
 
                     if (normal.y > 0.7f)
                     {
