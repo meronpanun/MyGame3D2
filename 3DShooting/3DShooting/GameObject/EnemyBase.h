@@ -217,5 +217,9 @@ protected:
     bool  m_isAttacking;     // 攻撃中かどうか
     bool  m_isActive;		 // デフォルトはアクティブ
 
+    // 重力関連
+    float m_verticalVelocity; // 垂直方向の速度
+    bool  m_isGrounded;       // 接地フラグ
+
     AttackType m_lastAttackType = AttackType::None;
 };

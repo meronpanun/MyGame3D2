@@ -28,7 +28,9 @@ EnemyBase::EnemyBase() :
 	m_attackPower(kDefaultAttackPower),
 	m_attackHitFrame(0),
 	m_isAttacking(false),
-	m_isActive(true)
+	m_isActive(true),
+	m_verticalVelocity(0.0f),
+	m_isGrounded(false)
 {
 }
 
@@ -127,5 +129,26 @@ void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData
     constexpr float kCapsuleRadius = 30.0f;
     constexpr float kColliderYOffset = 60.0f;
 
-    Collision::CheckStageCollision(m_pos, kCapsuleHeight, kCapsuleRadius, kColliderYOffset, collisionData);
+    // 重力定数 (PlayerMovementと同じ値を使用)
+    constexpr float kGravity = 0.35f;
+
+    // 重力適用
+    m_verticalVelocity -= kGravity;
+    m_pos.y += m_verticalVelocity;
+
+    CollisionResult result = Collision::CheckStageCollision(m_pos, kCapsuleHeight, kCapsuleRadius, kColliderYOffset, collisionData);
+    m_isGrounded = result.isGrounded;
+
+    // Y=0 平面（地面）との判定
+    if (m_pos.y <= 0.0f)
+    {
+        m_pos.y = 0.0f;
+        m_isGrounded = true;
+    }
+
+    // 接地時は落下速度をリセット
+    if (m_isGrounded && m_verticalVelocity < 0.0f)
+    {
+        m_verticalVelocity = 0.0f;
+    }
 }
