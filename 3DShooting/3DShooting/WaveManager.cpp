@@ -44,6 +44,8 @@ namespace
 	constexpr float kFrameTime = 1.0f / 60.0f; // フレーム時間
 }
 
+bool WaveManager::s_isDrawSpawnAreas = false;
+
 WaveManager::WaveManager() :
     m_currentWave(1),
     m_waveTimer(0.0f),
@@ -319,7 +321,7 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
 }
 
 // 敵の一括描画
-void WaveManager::DrawEnemies()
+void WaveManager::DrawEnemies(bool isTutorial)
 {
 	// 敵の描画
     for (auto& pEnemy : m_enemyNormalPool) 
@@ -339,7 +341,7 @@ void WaveManager::DrawEnemies()
     }
 
     // デバッグ表示：スポーンエリア
-    DrawDebugSpawnAreas();
+    DrawDebugSpawnAreas(isTutorial);
 }
 
 // ウェーブUIの描画
@@ -910,14 +912,21 @@ void WaveManager::OnEnemyDeath(const VECTOR& position)
 }
 
 // スポーンエリアのデバッグ表示
-void WaveManager::DrawDebugSpawnAreas()
+void WaveManager::DrawDebugSpawnAreas(bool isTutorial)
 {
+    if (!s_isDrawSpawnAreas) return;
+
     // 3D描画設定を保存（必要であれば）
     // DrawCube3Dはデフォルトでライティングの影響を受けるが、デバッグ用なので
     // SetUseLighting(FALSE) してもいいが、影響範囲が大きいのでそのままにする。
     
     for (const auto& area : m_spawnAreaList)
     {
+        // ステージに合致しないエリアはスキップ
+        // type 0: Main, type 1: Tutorial
+        if (isTutorial && area.type != 1) continue;
+        if (!isTutorial && area.type != 0) continue;
+
         VECTOR minPos = VSub(area.center, VScale(area.size, 0.5f));
         VECTOR maxPos = VAdd(area.center, VScale(area.size, 0.5f));
 

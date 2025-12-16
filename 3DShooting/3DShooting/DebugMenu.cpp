@@ -10,6 +10,7 @@
 #include "SceneGameOver.h"
 #include "Stage.h"
 #include "ItemBase.h"
+#include "WaveManager.h"
 #include <cassert>
 
 namespace
@@ -73,7 +74,14 @@ DebugMenu::DebugMenu()
                     return "[N/A]";
                 }}
             }, nullptr},
-            {"Enemy", {}, nullptr}
+            {"Enemy", {
+                {"Show Spawn Areas", {}, []() {
+                    bool isDraw = !WaveManager::IsDrawSpawnAreas();
+                    WaveManager::SetDrawSpawnAreas(isDraw);
+                }, []() {
+                    return WaveManager::IsDrawSpawnAreas() ? "[ON]" : "[OFF]";
+                }}
+            }, nullptr}
         }},
         {"Scene", {
             {"Skip Tutorial", {}, []() {

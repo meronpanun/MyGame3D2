@@ -684,12 +684,12 @@ void SceneMain::Draw()
     {
         TaskTutorialManager::GetInstance()->Draw();
         // タスクチュートリアル中は敵を描画する
-        m_pWaveManager->DrawEnemies();
+        m_pWaveManager->DrawEnemies(m_isTutorialStage);
     }
     // メインゲームループ中の敵描画 (両方のチュートリアルが完了した場合)
     else
     {
-        m_pWaveManager->DrawEnemies();
+        m_pWaveManager->DrawEnemies(m_isTutorialStage);
     }
 
     m_pPlayer->Draw3D();

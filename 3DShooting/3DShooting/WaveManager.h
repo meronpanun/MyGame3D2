@@ -90,7 +90,8 @@ public:
     /// <summary>
     /// スポーンエリアのデバッグ表示（ワイヤーフレーム）
     /// </summary>
-    void DrawDebugSpawnAreas();
+    /// <param name="isTutorial">チュートリアルかどうか</param>
+    void DrawDebugSpawnAreas(bool isTutorial = false);
 
     /// <summary>
     /// 敵の一括更新
@@ -103,7 +104,8 @@ public:
     /// <summary>
     /// 敵の一括描画
     /// </summary>
-    void DrawEnemies();
+    /// <param name="isTutorial">チュートリアルかどうか</param>
+    void DrawEnemies(bool isTutorial = false);
 
     /// <summary>
     /// ウェーブUIの描画
@@ -163,6 +165,10 @@ public:
     /// </summary>
     /// <param name="tutorialWaveId">チュートリアルウェーブのID</param>
     void SpawnTutorialWave(int tutorialWaveId);
+
+    // デバッグ表示切り替え用
+    static void SetDrawSpawnAreas(bool isDraw) { s_isDrawSpawnAreas = isDraw; }
+    static bool IsDrawSpawnAreas() { return s_isDrawSpawnAreas; }
 
 private:
     /// <summary>
@@ -277,4 +283,6 @@ private:
     int  m_waveImageAnimHoldDuration;        // ウェーブ画像アニメーションのホールド時間
     int  m_waveImageAnimInitialHoldDuration; // ウェーブ画像アニメーションの初期ホールド時間
     bool m_isWaveImageAnimating;             // ウェーブ画像アニメーション中フラグ
+
+    static bool s_isDrawSpawnAreas;          // スポーンエリア描画フラグ
 };
