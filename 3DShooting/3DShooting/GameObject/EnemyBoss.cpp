@@ -14,11 +14,11 @@
 namespace
 {
     // アニメーション名
-    constexpr char kIdleAnimName[]        = "IDLE"; 
-    constexpr char kWalkAnimName[]        = "WALK"; 
+    // constexpr char kIdleAnimName[]        = "IDLE"; 
+    constexpr char kWalkAnimName[]        = "Armature|Run"; 
     constexpr char kCloseAttackAnimName[] = "Armature|CloseRangeAttack"; // 近接範囲攻撃
     constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack"; // 遠距離攻撃
-    constexpr char kDeadAnimName[]        = "DEAD";
+    constexpr char kDeadAnimName[]        = "Armature|Death";
 
     constexpr float kLongRangeAttackMinDist = 300.0f; // 遠距離攻撃を行う最小距離
     constexpr int   kLongRangeAttackCooldownMax = 120;
@@ -56,7 +56,7 @@ void EnemyBoss::DeleteModel()
 }
 
 EnemyBoss::EnemyBoss() :
-    m_currentAnimState(AnimState::Idle),
+    m_currentAnimState(AnimState::Walk), // 初期状態をWalk(Run)に
     m_isDeadAnimPlaying(false),
     m_animTime(0.0f),
     m_chaseSpeed(kChaseSpeed),
@@ -137,9 +137,9 @@ void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
     const char* animName = nullptr;
     switch (newAnimState)
     {
-    case AnimState::Idle:
-        animName = kIdleAnimName;
-        break;
+    //case AnimState::Idle:
+    //    animName = kIdleAnimName;
+    //    break;
     case AnimState::Walk:
         animName = kWalkAnimName;
         break;
@@ -415,18 +415,26 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     // アニメーション更新
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
     {
-        m_animTime += 1.0f;
         const char* animName = nullptr;
-        if (m_currentAnimState == AnimState::Walk) animName = kWalkAnimName;
+        float animSpeed = 1.0f;
+
+        if (m_currentAnimState == AnimState::Walk) 
+        {
+            animName = kWalkAnimName;
+            animSpeed = 0.6f; // 走りが速すぎるので調整
+        }
         else if (m_currentAnimState == AnimState::Attack) animName = kCloseAttackAnimName;
         else if (m_currentAnimState == AnimState::Dead) animName = kDeadAnimName;
-        else animName = kIdleAnimName;
+        else if (m_currentAnimState == AnimState::LongRangeAttack) animName = kLongRangeAttackAnimName;
+        // else animName = kIdleAnimName; // Idleは使用しない
 
         if (animName)
         {
+            m_animTime += animSpeed;
+
             float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, animName);
             // ループ処理
-            if (m_currentAnimState == AnimState::Walk || m_currentAnimState == AnimState::Idle)
+            if (m_currentAnimState == AnimState::Walk /*|| m_currentAnimState == AnimState::Idle*/)
             {
                 m_animTime = fmodf(m_animTime, totalTime);
             }
