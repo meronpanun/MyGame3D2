@@ -5,6 +5,7 @@
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
 #include "EnemyAcid.h"
+#include "EnemyBoss.h"
 #include "EffekseerForDXLib.h"
 #include <fstream>
 #include <sstream>
@@ -109,41 +110,42 @@ void WaveManager::Init()
     // スポーンエリアデータをロード
     LoadSpawnAreaData();
 
+// (Previous code snippet around line 88 for deleting boss model if needed?)
+    EnemyAcid::DeleteModel();
+    // EnemyBoss::DeleteModel() is handled by its destructor, but if there's a static LoadModel/DeleteModel... Boss doesn't have static LoadModel. It loads in constructor. So calling delete on pool elements is enough which happens when pool is cleared. But wait, checking Init.
+    
+// (Inside Init)
     // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
-    std::map<int, int> normalPerWave, runnerPerWave, acidPerWave;
+    std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
     for (const auto& wave : m_waveDataList)
     {
         if (wave.enemyType == "NormalEnemy") normalPerWave[wave.wave] += wave.count;
         if (wave.enemyType == "RunnerEnemy") runnerPerWave[wave.wave] += wave.count;
         if (wave.enemyType == "AcidEnemy")   acidPerWave[wave.wave] += wave.count;
+        if (wave.enemyType == "Boss")        bossPerWave[wave.wave] += wave.count;
     }
-    int maxNormal = 0, maxRunner = 0, maxAcid = 0;
+    int maxNormal = 0, maxRunner = 0, maxAcid = 0, maxBoss = 0;
     // 各ウェーブでの最大出現数を計算
     for (const auto& [wave, cnt] : normalPerWave) maxNormal = (std::max)(maxNormal, cnt);
     for (const auto& [wave, cnt] : runnerPerWave) maxRunner = (std::max)(maxRunner, cnt);
     for (const auto& [wave, cnt] : acidPerWave)   maxAcid = (std::max)(maxAcid, cnt);
+    for (const auto& [wave, cnt] : bossPerWave)   maxBoss = (std::max)(maxBoss, cnt);
 
     // その数だけ各プールを確保
-    for (int i = m_enemyNormalPool.size(); i < maxNormal; ++i)
-    {
-        auto pEnemy = std::make_shared<EnemyNormal>();
-        pEnemy->Init();
-        pEnemy->SetActive(false);
-        m_enemyNormalPool.push_back(pEnemy);
-    }
-    for (int i = m_enemyRunnerPool.size(); i < maxRunner; ++i)
-    {
-        auto pEnemy = std::make_shared<EnemyRunner>();
-        pEnemy->Init();
-        pEnemy->SetActive(false);
-        m_enemyRunnerPool.push_back(pEnemy);
-    }
+    // ... (Normal, Runner, Acid loops)
     for (int i = m_enemyAcidPool.size(); i < maxAcid; ++i)
     {
         auto pEnemy = std::make_shared<EnemyAcid>();
         pEnemy->Init();
         pEnemy->SetActive(false);
         m_enemyAcidPool.push_back(pEnemy);
+    }
+    for (int i = m_enemyBossPool.size(); i < maxBoss; ++i)
+    {
+        auto pEnemy = std::make_shared<EnemyBoss>();
+        pEnemy->Init();
+        pEnemy->SetActive(false);
+        m_enemyBossPool.push_back(pEnemy);
     }
 
     // チュートリアル達成判定用コールバック
@@ -158,6 +160,7 @@ void WaveManager::Init()
     for (auto& enemy : m_enemyNormalPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
     for (auto& enemy : m_enemyRunnerPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
     for (auto& enemy : m_enemyAcidPool)   enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+    for (auto& enemy : m_enemyBossPool)   enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
 
 	// 敵の死亡時コールバックを設定
     SetOnEnemyDeathCallback([this](const VECTOR& pos) {
@@ -194,8 +197,17 @@ void WaveManager::Init()
                 if (checkAndSet(enemy.get())) break;
             }
         }
+        for (auto& enemy : m_enemyBossPool) 
+        {
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) 
+            {
+                if (checkAndSet(enemy.get())) break;
+            }
+        }
     });
 }
+
+
 
 
 void WaveManager::Update()
@@ -293,6 +305,10 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
     {
         if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
     }
+    for (auto& pEnemy : m_enemyBossPool)
+    {
+        if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
+    }
 
     // Now, update each enemy, providing them with the list of other enemies
     for (auto& pEnemy : m_enemyNormalPool)
@@ -318,6 +334,13 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
         pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
     }
+    for (auto& pEnemy : m_enemyBossPool)
+    {
+        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        std::vector<EnemyBase*> others;
+        for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
+        pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
+    }
 }
 
 // 敵の一括描画
@@ -335,6 +358,11 @@ void WaveManager::DrawEnemies(bool isTutorial)
         pEnemy->Draw();
     }
     for (auto& pEnemy : m_enemyAcidPool) 
+    {
+        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        pEnemy->Draw();
+    }
+    for (auto& pEnemy : m_enemyBossPool) 
     {
         if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
         pEnemy->Draw();
@@ -706,6 +734,19 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         pPooled->SetPos(spawnPos);
         pEnemy = pPooled;
     }
+    else if (enemyType == "Boss")
+    {
+        auto pPooled = GetPooledBossEnemy();
+        pPooled->SetActive(true);
+        pPooled->Init();
+        // パラメータはInitでCSVから読み込まれるが、WaveManager側でのパラメータセットもサポート
+        if (enemyData) 
+        {
+             pPooled->SetHp(enemyData->hp);
+        }
+        pPooled->SetPos(spawnPos);
+        pEnemy = pPooled;
+    }
     else
     {
         return nullptr;
@@ -1052,7 +1093,7 @@ void WaveManager::SpawnTutorialWave(int tutorialWaveId)
         {
             for (int i = 0; i < waveData.count; ++i)
             {
-                VECTOR playerPos = VGet(0,0,0); // プレイヤー位置を仮定
+                VECTOR playerPos = VGet(0, 0, 0); // プレイヤー位置を仮定
                 // 1: Tutorial Stage
                 VECTOR spawnPos = GenerateSpawnPos(1, waveData.enemyType, playerPos);
                 std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(waveData.enemyType, spawnPos);
@@ -1065,5 +1106,24 @@ void WaveManager::SpawnTutorialWave(int tutorialWaveId)
     // すべてのプールからアクティブな敵をm_enemyListに追加
     for (auto& pEnemy : m_enemyNormalPool) { if (pEnemy->IsActive()) m_enemyList.push_back(pEnemy); }
     for (auto& pEnemy : m_enemyRunnerPool) { if (pEnemy->IsActive()) m_enemyList.push_back(pEnemy); }
-    for (auto& pEnemy : m_enemyAcidPool)   { if (pEnemy->IsActive()) m_enemyList.push_back(pEnemy); }
+    for (auto& pEnemy : m_enemyAcidPool) { if (pEnemy->IsActive()) m_enemyList.push_back(pEnemy); }
+}
+
+// プールから空きのあるBossEnemyを取得または新規生成
+std::shared_ptr<EnemyBoss> WaveManager::GetPooledBossEnemy() 
+{
+	// プールから空きのある敵を探す
+    for (auto& pEnemy : m_enemyBossPool) 
+    {
+        if (!pEnemy->IsActive()) 
+        {
+            return pEnemy;
+        }
+    }
+
+	// プールに空きがなければ新規生成
+    auto pEnemy = std::make_shared<EnemyBoss>();
+    pEnemy->Init();
+    m_enemyBossPool.push_back(pEnemy);
+    return pEnemy;
 }

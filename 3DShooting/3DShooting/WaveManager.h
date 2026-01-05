@@ -8,6 +8,7 @@
 class EnemyNormal;
 class EnemyRunner;
 class EnemyAcid;
+class EnemyBoss;
 class Bullet;
 class Player;
 
@@ -241,11 +242,13 @@ private:
     std::vector<std::shared_ptr<EnemyNormal>> m_enemyNormalPool;
     std::vector<std::shared_ptr<EnemyRunner>> m_enemyRunnerPool;
     std::vector<std::shared_ptr<EnemyAcid>>   m_enemyAcidPool;
+    std::vector<std::shared_ptr<EnemyBoss>>   m_enemyBossPool;
 
 	// 敵のプールから取得
     std::shared_ptr<EnemyNormal> GetPooledNormalEnemy();
     std::shared_ptr<EnemyRunner> GetPooledRunnerEnemy();
     std::shared_ptr<EnemyAcid>   GetPooledAcidEnemy();
+    std::shared_ptr<EnemyBoss>   GetPooledBossEnemy();
 
     // コールバック
     std::function<void(const VECTOR&)>      m_onEnemyDeathCallback; // 敵の死亡時コールバック
