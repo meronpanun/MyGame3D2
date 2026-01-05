@@ -17,9 +17,18 @@ namespace
     constexpr char kIdleAnimName[]        = "IDLE"; 
     constexpr char kWalkAnimName[]        = "WALK"; 
     constexpr char kCloseAttackAnimName[] = "Armature|CloseRangeAttack"; // 近接範囲攻撃
+    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack"; // 遠距離攻撃
     constexpr char kDeadAnimName[]        = "DEAD";
 
-    // kDefaultInitialHP and kChaseSpeed are no longer needed as defaults if CSV is primary, but good as fallback.
+    // ...
+
+    constexpr float kLongRangeAttackMinDist = 300.0f; // 遠距離攻撃を行う最小距離
+    constexpr int   kLongRangeAttackCooldownMax = 120;
+    constexpr float kHomingBulletSpeed =6.0f;
+    constexpr float kHomingTurnRate = 0.05f; // 旋回性能
+    constexpr float kHomingBulletMaxDist = 1500.0f; // 弾の最大飛距離
+    constexpr float kHomingBulletDamage = 20.0f;
+    constexpr float kHomingBulletRadius = 15.0f;
     constexpr float kDefaultInitialHP = 5000.0f; // ボスの初期体力
     constexpr float kChaseSpeed       = 1.5f;    // 追跡速度
 
@@ -95,7 +104,47 @@ void EnemyBoss::Init()
     // 攻撃範囲コライダー設定
     m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
+    m_longRangeAttackCooldown = 0;
+    m_homingBullets.clear();
+    m_hasShotLongRange = false;
+
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
+}
+
+void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
+{
+    // 遠距離攻撃など、同じ状態でも再度再生したいケースがある場合は調整
+    if (m_currentAnimState == newAnimState && newAnimState != AnimState::Attack && newAnimState != AnimState::LongRangeAttack)
+    {
+        return;
+    }
+
+    const char* animName = nullptr;
+    switch (newAnimState)
+    {
+    case AnimState::Idle:
+        animName = kIdleAnimName;
+        break;
+    case AnimState::Walk:
+        animName = kWalkAnimName;
+        break;
+    case AnimState::Attack:
+        animName = kCloseAttackAnimName;
+        break;
+    case AnimState::LongRangeAttack:
+        animName = kLongRangeAttackAnimName;
+        break;
+    case AnimState::Dead:
+        animName = kDeadAnimName;
+        break;
+    }
+
+    if (animName)
+    {
+        m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
+        m_animTime = 0.0f;
+    }
+    m_currentAnimState = newAnimState;
 }
 
 void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect)
@@ -151,6 +200,7 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     // 状態遷移ロジック
     if (m_currentAnimState == AnimState::Attack)
     {
+        // ... (Existing Close Range Attack Logic) ...
         // 攻撃中
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kCloseAttackAnimName);
         
@@ -181,11 +231,69 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             }
         }
     }
+    else if (m_currentAnimState == AnimState::LongRangeAttack)
+    {
+        float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kLongRangeAttackAnimName);
+        
+        // 弾生成タイミング (例えばアニメーションの30%時点)
+        if (!m_hasShotLongRange && m_animTime > totalTime * 0.3f)
+        {
+             // 弾生成
+             int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:HeadTop_End");
+             VECTOR spawnPos = m_pos;
+             if (headIndex != -1)
+             {
+                 spawnPos = MV1GetFramePosition(m_modelHandle, headIndex);
+             }
+             else
+             {
+                 // 見つからない場合は頭付近オフセット
+                 spawnPos = VAdd(m_pos, VGet(0, kBodyColliderHeight, 0));
+             }
+
+             HomingBullet bullet;
+             bullet.pos = spawnPos;
+             bullet.active = true;
+             bullet.damage = kHomingBulletDamage; // ダメージ20
+             bullet.distTraveled = 0.0f;
+             // プレイヤー方向へ発射
+             bullet.dir = VNorm(VSub(playerPos, spawnPos));
+             bullet.speed = kHomingBulletSpeed;
+             
+             // エフェクトがあればここで再生しハンドル保持
+             if (pEffect)
+             {
+                 // bullet.effectHandle = pEffect->PlaySomething(...) 
+             }
+
+             m_homingBullets.push_back(bullet);
+             m_hasShotLongRange = true;
+        }
+
+        if (m_animTime >= totalTime)
+        {
+             // アニメーション終了
+             if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = 30; // 硬直
+        }
+
+        if (m_attackEndDelayTimer > 0)
+        {
+            m_attackEndDelayTimer--;
+            if (m_attackEndDelayTimer == 0)
+            {
+                 ChangeAnimation(AnimState::Walk, true);
+                 m_longRangeAttackCooldown = kLongRangeAttackCooldownMax; 
+            }
+        }
+    }
     else // Idle or Walk
     {
         // 移動処理 (Walk)
         if (m_currentAnimState == AnimState::Walk)
         {
+             // クールダウン減少
+             if (m_longRangeAttackCooldown > 0) m_longRangeAttackCooldown--;
+
              VECTOR toPlayer = VSub(playerPos, m_pos);
              toPlayer.y = 0.0f;
              float disToPlayer = VSize(toPlayer);
@@ -198,22 +306,75 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                  MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
              }
 
-             // 攻撃範囲に入ったら攻撃へ遷移
+             // 攻撃判定
              if (CanAttackPlayer(player))
              {
                  m_isAttackHit = false;
                  ChangeAnimation(AnimState::Attack, false);
              }
+             else if (disToPlayer > kLongRangeAttackMinDist && m_longRangeAttackCooldown <= 0)
+             {
+                 // 遠距離攻撃へ遷移
+                 m_hasShotLongRange = false;
+                 ChangeAnimation(AnimState::LongRangeAttack, false);
+             }
              else
              {
                  // 範囲外なら近づく
                  VECTOR dir = VNorm(toPlayer);
-                 // 攻撃範囲手前くらいまで近づくイメージだが、ここではシンプルに近づく
-                 // 押し出し処理があるので重なってもある程度大丈夫
                  m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed));
              }
         }
     }
+    
+    // ホーミング弾の更新
+    for (auto& bullet : m_homingBullets)
+    {
+        if (!bullet.active) continue;
+
+        // プレイヤーへの方向
+        VECTOR toPlayer = VSub(player.GetPos(), bullet.pos);
+        float distToPlayer = VSize(toPlayer);
+        VECTOR targetDir = VNorm(toPlayer);
+
+        // ホーミング処理 (現在の向きからターゲット向きへ徐々に補間)
+        // 戻ってくる動きを応用 -> プレイヤーが動いても追従
+        // シンプルにターンレートで補間
+        bullet.dir = VAdd(bullet.dir, VScale(targetDir, kHomingTurnRate));
+        bullet.dir = VNorm(bullet.dir);
+
+        // 移動
+        VECTOR moveVec = VScale(bullet.dir, bullet.speed);
+        bullet.pos = VAdd(bullet.pos, moveVec);
+        bullet.distTraveled += bullet.speed;
+
+        // エフェクト更新(あれば)
+        //if (pEffect)
+        //{
+        //     pEffect->PlayEnemyMuzzleEffect(bullet.pos.x, bullet.pos.y, bullet.pos.z);
+        //}
+
+        // 当たり判定 (擬似球)
+        std::shared_ptr<CapsuleCollider> pCol = player.GetBodyCollider();
+        SphereCollider bulletCol(bullet.pos, kHomingBulletRadius);
+        if (bulletCol.IsIntersects(pCol.get()))
+        {
+            const_cast<Player&>(player).TakeDamage(bullet.damage, m_pos);
+            bullet.active = false; // ヒットしたら消滅
+        }
+
+        // 最大飛距離チェック
+        if (bullet.distTraveled > kHomingBulletMaxDist)
+        {
+            bullet.active = false;
+        }
+
+        // 地面接触で消滅
+        if (bullet.pos.y < 0) bullet.active = false;
+    }
+    
+    // 不要な弾を削除
+    m_homingBullets.erase(std::remove_if(m_homingBullets.begin(), m_homingBullets.end(), [](const HomingBullet& b){ return !b.active; }), m_homingBullets.end());
 
     // アニメーション更新
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
@@ -341,38 +502,6 @@ void EnemyBoss::Draw()
 #endif
 }
 
-void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
-{
-    if (m_currentAnimState == newAnimState && newAnimState != AnimState::Attack)
-    {
-        return;
-    }
-
-    const char* animName = nullptr;
-    switch (newAnimState)
-    {
-    case AnimState::Idle:
-        animName = kIdleAnimName;
-        break;
-    case AnimState::Walk:
-        animName = kWalkAnimName;
-        break;
-    case AnimState::Attack:
-        animName = kCloseAttackAnimName;
-        break;
-    case AnimState::Dead:
-        animName = kDeadAnimName;
-        break;
-    }
-
-    if (animName)
-    {
-        m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
-        m_animTime = 0.0f;
-    }
-    m_currentAnimState = newAnimState;
-}
-
 void EnemyBoss::TakeDamage(float damage, AttackType type)
 {
     EnemyBase::TakeDamage(damage, type);
@@ -428,6 +557,19 @@ void EnemyBoss::DrawCollisionDebug() const
     if (m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
     {
          DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0x0000ff);
+    }
+
+    // 遠距離攻撃有効範囲（紫色）
+    // プレイヤーとの距離がこの範囲外なら遠距離攻撃を行う
+    DebugUtil::DrawSphere(m_pos, kLongRangeAttackMinDist, 32, 0xff00ff);
+
+    // ホーミング弾のデバッグ（黄色）
+    for (const auto& bullet : m_homingBullets)
+    {
+        if (bullet.active)
+        {
+             DebugUtil::DrawSphere(bullet.pos, kHomingBulletRadius, 8, 0xffff00);
+        }
     }
 }
 

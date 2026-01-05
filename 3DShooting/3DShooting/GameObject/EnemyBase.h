@@ -57,6 +57,7 @@ public:
 		Back,    // 後退
 		Run,     // 走行
 		Attack,  // 攻撃
+		LongRangeAttack, // 遠距離攻撃
 		Dead     // 死亡
 	};
 
