@@ -74,6 +74,7 @@ WaveManager::WaveManager() :
     EnemyNormal::LoadModel();
     EnemyRunner::LoadModel();
     EnemyAcid::LoadModel();
+    EnemyBoss::LoadModel();
 
     // ウェーブ画像の読み込み
     m_waveImages[0] = LoadGraph("data/image/wave1.png");
@@ -87,6 +88,7 @@ WaveManager::~WaveManager()
     EnemyNormal::DeleteModel();
     EnemyRunner::DeleteModel();
     EnemyAcid::DeleteModel();
+    EnemyBoss::DeleteModel();
 
 	// 画像の解放
 	for (int i = 0; i < 3; ++i)

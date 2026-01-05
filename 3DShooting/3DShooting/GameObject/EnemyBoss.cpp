@@ -6,7 +6,7 @@
 #include "ScoreManager.h"
 #include "SphereCollider.h"
 #include "CapsuleCollider.h"
-#include "TransformDataLoader.h" // Added
+#include "TransformDataLoader.h"
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -20,12 +20,10 @@ namespace
     constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack"; // 遠距離攻撃
     constexpr char kDeadAnimName[]        = "DEAD";
 
-    // ...
-
     constexpr float kLongRangeAttackMinDist = 300.0f; // 遠距離攻撃を行う最小距離
     constexpr int   kLongRangeAttackCooldownMax = 120;
     constexpr float kHomingBulletSpeed =6.0f;
-    constexpr float kHomingTurnRate = 0.05f; // 旋回性能
+    constexpr float kHomingTurnRate = 0.02f; // 旋回性能
     constexpr float kHomingBulletMaxDist = 1500.0f; // 弾の最大飛距離
     constexpr float kHomingBulletDamage = 20.0f;
     constexpr float kHomingBulletRadius = 15.0f;
@@ -43,23 +41,33 @@ namespace
     constexpr int kAttackEndDelay    = 30; // 攻撃後の硬直
 }
 
+int EnemyBoss::s_modelHandle = -1;
+
+void EnemyBoss::LoadModel()
+{
+    s_modelHandle = MV1LoadModel("data/model/Boss.mv1");
+    assert(s_modelHandle != -1);
+}
+
+void EnemyBoss::DeleteModel()
+{
+    MV1DeleteModel(s_modelHandle);
+    s_modelHandle = -1;
+}
+
 EnemyBoss::EnemyBoss() :
     m_currentAnimState(AnimState::Idle),
     m_isDeadAnimPlaying(false),
     m_animTime(0.0f),
     m_chaseSpeed(kChaseSpeed),
     m_attackEndDelayTimer(0),
-    m_isAttackHit(false)
+    m_isAttackHit(false),
+    m_headNodeIndex(-1),
+    m_headTopEndNodeIndex(-1),
+    m_handRNodeIndex(-1),
+    m_handLNodeIndex(-1)
 {
-    m_modelHandle = MV1LoadModel("data/model/Boss.mv1");
-    // モデル読み込み失敗時はアサート
-    // assert(m_modelHandle != -1); 
-    // ※実機でアサートすると止まるので、エラーログを出して続行制御などは本来必要
-    if (m_modelHandle == -1)
-    {
-        // 読み込み失敗時のフォールバックやエラー処理
-        // ここでは一旦そのままスルー（描画されないだけ）
-    }
+    m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
     // コライダー初期化
     m_pBodyCollider        = std::make_shared<CapsuleCollider>();
@@ -101,6 +109,13 @@ void EnemyBoss::Init()
     m_pos = VGet(0.0f, 0.0f, 1000.0f); 
     MV1SetPosition(m_modelHandle, m_pos);
     
+    // フレームインデックスのキャッシュ
+    m_headNodeIndex       = MV1SearchFrame(m_modelHandle, "Head");
+    m_headTopEndNodeIndex = MV1SearchFrame(m_modelHandle, "mixamorig:HeadTop_End");
+    // 手は未使用なら検索しなくてもよいが、念のため
+    m_handRNodeIndex      = MV1SearchFrame(m_modelHandle, "Hand_R");
+    m_handLNodeIndex      = MV1SearchFrame(m_modelHandle, "Hand_L");
+
     // 攻撃範囲コライダー設定
     m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
@@ -239,11 +254,10 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         if (!m_hasShotLongRange && m_animTime > totalTime * 0.3f)
         {
              // 弾生成
-             int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:HeadTop_End");
              VECTOR spawnPos = m_pos;
-             if (headIndex != -1)
+             if (m_headTopEndNodeIndex != -1)
              {
-                 spawnPos = MV1GetFramePosition(m_modelHandle, headIndex);
+                 spawnPos = MV1GetFramePosition(m_modelHandle, m_headTopEndNodeIndex);
              }
              else
              {
@@ -261,10 +275,14 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
              bullet.speed = kHomingBulletSpeed;
              
              // エフェクトがあればここで再生しハンドル保持
-             if (pEffect)
-             {
-                 // bullet.effectHandle = pEffect->PlaySomething(...) 
-             }
+             //if (pEffect)
+             //{
+             //    // マズルフラッシュ（射撃時の一瞬のエフェクト）
+             //    pEffect->PlayMuzzleFlash(spawnPos.x, spawnPos.y, spawnPos.z, 0, 0, 0);
+
+             //    // 弾自体のエフェクト（酸エフェクトを流用）
+             //    bullet.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
+             //}
 
              m_homingBullets.push_back(bullet);
              m_hasShotLongRange = true;
@@ -349,9 +367,9 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         bullet.distTraveled += bullet.speed;
 
         // エフェクト更新(あれば)
-        //if (pEffect)
+        //if (bullet.effectHandle != -1)
         //{
-        //     pEffect->PlayEnemyMuzzleEffect(bullet.pos.x, bullet.pos.y, bullet.pos.z);
+        //     SetPosPlayingEffekseer3DEffect(bullet.effectHandle, bullet.pos.x, bullet.pos.y, bullet.pos.z);
         //}
 
         // 当たり判定 (擬似球)
@@ -361,16 +379,34 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         {
             const_cast<Player&>(player).TakeDamage(bullet.damage, m_pos);
             bullet.active = false; // ヒットしたら消滅
+             //if (bullet.effectHandle != -1)
+             //{
+             //    StopEffekseer3DEffect(bullet.effectHandle);
+             //    bullet.effectHandle = -1;
+             //}
         }
 
         // 最大飛距離チェック
         if (bullet.distTraveled > kHomingBulletMaxDist)
         {
             bullet.active = false;
+             //if (bullet.effectHandle != -1)
+             //{
+             //    StopEffekseer3DEffect(bullet.effectHandle);
+             //    bullet.effectHandle = -1;
+             //}
         }
 
         // 地面接触で消滅
-        if (bullet.pos.y < 0) bullet.active = false;
+        if (bullet.pos.y < 0) 
+        {
+            bullet.active = false;
+             //if (bullet.effectHandle != -1)
+             //{
+             //    StopEffekseer3DEffect(bullet.effectHandle);
+             //    bullet.effectHandle = -1;
+             //}
+        }
     }
     
     // 不要な弾を削除
@@ -405,29 +441,23 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     m_pBodyCollider->SetRadius(kBodyColliderRadius);
 
     // コライダー更新(Head)
-    int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:HeadTop_End");
-    if (headIndex != -1)
+    if (m_headTopEndNodeIndex != -1)
     {
-        VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
+        VECTOR headPos = MV1GetFramePosition(m_modelHandle, m_headTopEndNodeIndex);
         m_pHeadCollider->SetCenter(headPos);
         m_pHeadCollider->SetRadius(kHeadRadius);
     }
+    else if (m_headNodeIndex != -1)
+    {
+         VECTOR headPos = MV1GetFramePosition(m_modelHandle, m_headNodeIndex);
+         m_pHeadCollider->SetCenter(headPos);
+         m_pHeadCollider->SetRadius(kHeadRadius);
+    }
     else
     {
-        // 見つからない場合は"Head"で再検索
-        headIndex = MV1SearchFrame(m_modelHandle, "Head");
-        if (headIndex != -1)
-        {
-             VECTOR headPos = MV1GetFramePosition(m_modelHandle, headIndex);
-             m_pHeadCollider->SetCenter(headPos);
-             m_pHeadCollider->SetRadius(kHeadRadius);
-        }
-        else
-        {
-             // 頭が見つからない場合のフォールバック（体の上の方）
-             m_pHeadCollider->SetCenter(VAdd(m_pos, VGet(0, kBodyColliderHeight, 0)));
-             m_pHeadCollider->SetRadius(kHeadRadius);
-        }
+         // 頭が見つからない場合のフォールバック（体の上の方）
+         m_pHeadCollider->SetCenter(VAdd(m_pos, VGet(0, kBodyColliderHeight, 0)));
+         m_pHeadCollider->SetRadius(kHeadRadius);
     }
 
 
@@ -500,6 +530,17 @@ void EnemyBoss::Draw()
 #ifdef _DEBUG
     DrawCollisionDebug();
 #endif
+
+    // ホーミング弾の描画（リリースでも表示）
+    // 黄色い球で表示 エフェクト代わり
+    for (const auto& bullet : m_homingBullets)
+    {
+        if (bullet.active)
+        {
+             // DebugUtilではなくDxLibの標準関数を使用
+             DrawSphere3D(bullet.pos, kHomingBulletRadius, 8, 0xffff00, 0xffff00, TRUE);
+        }
+    }
 }
 
 void EnemyBoss::TakeDamage(float damage, AttackType type)
@@ -563,14 +604,7 @@ void EnemyBoss::DrawCollisionDebug() const
     // プレイヤーとの距離がこの範囲外なら遠距離攻撃を行う
     DebugUtil::DrawSphere(m_pos, kLongRangeAttackMinDist, 32, 0xff00ff);
 
-    // ホーミング弾のデバッグ（黄色）
-    for (const auto& bullet : m_homingBullets)
-    {
-        if (bullet.active)
-        {
-             DebugUtil::DrawSphere(bullet.pos, kHomingBulletRadius, 8, 0xffff00);
-        }
-    }
+
 }
 
 bool EnemyBoss::CanAttackPlayer(const Player& player)

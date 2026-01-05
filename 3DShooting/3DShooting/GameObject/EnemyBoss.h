@@ -18,6 +18,10 @@ public:
 	EnemyBoss();
 	virtual ~EnemyBoss();
 
+	// モデルロード・アンロード
+	static void LoadModel();
+	static void DeleteModel();
+
 	void Init() override;
 	void Update(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect = nullptr) override;
 	void Draw() override;
@@ -56,10 +60,18 @@ private:
 	bool CanAttackPlayer(const Player& player);
 
 private:
+	static int s_modelHandle;
+
 	AnimationManager m_animationManager; // アニメーション管理
 	AnimState m_currentAnimState;        // 現在のアニメーション状態
 	bool m_isDeadAnimPlaying;            // 死亡アニメーション再生中フラグ
 	float m_animTime;                    // アニメーションの経過時間
+
+	// フレームインデックスキャッシュ
+	int m_headNodeIndex;
+	int m_headTopEndNodeIndex;
+	int m_handRNodeIndex;
+	int m_handLNodeIndex;
 
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider;        // 体の当たり判定
 	std::shared_ptr<SphereCollider>  m_pHeadCollider;        // 頭の当たり判定
