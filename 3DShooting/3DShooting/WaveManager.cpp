@@ -112,11 +112,8 @@ void WaveManager::Init()
     // スポーンエリアデータをロード
     LoadSpawnAreaData();
 
-// (Previous code snippet around line 88 for deleting boss model if needed?)
     EnemyAcid::DeleteModel();
-    // EnemyBoss::DeleteModel() is handled by its destructor, but if there's a static LoadModel/DeleteModel... Boss doesn't have static LoadModel. It loads in constructor. So calling delete on pool elements is enough which happens when pool is cleared. But wait, checking Init.
     
-// (Inside Init)
     // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
     std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
     for (const auto& wave : m_waveDataList)
@@ -134,7 +131,6 @@ void WaveManager::Init()
     for (const auto& [wave, cnt] : bossPerWave)   maxBoss = (std::max)(maxBoss, cnt);
 
     // その数だけ各プールを確保
-    // ... (Normal, Runner, Acid loops)
     for (int i = m_enemyAcidPool.size(); i < maxAcid; ++i)
     {
         auto pEnemy = std::make_shared<EnemyAcid>();
@@ -208,9 +204,6 @@ void WaveManager::Init()
         }
     });
 }
-
-
-
 
 void WaveManager::Update()
 {
@@ -293,7 +286,6 @@ void WaveManager::Update()
 // GetEnemyListをアクティブな敵のみ返すようにする
 void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect)
 {
-    // First, create a list of all active enemies
     std::vector<EnemyBase*> activeEnemies;
     for (auto& pEnemy : m_enemyNormalPool) 
     {
@@ -312,7 +304,6 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
         if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
     }
 
-    // Now, update each enemy, providing them with the list of other enemies
     for (auto& pEnemy : m_enemyNormalPool)
     {
 		// アクティブで生存している敵のみ更新
@@ -959,10 +950,6 @@ void WaveManager::DrawDebugSpawnAreas(bool isTutorial)
 {
     if (!s_isDrawSpawnAreas) return;
 
-    // 3D描画設定を保存（必要であれば）
-    // DrawCube3Dはデフォルトでライティングの影響を受けるが、デバッグ用なので
-    // SetUseLighting(FALSE) してもいいが、影響範囲が大きいのでそのままにする。
-    
     for (const auto& area : m_spawnAreaList)
     {
         // ステージに合致しないエリアはスキップ
@@ -975,12 +962,21 @@ void WaveManager::DrawDebugSpawnAreas(bool isTutorial)
 
         // 色決定 (Typeによって変える)
         unsigned int color;
-        if (area.type == 0)      color = GetColor(0, 0, 255);   // Main: Blue
-        else if (area.type == 1) color = GetColor(255, 255, 0); // Tutorial: Yellow
-        else                     color = GetColor(255, 255, 255);
+        if (area.type == 0)
+        {
+            color = 0x0000ff;
+        }
+        else if (area.type == 1)
+        {
+            color = 0xffff00;
+        }
+        else
+        {
+            color = 0xffffff;
+        }
 
-        // ワイヤーフレームで描画 (最後の引数 false で塗りつぶしなし)
-        DrawCube3D(minPos, maxPos, color, color, FALSE);
+        // ワイヤーフレームで描画
+        DrawCube3D(minPos, maxPos, color, color, false);
     }
 }
 

@@ -57,40 +57,40 @@ public:
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
     /// <summary>
-	/// モデルハンドルを取得する
+    /// モデルハンドルを取得する
     /// </summary>
-	/// <returns>モデルハンドル</returns>
+    /// <returns>モデルハンドル</returns>
     int GetModelHandle() const { return m_modelHandle; }
 
     /// <summary>
-	/// ダメージを受ける処理
+    /// ダメージを受ける処理
     /// </summary>
-	/// <param name="damage">受けるダメージ量</param>
-	/// <param name="type">攻撃の種類</param>
+    /// <param name="damage">受けるダメージ量</param>
+    /// <param name="type">攻撃の種類</param>
     void TakeDamage(float damage, AttackType type) override;
 
     /// <summary>
-	/// タックルダメージを受ける処理 
+    /// タックルダメージを受ける処理 
     /// </summary>
-	/// <param name="damage">受けるダメージ量</param>
+    /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
     /// <summary>
-	/// モデルの読み込み(共有)
+    /// モデルの読み込み(共有)
     /// </summary>
     static void LoadModel();
 
     /// <summary>
-	/// モデルの解放(共有)
-	/// </summary>
-	static void DeleteModel();
+    /// モデルの解放(共有)
+    /// </summary>
+    static void DeleteModel();
 
-	/// <summary>
-	/// ボディコライダーを取得する
-	/// </summary>
-	/// <returns>ボディコライダー</returns>
-	std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
-    
+    /// <summary>
+    /// ボディコライダーを取得する
+    /// </summary>
+    /// <returns>ボディコライダー</returns>
+    std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
+
     /// <summary>
     /// パリィされた時に呼び出される
     /// </summary>
@@ -103,61 +103,61 @@ public:
 
 private:
 
-	/// <summary>
-	/// 酸の弾構造体
-	/// </summary>
-	struct AcidBall
-	{
-		VECTOR pos; // 弾の位置
-		VECTOR dir; // 弾の進行方向
+    /// <summary>
+    /// 酸の弾構造体
+    /// </summary>
+    struct AcidBall
+    {
+        VECTOR pos; // 弾の位置
+        VECTOR dir; // 弾の進行方向
 
-		bool active = false;
-		float radius = 12.0f;
-		float damage = 0.0f;
-		float speed = 5.0f; // 弾の速度
-		int effectHandle = -1;
-		bool isReflected = false; // パリィで反射されたか
-		EnemyBase* owner = nullptr; // この弾の所有者
+        bool active = false;
+        float radius = 12.0f;
+        float damage = 0.0f;
+        float speed = 5.0f; // 弾の速度
+        int effectHandle = -1;
+        bool isReflected = false; // パリィで反射されたか
+        EnemyBase* owner = nullptr; // この弾の所有者
 
-		void Update()
-		{
-			if (!active) return;
+        void Update()
+        {
+            if (!active) return;
 
-			// 反射された弾はオーナーを追尾する
-			if (isReflected && owner)
-			{
-				VECTOR targetPos = owner->GetPos();
-				// 敵の中心あたりを狙うオフセット
-				targetPos.y += 50.0f;
-				VECTOR newDir = VNorm(VSub(targetPos, pos));
-				dir = newDir;
-			}
+            // 反射された弾はオーナーを追尾する
+            if (isReflected && owner)
+            {
+                VECTOR targetPos = owner->GetPos();
+                // 敵の中心あたりを狙うオフセット
+                targetPos.y += 50.0f;
+                VECTOR newDir = VNorm(VSub(targetPos, pos));
+                dir = newDir;
+            }
 
-			pos = VAdd(pos, VScale(dir, speed));
-			if (pos.y < 0.0f) active = false; // 地面で消滅
-		}
-	};
+            pos = VAdd(pos, VScale(dir, speed));
+            if (pos.y < 0.0f) active = false; // 地面で消滅
+        }
+    };
 
     /// <summary>
-	/// アニメーションを変更する
+    /// アニメーションを変更する
     /// </summary>
-	/// <param name="newAnimState">新しいアニメーション状態</param>
-	/// <param name="loop">ループ再生するかどうか</param>
+    /// <param name="newAnimState">新しいアニメーション状態</param>
+    /// <param name="loop">ループ再生するかどうか</param>
     void ChangeAnimation(AnimState newAnimState, bool loop);
 
     /// <summary>
-	/// プレイヤーに攻撃可能かどうかを判定する
+    /// プレイヤーに攻撃可能かどうかを判定する
     /// </summary>
-	/// <param name="player">プレイヤーオブジェクト</param>
-	/// <returns>攻撃可能ならtrue</returns>
+    /// <param name="player">プレイヤーオブジェクト</param>
+    /// <returns>攻撃可能ならtrue</returns>
     bool CanAttackPlayer(const Player& player);
 
     /// <summary>
-	/// 酸を吐く攻撃を行う
+    /// 酸を吐く攻撃を行う
     /// </summary>
-	/// <param name="bullets">弾のリスト</param>
-	/// <param name="player">プレイヤーオブジェクト</param>
-	/// <param name="pEffect">エフェクトオブジェクト</param>
+    /// <param name="bullets">弾のリスト</param>
+    /// <param name="player">プレイヤーオブジェクト</param>
+    /// <param name="pEffect">エフェクトオブジェクト</param>
     void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect);
 
 private:
@@ -172,7 +172,7 @@ private:
     std::function<void(const VECTOR&)> m_onDropItem; // アイテムドロップコールバック
 
     int m_attackEndDelayTimer; // 攻撃後の硬直時間
-	int m_backAnimCount;       // 後退アニメーションのカウント
+    int m_backAnimCount;       // 後退アニメーションのカウント
     int m_lastTackleId;        // 最後にタックルを受けたID
 
     float m_animTime;   // 現在のアニメーション再生時間

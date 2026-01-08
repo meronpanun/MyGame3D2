@@ -36,7 +36,7 @@ public:
 	// タックルヒットフラグのリセット
 	void ResetTackleHitFlag() override { m_isTackleHit = false; }
 
-	// 衝突判定 CheckHitPart override
+	// 衝突判定
 	HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const override;
 
 protected:

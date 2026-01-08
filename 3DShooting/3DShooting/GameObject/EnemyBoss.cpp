@@ -15,20 +15,20 @@ namespace
 {
     // アニメーション名
     // constexpr char kIdleAnimName[]        = "IDLE"; 
-    constexpr char kWalkAnimName[]        = "Armature|Run"; 
-    constexpr char kCloseAttackAnimName[] = "Armature|CloseRangeAttack"; // 近接範囲攻撃
-    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack"; // 遠距離攻撃
-    constexpr char kDeadAnimName[]        = "Armature|Death";
+    constexpr char kWalkAnimName[]            = "Armature|Run"; 
+    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // 近接範囲攻撃
+    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // 遠距離攻撃
+    constexpr char kDeadAnimName[]            = "Armature|Death";
 
     constexpr float kLongRangeAttackMinDist = 300.0f; // 遠距離攻撃を行う最小距離
     constexpr int   kLongRangeAttackCooldownMax = 120;
-    constexpr float kHomingBulletSpeed =6.0f;
-    constexpr float kHomingTurnRate = 0.02f; // 旋回性能
+    constexpr float kHomingBulletSpeed   = 6.0f;
+    constexpr float kHomingTurnRate      = 0.02f;   // 旋回性能
     constexpr float kHomingBulletMaxDist = 1500.0f; // 弾の最大飛距離
-    constexpr float kHomingBulletDamage = 20.0f;
-    constexpr float kHomingBulletRadius = 15.0f;
-    constexpr float kDefaultInitialHP = 5000.0f; // ボスの初期体力
-    constexpr float kChaseSpeed       = 1.5f;    // 追跡速度
+    constexpr float kHomingBulletDamage  = 20.0f;
+    constexpr float kHomingBulletRadius  = 15.0f;
+    constexpr float kDefaultInitialHP    = 5000.0f; // ボスの初期体力
+    constexpr float kChaseSpeed          = 1.5f;    // 追跡速度
 
     // コライダーサイズ
     constexpr float kBodyColliderRadius = 40.0f;
@@ -37,7 +37,7 @@ namespace
     constexpr float kAttackRangeRadius  = 150.0f; // 指定された近接範囲
     constexpr float kAttackHitRadius    = 60.0f;  // 攻撃自体の当たり判定
 
-    constexpr int kAttackCooldownMax = 60;
+    constexpr int kAttackCooldownMax = 60; 
     constexpr int kAttackEndDelay    = 30; // 攻撃後の硬直
 }
 
@@ -56,7 +56,7 @@ void EnemyBoss::DeleteModel()
 }
 
 EnemyBoss::EnemyBoss() :
-    m_currentAnimState(AnimState::Walk), // 初期状態をWalk(Run)に
+    m_currentAnimState(AnimState::Walk),
     m_isDeadAnimPlaying(false),
     m_animTime(0.0f),
     m_chaseSpeed(kChaseSpeed),
@@ -94,9 +94,9 @@ void EnemyBoss::Init()
         {
             MV1SetRotationXYZ(m_modelHandle, data.rot);
             MV1SetScale(m_modelHandle, data.scale);
-            m_attackPower = data.attack; // EnemyBaseにm_attackPowerがある前提
+            m_attackPower = data.attack;
             m_hp = data.hp;
-            m_chaseSpeed = data.chaseSpeed; // データ定義にあるspeedを使用
+            m_chaseSpeed = data.chaseSpeed;
             break;
         }
     }
@@ -215,7 +215,6 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     // 状態遷移ロジック
     if (m_currentAnimState == AnimState::Attack)
     {
-        // ... (Existing Close Range Attack Logic) ...
         // 攻撃中
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kCloseAttackAnimName);
         
@@ -250,7 +249,7 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     {
         float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, kLongRangeAttackAnimName);
         
-        // 弾生成タイミング (例えばアニメーションの30%時点)
+        // 弾生成タイミング
         if (!m_hasShotLongRange && m_animTime > totalTime * 0.3f)
         {
              // 弾生成
