@@ -112,8 +112,6 @@ void WaveManager::Init()
     // スポーンエリアデータをロード
     LoadSpawnAreaData();
 
-    EnemyAcid::DeleteModel();
-    
     // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
     std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
     for (const auto& wave : m_waveDataList)
@@ -124,6 +122,7 @@ void WaveManager::Init()
         if (wave.enemyType == "Boss")        bossPerWave[wave.wave] += wave.count;
     }
     int maxNormal = 0, maxRunner = 0, maxAcid = 0, maxBoss = 0;
+
     // 各ウェーブでの最大出現数を計算
     for (const auto& [wave, cnt] : normalPerWave) maxNormal = (std::max)(maxNormal, cnt);
     for (const auto& [wave, cnt] : runnerPerWave) maxRunner = (std::max)(maxRunner, cnt);
