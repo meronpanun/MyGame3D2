@@ -43,7 +43,6 @@ int EnemyNormal::s_modelHandle = -1;
 EnemyNormal::EnemyNormal() :
     m_headPosOffset{ kHeadShotPositionOffset },
     m_isTackleHit(false),
-    m_lastTackleId(-1),
     m_animTime(0.0f),
     m_isAttackHit(false),
     m_onDropItem(nullptr),
@@ -455,6 +454,10 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
             TakeTackleDamage(tackleInfo.damage);
             m_lastTackleId = tackleInfo.tackleId;
         }
+    }
+    else if (!tackleInfo.isTackling)
+    {
+        m_lastTackleId = -1;
     }
 
     if (m_hitDisplayTimer > 0)

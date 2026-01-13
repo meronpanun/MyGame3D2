@@ -40,7 +40,6 @@ int EnemyRunner::s_modelHandle = -1;
 EnemyRunner::EnemyRunner() :
 	m_headPosOffset{ kHeadShotPositionOffset },
 	m_isTackleHit(false),
-	m_lastTackleId(-1),
 	m_animTime(0.0f),
 	m_isAttackHit(false),
 	m_onDropItem(nullptr),
@@ -435,6 +434,10 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 			TakeTackleDamage(tackleInfo.damage);
 			m_lastTackleId = tackleInfo.tackleId;
 		}
+	}
+	else if (!tackleInfo.isTackling)
+	{
+		m_lastTackleId = -1;
 	}
 
 	if (m_hitDisplayTimer > 0)

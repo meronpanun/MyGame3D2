@@ -90,6 +90,11 @@ public:
 	virtual bool IsAlive() const { return m_isAlive; }
 	
 	/// <summary>
+	/// ボスかどうか
+	/// </summary>
+	virtual bool IsBoss() const { return false; }
+	
+	/// <summary>
 	/// 位置取得
 	/// </summary>
 	/// <returns>敵の位置</returns>
@@ -106,6 +111,22 @@ public:
 	/// </summary>
 	/// <param name="hp">体力</param>
 	virtual void SetHp(float hp) { m_hp = hp; }
+
+	/// <summary>
+	/// 最大体力設定
+	/// </summary>
+	/// <param name="hp">体力</param>
+	virtual void SetMaxHp(float hp) { m_maxHp = hp; }
+
+	/// <summary>
+	/// 体力取得
+	/// </summary>
+	float GetHp() const { return m_hp; }
+
+	/// <summary>
+	/// 最大体力取得
+	/// </summary>
+	float GetMaxHp() const { return m_maxHp; }
 	
 	/// <summary>
 	/// 死亡コールバックを設定する
@@ -209,8 +230,10 @@ protected:
     int   m_attackCooldown;    // 攻撃クールダウンタイマー
     int   m_attackCooldownMax; // 攻撃クールダウンの最大値
     int   m_attackHitFrame;    // 攻撃ヒットフレーム
+    int   m_lastTackleId;      // 最後にタックルを受けたID
 	
     float m_hp;              // 体力
+    float m_maxHp;           // 最大体力
     float m_attackPower;     // 攻撃力
 	
     bool  m_isAlive;         // 生存状態フラグ

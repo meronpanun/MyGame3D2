@@ -173,7 +173,6 @@ private:
 
     int m_attackEndDelayTimer; // 攻撃後の硬直時間
     int m_backAnimCount;       // 後退アニメーションのカウント
-    int m_lastTackleId;        // 最後にタックルを受けたID
 
     float m_animTime;   // 現在のアニメーション再生時間
     float m_chaseSpeed; // 追跡速度

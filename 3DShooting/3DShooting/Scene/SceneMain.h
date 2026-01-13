@@ -22,6 +22,7 @@ class WaveManager;
 class Effect;
 class DirectionIndicator;
 class AnimationManager;
+class BossUI;
 
 /// <summary>
 /// メインシーンクラス
@@ -112,6 +113,7 @@ private:
     std::vector<std::shared_ptr<ItemBase>> m_items;
 
     std::unique_ptr<DirectionIndicator> m_pDirectionIndicator;
+	std::unique_ptr<BossUI> m_pBossUI;
 
     // 状態管理
     bool  m_isPaused;                  // 一時停止中か

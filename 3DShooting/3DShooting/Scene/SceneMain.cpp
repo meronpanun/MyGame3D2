@@ -24,6 +24,7 @@
 #include "DirectionIndicator.h"
 #include "ShellCasing.h"
 #include "AnimationManager.h"
+#include "BossUI.h"
 #include <cstdio>
 #include <cassert>
 #include <algorithm>
@@ -226,6 +227,9 @@ void SceneMain::Init()
 	// プレイヤーに方向インジケーターを設定
 	m_pPlayer->SetDirectionIndicator(m_pDirectionIndicator.get());
 	
+	// ボスUIの作成
+	m_pBossUI = std::make_unique<BossUI>();
+
 	// Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
 	m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
 
@@ -873,6 +877,12 @@ void SceneMain::Draw()
     m_pWaveManager->DrawDebugInfo();
 #endif // DEBUG
     
+	// ボスUIの描画
+	if (m_pBossUI)
+	{
+		m_pBossUI->Draw(m_pWaveManager->GetEnemyList());
+	}
+
     if (m_isPaused)
     {
         DrawPauseMenu();

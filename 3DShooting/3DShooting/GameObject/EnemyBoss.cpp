@@ -84,6 +84,7 @@ EnemyBoss::~EnemyBoss()
 void EnemyBoss::Init()
 {
     m_hp = kDefaultInitialHP;
+    m_maxHp = kDefaultInitialHP;
     m_chaseSpeed = kChaseSpeed;
 
     // CSVからデータをロード
@@ -96,6 +97,7 @@ void EnemyBoss::Init()
             MV1SetScale(m_modelHandle, data.scale);
             m_attackPower = data.attack;
             m_hp = data.hp;
+            m_maxHp = data.hp;
             m_chaseSpeed = data.chaseSpeed;
             break;
         }
@@ -512,19 +514,18 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     CheckHitAndDamage(bullets, pEffect);
     
     // タックル判定
-    if (tackleInfo.isTackling && m_hp > 0.0f)
+    if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
-        if (!m_isTackleHit) // まだヒットしてない場合のみ
+        CapsuleCollider tackleCol(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
+        if (m_pBodyCollider->IsIntersects(&tackleCol))
         {
-             CapsuleCollider tackleCol(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
-             if (m_pBodyCollider->IsIntersects(&tackleCol))
-             {
-                 TakeTackleDamage(tackleInfo.damage);
-                 // m_isTackleHit = true; // TakeTackleDamage内でフラグ管理されるかもだが念のため
-                 // EnemyNormalでは m_lastTackleId で管理していたのでそちらに合わせるのもありだが、
-                 // Baseクラスの仕様に従う
-             }
+            TakeTackleDamage(tackleInfo.damage);
+            m_lastTackleId = tackleInfo.tackleId;
         }
+    }
+    else if (!tackleInfo.isTackling)
+    {
+        m_lastTackleId = -1;
     }
 }
 

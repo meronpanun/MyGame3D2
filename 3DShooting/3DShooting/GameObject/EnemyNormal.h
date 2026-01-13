@@ -111,9 +111,8 @@ private:
     std::function<void(const VECTOR&)> m_onDropItem;
 
     AnimState        m_currentAnimState; // 現在のアニメーション状態
-    AnimationManager m_animationManager; // EnemyNormalがアニメーションマネージャーを所有
+    AnimationManager m_animationManager; // EnemyNormal가 애니메이션マネージャーを所有
 
-    int m_lastTackleId;        // 最後にタックルを受けたID
 	int m_attackEndDelayTimer; // 攻撃終了までの遅延タイマー
 
     float m_animTime;   // アニメーションの経過時間
