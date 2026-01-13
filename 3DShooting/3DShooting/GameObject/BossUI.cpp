@@ -109,7 +109,7 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
 	DrawBox(barX, barY, barX + kBossHpBarWidth, barY + kBossHpBarHeight, kColorHpBarBorder, false);
 
 	// ボス名テキスト
-	const char* bossName = "グロウガルド";
+	const char* bossName = "BOSS";
 	int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_fontHandle);
 	DrawStringToHandle((screenW - textW) / 2, kBossHpTextY, bossName, kColorWhite, m_fontHandle);
 }
