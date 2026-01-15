@@ -34,6 +34,9 @@ namespace
 	constexpr float kRunLandingShakeIntensity      = 1.0f; // ベースシェイク強度
 	constexpr float kRunLandingShakeVelocityFactor = 0.2f; // 速度によるシェイク加算係数
 	constexpr int   kRunLandingShakeDuration       = 5;   // シェイク持続時間（フレーム）
+
+	// 空中制御
+	constexpr float kAirControlFactor = 1.0f; // 空中での操作の効き具合
 }
 
 PlayerMovement::PlayerMovement() :
@@ -47,7 +50,9 @@ PlayerMovement::PlayerMovement() :
 	m_isWasRunning(false),
 	m_isGroundedOnStage(false),
 	m_isRunJumping(false),
+	m_isJumpInertiaActive(false),
 	m_jumpVelocity(0.0f),
+	m_jumpMoveVelocity(VGet(0, 0, 0)),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>())
 {
 }
@@ -209,6 +214,15 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			m_jumpVelocity = isRunning ? kRunJumpPower : kJumpPower;
 			m_isJumping = true;
 			m_isRunJumping = isRunning;
+			
+			// 移動入力がある場合は慣性移動を有効化（歩き・ダッシュ共通）
+			if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+			{
+				m_isJumpInertiaActive = true;
+				float currentSpeed = isRunning ? m_runSpeed : m_moveSpeed;
+				m_jumpMoveVelocity = VScale(moveDir, currentSpeed);
+			}
+
 			if (pCamera)
 			{
 				pCamera->ApplyJumpSway(kJumpSwayPower);
@@ -246,18 +260,88 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 					}
 				}
 				m_isRunJumping = false;
+				m_isJumpInertiaActive = false;
 			}
 		}
 
 		// 移動方向がある場合（死亡中は移動不可）
-		if (!isDead && (moveDir.x != 0.0f || moveDir.z != 0.0f))
+		if (!isDead)
 		{
-			// 移動方向の長さを計算
-			float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
-			moveDir.x /= len;
-			moveDir.z /= len;
-			m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
-			isMoving = true;
+			// ジャンプ慣性移動中はキー入力を無視して移動
+			if (m_isJumpInertiaActive)
+			{
+				// 慣性移動
+				m_modelPos = VAdd(m_modelPos, m_jumpMoveVelocity);
+
+				// 空中操作（Air Control）
+				if ((moveDir.x != 0.0f || moveDir.z != 0.0f) && pCamera)
+				{
+					// 正規化
+					float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
+					if (len > 0.0f)
+					{
+						moveDir.x /= len;
+						moveDir.z /= len;
+
+						float currentSpeed = isRunning ? m_runSpeed : m_moveSpeed;
+						float inertiaSpeed = VSize(m_jumpMoveVelocity);
+
+						VECTOR finalControl = VGet(0, 0, 0);
+
+						// 慣性がある場合
+						if (inertiaSpeed > 0.1f)
+						{
+							// カメラの前方・右ベクトルを取得
+							float yaw = pCamera->GetYaw();
+							VECTOR camFwd = VGet(sinf(yaw), 0.0f, cosf(yaw));
+							VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f, cosf(yaw + DX_PI_F * 0.5f));
+
+							// 入力を成分分解
+							// moveDirは既に正規化されている
+							float dotFwd = VDot(moveDir, camFwd);
+							float dotRight = VDot(moveDir, camRight);
+
+							// 1. 横入力（A/D）はそのまま適用（Strafing）
+							VECTOR sideForce = VScale(camRight, dotRight * currentSpeed * kAirControlFactor);
+							finalControl = VAdd(finalControl, sideForce);
+
+							// 2. 前方入力（W/S）の処理
+							// 慣性方向の単位ベクトル
+							VECTOR inertiaDir = VScale(m_jumpMoveVelocity, 1.0f / inertiaSpeed);
+
+							// 前方入力ベクトル（ステアリング成分含む）
+							VECTOR fwdForceRaw = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor);
+
+							// 前方入力を慣性方向に射影（平行成分のみ抽出、垂直成分＝ステアリングを破棄）
+							float fwdProjDot = VDot(fwdForceRaw, inertiaDir);
+							VECTOR fwdForceProj = VScale(inertiaDir, fwdProjDot);
+
+							// 加速（同方向）は無視、減速（逆方向）のみ適用
+							if (fwdProjDot < 0.0f)
+							{
+								finalControl = VAdd(finalControl, fwdForceProj);
+							}
+						}
+						else
+						{
+							// 慣性がない場合は自由移動
+							finalControl = VScale(moveDir, currentSpeed * kAirControlFactor);
+						}
+
+						m_modelPos = VAdd(m_modelPos, finalControl);
+					}
+				}
+				isMoving = true;
+			}
+			else if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+			{
+				// 移動方向の長さを計算
+				float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
+				moveDir.x /= len;
+				moveDir.z /= len;
+				m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
+				isMoving = true;
+			}
 		}
 
 		m_isMoving = isMoving;
@@ -293,6 +377,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			}
 		}
 		m_isRunJumping = false;
+		m_isJumpInertiaActive = false;
         m_jumpVelocity = 0.0f;
         m_isJumping = false;
     }

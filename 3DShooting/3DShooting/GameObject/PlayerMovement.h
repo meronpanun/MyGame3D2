@@ -94,8 +94,10 @@ private:
 	bool m_isWasRunning;
 	bool m_isGroundedOnStage;
 	bool m_isRunJumping;
+	bool m_isJumpInertiaActive;
 
 	float m_jumpVelocity;
+	VECTOR m_jumpMoveVelocity;
 
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider;
 };
