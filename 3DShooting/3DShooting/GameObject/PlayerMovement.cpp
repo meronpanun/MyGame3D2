@@ -9,13 +9,13 @@
 namespace
 {
 	// 重力とジャンプ関連
-	constexpr float kGravity   = 0.35f;
-	constexpr float kJumpPower = 7.0f;
+	constexpr float kGravity   = 0.25f;
+	constexpr float kJumpPower = 12.0f;
 
 	// 飛行モード関連
 	constexpr float kFlightAscendSpeed  = 8.0f;  // 上昇速度
 	constexpr float kFlightDescendSpeed = 8.0f;  // 下降速度
-	constexpr float kFlightAccelMultiplier = 2.0f; // 飛行モード中の加速倍率
+	constexpr float kFlightAccelMultiplier = 3.0f; // 飛行モード中の加速倍率
 
 	// カプセルコライダーのサイズ
 	constexpr float kCapsuleHeight = 100.0f;

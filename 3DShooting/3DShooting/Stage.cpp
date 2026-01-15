@@ -100,11 +100,11 @@ void Stage::LoadStage(bool isTutorial)
 			{
 				modelPath = "Data/Model/Floor_B.mv1";
 			}
-			else if (data.name == "boulder_4_tl")
+			else if (data.name == "rock_3_br")
 			{
-				modelPath = "Data/Model/boulder_4_bl.mv1";
+				modelPath = "Data/Model/rock_3_br.mv1";
 			}
-			else if (data.name == "boulder_7_tr")
+			else if (data.name == "rock_6_br")
 			{
 				modelPath = "Data/Model/rock_6_br.mv1";
 			}
