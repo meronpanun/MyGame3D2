@@ -40,8 +40,6 @@ namespace
 	constexpr float kTackleFov			     = 100.0f; // タックル中のカメラFOV
 	constexpr float kTackleCameraZOffset     = 30.0f;  // タックル中のカメラZオフセット
 	constexpr float kConcentrationLineEffectZOffset = 15.0f;  // 集中線エフェクトのZオフセット
-	constexpr float kJumpSwayPower           = 5.0f;   // ジャンプ時の揺れの強さ　
-	constexpr float kLandingSwayPower        = 5.0f;   // 着地時の揺れの強さ
 	constexpr float kHpBarAnimSpeed		     = 1.5f;   // HPバーのアニメーション速度
 	constexpr int   kLowAmmoThreshold        = 10;     // 弾薬が少ないと判断する閾値
 	constexpr float kLowHealthThreshold      = 30.0f;  // 体力が少ないと判断する閾値

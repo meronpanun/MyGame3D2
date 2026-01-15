@@ -10,7 +10,8 @@ namespace
 {
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.25f;
-	constexpr float kJumpPower = 12.0f;
+	constexpr float kJumpPower = 6.0f;
+	constexpr float kRunJumpPower = 10.0f;
 
 	// 飛行モード関連
 	constexpr float kFlightAscendSpeed  = 8.0f;  // 上昇速度
@@ -22,10 +23,10 @@ namespace
 	constexpr float kCapsuleRadius = 50.0f;
 
 	// Update関連
-	constexpr float kPlayerColliderYOffset = 60.0f;
-	constexpr float kGroundCheckTolerance  = 0.01f;
-	constexpr float kJumpSwayPower         = 5.0f;
-	constexpr float kLandingSwayPower      = 5.0f;
+	constexpr float kPlayerColliderYOffset = 60.0f; // コライダーのYオフセット
+	constexpr float kGroundCheckTolerance  = 0.01f; // 地面判定の許容誤差
+	constexpr float kJumpSwayPower		   = 5.0f;  // ジャンプ時の揺れの強さ
+	constexpr float kLandingSwayPower	   = 5.0f;  // 着地時の揺れの強さ
 }
 
 PlayerMovement::PlayerMovement() :
@@ -197,7 +198,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		// スペースキーを押した瞬間のみジャンプ（死亡中はジャンプ不可、飛行モード中は無効）
 		if (!isDead && keyState[KEY_INPUT_SPACE] && !prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !isTackling)
 		{
-			m_jumpVelocity = kJumpPower;
+			m_jumpVelocity = isRunning ? kRunJumpPower : kJumpPower;
 			m_isJumping = true;
 			if (pCamera)
 			{
@@ -255,6 +256,13 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
     m_isGroundedOnStage = postCollisionResult.isGrounded;
     if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
     {
+		if (m_wasJumping || m_jumpVelocity < -5.0f)
+		{
+			if (pCamera)
+			{
+				pCamera->ApplyLandingSway(kLandingSwayPower);
+			}
+		}
         m_jumpVelocity = 0.0f;
         m_isJumping = false;
     }
@@ -264,8 +272,6 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 
 void PlayerMovement::Jump(Camera* pCamera)
 {
-	// constexpr float kGroundY = 0.0f; // PlayerMovement::kGroundYを使用
-	constexpr float kGroundCheckTolerance = 0.01f;
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance) || m_isGroundedOnStage;
 
 	if (!m_isJumping && isOnGround)
