@@ -17,7 +17,7 @@ public:
 	~PlayerShieldSystem();
 
 	void Init(float maxDurability, float regenRate);
-	void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta);
+	void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta, bool isMoving);
 	void Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration);
 
 	/// <summary>
@@ -202,6 +202,7 @@ private:
 	// Sway
 	VECTOR m_shieldSwayOffset;
 	VECTOR m_shieldSwayRotOffset;
+	float m_idleSwayTimer;
 
 	// 武器切り替え状態の記録（エフェクト再生用）
 	bool m_wasSwitchingWeapon;

@@ -27,6 +27,13 @@ namespace
 	constexpr float kGroundCheckTolerance  = 0.01f; // 地面判定の許容誤差
 	constexpr float kJumpSwayPower		   = 5.0f;  // ジャンプ時の揺れの強さ
 	constexpr float kLandingSwayPower	   = 5.0f;  // 着地時の揺れの強さ
+	constexpr float kRunLandingSwayPower   = 20.0f; // ダッシュ着地時の揺れの強さ
+	constexpr float kLandingVelocityFactor = 0.5f;  // 着地時の衝撃（速度）による揺れの補正係数
+
+	// ダッシュ着地時のシェイク（画面全体の振動）
+	constexpr float kRunLandingShakeIntensity      = 1.0f; // ベースシェイク強度
+	constexpr float kRunLandingShakeVelocityFactor = 0.2f; // 速度によるシェイク加算係数
+	constexpr int   kRunLandingShakeDuration       = 5;   // シェイク持続時間（フレーム）
 }
 
 PlayerMovement::PlayerMovement() :
@@ -39,6 +46,7 @@ PlayerMovement::PlayerMovement() :
 	m_wasJumping(false),
 	m_isWasRunning(false),
 	m_isGroundedOnStage(false),
+	m_isRunJumping(false),
 	m_jumpVelocity(0.0f),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>())
 {
@@ -200,6 +208,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		{
 			m_jumpVelocity = isRunning ? kRunJumpPower : kJumpPower;
 			m_isJumping = true;
+			m_isRunJumping = isRunning;
 			if (pCamera)
 			{
 				pCamera->ApplyJumpSway(kJumpSwayPower);
@@ -218,14 +227,25 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			if (m_modelPos.y <= kGroundY)
 			{
 				m_modelPos.y = kGroundY;
+				float lastJumpVelocity = m_jumpVelocity;
 				m_jumpVelocity = 0.0f;
 				m_isJumping = false;
 
 				// 着地した瞬間の処理
 				if (m_wasJumping && pCamera)
 				{
-					pCamera->ApplyLandingSway(kLandingSwayPower);
+					float swayPower = m_isRunJumping ? kRunLandingSwayPower : kLandingSwayPower;
+					swayPower += fabsf(lastJumpVelocity) * kLandingVelocityFactor;
+					pCamera->ApplyLandingSway(swayPower);
+
+					// ダッシュジャンプ時は画面全体もシェイクさせる
+					if (m_isRunJumping)
+					{
+						float shakeIntensity = kRunLandingShakeIntensity + (fabsf(lastJumpVelocity) * kRunLandingShakeVelocityFactor);
+						pCamera->Shake(shakeIntensity, kRunLandingShakeDuration);
+					}
 				}
+				m_isRunJumping = false;
 			}
 		}
 
@@ -260,9 +280,19 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		{
 			if (pCamera)
 			{
-				pCamera->ApplyLandingSway(kLandingSwayPower);
+				float swayPower = m_isRunJumping ? kRunLandingSwayPower : kLandingSwayPower;
+				swayPower += fabsf(m_jumpVelocity) * kLandingVelocityFactor;
+				pCamera->ApplyLandingSway(swayPower);
+
+				// ダッシュジャンプ時は画面全体もシェイクさせる
+				if (m_isRunJumping)
+				{
+					float shakeIntensity = kRunLandingShakeIntensity + (fabsf(m_jumpVelocity) * kRunLandingShakeVelocityFactor);
+					pCamera->Shake(shakeIntensity, kRunLandingShakeDuration);
+				}
 			}
 		}
+		m_isRunJumping = false;
         m_jumpVelocity = 0.0f;
         m_isJumping = false;
     }

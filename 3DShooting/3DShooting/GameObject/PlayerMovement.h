@@ -1,8 +1,7 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
-#include <memory>
-
 #include "Stage.h"
+#include <memory>
 #include <vector>
 
 class Camera;
@@ -94,7 +93,7 @@ private:
 	bool m_wasJumping;
 	bool m_isWasRunning;
 	bool m_isGroundedOnStage;
-
+	bool m_isRunJumping;
 
 	float m_jumpVelocity;
 

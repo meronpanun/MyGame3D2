@@ -25,6 +25,10 @@ namespace
 	constexpr float kGuardEffectOffsetZ    = 60.0f;
 	constexpr float kGuardEffectOffsetX    = 10.0f;
 
+	// 待機時の揺れ
+	constexpr float kIdleSwaySpeed  = 1.5f; // 揺れの速さ
+	constexpr float kIdleSwayAmount = 0.04f; // 揺れの量 
+
 	// 盾アニメーション関連
 	constexpr float kShieldAnimRecoverStartYOffset = -200.0f;
 	constexpr float kShieldAnimBreakEndYOffset     = -200.0f;
@@ -90,7 +94,8 @@ PlayerShieldSystem::PlayerShieldSystem() :
 	m_shieldThrowDamage(kShieldThrowDamage),
 	m_shieldThrowHitEnemyId(-1),
 	m_shieldThrowRotationTimer(0.0f),
-	m_isTutorial(false)
+	m_isTutorial(false),
+	m_idleSwayTimer(0.0f)
 {
 	// 盾モデルの読み込み
 	m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
@@ -116,7 +121,7 @@ void PlayerShieldSystem::Init(float maxDurability, float regenRate)
 	m_isShieldBroken = false;
 }
 
-void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta)
+void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta, bool isMoving)
 {
 	// パリィ判定のために、更新前に前フレームのガード状態を保存
 	m_wasGuarding = m_isGuarding;
@@ -136,6 +141,17 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& 
 	// Swayの計算
 	m_shieldSwayOffset.x -= yawDelta * kShieldSwayAmount;
 	m_shieldSwayOffset.x *= kShieldSwayDamping;
+
+	if (!isMoving)
+	{
+		m_idleSwayTimer += deltaTime;
+		VECTOR idleSway = VGet(
+			sinf(m_idleSwayTimer * kIdleSwaySpeed * 2.0f) * kIdleSwayAmount,
+			cosf(m_idleSwayTimer * kIdleSwaySpeed) * kIdleSwayAmount,
+			0.0f
+		);
+		m_shieldSwayOffset = VAdd(m_shieldSwayOffset, idleSway);
+	}
 
 	// ガードアニメーションタイマーの更新
 	if (m_isGuarding)

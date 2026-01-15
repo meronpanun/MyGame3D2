@@ -269,7 +269,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	float yawDelta = m_pCamera->GetYawDelta();
 
 	// 盾システムの更新
-	m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding, m_isTackling, isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), yawDelta);
+	m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding, m_isTackling, isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), yawDelta, m_movement.IsMoving());
 
 	// 右クリック長押しでガード（UpdateShieldThrowの前に呼ぶ必要がある）
 	bool shouldGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
