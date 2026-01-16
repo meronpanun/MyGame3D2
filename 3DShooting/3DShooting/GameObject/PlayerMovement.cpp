@@ -283,7 +283,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 						moveDir.x /= len;
 						moveDir.z /= len;
 
-						float currentSpeed = isRunning ? m_runSpeed : m_moveSpeed;
+						float currentSpeed = (isRunning || m_isRunJumping) ? m_runSpeed : m_moveSpeed;
 						float inertiaSpeed = VSize(m_jumpMoveVelocity);
 
 						VECTOR finalControl = VGet(0, 0, 0);
