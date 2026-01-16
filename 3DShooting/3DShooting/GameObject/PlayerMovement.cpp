@@ -317,7 +317,8 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 							VECTOR fwdForceProj = VScale(inertiaDir, fwdProjDot);
 
 							// 加速（同方向）は無視、減速（逆方向）のみ適用
-							if (fwdProjDot < 0.0f)
+							// かつ、入力が後退方向（Sキー相当、dotFwd < 0）の場合のみ減速を許可
+							if (fwdProjDot < 0.0f && dotFwd < 0.0f)
 							{
 								finalControl = VAdd(finalControl, fwdForceProj);
 							}
