@@ -9,9 +9,9 @@
 namespace
 {
 	// 重力とジャンプ関連
-	constexpr float kGravity   = 0.25f;
-	constexpr float kJumpPower = 6.0f;
-	constexpr float kRunJumpPower = 12.0f;
+	constexpr float kGravity   = 0.3f;
+	constexpr float kJumpPower = 7.0f;
+	constexpr float kRunJumpPower = 12.5f;
 
 	// 飛行モード関連
 	constexpr float kFlightAscendSpeed  = 8.0f;  // 上昇速度
@@ -24,7 +24,8 @@ namespace
 
 	// Update関連
 	constexpr float kPlayerColliderYOffset = 60.0f; // コライダーのYオフセット
-	constexpr float kGroundCheckTolerance  = 0.01f; // 地面判定の許容誤差
+	constexpr float kGroundCheckTolerance  = 1.0f;  // 地面判定の許容誤差 (0.01f から緩和)
+	constexpr float kCoyoteTimeDuration    = 0.2f;  // コヨーテタイムの持続時間 (秒)
 	constexpr float kJumpSwayPower		   = 5.0f;  // ジャンプ時の揺れの強さ
 	constexpr float kLandingSwayPower	   = 5.0f;  // 着地時の揺れの強さ
 	constexpr float kRunLandingSwayPower   = 20.0f; // ダッシュ着地時の揺れの強さ
@@ -78,6 +79,12 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 	m_pBodyCollider->SetSegment(capA, capB);
 	m_pBodyCollider->SetRadius(kCapsuleRadius);
 
+	// コヨーテタイムの更新
+	if (m_coyoteTimeTimer > 0.0f)
+	{
+		m_coyoteTimeTimer -= deltaTime;
+	}
+
 	// タックル中は移動処理をスキップ
 	if (isTackling)
 	{
@@ -95,6 +102,12 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 
 	// 地面にいるかどうかの判定（Y=0平面 または ステージ上）
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance) || m_isGroundedOnStage;
+
+	// コヨーテタイムの設定
+	if (isOnGround)
+	{
+		m_coyoteTimeTimer = kCoyoteTimeDuration;
+	}
 
 	// キー入力の取得
 	unsigned char keyState[256];
@@ -222,11 +235,14 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		}
 
 		// スペースキーを押した瞬間のみジャンプ（死亡中はジャンプ不可、飛行モード中は無効）
-		if (!isDead && keyState[KEY_INPUT_SPACE] && !prevKeyState[KEY_INPUT_SPACE] && isOnGround && !m_isJumping && !isTackling)
+		// 接地判定にコヨーテタイムを使用
+		bool canJump = (m_coyoteTimeTimer > 0.0f);
+		if (!isDead && keyState[KEY_INPUT_SPACE] && !prevKeyState[KEY_INPUT_SPACE] && canJump && !m_isJumping && !isTackling)
 		{
 			m_jumpVelocity = isRunning ? kRunJumpPower : kJumpPower;
 			m_isJumping = true;
 			m_isRunJumping = isRunning;
+			m_coyoteTimeTimer = 0.0f; // ジャンプしたらコヨーテタイム終了
 
 			// 移動入力がある場合は慣性移動を有効化（歩き・ダッシュ共通）
 			if (moveDir.x != 0.0f || moveDir.z != 0.0f)
@@ -477,12 +493,13 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 
 void PlayerMovement::Jump(Camera* pCamera)
 {
-	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance) || m_isGroundedOnStage;
+	bool canJump = (m_coyoteTimeTimer > 0.0f);
 
-	if (!m_isJumping && isOnGround)
+	if (!m_isJumping && canJump)
 	{
 		m_jumpVelocity = kJumpPower;
 		m_isJumping = true;
+		m_coyoteTimeTimer = 0.0f;
 		if (pCamera)
 		{
 			pCamera->ApplyJumpSway(kJumpSwayPower);

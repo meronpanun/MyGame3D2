@@ -77,7 +77,7 @@ public:
 	/// 地面接地判定の許容値
 	/// </summary>
 	/// <returns>許容値</returns>
-	static float GetGroundCheckTolerance() { return 0.01f; }
+	static float GetGroundCheckTolerance() { return 1.0f; }
 
 	VECTOR GetJumpMoveVelocity() const { return m_jumpMoveVelocity; }
 
@@ -108,6 +108,8 @@ private:
 	float m_jumpStartYaw;
 	float m_jumpSpeedScalar;
 	VECTOR m_jumpMoveVelocity;
+
+	float m_coyoteTimeTimer; // コヨーテタイム用のタイマー
 
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider;
 };

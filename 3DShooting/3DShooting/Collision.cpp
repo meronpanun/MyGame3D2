@@ -112,7 +112,7 @@ CollisionResult Collision::CheckStageCollision(
                             normal = triNormal;
                         }
 
-                    if (normal.y > 0.7f)
+                    if (normal.y > 0.6f)
                     {
                         result.isGrounded = true;
                     }
