@@ -11,7 +11,7 @@ namespace
 	// 重力とジャンプ関連
 	constexpr float kGravity   = 0.25f;
 	constexpr float kJumpPower = 6.0f;
-	constexpr float kRunJumpPower = 10.0f;
+	constexpr float kRunJumpPower = 12.0f;
 
 	// 飛行モード関連
 	constexpr float kFlightAscendSpeed  = 8.0f;  // 上昇速度
@@ -92,7 +92,6 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		m_jumpVelocity = 0.0f;
 		m_isJumping = false;
 	}
-
 
 	// 地面にいるかどうかの判定（Y=0平面 または ステージ上）
 	bool isOnGround = (m_modelPos.y <= kGroundY + kGroundCheckTolerance) || m_isGroundedOnStage;
