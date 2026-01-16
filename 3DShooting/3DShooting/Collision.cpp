@@ -115,6 +115,7 @@ CollisionResult Collision::CheckStageCollision(
                     if (normal.y > 0.6f)
                     {
                         result.isGrounded = true;
+                        result.groundNormal = normal;
                     }
 
                     if (distSq < radius * radius)

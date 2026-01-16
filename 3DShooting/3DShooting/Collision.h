@@ -6,6 +6,7 @@
 struct CollisionResult
 {
     bool isGrounded = false;
+    VECTOR groundNormal = VGet(0, 1, 0); // 初期値は真上
 };
 
 class Collision

@@ -439,11 +439,15 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		m_isGroundedOnStage = postCollisionResult.isGrounded;
 
 		// 壁衝突判定: ダッシュ中に大きく押し戻されたらダッシュ解除
+		// ただし、スロープを登っている場合の押し戻しは許容する
 		if (m_isRunMode && !m_isJumping && isMoving)
 		{
 			// 水平方向の押し戻し量をチェック
 			float pushBackDistSq = (m_modelPos.x - posBeforeCollision.x) * (m_modelPos.x - posBeforeCollision.x) + (m_modelPos.z - posBeforeCollision.z) * (m_modelPos.z - posBeforeCollision.z);
-			if (pushBackDistSq > 1.0f) // 閾値は調整
+			
+			// 接地法線が上向き（スロープ）でない、または接地していない場合にのみ解除判定を行う
+			bool isOnSlope = postCollisionResult.isGrounded && postCollisionResult.groundNormal.y > 0.6f;
+			if (pushBackDistSq > 1.0f && !isOnSlope) // 壁にぶつかったと判断
 			{
 				m_isRunMode = false;
 			}
