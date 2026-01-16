@@ -49,9 +49,12 @@ PlayerMovement::PlayerMovement() :
 	m_wasJumping(false),
 	m_isWasRunning(false),
 	m_isGroundedOnStage(false),
+	m_isRunMode(false),
 	m_isRunJumping(false),
 	m_isJumpInertiaActive(false),
 	m_jumpVelocity(0.0f),
+	m_jumpStartYaw(0.0f),
+	m_jumpSpeedScalar(0.0f),
 	m_jumpMoveVelocity(VGet(0, 0, 0)),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>())
 {
@@ -84,11 +87,11 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 	// 当たり判定（移動前に行うことで、前フレームのめり込みを解消し、接地判定を行う）
 	CollisionResult preCollisionResult = Collision::CheckStageCollision(m_modelPos, kCapsuleHeight, kCapsuleRadius, kPlayerColliderYOffset, collisionData);
 	m_isGroundedOnStage = preCollisionResult.isGrounded;
-    if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
-    {
-        m_jumpVelocity = 0.0f;
-        m_isJumping = false;
-    }
+	if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
+	{
+		m_jumpVelocity = 0.0f;
+		m_isJumping = false;
+	}
 
 
 	// 地面にいるかどうかの判定（Y=0平面 または ステージ上）
@@ -176,9 +179,20 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 	else
 	{
 		// 通常モードの処理
-		// 走るキー入力（シフトキーのみでダッシュ、コントロールキーは飛行モード専用）
-		const bool wantRun = CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT);
-		bool isRunning = wantRun;
+		// 走るキー入力（シフトキーでダッシュモード切替、コントロールキーは飛行モード専用）
+		// ShiftキーかつWキー（前方）入力時のみダッシュ開始
+		if (CheckHitKey(KEY_INPUT_LSHIFT) && CheckHitKey(KEY_INPUT_W))
+		{
+			m_isRunMode = true;
+		}
+
+		// Wキーが離されていたらダッシュ解除（ASDのみではダッシュ不可）
+		if (!CheckHitKey(KEY_INPUT_W))
+		{
+			m_isRunMode = false;
+		}
+
+		bool isRunning = m_isRunMode;
 
 		float moveSpeed = isRunning ? m_runSpeed : m_moveSpeed;
 		bool isMoving = false;
@@ -214,13 +228,19 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			m_jumpVelocity = isRunning ? kRunJumpPower : kJumpPower;
 			m_isJumping = true;
 			m_isRunJumping = isRunning;
-			
+
 			// 移動入力がある場合は慣性移動を有効化（歩き・ダッシュ共通）
 			if (moveDir.x != 0.0f || moveDir.z != 0.0f)
 			{
 				m_isJumpInertiaActive = true;
 				float currentSpeed = isRunning ? m_runSpeed : m_moveSpeed;
 				m_jumpMoveVelocity = VScale(moveDir, currentSpeed);
+
+				if (pCamera)
+				{
+					m_jumpStartYaw = pCamera->GetYaw();
+				}
+				m_jumpSpeedScalar = VSize(m_jumpMoveVelocity);
 			}
 
 			if (pCamera)
@@ -306,18 +326,38 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 							finalControl = VAdd(finalControl, sideForce);
 
 							// 2. 前方入力（W/S）の処理
+							// 角度差分の計算（±90度以内でステアリング有効）
+							float diffYaw = yaw - m_jumpStartYaw;
+							while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
+							while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
+
 							// 慣性方向の単位ベクトル
 							VECTOR inertiaDir = VScale(m_jumpMoveVelocity, 1.0f / inertiaSpeed);
 
-							// 前方入力ベクトル（ステアリング成分含む）
-							VECTOR fwdForceRaw = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor);
+							if (fabsf(diffYaw) < DX_PI_F * 0.5f)
+							{
+								// ステアリング有効エリア
+								// W入力（dotFwd > 0）の場合、慣性ベクトル自体を回転させる
+								if (dotFwd > 0.0f)
+								{
+									// 旋回力を加算 (係数は調整)
+									VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor * 0.1f);
+									m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
 
-							// 前方入力を慣性方向に射影（平行成分のみ抽出、垂直成分＝ステアリングを破棄）
+									// 速度（スカラー）を維持して方向のみ更新
+									if (VSize(m_jumpMoveVelocity) > 0.001f)
+									{
+										m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
+									}
+								}
+							}
+
+							// 前方入力ベクトル
+							VECTOR fwdForceRaw = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor);
 							float fwdProjDot = VDot(fwdForceRaw, inertiaDir);
 							VECTOR fwdForceProj = VScale(inertiaDir, fwdProjDot);
 
-							// 加速（同方向）は無視、減速（逆方向）のみ適用
-							// かつ、入力が後退方向（Sキー相当、dotFwd < 0）の場合のみ減速を許可
+							// 減速（逆方向）かつSキー入力時のみ適用
 							if (fwdProjDot < 0.0f && dotFwd < 0.0f)
 							{
 								finalControl = VAdd(finalControl, fwdForceProj);
@@ -340,8 +380,29 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 				float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
 				moveDir.x /= len;
 				moveDir.z /= len;
+
+				// 移動前の位置を保存
+				VECTOR prevPos = m_modelPos;
+
 				m_modelPos = VAdd(m_modelPos, VScale(moveDir, moveSpeed));
+
+				// ステージ衝突判定（簡易）: 壁にぶつかったらダッシュ解除
+				// 厳密な判定はCollision::CheckStageCollisionで行うが、押し戻し量をチェックすることで判定
+				if (m_isRunMode)
+				{
+					// 仮の移動後の位置で衝突判定を予見的に行うのはコストが高いので、
+					// Update末尾の衝突解決後と比較するのが正確だが、移動処理内での簡易チェックとして
+					// ここでは何もしない（下部の衝突解決後に行う）
+				}
+
 				isMoving = true;
+			}
+			else
+			{
+				// 移動入力がない場合はダッシュ解除（オプション次第だが、今回は維持する仕様？）
+				// 「押し込み続けなくても走り続ける」なので維持が正しい。
+				// しかし、停止したら歩きに戻るのが一般的であれば解除。
+				// リクエストは「押し込み続けなくても走り続ける」なので維持。ただし壁衝突等で解除。
 			}
 		}
 
@@ -356,36 +417,63 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			bool enableHeadBobbing = isMoving && isOnGround;
 			pCamera->SetHeadBobbingState(enableHeadBobbing, isRunning);
 		}
-	}
 
-	// 移動後の位置で再度当たり判定を行い、めり込みを解消
-	CollisionResult postCollisionResult = Collision::CheckStageCollision(m_modelPos, kCapsuleHeight, kCapsuleRadius, kPlayerColliderYOffset, collisionData);
-    m_isGroundedOnStage = postCollisionResult.isGrounded;
-    if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
-    {
-		if (m_wasJumping || m_jumpVelocity < -5.0f)
+		// 移動後の位置で再度当たり判定を行い、めり込みを解消
+		VECTOR posBeforeCollision = m_modelPos;
+		CollisionResult postCollisionResult = Collision::CheckStageCollision(m_modelPos, kCapsuleHeight, kCapsuleRadius, kPlayerColliderYOffset, collisionData);
+		m_isGroundedOnStage = postCollisionResult.isGrounded;
+
+		// 壁衝突判定: ダッシュ中に大きく押し戻されたらダッシュ解除
+		if (m_isRunMode && !m_isJumping && isMoving)
 		{
-			if (pCamera)
+			// 水平方向の押し戻し量をチェック
+			float pushBackDistSq = (m_modelPos.x - posBeforeCollision.x) * (m_modelPos.x - posBeforeCollision.x) + (m_modelPos.z - posBeforeCollision.z) * (m_modelPos.z - posBeforeCollision.z);
+			if (pushBackDistSq > 1.0f) // 閾値は調整
 			{
-				float swayPower = m_isRunJumping ? kRunLandingSwayPower : kLandingSwayPower;
-				swayPower += fabsf(m_jumpVelocity) * kLandingVelocityFactor;
-				pCamera->ApplyLandingSway(swayPower);
-
-				// ダッシュジャンプ時は画面全体もシェイクさせる
-				if (m_isRunJumping)
-				{
-					float shakeIntensity = kRunLandingShakeIntensity + (fabsf(m_jumpVelocity) * kRunLandingShakeVelocityFactor);
-					pCamera->Shake(shakeIntensity, kRunLandingShakeDuration);
-				}
+				m_isRunMode = false;
 			}
 		}
-		m_isRunJumping = false;
-		m_isJumpInertiaActive = false;
-        m_jumpVelocity = 0.0f;
-        m_isJumping = false;
-    }
 
+		if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
+		{
+			if (m_wasJumping || m_jumpVelocity < -5.0f)
+			{
+				if (pCamera)
+				{
+					float swayPower = m_isRunJumping ? kRunLandingSwayPower : kLandingSwayPower;
+					swayPower += fabsf(m_jumpVelocity) * kLandingVelocityFactor;
+					pCamera->ApplyLandingSway(swayPower);
 
+					// ダッシュジャンプ時は画面全体もシェイクさせる
+					if (m_isRunJumping)
+					{
+						float shakeIntensity = kRunLandingShakeIntensity + (fabsf(m_jumpVelocity) * kRunLandingShakeVelocityFactor);
+						pCamera->Shake(shakeIntensity, kRunLandingShakeDuration);
+					}
+
+					// 着地時の角度チェック（ダッシュ維持判定）
+					if (m_isRunJumping)
+					{
+						float currentYaw = pCamera->GetYaw();
+						float diffYaw = currentYaw - m_jumpStartYaw;
+						while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
+						while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
+
+						if (fabsf(diffYaw) >= DX_PI_F * 0.5f) // 差分が90度以上の場合
+						{
+							m_isRunMode = false; // ダッシュ解除
+						}
+						// 90度未満なら維持（何もしない）
+					}
+				}
+			}
+			m_isRunJumping = false;
+			m_isJumpInertiaActive = false;
+			m_jumpVelocity = 0.0f;
+			m_isJumping = false;
+		}
+
+	}
 }
 
 void PlayerMovement::Jump(Camera* pCamera)

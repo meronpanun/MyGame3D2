@@ -229,6 +229,27 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	// ただし、タックル中は移動処理はスキップされる
 	m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode, collisionData);
 
+	// 敵との衝突（近接）チェック: 敵に近い場合はダッシュ解除
+	if (!m_isTackling)
+	{
+		for (const auto& enemy : enemyList)
+		{
+			if (!enemy || !enemy->IsAlive()) continue;
+
+			// プレイヤーと敵の距離をチェック
+			// カプセル半径の和 + マージン
+			constexpr float kEnemyCollisionDist = 100.0f; 
+			VECTOR diff = VSub(m_movement.GetPos(), enemy->GetPos());
+			float distSq = VSize(diff); // VSizeも2乗を返すわけではないので注意。VSizeはsqrtを取る。
+			// ここでは距離そのもので比較
+			if (distSq < kEnemyCollisionDist)
+			{
+				m_movement.CancelRunMode();
+				break;
+			}
+		}
+	}
+
 	// タックル中でない場合は位置を同期
 	if (!m_isTackling)
 	{
@@ -727,6 +748,9 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 	{
 		return;
 	}
+
+	// ダメージを受けたらダッシュ解除
+	m_movement.CancelRunMode();
 
 	// 方向インジケーターに攻撃者の位置を通知
 	if (m_pDirectionIndicator && (attackerPos.x != 0.0f || attackerPos.z != 0.0f))

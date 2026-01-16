@@ -52,7 +52,7 @@ namespace
 	constexpr float kGuardShakeAmount   = 0.4f;
 
 	// シールドソー関連
-	constexpr float kShieldThrowSpeed         = 800.0f;  // シールドの移動速度
+	constexpr float kShieldThrowSpeed         = 1000.0f; // シールドの移動速度
 	constexpr float kShieldThrowMaxRange      = 1000.0f; // 最大投げ距離
 	constexpr float kShieldThrowDamage		  = 50.0f;   // シールドソーのダメージ
 	constexpr float kShieldThrowRadius        = 50.0f;   // シールドの当たり判定半径

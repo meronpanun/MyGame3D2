@@ -79,6 +79,12 @@ public:
 	/// <returns>許容値</returns>
 	static float GetGroundCheckTolerance() { return 0.01f; }
 
+	VECTOR GetJumpMoveVelocity() const { return m_jumpMoveVelocity; }
+
+	// ダッシュモード管理
+	void CancelRunMode() { m_isRunMode = false; }
+	bool IsRunMode() const { return m_isRunMode; }
+
 	static constexpr float kGroundY = 0.0f;
 
 private:
@@ -88,15 +94,19 @@ private:
 	float m_moveSpeed;
 	float m_runSpeed;
 
+	// フラグ
 	bool m_isMoving;
 	bool m_isJumping;
 	bool m_wasJumping;
 	bool m_isWasRunning;
 	bool m_isGroundedOnStage;
+	bool m_isRunMode;
 	bool m_isRunJumping;
 	bool m_isJumpInertiaActive;
 
 	float m_jumpVelocity;
+	float m_jumpStartYaw;
+	float m_jumpSpeedScalar;
 	VECTOR m_jumpMoveVelocity;
 
 	std::shared_ptr<CapsuleCollider> m_pBodyCollider;
