@@ -234,6 +234,14 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			moveDir.z += cosf(pCamera->GetYaw() + DX_PI_F * 0.5f);
 		}
 
+		// 移動方向の正規化をここで行う（斜め移動の速度修正）
+		if (moveDir.x != 0.0f || moveDir.z != 0.0f)
+		{
+			float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
+			moveDir.x /= len;
+			moveDir.z /= len;
+		}
+
 		// スペースキーを押した瞬間のみジャンプ（死亡中はジャンプ不可、飛行モード中は無効）
 		// 接地判定にコヨーテタイムを使用
 		bool canJump = (m_coyoteTimeTimer > 0.0f);
@@ -311,91 +319,80 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 				// 空中操作（Air Control）
 				if ((moveDir.x != 0.0f || moveDir.z != 0.0f) && pCamera)
 				{
-					// 正規化
-					float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
-					if (len > 0.0f)
+					// moveDirは既に正規化されている
+					float currentSpeed = (isRunning || m_isRunJumping) ? m_runSpeed : m_moveSpeed;
+					float inertiaSpeed = VSize(m_jumpMoveVelocity);
+
+					VECTOR finalControl = VGet(0, 0, 0);
+
+					// 慣性がある場合
+					if (inertiaSpeed > 0.1f)
 					{
-						moveDir.x /= len;
-						moveDir.z /= len;
+						// カメラの前方・右ベクトルを取得
+						float yaw = pCamera->GetYaw();
+						VECTOR camFwd = VGet(sinf(yaw), 0.0f, cosf(yaw));
+						VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f, cosf(yaw + DX_PI_F * 0.5f));
 
-						float currentSpeed = (isRunning || m_isRunJumping) ? m_runSpeed : m_moveSpeed;
-						float inertiaSpeed = VSize(m_jumpMoveVelocity);
+						// 入力を成分分解
+						// moveDirは既に正規化されている
+						float dotFwd = VDot(moveDir, camFwd);
+						float dotRight = VDot(moveDir, camRight);
 
-						VECTOR finalControl = VGet(0, 0, 0);
+						// 1. 横入力（A/D）はそのまま適用（Strafing）
+						VECTOR sideForce = VScale(camRight, dotRight * currentSpeed * kAirControlFactor);
+						finalControl = VAdd(finalControl, sideForce);
 
-						// 慣性がある場合
-						if (inertiaSpeed > 0.1f)
+						// 2. 前方入力（W/S）の処理
+						// 角度差分の計算（±90度以内でステアリング有効）
+						float diffYaw = yaw - m_jumpStartYaw;
+						while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
+						while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
+
+						// 慣性方向の単位ベクトル
+						VECTOR inertiaDir = VScale(m_jumpMoveVelocity, 1.0f / inertiaSpeed);
+
+						if (fabsf(diffYaw) < DX_PI_F * 0.5f)
 						{
-							// カメラの前方・右ベクトルを取得
-							float yaw = pCamera->GetYaw();
-							VECTOR camFwd = VGet(sinf(yaw), 0.0f, cosf(yaw));
-							VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f, cosf(yaw + DX_PI_F * 0.5f));
-
-							// 入力を成分分解
-							// moveDirは既に正規化されている
-							float dotFwd = VDot(moveDir, camFwd);
-							float dotRight = VDot(moveDir, camRight);
-
-							// 1. 横入力（A/D）はそのまま適用（Strafing）
-							VECTOR sideForce = VScale(camRight, dotRight * currentSpeed * kAirControlFactor);
-							finalControl = VAdd(finalControl, sideForce);
-
-							// 2. 前方入力（W/S）の処理
-							// 角度差分の計算（±90度以内でステアリング有効）
-							float diffYaw = yaw - m_jumpStartYaw;
-							while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
-							while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
-
-							// 慣性方向の単位ベクトル
-							VECTOR inertiaDir = VScale(m_jumpMoveVelocity, 1.0f / inertiaSpeed);
-
-							if (fabsf(diffYaw) < DX_PI_F * 0.5f)
+							// ステアリング有効エリア
+							// W入力（dotFwd > 0）の場合、慣性ベクトル自体を回転させる
+							if (dotFwd > 0.0f)
 							{
-								// ステアリング有効エリア
-								// W入力（dotFwd > 0）の場合、慣性ベクトル自体を回転させる
-								if (dotFwd > 0.0f)
-								{
-									// 旋回力を加算 (係数は調整)
-									VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor * 0.1f);
-									m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
+								// 旋回力を加算 (係数は調整)
+								VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor * 0.1f);
+								m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
 
-									// 速度（スカラー）を維持して方向のみ更新
-									if (VSize(m_jumpMoveVelocity) > 0.001f)
-									{
-										m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
-									}
+								// 速度（スカラー）を維持して方向のみ更新
+								if (VSize(m_jumpMoveVelocity) > 0.001f)
+								{
+									m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
 								}
 							}
-
-							// 前方入力ベクトル
-							VECTOR fwdForceRaw = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor);
-							float fwdProjDot = VDot(fwdForceRaw, inertiaDir);
-							VECTOR fwdForceProj = VScale(inertiaDir, fwdProjDot);
-
-							// 減速（慣性方向と逆向きの入力成分がある）場合に適用
-							if (fwdProjDot < 0.0f)
-							{
-								finalControl = VAdd(finalControl, fwdForceProj);
-							}
 						}
-						else
+
+						// 前方入力ベクトル
+						VECTOR fwdForceRaw = VScale(camFwd, dotFwd * currentSpeed * kAirControlFactor);
+						float fwdProjDot = VDot(fwdForceRaw, inertiaDir);
+						VECTOR fwdForceProj = VScale(inertiaDir, fwdProjDot);
+
+						// 減速（慣性方向と逆向きの入力成分がある）場合に適用
+						if (fwdProjDot < 0.0f)
 						{
-							// 慣性がない場合は自由移動
-							finalControl = VScale(moveDir, currentSpeed * kAirControlFactor);
+							finalControl = VAdd(finalControl, fwdForceProj);
 						}
-
-						m_modelPos = VAdd(m_modelPos, finalControl);
 					}
+					else
+					{
+						// 慣性がない場合は自由移動
+						finalControl = VScale(moveDir, currentSpeed * kAirControlFactor);
+					}
+
+				m_modelPos = VAdd(m_modelPos, finalControl);
 				}
 				isMoving = true;
 			}
 			else if (moveDir.x != 0.0f || moveDir.z != 0.0f)
 			{
-				// 移動方向の長さを計算
-				float len = sqrtf(moveDir.x * moveDir.x + moveDir.z * moveDir.z);
-				moveDir.x /= len;
-				moveDir.z /= len;
-
+				// moveDirは既に正規化されている
 				// 移動前の位置を保存
 				VECTOR prevPos = m_modelPos;
 
@@ -444,7 +441,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		{
 			// 水平方向の押し戻し量をチェック
 			float pushBackDistSq = (m_modelPos.x - posBeforeCollision.x) * (m_modelPos.x - posBeforeCollision.x) + (m_modelPos.z - posBeforeCollision.z) * (m_modelPos.z - posBeforeCollision.z);
-			
+
 			// 接地法線が上向き（スロープ）でない、または接地していない場合にのみ解除判定を行う
 			bool isOnSlope = postCollisionResult.isGrounded && postCollisionResult.groundNormal.y > 0.6f;
 			if (pushBackDistSq > 1.0f && !isOnSlope) // 壁にぶつかったと判断
@@ -491,7 +488,6 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			m_jumpVelocity = 0.0f;
 			m_isJumping = false;
 		}
-
 	}
 }
 
