@@ -352,7 +352,9 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 		// Head Bobbing状態をカメラに設定
 		if (pCamera)
 		{
-			pCamera->SetHeadBobbingState(isMoving, isRunning);
+			// 接地している場合のみ Head Bobbing を有効化
+			bool enableHeadBobbing = isMoving && isOnGround;
+			pCamera->SetHeadBobbingState(enableHeadBobbing, isRunning);
 		}
 	}
 
