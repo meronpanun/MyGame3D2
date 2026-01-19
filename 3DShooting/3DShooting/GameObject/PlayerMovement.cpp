@@ -38,6 +38,7 @@ namespace
 
 	// 空中制御
 	constexpr float kAirControlFactor = 1.0f; // 空中での操作の効き具合
+	constexpr float kAirBrakeFactor   = 0.01f; // 空中でのブレーキの強さ
 }
 
 PlayerMovement::PlayerMovement() :
@@ -377,7 +378,28 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 						// 減速（慣性方向と逆向きの入力成分がある）場合に適用
 						if (fwdProjDot < 0.0f)
 						{
-							finalControl = VAdd(finalControl, fwdForceProj);
+							// m_jumpMoveVelocity の現在の速さを取得
+							float currentInertiaSpeed = VSize(m_jumpMoveVelocity);
+							
+							// 目標速度（逆入力の強さに応じて減衰）
+							// fwdProjDot は負の値なので、加算することで減速させる
+							float targetInertiaSpeed = currentInertiaSpeed + fwdProjDot;
+							if (targetInertiaSpeed < 0.0f) targetInertiaSpeed = 0.0f;
+
+							// Lerpを用いて速度を更新
+							float newInertiaSpeed = currentInertiaSpeed + (targetInertiaSpeed - currentInertiaSpeed) * kAirBrakeFactor;
+							
+							if (currentInertiaSpeed > 0.001f)
+							{
+								m_jumpMoveVelocity = VScale(inertiaDir, newInertiaSpeed);
+							}
+							else
+							{
+								m_jumpMoveVelocity = VGet(0,0,0);
+							}
+							
+							// 速度スカラーの同期
+							m_jumpSpeedScalar = newInertiaSpeed;
 						}
 					}
 					else
@@ -386,7 +408,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 						finalControl = VScale(moveDir, currentSpeed * kAirControlFactor);
 					}
 
-				m_modelPos = VAdd(m_modelPos, finalControl);
+					m_modelPos = VAdd(m_modelPos, finalControl);
 				}
 				isMoving = true;
 			}
