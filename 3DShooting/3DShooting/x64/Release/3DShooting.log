@@ -2,6 +2,7 @@
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Collision.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
   (ソース ファイル 'GameObject/PlayerMovement.cpp' をコンパイルしています)
   
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\PlayerMovement.cpp(42,36): warning C4305: '初期化中': 'double' から 'const float' へ切り詰めます。
   コード生成しています。
   1 of 4536 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation

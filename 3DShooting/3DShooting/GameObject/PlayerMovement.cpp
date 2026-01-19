@@ -38,7 +38,8 @@ namespace
 
 	// 空中制御
 	constexpr float kAirControlFactor = 1.0f; // 空中での操作の効き具合
-	constexpr float kAirBrakeFactor   = 0.01f; // 空中でのブレーキの強さ
+	constexpr float kAirBrakeFactor   = 0.01f; // 空中でのブレーキの強さ（Lerp係数）
+	constexpr float kAirAccelFactor   = 0.05;  // 空中での加速の強さ（Lerp係数）
 }
 
 PlayerMovement::PlayerMovement() :
@@ -58,6 +59,7 @@ PlayerMovement::PlayerMovement() :
 	m_jumpStartYaw(0.0f),
 	m_jumpSpeedScalar(0.0f),
 	m_jumpMoveVelocity(VGet(0, 0, 0)),
+	m_airSideControlVelocity(VGet(0, 0, 0)),
 	m_pBodyCollider(std::make_shared<CapsuleCollider>())
 {
 }
@@ -305,6 +307,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 				}
 				m_isRunJumping = false;
 				m_isJumpInertiaActive = false;
+				m_airSideControlVelocity = VGet(0, 0, 0); // 空中操作速度をリセット
 			}
 		}
 
@@ -339,9 +342,14 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 						float dotFwd = VDot(moveDir, camFwd);
 						float dotRight = VDot(moveDir, camRight);
 
-						// 1. 横入力（A/D）はそのまま適用（Strafing）
-						VECTOR sideForce = VScale(camRight, dotRight * currentSpeed * kAirControlFactor);
-						finalControl = VAdd(finalControl, sideForce);
+						// 1. 横入力（A/D）はLerpを用いて徐々に適用（Strafing）
+						VECTOR targetSideVelocity = VScale(camRight, dotRight * currentSpeed * kAirControlFactor);
+						
+						// 現在の左右速度を目標速度に近づける
+						m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) * kAirAccelFactor;
+						m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) * kAirAccelFactor;
+
+						finalControl = VAdd(finalControl, m_airSideControlVelocity);
 
 						// 2. 前方入力（W/S）の処理
 						// 角度差分の計算（±90度以内でステアリング有効）
@@ -507,6 +515,7 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 			}
 			m_isRunJumping = false;
 			m_isJumpInertiaActive = false;
+			m_airSideControlVelocity = VGet(0, 0, 0); // 空中操作速度をリセット
 			m_jumpVelocity = 0.0f;
 			m_isJumping = false;
 		}

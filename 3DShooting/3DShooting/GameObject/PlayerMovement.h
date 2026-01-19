@@ -108,6 +108,7 @@ private:
 	float m_jumpStartYaw;
 	float m_jumpSpeedScalar;
 	VECTOR m_jumpMoveVelocity;
+	VECTOR m_airSideControlVelocity; // 空中での左右操作速度
 
 	float m_coyoteTimeTimer; // コヨーテタイム用のタイマー
 
