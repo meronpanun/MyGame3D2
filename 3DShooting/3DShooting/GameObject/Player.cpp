@@ -297,10 +297,19 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	m_shieldSystem.SetGuarding(shouldGuard);
 	bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
-	// Rキーでシールドソーを投げる（死亡中、タックル中、ガード中、武器切り替え中は不可）
+	// Rキーでシールドソーを投げる/戻す（死亡中、タックル中、ガード中、武器切り替え中は不可）
 	if (!m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon && keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
 	{
-		m_shieldSystem.ThrowShield(m_pCamera.get(), m_modelPos);
+		if (m_shieldSystem.IsShieldThrown())
+		{
+			// 既に投げられている場合は即座に戻す
+			m_shieldSystem.ImmediateReturnShield(m_modelPos);
+		}
+		else
+		{
+			// 投げられていない場合は投げる
+			m_shieldSystem.ThrowShield(m_pCamera.get(), m_modelPos);
+		}
 	}
 
 	// シールドソーの更新（前フレームのガード状態を使用）

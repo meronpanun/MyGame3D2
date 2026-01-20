@@ -528,18 +528,7 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 	// ガード開始時に盾を即座にプレイヤーの位置に戻す
 	if (isGuarding && !wasGuarding && m_isShieldThrown)
 	{
-		// 盾を即座にプレイヤーの位置（Yオフセット付き）に戻す
-		constexpr float kShieldThrowStartYOffset = 80.0f;
-		VECTOR returnTargetPos = playerPos;
-		returnTargetPos.y += kShieldThrowStartYOffset;
-		m_shieldThrowPos = returnTargetPos;
-		
-		// 待機モードに戻す
-		m_shieldThrowState = ShieldThrowState::Idle;
-		m_isShieldThrown = false;
-		m_shieldThrowDistance = 0.0f;
-		m_shieldThrowHitEnemyId = -1;
-		m_shieldThrowRotationTimer = 0.0f;
+		ImmediateReturnShield(playerPos);
 		return;
 	}
 
@@ -747,3 +736,20 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPo
 	MV1DrawModel(m_shieldModelHandle);
 }
 
+void PlayerShieldSystem::ImmediateReturnShield(const VECTOR& playerPos)
+{
+	if (!m_isShieldThrown) return;
+
+	// 盾を即座にプレイヤーの位置（Yオフセット付き）に戻す
+	constexpr float kShieldThrowStartYOffset = 80.0f;
+	VECTOR returnTargetPos = playerPos;
+	returnTargetPos.y += kShieldThrowStartYOffset;
+	m_shieldThrowPos = returnTargetPos;
+
+	// 待機モードに戻す
+	m_shieldThrowState = ShieldThrowState::Idle;
+	m_isShieldThrown = false;
+	m_shieldThrowDistance = 0.0f;
+	m_shieldThrowHitEnemyId = -1;
+	m_shieldThrowRotationTimer = 0.0f;
+}

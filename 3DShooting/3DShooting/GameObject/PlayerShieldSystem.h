@@ -166,6 +166,12 @@ public:
 	void DrawShieldThrow(Camera* pCamera, const VECTOR& playerPos) const;
 
 	/// <summary>
+	/// 盾を即座にプレイヤーの位置に戻す
+	/// </summary>
+	/// <param name="playerPos">プレイヤー位置</param>
+	void ImmediateReturnShield(const VECTOR& playerPos);
+
+	/// <summary>
 	/// シールドソーが投げられているかどうか
 	/// </summary>
 	/// <returns>投げられているならtrue</returns>
