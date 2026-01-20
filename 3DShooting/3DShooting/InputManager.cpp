@@ -96,9 +96,10 @@ void InputManager::UpdateCameraRotation(float& cameraYaw, float& cameraPitch, fl
     cameraYaw   += (mousePos.x - Game::kScreenWidth  * 0.5f) * sensitivity;
     cameraPitch -= (mousePos.y - Game::kScreenHeigth * 0.5f) * sensitivity;
 
-    // カメラのピッチ角度を制限
-    if (cameraPitch >  DX_PI_F * 0.5f) cameraPitch = DX_PI_F * 0.5f;
-    if (cameraPitch < -DX_PI_F * 0.5f) cameraPitch = -DX_PI_F * 0.5f;
+    // カメラのピッチ角度を制限 (ジンバルロック防止のため89度)
+    constexpr float limit = 89.0f * (DX_PI_F / 180.0f);
+    if (cameraPitch >  limit) cameraPitch = limit;
+    if (cameraPitch < -limit) cameraPitch = -limit;
 
     // マウスの位置を中央に戻す
     SetMousePoint(static_cast<int>(Game::kScreenWidth * 0.5f), static_cast<int>(Game::kScreenHeigth * 0.5f));

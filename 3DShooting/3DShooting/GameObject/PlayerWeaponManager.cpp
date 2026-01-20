@@ -659,6 +659,13 @@ float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Came
 {
 	if (!pCamera) return 0.0f;
 
+	// 下を向いている場合は引き込み演出を行わない (ピッチ角が約-45度以下)
+	// DXLibのカメラのピッチは、下を向くとマイナスの値になる
+	if (pCamera->GetPitch() < -DX_PI_F / 4.0f)
+	{
+		return 0.0f;
+	}
+
 	// 武器の種類に応じて判定距離を決定
 	float checkDistance = 0.0f;
 	switch (m_currentWeaponType)
