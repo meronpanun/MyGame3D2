@@ -58,6 +58,7 @@ namespace
 	constexpr float kShieldThrowRadius        = 50.0f;   // シールドの当たり判定半径
 	constexpr float kShieldThrowHeight		  = 100.0f;  // シールドの当たり判定の高さ
 	constexpr float kShieldThrowRotationSpeed = 20.0f;   // シールドの回転速度
+	constexpr float kShieldReflectAngleCos    = 0.3f;  // 反射を許可する入射角のコサイン閾値
 }
 
 PlayerShieldSystem::PlayerShieldSystem() :
@@ -93,6 +94,7 @@ PlayerShieldSystem::PlayerShieldSystem() :
 	m_shieldThrowMaxRange(kShieldThrowMaxRange),
 	m_shieldThrowDamage(kShieldThrowDamage),
 	m_shieldThrowHitEnemyId(-1),
+	m_shieldReflectCount(0),
 	m_shieldThrowRotationTimer(0.0f),
 	m_isTutorial(false),
 	m_idleSwayTimer(0.0f)
@@ -513,6 +515,7 @@ bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
 	m_shieldThrowState = ShieldThrowState::Throwing;
 	m_isShieldThrown = true;
 	m_shieldThrowHitEnemyId = -1;
+	m_shieldReflectCount = 0; // 反射回数をリセット
 	m_shieldThrowRotationTimer = 0.0f; // 回転タイマーをリセット
 
 	return true;
@@ -598,9 +601,31 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 		{
 			if (HitCheck_Sphere_Triangle(m_shieldThrowPos, kShieldThrowRadius, col.v1, col.v2, col.v3))
 			{
-				// ステージに当たったら戻りモードに切り替え
-				m_shieldThrowState = ShieldThrowState::Returning;
-				m_shieldThrowHitEnemyId = -1; // 戻り時に再度ヒットできるようにリセット
+				// 法線の計算
+				VECTOR edge1 = VSub(col.v2, col.v1);
+				VECTOR edge2 = VSub(col.v3, col.v1);
+				VECTOR normal = VNorm(VCross(edge1, edge2));
+
+				// 入射ベクトルと法線の内積
+				float dot = VDot(m_shieldThrowDir, normal);
+				
+				// 反射回数が残っており、かつ入射角度が浅い（法線に対して30度以上）場合のみ反射
+				if (m_shieldReflectCount < 1 && fabsf(dot) < kShieldReflectAngleCos)
+				{
+					// 反射ベクトルの計算: R = I - 2(I・N)N
+					VECTOR reflectDir = VSub(m_shieldThrowDir, VScale(normal, 2.0f * dot));
+					m_shieldThrowDir = VNorm(reflectDir);
+					m_shieldReflectCount++;
+					
+					// めり込み防止（少しだけ法線方向にずらす）
+					m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, 2.0f));
+				}
+				else
+				{
+					// 反射しない、または既に反射済みの場合は戻りモードに切り替え
+					m_shieldThrowState = ShieldThrowState::Returning;
+					m_shieldThrowHitEnemyId = -1; // 戻り時に再度ヒットできるようにリセット
+				}
 
 				break; // 1つでも当たればOK
 			}

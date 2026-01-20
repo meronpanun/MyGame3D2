@@ -224,6 +224,7 @@ private:
 	float m_shieldThrowMaxRange;  // 最大投げ距離
 	float m_shieldThrowDamage;    // シールドソーのダメージ
 	int m_shieldThrowHitEnemyId;  // このフレームでヒットした敵のID（重複ヒット防止用）
+	int m_shieldReflectCount;     // 反射回数
 	float m_shieldThrowRotationTimer; // シールドの回転タイマー
 	bool m_isTutorial;
 };
