@@ -53,7 +53,7 @@ namespace
 
 	// シールドソー関連
 	constexpr float kShieldThrowSpeed         = 1000.0f; // シールドの移動速度
-	constexpr float kShieldThrowMaxRange      = 1000.0f; // 最大投げ距離
+	constexpr float kShieldThrowMaxRange      = 1200.0f; // 最大投げ距離
 	constexpr float kShieldThrowDamage		  = 50.0f;   // シールドソーのダメージ
 	constexpr float kShieldThrowRadius        = 50.0f;   // シールドの当たり判定半径
 	constexpr float kShieldThrowHeight		  = 100.0f;  // シールドの当たり判定の高さ
@@ -617,6 +617,12 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 					m_shieldThrowDir = VNorm(reflectDir);
 					m_shieldReflectCount++;
 					
+					// 反射エフェクトの再生
+					if (pEffect)
+					{
+						pEffect->PlaySparkEffect2(m_shieldThrowPos.x, m_shieldThrowPos.y, m_shieldThrowPos.z);
+					}
+
 					// めり込み防止（少しだけ法線方向にずらす）
 					m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, 2.0f));
 				}

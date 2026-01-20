@@ -45,6 +45,8 @@ public:
 	/// <param name="z">Z座標</param>
 	int PlaySparkEffect(float x, float y, float z);
 
+	int PlaySparkEffect2(float x, float y, float z);
+
 	/// <summary>
 	/// 酸エフェクトを再生する
 	/// </summary>
@@ -72,6 +74,7 @@ private:
 	int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
 	int m_guardEffectHandle; // ガードエフェクトハンドル
 	int m_sparkEffectHandle; // スパークエフェクトハンドル
+	int m_sparkEffectHandle2; // スパークエフェクトハンドル2
 	int m_acidEffectHandle; // 酸エフェクトハンドル
 	int m_parryEffectHandle; // パリィエフェクトハンドル
 

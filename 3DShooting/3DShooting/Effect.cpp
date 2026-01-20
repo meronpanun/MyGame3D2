@@ -12,6 +12,7 @@ namespace
 	constexpr float kMuzzleFlashEffectScale       = 2.0f; 
 	constexpr float kMuzzleFlashEffectScale2      = 3.0f; 
 	constexpr float kMuzzleFlashEffectScale3      = 3.5f; 
+	constexpr float kMuzzleFlashEffectScale4      = 2.5f; 
 	constexpr float kLossOfBloodEffectScale       = 2.5f;
 	constexpr float kConcentrationLineEffectScale = 20.0f;
 	constexpr float kGuardEffectScale             = 10.5f;
@@ -51,6 +52,8 @@ Effect::Effect():
 	// スパークエフェクトハンドルの読み込み
 	m_sparkEffectHandle = LoadEffekseerEffect("data/Effekseer/Spark.efkefc", kSparkEffectScale);
 	assert(m_sparkEffectHandle != -1);
+	m_sparkEffectHandle2 = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale4);
+	assert(m_sparkEffectHandle2 != -1);
 
 	// 酸エフェクトハンドルの読み込み
 	m_acidEffectHandle = LoadEffekseerEffect("data/Effekseer/AcidParry.efkefc", 15.0f);
@@ -72,6 +75,7 @@ Effect::~Effect()
 	DeleteEffekseerEffect(m_concentrationLineEffectHandle);
 	DeleteEffekseerEffect(m_guardEffectHandle);
 	DeleteEffekseerEffect(m_sparkEffectHandle);
+	DeleteEffekseerEffect(m_sparkEffectHandle2);
 	DeleteEffekseerEffect(m_acidEffectHandle);
 	DeleteEffekseerEffect(m_parryEffectHandle);
 }
@@ -170,6 +174,23 @@ int Effect::PlaySparkEffect(float x, float y, float z)
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			m_playingEffectHandles.push_back(handle);
+		}
+		return handle;
+	}
+	return -1;
+}
+ 
+// スパークエフェクト2を再生する
+int Effect::PlaySparkEffect2(float x, float y, float z)
+{
+	if (m_sparkEffectHandle2 != -1)
+	{
+		int handle = PlayEffekseer3DEffect(m_sparkEffectHandle2);
+		if (handle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			SetScalePlayingEffekseer3DEffect(handle, kMuzzleFlashEffectScale4, kMuzzleFlashEffectScale4, kMuzzleFlashEffectScale4);
 			m_playingEffectHandles.push_back(handle);
 		}
 		return handle;
