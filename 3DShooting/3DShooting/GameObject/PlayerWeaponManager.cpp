@@ -468,6 +468,11 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets, const VECTOR& play
 
 	if (pEffect)
 	{
+		// 引き込みによる「ひねり」を Z 回転に反映
+		float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+		float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
+		rotZ += pullProgress * 1.5f;
+
 		pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
 	}
 
@@ -569,7 +574,22 @@ VECTOR PlayerWeaponManager::GetGunPos(const VECTOR& playerPos, Camera* pCamera) 
 
 	VECTOR rotatedMuzzleFlashOffset = VTransform(muzzleFlashOffset, modelRot);
 
-	return VAdd(gunBasePosition, rotatedMuzzleFlashOffset);
+	// 基本の銃口位置
+	VECTOR gunMuzzlePos = VAdd(gunBasePosition, rotatedMuzzleFlashOffset);
+
+	// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
+	VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
+	VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
+	VECTOR camUp = VCross(camForward, camRight);
+
+	float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+	float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
+
+	gunMuzzlePos = VSub(gunMuzzlePos, VScale(camForward, m_pullBackOffset));
+	gunMuzzlePos = VSub(gunMuzzlePos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
+	gunMuzzlePos = VAdd(gunMuzzlePos, VScale(camUp, pullProgress * 20.0f));    // 上に寄せる
+
+	return gunMuzzlePos;
 }
 
 VECTOR PlayerWeaponManager::GetGunRot(Camera* pCamera) const
