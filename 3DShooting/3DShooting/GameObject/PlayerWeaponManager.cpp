@@ -248,9 +248,9 @@ void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
 			
 			// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
-			VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
-			VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
-			VECTOR camUp = VCross(camForward, camRight);
+			VECTOR camForward = VTransform(VGet(0, 0, 1), modelRot);
+			VECTOR camRight = VTransform(VGet(1, 0, 0), modelRot);
+			VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
 			// 現時点での checkDistance 概算値を使用して進行度を計算
 			float checkDistance = (previousWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
@@ -290,9 +290,9 @@ void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
 
 			// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
-			VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
-			VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
-			VECTOR camUp = VCross(camForward, camRight);
+			VECTOR camForward = VTransform(VGet(0, 0, 1), modelRot);
+			VECTOR camRight = VTransform(VGet(1, 0, 0), modelRot);
+			VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
 			float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
 			float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
@@ -338,9 +338,9 @@ void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
 
 			// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
-			VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
-			VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
-			VECTOR camUp = VCross(camForward, camRight);
+			VECTOR camForward = VTransform(VGet(0, 0, 1), modelRot);
+			VECTOR camRight = VTransform(VGet(1, 0, 0), modelRot);
+			VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
 			float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 220.0f : 240.0f;
 			float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
@@ -578,9 +578,9 @@ VECTOR PlayerWeaponManager::GetGunPos(const VECTOR& playerPos, Camera* pCamera) 
 	VECTOR gunMuzzlePos = VAdd(gunBasePosition, rotatedMuzzleFlashOffset);
 
 	// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
-	VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
-	VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
-	VECTOR camUp = VCross(camForward, camRight);
+	VECTOR camForward = VTransform(VGet(0, 0, 1), modelRot);
+	VECTOR camRight = VTransform(VGet(1, 0, 0), modelRot);
+	VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
 	float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
 	float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);

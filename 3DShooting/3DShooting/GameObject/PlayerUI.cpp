@@ -68,10 +68,8 @@ PlayerUI::PlayerUI() :
 	m_noAmmoImageHandle(-1),
 	m_noHealthImageHandle(-1),
 	m_arImageHandle(-1),
-	m_lowAmmoARImageHandle(-1),
 	m_noAmmoARImageHandle(-1),
 	m_sgImageHandle(-1),
-	m_lowAmmoSGImageHandle(-1),
 	m_noAmmoSGImageHandle(-1),
 	m_healthUiImageHandle(-1),
 	m_shieldImageHandle(-1),
@@ -91,16 +89,12 @@ PlayerUI::PlayerUI() :
 	// アサルトライフルUI画像の読み込み
 	m_arImageHandle = LoadGraph("data/image/ARUI.png");
 	assert(m_arImageHandle != -1);
-	m_lowAmmoARImageHandle = LoadGraph("data/image/LowAmmoARUI.png");
-	assert(m_lowAmmoARImageHandle != -1);
 	m_noAmmoARImageHandle = LoadGraph("data/image/NoAmmoARUI.png");
 	assert(m_noAmmoARImageHandle != -1);
 
 	// ショットガンUI画像の読み込み
 	m_sgImageHandle = LoadGraph("data/image/SGUI.png");
 	assert(m_sgImageHandle != -1);
-	m_lowAmmoSGImageHandle = LoadGraph("data/image/LowAmmoSGUI.png");
-	assert(m_lowAmmoSGImageHandle != -1);
 	m_noAmmoSGImageHandle = LoadGraph("data/image/NoAmmoSGUI.png");
 	assert(m_noAmmoSGImageHandle != -1);
 
@@ -131,10 +125,8 @@ PlayerUI::~PlayerUI()
 	DeleteGraph(m_noAmmoImageHandle);
 	DeleteGraph(m_noHealthImageHandle);
 	DeleteGraph(m_arImageHandle);
-	DeleteGraph(m_lowAmmoARImageHandle);
 	DeleteGraph(m_noAmmoARImageHandle);
 	DeleteGraph(m_sgImageHandle);
-	DeleteGraph(m_lowAmmoSGImageHandle);
 	DeleteGraph(m_noAmmoSGImageHandle);
 	DeleteGraph(m_healthUiImageHandle);
 	DeleteGraph(m_shieldImageHandle);
@@ -262,11 +254,16 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
 		gunImageMarginY = kARImageMarginY;
 		if (currentAmmo == 0 && !isInfiniteAmmo)
 		{
+			// 弾切れ時は点滅させずそのまま
 			gunHandle = m_noAmmoARImageHandle;
 		}
 		else if (isLowAmmo)
 		{
-			gunHandle = m_lowAmmoARImageHandle;
+			// 低弾薬時は点滅させる
+			float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+			int alphaInt = static_cast<int>(blinkAlpha * 255);
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+			gunHandle = m_noAmmoARImageHandle;
 		}
 		else
 		{
@@ -280,11 +277,16 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
 		gunImageMarginY = kSGImageMarginY;
 		if (currentAmmo == 0 && !isInfiniteAmmo)
 		{
+			// 弾切れ時は点滅させずそのまま
 			gunHandle = m_noAmmoSGImageHandle;
 		}
 		else if (isLowAmmo)
 		{
-			gunHandle = m_lowAmmoSGImageHandle;
+			// 低弾薬時は点滅させる
+			float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+			int alphaInt = static_cast<int>(blinkAlpha * 255);
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+			gunHandle = m_noAmmoSGImageHandle;
 		}
 		else
 		{
@@ -299,6 +301,12 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
 	int gunImageX = screenW - gunImageWidth - gunImageMarginX;
 
 	DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
+
+	// ブレンドモードをリセット
+	if (isLowAmmo && currentAmmo > 0)
+	{
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	}
 
 	// 残弾数の表示
 	int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr, strlen(kAmmoTextMaxWidthStr), m_fontHandle);

@@ -80,10 +80,8 @@ private:
 	int m_noAmmoImageHandle;
 	int m_noHealthImageHandle;
 	int m_arImageHandle;
-	int m_lowAmmoARImageHandle;
 	int m_noAmmoARImageHandle;
 	int m_sgImageHandle;
-	int m_lowAmmoSGImageHandle;
 	int m_noAmmoSGImageHandle;
 	int m_healthUiImageHandle;
 	int m_shieldImageHandle;
