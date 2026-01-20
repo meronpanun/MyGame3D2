@@ -134,8 +134,21 @@ void PlayerWeaponManager::Init(int arInitAmmo, int sgInitAmmo, int arMaxAmmo, in
 	SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 }
 
-void PlayerWeaponManager::Update(float deltaTime, const VECTOR& playerPos, Camera* pCamera, bool isGuarding, bool isDead, bool isTackling, bool isLockingOn, bool isSwitchingWeapon, AttackType allowedAttackType, bool isInfiniteAmmo, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData)
+void PlayerWeaponManager::Update(const UpdateContext& context)
 {
+	float deltaTime = context.deltaTime;
+	const VECTOR& playerPos = context.playerPos;
+	Camera* pCamera = context.pCamera;
+	bool isGuarding = context.isGuarding;
+	bool isDead = context.isDead;
+	bool isTackling = context.isTackling;
+	bool isLockingOn = context.isLockingOn;
+	bool isSwitchingWeapon = context.isSwitchingWeapon;
+	AttackType allowedAttackType = context.allowedAttackType;
+	bool isInfiniteAmmo = context.isInfiniteAmmo;
+	const std::vector<EnemyBase*>& enemyList = context.enemyList;
+	const std::vector<Stage::StageCollisionData>& collisionData = context.collisionData;
+
 	m_isInfiniteAmmo = isInfiniteAmmo;
 
 	// クールタイムタイマー減算
@@ -200,8 +213,21 @@ void PlayerWeaponManager::Update(float deltaTime, const VECTOR& playerPos, Camer
 	if (m_pullBackOffset > 80.0f) m_pullBackOffset = 80.0f;
 }
 
-void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const VECTOR& gunSwayOffset, const VECTOR& gunShakeOffset, const VECTOR& gunSwayRotOffset, float guardAnimTimer, float guardAnimDuration, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, WeaponType previousWeaponType, bool isTryingToGuard)
+void PlayerWeaponManager::Draw3D(const DrawContext& context)
 {
+	const VECTOR& playerPos = context.playerPos;
+	Camera* pCamera = context.pCamera;
+	const VECTOR& gunSwayOffset = context.gunSwayOffset;
+	const VECTOR& gunShakeOffset = context.gunShakeOffset;
+	const VECTOR& gunSwayRotOffset = context.gunSwayRotOffset;
+	float guardAnimTimer = context.guardAnimTimer;
+	float guardAnimDuration = context.guardAnimDuration;
+	bool isSwitchingWeapon = context.isSwitchingWeapon;
+	float weaponSwitchTimer = context.weaponSwitchTimer;
+	float weaponSwitchDuration = context.weaponSwitchDuration;
+	WeaponType previousWeaponType = context.previousWeaponType;
+	bool isTryingToGuard = context.isTryingToGuard;
+
 	// モデルの位置と回転を更新
 	MATRIX rotYaw = MGetRotY(pCamera->GetYaw());
 	MATRIX rotPitch = MGetRotX(-pCamera->GetPitch());

@@ -256,7 +256,21 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		m_modelPos = m_movement.GetPos(); // 位置を同期
 	}
 
-	m_weaponManager.Update(deltaTime, m_modelPos, m_pCamera.get(), isGuarding, m_isDead, m_isTackling, m_isLockingOn, isSwitchingWeapon, m_allowedAttackType, m_isInfiniteAmmo, enemyList, collisionData);
+	PlayerWeaponManager::UpdateContext weaponContext = {
+		deltaTime,
+		m_modelPos,
+		m_pCamera.get(),
+		isGuarding,
+		m_isDead,
+		m_isTackling,
+		m_isLockingOn,
+		isSwitchingWeapon,
+		m_allowedAttackType,
+		m_isInfiniteAmmo,
+		enemyList,
+		collisionData
+	};
+	m_weaponManager.Update(weaponContext);
 
 	// 武器切り替え（ガード中は不可）
 	if (!isGuarding)
@@ -694,10 +708,23 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
 void Player::Draw3D()
 {
-	// 武器描画処理をコンポーネントに委譲
 	bool isTryingToGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
 	bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
-	m_weaponManager.Draw3D(m_modelPos, m_pCamera.get(), m_gunSwayOffset, m_weaponManager.GetGunShakeOffset(), m_gunSwayRotOffset, m_shieldSystem.GetGuardAnimTimer(), m_shieldSystem.GetGuardAnimDuration(), isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), m_weaponManager.GetPreviousWeaponType(), isTryingToGuard);
+	PlayerWeaponManager::DrawContext weaponDrawContext = {
+		m_modelPos,
+		m_pCamera.get(),
+		m_gunSwayOffset,
+		m_weaponManager.GetGunShakeOffset(),
+		m_gunSwayRotOffset,
+		m_shieldSystem.GetGuardAnimTimer(),
+		m_shieldSystem.GetGuardAnimDuration(),
+		isSwitchingWeapon,
+		m_weaponManager.GetWeaponSwitchTimer(),
+		m_weaponManager.GetWeaponSwitchDuration(),
+		m_weaponManager.GetPreviousWeaponType(),
+		isTryingToGuard
+	};
+	m_weaponManager.Draw3D(weaponDrawContext);
 
 	// 弾と薬莢の描画
 	Bullet::DrawBullets(m_bullets);

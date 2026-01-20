@@ -30,8 +30,42 @@ public:
 	~PlayerWeaponManager();
 
 	void Init(int arInitAmmo, int sgInitAmmo, int arMaxAmmo, int sgMaxAmmo, float bulletPower, float sgBulletPower, float arShootRate = 10.0f);
-	void Update(float deltaTime, const VECTOR& playerPos, Camera* pCamera, bool isGuarding, bool isDead, bool isTackling, bool isLockingOn, bool isSwitchingWeapon, AttackType allowedAttackType, bool isInfiniteAmmo, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData);
-	void Draw3D(const VECTOR& playerPos, Camera* pCamera, const VECTOR& gunSwayOffset, const VECTOR& gunShakeOffset, const VECTOR& gunSwayRotOffset, float guardAnimTimer, float guardAnimDuration, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, WeaponType previousWeaponType, bool isTryingToGuard);
+
+	// コンテキスト構造体
+	struct UpdateContext
+	{
+		float deltaTime;
+		const VECTOR& playerPos;
+		Camera* pCamera;
+		bool isGuarding;
+		bool isDead;
+		bool isTackling;
+		bool isLockingOn;
+		bool isSwitchingWeapon;
+		AttackType allowedAttackType;
+		bool isInfiniteAmmo;
+		const std::vector<EnemyBase*>& enemyList;
+		const std::vector<Stage::StageCollisionData>& collisionData;
+	};
+
+	struct DrawContext
+	{
+		const VECTOR& playerPos;
+		Camera* pCamera;
+		const VECTOR& gunSwayOffset;
+		const VECTOR& gunShakeOffset;
+		const VECTOR& gunSwayRotOffset;
+		float guardAnimTimer;
+		float guardAnimDuration;
+		bool isSwitchingWeapon;
+		float weaponSwitchTimer;
+		float weaponSwitchDuration;
+		WeaponType previousWeaponType;
+		bool isTryingToGuard;
+	};
+
+	void Update(const UpdateContext& context);
+	void Draw3D(const DrawContext& context);
 
 	/// <summary>
 	/// アサルトライフルの射撃レート取得
