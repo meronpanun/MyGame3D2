@@ -3,6 +3,8 @@
 #include "Camera.h"
 #include "Effect.h"
 #include "ShellCasing.h"
+#include "EnemyBase.h"
+#include "Collision.h"
 #include "AnimationManager.h"
 #include "Game.h"
 #include <cmath>
@@ -82,7 +84,8 @@ PlayerWeaponManager::PlayerWeaponManager() :
 	m_isSGAnimPlaying(false),
 	m_sgAnimTime(0.0f),
 	m_shotSEHandle(-1),
-	m_sgShotSEHandle(-1)
+	m_sgShotSEHandle(-1),
+	m_pullBackOffset(0.0f)
 {
 	// アサルトライフルモデルの読み込み
 	m_arHandle = MV1LoadModel("data/model/AR.mv1");
@@ -131,7 +134,7 @@ void PlayerWeaponManager::Init(int arInitAmmo, int sgInitAmmo, int arMaxAmmo, in
 	SwitchWeapon(m_weaponTypes[m_currentWeaponIndex]);
 }
 
-void PlayerWeaponManager::Update(float deltaTime, const VECTOR& playerPos, Camera* pCamera, bool isGuarding, bool isDead, bool isTackling, bool isLockingOn, bool isSwitchingWeapon, AttackType allowedAttackType, bool isInfiniteAmmo)
+void PlayerWeaponManager::Update(float deltaTime, const VECTOR& playerPos, Camera* pCamera, bool isGuarding, bool isDead, bool isTackling, bool isLockingOn, bool isSwitchingWeapon, AttackType allowedAttackType, bool isInfiniteAmmo, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData)
 {
 	m_isInfiniteAmmo = isInfiniteAmmo;
 
@@ -186,6 +189,15 @@ void PlayerWeaponManager::Update(float deltaTime, const VECTOR& playerPos, Camer
 		m_lowAmmoBlinkTimer = 0.0f;
 		m_isNoAmmoWarning = false;
 	}
+
+	// 銃の引き込み判定
+	float targetPullBack = CalculatePullBackOffset(playerPos, pCamera, enemyList, collisionData);
+	// スムーズに補間 (1秒で目標に近づく程度の速さ)
+	m_pullBackOffset += (targetPullBack - m_pullBackOffset) * (1.0f - powf(0.1f, deltaTime * 10.0f));
+
+	// 画面外（カメラの後ろ）に消えないようにクランプ。
+	// 初期Zオフセットが60.0f程度なので、80.0f程度を上限とする。
+	if (m_pullBackOffset > 80.0f) m_pullBackOffset = 80.0f;
 }
 
 void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const VECTOR& gunSwayOffset, const VECTOR& gunShakeOffset, const VECTOR& gunSwayRotOffset, float guardAnimTimer, float guardAnimDuration, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, WeaponType previousWeaponType, bool isTryingToGuard)
@@ -234,8 +246,31 @@ void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const
 			modelPos.y -= yOffset;
 
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
+			
+			// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
+			VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
+			VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
+			VECTOR camUp = VCross(camForward, camRight);
+
+			// 現時点での checkDistance 概算値を使用して進行度を計算
+			float checkDistance = (previousWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+			float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
+
+			// 引き込みによる位置補正 (手前に引き、左上に寄せる)
+			finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
+			finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
+			finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f));    // 上に寄せる
+
+			// 最前面に描画するために Z バッファをクリア
+			ClearDrawScreenZBuffer();
+
 			MV1SetPosition(prevHandle, finalPos);
-			MV1SetRotationXYZ(prevHandle, VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset));
+
+			// 回転の補正 (反時計回りにひねる等)
+			VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
+			baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる (ラジアン)
+			
+			MV1SetRotationXYZ(prevHandle, baseRot);
 			MV1SetVisible(prevHandle, true);
 			MV1DrawModel(prevHandle);
 		}
@@ -253,8 +288,30 @@ void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const
 			modelPos.y -= yOffset;
 
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
+
+			// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
+			VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
+			VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
+			VECTOR camUp = VCross(camForward, camRight);
+
+			float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+			float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
+
+			finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
+			finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
+			finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f));    // 上に寄せる
+
+			// 最前面に描画するために Z バッファをクリア
+			// (既に前の武器の描画でクリアされている可能性もあるが、安全のため)
+			ClearDrawScreenZBuffer();
+
 			MV1SetPosition(currentHandle, finalPos);
-			MV1SetRotationXYZ(currentHandle, VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset));
+
+			// 回転の補正
+			VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
+			baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる
+			
+			MV1SetRotationXYZ(currentHandle, baseRot);
 			MV1SetVisible(currentHandle, true);
 			MV1DrawModel(currentHandle);
 		}
@@ -279,10 +336,29 @@ void PlayerWeaponManager::Draw3D(const VECTOR& playerPos, Camera* pCamera, const
 
 			// モデルの位置を設定
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
+
+			// 引き込み分を手前にずらす。さらに内側（左）と上（胸元）に寄せる。
+			VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
+			VECTOR camRight = VNorm(VCross(VGet(0, 1, 0), camForward));
+			VECTOR camUp = VCross(camForward, camRight);
+
+			float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 220.0f : 240.0f;
+			float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
+
+			finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
+			finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
+			finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f));    // 上に寄せる
+
+			// 最前面に描画するために Z バッファをクリア
+			ClearDrawScreenZBuffer();
+
 			MV1SetPosition(currentHandle, finalPos);
 
-			// モデルの回転を設定
-			MV1SetRotationXYZ(currentHandle, VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset));
+			// モデルの回転を設定 (ひねりを加える)
+			VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
+			baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる
+
+			MV1SetRotationXYZ(currentHandle, baseRot);
 			
 			// モデルを描画
 			MV1DrawModel(currentHandle);
@@ -557,5 +633,75 @@ void PlayerWeaponManager::UpdateSGAnimation(AnimationManager* pAnimManager, floa
 			}
 		}
 	}
+}
+
+float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData) const
+{
+	if (!pCamera) return 0.0f;
+
+	// 武器の種類に応じて判定距離を決定
+	float checkDistance = 0.0f;
+	switch (m_currentWeaponType)
+	{
+	case WeaponType::AssaultRifle:
+		checkDistance = 160.0f; // アサルトライフルの長さ目安
+		break;
+	case WeaponType::Shotgun:
+		checkDistance = 180.0f; // ショットガンの長さ目安
+		break;
+	}
+
+	VECTOR camPos = pCamera->GetPos();
+	VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), camPos));
+	
+	// 少し前から Ray を飛ばす
+	VECTOR rayStart = VAdd(camPos, VScale(camForward, 10.0f)); 
+	VECTOR rayEnd = VAdd(rayStart, VScale(camForward, checkDistance));
+
+	float minT = 1.0f; // 0.0 - 1.0 の範囲で最も近い衝突点を探す
+	bool hit = false;
+
+	// ステージとの判定
+	for (const auto& poly : collisionData)
+	{
+		float t = 0.0f;
+		if (Collision::IntersectRayTriangle(rayStart, VScale(camForward, checkDistance), poly.v1, poly.v2, poly.v3, t))
+		{
+			if (t >= 0.0f && t < minT)
+			{
+				minT = t;
+				hit = true;
+			}
+		}
+	}
+
+	// 敵との判定
+	for (const auto& enemy : enemyList)
+	{
+		if (!enemy || !enemy->IsAlive()) continue;
+
+		VECTOR hitPos;
+		float hitDistSq;
+		// EnemyBase::CheckHitPart を利用して Ray 判定を行う
+		if (enemy->CheckHitPart(rayStart, rayEnd, hitPos, hitDistSq) != EnemyBase::HitPart::None)
+		{
+			float dist = sqrtf(hitDistSq);
+			float t = dist / checkDistance;
+			if (t < minT)
+			{
+				minT = t;
+				hit = true;
+			}
+		}
+	}
+
+	if (hit)
+	{
+		// 衝突点から逆算して、引き込み量を決める
+		// 最前面描画が有効なので、引き込み量自体は控えめに（0.5倍程度）して「ひねり」を強調する
+		return (1.0f - minT) * checkDistance * 0.5f; 
+	}
+
+	return 0.0f;
 }
 

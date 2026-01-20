@@ -256,7 +256,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		m_modelPos = m_movement.GetPos(); // 位置を同期
 	}
 
-	m_weaponManager.Update(deltaTime, m_modelPos, m_pCamera.get(), isGuarding, m_isDead, m_isTackling, m_isLockingOn, isSwitchingWeapon, m_allowedAttackType, m_isInfiniteAmmo);
+	m_weaponManager.Update(deltaTime, m_modelPos, m_pCamera.get(), isGuarding, m_isDead, m_isTackling, m_isLockingOn, isSwitchingWeapon, m_allowedAttackType, m_isInfiniteAmmo, enemyList, collisionData);
 
 	// 武器切り替え（ガード中は不可）
 	if (!isGuarding)

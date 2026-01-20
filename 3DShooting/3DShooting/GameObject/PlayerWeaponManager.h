@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "EffekseerForDXLib.h"
 #include "AttackType.h"
+#include "Stage.h"
 #include <vector>
 
 class Bullet;
@@ -8,6 +9,7 @@ class Camera;
 class Effect;
 class AnimationManager;
 class ShellCasing;
+class EnemyBase;
 
 /// <summary>
 /// 武器の種類列挙型
@@ -28,7 +30,7 @@ public:
 	~PlayerWeaponManager();
 
 	void Init(int arInitAmmo, int sgInitAmmo, int arMaxAmmo, int sgMaxAmmo, float bulletPower, float sgBulletPower, float arShootRate = 10.0f);
-	void Update(float deltaTime, const VECTOR& playerPos, Camera* pCamera, bool isGuarding, bool isDead, bool isTackling, bool isLockingOn, bool isSwitchingWeapon, AttackType allowedAttackType, bool isInfiniteAmmo);
+	void Update(float deltaTime, const VECTOR& playerPos, Camera* pCamera, bool isGuarding, bool isDead, bool isTackling, bool isLockingOn, bool isSwitchingWeapon, AttackType allowedAttackType, bool isInfiniteAmmo, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData);
 	void Draw3D(const VECTOR& playerPos, Camera* pCamera, const VECTOR& gunSwayOffset, const VECTOR& gunShakeOffset, const VECTOR& gunSwayRotOffset, float guardAnimTimer, float guardAnimDuration, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, WeaponType previousWeaponType, bool isTryingToGuard);
 
 	/// <summary>
@@ -279,8 +281,16 @@ private:
 	bool  m_isSGAnimPlaying;
 	float m_sgAnimTime;
 
+	/// <summary>
+	/// 銃のモデルが壁や敵に接触しているか計算し、引き込み距離を返す
+	/// </summary>
+	float CalculatePullBackOffset(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData) const;
+	
 	// SEハンドル
 	int m_shotSEHandle;
 	int m_sgShotSEHandle;
+
+	// 引き込みオフセット
+	float m_pullBackOffset;
 };
 

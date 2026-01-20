@@ -24,7 +24,7 @@ namespace
 
 	// Update関連
 	constexpr float kPlayerColliderYOffset = 60.0f; // コライダーのYオフセット
-	constexpr float kGroundCheckTolerance  = 1.0f;  // 地面判定の許容誤差 (0.01f から緩和)
+	constexpr float kGroundCheckTolerance  = 1.0f;  // 地面判定の許容誤差
 	constexpr float kCoyoteTimeDuration    = 0.2f;  // コヨーテタイムの持続時間 (秒)
 	constexpr float kJumpSwayPower		   = 5.0f;  // ジャンプ時の揺れの強さ
 	constexpr float kLandingSwayPower	   = 5.0f;  // 着地時の揺れの強さ
