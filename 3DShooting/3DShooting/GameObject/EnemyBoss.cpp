@@ -21,6 +21,7 @@ namespace
     constexpr char kDeadAnimName[]            = "Armature|Death";
 
     constexpr float kLongRangeAttackMinDist = 300.0f; // 遠距離攻撃を行う最小距離
+    constexpr float kLongRangeAttackMaxDist = 800.0f; // 遠距離攻撃を行う最大距離（これより遠いと攻撃せず接近する）
     constexpr int   kLongRangeAttackCooldownMax = 120;
     constexpr float kHomingBulletSpeed   = 6.0f;
     constexpr float kHomingTurnRate      = 0.02f;   // 旋回性能
@@ -331,9 +332,9 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                  m_isAttackHit = false;
                  ChangeAnimation(AnimState::Attack, false);
              }
-             else if (disToPlayer > kLongRangeAttackMinDist && m_longRangeAttackCooldown <= 0)
+             else if (disToPlayer > kLongRangeAttackMinDist && disToPlayer < kLongRangeAttackMaxDist && m_longRangeAttackCooldown <= 0)
              {
-                 // 遠距離攻撃へ遷移
+                 // 遠距離攻撃へ遷移（プレイヤーが遠距離攻撃の有効範囲内にいる場合のみ）
                  m_hasShotLongRange = false;
                  ChangeAnimation(AnimState::LongRangeAttack, false);
              }
