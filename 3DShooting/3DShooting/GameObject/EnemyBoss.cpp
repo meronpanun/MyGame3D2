@@ -28,8 +28,6 @@ namespace
     constexpr float kHomingBulletMaxDist = 1500.0f; // 弾の最大飛距離
     constexpr float kHomingBulletDamage  = 20.0f;
     constexpr float kHomingBulletRadius  = 15.0f;
-    constexpr float kDefaultInitialHP    = 5000.0f; // ボスの初期体力
-    constexpr float kChaseSpeed          = 1.5f;    // 追跡速度
 
     // コライダーサイズ
     constexpr float kBodyColliderRadius = 40.0f;
@@ -60,7 +58,7 @@ EnemyBoss::EnemyBoss() :
     m_currentAnimState(AnimState::Walk),
     m_isDeadAnimPlaying(false),
     m_animTime(0.0f),
-    m_chaseSpeed(kChaseSpeed),
+    m_chaseSpeed(0.0f),
     m_attackEndDelayTimer(0),
     m_isAttackHit(false),
     m_headNodeIndex(-1),
@@ -84,9 +82,13 @@ EnemyBoss::~EnemyBoss()
 
 void EnemyBoss::Init()
 {
-    m_hp = kDefaultInitialHP;
-    m_maxHp = kDefaultInitialHP;
-    m_chaseSpeed = kChaseSpeed;
+    m_isAlive = true;
+    m_isDeadAnimPlaying = false;
+    m_animTime = 0.0f;
+    
+    // 位置はWaveManagerでセットされるが、初期値として
+    m_pos = VGet(0.0f, 0.0f, 1000.0f); 
+    MV1SetPosition(m_modelHandle, m_pos);
 
     // CSVからデータをロード
     auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -103,14 +105,6 @@ void EnemyBoss::Init()
             break;
         }
     }
-
-    m_isAlive = true;
-    m_isDeadAnimPlaying = false;
-    m_animTime = 0.0f;
-    
-    // 位置はWaveManagerでセットされるが、初期値として
-    m_pos = VGet(0.0f, 0.0f, 1000.0f); 
-    MV1SetPosition(m_modelHandle, m_pos);
     
     // フレームインデックスのキャッシュ
     m_headNodeIndex       = MV1SearchFrame(m_modelHandle, "Head");
