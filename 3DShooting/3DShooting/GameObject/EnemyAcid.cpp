@@ -303,9 +303,6 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                         shieldPos.y += 50.0f; // 少し上に
                         shieldPos = VAdd(shieldPos, VScale(camForward, 60.0f)); // 前方に60
 
-                        // 計算した盾の位置でエフェクトを再生
-                        const_cast<Player&>(player).PlayParryEffect(shieldPos);
-
                         // 反射方向を「盾の位置」から「敵の位置」へ
                         VECTOR reflectDir = VNorm(VSub(this->GetPos(), shieldPos));
                         ball.dir = reflectDir;

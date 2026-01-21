@@ -47,6 +47,8 @@ namespace
 	constexpr float kLowHealthEffectMaxAlpha = 0.7f;   // 体力低下UIの最大アルファ値
 	constexpr float kIdleSwaySpeed			 = 1.5f;   // 揺れの速さ
 	constexpr float kIdleSwayAmount			 = 0.04f;  // 揺れの量
+	constexpr float kLockOnAngleCos		     = 0.966f; // cos(15度)
+	constexpr float kLockOnMaxScreenOffsetY  = 100.0f; // 画面中央からの垂直方向の最大オフセット
 
 	// 盾UI関連
 	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
@@ -294,9 +296,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		}
 	}
 
-	// スペースキー2回押しで飛行モード切り替え機能は削除
-	// 飛行モードはデバッグメニュー（F1キー）からCharacter > Player > Flight Modeで切り替える
-
 	// プレイヤーの位置をカメラに設定
 	m_pCamera->SetPlayerPos(m_modelPos);
 
@@ -306,7 +305,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	// 盾システムの更新
 	m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding, m_isTackling, isSwitchingWeapon, m_weaponManager.GetWeaponSwitchTimer(), m_weaponManager.GetWeaponSwitchDuration(), yawDelta, m_movement.IsMoving());
 
-	// 右クリック長押しでガード（UpdateShieldThrowの前に呼ぶ必要がある）
+	// 右クリック長押しでガード
 	bool shouldGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
 	m_shieldSystem.SetGuarding(shouldGuard);
 	bool currentIsGuarding = m_shieldSystem.IsGuarding();
@@ -332,7 +331,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	// 前フレームのガード状態を更新
 	m_prevIsGuarding = currentIsGuarding;
 
-	// 銃のSwayの計算（一時的に保持）
+	// 銃のSwayの計算
 	m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
 	m_gunSwayOffset.x *= kGunSwayDamping;
 	m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f;
@@ -398,40 +397,37 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	{
 		m_ignoreGuardInput = false;
 	}
+
 	// ロックオン可能な敵がいるかどうかの判定
 	m_isTargetAvailable = false;
+
+	VECTOR camPos = m_pCamera->GetPos();
+	VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+
+	for (EnemyBase* enemy : enemyList)
 	{
-		constexpr float kLockOnAngleCos = 0.966f; // cos(15度)
-		constexpr float kLockOnMaxScreenOffsetY = 100.0f; // 画面中央からの垂直方向の最大オフセット
+		if (!enemy || !enemy->IsAlive()) continue;
 
-		VECTOR camPos = m_pCamera->GetPos();
-		VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+		VECTOR enemyPos = enemy->GetPos();
+		enemyPos.y += 70.0f; // 敵の胴体あたりをターゲットにするためのオフセット
+		VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
 
-		for (EnemyBase* enemy : enemyList)
+		// プレイヤーの前方一定角度内にいるか
+		if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
 		{
-			if (!enemy || !enemy->IsAlive()) continue;
+			VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
 
-			VECTOR enemyPos = enemy->GetPos();
-			enemyPos.y += 70.0f; // 敵の胴体あたりをターゲットにするためのオフセット
-			VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
-
-			// プレイヤーの前方一定角度内にいるか
-			if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
+			// 画面内にいるか、かつ垂直方向の範囲内か
+			if (screenPos.z > 0)
 			{
-				VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+				float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
+				float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
 
-				// 画面内にいるか、かつ垂直方向の範囲内か
-				if (screenPos.z > 0)
+				// 垂直方向の範囲チェック
+				if (fabs(dy) < kLockOnMaxScreenOffsetY)
 				{
-					float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
-					float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
-
-					// 垂直方向の範囲チェック
-					if (fabs(dy) < kLockOnMaxScreenOffsetY)
-					{
-						m_isTargetAvailable = true;
-						break; // 1体でも見つかればOK
-					}
+					m_isTargetAvailable = true;
+					break; // 1体でも見つかればOK
 				}
 			}
 		}
@@ -439,8 +435,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
 	// 敵に照準が合っているかどうかの判定
 	m_isAimingAtEnemy = false;
-	VECTOR camPos = m_pCamera->GetPos();
-	VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
 	VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
 
 	for (const auto& enemy : enemyList)
@@ -460,9 +454,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 			break;
 		}
 	}
-
-	// 右クリック長押しでガード（既に上で設定済み）
-	isGuarding = m_shieldSystem.IsGuarding();
 
 	// タックルクールダウン中でない場合のみロックオンを許可
 	if (shouldGuard && m_tackleCooldown <= 0)
@@ -639,7 +630,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	// 弾の更新
 	Bullet::UpdateBullets(m_bullets, m_modelPos);
 
-	// 移動処理はm_movement.Update()で処理済み
 	// Head Bobbing状態をカメラに設定
 	if (m_pCamera)
 	{
@@ -694,7 +684,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		m_isLowHealth = false;
 		m_lowHealthBlinkTimer = 0.0f;
 	}
-	// エフェクトの更新（PlayerEffectManagerに委譲）
+	// エフェクトの更新
 	m_effectManager.Update(deltaTime, m_isLowHealth, m_lowHealthBlinkTimer);
 
 	// 残弾数テキストのフラッシュタイマー更新
@@ -749,7 +739,7 @@ void Player::DrawUI()
 		m_health, m_healthBarAnim, m_maxHealth, m_isLowHealth, m_lowHealthBlinkTimer, m_ammoTextFlashTimer,
 		m_weaponManager, m_shieldSystem);
 
-	// エフェクトの描画（PlayerEffectManagerに委譲）
+	// エフェクトの描画
 	m_effectManager.Draw();
 
 	// Effekseerエフェクトの描画
@@ -758,7 +748,6 @@ void Player::DrawUI()
 		m_pEffect->Draw();
 	}
 }
-
 
 void Player::DeathUpdate()
 {
@@ -807,7 +796,6 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos)
 		{
 			VECTOR forward = VNorm(VSub(m_pCamera->GetTarget(), m_pCamera->GetPos()));
 			VECTOR effectPos = VAdd(m_modelPos, VScale(forward, 80.0f));
-			// スパークエフェクトは盾システムで管理されるため、ここでは再生のみ
 		}
 
 		float remainingDamage = m_shieldSystem.TakeDamage(damage, m_pEffect, m_pCamera.get(), m_modelPos);
@@ -1001,14 +989,6 @@ bool Player::IsAimingAtEnemy() const
 bool Player::IsJustGuarded() const
 {
 	return m_shieldSystem.IsJustGuarded();
-}
-
-void Player::PlayParryEffect(const VECTOR& pos)
-{
-	if (m_pEffect)
-	{
-		m_pEffect->PlayParryEffect(pos.x, pos.y, pos.z);
-	}
 }
 
 WeaponType Player::GetCurrentWeaponType() const

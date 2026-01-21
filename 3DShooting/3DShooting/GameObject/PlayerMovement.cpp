@@ -34,10 +34,10 @@ namespace
 	// ダッシュ着地時のシェイク（画面全体の振動）
 	constexpr float kRunLandingShakeIntensity      = 1.0f; // ベースシェイク強度
 	constexpr float kRunLandingShakeVelocityFactor = 0.2f; // 速度によるシェイク加算係数
-	constexpr int   kRunLandingShakeDuration       = 5;   // シェイク持続時間（フレーム）
+	constexpr int   kRunLandingShakeDuration       = 5;    // シェイク持続時間（フレーム）
 
 	// 空中制御
-	constexpr float kAirControlFactor = 1.0f; // 空中での操作の効き具合
+	constexpr float kAirControlFactor = 1.0f;  // 空中での操作の効き具合
 	constexpr float kAirBrakeFactor   = 0.01f; // 空中でのブレーキの強さ（Lerp係数）
 	constexpr float kAirAccelFactor   = 0.05;  // 空中での加速の強さ（Lerp係数）
 }

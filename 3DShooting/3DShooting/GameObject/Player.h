@@ -253,11 +253,6 @@ public:
 	void ShakeGun(float power, float duration);
 
 	/// <summary>
-	/// パリィエフェクトを再生する
-	/// </summary>
-	void PlayParryEffect(const VECTOR& pos);
-
-	/// <summary>
 	/// エフェクトを設定する
 	/// </summary>
 	/// <param name="pEffect">エフェクトのポインタ</param>
