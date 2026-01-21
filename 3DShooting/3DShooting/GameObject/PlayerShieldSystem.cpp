@@ -59,6 +59,11 @@ namespace
 	constexpr float kShieldThrowHeight		  = 100.0f;  // シールドの当たり判定の高さ
 	constexpr float kShieldThrowRotationSpeed = 20.0f;   // シールドの回転速度
 	constexpr float kShieldReflectAngleCos    = 0.3f;  // 反射を許可する入射角のコサイン閾値
+	constexpr float kShieldThrowCooldown      = 1.0f;  // シールド投げのクールタイム（秒）
+
+	// 盾投げ失敗アニメーション
+	constexpr float kShieldThrowFailedAnimDuration = 0.2f;  // 失敗アニメーションの持続時間（秒）
+	constexpr float kShieldThrowFailedAnimOffset   = 15.0f; // 失敗アニメーションの突き出し距離
 }
 
 PlayerShieldSystem::PlayerShieldSystem() :
@@ -96,6 +101,9 @@ PlayerShieldSystem::PlayerShieldSystem() :
 	m_shieldThrowHitEnemyId(-1),
 	m_shieldReflectCount(0),
 	m_shieldThrowRotationTimer(0.0f),
+	m_shieldThrowCooldownTimer(0.0f),
+	m_isShieldThrowFailedAnimating(false),
+	m_shieldThrowFailedAnimTimer(0.0f),
 	m_isTutorial(false),
 	m_idleSwayTimer(0.0f)
 {
@@ -128,6 +136,27 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& 
 	// パリィ判定のために、更新前に前フレームのガード状態を保存
 	m_wasGuarding = m_isGuarding;
 	m_isGuarding = isGuarding;
+
+	// シールド投げのクールタイムタイマー減算
+	if (m_shieldThrowCooldownTimer > 0.0f)
+	{
+		m_shieldThrowCooldownTimer -= deltaTime;
+		if (m_shieldThrowCooldownTimer < 0.0f)
+		{
+			m_shieldThrowCooldownTimer = 0.0f;
+		}
+	}
+
+	// 盾投げ失敗アニメーションの更新
+	if (m_isShieldThrowFailedAnimating)
+	{
+		m_shieldThrowFailedAnimTimer += deltaTime;
+		if (m_shieldThrowFailedAnimTimer >= kShieldThrowFailedAnimDuration)
+		{
+			m_isShieldThrowFailedAnimating = false;
+			m_shieldThrowFailedAnimTimer = 0.0f;
+		}
+	}
 
 	// 盾のアニメーションタイマー更新
 	if (m_isShieldAnimating)
@@ -318,6 +347,17 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
 		currentPos.y += ((float)rand() / RAND_MAX - 0.5f) * kGuardShakeAmount;
 	}
 
+	// 盾投げ失敗アニメーション処理
+	if (m_isShieldThrowFailedAnimating)
+	{
+		float animProgress = m_shieldThrowFailedAnimTimer / kShieldThrowFailedAnimDuration;
+		// ease-out イージング（減速しながら戻る）
+		float easedProgress = 1.0f - powf(1.0f - animProgress, 3.0f);
+		// 前に突き出して戻る（0 → max → 0）
+		float thrustOffset = sinf(easedProgress * DX_PI_F) * kShieldThrowFailedAnimOffset;
+		currentPos.z += thrustOffset;
+	}
+
 	// 盾のアニメーション処理
 	if (m_isShieldAnimating)
 	{
@@ -484,6 +524,15 @@ int PlayerShieldSystem::GetShieldImageHandle() const
 
 bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
 {
+	// クールタイム中は投げられない
+	if (m_shieldThrowCooldownTimer > 0.0f)
+	{
+		// 失敗アニメーションを開始
+		m_isShieldThrowFailedAnimating = true;
+		m_shieldThrowFailedAnimTimer = 0.0f;
+		return false;
+	}
+
 	// 既に投げられている場合は投げられない
 	if (m_isShieldThrown)
 	{
@@ -568,6 +617,8 @@ void PlayerShieldSystem::UpdateShieldThrow(float deltaTime, Camera* pCamera, con
 			m_shieldThrowDistance = 0.0f;
 			m_shieldThrowHitEnemyId = -1;
 			m_shieldThrowRotationTimer = 0.0f;
+			// クールタイムを開始
+			m_shieldThrowCooldownTimer = kShieldThrowCooldown;
 			return;
 		}
 
@@ -752,4 +803,6 @@ void PlayerShieldSystem::ImmediateReturnShield(const VECTOR& playerPos)
 	m_shieldThrowDistance = 0.0f;
 	m_shieldThrowHitEnemyId = -1;
 	m_shieldThrowRotationTimer = 0.0f;
+	// クールタイムを開始
+	m_shieldThrowCooldownTimer = kShieldThrowCooldown;
 }

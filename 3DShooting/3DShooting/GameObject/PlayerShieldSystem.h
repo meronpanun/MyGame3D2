@@ -232,6 +232,11 @@ private:
 	int m_shieldThrowHitEnemyId;  // このフレームでヒットした敵のID（重複ヒット防止用）
 	int m_shieldReflectCount;     // 反射回数
 	float m_shieldThrowRotationTimer; // シールドの回転タイマー
+	float m_shieldThrowCooldownTimer; // シールド投げのクールタイムタイマー
+
+	// 盾投げ失敗アニメーション
+	bool m_isShieldThrowFailedAnimating;  // 失敗アニメーション中フラグ
+	float m_shieldThrowFailedAnimTimer;   // 失敗アニメーションタイマー
 	bool m_isTutorial;
 };
 
