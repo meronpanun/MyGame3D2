@@ -58,10 +58,6 @@ Effect::Effect():
 	// 酸エフェクトハンドルの読み込み
 	m_acidEffectHandle = LoadEffekseerEffect("data/Effekseer/AcidParry.efkefc", 15.0f);
 	assert(m_acidEffectHandle != -1);
-
-	// パリィエフェクトハンドルの読み込み
-	//m_parryEffectHandle = LoadEffekseerEffect("data/Effekseer/Ring.efkefc", 20.0f);
-	//assert(m_parryEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -77,7 +73,6 @@ Effect::~Effect()
 	DeleteEffekseerEffect(m_sparkEffectHandle);
 	DeleteEffekseerEffect(m_sparkEffectHandle2);
 	DeleteEffekseerEffect(m_acidEffectHandle);
-	DeleteEffekseerEffect(m_parryEffectHandle);
 }
 
 void Effect::Init()
@@ -204,22 +199,6 @@ int Effect::PlayAcidEffect(float x, float y, float z)
 	if (m_acidEffectHandle != -1)
 	{
 		int handle = PlayEffekseer3DEffect(m_acidEffectHandle);
-		if (handle != -1)
-		{
-			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
-			m_playingEffectHandles.push_back(handle);
-		}
-		return handle;
-	}
-	return -1;
-}
-
-// パリィエフェクトを再生する
-int Effect::PlayParryEffect(float x, float y, float z)
-{
-	if (m_parryEffectHandle != -1)
-	{
-		int handle = PlayEffekseer3DEffect(m_parryEffectHandle);
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
