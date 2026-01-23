@@ -271,8 +271,14 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 			prevOffset.y -= yOffset;
 
 			VECTOR rotModelOffset = VTransform(prevOffset, modelRot);
-			// カメラ位置を基準にする
-			VECTOR modelPos = VAdd(pCamera->GetPos(), rotModelOffset);
+			
+			// カメラのボビング（揺れ）を含まない基準位置を計算
+			// PlayerPos + Rotated(CameraOffset)
+			MATRIX camRotYaw = MGetRotY(pCamera->GetYaw());
+			VECTOR cameraBasePos = VAdd(playerPos, VTransform(pCamera->GetOffset(), camRotYaw));
+
+			// カメラ位置を基準にする -> プレイヤー位置基準に変更（ボビング解除）
+			VECTOR modelPos = VAdd(cameraBasePos, rotModelOffset);
 
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
 			
@@ -316,8 +322,13 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 			currentOffset.y -= yOffset;
 
 			VECTOR rotModelOffset = VTransform(currentOffset, modelRot);
-			// カメラ位置を基準にする
-			VECTOR modelPos = VAdd(pCamera->GetPos(), rotModelOffset);
+			
+			// カメラのボビング（揺れ）を含まない基準位置を計算
+			MATRIX camRotYaw = MGetRotY(pCamera->GetYaw());
+			VECTOR cameraBasePos = VAdd(playerPos, VTransform(pCamera->GetOffset(), camRotYaw));
+
+			// カメラ位置を基準にする -> プレイヤー位置基準に変更
+			VECTOR modelPos = VAdd(cameraBasePos, rotModelOffset);
 
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
 
@@ -367,8 +378,13 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 			modelOffset.y += gunOffsetY;
 
 			VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
-			// カメラ位置を基準にする
-			VECTOR modelPos = VAdd(pCamera->GetPos(), rotModelOffset);
+			
+			// カメラのボビング（揺れ）を含まない基準位置を計算
+			MATRIX camRotYaw = MGetRotY(pCamera->GetYaw());
+			VECTOR cameraBasePos = VAdd(playerPos, VTransform(pCamera->GetOffset(), camRotYaw));
+
+			// カメラ位置を基準にする -> プレイヤー位置基準に変更
+			VECTOR modelPos = VAdd(cameraBasePos, rotModelOffset);
 
 			// モデルの位置を設定
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
@@ -609,8 +625,12 @@ VECTOR PlayerWeaponManager::GetGunPos(const VECTOR& playerPos, Camera* pCamera) 
 	MATRIX rotPitch = MGetRotX(-pCamera->GetPitch());
 	MATRIX modelRot = MMult(rotPitch, rotYaw);
 	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
+	
+	// カメラのボビング（揺れ）を含まない基準位置を計算
+	VECTOR cameraBasePos = VAdd(playerPos, VTransform(pCamera->GetOffset(), rotYaw));
+
 	// カメラ基準にする
-	VECTOR gunBasePosition = VAdd(pCamera->GetPos(), rotatedModelOffset);
+	VECTOR gunBasePosition = VAdd(cameraBasePos, rotatedModelOffset);
 
 	VECTOR rotatedMuzzleFlashOffset = VTransform(muzzleFlashOffset, modelRot);
 

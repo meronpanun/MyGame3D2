@@ -777,12 +777,16 @@ void Player::Draw3D()
 	bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
 	// カメラのジャンプ・着地揺れを銃の揺れに反映
+	// 修正: カメラが既に揺れているため、銃にも同じ揺れを加えると画面上で静止して見える。
+	// そのため、銃にはジャンプ・着地揺れを加算しないことで、相対的な揺れ（ボビング）を表現する。
 	VECTOR totalSway = m_gunSwayOffset;
+	/*
 	if (m_pCamera)
 	{
 		totalSway = VAdd(totalSway, m_pCamera->GetJumpSwayOffset());
 		totalSway = VAdd(totalSway, m_pCamera->GetLandingSwayOffset());
 	}
+	*/
 
 	PlayerWeaponManager::DrawContext weaponDrawContext = {
 		m_modelPos,
