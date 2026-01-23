@@ -434,8 +434,11 @@ SceneBase* SceneMain::Update()
         m_isBGMStarted = true;
     }
 
+    // タイムスケールの更新
+    Game::UpdateTimeScale();
+
     // 経過時間を加算
-    s_elapsedTime += 1.0f / 60.0f;
+    s_elapsedTime += (1.0f / 60.0f) * Game::GetTimeScale();
 
 	// デバックウィンドウが表示されている場合は、更新をスキップ
     if (DebugUtil::IsDebugWindowVisible())

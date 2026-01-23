@@ -104,6 +104,8 @@ void EnemyRunner::Init()
     ChangeAnimation(AnimState::Run, true);
 }
 
+#include "Game.h"
+
 void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
 {
     // Attackだけはリセット再生
@@ -187,7 +189,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         // 死亡アニメーション中もアニメーション時間を更新
         if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
         {
-            m_animTime += 1.0f;
+            m_animTime += 1.0f * Game::GetTimeScale();
             m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
         }
         
@@ -238,7 +240,9 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 		if (!CanAttackPlayer(player))
 		{
 			VECTOR dir = VNorm(toPlayer);
-			float step = (std::min)(disToPlayer, m_chaseSpeed);
+			// タイムスケールを移動速度に適用
+			float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+			float step = (std::min)(disToPlayer, scaledSpeed);
 			m_pos.x += dir.x * step;
 			m_pos.z += dir.z * step;
 		}
@@ -298,7 +302,7 @@ void EnemyRunner::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
 
 	if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
 	{
-		m_animTime += 1.0f;
+		m_animTime += 1.0f * Game::GetTimeScale();
 
 		float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
 			m_modelHandle,

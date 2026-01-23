@@ -111,6 +111,8 @@ void EnemyNormal::Init()
     ChangeAnimation(AnimState::Walk, true); 
 }
 
+#include "Game.h"
+
 // アニメーションを変更する
 void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
 {
@@ -189,7 +191,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         // 死亡アニメーション中もアニメーション時間を更新
         if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
         {
-            m_animTime += 1.0f;
+            m_animTime += 1.0f * Game::GetTimeScale();
             m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
         }
         
@@ -245,7 +247,9 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
         {
             VECTOR dir = VNorm(toPlayer);
             float moveDist = disToPlayer - kChaseStopDistance;
-            float step = (std::min)(moveDist, m_chaseSpeed); // 1フレームで進みすぎない
+            // タイムスケールを移動速度に適用
+            float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+            float step = (std::min)(moveDist, scaledSpeed); // 1フレームで進みすぎない
             m_pos.x += dir.x * step;
             m_pos.z += dir.z * step;
         }
@@ -302,7 +306,7 @@ void EnemyNormal::Update(std::vector<Bullet>& bullets, const Player::TackleInfo&
     // アニメーションがアタッチされている場合のみ時間を更新
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
     {
-        m_animTime += 1.0f;
+        m_animTime += 1.0f * Game::GetTimeScale();
 
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle,
             (m_currentAnimState == AnimState::Walk ? kWalkAnimName :

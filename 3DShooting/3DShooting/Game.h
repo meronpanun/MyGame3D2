@@ -31,4 +31,15 @@ public:
     static Player* m_pPlayer;
 
     static SceneManager* m_pSceneManager; 
+
+    // タイムスケール関連
+    static float g_timeScale;
+    static float g_targetTimeScale;
+    static float g_timeScaleDuration;
+    static float g_timeScaleTimer;
+    static float g_initialTimeScale;  // 追加：補間開始時のスケール
+
+    static void SetTimeScale(float scale, float duration);
+    static void UpdateTimeScale();
+    static float GetTimeScale();
 };

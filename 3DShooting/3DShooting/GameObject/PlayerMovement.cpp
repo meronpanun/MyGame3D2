@@ -3,6 +3,7 @@
 #include "CapsuleCollider.h"
 #include "EffekseerForDXLib.h"
 #include "Collision.h"
+#include "Game.h"
 #include <cmath>
 #include <algorithm>
 
@@ -116,11 +117,13 @@ void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isD
 	unsigned char keyState[256];
 	GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
 
-	if (keyState[KEY_INPUT_SPACE]) m_modelPos.y += kFlightAscendSpeed;
-	if (keyState[KEY_INPUT_LSHIFT]) m_modelPos.y -= kFlightDescendSpeed;
+    float timeScale = Game::GetTimeScale();
+
+	if (keyState[KEY_INPUT_SPACE]) m_modelPos.y += kFlightAscendSpeed * timeScale;
+	if (keyState[KEY_INPUT_LSHIFT]) m_modelPos.y -= kFlightDescendSpeed * timeScale;
 
 	bool isAccelerating = (keyState[KEY_INPUT_LCONTROL] != 0);
-	float speed = isAccelerating ? m_runSpeed * kFlightAccelMultiplier : m_moveSpeed;
+	float speed = (isAccelerating ? m_runSpeed * kFlightAccelMultiplier : m_moveSpeed) * timeScale;
 
 	VECTOR moveDir = CalculateMoveDirection(pCamera, keyState);
 
@@ -157,16 +160,24 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
 	std::copy(std::begin(keyState), std::end(keyState), std::begin(prevKeyState));
 
 	HandlePhysics(isOnGround, pCamera);
+    
+    float timeScale = Game::GetTimeScale();
 
 	if (!isDead)
 	{
 		if (m_isJumpInertiaActive)
 		{
-			m_modelPos = VAdd(m_modelPos, m_jumpMoveVelocity);
+			// 慣性移動にもScale適用
+            VECTOR scaledJumpMoveVelocity = VScale(m_jumpMoveVelocity, timeScale);
+			m_modelPos = VAdd(m_modelPos, scaledJumpMoveVelocity);
+
 			if (VSize(moveDir) > 0.0f && pCamera)
 			{
 				float currentSpeed = (m_isRunMode || m_isRunJumping) ? m_runSpeed : m_moveSpeed;
-				float inertiaSpeed = VSize(m_jumpMoveVelocity);
+				// currentSpeedもScale適用
+                currentSpeed *= timeScale;
+
+				float inertiaSpeed = VSize(m_jumpMoveVelocity); // 元の慣性速度（制御用）
 				
 				if (inertiaSpeed > 0.1f)
 				{
@@ -177,8 +188,8 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
 					float dotRight = VDot(moveDir, camRight);
 					
 					VECTOR targetSideVelocity = VScale(camRight, dotRight * currentSpeed * kAirControlFactor);
-					m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) * kAirAccelFactor;
-					m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) * kAirAccelFactor;
+					m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) * kAirAccelFactor * timeScale;
+					m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) * kAirAccelFactor * timeScale;
 					m_modelPos = VAdd(m_modelPos, m_airSideControlVelocity);
 
 					float diffYaw = yaw - m_jumpStartYaw;
@@ -198,7 +209,7 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
 					{
 						float currentInertiaSpeed = VSize(m_jumpMoveVelocity);
 						float targetInertiaSpeed = (std::max)(0.0f, currentInertiaSpeed + fwdProjDot);
-						float newInertiaSpeed = currentInertiaSpeed + (targetInertiaSpeed - currentInertiaSpeed) * kAirBrakeFactor;
+						float newInertiaSpeed = currentInertiaSpeed + (targetInertiaSpeed - currentInertiaSpeed) * kAirBrakeFactor * timeScale;
 						m_jumpMoveVelocity = VScale(inertiaDir, newInertiaSpeed);
 						m_jumpSpeedScalar = newInertiaSpeed;
 					}
@@ -212,7 +223,8 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
 		}
 		else if (VSize(moveDir) > 0.0f)
 		{
-			m_modelPos = VAdd(m_modelPos, VScale(moveDir, m_isRunMode ? m_runSpeed : m_moveSpeed));
+            float currentSpeed = (m_isRunMode ? m_runSpeed : m_moveSpeed) * timeScale;
+			m_modelPos = VAdd(m_modelPos, VScale(moveDir, currentSpeed));
 			m_isMoving = true;
 		}
 		else
@@ -264,11 +276,13 @@ void PlayerMovement::HandleJump(const unsigned char* keyState, const unsigned ch
 
 void PlayerMovement::HandlePhysics(bool isOnGround, Camera* pCamera)
 {
+    float timeScale = Game::GetTimeScale();
+
 	if (m_isJumping || !isOnGround)
 	{
-		m_modelPos.y += m_jumpVelocity;
+		m_modelPos.y += m_jumpVelocity * timeScale;
 		float lastJumpVelocity = m_jumpVelocity;
-		m_jumpVelocity -= kGravity;
+		m_jumpVelocity -= kGravity * timeScale;
 
 		if (m_modelPos.y <= kGroundY)
 		{

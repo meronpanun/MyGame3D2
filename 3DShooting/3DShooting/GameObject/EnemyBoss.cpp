@@ -124,6 +124,8 @@ void EnemyBoss::Init()
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
 
+#include "Game.h"
+
 void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
 {
     // 遠距離攻撃など、同じ状態でも再度再生したいケースがある場合は調整
@@ -176,7 +178,7 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         
         if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
         {
-            m_animTime += 1.0f;
+            m_animTime += 1.0f * Game::GetTimeScale();
             m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
         }
         
@@ -376,12 +378,12 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                  if (disToPlayer > kLongRangeAttackMaxDist)
                  {
                      VECTOR dir = VNorm(toPlayer);
-                     m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed));
+                     m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
                  }
                  else if(disToPlayer < kLongRangeAttackMinDist)
                  {
                      VECTOR dir = VNorm(toPlayer);
-                     m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed));
+                     m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
                  }
                  else
                  {
@@ -405,13 +407,14 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         // ホーミング処理 (現在の向きからターゲット向きへ徐々に補間)
         // 戻ってくる動きを応用 -> プレイヤーが動いても追従
         // シンプルにターンレートで補間
-        bullet.dir = VAdd(bullet.dir, VScale(targetDir, kHomingTurnRate));
+        float scale = Game::GetTimeScale();
+        bullet.dir = VAdd(bullet.dir, VScale(targetDir, kHomingTurnRate * scale));
         bullet.dir = VNorm(bullet.dir);
 
         // 移動
-        VECTOR moveVec = VScale(bullet.dir, bullet.speed);
+        VECTOR moveVec = VScale(bullet.dir, bullet.speed * scale);
         bullet.pos = VAdd(bullet.pos, moveVec);
-        bullet.distTraveled += bullet.speed;
+        bullet.distTraveled += bullet.speed * scale;
 
         // エフェクト更新(あれば)
         if (bullet.effectHandle != -1)
@@ -478,6 +481,8 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         else if (m_currentAnimState == AnimState::Attack) animName = kCloseAttackAnimName;
         else if (m_currentAnimState == AnimState::Dead) animName = kDeadAnimName;
         else if (m_currentAnimState == AnimState::LongRangeAttack) animName = kLongRangeAttackAnimName;
+        
+        animSpeed *= Game::GetTimeScale();
 
         if (animName)
         {

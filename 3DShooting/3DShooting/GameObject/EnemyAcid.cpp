@@ -130,6 +130,8 @@ void EnemyAcid::Init()
     ChangeAnimation(AnimState::Walk, true);
 }
 
+#include "Game.h"
+
 // アニメーションを変更する
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
 {
@@ -237,7 +239,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     for (auto& ball : m_acidBalls)
     {
         if (!ball.active) continue;
-        ball.Update();
+        ball.Update(Game::GetTimeScale());
 
         if (ball.effectHandle != -1)
         {
@@ -309,6 +311,9 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
 
                         // 反射した弾の速度を上げる
                         ball.speed *= 1.5f;
+
+                        // スローモーション演出（パリィ成功時）
+                        Game::SetTimeScale(0.1f, 1.0f);
                     }
                 }
             }
@@ -449,7 +454,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             // アニメーションをkStunAnimFrameLimitで停止
             if (m_animTime < kStunAnimFrameLimit)
             {
-                m_animTime += 1.0f;
+                m_animTime += 1.0f * Game::GetTimeScale();
             }
             m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
         }
@@ -470,7 +475,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         // 死亡アニメーション中もアニメーション時間を更新
         if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
         {
-            m_animTime += 1.0f;
+            m_animTime += 1.0f * Game::GetTimeScale();
             m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
         }
 
@@ -564,8 +569,10 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
                 ChangeAnimation(AnimState::Back, true);
             }
             VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
-            m_pos.x += dirAway.x * m_chaseSpeed;
-            m_pos.z += dirAway.z * m_chaseSpeed;
+            // タイムスケール適用
+            float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+            m_pos.x += dirAway.x * scaledSpeed;
+            m_pos.z += dirAway.z * scaledSpeed;
         }
         else
         {
@@ -586,8 +593,10 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             ChangeAnimation(AnimState::Walk, true);
         }
         VECTOR dirTowards = VNorm(VSub(playerPos, m_pos));
-        m_pos.x += dirTowards.x * m_chaseSpeed;
-        m_pos.z += dirTowards.z * m_chaseSpeed;
+        // タイムスケール適用
+        float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+        m_pos.x += dirTowards.x * scaledSpeed;
+        m_pos.z += dirTowards.z * scaledSpeed;
     }
 
     // 攻撃アニメーション中の酸弾発射タイミング
@@ -614,7 +623,7 @@ void EnemyAcid::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     // アニメーション時間の更新
     if (m_attackEndDelayTimer == 0)
     {
-        m_animTime += 1.0f;
+        m_animTime += 1.0f * Game::GetTimeScale();
         float animTotal = 0.0f;
         if (m_currentAnimState == AnimState::Back)
         {

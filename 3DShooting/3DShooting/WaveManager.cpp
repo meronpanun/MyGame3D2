@@ -1,6 +1,7 @@
 ﻿#include "EnemyBase.h"
 #include "Bullet.h"
 #include "Player.h"
+#include "Game.h"
 #include "WaveManager.h"
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
@@ -224,7 +225,7 @@ void WaveManager::Update()
 
             if (m_currentSpawnIndex < m_spawnInfoList.size() && !m_isWaveImageAnimating)
             {
-                m_spawnTimer += 1.0f / 60.0f;
+                m_spawnTimer += (1.0f / 60.0f) * Game::GetTimeScale();
                 while (m_currentSpawnIndex < m_spawnInfoList.size())
                 {
                     EnemySpawnInfo& spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
@@ -251,7 +252,7 @@ void WaveManager::Update()
     {
         if (m_waveIntervalTimer > 0.0f)
         {
-            m_waveIntervalTimer -= 1.0f / 60.0f;
+            m_waveIntervalTimer -= (1.0f / 60.0f) * Game::GetTimeScale();
         }
         else
         {

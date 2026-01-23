@@ -119,7 +119,7 @@ private:
         bool isReflected = false; // パリィで反射されたか
         EnemyBase* owner = nullptr; // この弾の所有者
 
-        void Update()
+        void Update(float timeScale)
         {
             if (!active) return;
 
@@ -133,7 +133,8 @@ private:
                 dir = newDir;
             }
 
-            pos = VAdd(pos, VScale(dir, speed));
+            // タイムスケールを適用
+            pos = VAdd(pos, VScale(dir, speed * timeScale));
             if (pos.y < 0.0f) active = false; // 地面で消滅
         }
     };
