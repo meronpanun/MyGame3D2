@@ -1,17 +1,15 @@
 ﻿  Player.cpp
-  PlayerShieldSystem.cpp
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\PlayerShieldSystem.cpp(736,17): warning C4244: '初期化中': 'intptr_t' から 'int' への変換です。データが失われる可能性があります。
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneManager.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
   (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
   
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\ShellCasing.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
   (ソース ファイル 'GameObject/Player.cpp' をコンパイルしています)
   
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(569,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\Player.cpp(570,22): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
   コード生成しています。
-  6 of 4548 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  1 of 4548 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    7 functions had inline decision re-evaluated but remain unchanged
+    5 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
 EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
 DirectionIndicator.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
@@ -19,18 +17,18 @@ AmmoItem.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\document
 Collider.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 CapsuleCollider.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 Collision.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-BossUI.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 DebugUtil.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+BossUI.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 FirstAidKitItem.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 Bullet.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 Camera.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 AnimationManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 EnemyBase.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 EnemyBoss.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-EnemyNormal.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-EnemyAcid.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-ItemBase.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 Game.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+ItemBase.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+EnemyAcid.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+EnemyNormal.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 PlayerEffectManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 EnemyRunner.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 PlayerMovement.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
@@ -42,22 +40,22 @@ main.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\gi
 SceneBase.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 SceneGameOver.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 Player.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-SceneOption.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+DebugMenu.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+Effect.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 SceneManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+SceneOption.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 SceneResult.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 SceneTitle.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-SceneMain.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-DebugMenu.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-SphereCollider.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-Effect.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 PlayerWeaponManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+SceneMain.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+SphereCollider.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 StageObject.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 TaskTutorialManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 Stage.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 TransformDataLoader.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-Vec3.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 Vec2.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
-TutorialManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+Vec3.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 ScoreManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
+TutorialManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
 WaveManager.obj : warning LNK4020: 'c:\users\由留部 瑛人.ficpcroomb14\documents\github\mygame3d2\3dshooting\3dshooting\x64\release\vc143.pdb' の型レコードは破損しています。一部のシンボルおよび型は、デバッガーからはアクセスできない可能性があります。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\x64\Release\3DShooting.exe

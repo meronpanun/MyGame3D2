@@ -49,6 +49,7 @@ namespace
 	constexpr float kIdleSwayAmount			 = 0.04f;  // 揺れの量
 	constexpr float kLockOnAngleCos		     = 0.966f; // cos(15度)
 	constexpr float kLockOnMaxScreenOffsetY  = 100.0f; // 画面中央からの垂直方向の最大オフセット
+	constexpr float kTackleStopMargin = 40.0f;         // タックル停止判定のマージン
 
 	// 盾UI関連
 	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔
@@ -608,14 +609,32 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		// タックル判定情報を作成
 		TackleInfo tackleInfo = GetTackleInfo();
 
+		// タックル停止判定用（ダメージ判定とは別に、体の衝突で停止させる）
+		bool isBodyHit = false;
+		VECTOR bodyCapA, bodyCapB;
+		float bodyRadius;
+		GetCapsuleInfo(bodyCapA, bodyCapB, bodyRadius);
+		CapsuleCollider bodyCol(bodyCapA, bodyCapB, bodyRadius + kTackleStopMargin);
+
 		// 各敵にタックル情報を渡してUpdate
 		for (EnemyBase* enemy : enemyList)
 		{
 			// 敵がnullptrの場合はスキップ
 			if (!enemy) continue;
 
-			// 敵の更新処理
+			// 敵の更新処理（ダメージ判定などはここで行われる）
 			enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect);
+
+			// タックル停止判定(プレイヤーの体と敵の体が衝突したら停止)
+			// すでに停止フラグが立っている場合は判定しない
+			if (m_isTackling && !isBodyHit && enemy->IsAlive())
+			{
+				auto enemyCollider = enemy->GetBodyCollider();
+				if (enemyCollider && bodyCol.IsIntersects(enemyCollider.get()))
+				{
+					isBodyHit = true;
+				}
+			}
 		}
 
 #ifdef _DEBUG
@@ -630,9 +649,15 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		);
 #endif
 		m_tackleFrame--;
-		// タックル終了判定
-		if (m_tackleFrame <= 0)
+		// タックル終了判定（時間経過 または 敵の体に衝突）
+		if (m_tackleFrame <= 0 || isBodyHit)
 		{
+			// 敵に衝突した場合はカメラを揺らす
+			if (isBodyHit && m_pCamera)
+			{
+				m_pCamera->Shake(20.0f, 10);
+			}
+
 			m_isTackling = false;
 			m_ignoreGuardInput = true; // ガード入力を無視
 
