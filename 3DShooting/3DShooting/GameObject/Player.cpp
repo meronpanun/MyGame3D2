@@ -25,7 +25,7 @@ namespace
 {
 	// タックル関連
 	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
-	constexpr float kTackleHitRange  = 250.0f; // タックルの前方有効距離
+	constexpr float kTackleHitRange  = 500.0f; // タックルの前方有効距離
 	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅（半径）
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
 
@@ -398,11 +398,30 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		m_ignoreGuardInput = false;
 	}
 
+	// 視線が通っているかどうかのチェック関数
+	auto checkLineOfSight = [&](const VECTOR& start, const VECTOR& end) -> bool {
+		for (const auto& col : collisionData)
+		{
+			HITRESULT_LINE result = HitCheck_Line_Triangle(start, end, col.v1, col.v2, col.v3);
+			if (result.HitFlag)
+			{
+				return false;
+			}
+		}
+		return true;
+	};
+
 	// ロックオン可能な敵がいるかどうかの判定
 	m_isTargetAvailable = false;
 
 	VECTOR camPos = m_pCamera->GetPos();
 	VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+
+	// タックルが届く最大距離 (移動距離 + 当たり判定の突き出し分)
+	// 移動距離 = 速度 * 時間
+	// 当たり判定 = 250.0f (kTackleHitRange)
+	float tackleMaxReach = m_tackleSpeed * kTackleDuration + kTackleHitRange;
+	float tackleMaxReachSq = tackleMaxReach * tackleMaxReach;
 
 	for (EnemyBase* enemy : enemyList)
 	{
@@ -411,6 +430,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		VECTOR enemyPos = enemy->GetPos();
 		enemyPos.y += 70.0f; // 敵の胴体あたりをターゲットにするためのオフセット
 		VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
+		
+		// 距離チェック
+		VECTOR diff = VSub(m_modelPos, enemy->GetPos()); // プレイヤー位置からの距離
+		float distSq = VSize(diff) * VSize(diff); // VSizeはsqrtを取るので、distSqを計算するには2乗するか VSquareSize を使うべきだが、ここでは単純に2乗する
+
+		// 距離が届かない場合はロックオン対象外
+		if (distSq > tackleMaxReachSq)
+		{
+			continue;
+		}
 
 		// プレイヤーの前方一定角度内にいるか
 		if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
@@ -426,8 +455,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 				// 垂直方向の範囲チェック
 				if (fabs(dy) < kLockOnMaxScreenOffsetY)
 				{
-					m_isTargetAvailable = true;
-					break; // 1体でも見つかればOK
+					// 視線チェック
+					if (checkLineOfSight(camPos, enemyPos))
+					{
+						m_isTargetAvailable = true;
+						break; // 1体でも見つかればOK
+					}
 				}
 			}
 		}
@@ -450,8 +483,13 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
 		if (part == EnemyBase::HitPart::Body || part == EnemyBase::HitPart::Head)
 		{
-			m_isAimingAtEnemy = true;
-			break;
+			// 照準が合っている敵に対しても視線チェック
+			// (敵の手前に壁がある場合などを考慮)
+			if (checkLineOfSight(camPos, hitPos))
+			{
+				m_isAimingAtEnemy = true;
+				break;
+			}
 		}
 	}
 
@@ -472,6 +510,14 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 		{
 			if (!enemy || !enemy->IsAlive()) continue;
 
+			// 距離チェック
+			VECTOR diff = VSub(m_modelPos, enemy->GetPos());
+			float distSqWorld = VSize(diff) * VSize(diff);
+			if (distSqWorld > tackleMaxReachSq)
+			{
+				continue;
+			}
+
 			VECTOR enemyPos = enemy->GetPos();
 			enemyPos.y += 70.0f;
 			VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
@@ -487,12 +533,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
 					if (fabs(dy) < kLockOnMaxScreenOffsetY)
 					{
-						float distSq = dx * dx + dy * dy;
-
-						if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+						// 視線チェック
+						if (checkLineOfSight(camPos, enemyPos))
 						{
-							minScreenDistSq = distSq;
-							m_lockedOnEnemy = enemy;
+							float distSq = dx * dx + dy * dy;
+
+							if (minScreenDistSq < 0 || distSq < minScreenDistSq)
+							{
+								minScreenDistSq = distSq;
+								m_lockedOnEnemy = enemy;
+							}
 						}
 					}
 				}

@@ -22,8 +22,9 @@ namespace
 	constexpr float kShieldPivotZ		   = -25.0f;
 	constexpr float kShieldModelScale	   = 2.0f;
 	constexpr float kGuardAnimDuration	   = 0.1f;
-	constexpr float kGuardEffectOffsetZ    = 60.0f;
-	constexpr float kGuardEffectOffsetX    = 10.0f;
+	constexpr float kGuardEffectOffsetZ    = 40.0f;
+	constexpr float kGuardEffectOffsetX    = 2.0f;
+	constexpr float kGuardEffectOffsetY    = -90.0f;
 
 	// 待機時の揺れ
 	constexpr float kIdleSwaySpeed  = 1.5f; // 揺れの速さ
@@ -474,9 +475,21 @@ void PlayerShieldSystem::UpdateGuardEffect(Effect* pEffect, Camera* pCamera, con
 
 		float pitch = -pCamera->GetPitch();
 		float yaw = pCamera->GetYaw();
-		VECTOR forward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
-		VECTOR right = VGet(sinf(yaw + DX_PI_F * 0.5f), 0, cosf(yaw + DX_PI_F * 0.5f));
-		VECTOR effectPos = VAdd(playerPos, VAdd(VScale(forward, kGuardEffectOffsetZ), VScale(right, kGuardEffectOffsetX)));
+
+		// カメラ基準の座標系を作成
+		MATRIX rotYaw = MGetRotY(yaw);
+		MATRIX rotPitch = MGetRotX(pitch);
+		MATRIX cameraRot = MMult(rotPitch, rotYaw);
+
+		VECTOR forward = VTransform(VGet(0, 0, 1), cameraRot);
+		VECTOR right = VTransform(VGet(1, 0, 0), cameraRot);
+		VECTOR up = VTransform(VGet(0, 1, 0), cameraRot);
+
+		// カメラ位置基準でエフェクト位置を計算
+		VECTOR effectPos = VAdd(pCamera->GetPos(), VScale(forward, kGuardEffectOffsetZ));
+		effectPos = VAdd(effectPos, VScale(right, kGuardEffectOffsetX));
+		effectPos = VAdd(effectPos, VScale(up, kGuardEffectOffsetY));
+
 		m_guardEffectHandle = pEffect->PlayGuardEffect(effectPos.x, effectPos.y, effectPos.z, pitch, yaw, 0.0f);
 	}
 	// ガード終了時（解除された場合）
@@ -492,12 +505,23 @@ void PlayerShieldSystem::UpdateGuardEffect(Effect* pEffect, Camera* pCamera, con
 	else if (m_isGuarding && m_guardEffectHandle != -1 && !m_isShieldBroken)
 	{
 		float yaw = pCamera->GetYaw();
-		VECTOR forward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
-		VECTOR right = VGet(sinf(yaw + DX_PI_F * 0.5f), 0, cosf(yaw + DX_PI_F * 0.5f));
-		VECTOR effectPos = VAdd(playerPos, VAdd(VScale(forward, kGuardEffectOffsetZ), VScale(right, kGuardEffectOffsetX)));
-		SetPosPlayingEffekseer3DEffect(m_guardEffectHandle, effectPos.x, effectPos.y, effectPos.z);
-
 		float pitch = -pCamera->GetPitch();
+
+		// カメラ基準の座標系を作成
+		MATRIX rotYaw = MGetRotY(yaw);
+		MATRIX rotPitch = MGetRotX(pitch);
+		MATRIX cameraRot = MMult(rotPitch, rotYaw);
+
+		VECTOR forward = VTransform(VGet(0, 0, 1), cameraRot);
+		VECTOR right = VTransform(VGet(1, 0, 0), cameraRot);
+		VECTOR up = VTransform(VGet(0, 1, 0), cameraRot);
+
+		// カメラ位置基準でエフェクト位置を計算
+		VECTOR effectPos = VAdd(pCamera->GetPos(), VScale(forward, kGuardEffectOffsetZ));
+		effectPos = VAdd(effectPos, VScale(right, kGuardEffectOffsetX));
+		effectPos = VAdd(effectPos, VScale(up, kGuardEffectOffsetY));
+
+		SetPosPlayingEffekseer3DEffect(m_guardEffectHandle, effectPos.x, effectPos.y, effectPos.z);
 		SetRotationPlayingEffekseer3DEffect(m_guardEffectHandle, pitch, yaw, 0.0f);
 	}
 }

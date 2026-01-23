@@ -21,12 +21,12 @@ namespace
     constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // 遠距離攻撃
     constexpr char kDeadAnimName[]            = "Armature|Death";
 
-    constexpr float kLongRangeAttackMinDist = 300.0f; // 遠距離攻撃を行う最小距離
-    constexpr float kLongRangeAttackMaxDist = 800.0f; // 遠距離攻撃を行う最大距離（これより遠いと攻撃せず接近する）
+    constexpr float kLongRangeAttackMinDist = 400.0f; // 遠距離攻撃を行う最小距離
+    constexpr float kLongRangeAttackMaxDist = 1000.0f; // 遠距離攻撃を行う最大距離（これより遠いと攻撃せず接近する）
     constexpr int   kLongRangeAttackCooldownMax = 120;
     constexpr float kHomingBulletSpeed   = 6.0f;
     constexpr float kHomingTurnRate      = 0.02f;   // 旋回性能
-    constexpr float kHomingBulletMaxDist = 1500.0f; // 弾の最大飛距離
+    constexpr float kHomingBulletMaxDist = 1800.0f; // 弾の最大飛距離
     constexpr float kHomingBulletDamage  = 20.0f;
     constexpr float kHomingBulletRadius  = 15.0f;
 

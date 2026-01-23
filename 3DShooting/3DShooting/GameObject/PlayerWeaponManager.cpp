@@ -13,20 +13,20 @@
 
 namespace
 {
-	// アサルトライフルオフセット
-	constexpr float kAROffsetX = 80.0f;
-	constexpr float kAROffsetY = 20.0f;
-	constexpr float kAROffsetZ = 60.0f;
+	// アサルトライフルオフセット (カメラ相対位置)
+	constexpr float kAROffsetX = 72.0f;
+	constexpr float kAROffsetY = -70.0f;
+	constexpr float kAROffsetZ = 40.0f;
 
 	// アサルトライフルマズルフラッシュエフェクトのオフセット
 	constexpr float kARMuzzleFlashEffectOffsetX = -20.0f;
 	constexpr float kARMuzzleFlashEffectOffsetY = 30.0f;
 	constexpr float kARMuzzleFlashEffectOffsetZ = 80.0f;
 
-	// ショットガンオフセット
-	constexpr float kSGOffsetX = 80.0f;
-	constexpr float kSGOffsetY = -30.0f;
-	constexpr float kSGOffsetZ = 60.0f;
+	// ショットガンオフセット (カメラ相対位置)
+	constexpr float kSGOffsetX = 72.0f;
+	constexpr float kSGOffsetY = -120.0f;
+	constexpr float kSGOffsetZ = 40.0f;
 
 	// ショットガンマズルフラッシュエフェクトのオフセット
 	constexpr float kSGMuzzleFlashEffectOffsetX = 30.0f;
@@ -268,11 +268,11 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 			float yOffset = easeOut * 300.0f;
 
 			// 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
-			// これにより、カメラが下を向いていても画面下方向に移動するようになる
 			prevOffset.y -= yOffset;
 
 			VECTOR rotModelOffset = VTransform(prevOffset, modelRot);
-			VECTOR modelPos = VAdd(playerPos, rotModelOffset);
+			// カメラ位置を基準にする
+			VECTOR modelPos = VAdd(pCamera->GetPos(), rotModelOffset);
 
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
 			
@@ -316,7 +316,8 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 			currentOffset.y -= yOffset;
 
 			VECTOR rotModelOffset = VTransform(currentOffset, modelRot);
-			VECTOR modelPos = VAdd(playerPos, rotModelOffset);
+			// カメラ位置を基準にする
+			VECTOR modelPos = VAdd(pCamera->GetPos(), rotModelOffset);
 
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
 
@@ -366,7 +367,8 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 			modelOffset.y += gunOffsetY;
 
 			VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
-			VECTOR modelPos = VAdd(playerPos, rotModelOffset);
+			// カメラ位置を基準にする
+			VECTOR modelPos = VAdd(pCamera->GetPos(), rotModelOffset);
 
 			// モデルの位置を設定
 			VECTOR finalPos = VAdd(VAdd(modelPos, gunSwayOffset), gunShakeOffset);
@@ -604,7 +606,8 @@ VECTOR PlayerWeaponManager::GetGunPos(const VECTOR& playerPos, Camera* pCamera) 
 	MATRIX rotPitch = MGetRotX(-pCamera->GetPitch());
 	MATRIX modelRot = MMult(rotPitch, rotYaw);
 	VECTOR rotatedModelOffset = VTransform(modelOffset, modelRot);
-	VECTOR gunBasePosition = VAdd(playerPos, rotatedModelOffset);
+	// カメラ基準にする
+	VECTOR gunBasePosition = VAdd(pCamera->GetPos(), rotatedModelOffset);
 
 	VECTOR rotatedMuzzleFlashOffset = VTransform(muzzleFlashOffset, modelRot);
 

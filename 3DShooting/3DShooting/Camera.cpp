@@ -221,7 +221,9 @@ void Camera::Update()
     VECTOR forward = VTransform(VGet(0.0f, 0.0f, 1.0f), cameraRot);
 
     // カメラのオフセットを回転させる
-    VECTOR rotatedOffset = VTransform(m_offset, cameraRot);
+    // ピッチ回転を適用すると、下を向いた時にカメラが地面に潜り込んでしまうため
+    // 位置のオフセットにはYaw回転のみを適用する
+    VECTOR rotatedOffset = VTransform(m_offset, rotYaw);
 
     // カメラの位置を更新（シェイクとHead Bobbingオフセットを適用）
     m_pos = VAdd(m_playerPos, rotatedOffset);
@@ -238,7 +240,6 @@ void Camera::Update()
     // カメラの設定を更新
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
     SetupCamera_Perspective(m_fov);
-    SetCameraNearFar(kCameraNear, kCameraFar);
 }
 
 // 揺れ効果を更新
