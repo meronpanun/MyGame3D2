@@ -56,7 +56,7 @@ void EnemyBoss::DeleteModel()
 }
 
 EnemyBoss::EnemyBoss() :
-    m_currentAnimState(AnimState::Walk),
+    m_currentAnimState(AnimState::Idle),
     m_isDeadAnimPlaying(false),
     m_animTime(0.0f),
     m_chaseSpeed(0.0f),
@@ -135,9 +135,9 @@ void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
     const char* animName = nullptr;
     switch (newAnimState)
     {
-    //case AnimState::Idle:
-    //    animName = kIdleAnimName;
-    //    break;
+    case AnimState::Idle:
+         animName = kWalkAnimName;
+         break;
     case AnimState::Walk:
         animName = kWalkAnimName;
         break;
@@ -301,7 +301,44 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             }
         }
     }
-    else // Idle or Walk
+    else if (m_currentAnimState == AnimState::Idle)
+    {
+         // 待機状態 (Idle)
+         if (m_longRangeAttackCooldown > 0) m_longRangeAttackCooldown--;
+
+         VECTOR toPlayer = VSub(playerPos, m_pos);
+         toPlayer.y = 0.0f;
+         float disToPlayer = VSize(toPlayer);
+
+         // 向き変更
+         if (disToPlayer > 0.1f)
+         {
+             float yaw = atan2f(toPlayer.x, toPlayer.z);
+             yaw += DX_PI_F; 
+             MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
+         }
+
+         // 攻撃判定
+         if (CanAttackPlayer(player))
+         {
+             m_isAttackHit = false;
+             ChangeAnimation(AnimState::Attack, false);
+         }
+         else if (disToPlayer > kLongRangeAttackMinDist && disToPlayer < kLongRangeAttackMaxDist && m_longRangeAttackCooldown <= 0)
+         {
+             m_hasShotLongRange = false;
+             ChangeAnimation(AnimState::LongRangeAttack, false);
+         }
+         else
+         {
+            // 移動が必要かチェック
+            if (disToPlayer > kLongRangeAttackMaxDist || disToPlayer < kLongRangeAttackMinDist)
+            {
+                ChangeAnimation(AnimState::Walk, true);
+            }
+         }
+    }
+    else // Walk
     {
         // 移動処理 (Walk)
         if (m_currentAnimState == AnimState::Walk)
@@ -336,8 +373,21 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
              else
              {
                  // 範囲外なら近づく
-                 VECTOR dir = VNorm(toPlayer);
-                 m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed));
+                 if (disToPlayer > kLongRangeAttackMaxDist)
+                 {
+                     VECTOR dir = VNorm(toPlayer);
+                     m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed));
+                 }
+                 else if(disToPlayer < kLongRangeAttackMinDist)
+                 {
+                     VECTOR dir = VNorm(toPlayer);
+                     m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed));
+                 }
+                 else
+                 {
+                     // 範囲内で移動不要ならIdleへ
+                     ChangeAnimation(AnimState::Idle, true);
+                 }
              }
         }
     }
@@ -420,10 +470,14 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
             animName = kWalkAnimName;
             animSpeed = 0.6f; // 走りが速すぎるので調整
         }
+        else if (m_currentAnimState == AnimState::Idle)
+        {
+             animName = kWalkAnimName;
+             animSpeed = 0.0f; // 待機中はアニメーション停止
+        }
         else if (m_currentAnimState == AnimState::Attack) animName = kCloseAttackAnimName;
         else if (m_currentAnimState == AnimState::Dead) animName = kDeadAnimName;
         else if (m_currentAnimState == AnimState::LongRangeAttack) animName = kLongRangeAttackAnimName;
-        // else animName = kIdleAnimName; // Idleは使用しない
 
         if (animName)
         {
@@ -523,6 +577,7 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
     {
         m_lastTackleId = -1;
     }
+    
 }
 
 void EnemyBoss::Draw()
