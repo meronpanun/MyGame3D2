@@ -518,6 +518,9 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets, const VECTOR& play
 		pCamera->Shake(shakePower, kShootShakeDuration);
 	}
 
+	// 銃のシェイクを発生
+	ShakeGun(shakePower, kShootShakeDuration);
+
 	// クールタイムリセット
 	m_shootCooldownTimer = m_shootCooldown;
 }

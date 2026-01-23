@@ -775,10 +775,19 @@ void Player::Draw3D()
 {
 	bool isTryingToGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
 	bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
+
+	// カメラのジャンプ・着地揺れを銃の揺れに反映
+	VECTOR totalSway = m_gunSwayOffset;
+	if (m_pCamera)
+	{
+		totalSway = VAdd(totalSway, m_pCamera->GetJumpSwayOffset());
+		totalSway = VAdd(totalSway, m_pCamera->GetLandingSwayOffset());
+	}
+
 	PlayerWeaponManager::DrawContext weaponDrawContext = {
 		m_modelPos,
 		m_pCamera.get(),
-		m_gunSwayOffset,
+		totalSway,
 		m_weaponManager.GetGunShakeOffset(),
 		m_gunSwayRotOffset,
 		m_shieldSystem.GetGuardAnimTimer(),
