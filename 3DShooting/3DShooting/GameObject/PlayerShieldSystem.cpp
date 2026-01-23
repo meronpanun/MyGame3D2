@@ -49,8 +49,8 @@ namespace
 	constexpr int kParryFrame = 60;
 
 	// タックル関連
-	constexpr float kTackleShieldThrust = 20.0f;
-	constexpr float kGuardShakeAmount   = 0.4f;
+	constexpr float kTackleShieldThrust = 20.0f; // タックル時の盾の前方突き出し量
+	constexpr float kGuardShakeAmount   = 0.4f;  // ガード時のカメラシェイク量
 
 	// シールドソー関連
 	constexpr float kShieldThrowSpeed         = 1000.0f; // シールドの移動速度

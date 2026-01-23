@@ -24,8 +24,8 @@
 namespace
 {
 	// タックル関連
-	constexpr int   kTackleDuration  = 20;     // タックル持続フレーム数
-	constexpr float kTackleHitRange  = 500.0f; // タックルの前方有効距離
+	constexpr int   kTackleDuration  = 35;     // タックル持続フレーム数
+	constexpr float kTackleHitRange  = 450.0f; // タックルの前方有効距離
 	constexpr float kTackleHitRadius = 250.0f; // タックルの横幅（半径）
 	constexpr float kTackleHitHeight = 100.0f; // タックルの高さ
 
