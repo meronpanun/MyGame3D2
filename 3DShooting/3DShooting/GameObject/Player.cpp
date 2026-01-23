@@ -49,7 +49,7 @@ namespace
 	constexpr float kIdleSwayAmount			 = 0.04f;  // 揺れの量
 	constexpr float kLockOnAngleCos		     = 0.966f; // cos(15度)
 	constexpr float kLockOnMaxScreenOffsetY  = 100.0f; // 画面中央からの垂直方向の最大オフセット
-	constexpr float kTackleStopMargin = 40.0f;         // タックル停止判定のマージン
+	constexpr float kTackleStopMargin		 = 45.0f;  // タックル停止判定のマージン
 
 	// 盾UI関連
 	constexpr int   kShieldImageGaugeSpacing  = 10;  // 盾UIとクールダウンゲージの間隔

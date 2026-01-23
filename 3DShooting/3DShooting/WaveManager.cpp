@@ -18,31 +18,31 @@
 namespace
 {
     // プレイヤーからの最大アクティブ距離
-	constexpr float kMaxActiveDistance = 1200.0f; 
+    constexpr float kMaxActiveDistance = 1200.0f;
 
     // 地面の最小最大値座標
-	constexpr VECTOR kRoadFloorMin = { -1000.0f, 0.0f, -1000.0f }; // 床の最小座標
-	constexpr VECTOR kRoadFloorMax = { 1000.0f, 0.0f, 1000.0f };   // 床の最大座標
+    constexpr VECTOR kRoadFloorMin = { -1000.0f, 0.0f, -1000.0f }; // 床の最小座標
+    constexpr VECTOR kRoadFloorMax = { 1000.0f, 0.0f, 1000.0f };   // 床の最大座標
 
     // プレイヤーからの最小距離
-	constexpr float kMinSpawnDistance = 200.0f;
+    constexpr float kMinSpawnDistance = 200.0f;
 
     // 出現位置の最大試行回数
-	constexpr int kMaxSpawnAttempts = 100;
+    constexpr int kMaxSpawnAttempts = 100;
 
     // ウェーブ画像の描画幅
     constexpr int kWaveImageDrawWidth = 100;
 
     // 範囲が設定されていない場合のデフォルト位置
-	constexpr VECTOR kDefaultRoadFloorPos = { 0.0f, -0.5f, 3.0f };
+    constexpr VECTOR kDefaultRoadFloorPos = { 0.0f, -0.5f, 3.0f };
 
     // デバック情報の表示位置
-	constexpr int kDebugInfoPosY    = 10;  // 高さ
-	constexpr int kDebugInfoSpacing = 100; // 項目間の間隔
-	constexpr int kDebugInfoPosX    = 10;  // 左端からのX座標
-	constexpr int kFontSize         = 16;  // フォントサイズ
+    constexpr int kDebugInfoPosY = 10;  // 高さ
+    constexpr int kDebugInfoSpacing = 100; // 項目間の間隔
+    constexpr int kDebugInfoPosX = 10;  // 左端からのX座標
+    constexpr int kFontSize = 16;  // フォントサイズ
 
-	constexpr float kFrameTime = 1.0f / 60.0f; // フレーム時間
+    constexpr float kFrameTime = 1.0f / 60.0f; // フレーム時間
 }
 
 bool WaveManager::s_isDrawSpawnAreas = false;
@@ -90,15 +90,15 @@ WaveManager::~WaveManager()
     EnemyAcid::DeleteModel();
     EnemyBoss::DeleteModel();
 
-	// 画像の解放
-	for (int i = 0; i < 3; ++i)
-	{
-		if (m_waveImages[i] >= 0)
-		{
-			DeleteGraph(m_waveImages[i]);
-			m_waveImages[i] = -1;
-		}
-	}
+    // 画像の解放
+    for (int i = 0; i < 3; ++i)
+    {
+        if (m_waveImages[i] >= 0)
+        {
+            DeleteGraph(m_waveImages[i]);
+            m_waveImages[i] = -1;
+        }
+    }
 }
 
 void WaveManager::Init()
@@ -147,61 +147,61 @@ void WaveManager::Init()
 
     // チュートリアル達成判定用コールバック
     auto deathTypeCallback = [this](const VECTOR& pos, AttackType type) {
-        if (m_currentWave == 1) 
+        if (m_currentWave == 1)
         {
-            if (type == AttackType::Shoot)   m_isShotTutorialCleared   = true;
+            if (type == AttackType::Shoot)   m_isShotTutorialCleared = true;
             if (type == AttackType::Tackle) m_isTackleTutorialCleared = true;
         }
-    };
-	// 各敵プールの死亡時コールバックを設定
+        };
+    // 各敵プールの死亡時コールバックを設定
     for (auto& enemy : m_enemyNormalPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
     for (auto& enemy : m_enemyRunnerPool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
     for (auto& enemy : m_enemyAcidPool)   enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
     for (auto& enemy : m_enemyBossPool)   enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
 
-	// 敵の死亡時コールバックを設定
+    // 敵の死亡時コールバックを設定
     SetOnEnemyDeathCallback([this](const VECTOR& pos) {
         // 死亡した敵を特定
         auto checkAndSet = [this](EnemyBase* enemy) {
             if (!enemy) return false;
-			// チュートリアル達成判定
-            if (m_currentWave == 1) 
+            // チュートリアル達成判定
+            if (m_currentWave == 1)
             {
-                if (enemy->GetLastAttackType() == AttackType::Shoot)   m_isShotTutorialCleared   = true;
+                if (enemy->GetLastAttackType() == AttackType::Shoot)   m_isShotTutorialCleared = true;
                 if (enemy->GetLastAttackType() == AttackType::Tackle) m_isTackleTutorialCleared = true;
             }
             return true;
-        };
-		// 敵のプールから位置が一致する敵を探して死亡処理
-        for (auto& enemy : m_enemyNormalPool) 
+            };
+        // 敵のプールから位置が一致する敵を探して死亡処理
+        for (auto& enemy : m_enemyNormalPool)
         {
-            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) 
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z)
             {
                 if (checkAndSet(enemy.get())) break;
             }
         }
-        for (auto& enemy : m_enemyRunnerPool) 
+        for (auto& enemy : m_enemyRunnerPool)
         {
-            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) 
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z)
             {
                 if (checkAndSet(enemy.get())) break;
             }
         }
-        for (auto& enemy : m_enemyAcidPool) 
+        for (auto& enemy : m_enemyAcidPool)
         {
-            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) 
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z)
             {
                 if (checkAndSet(enemy.get())) break;
             }
         }
-        for (auto& enemy : m_enemyBossPool) 
+        for (auto& enemy : m_enemyBossPool)
         {
-            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z) 
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z)
             {
                 if (checkAndSet(enemy.get())) break;
             }
         }
-    });
+        });
 }
 
 void WaveManager::Update()
@@ -211,17 +211,17 @@ void WaveManager::Update()
         return;
     }
 
-	// ウェーブがアクティブな場合、敵のスポーンとウェーブクリア判定を行う
+    // ウェーブがアクティブな場合、敵のスポーンとウェーブクリア判定を行う
     if (m_isWaveActive)
     {
         if (IsCurrentWaveCleared())
         {
-			
+
             NextWave();
         }
         else
         {
-    
+
             if (m_currentSpawnIndex < m_spawnInfoList.size() && !m_isWaveImageAnimating)
             {
                 m_spawnTimer += 1.0f / 60.0f;
@@ -246,7 +246,7 @@ void WaveManager::Update()
             }
         }
     }
-	// ウェーブがアクティブでない場合、次のウェーブ開始までのインターバルをカウントダウン
+    // ウェーブがアクティブでない場合、次のウェーブ開始までのインターバルをカウントダウン
     else
     {
         if (m_waveIntervalTimer > 0.0f)
@@ -257,7 +257,7 @@ void WaveManager::Update()
         {
             if (m_currentWave <= 3)
             {
-				VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f); // プレイヤー位置の初期値
+                VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f); // プレイヤー位置の初期値
                 StartCurrentWave(playerPos);
             }
         }
@@ -286,11 +286,11 @@ void WaveManager::Update()
 void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect)
 {
     std::vector<EnemyBase*> activeEnemies;
-    for (auto& pEnemy : m_enemyNormalPool) 
+    for (auto& pEnemy : m_enemyNormalPool)
     {
         if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
     }
-    for (auto& pEnemy : m_enemyRunnerPool) 
+    for (auto& pEnemy : m_enemyRunnerPool)
     {
         if (pEnemy->IsActive() && pEnemy->IsAlive()) activeEnemies.push_back(pEnemy.get());
     }
@@ -305,8 +305,8 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
 
     for (auto& pEnemy : m_enemyNormalPool)
     {
-		// アクティブで生存している敵のみ更新
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        // アクティブな敵のみ更新
+        if (!pEnemy->IsActive()) continue;
         // 自分以外の敵リストを作成
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
@@ -314,21 +314,21 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
     }
     for (auto& pEnemy : m_enemyRunnerPool)
     {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        if (!pEnemy->IsActive()) continue;
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
         pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
     }
     for (auto& pEnemy : m_enemyAcidPool)
     {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        if (!pEnemy->IsActive()) continue;
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
         pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
     }
     for (auto& pEnemy : m_enemyBossPool)
     {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        if (!pEnemy->IsActive()) continue;
         std::vector<EnemyBase*> others;
         for (auto* e : activeEnemies) if (e != pEnemy.get()) others.push_back(e);
         pEnemy->Update(bullets, tackleInfo, player, others, collisionData, pEffect);
@@ -338,25 +338,25 @@ void WaveManager::UpdateEnemies(std::vector<Bullet>& bullets, const Player::Tack
 // 敵の一括描画
 void WaveManager::DrawEnemies(bool isTutorial)
 {
-	// 敵の描画
-    for (auto& pEnemy : m_enemyNormalPool) 
+    // 敵の描画
+    for (auto& pEnemy : m_enemyNormalPool)
     {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        if (!pEnemy->IsActive()) continue;
         pEnemy->Draw();
     }
-    for (auto& pEnemy : m_enemyRunnerPool) 
+    for (auto& pEnemy : m_enemyRunnerPool)
     {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        if (!pEnemy->IsActive()) continue;
         pEnemy->Draw();
     }
-    for (auto& pEnemy : m_enemyAcidPool) 
+    for (auto& pEnemy : m_enemyAcidPool)
     {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        if (!pEnemy->IsActive()) continue;
         pEnemy->Draw();
     }
-    for (auto& pEnemy : m_enemyBossPool) 
+    for (auto& pEnemy : m_enemyBossPool)
     {
-        if (!pEnemy->IsActive() || !pEnemy->IsAlive()) continue;
+        if (!pEnemy->IsActive()) continue;
         pEnemy->Draw();
     }
 
@@ -489,18 +489,18 @@ void WaveManager::LoadWaveData()
         waveData.startTime = std::stof(token);
 
         // WaveInterval
-        if (std::getline(ss, token, ',')) 
+        if (std::getline(ss, token, ','))
         {
             waveData.waveInterval = std::stof(token);
         }
-        else 
+        else
         {
             waveData.waveInterval = 0.0f;
         }
 
         m_waveDataList.push_back(waveData);
 
-    // デバッグ出力
+        // デバッグ出力
         printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f\n",
             waveData.wave, waveData.enemyType.c_str(), waveData.count,
             waveData.spawnInterval, waveData.startTime);
@@ -539,7 +539,7 @@ void WaveManager::LoadSpawnAreaData()
         if (!std::getline(ss, token, ',')) continue; x = std::stof(token);
         if (!std::getline(ss, token, ',')) continue; y = std::stof(token);
         if (!std::getline(ss, token, ',')) continue; z = std::stof(token);
-        
+
         // Unity座標系からの変換（100倍）
         info.center = VGet(x * 100.0f, y * 100.0f, z * 100.0f);
 
@@ -556,7 +556,7 @@ void WaveManager::LoadSpawnAreaData()
 
         // デバッグ出力
         printf("Loaded SpawnArea: Type %d, Pos(%.1f, %.1f, %.1f), Size(%.1f, %.1f, %.1f)\n",
-            info.type, 
+            info.type,
             info.center.x, info.center.y, info.center.z,
             info.size.x, info.size.y, info.size.z);
     }
@@ -565,13 +565,13 @@ void WaveManager::LoadSpawnAreaData()
 // ランダムな出現位置を生成
 VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
 {
-	// Road_floorの範囲が設定されていない場合はデフォルト位置を返す
+    // Road_floorの範囲が設定されていない場合はデフォルト位置を返す
     if (!m_isRoadFloorBoundsSet)
     {
-		return kDefaultRoadFloorPos;
+        return kDefaultRoadFloorPos;
     }
 
-	// 乱数生成器の初期化
+    // 乱数生成器の初期化
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 gen(seed);
 
@@ -579,7 +579,7 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
     int attempts = 0;
     bool found = false;
     do {
-		// 範囲内のランダムな座標を生成
+        // 範囲内のランダムな座標を生成
         std::uniform_real_distribution<float> xDist(m_roadFloorMin.x, m_roadFloorMax.x);
         std::uniform_real_distribution<float> zDist(m_roadFloorMin.z, m_roadFloorMax.z);
 
@@ -588,13 +588,13 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
 
         spawnPos = VGet(x, 0.0f, z);
 
-		// プレイヤーとの距離を計算
+        // プレイヤーとの距離を計算
         VECTOR toPlayer = VSub(playerPos, spawnPos);
         toPlayer.y = 0.0f;
         float distanceToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
 
-		// プレイヤーからの距離が最小距離以上なら成功
-        if (distanceToPlayer >= kMinSpawnDistance) 
+        // プレイヤーからの距離が最小距離以上なら成功
+        if (distanceToPlayer >= kMinSpawnDistance)
         {
             found = true;
             break;
@@ -603,7 +603,7 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
         attempts++;
     } while (attempts < kMaxSpawnAttempts);
 
-    if (!found) 
+    if (!found)
     {
         // 条件を満たさなかった場合は範囲内のランダムな点を返す
         std::uniform_real_distribution<float> xDist(m_roadFloorMin.x, m_roadFloorMax.x);
@@ -698,7 +698,7 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         }
     }
 
-	// 敵の種類に応じてプールから取得または新規生成
+    // 敵の種類に応じてプールから取得または新規生成
     if (enemyType == "NormalEnemy")
     {
         auto pPooled = GetPooledNormalEnemy();
@@ -732,9 +732,9 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         pPooled->SetActive(true);
         pPooled->Init();
         // パラメータはInitでCSVから読み込まれるが、WaveManager側でのパラメータセットもサポート
-        if (enemyData) 
+        if (enemyData)
         {
-             pPooled->SetHp(enemyData->hp);
+            pPooled->SetHp(enemyData->hp);
         }
         pPooled->SetPos(spawnPos);
         pEnemy = pPooled;
@@ -750,18 +750,18 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
         pEnemy->SetOnDeathCallback([this](const VECTOR& pos) { OnEnemyDeath(pos); });
 
         // アイテムドロップコールバック
-        if (m_onEnemyDeathCallback) 
+        if (m_onEnemyDeathCallback)
         {
             pEnemy->SetOnDropItemCallback(m_onEnemyDeathCallback);
         }
 
         // ヒット時コールバック(ヒットマーク用)
-        if (m_onEnemyHitCallback) 
+        if (m_onEnemyHitCallback)
         {
             pEnemy->SetOnHitCallback(m_onEnemyHitCallback);
         }
         printf("Created enemy: %s at position (%.2f, %.2f, %.2f)\n",
-        enemyType.c_str(), pEnemy->GetPos().x, pEnemy->GetPos().y, pEnemy->GetPos().z);
+            enemyType.c_str(), pEnemy->GetPos().x, pEnemy->GetPos().y, pEnemy->GetPos().z);
         m_totalSpawnedCount++;
     }
 
@@ -769,12 +769,12 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
 }
 
 // プールから空きのあるNormalEnemyを取得または新規生成
-std::shared_ptr<EnemyNormal> WaveManager::GetPooledNormalEnemy() 
+std::shared_ptr<EnemyNormal> WaveManager::GetPooledNormalEnemy()
 {
     // プールから空きのある敵を探す
-	for (auto& pEnemy : m_enemyNormalPool) 
+    for (auto& pEnemy : m_enemyNormalPool)
     {
-        if (!pEnemy->IsActive()) 
+        if (!pEnemy->IsActive())
         {
             return pEnemy;
         }
@@ -790,16 +790,16 @@ std::shared_ptr<EnemyNormal> WaveManager::GetPooledNormalEnemy()
 // プールから空きのあるRunnerEnemyを取得または新規生成
 std::shared_ptr<EnemyRunner> WaveManager::GetPooledRunnerEnemy()
 {
-	// プールから空きのある敵を探す
-    for (auto& pEnemy : m_enemyRunnerPool) 
+    // プールから空きのある敵を探す
+    for (auto& pEnemy : m_enemyRunnerPool)
     {
-        if (!pEnemy->IsActive()) 
+        if (!pEnemy->IsActive())
         {
             return pEnemy;
         }
     }
 
-	// プールに空きがなければ新規生成
+    // プールに空きがなければ新規生成
     auto pEnemy = std::make_shared<EnemyRunner>();
     pEnemy->Init();
     m_enemyRunnerPool.push_back(pEnemy);
@@ -807,18 +807,18 @@ std::shared_ptr<EnemyRunner> WaveManager::GetPooledRunnerEnemy()
 }
 
 // プールから空きのあるAcidEnemyを取得または新規生成
-std::shared_ptr<EnemyAcid> WaveManager::GetPooledAcidEnemy() 
+std::shared_ptr<EnemyAcid> WaveManager::GetPooledAcidEnemy()
 {
-	// プールから空きのある敵を探す
-    for (auto& pEnemy : m_enemyAcidPool) 
+    // プールから空きのある敵を探す
+    for (auto& pEnemy : m_enemyAcidPool)
     {
-        if (!pEnemy->IsActive()) 
+        if (!pEnemy->IsActive())
         {
             return pEnemy;
         }
     }
 
-	// プールに空きがなければ新規生成
+    // プールに空きがなければ新規生成
     auto pEnemy = std::make_shared<EnemyAcid>();
     pEnemy->Init();
     m_enemyAcidPool.push_back(pEnemy);
@@ -864,13 +864,13 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
         printf("Processing %s: Count %d, StartTime %.1f, Interval %.1f\n",
             waveData.enemyType.c_str(), waveData.count, waveData.startTime, waveData.spawnInterval);
 
-		for (int i = 0; i < waveData.count; ++i) // 出現数分ループ
+        for (int i = 0; i < waveData.count; ++i) // 出現数分ループ
         {
-			// 出現位置を生成
+            // 出現位置を生成
             EnemySpawnInfo spawnInfo;
             spawnInfo.enemyType = waveData.enemyType;
             // 0: Main Stage
-            spawnInfo.spawnPos  = GenerateSpawnPos(0, waveData.enemyType, playerPos);
+            spawnInfo.spawnPos = GenerateSpawnPos(0, waveData.enemyType, playerPos);
             spawnInfo.spawnTime = waveData.startTime + (i * waveData.spawnInterval);
             spawnInfo.isSpawned = false;
 
@@ -1107,18 +1107,18 @@ void WaveManager::SpawnTutorialWave(int tutorialWaveId)
 }
 
 // プールから空きのあるBossEnemyを取得または新規生成
-std::shared_ptr<EnemyBoss> WaveManager::GetPooledBossEnemy() 
+std::shared_ptr<EnemyBoss> WaveManager::GetPooledBossEnemy()
 {
-	// プールから空きのある敵を探す
-    for (auto& pEnemy : m_enemyBossPool) 
+    // プールから空きのある敵を探す
+    for (auto& pEnemy : m_enemyBossPool)
     {
-        if (!pEnemy->IsActive()) 
+        if (!pEnemy->IsActive())
         {
             return pEnemy;
         }
     }
 
-	// プールに空きがなければ新規生成
+    // プールに空きがなければ新規生成
     auto pEnemy = std::make_shared<EnemyBoss>();
     pEnemy->Init();
     m_enemyBossPool.push_back(pEnemy);
