@@ -85,6 +85,7 @@ private:
 	bool m_isAttackHit; // 攻撃がヒットしたか
 
 	// 遠距離攻撃用
+	// 遠距離攻撃用
 	struct HomingBullet
 	{
 		VECTOR pos;

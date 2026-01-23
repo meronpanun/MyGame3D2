@@ -56,8 +56,12 @@ Effect::Effect():
 	assert(m_sparkEffectHandle2 != -1);
 
 	// 酸エフェクトハンドルの読み込み
-	m_acidEffectHandle = LoadEffekseerEffect("data/Effekseer/AcidParry.efkefc", 15.0f);
+	m_acidEffectHandle = LoadEffekseerEffect("data/Effekseer/ParryBullet.efkefc", 15.0f);
 	assert(m_acidEffectHandle != -1);
+
+	// 通常弾エフェクトハンドルの読み込み
+	m_normalBulletEffectHandle = LoadEffekseerEffect("data/Effekseer/NormalBullet.efkefc", 15.0f); 
+	assert(m_normalBulletEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -73,6 +77,7 @@ Effect::~Effect()
 	DeleteEffekseerEffect(m_sparkEffectHandle);
 	DeleteEffekseerEffect(m_sparkEffectHandle2);
 	DeleteEffekseerEffect(m_acidEffectHandle);
+	DeleteEffekseerEffect(m_normalBulletEffectHandle);
 }
 
 void Effect::Init()
@@ -199,6 +204,22 @@ int Effect::PlayAcidEffect(float x, float y, float z)
 	if (m_acidEffectHandle != -1)
 	{
 		int handle = PlayEffekseer3DEffect(m_acidEffectHandle);
+		if (handle != -1)
+		{
+			SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+			m_playingEffectHandles.push_back(handle);
+		}
+		return handle;
+	}
+	return -1;
+}
+
+// 通常弾エフェクトを再生する
+int Effect::PlayNormalBulletEffect(float x, float y, float z)
+{
+	if (m_normalBulletEffectHandle != -1)
+	{
+		int handle = PlayEffekseer3DEffect(m_normalBulletEffectHandle);
 		if (handle != -1)
 		{
 			SetPosPlayingEffekseer3DEffect(handle, x, y, z);

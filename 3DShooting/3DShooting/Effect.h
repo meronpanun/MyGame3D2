@@ -56,6 +56,14 @@ public:
 	int PlayAcidEffect(float x, float y, float z);
 
 	/// <summary>
+	/// 通常弾エフェクトを再生する
+	/// </summary>
+	/// <param name="x">X座標</param>
+	/// <param name="y">Y座標</param>
+	/// <param name="z">Z座標</param>
+	int PlayNormalBulletEffect(float x, float y, float z);
+
+	/// <summary>
 	/// 再生中のエフェクトをすべて停止する
 	/// </summary>
 	void StopAllEffects();
@@ -68,6 +76,7 @@ private:
 	int m_sparkEffectHandle; // スパークエフェクトハンドル
 	int m_sparkEffectHandle2; // スパークエフェクトハンドル2
 	int m_acidEffectHandle; // 酸エフェクトハンドル
+	int m_normalBulletEffectHandle; // 通常弾エフェクトハンドル
 
 	std::vector<int> m_playingEffectHandles; // 再生中のエフェクトハンドル
 };

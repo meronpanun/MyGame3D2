@@ -565,7 +565,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 			if (!enemy) continue;
 
 			// 敵の更新処理
-			enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData);
+			enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect);
 		}
 
 #ifdef _DEBUG
@@ -624,7 +624,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 	for (EnemyBase* enemy : enemyList)
 	{
 		if (!enemy) continue;
-		enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData);
+		enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect);
 	}
 
 	// 弾の更新

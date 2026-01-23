@@ -7,6 +7,7 @@
 #include "SphereCollider.h"
 #include "CapsuleCollider.h"
 #include "TransformDataLoader.h"
+#include "Effect.h"
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -271,14 +272,14 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
              bullet.speed = kHomingBulletSpeed;
              
              // エフェクトがあればここで再生しハンドル保持
-             //if (pEffect)
-             //{
-             //    // マズルフラッシュ（射撃時の一瞬のエフェクト）
-             //    pEffect->PlayMuzzleFlash(spawnPos.x, spawnPos.y, spawnPos.z, 0, 0, 0);
+             if (pEffect)
+             {
+                 // マズルフラッシュ（射撃時の一瞬のエフェクト）
+                 pEffect->PlayMuzzleFlash(spawnPos.x, spawnPos.y, spawnPos.z, 0, 0, 0);
 
-             //    // 弾自体のエフェクト（酸エフェクトを流用）
-             //    bullet.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
-             //}
+				 // 弾自体のエフェクト
+				 bullet.effectHandle = pEffect->PlayNormalBulletEffect(spawnPos.x, spawnPos.y, spawnPos.z);
+             }
 
              m_homingBullets.push_back(bullet);
              m_hasShotLongRange = true;
@@ -363,10 +364,10 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         bullet.distTraveled += bullet.speed;
 
         // エフェクト更新(あれば)
-        //if (bullet.effectHandle != -1)
-        //{
-        //     SetPosPlayingEffekseer3DEffect(bullet.effectHandle, bullet.pos.x, bullet.pos.y, bullet.pos.z);
-        //}
+        if (bullet.effectHandle != -1)
+        {
+             SetPosPlayingEffekseer3DEffect(bullet.effectHandle, bullet.pos.x, bullet.pos.y, bullet.pos.z);
+        }
 
         // 当たり判定 (擬似球)
         std::shared_ptr<CapsuleCollider> pCol = player.GetBodyCollider();
@@ -375,33 +376,33 @@ void EnemyBoss::Update(std::vector<Bullet>& bullets, const Player::TackleInfo& t
         {
             const_cast<Player&>(player).TakeDamage(bullet.damage, m_pos);
             bullet.active = false; // ヒットしたら消滅
-             //if (bullet.effectHandle != -1)
-             //{
-             //    StopEffekseer3DEffect(bullet.effectHandle);
-             //    bullet.effectHandle = -1;
-             //}
+             if (bullet.effectHandle != -1)
+             {
+                 StopEffekseer3DEffect(bullet.effectHandle);
+                 bullet.effectHandle = -1;
+             }
         }
 
         // 最大飛距離チェック
         if (bullet.distTraveled > kHomingBulletMaxDist)
         {
             bullet.active = false;
-             //if (bullet.effectHandle != -1)
-             //{
-             //    StopEffekseer3DEffect(bullet.effectHandle);
-             //    bullet.effectHandle = -1;
-             //}
+             if (bullet.effectHandle != -1)
+             {
+                 StopEffekseer3DEffect(bullet.effectHandle);
+                 bullet.effectHandle = -1;
+             }
         }
 
         // 地面接触で消滅
         if (bullet.pos.y < 0) 
         {
             bullet.active = false;
-             //if (bullet.effectHandle != -1)
-             //{
-             //    StopEffekseer3DEffect(bullet.effectHandle);
-             //    bullet.effectHandle = -1;
-             //}
+             if (bullet.effectHandle != -1)
+             {
+                 StopEffekseer3DEffect(bullet.effectHandle);
+                 bullet.effectHandle = -1;
+             }
         }
     }
     
@@ -534,16 +535,18 @@ void EnemyBoss::Draw()
     DrawCollisionDebug();
 #endif
 
-    // ホーミング弾の描画（リリースでも表示）
-    // 黄色い球で表示 エフェクト代わり
-    for (const auto& bullet : m_homingBullets)
-    {
-        if (bullet.active)
-        {
-             // DebugUtilではなくDxLibの標準関数を使用
-             DrawSphere3D(bullet.pos, kHomingBulletRadius, 8, 0xffff00, 0xffff00, TRUE);
-        }
-    }
+    // ホーミング弾の描画
+    // エフェクトのみ表示するため、デバッグ用の球体描画は削除
+    
+    //for (const auto& bullet : m_homingBullets)
+    //{
+    //    if (bullet.active)
+    //    {
+    //         // DebugUtilではなくDxLibの標準関数を使用
+    //         DrawSphere3D(bullet.pos, kHomingBulletRadius, 8, 0xffff00, 0xffff00, TRUE);
+    //    }
+    //}
+    
 }
 
 void EnemyBoss::TakeDamage(float damage, AttackType type)
