@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-
 class Player;
 class Collider;
 
@@ -126,15 +125,6 @@ private:
     void Update(float timeScale) {
       if (!active)
         return;
-
-      // 反射された弾はオーナーを追尾する
-      if (isReflected && owner) {
-        VECTOR targetPos = owner->GetPos();
-        // 敵の中心あたりを狙うオフセット
-        targetPos.y += 50.0f;
-        VECTOR newDir = VNorm(VSub(targetPos, pos));
-        dir = newDir;
-      }
 
       // タイムスケールを適用
       pos = VAdd(pos, VScale(dir, speed * timeScale));

@@ -301,13 +301,11 @@ void EnemyAcid::Update(
             // カメラの前方ベクトルを計算
             VECTOR camForward =
                 VNorm(VSub(playerCam->GetTarget(), playerCam->GetPos()));
-            // プレイヤーの足元から、盾があるであろう前方少し上の位置を計算
-            VECTOR shieldPos = player.GetPos();
-            shieldPos.y += 50.0f;                                   // 少し上に
-            shieldPos = VAdd(shieldPos, VScale(camForward, 60.0f)); // 前方に60
-
-            // 反射方向を「盾の位置」から「敵の位置」へ
-            VECTOR reflectDir = VNorm(VSub(this->GetPos(), shieldPos));
+            // 敵の中心位置をターゲットにする (足元 + 50.0f)
+            VECTOR enemyBodyCenter = this->GetPos();
+            enemyBodyCenter.y += 50.0f;
+            // 反射方向を「弾の現在位置」から「敵の中心」へ
+            VECTOR reflectDir = VNorm(VSub(enemyBodyCenter, ball.pos));
             ball.dir = reflectDir;
 
             // 反射した弾の速度を上げる
