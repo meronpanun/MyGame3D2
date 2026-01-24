@@ -12,36 +12,37 @@
 #include <cmath>
 #include <functional>
 
-namespace {
-// アニメーション関連
-constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
-constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
-constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
-constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+namespace
+{
+    // アニメーション関連
+    constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
+    constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション 
+    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
+    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
 
-constexpr VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
+    constexpr VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
 
-// コライダーのサイズを定義
-constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
-constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
-constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
+    // コライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
 
-// 攻撃関連（遠距離攻撃に特化）
-constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
-constexpr float kAttackRangeRadius = 1000.0f; // 攻撃範囲の半径
-constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
+    // 攻撃関連（遠距離攻撃に特化）
+    constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
+    constexpr float kAttackRangeRadius = 1000.0f; // 攻撃範囲の半径
+    constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
 
-// 追跡関連（遠距離型なので、近づきすぎたら離れる）
-constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
+    // 追跡関連（遠距離型なので、近づきすぎたら離れる）
+    constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 
-// スタン関連
-constexpr int kStunDuration = 120; // スタンの総持続時間
-constexpr float kStunAnimFrameLimit =
+    // スタン関連
+    constexpr int kStunDuration = 120; // スタンの総持続時間
+    constexpr float kStunAnimFrameLimit =
     60.0f; // スタンアニメーションの再生上限フレーム
 
-// AcidBallの画面外判定距離
-constexpr float kAcidBallBoundaryDistance = 2000.0f;
-} // namespace
+    // AcidBallの画面外判定距離
+    constexpr float kAcidBallBoundaryDistance = 2000.0f;
+} 
 
 int EnemyAcid::s_modelHandle = -1;
 
@@ -51,7 +52,8 @@ EnemyAcid::EnemyAcid()
       m_hasAttacked(false), m_attackEndDelayTimer(0),
       m_acidBulletSpawnOffset({0.0f, 0.0f, 0.0f}), m_backAnimCount(0),
       m_isItemDropped(false), m_chaseSpeed(0.0f), m_isStunned(false),
-      m_stunTimer(0) {
+      m_stunTimer(0)
+{
   // モデルの複製
   m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
@@ -227,19 +229,25 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet> &bullets,
   m_acidBalls.push_back(ball);
 }
 
-void EnemyAcid::Update(
-    std::vector<Bullet> &bullets, const Player::TackleInfo &tackleInfo,
-    const Player &player, const std::vector<EnemyBase *> &enemyList,
-    const std::vector<Stage::StageCollisionData> &collisionData,
-    Effect *pEffect) {
+void EnemyAcid::Update(const EnemyUpdateContext &context) {
   // ステージとの当たり判定
-  UpdateStageCollision(collisionData);
+  UpdateStageCollision(context.collisionData);
 
 #ifdef _DEBUG
   m_shouldDrawParryCollider = false;
 #endif
 
-  // AcidBallの更新と当たり判定をスタン状態に関わらず行う
+  // 各種更新処理
+  UpdateAcidBalls(context);
+  UpdateState(context);
+  UpdateCollision(context);
+}
+
+void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext &context) {
+  const Player &player = context.player;
+  Effect *pEffect = context.pEffect;
+
+  // AcidBallの更新と当たり判定
   for (auto &ball : m_acidBalls) {
     if (!ball.active)
       continue;
@@ -304,6 +312,7 @@ void EnemyAcid::Update(
             // 敵の中心位置をターゲットにする (足元 + 50.0f)
             VECTOR enemyBodyCenter = this->GetPos();
             enemyBodyCenter.y += 50.0f;
+
             // 反射方向を「弾の現在位置」から「敵の中心」へ
             VECTOR reflectDir = VNorm(VSub(enemyBodyCenter, ball.pos));
             ball.dir = reflectDir;
@@ -378,9 +387,13 @@ void EnemyAcid::Update(
   m_acidBalls.erase(std::remove_if(m_acidBalls.begin(), m_acidBalls.end(),
                                    [](const AcidBall &b) { return !b.active; }),
                     m_acidBalls.end());
+}
 
+void EnemyAcid::UpdateCollision(const EnemyUpdateContext &context) {
   // 弾との当たり判定・ダメージ処理
-  CheckHitAndDamage(bullets, pEffect);
+  CheckHitAndDamage(context.bullets, context.pEffect);
+
+  const Player::TackleInfo &tackleInfo = context.tackleInfo;
 
   // タックルダメージ処理
   if (tackleInfo.isTackling && tackleInfo.tackleId != m_lastTackleId) {
@@ -423,6 +436,12 @@ void EnemyAcid::Update(
   attackRangeCenter.y += (::kBodyColliderHeight * 0.5f);
   m_pAttackRangeCollider->SetCenter(attackRangeCenter);
   m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
+}
+
+void EnemyAcid::UpdateState(const EnemyUpdateContext &context) {
+  const Player &player = context.player;
+  std::vector<Bullet> &bullets = context.bullets;
+  Effect *pEffect = context.pEffect;
 
   // 怯み状態の処理
   if (m_isStunned) {

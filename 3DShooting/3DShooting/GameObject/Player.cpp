@@ -21,7 +21,6 @@
 #include <cmath>
 #include <cstdio>
 
-
 namespace {
 // タックル関連
 constexpr int kTackleDuration = 35;        // タックル持続フレーム数
@@ -576,8 +575,9 @@ void Player::Update(
         continue;
 
       // 敵の更新処理（ダメージ判定などはここで行われる）
-      enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData,
-                    m_pEffect);
+      EnemyUpdateContext context = {m_bullets, tackleInfo,    *this,
+                                    enemyList, collisionData, m_pEffect};
+      enemy->Update(context);
 
       // タックル停止判定(プレイヤーの体と敵の体が衝突したら停止)
       // すでに停止フラグが立っている場合は判定しない
@@ -645,8 +645,9 @@ void Player::Update(
   for (EnemyBase *enemy : enemyList) {
     if (!enemy)
       continue;
-    enemy->Update(m_bullets, tackleInfo, *this, enemyList, collisionData,
-                  m_pEffect);
+    EnemyUpdateContext context = {m_bullets, tackleInfo,    *this,
+                                  enemyList, collisionData, m_pEffect};
+    enemy->Update(context);
   }
 
   // 弾の更新

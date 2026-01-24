@@ -20,11 +20,7 @@ public:
   virtual ~EnemyAcid();
 
   void Init() override;
-  void Update(std::vector<Bullet> &bullets,
-              const Player::TackleInfo &tackleInfo, const Player &player,
-              const std::vector<EnemyBase *> &enemyList,
-              const std::vector<Stage::StageCollisionData> &collisionData,
-              Effect *pEffect = nullptr) override;
+  void Update(const EnemyUpdateContext &context) override;
   void Draw() override;
 
   /// <summary>
@@ -155,6 +151,11 @@ private:
   /// <param name="pEffect">エフェクトオブジェクト</param>
   void ShootAcidBullet(std::vector<Bullet> &bullets, const Player &player,
                        Effect *pEffect);
+
+  // リファクタリング用メソッド
+  void UpdateAcidBalls(const EnemyUpdateContext &context);
+  void UpdateState(const EnemyUpdateContext &context);
+  void UpdateCollision(const EnemyUpdateContext &context);
 
 private:
   VECTOR m_headPosOffset;              // ヘッドショット判定用オフセット座標
