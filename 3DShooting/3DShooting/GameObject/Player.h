@@ -176,6 +176,12 @@ public:
   std::shared_ptr<CapsuleCollider> GetBodyCollider() const;
 
   /// <summary>
+  /// 接地しているオブジェクト名を取得する
+  /// </summary>
+  /// <returns>接地しているオブジェクト名</returns>
+  std::string GetGroundedObjectName() const;
+
+  /// <summary>
   /// 回復SEハンドルを取得する
   /// </summary>
   int GetRecoverySEHandle() const { return m_recoverySEHandle; }

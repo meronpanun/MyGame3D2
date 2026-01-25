@@ -14,6 +14,7 @@ class Collider;
 /// <summary>
 /// 遠距離型ゾンビクラス
 /// </summary>
+#include "Stage.h" // StageCollisionDataを使うためにインクルードが必要になった
 class EnemyAcid : public EnemyBase {
 public:
   EnemyAcid();
@@ -118,12 +119,25 @@ private:
     bool isParryable = true;    // パリィ可能かどうか
     EnemyBase *owner = nullptr; // この弾の所有者
 
+    // 放物線用
+    bool isParabolic = false;
+    VECTOR velocity = {0, 0, 0};
+    float gravity = 0.0f;
+
     void Update(float timeScale) {
       if (!active)
         return;
 
-      // タイムスケールを適用
-      pos = VAdd(pos, VScale(dir, speed * timeScale));
+      if (isParabolic) {
+        // 放物線運動
+        velocity.y -= gravity * timeScale;
+        pos = VAdd(pos, VScale(velocity, timeScale));
+      } else {
+        // 通常の直線運動
+        // タイムスケールを適用
+        pos = VAdd(pos, VScale(dir, speed * timeScale));
+      }
+
       if (pos.y < 0.0f)
         active = false; // 地面で消滅
     }
@@ -144,13 +158,22 @@ private:
   bool CanAttackPlayer(const Player &player);
 
   /// <summary>
+  /// プレイヤーが視界に入っているか（射線が通るか）
+  /// </summary>
+  bool
+  IsPlayerVisible(const Player &player,
+                  const std::vector<Stage::StageCollisionData> &stageCollision);
+
+  /// <summary>
   /// 酸を吐く攻撃を行う
   /// </summary>
   /// <param name="bullets">弾のリスト</param>
   /// <param name="player">プレイヤーオブジェクト</param>
   /// <param name="pEffect">エフェクトオブジェクト</param>
-  void ShootAcidBullet(std::vector<Bullet> &bullets, const Player &player,
-                       Effect *pEffect);
+  void
+  ShootAcidBullet(std::vector<Bullet> &bullets, const Player &player,
+                  Effect *pEffect,
+                  const std::vector<Stage::StageCollisionData> &stageCollision);
 
   // リファクタリング用メソッド
   void UpdateAcidBalls(const EnemyUpdateContext &context);

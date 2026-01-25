@@ -913,6 +913,10 @@ std::shared_ptr<CapsuleCollider> Player::GetBodyCollider() const {
   return m_movement.GetBodyCollider();
 }
 
+std::string Player::GetGroundedObjectName() const {
+  return m_movement.GetGroundedObjectName();
+}
+
 // タックル情報を取得
 Player::TackleInfo Player::GetTackleInfo() const {
   TackleInfo info;
