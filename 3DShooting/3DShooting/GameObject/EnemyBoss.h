@@ -31,6 +31,11 @@ public:
   void TakeDamage(float damage, AttackType type) override;
   void TakeTackleDamage(float damage) override;
 
+  /// <summary>
+  /// パリィされた時に呼び出される
+  /// </summary>
+  void OnParried();
+
   // コライダー取得
   std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
@@ -99,12 +104,30 @@ private:
     // パラメータ
     float turnRate; // 旋回性能
 
+    // パリィ・反射関連
+    bool isReflected; // パリィで反射されたか
+    bool isParryable; // パリィ可能かどうか
+    EnemyBase *owner; // この弾の所有者
+
     HomingBullet()
         : pos(VGet(0, 0, 0)), dir(VGet(0, 0, 0)), speed(0), active(false),
-          damage(0), effectHandle(-1), distTraveled(0), turnRate(0.05f) {}
+          damage(0), effectHandle(-1), distTraveled(0), turnRate(0.05f),
+          isReflected(false), isParryable(true), owner(nullptr) {}
   };
 
   std::vector<HomingBullet> m_homingBullets;
   int m_longRangeAttackCooldown;
   bool m_hasShotLongRange;
+  
+  bool m_isNextAttackNormal; // 次の攻撃が通常弾かどうか
+
+  bool m_isStunned; // 怯み状態か
+  int m_stunTimer;  // 怯みタイマー
+
+#ifdef _DEBUG
+  bool m_shouldDrawParryCollider; // パリィコライダーを描画するか
+  VECTOR m_debugParryCapA;        // デバッグ用パリィカプセルのA点
+  VECTOR m_debugParryCapB;        // デバッグ用パリィカプセルのB点
+  float m_debugParryRadius;       // デバッグ用パリィカプセルの半径
+#endif
 };

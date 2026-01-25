@@ -12,7 +12,6 @@
 #include <cassert>
 #include <cmath>
 
-
 namespace {
 // アニメーション名
 // constexpr char kIdleAnimName[]        = "IDLE";
@@ -110,6 +109,7 @@ void EnemyBoss::Init() {
   m_longRangeAttackCooldown = 0;
   m_homingBullets.clear();
   m_hasShotLongRange = false;
+  m_isNextAttackNormal = false; // 最初はパリィ弾から
 
   ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
@@ -161,6 +161,161 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
   Effect *pEffect = context.pEffect;
 
   UpdateStageCollision(collisionData);
+
+#ifdef _DEBUG
+  m_shouldDrawParryCollider = false;
+#endif
+
+  // ホーミング弾の更新
+  for (auto &bullet : m_homingBullets) {
+    if (!bullet.active)
+      continue;
+
+    // プレイヤーへの方向
+    VECTOR toPlayer = VSub(player.GetPos(), bullet.pos);
+    float distToPlayer = VSize(toPlayer);
+    VECTOR targetDir = VNorm(toPlayer);
+
+    // ホーミング処理 (現在の向きからターゲット向きへ徐々に補間)
+    // 戻ってくる動きを応用 -> プレイヤーが動いても追従
+    // シンプルにターンレートで補間
+    float scale = Game::GetTimeScale();
+    bullet.dir = VAdd(bullet.dir, VScale(targetDir, kHomingTurnRate * scale));
+    bullet.dir = VNorm(bullet.dir);
+
+    // 移動
+    VECTOR moveVec = VScale(bullet.dir, bullet.speed * scale);
+    bullet.pos = VAdd(bullet.pos, moveVec);
+    bullet.distTraveled += bullet.speed * scale;
+
+    // エフェクト更新(あれば)
+    if (bullet.effectHandle != -1) {
+      SetPosPlayingEffekseer3DEffect(bullet.effectHandle, bullet.pos.x,
+                                     bullet.pos.y, bullet.pos.z);
+    }
+
+    // まだ反射されていない弾の処理
+    if (!bullet.isReflected) {
+      SphereCollider bulletCol(bullet.pos, kHomingBulletRadius);
+      bool hitDetected = false;
+
+      // パリィ判定
+      if (bullet.isParryable && player.IsJustGuarded()) {
+        VECTOR playerCapA, playerCapB;
+        float playerRadius;
+        player.GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
+
+        // パリィしやすくするために判定を広くする
+        float parryRadius = playerRadius * 1.5f;
+        CapsuleCollider parryCollider(playerCapA, playerCapB, parryRadius);
+
+#ifdef _DEBUG
+        m_shouldDrawParryCollider = true;
+        m_debugParryCapA = playerCapA;
+        m_debugParryCapB = playerCapB;
+        m_debugParryRadius = parryRadius;
+#endif
+
+        if (bulletCol.IsIntersects(&parryCollider)) {
+          // パリィ成功
+          hitDetected = true;
+          bullet.isReflected = true;
+
+          // 反射方向計算 (プレイヤーカメラの前方へ、あるいはボスへ)
+          // ここではボス（発射主）へ跳ね返す
+          if (bullet.owner) {
+            VECTOR targetPos = bullet.owner->GetPos();
+            targetPos.y += kBodyColliderHeight * 0.5f; // 中心付近へ
+            bullet.dir = VNorm(VSub(targetPos, bullet.pos));
+          } else {
+            bullet.dir = VScale(bullet.dir, -1.0f); // 単純反転
+          }
+
+          bullet.speed *= 1.5f;
+          bullet.turnRate = 0.0f; // 反射後はホーミング切る
+          Game::SetTimeScale(0.1f, 1.0f);
+        }
+      }
+
+      if (!hitDetected) {
+        std::shared_ptr<CapsuleCollider> pCol = player.GetBodyCollider();
+        if (bulletCol.IsIntersects(pCol.get())) {
+          hitDetected = true;
+          // ダメージ処理
+          const_cast<Player &>(player).TakeDamage(bullet.damage, m_pos,
+                                                  bullet.isParryable);
+          bullet.active = false;
+          if (bullet.effectHandle != -1) {
+            StopEffekseer3DEffect(bullet.effectHandle);
+            bullet.effectHandle = -1;
+          }
+        }
+      }
+    }
+    // 反射された弾の処理
+    else {
+      // 弾の所有者(Boss自身)と当たり判定
+      if (bullet.owner) {
+        SphereCollider reflectedCol(bullet.pos, kHomingBulletRadius);
+        // ボスの当たり判定を使用
+        if (reflectedCol.IsIntersects(this->GetBodyCollider().get())) {
+          this->TakeDamage(bullet.damage, AttackType::Shoot);
+          this->OnParried(); // 怯み処理
+          bullet.active = false;
+          if (bullet.effectHandle != -1) {
+            StopEffekseer3DEffect(bullet.effectHandle);
+            bullet.effectHandle = -1;
+          }
+        }
+      }
+    }
+
+    // 最大飛距離チェック
+    if (bullet.distTraveled > kHomingBulletMaxDist) {
+      bullet.active = false;
+      if (bullet.effectHandle != -1) {
+        StopEffekseer3DEffect(bullet.effectHandle);
+        bullet.effectHandle = -1;
+      }
+    }
+
+    // 地面接触で消滅
+    if (bullet.pos.y < 0) {
+      bullet.active = false;
+      if (bullet.effectHandle != -1) {
+        StopEffekseer3DEffect(bullet.effectHandle);
+        bullet.effectHandle = -1;
+      }
+    }
+  }
+
+  // 不要な弾を削除
+  m_homingBullets.erase(
+      std::remove_if(m_homingBullets.begin(), m_homingBullets.end(),
+                     [](const HomingBullet &b) { return !b.active; }),
+      m_homingBullets.end());
+
+  // 怯み状態の処理
+  if (m_isStunned) {
+    m_stunTimer--;
+    if (m_stunTimer <= 0) {
+      m_isStunned = false;
+      ChangeAnimation(AnimState::Walk, true);
+    } else {
+      // アニメーション更新（Deadモーションなどを途中まで再生するなど）
+      // AcidではAnimationManagerの更新を手動で制御していたが、
+      // ここでは単純にタイマー待機とする
+      // 一旦アニメーションを進める
+      if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) !=
+          -1) {
+        // ある程度進んだら止める等の制御が必要ならここで行う
+        m_animTime += 1.0f * Game::GetTimeScale();
+        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+      }
+    }
+    MV1SetPosition(m_modelHandle, m_pos);
+    return; // 他のAIロジックをスキップ
+  }
 
   if (m_hp <= 0.0f) {
     if (!m_isDeadAnimPlaying) {
@@ -253,16 +408,30 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
       // プレイヤー方向へ発射
       bullet.dir = VNorm(VSub(playerPos, spawnPos));
       bullet.speed = kHomingBulletSpeed;
+      bullet.owner = this;
+      bullet.isReflected = false;
 
       // エフェクトがあればここで再生しハンドル保持
       if (pEffect) {
         // マズルフラッシュ（射撃時の一瞬のエフェクト）
         pEffect->PlayMuzzleFlash(spawnPos.x, spawnPos.y, spawnPos.z, 0, 0, 0);
 
-        // 弾自体のエフェクト
-        bullet.effectHandle =
-            pEffect->PlayNormalBulletEffect(spawnPos.x, spawnPos.y, spawnPos.z);
+        if (m_isNextAttackNormal) {
+          // 通常弾 (パリィ不可)
+          bullet.isParryable = false;
+          bullet.effectHandle = pEffect->PlayNormalBulletEffect(
+              spawnPos.x, spawnPos.y, spawnPos.z);
+        } else {
+          // パリィ弾 (パリィ可能)
+          bullet.isParryable = true;
+          // EnemyAcidと同様のエフェクトを使用（または専用エフェクト）
+          bullet.effectHandle =
+              pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
+        }
       }
+
+      // 次回のためにフラグ反転
+      m_isNextAttackNormal = !m_isNextAttackNormal;
 
       m_homingBullets.push_back(bullet);
       m_hasShotLongRange = true;
@@ -357,71 +526,6 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
       }
     }
   }
-
-  // ホーミング弾の更新
-  for (auto &bullet : m_homingBullets) {
-    if (!bullet.active)
-      continue;
-
-    // プレイヤーへの方向
-    VECTOR toPlayer = VSub(player.GetPos(), bullet.pos);
-    float distToPlayer = VSize(toPlayer);
-    VECTOR targetDir = VNorm(toPlayer);
-
-    // ホーミング処理 (現在の向きからターゲット向きへ徐々に補間)
-    // 戻ってくる動きを応用 -> プレイヤーが動いても追従
-    // シンプルにターンレートで補間
-    float scale = Game::GetTimeScale();
-    bullet.dir = VAdd(bullet.dir, VScale(targetDir, kHomingTurnRate * scale));
-    bullet.dir = VNorm(bullet.dir);
-
-    // 移動
-    VECTOR moveVec = VScale(bullet.dir, bullet.speed * scale);
-    bullet.pos = VAdd(bullet.pos, moveVec);
-    bullet.distTraveled += bullet.speed * scale;
-
-    // エフェクト更新(あれば)
-    if (bullet.effectHandle != -1) {
-      SetPosPlayingEffekseer3DEffect(bullet.effectHandle, bullet.pos.x,
-                                     bullet.pos.y, bullet.pos.z);
-    }
-
-    // 当たり判定 (擬似球)
-    std::shared_ptr<CapsuleCollider> pCol = player.GetBodyCollider();
-    SphereCollider bulletCol(bullet.pos, kHomingBulletRadius);
-    if (bulletCol.IsIntersects(pCol.get())) {
-      const_cast<Player &>(player).TakeDamage(bullet.damage, m_pos);
-      bullet.active = false; // ヒットしたら消滅
-      if (bullet.effectHandle != -1) {
-        StopEffekseer3DEffect(bullet.effectHandle);
-        bullet.effectHandle = -1;
-      }
-    }
-
-    // 最大飛距離チェック
-    if (bullet.distTraveled > kHomingBulletMaxDist) {
-      bullet.active = false;
-      if (bullet.effectHandle != -1) {
-        StopEffekseer3DEffect(bullet.effectHandle);
-        bullet.effectHandle = -1;
-      }
-    }
-
-    // 地面接触で消滅
-    if (bullet.pos.y < 0) {
-      bullet.active = false;
-      if (bullet.effectHandle != -1) {
-        StopEffekseer3DEffect(bullet.effectHandle);
-        bullet.effectHandle = -1;
-      }
-    }
-  }
-
-  // 不要な弾を削除
-  m_homingBullets.erase(
-      std::remove_if(m_homingBullets.begin(), m_homingBullets.end(),
-                     [](const HomingBullet &b) { return !b.active; }),
-      m_homingBullets.end());
 
   // アニメーション更新
   if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
@@ -667,4 +771,18 @@ EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR &rayStart,
   }
 
   return part;
+}
+
+void EnemyBoss::OnParried() {
+  if (m_isStunned || m_hp <= 0.0f)
+    return;
+
+  m_isStunned = true;
+  m_stunTimer = 120; // 怯み時間
+  // 怯みとして死亡モーションなどを流用、あるいはIdleで止めるなど
+  // ここではAcid同様Deadモーションを使ってみる（あるいは専用モーションがあればそちら）
+  ChangeAnimation(AnimState::Dead, false);
+  // ※Deadモーションを使う場合は死亡判定と競合しないよう注意が必要だが、
+  // UpdateStateでm_isStunnedを見て制御すればOK。
+  // ただしEnemyBoss::Updateにはm_isStunnedの分岐がまだないので追加が必要。
 }
