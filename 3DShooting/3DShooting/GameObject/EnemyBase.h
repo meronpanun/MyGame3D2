@@ -2,16 +2,18 @@
 #include "AttackType.h"
 #include "EffekseerForDXLib.h"
 #include "Player.h"
+#include "Stage.h"
 #include <functional>
 #include <memory>
 #include <vector>
+
 
 class Bullet;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
 class Effect;
-struct StageCollisionData;
+// struct StageCollisionData; // 不要になるはず
 
 /// <summary>
 /// 敵の更新処理に必要なコンテキスト情報
@@ -232,6 +234,20 @@ protected:
   /// <param name="collisionData">ステージの当たり判定データ</param>
   void UpdateStageCollision(
       const std::vector<Stage::StageCollisionData> &collisionData);
+
+  /// <summary>
+  /// ターゲットが視界に入っているか（射線が通るか）
+  /// </summary>
+  static bool
+  IsTargetVisible(const VECTOR &startPos, const VECTOR &targetPos,
+                  const std::vector<Stage::StageCollisionData> &stageCollision);
+
+  /// <summary>
+  /// 放物線軌道の初速度を計算する
+  /// </summary>
+  static VECTOR CalculateParabolicVelocity(const VECTOR &startPos,
+                                           const VECTOR &targetPos,
+                                           float gravity, float speed);
 
 protected:
   VECTOR m_pos;          // 位置

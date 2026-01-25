@@ -1,6 +1,7 @@
 ﻿#include "EnemyBoss.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
+#include "Collision.h"
 #include "DebugUtil.h"
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
@@ -176,17 +177,28 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
     float distToPlayer = VSize(toPlayer);
     VECTOR targetDir = VNorm(toPlayer);
 
-    // ホーミング処理 (現在の向きからターゲット向きへ徐々に補間)
-    // 戻ってくる動きを応用 -> プレイヤーが動いても追従
-    // シンプルにターンレートで補間
+    // パラボリックかホーミングかで分岐
     float scale = Game::GetTimeScale();
-    bullet.dir = VAdd(bullet.dir, VScale(targetDir, kHomingTurnRate * scale));
-    bullet.dir = VNorm(bullet.dir);
+    if (bullet.isParabolic) {
+      // 放物線運動
+      bullet.velocity.y -= bullet.gravity * scale;
+      bullet.pos = VAdd(bullet.pos, VScale(bullet.velocity, scale));
+      // 進行方向を速度ベクトルに合わせる（見た目のため）
+      if (VSquareSize(bullet.velocity) > 0.0001f) {
+        bullet.dir = VNorm(bullet.velocity);
+      }
+    } else {
+      // ホーミング処理 (現在の向きからターゲット向きへ徐々に補間)
+      // 戻ってくる動きを応用 -> プレイヤーが動いても追従
+      // シンプルにターンレートで補間
+      bullet.dir = VAdd(bullet.dir, VScale(targetDir, kHomingTurnRate * scale));
+      bullet.dir = VNorm(bullet.dir);
 
-    // 移動
-    VECTOR moveVec = VScale(bullet.dir, bullet.speed * scale);
-    bullet.pos = VAdd(bullet.pos, moveVec);
-    bullet.distTraveled += bullet.speed * scale;
+      // 移動
+      VECTOR moveVec = VScale(bullet.dir, bullet.speed * scale);
+      bullet.pos = VAdd(bullet.pos, moveVec);
+      bullet.distTraveled += bullet.speed * scale;
+    }
 
     // エフェクト更新(あれば)
     if (bullet.effectHandle != -1) {
@@ -405,11 +417,26 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
       bullet.active = true;
       bullet.damage = kHomingBulletDamage; // ダメージ20
       bullet.distTraveled = 0.0f;
+      bullet.distTraveled = 0.0f;
       // プレイヤー方向へ発射
-      bullet.dir = VNorm(VSub(playerPos, spawnPos));
+      VECTOR toTarget = VSub(playerPos, spawnPos);
+      bullet.dir = VNorm(toTarget);
       bullet.speed = kHomingBulletSpeed;
       bullet.owner = this;
       bullet.isReflected = false;
+
+      // 放物線攻撃判定
+      std::string groundedObj = player.GetGroundedObjectName();
+      if ((groundedObj == "rock_3_br" || groundedObj == "rock_6_br") &&
+          !EnemyBase::IsTargetVisible(spawnPos, player.GetPos(),
+                                      collisionData)) {
+        bullet.isParabolic = true;
+        bullet.gravity = 0.3f; // 重力設定
+        bullet.velocity = EnemyBase::CalculateParabolicVelocity(
+            bullet.pos, playerPos, bullet.gravity, kHomingBulletSpeed);
+      } else {
+        bullet.isParabolic = false;
+      }
 
       // エフェクトがあればここで再生しハンドル保持
       if (pEffect) {

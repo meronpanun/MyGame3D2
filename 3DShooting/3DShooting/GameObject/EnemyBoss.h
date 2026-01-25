@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "Stage.h" // StageCollisionDataを使うためにインクルード
 
 class Bullet;
 class Player;
@@ -109,16 +110,22 @@ private:
     bool isParryable; // パリィ可能かどうか
     EnemyBase *owner; // この弾の所有者
 
+    // 放物線用
+    bool isParabolic = false;
+    VECTOR velocity = {0, 0, 0};
+    float gravity = 0.0f;
+
     HomingBullet()
         : pos(VGet(0, 0, 0)), dir(VGet(0, 0, 0)), speed(0), active(false),
           damage(0), effectHandle(-1), distTraveled(0), turnRate(0.05f),
-          isReflected(false), isParryable(true), owner(nullptr) {}
+          isReflected(false), isParryable(true), owner(nullptr),
+          isParabolic(false), velocity(VGet(0, 0, 0)), gravity(0.0f) {}
   };
 
   std::vector<HomingBullet> m_homingBullets;
   int m_longRangeAttackCooldown;
   bool m_hasShotLongRange;
-  
+
   bool m_isNextAttackNormal; // 次の攻撃が通常弾かどうか
 
   bool m_isStunned; // 怯み状態か

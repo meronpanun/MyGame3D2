@@ -188,40 +188,6 @@ bool EnemyAcid::CanAttackPlayer(const Player &player) {
   return m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 }
 
-bool EnemyAcid::IsPlayerVisible(
-    const Player &player,
-    const std::vector<Stage::StageCollisionData> &stageCollision) {
-  // 自身の頭の位置（発射位置付近）
-  int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
-  VECTOR startPos = (headIndex != -1)
-                        ? MV1GetFramePosition(m_modelHandle, headIndex)
-                        : VAdd(m_pos, m_headPosOffset);
-
-  // プレイヤーの中心位置
-  VECTOR endPos = VAdd(player.GetPos(), VGet(0, 40.0f, 0)); // 少し上に調整
-
-  VECTOR dir = VSub(endPos, startPos);
-  float dist = VSize(dir);
-  if (dist < 0.001f)
-    return true;
-  dir = VNorm(dir);
-
-  // レイキャスト判定
-  // 簡易的にCollision::CheckStageCollisionのような反復判定ではなく、
-  // レイと各ポリゴンの交差判定を行う
-  for (const auto &col : stageCollision) {
-    float t;
-    if (Collision::IntersectRayTriangle(startPos, dir, col.v1, col.v2, col.v3,
-                                        t)) {
-      if (t < dist) {
-        return false; // 遮蔽物あり
-      }
-    }
-  }
-
-  return true;
-}
-
 // 酸を吐く攻撃を行う
 void EnemyAcid::ShootAcidBullet(
     std::vector<Bullet> &bullets, const Player &player, Effect *pEffect,
@@ -254,28 +220,20 @@ void EnemyAcid::ShootAcidBullet(
 
   // 放物線攻撃判定
   std::string groundedObj = player.GetGroundedObjectName();
+
+  // 発射基準位置（頭）
+  int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+  VECTOR viewStartPos = (headIndex != -1)
+                            ? MV1GetFramePosition(m_modelHandle, headIndex)
+                            : VAdd(m_pos, m_headPosOffset);
+
   if ((groundedObj == "rock_3_br" || groundedObj == "rock_6_br") &&
-      !IsPlayerVisible(player, stageCollision)) {
+      !EnemyBase::IsTargetVisible(viewStartPos, player.GetPos(),
+                                  stageCollision)) {
     ball.isParabolic = true;
     ball.gravity = 0.3f; // 重力設定
-
-    // 滞空時間を設定 (距離に応じて調整)
-    float dist = VSize(toTarget);
-    // 直線より速い速度を基準にして放物線を低くする
-    float time = dist / (kAcidBulletSpeed * 2.0f);
-    if (time < 20.0f)
-      time = 20.0f; // 最低保証
-
-    // 初速度計算
-    // pos + v*t + 0.5*g*t*t = target
-    // v*t = target - pos - 0.5*g*t*t
-    // v = (target - pos)/t - 0.5*g*t
-    // gはベクトル(0, -gravity, 0)
-
-    VECTOR gravityVec = VGet(0.0f, -ball.gravity, 0.0f);
-    VECTOR term1 = VScale(toTarget, 1.0f / time);
-    VECTOR term2 = VScale(gravityVec, 0.5f * time);
-    ball.velocity = VSub(term1, term2);
+    ball.velocity = EnemyBase::CalculateParabolicVelocity(
+        ball.pos, target, ball.gravity, kAcidBulletSpeed);
   }
 
   if (m_isNextAttackNormal) {

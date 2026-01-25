@@ -158,13 +158,6 @@ private:
   bool CanAttackPlayer(const Player &player);
 
   /// <summary>
-  /// プレイヤーが視界に入っているか（射線が通るか）
-  /// </summary>
-  bool
-  IsPlayerVisible(const Player &player,
-                  const std::vector<Stage::StageCollisionData> &stageCollision);
-
-  /// <summary>
   /// 酸を吐く攻撃を行う
   /// </summary>
   /// <param name="bullets">弾のリスト</param>
