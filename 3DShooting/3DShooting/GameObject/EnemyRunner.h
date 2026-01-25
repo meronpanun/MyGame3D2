@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 
-
 class Bullet;
 class Player;
 class Collider;
@@ -15,8 +14,7 @@ class SphereCollider;
 /// <summary>
 /// 走る敵クラス
 /// </summary>
-class EnemyRunner : public EnemyBase 
-{
+class EnemyRunner : public EnemyBase {
 public:
   EnemyRunner();
   virtual ~EnemyRunner();
@@ -83,8 +81,9 @@ private:
   /// プレイヤーに攻撃可能かどうかを判定
   /// </summary>
   /// <param name="player">プレイヤーオブジェクト</param>
+  /// <param name="checkRadius">判定半径(-1の場合はデフォルト)</param>
   /// <returns>攻撃可能ならtrue</returns>
-  bool CanAttackPlayer(const Player &player);
+  bool CanAttackPlayer(const Player &player, float checkRadius = -1.0f);
 
 private:
   VECTOR m_headPosOffset; // ヘッドショット判定用座標

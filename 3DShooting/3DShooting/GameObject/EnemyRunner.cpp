@@ -12,7 +12,6 @@
 #include <cmath>
 #include <functional>
 
-
 namespace {
 // アニメーション関連
 constexpr char kAttackAnimName[] = "Armature|Attack"; // 攻撃アニメーション
@@ -25,9 +24,10 @@ constexpr float kBodyColliderHeight = 110.0f; // 体のコライダー高さ
 constexpr float kHeadRadius = 15.0f;          // 頭のコライダー半径
 
 // 攻撃関連
-constexpr int kAttackCooldownMax = 30;       // 攻撃クールダウン時間
-constexpr float kAttackHitRadius = 50.0f;    // 攻撃の当たり判定半径
-constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径
+constexpr int kAttackCooldownMax = 30;    // 攻撃クールダウン時間
+constexpr float kAttackHitRadius = 60.0f; // 攻撃の当たり判定半径
+constexpr float kAttackTriggerRadius = 30.0f;  // 攻撃開始判定半径(通常より小さめ)
+constexpr float kAttackRangeRadius   = 100.0f; // 攻撃範囲の半径
 
 // 追跡関連
 constexpr int kAttackEndDelay = 10;
@@ -88,6 +88,11 @@ void EnemyRunner::Init() {
 
   // 初期化時に走行アニメーションを開始
   ChangeAnimation(AnimState::Run, true);
+
+  // ターゲットオフセットの初期化 (±40.0f)
+  float offsetX = static_cast<float>(GetRand(80) - 40);
+  float offsetZ = static_cast<float>(GetRand(80) - 40);
+  m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 }
 
 #include "Game.h"
@@ -134,7 +139,7 @@ void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop) {
   m_currentAnimState = newAnimState;
 }
 
-bool EnemyRunner::CanAttackPlayer(const Player &player) {
+bool EnemyRunner::CanAttackPlayer(const Player &player, float checkRadius) {
   // 手の位置を取得
   int handRIndex = MV1SearchFrame(m_modelHandle, "mixamorig:RightHand");
   int handLIndex = MV1SearchFrame(m_modelHandle, "mixamorig:LeftHand");
@@ -145,7 +150,10 @@ bool EnemyRunner::CanAttackPlayer(const Player &player) {
   VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
   m_pAttackHitCollider->SetSegment(handRPos, handLPos);
-  m_pAttackHitCollider->SetRadius(kAttackHitRadius);
+
+  // 半径の設定
+  float radius = (checkRadius > 0.0f) ? checkRadius : kAttackHitRadius;
+  m_pAttackHitCollider->SetRadius(radius);
 
   std::shared_ptr<CapsuleCollider> playerBodyCollider =
       player.GetBodyCollider();
@@ -209,21 +217,30 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
 
   if (m_currentAnimState == AnimState::Run) {
     VECTOR playerPos = player.GetPos();
-    VECTOR toPlayer = VSub(playerPos, m_pos);
+    // ターゲット座標にオフセットを加算
+    VECTOR targetPos = VAdd(playerPos, m_targetOffset);
+
+    VECTOR toPlayer = VSub(targetPos, m_pos);
     toPlayer.y = 0.0f;
 
-    float disToPlayer =
-        sqrtf(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
+    float disToPlayer = VSize(toPlayer);
 
-    float yaw = 0.0f;
-    if (toPlayer.x != 0.0f || toPlayer.z != 0.0f) {
-      yaw = atan2f(toPlayer.x, toPlayer.z);
+    // プレイヤーの方向を向く (回転は真のプレイヤー座標に基づく)
+    VECTOR rawToPlayer = VSub(playerPos, m_pos);
+    if (rawToPlayer.x != 0.0f || rawToPlayer.z != 0.0f) {
+      float yaw = atan2f(rawToPlayer.x, rawToPlayer.z);
       yaw += DX_PI_F; // モデルの向きに合わせて調整
+      MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
     }
-    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
 
-    if (!CanAttackPlayer(player)) {
-      VECTOR dir = VNorm(toPlayer);
+    // 移動はターゲットオフセット位置へ
+    // 攻撃開始判定：腕のコライダーだと走っている最中に後ろにいってしまうことがあるので
+    // シンプルに距離で判定する (距離80以内なら攻撃開始)
+    float distToRealPlayer =
+        VSize(rawToPlayer); // rawToPlayerは真のプレイヤー方向
+    if (distToRealPlayer > 80.0f) {
+      VECTOR dir =
+          VNorm(toPlayer); // toPlayerはターゲット(オフセット込み)へのベクトル
       // タイムスケールを移動速度に適用
       float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
       float step = (std::min)(disToPlayer, scaledSpeed);
@@ -237,6 +254,17 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
     if (attachedAnim == -1) {
       m_animationManager.PlayAnimation(m_modelHandle, kRunAnimName, true);
       m_animTime = 0.0f;
+    }
+
+    // 攻撃が届くまでRunを維持し、届いたらAttackに遷移
+    // ここも距離で判定
+    VECTOR rawToPlayerLocal = VSub(player.GetPos(), m_pos);
+    rawToPlayerLocal.y = 0.0f;
+    float distToRealPlayerLocal = VSize(rawToPlayerLocal);
+
+    if (distToRealPlayerLocal <= 80.0f) {
+      m_isAttackHit = false;
+      ChangeAnimation(AnimState::Attack, false);
     }
   }
 
@@ -266,13 +294,6 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
     }
   } else if (m_currentAnimState == AnimState::Dead) {
     // 死亡アニメーション中は移動や攻撃を行わない
-  } else // Run 状態
-  {
-    // 攻撃が届くまでRunを維持し、届いたらAttackに遷移
-    if (CanAttackPlayer(player)) {
-      m_isAttackHit = false;
-      ChangeAnimation(AnimState::Attack, false);
-    }
   }
 
   if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
@@ -367,6 +388,19 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
       float dist = std::sqrt(distSq);
       float pushBack = (minDist - dist) * 0.5f; // 押し出す量を半分にする
       VECTOR pushDir = VNorm(diff);
+
+      // 横方向に広がるように、プレイヤー方向ベクトルと直交する方向に少し加算
+      VECTOR playerDir = VNorm(VSub(player.GetPos(), m_pos));
+      VECTOR up = VGet(0, 1, 0);
+      VECTOR side = VNorm(VCross(playerDir, up));
+
+      // 直交方向にランダム性を加える（左右どちらか）
+      // アドレス値を利用して個体ごとに固定の方向性を持たせる
+      float sign = (reinterpret_cast<size_t>(this) % 2 == 0) ? 1.0f : -1.0f;
+      side = VScale(side, sign * 0.8f); // 横成分を強めに加える
+
+      pushDir = VNorm(VAdd(pushDir, side));
+
       m_pos = VAdd(m_pos, VScale(pushDir, pushBack));
     }
   }

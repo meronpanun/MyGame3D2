@@ -12,7 +12,6 @@
 #include <cmath>
 #include <functional>
 
-
 namespace {
 // アニメーション関連
 constexpr char kAttackAnimName[] = "ATK"; // 攻撃アニメーション
@@ -96,6 +95,11 @@ void EnemyNormal::Init() {
 
   // 初期化時に歩行アニメーションを開始
   ChangeAnimation(AnimState::Walk, true);
+
+  // ターゲットオフセットの初期化 (±100.0f)
+  float offsetX = static_cast<float>(GetRand(200) - 100);
+  float offsetZ = static_cast<float>(GetRand(200) - 100);
+  m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 }
 
 #include "Game.h"
@@ -210,12 +214,14 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   if (m_currentAnimState == AnimState::Walk) // 追尾はWalk状態でのみ行う
   {
     VECTOR playerPos = player.GetPos();
-    VECTOR toPlayer = VSub(playerPos, m_pos);
+    // ターゲット座標にオフセットを加算
+    VECTOR targetPos = VAdd(playerPos, m_targetOffset);
+
+    VECTOR toPlayer = VSub(targetPos, m_pos);
     toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
 
-    // プレイヤーとの距離を計算
-    float disToPlayer =
-        sqrtf(toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z);
+    // プレイヤー(ターゲット)との距離を計算
+    float disToPlayer = VSize(toPlayer);
 
     // プレイヤーの方向を常に向く
     float yaw = 0.0f;

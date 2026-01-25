@@ -6,7 +6,6 @@
 #include <memory>
 #include <vector>
 
-
 class Bullet;
 class Collider;
 class SphereCollider;
@@ -17,8 +16,7 @@ struct StageCollisionData;
 /// <summary>
 /// 敵の更新処理に必要なコンテキスト情報
 /// </summary>
-struct EnemyUpdateContext 
-{
+struct EnemyUpdateContext {
   std::vector<Bullet> &bullets;
   const Player::TackleInfo &tackleInfo;
   const Player &player;
@@ -30,8 +28,7 @@ struct EnemyUpdateContext
 /// <summary>
 /// 敵の基底クラス
 /// </summary>
-class EnemyBase abstract
-{
+class EnemyBase abstract {
 public:
   EnemyBase();
   virtual ~EnemyBase() = default;
@@ -237,7 +234,8 @@ protected:
       const std::vector<Stage::StageCollisionData> &collisionData);
 
 protected:
-  VECTOR m_pos; // 位置
+  VECTOR m_pos;          // 位置
+  VECTOR m_targetOffset; // ターゲット座標オフセット
 
   std::shared_ptr<Player> m_pTargetPlayer;               // ターゲットプレイヤー
   std::function<void(const VECTOR &)> m_onDeathCallback; // 死亡コールバック
