@@ -112,5 +112,9 @@ private:
   bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
   bool m_isItemDropped;     // アイテムドロップ済みフラグ
 
+  // 回避挙動用
+  float m_evadeSwitchTimer; // 回避方向切り替えタイマー
+  bool m_isEvadingRight;    // 現在右に避けているか
+
   static int s_modelHandle; // 共有モデルハンドル
 };

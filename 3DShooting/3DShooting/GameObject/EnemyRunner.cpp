@@ -26,8 +26,9 @@ constexpr float kHeadRadius = 15.0f;          // 頭のコライダー半径
 // 攻撃関連
 constexpr int kAttackCooldownMax = 30;    // 攻撃クールダウン時間
 constexpr float kAttackHitRadius = 60.0f; // 攻撃の当たり判定半径
-constexpr float kAttackTriggerRadius = 30.0f;  // 攻撃開始判定半径(通常より小さめ)
-constexpr float kAttackRangeRadius   = 100.0f; // 攻撃範囲の半径
+constexpr float kAttackTriggerRadius =
+    30.0f;                                   // 攻撃開始判定半径(通常より小さめ)
+constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径
 
 // 追跡関連
 constexpr int kAttackEndDelay = 10;
@@ -93,6 +94,10 @@ void EnemyRunner::Init() {
   float offsetX = static_cast<float>(GetRand(80) - 40);
   float offsetZ = static_cast<float>(GetRand(80) - 40);
   m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
+
+  // 回避用パラメータ初期化
+  m_evadeSwitchTimer = 0.0f;
+  m_isEvadingRight = (GetRand(1) == 0);
 }
 
 #include "Game.h"
@@ -233,19 +238,75 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
       MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
     }
 
-    // 移動はターゲットオフセット位置へ
-    // 攻撃開始判定：腕のコライダーだと走っている最中に後ろにいってしまうことがあるので
-    // シンプルに距離で判定する (距離80以内なら攻撃開始)
+    // エイム検知と回避行動
+    bool isAimedAt = false;
+    // カメラの正面ベクトル取得 (注視点 - カメラ位置)
+    if (player.GetCamera()) {
+      VECTOR camPos = player.GetCamera()->GetPos();
+      VECTOR camTarget = player.GetCamera()->GetTarget();
+      VECTOR camFront = VNorm(VSub(camTarget, camPos));
+
+      // カメラから自分へのベクトル
+      VECTOR toMe = VNorm(VSub(m_pos, camPos));
+
+      // 内積計算 (1.0に近いほど正面)
+      float dot = VDot(camFront, toMe);
+      if (dot > 0.98f) { // かなり正確に狙われている場合
+        isAimedAt = true;
+      }
+    }
+
+    // 移動処理
+    // 攻撃開始判定：距離で判定 (距離80以内なら攻撃開始)
     float distToRealPlayer =
         VSize(rawToPlayer); // rawToPlayerは真のプレイヤー方向
     if (distToRealPlayer > 80.0f) {
-      VECTOR dir =
-          VNorm(toPlayer); // toPlayerはターゲット(オフセット込み)へのベクトル
-      // タイムスケールを移動速度に適用
-      float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
-      float step = (std::min)(disToPlayer, scaledSpeed);
-      m_pos.x += dir.x * step;
-      m_pos.z += dir.z * step;
+      VECTOR moveDir;
+
+      if (isAimedAt) {
+        // エイムされている場合：ジグザグ回避
+        // タイマー更新
+        m_evadeSwitchTimer -= 1.0f * Game::GetTimeScale();
+        if (m_evadeSwitchTimer <= 0.0f) {
+          // 間隔をランダムに (10~40フレーム程度)
+          m_evadeSwitchTimer = static_cast<float>(GetRand(30) + 10);
+          // 方向もランダムに決定 (連続で同じ方向になることもある)
+          m_isEvadingRight = (GetRand(1) == 0);
+        }
+
+        VECTOR forward = VNorm(rawToPlayer); // プレイヤーへの方向
+        VECTOR up = VGet(0, 1, 0);
+        VECTOR right = VNorm(VCross(forward, up));
+
+        VECTOR sideDir = m_isEvadingRight ? right : VScale(right, -1.0f);
+
+        // 前進と横移動の速度を個別に適用する
+        float timeScale = Game::GetTimeScale();
+
+        // 前進速度: 本来の追跡速度
+        float forwardSpeed = m_chaseSpeed * timeScale;
+        // 横移動速度: 少し抑えめに 
+        float sideSpeed = m_chaseSpeed * 0.5f * timeScale;
+
+        // 距離によるクランプ (行き過ぎ防止) for forward component
+        float forwardStep = (std::min)(disToPlayer, forwardSpeed);
+
+        // 移動ベクトルの合成
+        VECTOR moveVec =
+            VAdd(VScale(forward, forwardStep), VScale(sideDir, sideSpeed));
+
+        m_pos = VAdd(m_pos, moveVec);
+      } else {
+        // エイムされていない場合：通常のターゲットオフセット移動
+        VECTOR moveDir =
+            VNorm(toPlayer); // toPlayerはターゲット(オフセット込み)へのベクトル
+
+        // タイムスケールを移動速度に適用
+        float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+        float step = (std::min)(disToPlayer, scaledSpeed);
+        m_pos.x += moveDir.x * step;
+        m_pos.z += moveDir.z * step;
+      }
     }
 
     // Run状態でアニメーションが外れていたら必ず再生し直す
