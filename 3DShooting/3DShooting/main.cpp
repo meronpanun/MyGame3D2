@@ -4,94 +4,99 @@
 #include "SceneTitle.h"
 
 // プログラムは WinMain から始まります
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-	/*コンソールDebug用*/
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+                   LPSTR lpCmdLine, int nCmdShow) {
+  /*コンソールDebug用*/
 #ifdef _DEBUG
-	AllocConsole();                                        
-	FILE* out = 0; freopen_s(&out, "CON", "w", stdout); // stdout
-	FILE* in  = 0; freopen_s(&in, "CON", "r", stdin);   // stdin
+  AllocConsole();
+  FILE *out = 0;
+  freopen_s(&out, "CON", "w", stdout); // stdout
+  FILE *in = 0;
+  freopen_s(&in, "CON", "r", stdin); // stdin
 #endif
 
-	// フルスクリーンではなく、ウインドウモードで開くようにする
-	ChangeWindowMode(Game::kDefaultWindowMode);
-	// ウインドウのタイトルを設定する
-	SetMainWindowText(Game::kWindowTitle);
-	// 画面のサイズを変更する
-	SetGraphMode(Game::kScreenWidth, Game::kScreenHeigth, Game:: kColorBitNum);
-	
-	if (DxLib_Init() == -1)		// ＤＸライブラリ初期化処理
-	{
-		return -1;			// エラーが起きたら直ちに終了
-	}
-	// 描画先を裏画面にする
-	SetDrawScreen(DX_SCREEN_BACK);
+  // フルスクリーンではなく、ウインドウモードで開くようにする
+  ChangeWindowMode(Game::kDefaultWindowMode);
+  // ウインドウのタイトルを設定する
+  SetMainWindowText(Game::kWindowTitle);
+  // 画面のサイズを変更する
+  SetGraphMode(Game::kScreenWidth, Game::kScreenHeigth, Game::kColorBitNum);
 
-	// 3D関連の設定
-	SetUseZBuffer3D(true);	 // 3D描画でZBufferを使用する
-	SetWriteZBuffer3D(true); // 3D描画でZBufferに書き込む
-	SetUseBackCulling(true); // 裏面カリングを有効にする
+  // 非アクティブ時も処理を継続する
+  SetAlwaysRunFlag(TRUE);
 
-	//Effekseer関係初期化
-	SetUseDirect3DVersion(DX_DIRECT3D_11);
-	// 引数には画面に表示する最大パーティクル数を設定する。
-	if (Effekseer_Init(8000) == -1)
-	{
-		DxLib_End();
-		return -1;
-	}
+  if (DxLib_Init() == -1) // ＤＸライブラリ初期化処理
+  {
+    return -1; // エラーが起きたら直ちに終了
+  }
+  // 描画先を裏画面にする
+  SetDrawScreen(DX_SCREEN_BACK);
 
-	// フルスクリーンウインドウの切り替えでリソースが消えるのを防ぐ
-	SetChangeScreenModeGraphicsSystemResetFlag(false);
+  // 3D関連の設定
+  SetUseZBuffer3D(true);   // 3D描画でZBufferを使用する
+  SetWriteZBuffer3D(true); // 3D描画でZBufferに書き込む
+  SetUseBackCulling(true); // 裏面カリングを有効にする
 
-	// DXライブラリのデバイスロストした時のコールバックを設定する
-	Effekseer_SetGraphicsDeviceLostCallbackFunctions();
+  // Effekseer関係初期化
+  SetUseDirect3DVersion(DX_DIRECT3D_11);
+  // 引数には画面に表示する最大パーティクル数を設定する。
+  if (Effekseer_Init(8000) == -1) {
+    DxLib_End();
+    return -1;
+  }
 
-	SceneManager* pScene = new SceneManager();
-	pScene->Init();
+  // フルスクリーンウインドウの切り替えでリソースが消えるのを防ぐ
+  SetChangeScreenModeGraphicsSystemResetFlag(false);
 
-    Game::m_pSceneManager = pScene; // 追加: Gameクラスの静的メンバにSceneManagerのポインタを設定
+  // DXライブラリのデバイスロストした時のコールバックを設定する
+  Effekseer_SetGraphicsDeviceLostCallbackFunctions();
 
-	// ゲームループ
-	while (ProcessMessage() == 0)	// Windowsが行う処理を待つ必要がある
-	{
-		// DXライブラリのカメラとEffekseerのカメラを同期する。
-		Effekseer_Sync3DSetting();
+  SceneManager *pScene = new SceneManager();
+  pScene->Init();
 
-		// エスケープキーが押されたらループを抜ける
-		if (CheckHitKey(KEY_INPUT_RETURN))
-		{
-			break;
-		}
+  Game::m_pSceneManager =
+      pScene; // 追加: Gameクラスの静的メンバにSceneManagerのポインタを設定
 
-		// 今回のループが始まった時間を覚えておく
-		LONGLONG time = GetNowHiPerformanceCount();
+  // ゲームループ
+  while (ProcessMessage() == 0) // Windowsが行う処理を待つ必要がある
+  {
+    // DXライブラリのカメラとEffekseerのカメラを同期する。
+    Effekseer_Sync3DSetting();
 
-		// 画面全体をクリアする
-		ClearDrawScreen();
+    // エスケープキーが押されたらループを抜ける
+    if (CheckHitKey(KEY_INPUT_RETURN)) {
+      break;
+    }
 
-		// ゲームの処理
-		pScene->Update();
-		pScene->Draw();
+    // 今回のループが始まった時間を覚えておく
+    LONGLONG time = GetNowHiPerformanceCount();
 
-		// 画面の切り替わりを待つ必要がある
-		ScreenFlip();	// 1/60秒経過するまで待つ
+    // 画面全体をクリアする
+    ClearDrawScreen();
 
-		// FPS(Frame Per Second)60に固定
-		while (GetNowHiPerformanceCount() - time < 16667)
-		{
-		}
-	}
+    // ゲームの処理
+    pScene->Update();
+    pScene->Draw();
 
-	// Effekseerを終了する
-	Effkseer_End();
+    // 画面の切り替わりを待つ必要がある
+    ScreenFlip(); // 1/60秒経過するまで待つ
 
-	// Dxライブラリ使用の終了処理
-	DxLib_End(); 		
+    // FPS(Frame Per Second)60に固定
+    while (GetNowHiPerformanceCount() - time < 16667) {
+    }
+  }
 
-#ifdef _DEBUG//コンソールDebug用
-	fclose(out); fclose(in); FreeConsole();//コンソール解放
+  // Effekseerを終了する
+  Effkseer_End();
+
+  // Dxライブラリ使用の終了処理
+  DxLib_End();
+
+#ifdef _DEBUG // コンソールDebug用
+  fclose(out);
+  fclose(in);
+  FreeConsole(); // コンソール解放
 #endif
 
-	return 0;				// ソフトの終了 
+  return 0; // ソフトの終了
 }
