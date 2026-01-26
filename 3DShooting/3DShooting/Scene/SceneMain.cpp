@@ -640,7 +640,7 @@ SceneBase *SceneMain::Update() {
   }
 
   // 合計スコアポップアップタイマー更新
-  m_pWaveManager->GetEnemyList(); // 方向インジケータも更新
+  m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
   ScoreManager::Instance().Update();
   return this;
 }

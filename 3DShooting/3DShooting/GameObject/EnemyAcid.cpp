@@ -13,46 +13,47 @@
 #include <cmath>
 #include <functional>
 
-namespace {
-// アニメーション関連
-constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
-constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
-constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
-constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+namespace 
+{
+    // アニメーション関連
+    constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
+    constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
+    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
+    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
 
-constexpr VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
+    constexpr VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
 
-// コライダーのサイズを定義
-constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
-constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
-constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
+    // コライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
 
-// 攻撃関連（遠距離攻撃に特化）
-constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
-constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
-constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
+    // 攻撃関連（遠距離攻撃に特化）
+    constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
+    constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
+    constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
 
-// 追跡関連（遠距離型なので、近づきすぎたら離れる）
-constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
+    // 追跡関連（遠距離型なので、近づきすぎたら離れる）
+    constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 
-// スタン関連
-constexpr int kStunDuration = 120; // スタンの総持続時間
-constexpr float kStunAnimFrameLimit =
-    60.0f; // スタンアニメーションの再生上限フレーム
+    // スタン関連
+    constexpr int kStunDuration = 120; // スタンの総持続時間
+    constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
 
-// AcidBallの画面外判定距離
-constexpr float kAcidBallBoundaryDistance = 1500.0f;
-} // namespace
+    // AcidBallの画面外判定距離
+    constexpr float kAcidBallBoundaryDistance = 1500.0f;
+}
 
 int EnemyAcid::s_modelHandle = -1;
 
-EnemyAcid::EnemyAcid()
-    : m_headPosOffset{kHeadShotPositionOffset}, m_animTime(0.0f),
+EnemyAcid::EnemyAcid() : 
+      m_headPosOffset{kHeadShotPositionOffset}, m_animTime(0.0f),
       m_currentAnimState(AnimState::Walk), m_onDropItem(nullptr),
       m_hasAttacked(false), m_attackEndDelayTimer(0),
       m_acidBulletSpawnOffset({0.0f, 0.0f, 0.0f}), m_backAnimCount(0),
       m_isItemDropped(false), m_chaseSpeed(0.0f), m_isStunned(false),
-      m_stunTimer(0) {
+      m_stunTimer(0)
+{
   // モデルの複製
   m_modelHandle = MV1DuplicateModel(s_modelHandle);
 

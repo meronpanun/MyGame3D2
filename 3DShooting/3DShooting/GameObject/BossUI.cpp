@@ -64,7 +64,7 @@ void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>>& enemyList)
 		m_healthBarAnim = hp;
 	}
 
-	// アニメーション更新（実際のHPに近づける）
+	// アニメーション更新
 	if (m_healthBarAnim > hp)
 	{
 		m_healthBarAnim -= (m_healthBarAnim - hp) * kAnimSpeed;
@@ -81,7 +81,6 @@ void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>>& enemyList)
 void BossUI::DrawBossHPBar(float hp, float maxHp)
 {
 	int screenW = Game::kScreenWidth;
-	// int screenH = Game::kScreenHeigth;
 	GetScreenState(&screenW, NULL, NULL);
 
 	int barX = (screenW - kBossHpBarWidth) / 2;
