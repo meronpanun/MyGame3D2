@@ -87,6 +87,39 @@ WaveManager::~WaveManager() {
   }
 }
 
+void WaveManager::Reset() {
+  m_currentWave = 1;
+  m_waveTimer = 0.0f;
+  m_spawnTimer = 0.0f;
+  m_currentSpawnIndex = 0;
+  m_isWaveActive = false;
+  m_isAllWavesCompleted = false;
+  m_isWave1Loaded = false;
+  m_isWave1EnemySpawned = false;
+  m_roadFloorMin = kRoadFloorMin;
+  m_roadFloorMax = kRoadFloorMax;
+  m_isRoadFloorBoundsSet = false;
+  m_waveIntervalTimer = 0.0f;
+  m_totalSpawnedCount = 0;
+  m_isShotTutorialCleared = false;
+  m_isTackleTutorialCleared = false;
+  m_waveImageAnimTimer = 0;
+  m_isWaveImageAnimating = false;
+
+  m_enemyList.clear();
+  m_spawnInfoList.clear();
+
+  // 全ての敵プールを非アクティブ化
+  for (auto &enemy : m_enemyNormalPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyRunnerPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyAcidPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyBossPool)
+    enemy->SetActive(false);
+}
+
 void WaveManager::Init() {
   m_enemyData =
       TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");

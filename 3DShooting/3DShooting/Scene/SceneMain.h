@@ -168,4 +168,9 @@ private:
   int m_loadingFrameCount; // ロード完了後の待機フレームカウンタ
   int m_loadingDotCount;   // ローディングアニメーションのドット数
   int m_loadingAnimTimer;  // ローディングアニメーションタイマー
+
+  // フェード処理
+  bool m_isFadingOut; // フェードアウト中か
+  bool m_isFadingIn;  // フェードイン中か
+  int m_fadeAlpha;    // フェードのアルファ値
 };

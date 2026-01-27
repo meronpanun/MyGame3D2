@@ -99,6 +99,9 @@ namespace
     constexpr float kMinAlphaDist = 300.0f;  // この距離までは最大不透明度
     constexpr float kMaxAlphaDist = 1000.0f; // この距離以上は最小不透明度
     constexpr float kMinAlpha = 0.01f;       // 最小不透明度係数
+
+    // フェード速度
+    constexpr int kFadeSpeed = 5;
 } 
 
 SceneMain *g_sceneMainInstance = nullptr;
@@ -136,7 +139,10 @@ SceneMain::SceneMain(bool isReturningFromOtherScene) :
     m_isTutorialStage(false),
     m_loadingFrameCount(0),
     m_loadingDotCount(0),
-    m_loadingAnimTimer(0)
+    m_loadingAnimTimer(0),
+    m_isFadingOut(false),
+    m_isFadingIn(false),
+    m_fadeAlpha(0)
 {
   g_sceneMainInstance = this;
 
@@ -379,6 +385,9 @@ void SceneMain::SwitchToMainStage() {
 
   // プレイヤーの再初期化（位置などをCSVから再取得）
   m_pPlayer->Init(false);
+
+  // WaveManagerのリセット
+  m_pWaveManager->Reset();
 }
 
 SceneBase *SceneMain::Update() {
@@ -588,10 +597,40 @@ SceneBase *SceneMain::Update() {
 
   // チュートリアルステージにいる場合はメインステージに切り替え
   if (m_isTutorialStage) {
-    SwitchToMainStage();
+    if (!m_isFadingOut && !m_isFadingIn) {
+      // まだフェード処理が始まっていないならフェードアウト開始
+      m_isFadingOut = true;
+    }
   }
 
-  m_pWaveManager->Update(); // メインのウェーブマネージャを更新
+  // フェード処理
+  if (m_isFadingOut) {
+    m_fadeAlpha += kFadeSpeed;
+    if (m_fadeAlpha >= 255) {
+      m_fadeAlpha = 255;
+      m_isFadingOut = false;
+      SwitchToMainStage(); // ステージ切り替え
+      m_isFadingIn = true; // フェードイン開始
+    }
+  } else if (m_isFadingIn) {
+    m_fadeAlpha -= kFadeSpeed;
+    if (m_fadeAlpha <= 0) {
+      m_fadeAlpha = 0;
+      m_isFadingIn = false;
+    }
+  }
+
+  // フェードアウト中で完全に暗くなった時以外は更新を続ける
+  // (切り替えの瞬間に一瞬止めるならここでreturnしてもいいが、スムーズにするなら続ける)
+  if (m_isFadingOut && m_fadeAlpha >= 255) {
+      // 切り替え待ち
+      return this; 
+  }
+
+  // フェードイン中はWaveManagerの更新を止める（Wave開始アニメーションを遅らせるため）
+  if (!m_isFadingIn) {
+      m_pWaveManager->Update(); // メインのウェーブマネージャを更新
+  }
 
   std::vector<std::shared_ptr<EnemyBase>> &enemyList =
       m_pWaveManager->GetEnemyList();
@@ -725,216 +764,213 @@ void SceneMain::Draw() {
 
   m_pEffect->Draw();
 
-  // ここからUI描画
-  m_pPlayer->DrawShield();
+  // ここからUI描画 (フェード中は描画しない)
+  if (!m_isFadingOut && !m_isFadingIn) {
+      m_pPlayer->DrawShield();
 
-  if (!m_pPlayer->IsDead()) {
-    int defaultHandle = -1;
-    int onTargetHandle = -1;
+      if (!m_pPlayer->IsDead()) {
+        int defaultHandle = -1;
+        int onTargetHandle = -1;
 
-    // 武器の種類に応じてハンドルを切り替える
-    switch (m_pPlayer->GetCurrentWeaponType()) {
-    case WeaponType::AssaultRifle:
-      defaultHandle = m_dotDefaultHandle;
-      onTargetHandle = m_dotOnTargetHandle;
-      break;
-    case WeaponType::Shotgun:
-      defaultHandle = m_sgDefaultReticleHandle;
-      onTargetHandle = m_sgOnTargetReticleHandle;
-      break;
-    }
+        // 武器の種類に応じてハンドルを切り替える
+        switch (m_pPlayer->GetCurrentWeaponType()) {
+        case WeaponType::AssaultRifle:
+          defaultHandle = m_dotDefaultHandle;
+          onTargetHandle = m_dotOnTargetHandle;
+          break;
+        case WeaponType::Shotgun:
+          defaultHandle = m_sgDefaultReticleHandle;
+          onTargetHandle = m_sgOnTargetReticleHandle;
+          break;
+        }
 
-    // ターゲットに照準が合っているかに応じてハンドルを決定
-    int currentReticleHandle =
-        m_pPlayer->IsAimingAtEnemy() ? onTargetHandle : defaultHandle;
+        // ターゲットに照準が合っているかに応じてハンドルを決定
+        int currentReticleHandle =
+            m_pPlayer->IsAimingAtEnemy() ? onTargetHandle : defaultHandle;
 
-    // レティクルを描画
-    if (currentReticleHandle != -1) {
-      int reticleWidth = 0;
-      int reticleHeight = 0;
-      GetGraphSize(currentReticleHandle, &reticleWidth, &reticleHeight);
-      DrawGraph(kScreenCenterX - reticleWidth * 0.5f,
-                kScreenCenterY - reticleHeight * 0.5f, currentReticleHandle,
-                true);
-    }
+        // レティクルを描画
+        if (currentReticleHandle != -1) {
+          int reticleWidth = 0;
+          int reticleHeight = 0;
+          GetGraphSize(currentReticleHandle, &reticleWidth, &reticleHeight);
+          DrawGraph(kScreenCenterX - reticleWidth * 0.5f,
+                    kScreenCenterY - reticleHeight * 0.5f, currentReticleHandle,
+                    true);
+        }
 
-    // ドットレティクルを常に描画
-    int dotReticleHandle =
-        m_pPlayer->IsAimingAtEnemy() ? m_dotOnTargetHandle : m_dotDefaultHandle;
-    if (dotReticleHandle != -1) {
-      int dotReticleWidth = 0;
-      int dotReticleHeight = 0;
-      GetGraphSize(dotReticleHandle, &dotReticleWidth, &dotReticleHeight);
-      DrawGraph(kScreenCenterX - dotReticleWidth * 0.5f,
-                kScreenCenterY - dotReticleHeight * 0.5f, dotReticleHandle,
-                true);
-    }
-  }
-
-  // ウェーブUIの描画
-  m_pWaveManager->DrawWaveUI();
-
-  m_pPlayer->DrawUI();
-
-  // 方向インジケーターUIの描画
-  if (!m_pPlayer->IsDead()) {
-    m_pDirectionIndicator->Draw();
-  }
-
-  // スコアポップアップ描画
-  bool showScorePopup = !m_scorePopups.empty();
-  bool showTotalScoreOnly = (m_totalScorePopupTimer > 0);
-  if (showScorePopup || showTotalScoreOnly) {
-    int popupBaseX = kScreenCenterX + kScorePopupX;
-    int popupBaseY = kScreenCenterY + kScorePopupY;
-    int idx = 0;
-    int totalScore = ScoreManager::Instance().GetScore();
-    int combo = ScoreManager::Instance().GetCombo();
-    float comboRate = std::pow(1.1f, combo > 0 ? combo - 1 : 0);
-    int comboScore = static_cast<int>(totalScore * comboRate);
-    float lastComboRate = ScoreManager::Instance().GetLastComboRate();
-    int displayCombo = (ScoreManager::Instance().GetCombo() > 1)
-                           ? ScoreManager::Instance().GetCombo()
-                           : 1;
-
-    // フェードアウト用アルファ値(最も古いポップアップのtimer値を利用)
-    int fadeTimer =
-        showScorePopup ? m_scorePopups.front().timer : m_totalScorePopupTimer;
-    int alpha = 255;
-    if (fadeTimer < 30) {
-      alpha = 128 + (127 * fadeTimer / 30);
-    }
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-
-    // 合計スコアのみ
-    if (showTotalScoreOnly && !showScorePopup) {
-      float lastComboRate = ScoreManager::Instance().GetLastComboRate();
-      if (lastComboRate > 1.0f) {
-        DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc,
-                                 m_scoreFontHandle, "%d ×%.2f",
-                                 m_lastTotalScorePopupValue, lastComboRate);
-      } else {
-        DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc,
-                                 m_scoreFontHandle, "%d",
-                                 m_lastTotalScorePopupValue);
+        // ドットレティクルを常に描画
+        int dotReticleHandle =
+            m_pPlayer->IsAimingAtEnemy() ? m_dotOnTargetHandle : m_dotDefaultHandle;
+        if (dotReticleHandle != -1) {
+          int dotReticleWidth = 0;
+          int dotReticleHeight = 0;
+          GetGraphSize(dotReticleHandle, &dotReticleWidth, &dotReticleHeight);
+          DrawGraph(kScreenCenterX - dotReticleWidth * 0.5f,
+                    kScreenCenterY - dotReticleHeight * 0.5f, dotReticleHandle,
+                    true);
+        }
       }
-    } else if (showScorePopup) {
-      // 合計スコア
-      if (lastComboRate > 1.0f) {
-        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY,
-                                 0x00ffcc, m_scoreFontHandle, "%d ×%.2f",
-                                 comboScore, lastComboRate);
-      } else {
-        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY,
-                                 0x00ffcc, m_scoreFontHandle, "%d", comboScore);
+
+      // ウェーブUIの描画
+      m_pWaveManager->DrawWaveUI();
+
+      m_pPlayer->DrawUI();
+
+      // 方向インジケーターUIの描画
+      if (!m_pPlayer->IsDead()) {
+        m_pDirectionIndicator->Draw();
       }
-      idx++;
-      int lastIsHeadShot = -1;
-      for (const auto &popup : m_scorePopups) {
-        if (lastIsHeadShot == -1 ||
-            lastIsHeadShot != static_cast<int>(popup.isHeadShot)) {
-          if (popup.isHeadShot) {
-            DrawFormatStringToHandle(
-                popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffe000,
-                m_scoreFontHandle, "%dpt ヘッドショットキル×%d", 200,
-                displayCombo);
+
+      // スコアポップアップ描画
+      bool showScorePopup = !m_scorePopups.empty();
+      bool showTotalScoreOnly = (m_totalScorePopupTimer > 0);
+      if (showScorePopup || showTotalScoreOnly) {
+        int popupBaseX = kScreenCenterX + kScorePopupX;
+        int popupBaseY = kScreenCenterY + kScorePopupY;
+        int idx = 0;
+        int totalScore = ScoreManager::Instance().GetScore();
+        int combo = ScoreManager::Instance().GetCombo();
+        float comboRate = std::pow(1.1f, combo > 0 ? combo - 1 : 0);
+        int comboScore = static_cast<int>(totalScore * comboRate);
+        float lastComboRate = ScoreManager::Instance().GetLastComboRate();
+        int displayCombo = (ScoreManager::Instance().GetCombo() > 1)
+                               ? ScoreManager::Instance().GetCombo()
+                               : 1;
+
+        // フェードアウト用アルファ値(最も古いポップアップのtimer値を利用)
+        int fadeTimer =
+            showScorePopup ? m_scorePopups.front().timer : m_totalScorePopupTimer;
+        int alpha = 255;
+        if (fadeTimer < 30) {
+          alpha = 128 + (127 * fadeTimer / 30);
+        }
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+        // 合計スコアのみ
+        if (showTotalScoreOnly && !showScorePopup) {
+          float lastComboRate = ScoreManager::Instance().GetLastComboRate();
+          if (lastComboRate > 1.0f) {
+            DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc,
+                                     m_scoreFontHandle, "%d ×%.2f",
+                                     m_lastTotalScorePopupValue, lastComboRate);
           } else {
-            DrawFormatStringToHandle(
-                popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffffff,
-                m_scoreFontHandle, "%dpt ゾンビキル×%d", 100, displayCombo);
+            DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc,
+                                     m_scoreFontHandle, "%d",
+                                     m_lastTotalScorePopupValue);
+          }
+        } else if (showScorePopup) {
+          // 合計スコア
+          if (lastComboRate > 1.0f) {
+            DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY,
+                                     0x00ffcc, m_scoreFontHandle, "%d ×%.2f",
+                                     comboScore, lastComboRate);
+          } else {
+            DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * kPopupOffsetY,
+                                     0x00ffcc, m_scoreFontHandle, "%d", comboScore);
           }
           idx++;
-        }
-        lastIsHeadShot = static_cast<int>(popup.isHeadShot);
-      }
-    }
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-  }
-
-  // ヒットマーク描画
-  if (m_hitMarkTimer > 0) {
-    // アルファ値を計算
-    int alpha = (255 * m_hitMarkTimer) / kHitMarkDuration;
-    
-    // ショットガンの場合、距離に応じて透明度を調整
-    if (m_hitMarkWeaponType == WeaponType::Shotgun) {
-        float alphaFactor = 1.0f;
-        if (m_hitMarkDistance > kMinAlphaDist) {
-            if (m_hitMarkDistance >= kMaxAlphaDist) {
-                alphaFactor = kMinAlpha;
-            } else {
-                // 線形補間
-                float t = (m_hitMarkDistance - kMinAlphaDist) / (kMaxAlphaDist - kMinAlphaDist);
-                alphaFactor = 1.0f - t * (1.0f - kMinAlpha);
+          int lastIsHeadShot = -1;
+          for (const auto &popup : m_scorePopups) {
+            if (lastIsHeadShot == -1 ||
+                lastIsHeadShot != static_cast<int>(popup.isHeadShot)) {
+              if (popup.isHeadShot) {
+                DrawFormatStringToHandle(
+                    popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffe000,
+                    m_scoreFontHandle, "%dpt ヘッドショットキル×%d", 200,
+                    displayCombo);
+              } else {
+                DrawFormatStringToHandle(
+                    popupBaseX, popupBaseY + idx * kPopupOffsetY, 0xffffff,
+                    m_scoreFontHandle, "%dpt ゾンビキル×%d", 100, displayCombo);
+              }
+              idx++;
             }
+            lastIsHeadShot = static_cast<int>(popup.isHeadShot);
+          }
         }
-        alpha = static_cast<int>(alpha * alphaFactor);
-    }
-    
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+      }
 
-    // 赤 or 黄色
-    unsigned int color =
-        (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffd700 : 0xff4500;
+      // ヒットマーク描画
+      if (m_hitMarkTimer > 0) {
+        // アルファ値を計算
+        int alpha = (255 * m_hitMarkTimer) / kHitMarkDuration;
+        
+        // ショットガンの場合、距離に応じて透明度を調整
+        if (m_hitMarkWeaponType == WeaponType::Shotgun) {
+            float alphaFactor = 1.0f;
+            if (m_hitMarkDistance > kMinAlphaDist) {
+                if (m_hitMarkDistance >= kMaxAlphaDist) {
+                    alphaFactor = kMinAlpha;
+                } else {
+                    // 線形補間
+                    float t = (m_hitMarkDistance - kMinAlphaDist) / (kMaxAlphaDist - kMinAlphaDist);
+                    alphaFactor = 1.0f - t * (1.0f - kMinAlpha);
+                }
+            }
+            alpha = static_cast<int>(alpha * alphaFactor);
+        }
+        
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
-    // 通常のヒットマーク描画
-    // 左上→右下
-    DrawLine(kScreenCenterX - kHitMarkLineLength,
-             kScreenCenterY - kHitMarkLineLength,
-             kScreenCenterX - kHitMarkCenterSpacing,
-             kScreenCenterY - kHitMarkCenterSpacing, color,
-             kHitMarkLineThickness);
-    DrawLine(kScreenCenterX + kHitMarkCenterSpacing,
-             kScreenCenterY + kHitMarkCenterSpacing,
-             kScreenCenterX + kHitMarkLineLength,
-             kScreenCenterY + kHitMarkLineLength, color, kHitMarkLineThickness);
-    // 左下→右上
-    DrawLine(kScreenCenterX - kHitMarkLineLength,
-             kScreenCenterY + kHitMarkLineLength,
-             kScreenCenterX - kHitMarkCenterSpacing,
-             kScreenCenterY + kHitMarkCenterSpacing, color,
-             kHitMarkLineThickness);
-    DrawLine(kScreenCenterX + kHitMarkCenterSpacing,
-             kScreenCenterY - kHitMarkCenterSpacing,
-             kScreenCenterX + kHitMarkLineLength,
-             kScreenCenterY - kHitMarkLineLength, color, kHitMarkLineThickness);
+        // 赤 or 黄色
+        unsigned int color =
+            (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffd700 : 0xff4500;
 
-    // ヘッドショットの場合は二重線を描画
-    if (m_hitMarkType == EnemyBase::HitPart::Head) {
-      int offset = kHitMarkDoubleLineOffset;
-      DrawLine(kScreenCenterX - kHitMarkLineLength - offset,
-               kScreenCenterY - kHitMarkLineLength + offset,
-               kScreenCenterX - kHitMarkCenterSpacing - offset,
-               kScreenCenterY - kHitMarkCenterSpacing + offset, color,
-               kHitMarkLineThickness);
-      DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset,
-               kScreenCenterY + kHitMarkCenterSpacing - offset,
-               kScreenCenterX + kHitMarkLineLength + offset,
-               kScreenCenterY + kHitMarkLineLength - offset, color,
-               kHitMarkLineThickness);
-      DrawLine(kScreenCenterX - kHitMarkLineLength - offset,
-               kScreenCenterY + kHitMarkLineLength - offset,
-               kScreenCenterX - kHitMarkCenterSpacing - offset,
-               kScreenCenterY + kHitMarkCenterSpacing - offset, color,
-               kHitMarkLineThickness);
-      DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset,
-               kScreenCenterY - kHitMarkCenterSpacing + offset,
-               kScreenCenterX + kHitMarkLineLength + offset,
-               kScreenCenterY - kHitMarkLineLength + offset, color,
-               kHitMarkLineThickness);
-    }
+        // 通常のヒットマーク描画
+        // 左上→右下
+        DrawLine(kScreenCenterX - kHitMarkLineLength,
+                 kScreenCenterY - kHitMarkLineLength,
+                 kScreenCenterX - kHitMarkCenterSpacing,
+                 kScreenCenterY - kHitMarkCenterSpacing, color,
+                 kHitMarkLineThickness);
+        DrawLine(kScreenCenterX + kHitMarkCenterSpacing,
+                 kScreenCenterY + kHitMarkCenterSpacing,
+                 kScreenCenterX + kHitMarkLineLength,
+                 kScreenCenterY + kHitMarkLineLength, color, kHitMarkLineThickness);
+        // 左下→右上
+        DrawLine(kScreenCenterX - kHitMarkLineLength,
+                 kScreenCenterY + kHitMarkLineLength,
+                 kScreenCenterX - kHitMarkCenterSpacing,
+                 kScreenCenterY + kHitMarkCenterSpacing, color,
+                 kHitMarkLineThickness);
+        DrawLine(kScreenCenterX + kHitMarkCenterSpacing,
+                 kScreenCenterY - kHitMarkCenterSpacing,
+                 kScreenCenterX + kHitMarkLineLength,
+                 kScreenCenterY - kHitMarkLineLength, color, kHitMarkLineThickness);
 
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-  }
+        // ヘッドショットの場合は二重線を描画
+        if (m_hitMarkType == EnemyBase::HitPart::Head) {
+          int offset = kHitMarkDoubleLineOffset;
+          DrawLine(kScreenCenterX - kHitMarkLineLength - offset,
+                   kScreenCenterY - kHitMarkLineLength + offset,
+                   kScreenCenterX - kHitMarkCenterSpacing - offset,
+                   kScreenCenterY - kHitMarkCenterSpacing + offset, color,
+                   kHitMarkLineThickness);
+          DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset,
+                   kScreenCenterY + kHitMarkCenterSpacing - offset,
+                   kScreenCenterX + kHitMarkLineLength + offset,
+                   kScreenCenterY + kHitMarkLineLength - offset, color,
+                   kHitMarkLineThickness);
+          DrawLine(kScreenCenterX - kHitMarkLineLength - offset,
+                   kScreenCenterY + kHitMarkLineLength - offset,
+                   kScreenCenterX - kHitMarkCenterSpacing - offset,
+                   kScreenCenterY + kHitMarkCenterSpacing - offset, color,
+                   kHitMarkLineThickness);
+          DrawLine(kScreenCenterX + kHitMarkCenterSpacing + offset,
+                   kScreenCenterY - kHitMarkCenterSpacing + offset,
+                   kScreenCenterX + kHitMarkLineLength + offset,
+                   kScreenCenterY - kHitMarkLineLength + offset, color,
+                   kHitMarkLineThickness);
+        }
 
-#ifdef _DEBUG
-  // デバッグ情報を表示
-  m_pWaveManager->DrawDebugInfo();
-#endif // DEBUG
-
-  // ボスUIの描画
-  if (m_pBossUI) {
-    m_pBossUI->Draw(m_pWaveManager->GetEnemyList());
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+      }
+      
+      // ボスUIの描画
+      if (m_pBossUI) {
+        m_pBossUI->Draw(m_pWaveManager->GetEnemyList());
+      }
   }
 
   if (m_isPaused) {
@@ -943,6 +979,13 @@ void SceneMain::Draw() {
 
   // タスクチュートリアルUI描画
   TaskTutorialManager::GetInstance()->Draw();
+
+  // フェード描画
+  if (m_fadeAlpha > 0) {
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
+    DrawBox(0, 0, screenW, screenH, 0x000000, true);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+  }
 }
 
 void SceneMain::DrawPauseMenu() {
