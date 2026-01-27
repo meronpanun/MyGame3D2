@@ -420,8 +420,14 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext &context) {
 }
 
 void EnemyAcid::UpdateCollision(const EnemyUpdateContext &context) {
+  // カメラ位置を取得
+  const Player& player = context.player; // UpdateCollision内でまだ定義されていない場合は取得
+  VECTOR cameraPos = VGet(0,0,0);
+  if(player.GetCamera()) {
+      cameraPos = player.GetCamera()->GetPos();
+  }
   // 弾との当たり判定・ダメージ処理
-  CheckHitAndDamage(context.bullets, context.pEffect);
+  CheckHitAndDamage(context.bullets, context.collisionData, context.pEffect, cameraPos);
 
   const Player::TackleInfo &tackleInfo = context.tackleInfo;
 

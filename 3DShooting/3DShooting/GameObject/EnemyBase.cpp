@@ -25,7 +25,8 @@ EnemyBase::EnemyBase()
       m_isGrounded(false) {}
 
 void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
-                                  Effect *pEffect) {
+                                  const std::vector<Stage::StageCollisionData> &collisionData,
+                                  Effect *pEffect, const VECTOR &shooterPos) {
   // 最も近いヒット情報を保持
   int hitBulletIndex = -1;
   float minHitDistSq = FLT_MAX;              // 最も近い衝突までの距離の2乗
@@ -51,9 +52,40 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
 
     if (part != HitPart::None) {
       if (currentHitDistSq < minHitDistSq) {
-        minHitDistSq = currentHitDistSq;
-        hitBulletIndex = i;
-        determinedHitPart = part; // 最も近いヒットの部位を保持
+        
+        // ここでステージとの遮蔽判定を行う
+        // ユーザーの要望により、レティクルと同様の「射線判定(Line of Sight)」を行う
+        // 発射地点(カメラ位置)から着弾地点までの直線上に障害物があるかをチェック
+        bool isBlocked = false;
+
+        // ヒット地点までのベクトル
+        VECTOR toHitPos = VSub(currentHitPos, shooterPos);
+        float distToHitSq = VDot(toHitPos, toHitPos); // カメラからヒット地点までの距離の二乗
+
+        // ステージ全トライアングルについて判定
+        for(const auto& col : collisionData) {
+            // カメラ位置から敵ヒット位置への線分判定
+            HITRESULT_LINE result = HitCheck_Line_Triangle(shooterPos, currentHitPos, col.v1, col.v2, col.v3);
+            
+            if(result.HitFlag == TRUE) {
+                // 壁に当たった位置までの距離の二乗
+                VECTOR diff = VSub(result.Position, shooterPos);
+                float wallDistSq = VDot(diff, diff);
+                
+                // 壁が「ヒット地点より手前」にある場合、遮蔽されているとみなす
+                // 10.0f (10cm) 程度のマージンを持たせて、敵にめり込んでいる壁などは除外
+                if(wallDistSq < distToHitSq - 10.0f) {
+                    isBlocked = true;
+                    break;
+                }
+            }
+        }
+
+        if (!isBlocked) {
+          minHitDistSq = currentHitDistSq;
+          hitBulletIndex = i;
+          determinedHitPart = part; // 最も近いヒットの部位を保持
+        }
       }
     }
   }

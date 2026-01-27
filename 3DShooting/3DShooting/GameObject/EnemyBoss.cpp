@@ -648,7 +648,12 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
     }
   }
 
-  CheckHitAndDamage(bullets, pEffect);
+  // カメラ位置を取得
+  VECTOR cameraPos = VGet(0,0,0);
+  if(player.GetCamera()) {
+      cameraPos = player.GetCamera()->GetPos();
+  }
+  CheckHitAndDamage(bullets, collisionData, pEffect, cameraPos);
 
   // タックル判定
   if (tackleInfo.isTackling && m_hp > 0.0f &&

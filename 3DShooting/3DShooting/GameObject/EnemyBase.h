@@ -76,7 +76,8 @@ public:
   /// <param name="bullets">弾のリスト</param>
   /// <param name="pEffect">エフェクトクラスのポインタ</param>
   virtual void CheckHitAndDamage(std::vector<Bullet> &bullets,
-                                 Effect *pEffect = nullptr);
+                                 const std::vector<Stage::StageCollisionData> &collisionData,
+                                 Effect *pEffect, const VECTOR &shooterPos);
 
   virtual void TakeDamage(float damage, AttackType type);
 
