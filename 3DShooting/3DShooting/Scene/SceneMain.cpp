@@ -35,65 +35,71 @@ float SceneMain::s_elapsedTime = 0.0f;
 bool SceneMain::s_isSkipTutorial = false;
 bool SceneMain::s_isLowHealthTutorialShown = false;
 
-namespace {
-// UI関連の定数
-constexpr int kButtonWidth = 200;           // ボタンの幅
-constexpr int kButtonHeight = 50;           // ボタンの高さ
-constexpr int kFontSize = 48;               // フォントサイズ
-constexpr float kScreenCenterOffset = 0.5f; // 画面中央のオフセット
-constexpr int kButtonYOffset = 70;          // ボタンのY座標オフセット
-constexpr int kButtonSpacing = 20;          // ボタン間のスペース
+namespace
+{
+    // UI関連の定数
+    constexpr int kButtonWidth = 200;           // ボタンの幅
+    constexpr int kButtonHeight = 50;           // ボタンの高さ
+    constexpr int kFontSize = 48;               // フォントサイズ
+    constexpr float kScreenCenterOffset = 0.5f; // 画面中央のオフセット
+    constexpr int kButtonYOffset = 70;          // ボタンのY座標オフセット
+    constexpr int kButtonSpacing = 20;          // ボタン間のスペース
 
-// ゲームクリアシーンへの遷移遅延フレーム数
-constexpr int kClearSceneDelayFrames = 60;
+    // ゲームクリアシーンへの遷移遅延フレーム数
+    constexpr int kClearSceneDelayFrames = 60;
 
-// 戻るボタンとオプションボタンの座標
-constexpr int kReturnButtonX = 210; // 戻るボタンのX座標
-constexpr int kReturnButtonY = 290; // 戻るボタンのY座標
-constexpr int kOptionButtonX = 210; // オプションボタンのX座標
-constexpr int kOptionButtonY = 120; // オプションボタンのY座標
+    // 戻るボタンとオプションボタンの座標
+    constexpr int kReturnButtonX = 210; // 戻るボタンのX座標
+    constexpr int kReturnButtonY = 290; // 戻るボタンのY座標
+    constexpr int kOptionButtonX = 210; // オプションボタンのX座標
+    constexpr int kOptionButtonY = 120; // オプションボタンのY座標
 
-// カメラの回転速度
-constexpr float kCameraRotaSpeed = 0.0001f;
+    // カメラの回転速度
+    constexpr float kCameraRotaSpeed = 0.0001f;
 
-// スカイドーム関連
-constexpr float kSkyDomePosY = 200.0f;  // スカイドームのY座標
-constexpr float kSkyDomeScale = 100.0f; // スカイドームのスケール
+    // スカイドーム関連
+    constexpr float kSkyDomePosY = 200.0f;  // スカイドームのY座標
+    constexpr float kSkyDomeScale = 100.0f; // スカイドームのスケール
 
-// アイテムドロップ時の初期上昇量
-constexpr float kDropInitialHeight = 140.0f;
+    // アイテムドロップ時の初期上昇量
+    constexpr float kDropInitialHeight = 140.0f;
 
-// 環境光設定
-constexpr float kAmbientLightR = 0.5f; // 環境光の赤成分
-constexpr float kAmbientLightG = 0.5f; // 環境光の緑成分
-constexpr float kAmbientLightB = 0.5f; // 環境光の青成分
-constexpr float kAmbientLightA = 1.0f; // 環境光のアルファ成分
+    // 環境光設定
+    constexpr float kAmbientLightR = 0.5f; // 環境光の赤成分
+    constexpr float kAmbientLightG = 0.5f; // 環境光の緑成分
+    constexpr float kAmbientLightB = 0.5f; // 環境光の青成分
+    constexpr float kAmbientLightA = 1.0f; // 環境光のアルファ成分
 
-// ヒットマーク関連
-constexpr int kHitMarkLineLength = 8;       // ラインの長さ
-constexpr int kHitMarkCenterSpacing = 4;    // 中央の間隔幅
-constexpr int kHitMarkLineThickness = 2;    // ラインの太さ
-constexpr int kHitMarkDuration = 25;        // 表示時間
-constexpr int kHitMarkDoubleLineOffset = 2; // ダブルラインのオフセット
+    // ヒットマーク関連
+    constexpr int kHitMarkLineLength = 8;       // ラインの長さ
+    constexpr int kHitMarkCenterSpacing = 4;    // 中央の間隔幅
+    constexpr int kHitMarkLineThickness = 2;    // ラインの太さ
+    constexpr int kHitMarkDuration = 25;        // 表示時間
+    constexpr int kHitMarkDoubleLineOffset = 2; // ダブルラインのオフセット
 
-// スコアポップアップ関連
-constexpr int kScorePopupX = 80;         // スコアポップアップのX座標
-constexpr int kScorePopupY = 60;         // スコアポップアップのY座標
-constexpr int kPopupOffsetY = 32;        // ポップアップのYオフセット
-constexpr int kPopupDuration = 60;       // 表示時間
-constexpr int kTotalScoreDuration = 120; // 合計スコアの表示時間
+    // スコアポップアップ関連
+    constexpr int kScorePopupX = 80;         // スコアポップアップのX座標
+    constexpr int kScorePopupY = 60;         // スコアポップアップのY座標
+    constexpr int kPopupOffsetY = 32;        // ポップアップのYオフセット
+    constexpr int kPopupDuration = 60;       // 表示時間
+    constexpr int kTotalScoreDuration = 120; // 合計スコアの表示時間
 
-// レティクル表示位置補正値
-constexpr int kReticleOffset = 64;
+    // レティクル表示位置補正値
+    constexpr int kReticleOffset = 64;
 
-// 画面中央サイズ
-constexpr int kScreenCenterX = Game::kScreenWidth * 0.5f;
-constexpr int kScreenCenterY = Game::kScreenHeigth * 0.5f;
+    // 画面中央サイズ
+    constexpr int kScreenCenterX = Game::kScreenWidth * 0.5f;
+    constexpr int kScreenCenterY = Game::kScreenHeigth * 0.5f;
 
-// Road_floorオブジェトの範囲
-constexpr VECTOR kRoadFloorMin = {-500.0f, 0.0f, -500.0f}; // 床の最小座標
-constexpr VECTOR kRoadFloorMax = {500.0f, 0.0f, 500.0f};   // 床の最大座標
-} // namespace
+    // Road_floorオブジェトの範囲
+    constexpr VECTOR kRoadFloorMin = {-500.0f, 0.0f, -500.0f}; // 床の最小座標
+    constexpr VECTOR kRoadFloorMax = {500.0f, 0.0f, 500.0f};   // 床の最大座標
+
+    // 距離閾値の設定
+    constexpr float kMinAlphaDist = 300.0f;  // この距離までは最大不透明度
+    constexpr float kMaxAlphaDist = 1000.0f; // この距離以上は最小不透明度
+    constexpr float kMinAlpha = 0.01f;       // 最小不透明度係数
+} 
 
 SceneMain *g_sceneMainInstance = nullptr;
 
@@ -852,11 +858,6 @@ void SceneMain::Draw() {
     
     // ショットガンの場合、距離に応じて透明度を調整
     if (m_hitMarkWeaponType == WeaponType::Shotgun) {
-        // 距離閾値の設定（調整可能）
-        constexpr float kMinAlphaDist = 500.0f;  // この距離までは最大不透明度
-        constexpr float kMaxAlphaDist = 1500.0f; // この距離以上は最小不透明度
-        constexpr float kMinAlpha = 0.2f;        // 最小不透明度係数
-
         float alphaFactor = 1.0f;
         if (m_hitMarkDistance > kMinAlphaDist) {
             if (m_hitMarkDistance >= kMaxAlphaDist) {
