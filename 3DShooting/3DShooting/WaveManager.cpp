@@ -420,7 +420,7 @@ void WaveManager::SetOnEnemyDeathCallback(
 
 // 敵ヒット時のコールバックを設定
 void WaveManager::SetOnEnemyHitCallback(
-    std::function<void(EnemyBase::HitPart)> cb) {
+    std::function<void(EnemyBase::HitPart, float, WeaponType)> cb) {
   m_onEnemyHitCallback = cb;
 }
 

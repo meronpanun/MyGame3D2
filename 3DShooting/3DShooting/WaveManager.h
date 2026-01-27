@@ -74,7 +74,7 @@ public:
 	/// 敵ヒット時のコールバックを設定
     /// </summary>
 	/// <param name="cb">コールバック関数</param>
-    void SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart)> cb);
+    void SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart, float, WeaponType)> cb);
 
     /// <summary>
 	/// Road_floorオブジェクトの範囲を設定
@@ -252,7 +252,7 @@ private:
 
     // コールバック
     std::function<void(const VECTOR&)>      m_onEnemyDeathCallback; // 敵の死亡時コールバック
-    std::function<void(EnemyBase::HitPart)> m_onEnemyHitCallback;   // 部位情報付き
+    std::function<void(EnemyBase::HitPart, float, WeaponType)> m_onEnemyHitCallback;   // 部位情報付き
 
     // Road_floorオブジェクトの範囲
     VECTOR m_roadFloorMin; // 最小位置

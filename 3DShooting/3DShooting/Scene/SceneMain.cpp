@@ -99,23 +99,39 @@ SceneMain *g_sceneMainInstance = nullptr;
 
 SceneMain *SceneMain::Instance() { return g_sceneMainInstance; }
 
-SceneMain::SceneMain(bool isReturningFromOtherScene)
-    : m_isPaused(false), m_isEscapePressed(false),
-      m_isReturningFromOption(false),
-      m_cameraSensitivity(Game::g_cameraSensitivity),
-      m_pCamera(std::make_unique<Camera>()), m_skyDomeHandle(-1),
-      m_dotDefaultHandle(-1), m_dotOnTargetHandle(-1),
-      m_sgDefaultReticleHandle(-1), m_sgOnTargetReticleHandle(-1),
-      m_hitMarkTimer(0), m_isWave1FirstAidDropped(false),
-      m_isWave1AmmoDropped(false), m_wave1DropCount(0),
-      m_totalScorePopupTimer(0), m_lastTotalScorePopupValue(0), m_bgmHandle(-1),
-      m_isBGMStarted(false), m_isLoading(true),
-      m_isReturningFromOtherScene(isReturningFromOtherScene),
-      m_clearSceneDelayTimer(-1), m_scoreFontHandle(-1), m_isPlayerInit(false),
-      m_isTaskTutorialInit(false), m_pEffect(std::make_unique<Effect>()),
-      m_pAnimManager(std::make_unique<AnimationManager>()),
-      m_gameOverDelayTimer(-1), m_isTutorialStage(false),
-      m_loadingFrameCount(0), m_loadingDotCount(0), m_loadingAnimTimer(0) {
+SceneMain::SceneMain(bool isReturningFromOtherScene) : 
+    m_isPaused(false), 
+    m_isEscapePressed(false),
+    m_isReturningFromOption(false),
+    m_cameraSensitivity(Game::g_cameraSensitivity),
+    m_pCamera(std::make_unique<Camera>()), 
+    m_skyDomeHandle(-1),
+    m_dotDefaultHandle(-1), 
+    m_dotOnTargetHandle(-1),
+    m_sgDefaultReticleHandle(-1),
+    m_sgOnTargetReticleHandle(-1),
+    m_hitMarkTimer(0),
+    m_isWave1FirstAidDropped(false),
+    m_isWave1AmmoDropped(false),
+    m_wave1DropCount(0),
+    m_totalScorePopupTimer(0),
+    m_lastTotalScorePopupValue(0),
+    m_bgmHandle(-1),
+    m_isBGMStarted(false),
+    m_isLoading(true),
+    m_isReturningFromOtherScene(isReturningFromOtherScene),
+    m_clearSceneDelayTimer(-1), 
+    m_scoreFontHandle(-1),
+    m_isPlayerInit(false),
+    m_isTaskTutorialInit(false), 
+    m_pEffect(std::make_unique<Effect>()),
+    m_pAnimManager(std::make_unique<AnimationManager>()),
+    m_gameOverDelayTimer(-1),
+    m_isTutorialStage(false),
+    m_loadingFrameCount(0),
+    m_loadingDotCount(0),
+    m_loadingAnimTimer(0)
+{
   g_sceneMainInstance = this;
 
   // スコアポップアップ用フォントの作成
@@ -315,7 +331,7 @@ void SceneMain::Init() {
 
   // ヒットマーク用コールバックをWaveManagerに設定
   m_pWaveManager->SetOnEnemyHitCallback(
-      [this](EnemyBase::HitPart part) { OnPlayerBulletHitEnemy(part); });
+      [this](EnemyBase::HitPart part, float distance, WeaponType weaponType) { OnPlayerBulletHitEnemy(part, distance, weaponType); });
 
   // 環境光の設定
   SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB,
@@ -833,6 +849,27 @@ void SceneMain::Draw() {
   if (m_hitMarkTimer > 0) {
     // アルファ値を計算
     int alpha = (255 * m_hitMarkTimer) / kHitMarkDuration;
+    
+    // ショットガンの場合、距離に応じて透明度を調整
+    if (m_hitMarkWeaponType == WeaponType::Shotgun) {
+        // 距離閾値の設定（調整可能）
+        constexpr float kMinAlphaDist = 500.0f;  // この距離までは最大不透明度
+        constexpr float kMaxAlphaDist = 1500.0f; // この距離以上は最小不透明度
+        constexpr float kMinAlpha = 0.2f;        // 最小不透明度係数
+
+        float alphaFactor = 1.0f;
+        if (m_hitMarkDistance > kMinAlphaDist) {
+            if (m_hitMarkDistance >= kMaxAlphaDist) {
+                alphaFactor = kMinAlpha;
+            } else {
+                // 線形補間
+                float t = (m_hitMarkDistance - kMinAlphaDist) / (kMaxAlphaDist - kMinAlphaDist);
+                alphaFactor = 1.0f - t * (1.0f - kMinAlpha);
+            }
+        }
+        alpha = static_cast<int>(alpha * alphaFactor);
+    }
+    
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
     // 赤 or 黄色
@@ -930,9 +967,11 @@ void SceneMain::SetCameraSensitivity(float sensitivity) {
 }
 
 // プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
-void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part) {
+void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance, WeaponType weaponType) {
   m_hitMarkTimer = kHitMarkDuration;
   m_hitMarkType = part;
+  m_hitMarkDistance = distance;
+  m_hitMarkWeaponType = weaponType;
 }
 
 void SceneMain::StopAllEffects() {

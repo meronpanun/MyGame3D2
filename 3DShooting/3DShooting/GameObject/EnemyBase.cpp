@@ -79,7 +79,8 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
     if (m_onHitCallback) {
       printf("EnemyBase: Hit callback triggered with part: %d\n",
              static_cast<int>(determinedHitPart));
-      m_onHitCallback(determinedHitPart);
+      // 距離（minHitDistSqの平方根）と武器タイプを渡す
+      m_onHitCallback(determinedHitPart, sqrtf(minHitDistSq), bullet.GetWeaponType()); 
     }
   }
 }
@@ -172,8 +173,6 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR &startPos,
     time = 20.0f; // 最低保証
 
   // 初速度計算
-  // pos + v*t + 0.5*g*t*t = target
-  // v*t = target - pos - 0.5*g*t*t
   VECTOR gravityVec = VGet(0.0f, -gravity, 0.0f);
   VECTOR term1 = VScale(toTarget, 1.0f / time);
   VECTOR term2 = VScale(gravityVec, 0.5f * time);

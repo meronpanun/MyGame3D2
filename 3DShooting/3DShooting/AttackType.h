@@ -7,3 +7,12 @@ enum class AttackType
 	Shoot, // 射撃
 	Tackle // タックル
 };
+
+/// <summary>
+/// 武器の種類列挙型
+/// </summary>
+enum class WeaponType
+{
+	AssaultRifle, // アサルトライフル
+	Shotgun       // ショットガン
+};

@@ -464,8 +464,7 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet> &bullets,
   float shakePower = 0.0f;
   switch (m_currentWeaponType) {
   case WeaponType::AssaultRifle:
-    bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot,
-                         m_bulletPower);
+    bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot, m_currentWeaponType, m_bulletPower);
     currentShotSEHandle = m_shotSEHandle;
     currentModelHandle = m_arHandle;
     currentMuzzleFlashOffset =
@@ -495,8 +494,7 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet> &bullets,
       VECTOR spreadDir = VAdd(cameraForward, VGet(spreadX, spreadY, 0));
       spreadDir = VNorm(spreadDir);
 
-      bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot,
-                           m_sgBulletPower);
+      bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot, m_currentWeaponType, m_sgBulletPower);
     }
     break;
   default:

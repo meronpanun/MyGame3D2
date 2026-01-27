@@ -11,14 +11,6 @@ class AnimationManager;
 class ShellCasing;
 class EnemyBase;
 
-/// <summary>
-/// 武器の種類列挙型
-/// </summary>
-enum class WeaponType
-{
-	AssaultRifle, // アサルトライフル
-	Shotgun       // ショットガン
-};
 
 /// <summary>
 /// プレイヤーの武器管理クラス

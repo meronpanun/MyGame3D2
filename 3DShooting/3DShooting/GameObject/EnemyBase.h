@@ -183,7 +183,7 @@ public:
   /// ヒット時のコールバックを設定する
   /// </summary>
   /// <param name="cb">ヒット時に呼ばれるコールバック関数</param>
-  void SetOnHitCallback(std::function<void(HitPart)> cb) {
+  void SetOnHitCallback(std::function<void(HitPart, float, WeaponType)> cb) {
     m_onHitCallback = cb;
   }
 
@@ -255,7 +255,7 @@ protected:
 
   std::shared_ptr<Player> m_pTargetPlayer;               // ターゲットプレイヤー
   std::function<void(const VECTOR &)> m_onDeathCallback; // 死亡コールバック
-  std::function<void(HitPart)> m_onHitCallback;          // 部位情報付き
+  std::function<void(HitPart, float, WeaponType)> m_onHitCallback;          // 部位情報付き
   std::function<void(const VECTOR &, AttackType)> m_onDeathWithTypeCallback;
 
   HitPart m_lastHitPart; // 最後に当たった部位

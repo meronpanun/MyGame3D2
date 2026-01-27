@@ -9,7 +9,7 @@
 class Bullet
 {
 public:
-    Bullet(VECTOR position, VECTOR direction, AttackType attackType, float damage = 10.0f);
+    Bullet(VECTOR position, VECTOR direction, AttackType attackType, WeaponType weaponType, float damage = 10.0f);
     virtual ~Bullet();
 
     void Init();
@@ -57,6 +57,13 @@ public:
     /// <returns>攻撃の種類</returns>
     AttackType GetAttackType() const { return m_attackType; }
 
+    /// <summary>
+    /// 武器の種類を取得
+    /// </summary>
+    /// <returns>武器の種類</returns>
+    WeaponType GetWeaponType() const { return m_weaponType; }
+
+
 private:
     VECTOR m_pos;     // 現在の位置
     VECTOR m_prevPos; // 前フレームの位置 (Rayの始点)
@@ -67,4 +74,5 @@ private:
 
     bool   m_isActive;
     AttackType m_attackType; // 攻撃の種類
+    WeaponType m_weaponType; // 武器の種類
 };
