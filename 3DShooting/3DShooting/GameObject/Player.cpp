@@ -143,6 +143,8 @@ Player::Player()
   assert(m_tackleSEHandle != -1);
   m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
   assert(m_recoverySEHandle != -1);
+
+  m_isTutorial = false;
 }
 
 Player::~Player() {
@@ -154,6 +156,7 @@ Player::~Player() {
 }
 
 void Player::Init(bool isTutorial) {
+  m_isTutorial = isTutorial;
   // CSVからPlayerのTransform情報を取得
   auto dataList =
       TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -860,7 +863,18 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
     m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
   }
 
+  // チュートリアル中はダメージを半減
+  if (m_isTutorial) {
+    damage *= 0.5f;
+  }
+
   m_health -= damage; // ダメージを適用
+
+  // チュートリアル中はHPが1残るようにする
+  if (m_isTutorial && m_health < 1.0f) {
+    m_health = 1.0f;
+  }
+
   if (m_health < 0.0f) {
     m_health = 0.0f; // 体力が負にならないように制限
   }
