@@ -62,6 +62,7 @@ public:
 		float weaponSwitchDuration;
 		WeaponType previousWeaponType;
 		bool isTryingToGuard;
+		bool isTackling;
 	};
 
 	void Update(const UpdateContext& context);

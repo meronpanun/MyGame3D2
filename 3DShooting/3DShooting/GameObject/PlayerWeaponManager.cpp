@@ -204,6 +204,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
   float weaponSwitchDuration = context.weaponSwitchDuration;
   WeaponType previousWeaponType = context.previousWeaponType;
   bool isTryingToGuard = context.isTryingToGuard;
+  bool isTackling = context.isTackling;
 
   // モデルの位置と回転を更新
   MATRIX rotYaw = MGetRotY(pCamera->GetYaw());
@@ -226,11 +227,11 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
     return std::make_tuple(handle, offset);
   };
 
-  // ガード入力中は武器を非表示にする（武器切り替え中でもガード入力があれば非表示）
-  if (isTryingToGuard) {
+  // ガード入力中またはタックル中は武器を非表示にする
+  if (isTryingToGuard || isTackling) {
     MV1SetVisible(m_arHandle, false);
     MV1SetVisible(m_sgHandle, false);
-    return; // ガード中は武器を描画しない
+    return; // ガード中・タックル中は武器を描画しない
   } else if (m_isSwitchingWeapon) {
     // 前の武器を下に隠す
     auto [prevHandle, prevOffset] = GetWeaponTransform(previousWeaponType);
