@@ -274,9 +274,36 @@ public:
   }
 
   WeaponType GetCurrentWeaponType() const;
+  
+  /// <summary>
+  /// 武器装備アニメーションを再生する
+  /// </summary>
+  /// <param name="delaySeconds">アニメーション開始までの遅延時間（秒）</param>
+  void PlayWeaponEquipAnimation(float delaySeconds = 0.0f);
+
+  /// <summary>
+  /// 装備アニメーションの初期状態設定
+  /// </summary>
+  /// <summary>
+  /// 装備アニメーションの初期状態設定
+  /// </summary>
+  void InitializeEquipAnim(bool isCompleted);
+
+  /// <summary>
+  /// 装備アニメーション再生中かどうか
+  /// </summary>
+  /// <returns>再生中ならtrue</returns>
+  bool IsPlayingEquipAnim() const { return m_isPlayingEquipAnim; }
 
 private:
   AttackType m_allowedAttackType = AttackType::None;
+
+  // 装備アニメーション
+  // 装備アニメーション
+  float m_equipAnimTimer;
+  float m_equipAnimDuration;
+  float m_equipAnimDelayTimer; // 開始遅延タイマー
+  bool m_isPlayingEquipAnim;
   /// <summary>
   /// 死亡時の更新処理
   /// </summary>

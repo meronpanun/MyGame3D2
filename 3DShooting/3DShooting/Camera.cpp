@@ -91,11 +91,12 @@ void Camera::Init()
     SetCameraNearFar(kCameraNear, kCameraFar);
 }
 
-void Camera::Update()
+void Camera::Update(bool isInputEnabled)
 {
     // 死亡アニメーション再生中かどうか
     if (m_isDeathAnimationPlaying)
     {
+        // ... (省略) ...
         const float fallDuration = 1.5f;
         const float bounceDuration = 0.5f;
         const float totalDuration = fallDuration + bounceDuration;
@@ -106,7 +107,7 @@ void Camera::Update()
         float fallProgress = m_deathAnimationTimer / fallDuration;
         if (fallProgress > 1.0f) fallProgress = 1.0f;
 
-		// イージングを使って自然な落下を表現
+		    // イージングを使って自然な落下を表現
         float easeInFallProgress = fallProgress * fallProgress * fallProgress;
 
         m_pitch = -kPitchLimit * (1.0f - easeInFallProgress) - (DX_PI_F * 0.5f) * easeInFallProgress;
@@ -139,8 +140,10 @@ void Camera::Update()
     }
     else
     {
-        // マウスの移動量に基づいてカメラの回転角度を更新
-        InputManager::GetInstance()->UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
+        // マウスの移動量に基づいてカメラの回転角度を更新（入力有効時のみ）
+        if (isInputEnabled) {
+            InputManager::GetInstance()->UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
+        }
         m_roll = 0.0f; // 通常時はロールなし
         m_hasBounced = false; // リセット
     }

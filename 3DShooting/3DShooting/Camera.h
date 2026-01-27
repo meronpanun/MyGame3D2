@@ -11,7 +11,7 @@ public:
 	virtual ~Camera();
 
 	void Init();
-	void Update();
+	void Update(bool isInputEnabled = true);
 
 	/// <summary>
 	/// カメラの感度を設定 

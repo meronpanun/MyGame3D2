@@ -55,6 +55,7 @@ public:
 		WeaponType previousWeaponType;
 		bool isTryingToGuard;
 		bool isTackling;
+		float equipAnimOffsetY; // 装備アニメーション用のYオフセット
 	};
 
 	void Update(const UpdateContext& context);

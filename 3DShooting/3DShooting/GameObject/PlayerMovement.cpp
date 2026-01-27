@@ -65,7 +65,8 @@ void PlayerMovement::Init(const VECTOR &pos, float moveSpeed, float runSpeed,
 void PlayerMovement::Update(
     float deltaTime, Camera *pCamera, bool isDead, bool isTackling,
     bool isFlightMode,
-    const std::vector<Stage::StageCollisionData> &collisionData) {
+    const std::vector<Stage::StageCollisionData> &collisionData,
+    bool isInputEnabled) {
   UpdateCollider();
 
   if (m_coyoteTimeTimer > 0.0f)
@@ -90,9 +91,9 @@ void PlayerMovement::Update(
   }
 
   if (isFlightMode && !isDead) {
-    UpdateFlightMode(deltaTime, pCamera, isDead);
+    UpdateFlightMode(deltaTime, pCamera, isDead, isInputEnabled);
   } else {
-    UpdateNormalMode(deltaTime, pCamera, isDead, isTackling, collisionData);
+    UpdateNormalMode(deltaTime, pCamera, isDead, isTackling, collisionData, isInputEnabled);
   }
 }
 
@@ -106,12 +107,14 @@ void PlayerMovement::UpdateCollider() {
 }
 
 void PlayerMovement::UpdateFlightMode(float deltaTime, Camera *pCamera,
-                                      bool isDead) {
+                                      bool isDead, bool isInputEnabled) {
   m_jumpVelocity = 0.0f;
   m_isJumping = false;
 
-  unsigned char keyState[256];
-  GetHitKeyStateAll(reinterpret_cast<char *>(keyState));
+  unsigned char keyState[256] = {0}; // 初期化
+  if (isInputEnabled) {
+      GetHitKeyStateAll(reinterpret_cast<char *>(keyState));
+  }
 
   float timeScale = Game::GetTimeScale();
 
@@ -142,14 +145,17 @@ void PlayerMovement::UpdateFlightMode(float deltaTime, Camera *pCamera,
 
 void PlayerMovement::UpdateNormalMode(
     float deltaTime, Camera *pCamera, bool isDead, bool isTackling,
-    const std::vector<Stage::StageCollisionData> &collisionData) {
+    const std::vector<Stage::StageCollisionData> &collisionData,
+    bool isInputEnabled) {
   bool isOnGround =
       (m_modelPos.y <= kGroundY + kGroundCheckTolerance) || m_isGroundedOnStage;
   if (isOnGround)
     m_coyoteTimeTimer = kCoyoteTimeDuration;
 
-  unsigned char keyState[256];
-  GetHitKeyStateAll(reinterpret_cast<char *>(keyState));
+  unsigned char keyState[256] = {0}; // 初期化
+  if (isInputEnabled) {
+      GetHitKeyStateAll(reinterpret_cast<char *>(keyState));
+  }
   static unsigned char prevKeyState[256] = {};
 
   if (keyState[KEY_INPUT_LSHIFT] && keyState[KEY_INPUT_W])
@@ -160,7 +166,13 @@ void PlayerMovement::UpdateNormalMode(
   VECTOR moveDir = CalculateMoveDirection(pCamera, keyState);
   HandleJump(keyState, prevKeyState, isDead, isTackling, moveDir, pCamera);
 
-  std::copy(std::begin(keyState), std::end(keyState), std::begin(prevKeyState));
+  // 入力が有効な場合のみ前フレームのキー状態を更新
+  if (isInputEnabled) {
+      std::copy(std::begin(keyState), std::end(keyState), std::begin(prevKeyState));
+  } else {
+      // 入力無効時は前フレームの状態もクリア（あるいは維持？クリアが無難）
+       std::fill(std::begin(prevKeyState), std::end(prevKeyState), 0);
+  }
 
   HandlePhysics(isOnGround, pCamera);
 
@@ -395,4 +407,14 @@ void PlayerMovement::Jump(Camera *pCamera) {
       pCamera->ApplyJumpSway(kJumpSwayPower);
     }
   }
+}
+// 移動を停止する
+void PlayerMovement::Stop() {
+    m_isMoving = false;
+    m_isRunMode = false;
+    m_isJumping = false;
+    m_isRunJumping = false;
+    m_isJumpInertiaActive = false;
+    m_jumpMoveVelocity = VGet(0, 0, 0);
+    m_airSideControlVelocity = VGet(0, 0, 0);
 }

@@ -252,7 +252,7 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera, const VECTOR& 
 	}
 }
 
-void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration)
+	void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float equipAnimOffsetY)
 {
 	if (!pCamera) return;
 
@@ -301,6 +301,10 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
 
 	// 進行度に応じて位置を補間
 	VECTOR currentPos = VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
+	
+	// 装備アニメーション用オフセット適用
+	// 画面サイズに合わせてオフセットもスケーリングする
+	currentPos.y -= equipAnimOffsetY * scaleH;
 
 	// 待機回転とガード回転を定義
 	constexpr float kShieldWaitAngleY = -0.3f; // 待機時のY軸回転角度

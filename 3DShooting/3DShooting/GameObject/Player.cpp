@@ -145,6 +145,13 @@ Player::Player()
   assert(m_recoverySEHandle != -1);
 
   m_isTutorial = false;
+  
+  // 装備アニメーション初期化
+  // 装備アニメーション初期化
+  m_equipAnimDuration = 1.0f;
+  m_equipAnimDelayTimer = 0.0f;
+  m_equipAnimTimer = m_equipAnimDuration; // 最初は完了状態（オフセットなし）にしておく
+  m_isPlayingEquipAnim = false;
 }
 
 Player::~Player() {
@@ -193,7 +200,14 @@ void Player::Init(bool isTutorial) {
       break;
     }
   }
+
   m_pCamera->Init(); // カメラの初期化
+
+  // 装備アニメーション状態のリセット
+  m_equipAnimDuration = 1.0f;
+  m_equipAnimDelayTimer = 0.0f;
+  m_equipAnimTimer = m_equipAnimDuration; // 最初は完了状態（オフセットなし）にしておく
+  m_isPlayingEquipAnim = false;
 }
 
 void Player::Update(
@@ -204,6 +218,56 @@ void Player::Update(
 
   // コンポーネントの更新
   float deltaTime = kDeltaTime * Game::GetTimeScale();
+
+  // 装備アニメーション中は操作を受け付けない
+  // ただし、アニメーションタイマーの更新などは必要なので、ここでは移動などの入力処理のみをスキップする
+  // 実際にはUpdate関数の後半で行われている入力処理もスキップする必要があるため、
+  // ここでアニメーション中かどうかを判定して処理を分岐させる
+
+  if (m_isPlayingEquipAnim) {
+      // アニメーション中は移動しない
+      m_movement.Stop(); // 移動停止
+      m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling,
+                        m_isFlightMode, collisionData, false); // 物理挙動は継続、入力無効
+      
+      m_modelPos = m_movement.GetPos(); // 位置同期
+
+      // 武器の更新（アニメーション進行のため必要だが、入力は無効化する）
+      PlayerWeaponManager::UpdateContext weaponContext = {
+          deltaTime,        m_modelPos,        m_pCamera.get(),
+          false,            m_isDead,          false,
+          false,            false,             AttackType::None,
+          m_isInfiniteAmmo, enemyList,         collisionData};
+      m_weaponManager.Update(weaponContext);
+
+      // カメラの更新
+      m_pCamera->SetPlayerPos(m_modelPos);
+      m_pCamera->Update(false); // 入力無効
+
+      // 盾システムの最低限の更新（Swayなどは計算）
+      m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, false,
+                            false, false, 0.0f, 0.0f, 0.0f, false);
+
+      // アニメーションタイマーの更新
+      if (m_equipAnimDelayTimer > 0.0f) {
+          m_equipAnimDelayTimer -= deltaTime;
+          if (m_equipAnimDelayTimer < 0.0f) {
+              m_equipAnimDelayTimer = 0.0f;
+          }
+      } else {
+          m_equipAnimTimer += deltaTime;
+          if (m_equipAnimTimer >= m_equipAnimDuration) {
+              m_equipAnimTimer = m_equipAnimDuration;
+              m_isPlayingEquipAnim = false;
+          }
+      }
+      
+      // シェルケーシングなどの更新
+      ShellCasing::UpdateShellCasings(m_shellCasings);
+
+      return; // ここで早期リターンして入力処理をスキップ
+  }
+
   VECTOR playerPos = m_movement.GetPos();
   bool isGuarding = m_shieldSystem.IsGuarding();
   bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
@@ -709,7 +773,17 @@ void Player::Update(
   }
 
   ShellCasing::UpdateShellCasings(m_shellCasings);
+
+  // 装備アニメーション更新
+  if (m_isPlayingEquipAnim) {
+      m_equipAnimTimer += deltaTime;
+      if (m_equipAnimTimer >= m_equipAnimDuration) {
+          m_equipAnimTimer = m_equipAnimDuration;
+          m_isPlayingEquipAnim = false;
+      }
+  }
 }
+
 
 void Player::Draw3D() {
   bool isTryingToGuard = !m_isDead && !m_isTackling &&
@@ -744,7 +818,20 @@ void Player::Draw3D() {
       m_weaponManager.GetWeaponSwitchDuration(),
       m_weaponManager.GetPreviousWeaponType(),
       isTryingToGuard,
-      m_isTackling};
+      m_isTackling,
+      0.0f // デフォルト
+  };
+
+  // 装備アニメーション中のオフセット計算
+  if (m_isPlayingEquipAnim || m_equipAnimTimer < m_equipAnimDuration) {
+      float progress = m_equipAnimTimer / m_equipAnimDuration;
+      // easeOutExpo
+      float ease = (progress == 1.0f) ? 1.0f : 1.0f - powf(2.0f, -10.0f * progress);
+      weaponDrawContext.equipAnimOffsetY = (1.0f - ease) * 300.0f; // 300.0f下から上がってくる
+  } else {
+      weaponDrawContext.equipAnimOffsetY = 0.0f;
+  }
+
   m_weaponManager.Draw3D(weaponDrawContext);
 
   // 弾と薬莢の描画
@@ -758,10 +845,18 @@ void Player::Draw3D() {
 }
 
 void Player::DrawShield() {
+  float equipAnimOffsetY = 0.0f;
+  if (m_isPlayingEquipAnim || m_equipAnimTimer < m_equipAnimDuration) {
+      float progress = m_equipAnimTimer / m_equipAnimDuration;
+      float ease = (progress == 1.0f) ? 1.0f : 1.0f - powf(2.0f, -10.0f * progress);
+      equipAnimOffsetY = (1.0f - ease) * 300.0f;
+  }
+
   m_shieldSystem.Draw(m_pCamera.get(), m_modelPos, m_isTackling,
                       m_weaponManager.IsSwitchingWeapon(),
                       m_weaponManager.GetWeaponSwitchTimer(),
-                      m_weaponManager.GetWeaponSwitchDuration());
+                      m_weaponManager.GetWeaponSwitchDuration(),
+                      equipAnimOffsetY);
 }
 
 void Player::DrawUI() {
@@ -1021,4 +1116,20 @@ WeaponType Player::GetCurrentWeaponType() const {
 // 武器を切り替える
 void Player::SwitchWeapon(WeaponType weaponType) {
   m_weaponManager.SwitchWeapon(weaponType);
+}
+
+void Player::PlayWeaponEquipAnimation(float delaySeconds) {
+    m_isPlayingEquipAnim = true;
+    m_equipAnimTimer = 0.0f;
+    m_equipAnimDelayTimer = delaySeconds; // 遅延時間をセット
+    m_equipAnimDuration = 1.0f; // 1秒かけて持ち上げる
+}
+
+void Player::InitializeEquipAnim(bool isCompleted) {
+    if (isCompleted) {
+        m_equipAnimTimer = m_equipAnimDuration;
+    } else {
+        m_equipAnimTimer = 0.0f;
+    }
+    m_isPlayingEquipAnim = false;
 }

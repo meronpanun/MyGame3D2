@@ -386,6 +386,10 @@ void SceneMain::SwitchToMainStage() {
   // プレイヤーの再初期化（位置などをCSVから再取得）
   m_pPlayer->Init(false);
 
+  // 装备アニメーションの初期状態を「未完了（隠れた状態）」に設定
+  // これにより、フェードイン中は武器が表示されず、フェードイン完了時にPlayWeaponEquipAnimationで持ち上がる
+  m_pPlayer->InitializeEquipAnim(false);
+
   // WaveManagerのリセット
   m_pWaveManager->Reset();
 }
@@ -617,6 +621,11 @@ SceneBase *SceneMain::Update() {
     if (m_fadeAlpha <= 0) {
       m_fadeAlpha = 0;
       m_isFadingIn = false;
+
+      // フェードイン完了（=チュートリアルからメインステージへの遷移完了）時に装備アニメーション再生
+      if (m_pPlayer) {
+          m_pPlayer->PlayWeaponEquipAnimation(2.0f); 
+      }
     }
   }
 
@@ -628,7 +637,8 @@ SceneBase *SceneMain::Update() {
   }
 
   // フェードイン中はWaveManagerの更新を止める（Wave開始アニメーションを遅らせるため）
-  if (!m_isFadingIn) {
+  // 装備アニメーション中もWaveManagerの更新を止める
+  if (!m_isFadingIn && !m_pPlayer->IsPlayingEquipAnim()) {
       m_pWaveManager->Update(); // メインのウェーブマネージャを更新
   }
 
@@ -764,9 +774,10 @@ void SceneMain::Draw() {
 
   m_pEffect->Draw();
 
-  // ここからUI描画 (フェード中は描画しない)
-  if (!m_isFadingOut && !m_isFadingIn) {
-      m_pPlayer->DrawShield();
+  m_pPlayer->DrawShield();
+
+  // ここからUI描画 (フェード中、および装備アニメーション中は描画しない)
+  if (!m_isFadingOut && !m_isFadingIn && !m_pPlayer->IsPlayingEquipAnim()) {
 
       if (!m_pPlayer->IsDead()) {
         int defaultHandle = -1;

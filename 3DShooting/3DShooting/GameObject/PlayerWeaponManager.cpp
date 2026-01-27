@@ -244,6 +244,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
 
       // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
       prevOffset.y -= yOffset;
+      prevOffset.y -= context.equipAnimOffsetY; // 装備アニメーション用オフセット適用
 
       VECTOR rotModelOffset = VTransform(prevOffset, modelRot);
 
@@ -303,6 +304,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
 
       // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
       currentOffset.y -= yOffset;
+      currentOffset.y -= context.equipAnimOffsetY; // 装備アニメーション用オフセット適用
 
       VECTOR rotModelOffset = VTransform(currentOffset, modelRot);
 
@@ -365,6 +367,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
 
       // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
       modelOffset.y += gunOffsetY;
+      modelOffset.y -= context.equipAnimOffsetY; // 装備アニメーション用オフセット適用
 
       VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
 
