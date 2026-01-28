@@ -1,4 +1,5 @@
 ﻿#include "Effect.h"
+#include "DxLib.h"
 #include "EffekseerForDXLib.h"
 #include "Game.h"
 #include <algorithm>
@@ -17,6 +18,16 @@ constexpr float kLossOfBloodEffectScale = 2.5f;
 constexpr float kConcentrationLineEffectScale = 20.0f;
 constexpr float kGuardEffectScale = 10.5f;
 constexpr float kSparkEffectScale = 20.0f;
+
+// エフェクトのカリング距離 (これ以上離れたら再生しない)
+constexpr float kEffectCullDistance = 1000.0f;
+
+bool ShouldPlayEffect(float x, float y, float z) {
+  VECTOR cameraPos = GetCameraPosition();
+  VECTOR effectPos = VGet(x, y, z);
+  VECTOR diff = VSub(effectPos, cameraPos);
+  return VSquareSize(diff) <= kEffectCullDistance * kEffectCullDistance;
+}
 } // namespace
 
 Effect::Effect()
@@ -106,6 +117,9 @@ void Effect::Draw() {
 // マズルフラッシュを再生する
 int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY,
                             float rotZ) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   int index = rand() % 5;
   if (m_muzzleFlashEffectHandles[index] != -1) {
     int handle = PlayEffekseer3DEffect(m_muzzleFlashEffectHandles[index]);
@@ -122,6 +136,9 @@ int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY,
 // 出血エフェクトを再生する
 int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY,
                             float rotZ) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   if (m_lossOfBloodEffectHandle != -1) {
     int handle = PlayEffekseer3DEffect(m_lossOfBloodEffectHandle);
     if (handle != -1) {
@@ -137,6 +154,9 @@ int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY,
 
 // 集中線エフェクトを再生する
 int Effect::PlayConcentrationLine(float x, float y, float z) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   if (m_concentrationLineEffectHandle != -1) {
     int handle = PlayEffekseer3DEffect(m_concentrationLineEffectHandle);
     if (handle != -1) {
@@ -151,6 +171,9 @@ int Effect::PlayConcentrationLine(float x, float y, float z) {
 // ガードエフェクトを再生する
 int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY,
                             float rotZ) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   if (m_guardEffectHandle != -1) {
     int handle = PlayEffekseer3DEffect(m_guardEffectHandle);
     if (handle != -1) {
@@ -165,6 +188,9 @@ int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY,
 
 // スパークエフェクトを再生する
 int Effect::PlaySparkEffect(float x, float y, float z) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   if (m_sparkEffectHandle != -1) {
     int handle = PlayEffekseer3DEffect(m_sparkEffectHandle);
     if (handle != -1) {
@@ -178,6 +204,9 @@ int Effect::PlaySparkEffect(float x, float y, float z) {
 
 // スパークエフェクト2を再生する
 int Effect::PlaySparkEffect2(float x, float y, float z) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   if (m_sparkEffectHandle2 != -1) {
     int handle = PlayEffekseer3DEffect(m_sparkEffectHandle2);
     if (handle != -1) {
@@ -194,6 +223,9 @@ int Effect::PlaySparkEffect2(float x, float y, float z) {
 
 // 酸エフェクトを再生する
 int Effect::PlayAcidEffect(float x, float y, float z) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   if (m_acidEffectHandle != -1) {
     int handle = PlayEffekseer3DEffect(m_acidEffectHandle);
     if (handle != -1) {
@@ -207,6 +239,9 @@ int Effect::PlayAcidEffect(float x, float y, float z) {
 
 // 通常弾エフェクトを再生する
 int Effect::PlayNormalBulletEffect(float x, float y, float z) {
+  if (!ShouldPlayEffect(x, y, z))
+    return -1;
+
   if (m_normalBulletEffectHandle != -1) {
     int handle = PlayEffekseer3DEffect(m_normalBulletEffectHandle);
     if (handle != -1) {
