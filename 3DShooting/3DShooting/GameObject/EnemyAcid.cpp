@@ -4,6 +4,7 @@
 #include "DebugUtil.h"
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
+#include "Game.h"
 #include "Player.h"
 #include "SceneMain.h"
 #include "SphereCollider.h"
@@ -302,6 +303,13 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext &context) {
         ball.effectHandle = -1;
       }
       continue; // 以降の処理をスキップ
+    }
+
+    // チュートリアル表示判定 (パリィ可能な弾で、プレイヤーに近い場合)
+    // 弾速が5.0fなので、100.0fは約20フレーム（0.33秒）前。
+    // パリィの準備をするのに十分かつ、直前という距離感。
+    if (ball.isParryable && !ball.isReflected && distanceToPlayer <= 100.0f) {
+      TaskTutorialManager::GetInstance()->NotifyParryableAttack();
     }
 
     // まだ反射されていない弾の処理

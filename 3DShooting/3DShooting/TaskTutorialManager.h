@@ -28,6 +28,9 @@ public:
   // パリィ成功を通知する
   void NotifyParrySuccess();
 
+  // パリィ可能な攻撃が来たことを通知する（チュートリアル停止用）
+  void NotifyParryableAttack();
+
   // チュートリアルが完了したか
   bool IsCompleted() const;
 
@@ -101,4 +104,8 @@ private:
 
   // ステップ移行の遅延タイマー
   int m_transitionDelayTimer;
+
+  // パリィチュートリアル用一時停止制御
+  bool m_hasShownParryTutorial; // パリィ説明を表示したかどうか
+  bool m_isParryTutorialPaused; // パリィ説明表示中で停止しているか
 };

@@ -1,5 +1,6 @@
 ﻿#include "TaskTutorialManager.h"
 #include "DxLib.h"
+#include "Game.h"
 #include "Player.h"
 #include "WaveManager.h"
 #include <string>
@@ -47,7 +48,8 @@ TaskTutorialManager::TaskTutorialManager()
       m_taskAlpha(0), m_taskFadeSpeed(5.0f), m_animationWaitTimer(0),
       m_displayedShootProgress(0.0f), m_displayedTackleProgress(0.0f),
       m_displayedShieldThrowProgress(0.0f), m_displayedParryProgress(0.0f),
-      m_progressAnimSpeed(0.02f), m_transitionDelayTimer(0) {
+      m_progressAnimSpeed(0.02f), m_transitionDelayTimer(0),
+      m_hasShownParryTutorial(false), m_isParryTutorialPaused(false) {
   // フォントの作成
   m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 32, kTaskFontThickness,
                                          DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -95,6 +97,8 @@ void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
   m_displayedShieldThrowProgress = 0.0f;
   m_displayedParryProgress = 0.0f;
   m_transitionDelayTimer = 0;
+  m_hasShownParryTutorial = false;
+  m_isParryTutorialPaused = false;
 
   if (m_pWaveManager) {
     m_pWaveManager->SpawnTutorialWave(1);
@@ -138,20 +142,46 @@ void TaskTutorialManager::NotifyParrySuccess() {
   }
 }
 
+void TaskTutorialManager::NotifyParryableAttack() {
+  // パリィタスク中かつ、まだ説明を表示していない場合
+  if (m_step == TaskStep::Parry && !m_hasShownParryTutorial &&
+      !m_isParryTutorialPaused) {
+    m_isParryTutorialPaused = true;
+    m_hasShownParryTutorial = true;
+    Game::SetPaused(true); // ゲームを一時停止
+  }
+}
+
 void TaskTutorialManager::Reset() {
   m_step = TaskStep::None;
   m_shootKills = 0;
   m_tackleKills = 0;
   m_pWaveManager = nullptr;
   m_pPlayer = nullptr;
+  m_hasShownParryTutorial = false;
+  m_isParryTutorialPaused = false;
+  Game::SetPaused(false);
 }
 
 void TaskTutorialManager::Skip(WaveManager *pWaveManager) {
   m_step = TaskStep::Completed;
   m_pWaveManager = pWaveManager;
+  m_hasShownParryTutorial = false;
+  m_isParryTutorialPaused = false;
+  Game::SetPaused(false);
 }
 
 void TaskTutorialManager::Update() {
+  // パリィ説明表示中の更新処理
+  if (m_isParryTutorialPaused) {
+    // 右クリックで再開
+    if (GetMouseInput() & MOUSE_INPUT_RIGHT) {
+      m_isParryTutorialPaused = false;
+      Game::SetPaused(false); // ゲーム再開
+    }
+    return; // 停止中は他の更新を行わない
+  }
+
   // プログレスバーのアニメーション
   if (m_step == TaskStep::Shoot || m_step == TaskStep::ShootCompleteDelay) {
     float targetProgress = static_cast<float>(m_shootKills) / kShootKillGoal;
@@ -562,6 +592,57 @@ void TaskTutorialManager::Draw() {
 
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
+
+    // パリィ説明表示 (一時停止中)
+    if (m_isParryTutorialPaused) {
+      // 画面全体を少し暗くする
+      SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+      DrawBox(0, 0, 1920, 1080, 0x000000, true);
+      SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+      int centerX = 1920 / 2;
+      int centerY = 1080 / 2;
+
+      // テキスト表示
+      // 「緑色の攻撃はタイミングよくシールドブロック（MouseRight.png）を行うことでパリィできる」
+      std::string text1 = "緑色の攻撃はタイミングよくシールドブロック";
+      std::string text2 = "を行うことでパリィできる";
+
+      // 中央揃えのために幅計算
+      int text1Width =
+          GetDrawStringWidthToHandle(text1.c_str(), -1, m_titleFontHandle);
+      int iconWidth = 32; // アイコンサイズ
+      int text2Width =
+          GetDrawStringWidthToHandle(text2.c_str(), -1, m_titleFontHandle);
+
+      int totalWidth = text1Width + iconWidth + text2Width;
+      int startX = centerX - totalWidth / 2;
+
+      int currentX = startX;
+      int currentY = centerY - 50;
+
+      // テキスト描画
+      DrawStringToHandle(currentX, currentY, text1.c_str(), 0xFFFFFF,
+                         m_titleFontHandle);
+      currentX += text1Width;
+
+      // アイコン描画
+      DrawExtendGraph(currentX, currentY, currentX + iconWidth,
+                      currentY + iconWidth, m_mouseRightImg, true);
+      currentX += iconWidth;
+
+      // 残りのテキスト描画
+      DrawStringToHandle(currentX, currentY, text2.c_str(), 0xFFFFFF,
+                         m_titleFontHandle);
+
+      // 続行案内
+      std::string resumeText = "右クリックを押して再開";
+      int resumeTextWidth =
+          GetDrawStringWidthToHandle(resumeText.c_str(), -1, m_taskFontHandle);
+      DrawStringToHandle(centerX - resumeTextWidth / 2, centerY + 50,
+                         resumeText.c_str(), 0xAAAAAA, m_taskFontHandle);
+    }
+
   } break;
   case TaskStep::Completed:
     break;
