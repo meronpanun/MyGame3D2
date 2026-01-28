@@ -652,7 +652,7 @@ void Player::Update(
   }
 
   // 弾の更新
-  Bullet::UpdateBullets(m_bullets, m_modelPos);
+  Bullet::UpdateBullets(m_bullets, m_modelPos, collisionData);
 
   // Head Bobbing状態をカメラに設定
   if (m_pCamera) {
