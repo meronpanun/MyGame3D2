@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "CollisionGrid.h" // 追加
 #include "EnemyBase.h"
 #include "TransformDataLoader.h"
 #include <memory>
@@ -253,6 +254,7 @@ private:
   std::vector<EnemySpawnInfo> m_spawnInfoList;
   std::vector<SpawnAreaInfo> m_spawnAreaList; // スポーンエリアのリスト
   std::vector<std::shared_ptr<EnemyBase>> m_enemyList;
+  CollisionGrid m_collisionGrid; // 追加
 
   // 敵のパラメータを保持
   std::vector<ObjectTransformData> m_enemyData;

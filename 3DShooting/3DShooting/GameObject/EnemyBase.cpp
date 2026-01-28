@@ -23,7 +23,8 @@ EnemyBase::EnemyBase()
       m_attackCooldownMax(kDefaultCooldownMax),
       m_attackPower(kDefaultAttackPower), m_attackHitFrame(0),
       m_isAttacking(false), m_isActive(true), m_verticalVelocity(0.0f),
-      m_isGrounded(false) {}
+      m_isGrounded(false), m_updateFrameCount(0), m_aiUpdateInterval(1),
+      m_isSimpleMode(false), m_shouldUpdateAI(true) {}
 
 void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
                                   Effect *pEffect) {
@@ -180,4 +181,48 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR &startPos,
   VECTOR term2 = VScale(gravityVec, 0.5f * time);
 
   return VSub(term1, term2);
+}
+
+void EnemyBase::UpdateThrottling(const VECTOR &playerPos) {
+  // カメラ情報の取得
+  VECTOR camPos = GetCameraPosition();
+  VECTOR camTarget = GetCameraTarget();
+  VECTOR camDir = VNorm(VSub(camTarget, camPos));
+
+  // プレイヤーとの距離チェック
+  VECTOR toPlayer = VSub(playerPos, m_pos);
+  float distSq = VSquareSize(toPlayer);
+
+  // デフォルト設定
+  m_aiUpdateInterval = 1;
+  m_isSimpleMode = false;
+
+  // 1. 距離による更新頻度変更
+  if (distSq > 800.0f * 800.0f) {
+    m_aiUpdateInterval = 3; // 遠距離: 3フレームに1回
+  } else if (distSq > 400.0f * 400.0f) {
+    m_aiUpdateInterval = 2; // 中距離: 2フレームに1回
+  }
+
+  // 2. 視界判定 (画面外停止)
+  // Bossは常にフルパワー
+  if (!IsBoss()) {
+    VECTOR toEnemy = VSub(m_pos, camPos);
+    float enemyDistSq = VSquareSize(toEnemy);
+
+    // カメラからある程度離れている場合のみ判定
+    if (enemyDistSq > 300.0f * 300.0f) {
+      VECTOR dirToEnemy = VNorm(toEnemy);
+      float dot = VDot(camDir, dirToEnemy);
+
+      // 視界外 (視野角 約66度相当) かつ プレイヤーからもある程度離れている
+      if (dot < 0.4f && distSq > 400.0f * 400.0f) {
+        m_isSimpleMode = true;
+      }
+    }
+  }
+
+  // フレームカウントの更新と実行フラグの設定
+  m_updateFrameCount++;
+  m_shouldUpdateAI = (m_updateFrameCount % m_aiUpdateInterval == 0);
 }

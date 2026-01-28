@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CollisionGrid.cpp" />
     <ClCompile Include="DebugMenu.cpp" />
     <ClCompile Include="DirectionIndicator.cpp" />
     <ClCompile Include="GameObject\AmmoItem.cpp" />
@@ -198,6 +199,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AttackType.h" />
+    <ClInclude Include="CollisionGrid.h" />
     <ClInclude Include="DebugMenu.h" />
     <ClInclude Include="DirectionIndicator.h" />
     <ClInclude Include="GameObject\AmmoItem.h" />

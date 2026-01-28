@@ -12,7 +12,7 @@ class Collider;
 class SphereCollider;
 class CapsuleCollider;
 class Effect;
-// struct StageCollisionData; // 不要になるはず
+class CollisionGrid;
 
 /// <summary>
 /// 敵の更新処理に必要なコンテキスト情報
@@ -24,6 +24,7 @@ struct EnemyUpdateContext {
   const std::vector<EnemyBase *> &enemyList;
   const std::vector<Stage::StageCollisionData> &collisionData;
   Effect *pEffect;
+  const CollisionGrid *collisionGrid; // 追加
 };
 
 /// <summary>
@@ -285,6 +286,17 @@ protected:
   bool m_isGrounded;        // 接地フラグ
 
   AttackType m_lastAttackType = AttackType::None;
+
+  // AI Throttling
+  int m_updateFrameCount;
+  int m_aiUpdateInterval;
+  bool m_isSimpleMode;
+  bool m_shouldUpdateAI;
+
+  /// <summary>
+  /// AIの間引き更新処理を行う
+  /// </summary>
+  void UpdateThrottling(const VECTOR &playerPos);
 
 private:
   static int s_drawCount;

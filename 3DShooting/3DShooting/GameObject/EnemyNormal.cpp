@@ -1,6 +1,7 @@
 ﻿#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
+#include "CollisionGrid.h"
 #include "DebugUtil.h"
 #include "DxLib.h"
 #include "EffekseerForDXLib.h"
@@ -167,6 +168,16 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
       context.collisionData;
   Effect *pEffect = context.pEffect;
 
+  // AI間引き処理の更新
+  UpdateThrottling(player.GetPos());
+
+  // 視界外の単純動作モード
+  if (m_isSimpleMode) {
+    // ステージとの当たり判定のみ簡易に行う（重力適用など）
+    UpdateStageCollision(collisionData);
+    return;
+  }
+
   // ステージとの当たり判定
   UpdateStageCollision(collisionData);
 
@@ -206,8 +217,10 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
 
     // 死亡アニメーション中もアニメーション時間を更新
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
-      m_animTime += 1.0f * Game::GetTimeScale();
-      m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+      if (m_shouldUpdateAI) {
+        m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
+        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+      }
     }
 
     float currentAnimTotalTime =
@@ -275,42 +288,45 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   bool isPlayerInAttackRange =
       m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
-  // アニメーションの状態管理
-  if (m_currentAnimState == AnimState::Attack) {
-    // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
-    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
-        m_modelHandle, kAttackAnimName);
-    if (m_animTime > currentAnimTotalTime) {
-      if (m_attackEndDelayTimer <= 0) {
-        m_attackEndDelayTimer = kAttackEndDelay; // ディレイ開始
-      }
-    }
-    // ディレイタイマーが動作中ならカウントダウン
-    if (m_attackEndDelayTimer > 0) {
-      --m_attackEndDelayTimer;
-      if (m_attackEndDelayTimer == 0) {
-        m_isAttackHit = false; // 攻撃ヒットフラグをリセット
-        if (isPlayerInAttackRange) {
-          ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
-        } else {
-          ChangeAnimation(AnimState::Walk, true); // 範囲外なら歩行
+  // アニメーションの状態管理 (AI間引き対象)
+  if (m_shouldUpdateAI) {
+    if (m_currentAnimState == AnimState::Attack) {
+      // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
+      float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
+          m_modelHandle, kAttackAnimName);
+      if (m_animTime > currentAnimTotalTime) {
+        if (m_attackEndDelayTimer <= 0) {
+          m_attackEndDelayTimer = kAttackEndDelay; // ディレイ開始
         }
       }
-    }
-  } else if (m_currentAnimState == AnimState::Dead) {
-    // 死亡アニメーション中は移動や攻撃を行わない
-  } else // Walk 状態(常に歩行アニメーションが基本)
-  {
-    // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
-    if (CanAttackPlayer(player)) {
-      m_isAttackHit = false;
-      ChangeAnimation(AnimState::Attack, false);
+      // ディレイタイマーが動作中ならカウントダウン
+      if (m_attackEndDelayTimer > 0) {
+        m_attackEndDelayTimer -= m_aiUpdateInterval; // 間引き分減算
+        if (m_attackEndDelayTimer <= 0) {
+          m_isAttackHit = false; // 攻撃ヒットフラグをリセット
+          if (isPlayerInAttackRange) {
+            ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
+          } else {
+            ChangeAnimation(AnimState::Walk, true); // 範囲外なら歩行
+          }
+        }
+      }
+    } else if (m_currentAnimState == AnimState::Dead) {
+      // 死亡アニメーション中は移動や攻撃を行わない
+    } else // Walk 状態(常に歩行アニメーションが基本)
+    {
+      // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
+      if (CanAttackPlayer(player)) {
+        m_isAttackHit = false;
+        ChangeAnimation(AnimState::Attack, false);
+      }
     }
   }
 
-  // アニメーションがアタッチされている場合のみ時間を更新
-  if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
-    m_animTime += 1.0f * Game::GetTimeScale();
+  // アニメーションがアタッチされている場合のみ時間を更新 (AI間引き対象)
+  if (m_shouldUpdateAI &&
+      m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
+    m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
 
     float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
         m_modelHandle,
@@ -369,7 +385,14 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   }
 
   // 敵同士の押し出し処理（横方向への広がり）
-  for (EnemyBase *other : enemyList) {
+  std::vector<EnemyBase *> neighbors;
+  if (context.collisionGrid) {
+    context.collisionGrid->GetNeighbors(m_pos, neighbors);
+  }
+  const std::vector<EnemyBase *> &targets =
+      (context.collisionGrid) ? neighbors : enemyList;
+
+  for (EnemyBase *other : targets) {
     if (!other)
       continue;
     // 自分自身は除外
@@ -404,30 +427,35 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   if (m_currentAnimState ==
       AnimState::Attack) // 攻撃アニメーションが再生中の場合のみ攻撃判定を行う
   {
-    // m_currentAnimTotalTime を AnimationManager から取得
-    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
-        m_modelHandle, kAttackAnimName);
-    float attackStart = currentAnimTotalTime * 0.5f; // 攻撃開始時間
-    float attackEnd = currentAnimTotalTime * 0.7f;   // 攻撃終了時間
+    // m_shouldUpdateAI
+    // で判定して、間引き時は前回の結果を維持（あるいはスキップ）
+    // ここでは攻撃の当たり判定は重いので間引き対象にする
+    if (m_shouldUpdateAI) {
+      // m_currentAnimTotalTime を AnimationManager から取得
+      float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
+          m_modelHandle, kAttackAnimName);
+      float attackStart = currentAnimTotalTime * 0.5f; // 攻撃開始時間
+      float attackEnd = currentAnimTotalTime * 0.7f;   // 攻撃終了時間
 
-    // 攻撃アニメーションの範囲内でのみ攻撃判定を行う
-    if (!m_isAttackHit && m_animTime >= attackStart &&
-        m_animTime <= attackEnd) {
-      int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
-      int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
-      if (handRIndex != -1 && handLIndex != -1) {
-        VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
-        VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+      // 攻撃アニメーションの範囲内でのみ攻撃判定を行う
+      if (!m_isAttackHit && m_animTime >= attackStart &&
+          m_animTime <= attackEnd) {
+        int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+        int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+        if (handRIndex != -1 && handLIndex != -1) {
+          VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+          VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
-        // 攻撃ヒット用コライダーの更新
-        m_pAttackHitCollider->SetSegment(handRPos, handLPos);
-        m_pAttackHitCollider->SetRadius(kAttackHitRadius);
+          // 攻撃ヒット用コライダーの更新
+          m_pAttackHitCollider->SetSegment(handRPos, handLPos);
+          m_pAttackHitCollider->SetRadius(kAttackHitRadius);
 
-        if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get())) {
-          const_cast<Player &>(player).TakeDamage(
-              m_attackPower,
-              m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
-          m_isAttackHit = true;
+          if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get())) {
+            const_cast<Player &>(player).TakeDamage(
+                m_attackPower,
+                m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
+            m_isAttackHit = true;
+          }
         }
       }
     }

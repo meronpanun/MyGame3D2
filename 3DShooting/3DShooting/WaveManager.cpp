@@ -1,5 +1,6 @@
 ﻿#include "WaveManager.h"
 #include "Bullet.h"
+#include "CollisionGrid.h" // 追加
 #include "EffekseerForDXLib.h"
 #include "EnemyAcid.h"
 #include "EnemyBase.h"
@@ -96,8 +97,14 @@ void WaveManager::Init() {
 
   // ウェーブデータをロード
   LoadWaveData();
+  // ウェーブデータをロード
+  LoadWaveData();
   // スポーンエリアデータをロード
   LoadSpawnAreaData();
+
+  // グリッド初期化
+  // World size is roughly 2000x2000 based on road floor
+  m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 150.0f); // Cell size 150
 
   // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
   std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
@@ -308,6 +315,7 @@ void WaveManager::UpdateEnemies(
     const Player &player,
     const std::vector<Stage::StageCollisionData> &collisionData,
     Effect *pEffect) {
+
   std::vector<EnemyBase *> activeEnemies;
   for (auto &pEnemy : m_enemyNormalPool) {
     if (pEnemy->IsActive() && pEnemy->IsAlive())
@@ -326,22 +334,18 @@ void WaveManager::UpdateEnemies(
       activeEnemies.push_back(pEnemy.get());
   }
 
+  // 1. Gridをクリアして再構築
+  m_collisionGrid.Clear();
+  for (auto *enemy : activeEnemies) {
+    m_collisionGrid.RegisterEnemy(enemy);
+  }
+
   // コンテキストを作成
   EnemyUpdateContext context = {
-      bullets,       tackleInfo, player,
-      activeEnemies, // activeEnemiesを使用（自分自身が含まれていても、各Updateで弾くか、無視されることを期待）しかしEnemyNormalなどはothersを作っていた。
-      collisionData, pEffect};
-
-  // contextのenemyListはconst参照なので、個別に除外したリストを渡すのは難しい。
-  // しかし、Refactoring前は `others` を渡していた。
-  // EnemyUpdateContextには `activeEnemies`
-  // 全体を渡して、受け取り側で自分自身を除外するのがベストだが、 既存コードは
-  // `others` を渡していたので、少し挙動が変わる可能性がある。
-  // ただし、今回変更した EnemyNormal.cpp などでは `enemyList`
-  // を使って「敵同士の押し出し」を行っている。 自分自身との押し出し判定は `if
-  // (other == this) continue;` でガードされているはず。
-  // EnemyNormal.cppの391行目を確認: `if (other == this) continue;` がある。
-  // なので、全員のリストを渡しても問題ない。
+      bullets,         tackleInfo,    player,
+      activeEnemies,   collisionData, pEffect,
+      &m_collisionGrid // Gridを渡す
+  };
 
   for (auto &pEnemy : m_enemyNormalPool) {
     if (!pEnemy->IsActive())
