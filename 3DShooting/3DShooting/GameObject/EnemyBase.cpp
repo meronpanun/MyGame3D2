@@ -6,7 +6,6 @@
 #include "Stage.h"
 #include "TaskTutorialManager.h"
 
-
 namespace {
 constexpr int kDefaultHitDisplayDuration = 60; // 1秒間表示
 constexpr float kDefaultInitialHP = 100.0f;    // デフォルトの初期体力
@@ -77,9 +76,9 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
 
     // ヒット時コールバック（ヒットマーク用）
     if (m_onHitCallback) {
-      printf("EnemyBase: Hit callback triggered with part: %d\n",
-             static_cast<int>(determinedHitPart));
-      m_onHitCallback(determinedHitPart);
+      // 距離を計算して渡す
+      float hitDist = sqrtf(minHitDistSq);
+      m_onHitCallback(determinedHitPart, hitDist);
     }
   }
 }

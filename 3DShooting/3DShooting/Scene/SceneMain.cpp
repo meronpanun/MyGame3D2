@@ -102,7 +102,7 @@ SceneMain *SceneMain::Instance() { return g_sceneMainInstance; }
 SceneMain::SceneMain(bool isReturningFromOtherScene)
     : m_isPaused(false), m_isEscapePressed(false),
       m_isReturningFromOption(false),
-      m_cameraSensitivity(Game::g_cameraSensitivity),
+      m_cameraSensitivity(Game::g_cameraSensitivity), m_hitDistance(0.0f),
       m_pCamera(std::make_unique<Camera>()), m_skyDomeHandle(-1),
       m_dotDefaultHandle(-1), m_dotOnTargetHandle(-1),
       m_sgDefaultReticleHandle(-1), m_sgOnTargetReticleHandle(-1),
@@ -311,9 +311,11 @@ void SceneMain::Init() {
     m_pTutorialManager->Init();
   }
 
-  // ヒットマーク用コールバックをWaveManagerに設定
+  // ヒットマーク用コールバックをWaveManagerに  // 敵ヒット時のコールバック設定
   m_pWaveManager->SetOnEnemyHitCallback(
-      [this](EnemyBase::HitPart part) { OnPlayerBulletHitEnemy(part); });
+      [this](EnemyBase::HitPart part, float distance) {
+        OnPlayerBulletHitEnemy(part, distance);
+      });
 
   // 環境光の設定
   SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB,
@@ -831,8 +833,23 @@ void SceneMain::Draw() {
 
   // ヒットマーク描画
   if (m_hitMarkTimer > 0) {
+    // 距離減衰の計算
+    // 基準距離(3m)以内は減衰なし、消失距離(20m)以上は最小アルファ
+    constexpr float kMinDistance = 300.0f;
+    constexpr float kMaxDistance = 2000.0f;
+    constexpr float kMaxRatio = 1.0f;
+    constexpr float kMinRatio = 0.2f;
+
+    float ratio = 1.0f;
+    if (m_hitDistance > kMinDistance) {
+      float t = (m_hitDistance - kMinDistance) / (kMaxDistance - kMinDistance);
+      t = (std::min)(t, 1.0f); // Clamp 0~1
+      ratio = kMaxRatio * (1.0f - t) + kMinRatio * t;
+    }
+
     // アルファ値を計算
-    int alpha = (255 * m_hitMarkTimer) / kHitMarkDuration;
+    int alpha =
+        static_cast<int>((255 * m_hitMarkTimer * ratio) / kHitMarkDuration);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
     // 赤 or 黄色
@@ -929,8 +946,15 @@ void SceneMain::SetCameraSensitivity(float sensitivity) {
   }
 }
 
-// プレイヤーの弾が敵にヒットした際に呼ばれる（ヒットマーク表示用）
-void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part) {
+/// <summary>
+/// プレイヤーの弾が敵にヒットした際に呼ばれる
+/// </summary>
+void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part,
+                                       float distance) {
+  // ヒット距離を保存
+  m_hitDistance = distance;
+
+  // ヒット部位によって処理を分ける（例：ヘッドショット時のSEなど）
   m_hitMarkTimer = kHitMarkDuration;
   m_hitMarkType = part;
 }

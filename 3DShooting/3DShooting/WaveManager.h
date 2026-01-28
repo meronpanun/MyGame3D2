@@ -1,9 +1,9 @@
 ﻿#pragma once
-#include "TransformDataLoader.h"
 #include "EnemyBase.h"
-#include <vector>
+#include "TransformDataLoader.h"
 #include <memory>
 #include <string>
+#include <vector>
 
 class EnemyNormal;
 class EnemyRunner;
@@ -13,279 +13,286 @@ class Bullet;
 class Player;
 
 // Waveデータの構造体
-struct WaveData
-{
-	int wave = 0;            // ウェーブ番号
-    std::string enemyType;   // 敵の種類
-	int count = 0;           // 出現数
-	float spawnInterval = 0; // 出現間隔
-	float startTime     = 0; // 出現開始時間
-	float waveInterval  = 0; // ウェーブ間インターバル
+struct WaveData {
+  int wave = 0;            // ウェーブ番号
+  std::string enemyType;   // 敵の種類
+  int count = 0;           // 出現数
+  float spawnInterval = 0; // 出現間隔
+  float startTime = 0;     // 出現開始時間
+  float waveInterval = 0;  // ウェーブ間インターバル
 };
 
 // 敵の出現情報
-struct EnemySpawnInfo
-{
-	std::string enemyType;    // 敵の種類
-	VECTOR spawnPos;          // 出現位置
-	float  spawnTime = 0;     // 出現時間
-	bool   isSpawned = false; // 出現済みフラグ
+struct EnemySpawnInfo {
+  std::string enemyType;  // 敵の種類
+  VECTOR spawnPos;        // 出現位置
+  float spawnTime = 0;    // 出現時間
+  bool isSpawned = false; // 出現済みフラグ
 };
 
 // スポーンエリア情報 (SpawnAreaData.csv)
-struct SpawnAreaInfo
-{
-    int type = 0;             // タイプ (0:Main, 1:Tutorial)
-    VECTOR center = {0};      // 中心座標
-    VECTOR size = {0};        // サイズ (Scale)
+struct SpawnAreaInfo {
+  int type = 0;        // タイプ (0:Main, 1:Tutorial)
+  VECTOR center = {0}; // 中心座標
+  VECTOR size = {0};   // サイズ (Scale)
 };
 
 /// <summary>
 /// ウェーブ管理クラス
 /// </summary>
-class WaveManager
-{
+class WaveManager {
 public:
-    WaveManager();
-    ~WaveManager();
+  WaveManager();
+  ~WaveManager();
 
-    void Init();
-    void Update();
+  void Init();
+  void Update();
 
-    /// <summary>
-	/// 現在のWave番号を取得
-    /// </summary>
-	/// <returns>現在のWave番号</returns>
-    int GetCurrentWave() const { return m_currentWave; }
+  /// <summary>
+  /// 現在のWave番号を取得
+  /// </summary>
+  /// <returns>現在のWave番号</returns>
+  int GetCurrentWave() const { return m_currentWave; }
 
-    /// <summary>
-    /// 敵のリストを取得
-    /// </summary>
-	/// <returns>敵のリスト</returns>
-    std::vector<std::shared_ptr<EnemyBase>>& GetEnemyList() { return m_enemyList; }
+  /// <summary>
+  /// 敵のリストを取得
+  /// </summary>
+  /// <returns>敵のリスト</returns>
+  std::vector<std::shared_ptr<EnemyBase>> &GetEnemyList() {
+    return m_enemyList;
+  }
 
-    /// <summary>
-	/// 敵の死亡時に呼ばれるコールバックを設定
-    /// </summary>
-	/// <param name="callback">コールバック関数</param>
-    void SetOnEnemyDeathCallback(std::function<void(const VECTOR&)> callback);
+  /// <summary>
+  /// 敵の死亡時に呼ばれるコールバックを設定
+  /// </summary>
+  /// <param name="callback">コールバック関数</param>
+  void SetOnEnemyDeathCallback(std::function<void(const VECTOR &)> callback);
 
-    /// <summary>
-	/// 敵ヒット時のコールバックを設定
-    /// </summary>
-	/// <param name="cb">コールバック関数</param>
-    void SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart)> cb);
+  /// <summary>
+  /// 敵ヒット時のコールバックを設定
+  /// </summary>
+  /// <param name="cb">コールバック関数</param>
+  void SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart, float)> cb);
 
-    /// <summary>
-	/// Road_floorオブジェクトの範囲を設定
-    /// </summary>
-	/// <param name="minPos">最小位置</param>
-	/// <param name="maxPos">最大位置</param>
-    void SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos);
+  /// <summary>
+  /// Road_floorオブジェクトの範囲を設定
+  /// </summary>
+  /// <param name="minPos">最小位置</param>
+  /// <param name="maxPos">最大位置</param>
+  void SetRoadFloorBounds(const VECTOR &minPos, const VECTOR &maxPos);
 
-    /// <summary>
-	/// デバッグ情報を表示
-    /// </summary>
-    void DrawDebugInfo();
+  /// <summary>
+  /// デバッグ情報を表示
+  /// </summary>
+  void DrawDebugInfo();
 
-    /// <summary>
-    /// スポーンエリアのデバッグ表示（ワイヤーフレーム）
-    /// </summary>
-    /// <param name="isTutorial">チュートリアルかどうか</param>
-    void DrawDebugSpawnAreas(bool isTutorial = false);
+  /// <summary>
+  /// スポーンエリアのデバッグ表示（ワイヤーフレーム）
+  /// </summary>
+  /// <param name="isTutorial">チュートリアルかどうか</param>
+  void DrawDebugSpawnAreas(bool isTutorial = false);
 
-    /// <summary>
-    /// 敵の一括更新
-    /// </summary>
-	/// <param name="bullets">弾のリスト</param>
-	/// <param name="tackleInfo">タックル情報</param>
-	/// <param name="player">プレイヤーオブジェクト</param>
-    void UpdateEnemies(std::vector<Bullet>& bullets, const Player::TackleInfo& tackleInfo, const Player& player, const std::vector<Stage::StageCollisionData>& collisionData, Effect* pEffect);
+  /// <summary>
+  /// 敵の一括更新
+  /// </summary>
+  /// <param name="bullets">弾のリスト</param>
+  /// <param name="tackleInfo">タックル情報</param>
+  /// <param name="player">プレイヤーオブジェクト</param>
+  void
+  UpdateEnemies(std::vector<Bullet> &bullets,
+                const Player::TackleInfo &tackleInfo, const Player &player,
+                const std::vector<Stage::StageCollisionData> &collisionData,
+                Effect *pEffect);
 
-    /// <summary>
-    /// 敵の一括描画
-    /// </summary>
-    /// <param name="isTutorial">チュートリアルかどうか</param>
-    void DrawEnemies(bool isTutorial = false);
+  /// <summary>
+  /// 敵の一括描画
+  /// </summary>
+  /// <param name="isTutorial">チュートリアルかどうか</param>
+  void DrawEnemies(bool isTutorial = false);
 
-    /// <summary>
-    /// ウェーブUIの描画
-    /// </summary>
-    void DrawWaveUI();
+  /// <summary>
+  /// ウェーブUIの描画
+  /// </summary>
+  void DrawWaveUI();
 
-    /// <summary>
-	/// 現在のウェーブがアクティブかどうかを取得
-    /// </summary>
-	/// <returns>現在のウェーブがアクティブならtrue</returns>
-    bool IsWaveActive() const { return m_isWaveActive; }
+  /// <summary>
+  /// 現在のウェーブがアクティブかどうかを取得
+  /// </summary>
+  /// <returns>現在のウェーブがアクティブならtrue</returns>
+  bool IsWaveActive() const { return m_isWaveActive; }
 
-    /// <summary>
-	/// すべてのウェーブが完了したかどうかを取得
-    /// </summary>
-	/// <returns>すべてのウェーブが完了していればtrue</returns>
-    bool IsAllWavesCompleted() const { return m_isAllWavesCompleted; }
+  /// <summary>
+  /// すべてのウェーブが完了したかどうかを取得
+  /// </summary>
+  /// <returns>すべてのウェーブが完了していればtrue</returns>
+  bool IsAllWavesCompleted() const { return m_isAllWavesCompleted; }
 
-    /// <summary>
-	/// ウェーブ1の敵がロードされたかどうかを取得
-    /// </summary>
-	/// <returns>ウェーブ1の敵がロードされていればtrue</returns>
-    bool IsWave1Loaded() const { return m_isWave1Loaded; }
+  /// <summary>
+  /// ウェーブ1の敵がロードされたかどうかを取得
+  /// </summary>
+  /// <returns>ウェーブ1の敵がロードされていればtrue</returns>
+  bool IsWave1Loaded() const { return m_isWave1Loaded; }
 
-    /// <summary>
-	/// ウェーブ1の敵が実際に出現したかどうかを取得
-    /// </summary>
-	/// <returns>ウェーブ1の敵が出現していればtrue</returns>
-    bool IsWave1EnemySpawned() const { return m_isWave1EnemySpawned; }
+  /// <summary>
+  /// ウェーブ1の敵が実際に出現したかどうかを取得
+  /// </summary>
+  /// <returns>ウェーブ1の敵が出現していればtrue</returns>
+  bool IsWave1EnemySpawned() const { return m_isWave1EnemySpawned; }
 
-    /// <summary>
-	/// 現在のウェーブの画像ハンドルを取得
-    /// </summary>
-	/// <returns>現在のウェーブの画像ハンドル</returns>
-    float GetSpawnTimer() const { return m_spawnTimer; }
+  /// <summary>
+  /// 現在のウェーブの画像ハンドルを取得
+  /// </summary>
+  /// <returns>現在のウェーブの画像ハンドル</returns>
+  float GetSpawnTimer() const { return m_spawnTimer; }
 
-    /// <summary>
-	/// チュートリアルがクリアされたかどうかを取得
-    /// </summary>
-	/// <returns>ショットチュートリアルがクリアされていればtrue</returns>
-    bool IsShotTutorialCleared() const { return m_isShotTutorialCleared; }
+  /// <summary>
+  /// チュートリアルがクリアされたかどうかを取得
+  /// </summary>
+  /// <returns>ショットチュートリアルがクリアされていればtrue</returns>
+  bool IsShotTutorialCleared() const { return m_isShotTutorialCleared; }
 
-    /// <summary>
-	/// タックルチュートリアルがクリアされたかどうかを取得
-    /// </summary>
-	/// <returns>タックルチュートリアルがクリアされていればtrue</returns>
-    bool IsTackleTutorialCleared() const { return m_isTackleTutorialCleared; }
+  /// <summary>
+  /// タックルチュートリアルがクリアされたかどうかを取得
+  /// </summary>
+  /// <returns>タックルチュートリアルがクリアされていればtrue</returns>
+  bool IsTackleTutorialCleared() const { return m_isTackleTutorialCleared; }
 
-    /// <summary>
-    /// 生存している敵の数を取得
-    /// </summary>
-    /// <returns>生存している敵の数</returns>
-    int GetAliveEnemyCount() const;
+  /// <summary>
+  /// 生存している敵の数を取得
+  /// </summary>
+  /// <returns>生存している敵の数</returns>
+  int GetAliveEnemyCount() const;
 
-    /// <summary>
-    /// チュートリアル用の敵をスポーンさせる
-    /// </summary>
-    /// <param name="tutorialWaveId">チュートリアルウェーブのID</param>
-    void SpawnTutorialWave(int tutorialWaveId);
+  /// <summary>
+  /// チュートリアル用の敵をスポーンさせる
+  /// </summary>
+  /// <param name="tutorialWaveId">チュートリアルウェーブのID</param>
+  void SpawnTutorialWave(int tutorialWaveId);
 
-    // デバッグ表示切り替え用
-    static void SetDrawSpawnAreas(bool isDraw) { s_isDrawSpawnAreas = isDraw; }
-    static bool IsDrawSpawnAreas() { return s_isDrawSpawnAreas; }
-
-private:
-    /// <summary>
-	/// ウェーブデータを読み込む
-    /// </summary>
-    void LoadWaveData();
-
-    /// <summary>
-    /// ランダムな出現位置を生成 
-    /// </summary>
-	/// <param name="playerPos">プレイヤーの位置</param>
-	/// <returns>ランダムな出現位置</returns>
-    VECTOR GenerateRandomSpawnPos(const VECTOR& playerPos);
-
-    /// <summary>
-    /// SpawnAreaData.csvを読み込む
-    /// </summary>
-    void LoadSpawnAreaData();
-
-    /// <summary>
-    /// 出現位置を生成（エリア定義があればそれを使用、なければランダム）
-    /// </summary>
-    /// <param name="type">スポーンエリアのタイプ (0:Main, 1:Tutorial)</param>
-    /// <param name="enemyType">敵の種類</param>
-    /// <param name="playerPos">プレイヤーの位置</param>
-    /// <returns>出現位置</returns>
-    VECTOR GenerateSpawnPos(int type, const std::string& enemyType, const VECTOR& playerPos);
-
-    /// <summary>
-    /// 敵を生成
-    /// </summary>
-	/// <param name="enemyType">敵の種類</param>
-	/// <returns>生成された敵のポインタ</returns>
-	std::shared_ptr<EnemyBase> CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos);
-
-    /// <summary>
-	/// 次のウェーブに進む
-    /// </summary>
-    void NextWave();
-
-    /// <summary>
-    /// 現在のウェーブを開始
-    /// </summary>
-	/// <param name="playerPos">プレイヤーの位置</param>
-    void StartCurrentWave(const VECTOR& playerPos = VGet(0.0f, 0.0f, 0.0f));
-    
-    /// <summary>
-    /// 現在のウェーブの敵がすべて倒されたかチェック
-    /// </summary>
-	/// <returns>すべて倒された場合はtrue</returns>
-    bool IsCurrentWaveCleared();
-
-    /// <summary>
-    /// 敵の死亡処理
-    /// </summary>
-	/// <param name="position">敵の位置</param>
-    void OnEnemyDeath(const VECTOR& pos);
+  // デバッグ表示切り替え用
+  static void SetDrawSpawnAreas(bool isDraw) { s_isDrawSpawnAreas = isDraw; }
+  static bool IsDrawSpawnAreas() { return s_isDrawSpawnAreas; }
 
 private:
-	// 敵のリストとテンプレート
-    std::vector<WaveData> m_waveDataList;
-    std::vector<EnemySpawnInfo> m_spawnInfoList;
-    std::vector<SpawnAreaInfo> m_spawnAreaList; // スポーンエリアのリスト
-    std::vector<std::shared_ptr<EnemyBase>> m_enemyList;
+  /// <summary>
+  /// ウェーブデータを読み込む
+  /// </summary>
+  void LoadWaveData();
 
-    // 敵のパラメータを保持
-    std::vector<ObjectTransformData> m_enemyData; 
+  /// <summary>
+  /// ランダムな出現位置を生成
+  /// </summary>
+  /// <param name="playerPos">プレイヤーの位置</param>
+  /// <returns>ランダムな出現位置</returns>
+  VECTOR GenerateRandomSpawnPos(const VECTOR &playerPos);
 
-	// 敵のプール
-    std::vector<std::shared_ptr<EnemyNormal>> m_enemyNormalPool;
-    std::vector<std::shared_ptr<EnemyRunner>> m_enemyRunnerPool;
-    std::vector<std::shared_ptr<EnemyAcid>>   m_enemyAcidPool;
-    std::vector<std::shared_ptr<EnemyBoss>>   m_enemyBossPool;
+  /// <summary>
+  /// SpawnAreaData.csvを読み込む
+  /// </summary>
+  void LoadSpawnAreaData();
 
-	// 敵のプールから取得
-    std::shared_ptr<EnemyNormal> GetPooledNormalEnemy();
-    std::shared_ptr<EnemyRunner> GetPooledRunnerEnemy();
-    std::shared_ptr<EnemyAcid>   GetPooledAcidEnemy();
-    std::shared_ptr<EnemyBoss>   GetPooledBossEnemy();
+  /// <summary>
+  /// 出現位置を生成（エリア定義があればそれを使用、なければランダム）
+  /// </summary>
+  /// <param name="type">スポーンエリアのタイプ (0:Main, 1:Tutorial)</param>
+  /// <param name="enemyType">敵の種類</param>
+  /// <param name="playerPos">プレイヤーの位置</param>
+  /// <returns>出現位置</returns>
+  VECTOR GenerateSpawnPos(int type, const std::string &enemyType,
+                          const VECTOR &playerPos);
 
-    // コールバック
-    std::function<void(const VECTOR&)>      m_onEnemyDeathCallback; // 敵の死亡時コールバック
-    std::function<void(EnemyBase::HitPart)> m_onEnemyHitCallback;   // 部位情報付き
+  /// <summary>
+  /// 敵を生成
+  /// </summary>
+  /// <param name="enemyType">敵の種類</param>
+  /// <returns>生成された敵のポインタ</returns>
+  std::shared_ptr<EnemyBase> CreateEnemy(const std::string &enemyType,
+                                         const VECTOR &spawnPos);
 
-    // Road_floorオブジェクトの範囲
-    VECTOR m_roadFloorMin; // 最小位置
-    VECTOR m_roadFloorMax; // 最大位置
+  /// <summary>
+  /// 次のウェーブに進む
+  /// </summary>
+  void NextWave();
 
-    // 敵管理
-    int m_totalSpawnedCount; // 累計出現数
+  /// <summary>
+  /// 現在のウェーブを開始
+  /// </summary>
+  /// <param name="playerPos">プレイヤーの位置</param>
+  void StartCurrentWave(const VECTOR &playerPos = VGet(0.0f, 0.0f, 0.0f));
 
-	// チュートリアル関連
-	bool m_isWave1Loaded;           // ウェーブ1の敵がロードされたかどうか
-	bool m_isWave1EnemySpawned;     // ウェーブ1の敵が実際に出現したかどうか
-	bool m_isShotTutorialCleared;   // ショットチュートリアルがクリアされたかどうか
-	bool m_isTackleTutorialCleared; // タックルチュートリアルがクリアされたかどうか
+  /// <summary>
+  /// 現在のウェーブの敵がすべて倒されたかチェック
+  /// </summary>
+  /// <returns>すべて倒された場合はtrue</returns>
+  bool IsCurrentWaveCleared();
 
-    // ステージ情報
-	bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
+  /// <summary>
+  /// 敵の死亡処理
+  /// </summary>
+  /// <param name="position">敵の位置</param>
+  void OnEnemyDeath(const VECTOR &pos);
 
-	// ウェーブ管理関連
-    int m_currentWave;          // 現在のWave番号
-    int m_currentSpawnIndex;    // 現在の出現インデックス
-    float m_waveTimer;          // ウェーブのタイマー
-    float m_spawnTimer;         // 敵の出現タイマー
-    float m_waveIntervalTimer;  // ウェーブ間インターバル用タイマー
-    bool m_isWaveActive;        // 現在のウェーブがアクティブかどうか
-    bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
+private:
+  // 敵のリストとテンプレート
+  std::vector<WaveData> m_waveDataList;
+  std::vector<EnemySpawnInfo> m_spawnInfoList;
+  std::vector<SpawnAreaInfo> m_spawnAreaList; // スポーンエリアのリスト
+  std::vector<std::shared_ptr<EnemyBase>> m_enemyList;
 
-	// ウェーブ画像アニメーション関連
-    int  m_waveImages[3];                    // 1,2,3ウェーブ用画像ハンドル
-    int  m_waveImageAnimTimer;               // ウェーブ画像アニメーションタイマー
-    int  m_waveImageAnimDuration;            // ウェーブ画像アニメーションの総時間
-    int  m_waveImageAnimHoldDuration;        // ウェーブ画像アニメーションのホールド時間
-    int  m_waveImageAnimInitialHoldDuration; // ウェーブ画像アニメーションの初期ホールド時間
-    bool m_isWaveImageAnimating;             // ウェーブ画像アニメーション中フラグ
+  // 敵のパラメータを保持
+  std::vector<ObjectTransformData> m_enemyData;
 
-    static bool s_isDrawSpawnAreas;          // スポーンエリア描画フラグ
+  // 敵のプール
+  std::vector<std::shared_ptr<EnemyNormal>> m_enemyNormalPool;
+  std::vector<std::shared_ptr<EnemyRunner>> m_enemyRunnerPool;
+  std::vector<std::shared_ptr<EnemyAcid>> m_enemyAcidPool;
+  std::vector<std::shared_ptr<EnemyBoss>> m_enemyBossPool;
+
+  // 敵のプールから取得
+  std::shared_ptr<EnemyNormal> GetPooledNormalEnemy();
+  std::shared_ptr<EnemyRunner> GetPooledRunnerEnemy();
+  std::shared_ptr<EnemyAcid> GetPooledAcidEnemy();
+  std::shared_ptr<EnemyBoss> GetPooledBossEnemy();
+
+  // コールバック
+  std::function<void(const VECTOR &)>
+      m_onEnemyDeathCallback; // 敵の死亡時コールバック
+  std::function<void(EnemyBase::HitPart, float)>
+      m_onEnemyHitCallback; // 部位情報付き
+
+  // Road_floorオブジェクトの範囲
+  VECTOR m_roadFloorMin; // 最小位置
+  VECTOR m_roadFloorMax; // 最大位置
+
+  // 敵管理
+  int m_totalSpawnedCount; // 累計出現数
+
+  // チュートリアル関連
+  bool m_isWave1Loaded;         // ウェーブ1の敵がロードされたかどうか
+  bool m_isWave1EnemySpawned;   // ウェーブ1の敵が実際に出現したかどうか
+  bool m_isShotTutorialCleared; // ショットチュートリアルがクリアされたかどうか
+  bool
+      m_isTackleTutorialCleared; // タックルチュートリアルがクリアされたかどうか
+
+  // ステージ情報
+  bool m_isRoadFloorBoundsSet; // 範囲が設定されているかどうか
+
+  // ウェーブ管理関連
+  int m_currentWave;          // 現在のWave番号
+  int m_currentSpawnIndex;    // 現在の出現インデックス
+  float m_waveTimer;          // ウェーブのタイマー
+  float m_spawnTimer;         // 敵の出現タイマー
+  float m_waveIntervalTimer;  // ウェーブ間インターバル用タイマー
+  bool m_isWaveActive;        // 現在のウェーブがアクティブかどうか
+  bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
+
+  // ウェーブ画像アニメーション関連
+  int m_waveImages[3];             // 1,2,3ウェーブ用画像ハンドル
+  int m_waveImageAnimTimer;        // ウェーブ画像アニメーションタイマー
+  int m_waveImageAnimDuration;     // ウェーブ画像アニメーションの総時間
+  int m_waveImageAnimHoldDuration; // ウェーブ画像アニメーションのホールド時間
+  int m_waveImageAnimInitialHoldDuration; // ウェーブ画像アニメーションの初期ホールド時間
+  bool m_isWaveImageAnimating;            // ウェーブ画像アニメーション中フラグ
+
+  static bool s_isDrawSpawnAreas; // スポーンエリア描画フラグ
 };

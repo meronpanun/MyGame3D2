@@ -59,7 +59,8 @@ public:
   /// プレイヤーの弾が敵にヒットした際に呼ばれる(ヒットマーク表示用)
   /// </summary>
   /// <param name="part">ヒットした部位</param>
-  void OnPlayerBulletHitEnemy(EnemyBase::HitPart part);
+  /// <param name="distance">ヒットした距離</param>
+  void OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance);
 
   /// <summary>
   /// スコアポップアップを追加
@@ -151,6 +152,7 @@ private:
   // 経過時間管理
   std::chrono::steady_clock::time_point m_pauseStartTime;
   int m_hitMarkTimer;         // ヒットマーク表示タイマー
+  float m_hitDistance;        // ヒットした距離
   int m_clearSceneDelayTimer; // ゲームクリア遷移遅延タイマー
   float m_cameraSensitivity;  // カメラ感度
   static float s_elapsedTime; // ゲーム経過時間（秒）

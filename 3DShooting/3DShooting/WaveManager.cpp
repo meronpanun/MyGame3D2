@@ -16,7 +16,6 @@
 #include <random>
 #include <sstream>
 
-
 namespace {
 // プレイヤーからの最大アクティブ距離
 constexpr float kMaxActiveDistance = 1200.0f;
@@ -420,7 +419,7 @@ void WaveManager::SetOnEnemyDeathCallback(
 
 // 敵ヒット時のコールバックを設定
 void WaveManager::SetOnEnemyHitCallback(
-    std::function<void(EnemyBase::HitPart)> cb) {
+    std::function<void(EnemyBase::HitPart, float)> cb) {
   m_onEnemyHitCallback = cb;
 }
 
