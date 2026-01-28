@@ -741,7 +741,8 @@ void Player::Draw3D() {
       m_weaponManager.GetWeaponSwitchTimer(),
       m_weaponManager.GetWeaponSwitchDuration(),
       m_weaponManager.GetPreviousWeaponType(),
-      isTryingToGuard};
+      isTryingToGuard,
+      m_isTackling};
   m_weaponManager.Draw3D(weaponDrawContext);
 
   // 弾と薬莢の描画
