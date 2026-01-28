@@ -39,7 +39,8 @@ TaskTutorialManager::TaskTutorialManager()
     : m_pWaveManager(nullptr), m_pPlayer(nullptr), m_step(TaskStep::None),
       m_shootKills(0), m_tackleKills(0), m_titleFontHandle(-1),
       m_taskFontHandle(-1), m_diamondImg(-1), m_mouseLeftImg(-1),
-      m_mouseRightImg(-1), m_titlePosX(0.0f), m_titleAnimSpeed(5.0f),
+      m_mouseRightImg(-1), m_alpha1Img(-1), m_alpha2Img(-1),
+      m_mouseWheelImg(-1), m_titlePosX(0.0f), m_titleAnimSpeed(5.0f),
       m_isTitleAnimFinished(false), m_taskAlpha(0), m_taskFadeSpeed(5.0f),
       m_animationWaitTimer(0), m_displayedShootProgress(0.0f),
       m_displayedTackleProgress(0.0f), m_progressAnimSpeed(0.02f),
@@ -52,6 +53,9 @@ TaskTutorialManager::TaskTutorialManager()
   m_diamondImg = LoadGraph("data/image/Diamond.png");
   m_mouseLeftImg = LoadGraph("data/image/MouseLeft.png");
   m_mouseRightImg = LoadGraph("data/image/MouseRight.png");
+  m_alpha1Img = LoadGraph("data/image/Alpha1.png");
+  m_alpha2Img = LoadGraph("data/image/Alpha2.png");
+  m_mouseWheelImg = LoadGraph("data/image/MouseWheel.png");
 }
 
 TaskTutorialManager::~TaskTutorialManager() {
@@ -60,6 +64,9 @@ TaskTutorialManager::~TaskTutorialManager() {
   DeleteGraph(m_diamondImg);
   DeleteGraph(m_mouseLeftImg);
   DeleteGraph(m_mouseRightImg);
+  DeleteGraph(m_alpha1Img);
+  DeleteGraph(m_alpha2Img);
+  DeleteGraph(m_mouseWheelImg);
 }
 
 void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
@@ -260,6 +267,36 @@ void TaskTutorialManager::Draw() {
 
       DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
                          kTaskTextColor, m_taskFontHandle);
+
+      // 武器切り替えヒントの表示 (射撃タスク中のみ、進捗バーの下に表示)
+      if (m_taskAlpha >= 200) {
+        int hintY = barY + kBarHeight + 20;
+        int hintX = kTaskTextX;
+
+        DrawStringToHandle(hintX, hintY, "武器切り替え: ", kTaskTextColor,
+                           m_taskFontHandle);
+        hintX +=
+            GetDrawStringWidthToHandle("武器切り替え: ", -1, m_taskFontHandle);
+
+        // Alpha1画像
+        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
+                        hintY + kMouseImgSize, m_alpha1Img, true);
+        hintX += kMouseImgSize + kSpacing;
+
+        // Alpha2画像
+        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
+                        hintY + kMouseImgSize, m_alpha2Img, true);
+        hintX += kMouseImgSize + kSpacing;
+
+        // " / " テキスト
+        DrawStringToHandle(hintX, hintY, " / ", kTaskTextColor,
+                           m_taskFontHandle);
+        hintX += GetDrawStringWidthToHandle(" / ", -1, m_taskFontHandle);
+
+        // マウスホイール画像
+        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
+                        hintY + kMouseImgSize, m_mouseWheelImg, true);
+      }
 
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
