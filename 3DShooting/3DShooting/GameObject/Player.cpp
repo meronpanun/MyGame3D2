@@ -135,7 +135,7 @@ Player::Player()
       m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false),
       m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f),
       m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f),
-      m_pAnimManager(nullptr) {
+      m_pAnimManager(nullptr), m_isTutorial(false) {
   // SEの読み込み
   m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
   assert(m_playerHitSEHandle != -1);
@@ -154,6 +154,7 @@ Player::~Player() {
 }
 
 void Player::Init(bool isTutorial) {
+  m_isTutorial = isTutorial;
   // CSVからPlayerのTransform情報を取得
   auto dataList =
       TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -793,6 +794,10 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
     return;
   }
 
+  if (m_isTutorial) {
+    damage *= 0.5f;
+  }
+
   if (m_isInvincible) {
     return;
   }
@@ -835,6 +840,11 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
                                kShieldBreakGunShakeDuration);
       m_health -= remainingDamage; // 残ったダメージをHPに適用
 
+      // チュートリアル中は死なない
+      if (m_isTutorial && m_health <= 0.0f) {
+        m_health = 1.0f;
+      }
+
       // HPバーアニメーション用タイマーをリセット
       m_healthBarAnimTimer = 0.0f;
       // ダメージエフェクトを発動
@@ -864,6 +874,12 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
   if (m_health < 0.0f) {
     m_health = 0.0f; // 体力が負にならないように制限
   }
+
+  // チュートリアル中は死なない
+  if (m_isTutorial && m_health <= 0.0f) {
+    m_health = 1.0f;
+  }
+
   // HPバーアニメーション用タイマーをリセット
   m_healthBarAnimTimer = 0.0f;
   // ダメージエフェクトを発動

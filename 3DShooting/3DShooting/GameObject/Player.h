@@ -379,4 +379,7 @@ private:
 
   // ガード関連
   bool m_ignoreGuardInput; // ガード入力を無視するか
+
+  // チュートリアル関連
+  bool m_isTutorial;
 };
