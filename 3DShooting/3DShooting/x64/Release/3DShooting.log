@@ -1,18 +1,11 @@
-﻿  WaveManager.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(125,14): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(131,14): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(407,17): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(413,16): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(414,16): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(604,17): warning C4244: '初期化中': '_Rep' から 'unsigned int' への変換です。データが失われる可能性があります。
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(604,17): warning C4244:         with
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(604,17): warning C4244:         [
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(604,17): warning C4244:             _Rep=std::chrono::system_clock::rep
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(604,17): warning C4244:         ]
+﻿  EnemyAcid.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Collision.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyAcid.cpp' をコンパイルしています)
+  
   コード生成しています。
-  3 of 4561 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  27 of 4561 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    13 functions had inline decision re-evaluated but remain unchanged
+    22 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
 EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
   3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Release\3DShooting.exe

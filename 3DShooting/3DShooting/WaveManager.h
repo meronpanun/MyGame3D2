@@ -20,14 +20,17 @@ struct WaveData {
   float spawnInterval = 0; // 出現間隔
   float startTime = 0;     // 出現開始時間
   float waveInterval = 0;  // ウェーブ間インターバル
+  int spawnLocationType =
+      0; // スポーン位置タイプ (0:ランダム, 1:下段, 2:中段, 3:上段)
 };
 
 // 敵の出現情報
 struct EnemySpawnInfo {
-  std::string enemyType;  // 敵の種類
-  VECTOR spawnPos;        // 出現位置
-  float spawnTime = 0;    // 出現時間
-  bool isSpawned = false; // 出現済みフラグ
+  std::string enemyType;     // 敵の種類
+  VECTOR spawnPos;           // 出現位置
+  float spawnTime = 0;       // 出現時間
+  bool isSpawned = false;    // 出現済みフラグ
+  int spawnLocationType = 0; // スポーン位置タイプ
 };
 
 // スポーンエリア情報 (SpawnAreaData.csv)
@@ -198,9 +201,10 @@ private:
   /// <param name="type">スポーンエリアのタイプ (0:Main, 1:Tutorial)</param>
   /// <param name="enemyType">敵の種類</param>
   /// <param name="playerPos">プレイヤーの位置</param>
-  /// <returns>出現位置</returns>
+  /// <param name="spawnLocationType">スポーン位置のタイプ (0:指定なし, 1:下段,
+  /// 2:中段, 3:上段)</param> <returns>出現位置</returns>
   VECTOR GenerateSpawnPos(int type, const std::string &enemyType,
-                          const VECTOR &playerPos);
+                          const VECTOR &playerPos, int spawnLocationType = 0);
 
   /// <summary>
   /// 敵を生成

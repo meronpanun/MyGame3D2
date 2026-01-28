@@ -253,7 +253,8 @@ void WaveManager::Update() {
             }
             // 0: Main Stage
             spawnInfo.spawnPos =
-                GenerateSpawnPos(0, spawnInfo.enemyType, currentPlayerPos);
+                GenerateSpawnPos(0, spawnInfo.enemyType, currentPlayerPos,
+                                 spawnInfo.spawnLocationType);
 
             std::shared_ptr<EnemyBase> pEnemy =
                 CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos);
@@ -519,12 +520,20 @@ void WaveManager::LoadWaveData() {
       waveData.waveInterval = 0.0f;
     }
 
+    // SpawnLocation (Optional, default 0)
+    if (std::getline(ss, token, ',')) {
+      waveData.spawnLocationType = std::stoi(token);
+    } else {
+      waveData.spawnLocationType = 0;
+    }
+
     m_waveDataList.push_back(waveData);
 
     // デバッグ出力
-    printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f\n",
+    printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f, Loc %d\n",
            waveData.wave, waveData.enemyType.c_str(), waveData.count,
-           waveData.spawnInterval, waveData.startTime);
+           waveData.spawnInterval, waveData.startTime,
+           waveData.spawnLocationType);
   }
 }
 
@@ -649,15 +658,28 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR &playerPos) {
 
 // 出現位置を生成（エリア定義があればそれを使用、なければランダム）
 VECTOR WaveManager::GenerateSpawnPos(int type, const std::string &enemyType,
-                                     const VECTOR &playerPos) {
+                                     const VECTOR &playerPos,
+                                     int spawnLocationType) {
   // タイプに一致するエリアを検索
   std::vector<SpawnAreaInfo> candidates;
 
-  // Wave 1 (Main Stage) の特別処理
-  if (m_currentWave == 1 && type == 0) {
-    // Y座標が2のエリアのみを候補とする (Unity座標Y=2 -> ゲーム内Y=200)
+  // 指定された高さタイプに基づいてフィルタリング
+  float targetY = -999.0f;
+  if (spawnLocationType == 1)
+    targetY = 200.0f; // 下段
+  else if (spawnLocationType == 2)
+    targetY = 562.0f; // 中段
+  else if (spawnLocationType == 3)
+    targetY = 962.0f; // 上段
+
+  // Wave 1 (Main Stage) の特別処理 または 高さ指定がある場合
+  if ((m_currentWave == 1 && type == 0) ||
+      (spawnLocationType > 0 && type == 0)) {
+    // ターゲットY座標が決まっている場合はそれでフィルタリング、なければWave1デフォルトの200.0f
+    float checkY = (targetY != -999.0f) ? targetY : 200.0f;
+
     for (const auto &area : m_spawnAreaList) {
-      if (area.type == type && std::abs(area.center.y - 200.0f) < 10.0f) {
+      if (area.type == type && std::abs(area.center.y - checkY) < 10.0f) {
         candidates.push_back(area);
       }
     }
@@ -704,20 +726,22 @@ VECTOR WaveManager::GenerateSpawnPos(int type, const std::string &enemyType,
       candidates.push_back(validCandidates[0]);
     } else {
       // 有効な候補がない場合（全てのエリアが近すぎる場合）
-      // 緊急回避：最も距離が遠いエリアを選択する（エリア内だとしても、マシな場所を選ぶ）
-      std::sort(candidates.begin(), candidates.end(),
-                [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
-                  float distA = VSize(VSub(a.center, playerPos));
-                  float distB = VSize(VSub(b.center, playerPos));
-                  return distA > distB;
-                });
-      std::vector<SpawnAreaInfo> fallback;
-      fallback.push_back(candidates[0]); // 一番遠いものだけ残す
-      candidates = fallback;
+      // 緊急回避：
+      // 指定された高さの中で最も距離が遠いエリアを選択する
+      if (!candidates.empty()) {
+        std::sort(candidates.begin(), candidates.end(),
+                  [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
+                    float distA = VSize(VSub(a.center, playerPos));
+                    float distB = VSize(VSub(b.center, playerPos));
+                    return distA > distB;
+                  });
+        std::vector<SpawnAreaInfo> fallback;
+        fallback.push_back(candidates[0]); // 一番遠いものだけ残す
+        candidates = fallback;
+      }
+      // 指定高さのエリア自体が見つからない場合は、全エリア検索などのフォールバックが必要だが
+      // SpawnData設定ミス以外では起きないはずなので、ここでは空のままにしてランダムスポーンへ
     }
-    // 有効な候補がない場合は、candidates（Y=2の全エリア）をそのまま使用（フォールバック）
-    // さらにそれもなければ以下の candidates.empty()
-    // ブロックでランダムスポーンへ
   } else {
     // 通常の処理
     for (const auto &area : m_spawnAreaList) {
@@ -729,14 +753,19 @@ VECTOR WaveManager::GenerateSpawnPos(int type, const std::string &enemyType,
 
   // 候補がなければ従来のランダムスポーン
   if (candidates.empty()) {
+    // 指定高さのエリアがない場合でも、とりあえずどこかには湧かせる
+    printf("Warning: No valid spawn area found for LocationType %d. Using "
+           "random spawn.\n",
+           spawnLocationType);
     return GenerateRandomSpawnPos(playerPos);
   }
 
   // 敵の種類に応じたロジック
   std::vector<SpawnAreaInfo> filteredCandidates;
 
-  // Wave 1の場合は既に選定済みなのでそのまま使用
-  if (m_currentWave == 1 && type == 0) {
+  // Wave 1 または 高さ指定がある場合は既に選定済みなのでそのまま使用
+  if ((m_currentWave == 1 && type == 0) ||
+      (spawnLocationType > 0 && type == 0)) {
     filteredCandidates = candidates;
   } else {
     // AcidEnemy（遠距離）はプレイヤーから離れたエリアを優先
@@ -953,6 +982,7 @@ void WaveManager::StartCurrentWave(const VECTOR &playerPos) {
       spawnInfo.spawnPos = VGet(0, 0, 0);
       spawnInfo.spawnTime = waveData.startTime + (i * waveData.spawnInterval);
       spawnInfo.isSpawned = false;
+      spawnInfo.spawnLocationType = waveData.spawnLocationType; // 追加
 
       m_spawnInfoList.push_back(spawnInfo);
     }

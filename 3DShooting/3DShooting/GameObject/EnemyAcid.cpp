@@ -10,6 +10,7 @@
 #include "SphereCollider.h"
 #include "TaskTutorialManager.h"
 #include "TransformDataLoader.h"
+#include "Game.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -125,8 +126,6 @@ void EnemyAcid::Init() {
   float offsetZ = static_cast<float>(GetRand(800) - 400);
   m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 }
-
-#include "Game.h"
 
 // アニメーションを変更する
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop) {
