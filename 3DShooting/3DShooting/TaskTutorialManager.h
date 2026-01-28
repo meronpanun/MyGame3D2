@@ -22,6 +22,12 @@ public:
   // 敵が倒されたことを通知する
   void NotifyEnemyKilled(AttackType attackType);
 
+  // 盾投げで敵が倒されたことを通知する
+  void NotifyShieldThrowKill();
+
+  // パリィ成功を通知する
+  void NotifyParrySuccess();
+
   // チュートリアルが完了したか
   bool IsCompleted() const;
 
@@ -35,11 +41,15 @@ private:
   // チュートリアルの進行ステップ
   enum class TaskStep {
     None,
-    Shoot,               // 射撃タスク
-    ShootCompleteDelay,  // 射撃タスク完了後の待機
-    Tackle,              // タックルタスク
-    TackleCompleteDelay, // タックルタスク完了後の待機
-    Completed            // 全て完了
+    Shoot,                    // 射撃タスク
+    ShootCompleteDelay,       // 射撃タスク完了後の待機
+    Tackle,                   // タックルタスク
+    TackleCompleteDelay,      // タックルタスク完了後の待機
+    ShieldThrow,              // 盾投げタスク
+    ShieldThrowCompleteDelay, // 盾投げタスク完了後の待機
+    Parry,                    // パリィタスク
+    ParryCompleteDelay,       // パリィタスク完了後の待機
+    Completed                 // 全て完了
   };
   TaskTutorialManager(const TaskTutorialManager &) = delete;
   TaskTutorialManager &operator=(const TaskTutorialManager &) = delete;
@@ -52,6 +62,8 @@ private:
   TaskStep m_step;
   int m_shootKills;
   int m_tackleKills;
+  int m_shieldThrowKills; // 盾投げキル数
+  int m_parryCount;       // パリィ成功回数
 
   int m_titleFontHandle; // タイトル用のフォントハンドル
   int m_taskFontHandle;  // タスク内容用のフォントハンドル
@@ -63,6 +75,10 @@ private:
   int m_alpha1Img;     // キーボード1キーの画像
   int m_alpha2Img;     // キーボード2キーの画像
   int m_mouseWheelImg; // マウスホイールの画像
+
+  // 盾投げ・パリィタスク用画像
+  int m_rKeyImg;            // Rキーの画像
+  int m_mouseRightGuardImg; // マウス右クリック(ガード用)の画像
 
   // タイトルアニメーション用
   float m_titlePosX;
@@ -77,9 +93,11 @@ private:
   int m_animationWaitTimer;
 
   // プログレスバーアニメーション用
-  float m_displayedShootProgress;  // 射撃タスクの表示用進捗
-  float m_displayedTackleProgress; // タックルタスクの表示用進捗
-  float m_progressAnimSpeed;       // 進捗バーのアニメーション速度
+  float m_displayedShootProgress;       // 射撃タスクの表示用進捗
+  float m_displayedTackleProgress;      // タックルタスクの表示用進捗
+  float m_displayedShieldThrowProgress; // 盾投げタスクの表示用進捗
+  float m_displayedParryProgress;       // パリィタスクの表示用進捗
+  float m_progressAnimSpeed;            // 進捗バーのアニメーション速度
 
   // ステップ移行の遅延タイマー
   int m_transitionDelayTimer;

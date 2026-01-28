@@ -8,6 +8,8 @@ namespace {
 // タスクの目標キル数
 constexpr int kShootKillGoal = 5;
 constexpr int kTackleKillGoal = 5;
+constexpr int kShieldThrowKillGoal = 2;
+constexpr int kParryGoal = 3;
 
 // UI関連
 constexpr int kTaskTextX = 20;
@@ -37,14 +39,15 @@ TaskTutorialManager *TaskTutorialManager::GetInstance() {
 
 TaskTutorialManager::TaskTutorialManager()
     : m_pWaveManager(nullptr), m_pPlayer(nullptr), m_step(TaskStep::None),
-      m_shootKills(0), m_tackleKills(0), m_titleFontHandle(-1),
-      m_taskFontHandle(-1), m_diamondImg(-1), m_mouseLeftImg(-1),
-      m_mouseRightImg(-1), m_alpha1Img(-1), m_alpha2Img(-1),
-      m_mouseWheelImg(-1), m_titlePosX(0.0f), m_titleAnimSpeed(5.0f),
-      m_isTitleAnimFinished(false), m_taskAlpha(0), m_taskFadeSpeed(5.0f),
-      m_animationWaitTimer(0), m_displayedShootProgress(0.0f),
-      m_displayedTackleProgress(0.0f), m_progressAnimSpeed(0.02f),
-      m_transitionDelayTimer(0) {
+      m_shootKills(0), m_tackleKills(0), m_shieldThrowKills(0), m_parryCount(0),
+      m_titleFontHandle(-1), m_taskFontHandle(-1), m_diamondImg(-1),
+      m_mouseLeftImg(-1), m_mouseRightImg(-1), m_alpha1Img(-1), m_alpha2Img(-1),
+      m_mouseWheelImg(-1), m_rKeyImg(-1), m_mouseRightGuardImg(-1),
+      m_titlePosX(0.0f), m_titleAnimSpeed(5.0f), m_isTitleAnimFinished(false),
+      m_taskAlpha(0), m_taskFadeSpeed(5.0f), m_animationWaitTimer(0),
+      m_displayedShootProgress(0.0f), m_displayedTackleProgress(0.0f),
+      m_displayedShieldThrowProgress(0.0f), m_displayedParryProgress(0.0f),
+      m_progressAnimSpeed(0.02f), m_transitionDelayTimer(0) {
   // フォントの作成
   m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 32, kTaskFontThickness,
                                          DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -56,6 +59,8 @@ TaskTutorialManager::TaskTutorialManager()
   m_alpha1Img = LoadGraph("data/image/Alpha1.png");
   m_alpha2Img = LoadGraph("data/image/Alpha2.png");
   m_mouseWheelImg = LoadGraph("data/image/MouseWheel.png");
+  m_rKeyImg = LoadGraph("data/image/R.png");
+  m_mouseRightGuardImg = LoadGraph("data/image/MouseRight.png");
 }
 
 TaskTutorialManager::~TaskTutorialManager() {
@@ -67,6 +72,8 @@ TaskTutorialManager::~TaskTutorialManager() {
   DeleteGraph(m_alpha1Img);
   DeleteGraph(m_alpha2Img);
   DeleteGraph(m_mouseWheelImg);
+  DeleteGraph(m_rKeyImg);
+  DeleteGraph(m_mouseRightGuardImg);
 }
 
 void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
@@ -75,6 +82,8 @@ void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
   m_step = TaskStep::Shoot; // 最初のタスクは射撃
   m_shootKills = 0;
   m_tackleKills = 0;
+  m_shieldThrowKills = 0;
+  m_parryCount = 0;
 
   // アニメション初期化
   m_titlePosX = -300.0f; // 画面外からスタート
@@ -83,6 +92,8 @@ void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
   m_animationWaitTimer = 0;
   m_displayedShootProgress = 0.0f;
   m_displayedTackleProgress = 0.0f;
+  m_displayedShieldThrowProgress = 0.0f;
+  m_displayedParryProgress = 0.0f;
   m_transitionDelayTimer = 0;
 
   if (m_pWaveManager) {
@@ -105,8 +116,25 @@ void TaskTutorialManager::NotifyEnemyKilled(AttackType attackType) {
       m_tackleKills++;
     }
     break;
+  case TaskStep::ShieldThrow:
+    if (attackType == AttackType::ShieldThrow) {
+      m_shieldThrowKills++;
+    }
+    break;
   default:
     break;
+  }
+}
+
+void TaskTutorialManager::NotifyShieldThrowKill() {
+  if (m_step == TaskStep::ShieldThrow) {
+    m_shieldThrowKills++;
+  }
+}
+
+void TaskTutorialManager::NotifyParrySuccess() {
+  if (m_step == TaskStep::Parry) {
+    m_parryCount++;
   }
 }
 
@@ -140,6 +168,30 @@ void TaskTutorialManager::Update() {
       m_displayedTackleProgress += m_progressAnimSpeed;
       if (m_displayedTackleProgress > targetProgress) {
         m_displayedTackleProgress = targetProgress;
+      }
+    }
+  }
+
+  // 盾投げタスクの進捗アニメーション
+  if (m_step == TaskStep::ShieldThrow ||
+      m_step == TaskStep::ShieldThrowCompleteDelay) {
+    float targetProgress =
+        static_cast<float>(m_shieldThrowKills) / kShieldThrowKillGoal;
+    if (m_displayedShieldThrowProgress < targetProgress) {
+      m_displayedShieldThrowProgress += m_progressAnimSpeed;
+      if (m_displayedShieldThrowProgress > targetProgress) {
+        m_displayedShieldThrowProgress = targetProgress;
+      }
+    }
+  }
+
+  // パリィタスクの進捗アニメーション
+  if (m_step == TaskStep::Parry || m_step == TaskStep::ParryCompleteDelay) {
+    float targetProgress = static_cast<float>(m_parryCount) / kParryGoal;
+    if (m_displayedParryProgress < targetProgress) {
+      m_displayedParryProgress += m_progressAnimSpeed;
+      if (m_displayedParryProgress > targetProgress) {
+        m_displayedParryProgress = targetProgress;
       }
     }
   }
@@ -198,6 +250,57 @@ void TaskTutorialManager::Update() {
     }
     break;
   case TaskStep::TackleCompleteDelay:
+    m_transitionDelayTimer--;
+    if (m_transitionDelayTimer <= 0) {
+      m_step = TaskStep::ShieldThrow; // 盾投げタスクへ
+
+      // UI初期化
+      m_titlePosX = -300.0f;
+      m_isTitleAnimFinished = false;
+      m_taskAlpha = 0;
+      m_animationWaitTimer = 0;
+
+      if (m_pWaveManager) {
+        m_pWaveManager->SpawnTutorialWave(3); // Wave 3
+      }
+      if (m_pPlayer) {
+        m_pPlayer->SetAttackRestrictions(
+            AttackType::ShieldThrow); // 盾投げのみ許可
+      }
+    }
+    break;
+  case TaskStep::ShieldThrow:
+    if (m_shieldThrowKills >= kShieldThrowKillGoal) {
+      m_step = TaskStep::ShieldThrowCompleteDelay;
+      m_transitionDelayTimer = 120;
+    }
+    break;
+  case TaskStep::ShieldThrowCompleteDelay:
+    m_transitionDelayTimer--;
+    if (m_transitionDelayTimer <= 0) {
+      m_step = TaskStep::Parry; // パリィタスクへ
+
+      // UI初期化
+      m_titlePosX = -300.0f;
+      m_isTitleAnimFinished = false;
+      m_taskAlpha = 0;
+      m_animationWaitTimer = 0;
+
+      if (m_pWaveManager) {
+        m_pWaveManager->SpawnTutorialWave(4); // Wave 4
+      }
+      if (m_pPlayer) {
+        m_pPlayer->SetAttackRestrictions(AttackType::None); // パリィは制限なし
+      }
+    }
+    break;
+  case TaskStep::Parry:
+    if (m_parryCount >= kParryGoal) {
+      m_step = TaskStep::ParryCompleteDelay;
+      m_transitionDelayTimer = 120;
+    }
+    break;
+  case TaskStep::ParryCompleteDelay:
     m_transitionDelayTimer--;
     if (m_transitionDelayTimer <= 0) {
       m_step = TaskStep::Completed; // チュートリアル完了
@@ -348,6 +451,114 @@ void TaskTutorialManager::Draw() {
 
       DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
                          kTaskTextColor, m_taskFontHandle);
+
+      SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
+  } break;
+  case TaskStep::ShieldThrowCompleteDelay:
+  case TaskStep::ShieldThrow: {
+    int displayedKills =
+        static_cast<int>(m_displayedShieldThrowProgress * kShieldThrowKillGoal);
+    if (displayedKills > kShieldThrowKillGoal) {
+      displayedKills = kShieldThrowKillGoal;
+    }
+    taskText = std::to_string(displayedKills) + "/" +
+               std::to_string(kShieldThrowKillGoal);
+
+    DrawStringToHandle(m_titlePosX, kTaskTextY, "盾投げ訓練", kTaskTextColor,
+                       m_titleFontHandle);
+
+    if (m_isTitleAnimFinished) {
+      SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_taskAlpha);
+
+      int taskY = kTaskTextY + kTitleFontSize + 10;
+      int currentX = kTaskTextX;
+
+      DrawExtendGraph(currentX, taskY, currentX + kDiamondSize,
+                      taskY + kDiamondSize, m_diamondImg, true);
+      currentX += kDiamondSize + kSpacing;
+
+      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
+                      taskY + kMouseImgSize, m_rKeyImg, true);
+      currentX += kMouseImgSize + kSpacing;
+
+      DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor,
+                         m_taskFontHandle);
+
+      // 進捗バー
+      int barY = taskY + kTaskFontSize + 10;
+      float progress = m_displayedShieldThrowProgress;
+      int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+
+      unsigned int barColor =
+          (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
+
+      DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight,
+              GetColor(100, 100, 100), true);
+      DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight,
+              barColor, true);
+
+      DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
+                         kTaskTextColor, m_taskFontHandle);
+
+      SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
+  } break;
+  case TaskStep::ParryCompleteDelay:
+  case TaskStep::Parry: {
+    int displayedParries =
+        static_cast<int>(m_displayedParryProgress * kParryGoal);
+    if (displayedParries > kParryGoal) {
+      displayedParries = kParryGoal;
+    }
+    taskText =
+        std::to_string(displayedParries) + "/" + std::to_string(kParryGoal);
+
+    DrawStringToHandle(m_titlePosX, kTaskTextY, "パリィ訓練", kTaskTextColor,
+                       m_titleFontHandle);
+
+    if (m_isTitleAnimFinished) {
+      SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_taskAlpha);
+
+      int taskY = kTaskTextY + kTitleFontSize + 10;
+      int currentX = kTaskTextX;
+
+      DrawExtendGraph(currentX, taskY, currentX + kDiamondSize,
+                      taskY + kDiamondSize, m_diamondImg, true);
+      currentX += kDiamondSize + kSpacing;
+
+      DrawStringToHandle(currentX, taskY, "遠距離攻撃をパリィする",
+                         kTaskTextColor, m_taskFontHandle);
+
+      // 進捗バー
+      int barY = taskY + kTaskFontSize + 10;
+      float progress = m_displayedParryProgress;
+      int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+
+      unsigned int barColor =
+          (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
+
+      DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight,
+              GetColor(100, 100, 100), true);
+      DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight,
+              barColor, true);
+
+      DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
+                         kTaskTextColor, m_taskFontHandle);
+
+      // ガードヒント表示
+      if (m_taskAlpha >= 200) {
+        int hintY = barY + kBarHeight + 20;
+        int hintX = kTaskTextX;
+
+        DrawStringToHandle(hintX, hintY, "ガード: ", kTaskTextColor,
+                           m_taskFontHandle);
+        hintX += GetDrawStringWidthToHandle("ガード: ", -1, m_taskFontHandle);
+
+        // マウス右クリック画像
+        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
+                        hintY + kMouseImgSize, m_mouseRightGuardImg, true);
+      }
 
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }

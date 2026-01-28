@@ -283,9 +283,10 @@ void Player::Update(
   bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
   // Rキーでシールドソーを投げる/戻す（死亡中、タックル中、ガード中、武器切り替え中、チュートリアル中は不可）
-  if (m_allowedAttackType == AttackType::None && !m_isDead && !m_isTackling &&
-      !currentIsGuarding && !isSwitchingWeapon && keyState[KEY_INPUT_R] &&
-      !m_prevKeyState[KEY_INPUT_R]) {
+  if ((m_allowedAttackType == AttackType::None ||
+       m_allowedAttackType == AttackType::ShieldThrow) &&
+      !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
+      keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R]) {
     if (m_shieldSystem.IsShieldThrown()) {
       // 既に投げられている場合は即座に戻す
       m_shieldSystem.ImmediateReturnShield(m_modelPos);

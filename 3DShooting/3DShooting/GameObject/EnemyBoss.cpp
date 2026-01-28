@@ -8,6 +8,7 @@
 #include "SceneMain.h"
 #include "ScoreManager.h"
 #include "SphereCollider.h"
+#include "TaskTutorialManager.h"
 #include "TransformDataLoader.h"
 #include <algorithm>
 #include <cassert>
@@ -232,6 +233,9 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
           // パリィ成功
           hitDetected = true;
           bullet.isReflected = true;
+
+          // チュートリアルマネージャーに通知
+          TaskTutorialManager::GetInstance()->NotifyParrySuccess();
 
           // 反射方向計算 (プレイヤーカメラの前方へ、あるいはボスへ)
           // ここではボス（発射主）へ跳ね返す
