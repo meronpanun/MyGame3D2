@@ -822,8 +822,8 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
     // ジャストガード（パリィ）判定
     // ダメージ計算前に行う
     if (m_shieldSystem.IsJustGuarded() && isParryable) {
-      // スローモーション演出：0.1倍速になり、1.0秒かけて戻る
-      Game::SetTimeScale(0.1f, 1.0f);
+      // 特定の敵（Acid,
+      // Boss）のパリィ弾の時のみスローにするため、ここでは呼ばない
     }
 
     // カメラシェイクを発生
