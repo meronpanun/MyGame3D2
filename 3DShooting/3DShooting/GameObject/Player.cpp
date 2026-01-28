@@ -282,9 +282,10 @@ void Player::Update(
   m_shieldSystem.SetGuarding(shouldGuard);
   bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
-  // Rキーでシールドソーを投げる/戻す（死亡中、タックル中、ガード中、武器切り替え中は不可）
-  if (!m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
-      keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R]) {
+  // Rキーでシールドソーを投げる/戻す（死亡中、タックル中、ガード中、武器切り替え中、チュートリアル中は不可）
+  if (m_allowedAttackType == AttackType::None && !m_isDead && !m_isTackling &&
+      !currentIsGuarding && !isSwitchingWeapon && keyState[KEY_INPUT_R] &&
+      !m_prevKeyState[KEY_INPUT_R]) {
     if (m_shieldSystem.IsShieldThrown()) {
       // 既に投げられている場合は即座に戻す
       m_shieldSystem.ImmediateReturnShield(m_modelPos);
@@ -516,7 +517,9 @@ void Player::Update(
   m_shieldSystem.UpdateSparkEffect(m_pEffect, m_modelPos, m_pCamera.get());
 
   // ロックオン中に左クリックでタックル
-  if (m_isLockingOn && m_lockedOnEnemy &&
+  if ((m_allowedAttackType == AttackType::None ||
+       m_allowedAttackType == AttackType::Tackle) &&
+      m_isLockingOn && m_lockedOnEnemy &&
       InputManager::GetInstance()->IsTriggerMouseLeft() &&
       m_tackleCooldown <= 0) {
     m_isTackling = true;

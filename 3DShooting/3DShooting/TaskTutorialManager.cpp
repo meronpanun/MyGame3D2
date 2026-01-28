@@ -82,7 +82,7 @@ void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
     m_pWaveManager->SpawnTutorialWave(1);
   }
   if (m_pPlayer) {
-    m_pPlayer->SetAttackRestrictions(AttackType::None);
+    m_pPlayer->SetAttackRestrictions(AttackType::Shoot);
   }
 }
 
@@ -180,7 +180,7 @@ void TaskTutorialManager::Update() {
         m_pWaveManager->SpawnTutorialWave(2);
       }
       if (m_pPlayer) {
-        m_pPlayer->SetAttackRestrictions(AttackType::None);
+        m_pPlayer->SetAttackRestrictions(AttackType::Tackle);
       }
     }
     break;
