@@ -2,6 +2,7 @@
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "DebugUtil.h"
+#include "DxLib.h"
 #include "EffekseerForDXLib.h"
 #include "Player.h"
 #include "SceneMain.h"
@@ -461,6 +462,31 @@ void EnemyNormal::Draw() {
       m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
     return;
 
+  // 視錐台カリング (描画最適化)
+  // CheckCameraViewClip系の関数が環境によって不安定なため、
+  // 手動で「カメラ前方への内積チェック(簡易コーン判定)」を行う
+  VECTOR camPos = GetCameraPosition();
+  VECTOR camTarget = GetCameraTarget();
+  VECTOR camDir = VNorm(VSub(camTarget, camPos));
+  VECTOR toEnemy = VSub(m_pos, camPos);
+  float distSq = VSquareSize(toEnemy);
+
+  // 1. 距離チェック (Farクリップ + マージン)
+  if (distSq > 16000.0f * 16000.0f)
+    return;
+
+  // 2. 画角チェック (内積)
+  // 近距離(300.0f以内)なら無条件で描画 (すり抜け防止)
+  if (distSq > 300.0f * 300.0f) {
+    VECTOR dirToEnemy = VNorm(toEnemy);
+    float dot = VDot(camDir, dirToEnemy);
+    // 視野角90度(cos45=0.7)に対し、余裕を持ってcos66=0.4程度以上なら描画
+    // これにより視野外でも少し描画されるが、消えるよりは安全
+    if (dot < 0.4f)
+      return;
+  }
+
+  EnemyBase::IncrementDrawCount();
   MV1DrawModel(m_modelHandle);
 
 #ifdef _DEBUG

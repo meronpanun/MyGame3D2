@@ -46,6 +46,8 @@ constexpr float kFrameTime = 1.0f / 60.0f; // フレーム時間
 } // namespace
 
 bool WaveManager::s_isDrawSpawnAreas = false;
+bool WaveManager::s_isShowActiveEnemyCount = false;
+bool WaveManager::s_isShowDrawnEnemyCount = false;
 
 WaveManager::WaveManager()
     : m_currentWave(1), m_waveTimer(0.0f), m_spawnTimer(0.0f),
@@ -1082,6 +1084,7 @@ void WaveManager::DrawDebugInfo() {
   // フォントサイズを設定
   SetFontSize(kFontSize);
 
+#ifdef _DEBUG
   // 現在のwave情報
   char waveInfo[256];
   sprintf_s(waveInfo, "Wave:%d/3", m_currentWave);
@@ -1117,6 +1120,24 @@ void WaveManager::DrawDebugInfo() {
   sprintf_s(totalEnemyInfo, "Total:%d", m_totalSpawnedCount);
   DrawString(kDebugInfoPosX + kDebugInfoSpacing * 4, kDebugInfoPosY,
              totalEnemyInfo, 0xffffff);
+
+  int currentX = kDebugInfoPosX + kDebugInfoSpacing * 5;
+#else
+  int currentX = kDebugInfoPosX;
+#endif
+
+  if (s_isShowActiveEnemyCount) {
+    char activeInfo[256];
+    sprintf_s(activeInfo, "Active(All):%d", (int)m_enemyList.size());
+    DrawString(currentX, kDebugInfoPosY, activeInfo, 0xffffff);
+    currentX += kDebugInfoSpacing * 2; // 少し広めにとる
+  }
+
+  if (s_isShowDrawnEnemyCount) {
+    char drawnInfo[256];
+    sprintf_s(drawnInfo, "Drawn:%d", EnemyBase::GetDrawCount());
+    DrawString(currentX, kDebugInfoPosY, drawnInfo, 0xffffff);
+  }
 }
 
 int WaveManager::GetAliveEnemyCount() const {

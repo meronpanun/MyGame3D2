@@ -177,6 +177,16 @@ public:
   static void SetDrawSpawnAreas(bool isDraw) { s_isDrawSpawnAreas = isDraw; }
   static bool IsDrawSpawnAreas() { return s_isDrawSpawnAreas; }
 
+  static void SetShowActiveEnemyCount(bool isShow) {
+    s_isShowActiveEnemyCount = isShow;
+  }
+  static bool IsShowActiveEnemyCount() { return s_isShowActiveEnemyCount; }
+
+  static void SetShowDrawnEnemyCount(bool isShow) {
+    s_isShowDrawnEnemyCount = isShow;
+  }
+  static bool IsShowDrawnEnemyCount() { return s_isShowDrawnEnemyCount; }
+
 private:
   /// <summary>
   /// ウェーブデータを読み込む
@@ -300,4 +310,6 @@ private:
   bool m_isWaveImageAnimating;            // ウェーブ画像アニメーション中フラグ
 
   static bool s_isDrawSpawnAreas; // スポーンエリア描画フラグ
+  static bool s_isShowActiveEnemyCount;
+  static bool s_isShowDrawnEnemyCount;
 };

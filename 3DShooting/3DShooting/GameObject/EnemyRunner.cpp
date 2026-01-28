@@ -2,6 +2,7 @@
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "DebugUtil.h"
+#include "DxLib.h"
 #include "EffekseerForDXLib.h"
 #include "Player.h"
 #include "SceneMain.h"
@@ -285,7 +286,7 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
 
         // 前進速度: 本来の追跡速度
         float forwardSpeed = m_chaseSpeed * timeScale;
-        // 横移動速度: 少し抑えめに 
+        // 横移動速度: 少し抑えめに
         float sideSpeed = m_chaseSpeed * 0.5f * timeScale;
 
         // 距離によるクランプ (行き過ぎ防止) for forward component
@@ -521,6 +522,30 @@ void EnemyRunner::Draw() {
       m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
     return;
 
+  // 視錐台カリング (描画最適化)
+  // CheckCameraViewClip系の関数が環境によって不安定なため、
+  // 手動で「カメラ前方への内積チェック(簡易コーン判定)」を行う
+  VECTOR camPos = GetCameraPosition();
+  VECTOR camTarget = GetCameraTarget();
+  VECTOR camDir = VNorm(VSub(camTarget, camPos));
+  VECTOR toEnemy = VSub(m_pos, camPos);
+  float distSq = VSquareSize(toEnemy);
+
+  // 1. 距離チェック (Farクリップ + マージン)
+  if (distSq > 16000.0f * 16000.0f)
+    return;
+
+  // 2. 画角チェック (内積)
+  // 近距離(300.0f以内)なら無条件で描画
+  if (distSq > 300.0f * 300.0f) {
+    VECTOR dirToEnemy = VNorm(toEnemy);
+    float dot = VDot(camDir, dirToEnemy);
+    // 視野角90度に対し余裕を持って判定
+    if (dot < 0.4f)
+      return;
+  }
+
+  EnemyBase::IncrementDrawCount();
   MV1DrawModel(m_modelHandle);
 
 #ifdef _DEBUG

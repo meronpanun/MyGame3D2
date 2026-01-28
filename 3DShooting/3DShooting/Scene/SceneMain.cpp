@@ -664,6 +664,8 @@ void SceneMain::Draw() {
   int screenW, screenH;
   GetScreenState(&screenW, &screenH, nullptr);
 
+  EnemyBase::ResetDrawCount();
+
   m_pStage->Draw();
 
   MV1DrawModel(m_skyDomeHandle);
@@ -917,10 +919,8 @@ void SceneMain::Draw() {
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
   }
 
-#ifdef _DEBUG
   // デバッグ情報を表示
   m_pWaveManager->DrawDebugInfo();
-#endif // DEBUG
 
   // ボスUIの描画
   if (m_pBossUI) {

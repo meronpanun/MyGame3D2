@@ -38,6 +38,11 @@ public:
   virtual void Update(const EnemyUpdateContext &context) abstract;
   virtual void Draw() abstract;
 
+  // デバッグ用カウンタ
+  static void ResetDrawCount() { s_drawCount = 0; }
+  static void IncrementDrawCount() { s_drawCount++; }
+  static int GetDrawCount() { return s_drawCount; }
+
   /// <summary>
   /// 当たり判定の部位
   /// </summary>
@@ -280,4 +285,7 @@ protected:
   bool m_isGrounded;        // 接地フラグ
 
   AttackType m_lastAttackType = AttackType::None;
+
+private:
+  static int s_drawCount;
 };

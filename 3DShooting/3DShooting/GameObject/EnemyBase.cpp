@@ -13,6 +13,8 @@ constexpr float kDefaultCooldownMax = 60;      // 攻撃クールダウンの最
 constexpr float kDefaultAttackPower = 10.0f;   // 攻撃力
 } // namespace
 
+int EnemyBase::s_drawCount = 0;
+
 EnemyBase::EnemyBase()
     : m_pos{0, 0, 0}, m_modelHandle(-1), m_pTargetPlayer(nullptr),
       m_hp(kDefaultInitialHP), m_maxHp(kDefaultInitialHP),
