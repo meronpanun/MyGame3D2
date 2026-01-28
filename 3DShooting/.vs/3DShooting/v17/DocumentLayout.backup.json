@@ -332,7 +332,7 @@
         },
         {
           "DockedWidth": 275,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -384,8 +384,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\Player.cpp",
               "ViewState": "AgIAAKgDAAAAAAAAAAAawMkDAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-21T03:20:57.771Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-21T03:20:57.771Z"
             },
             {
               "$type": "Document",
@@ -425,6 +424,19 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Game.h",
+              "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Game.h",
+              "RelativeDocumentMoniker": "3DShooting\\Game.h",
+              "ToolTip": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Game.h",
+              "RelativeToolTip": "3DShooting\\Game.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-10-21T05:46:00.615Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 3,
               "Title": "TaskTutorialManager.cpp",
               "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\TaskTutorialManager.cpp",
@@ -433,21 +445,7 @@
               "RelativeToolTip": "3DShooting\\TaskTutorialManager.cpp",
               "ViewState": "AgIAAIIAAAAAAAAAAAAjwJ4AAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-05T05:55:49.266Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Game.h",
-              "DocumentMoniker": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Game.h",
-              "RelativeDocumentMoniker": "3DShooting\\Game.h",
-              "ToolTip": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Game.h",
-              "RelativeToolTip": "3DShooting\\Game.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAATAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-10-21T05:46:00.615Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-05T05:55:49.266Z"
             },
             {
               "$type": "Document",
@@ -459,8 +457,7 @@
               "RelativeToolTip": "3DShooting\\DebugMenu.cpp",
               "ViewState": "AgIAABMAAAAAAAAAAAAjwCcAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-25T03:07:25.576Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-25T03:07:25.576Z"
             },
             {
               "$type": "Document",
@@ -472,8 +469,7 @@
               "RelativeToolTip": "3DShooting\\Game.cpp",
               "ViewState": "AgIAABsAAAAAAAAAAAAAADoAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-21T05:45:59.052Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-21T05:45:59.052Z"
             },
             {
               "$type": "Document",
@@ -485,8 +481,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.cpp",
               "ViewState": "AgIAAFQAAAAAAAAAAAAjwHMAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-29T01:27:04.265Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-29T01:27:04.265Z"
             },
             {
               "$type": "Document",

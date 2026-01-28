@@ -246,6 +246,15 @@ void WaveManager::Update() {
         while (m_currentSpawnIndex < m_spawnInfoList.size()) {
           EnemySpawnInfo &spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
           if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned) {
+            // スポーン位置を現在のプレイヤー位置に基づいて再計算
+            VECTOR currentPlayerPos = VGet(0.0f, 0.0f, 0.0f);
+            if (Game::m_pPlayer) {
+              currentPlayerPos = Game::m_pPlayer->GetPos();
+            }
+            // 0: Main Stage
+            spawnInfo.spawnPos =
+                GenerateSpawnPos(0, spawnInfo.enemyType, currentPlayerPos);
+
             std::shared_ptr<EnemyBase> pEnemy =
                 CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos);
             if (pEnemy) {
@@ -643,9 +652,78 @@ VECTOR WaveManager::GenerateSpawnPos(int type, const std::string &enemyType,
                                      const VECTOR &playerPos) {
   // タイプに一致するエリアを検索
   std::vector<SpawnAreaInfo> candidates;
-  for (const auto &area : m_spawnAreaList) {
-    if (area.type == type) {
-      candidates.push_back(area);
+
+  // Wave 1 (Main Stage) の特別処理
+  if (m_currentWave == 1 && type == 0) {
+    // Y座標が2のエリアのみを候補とする (Unity座標Y=2 -> ゲーム内Y=200)
+    for (const auto &area : m_spawnAreaList) {
+      if (area.type == type && std::abs(area.center.y - 200.0f) < 10.0f) {
+        candidates.push_back(area);
+      }
+    }
+
+    // プレイヤーとの距離判定
+    std::vector<SpawnAreaInfo> validCandidates;
+    for (const auto &area : candidates) {
+      // プレイヤーがスポーンエリア内にいるかどうかを判定 (AABB)
+      float halfSizeX = area.size.x * 0.5f;
+      float halfSizeZ = area.size.z * 0.5f;
+
+      bool isInsideX = playerPos.x >= (area.center.x - halfSizeX) &&
+                       playerPos.x <= (area.center.x + halfSizeX);
+      bool isInsideZ = playerPos.z >= (area.center.z - halfSizeZ) &&
+                       playerPos.z <= (area.center.z + halfSizeZ);
+
+      // エリア内にいる場合は除外
+      if (isInsideX && isInsideZ) {
+        continue;
+      }
+
+      // さらに一定距離（例えばエリアの最大半径 + 余裕）離れているかをチェック
+      VECTOR diff = VSub(area.center, playerPos);
+      float dist = VSize(diff);
+      float safeDistance =
+          (std::max)(area.size.x, area.size.z) + 200.0f; // サイズ + 余白
+
+      if (dist >= safeDistance) {
+        validCandidates.push_back(area);
+      }
+    }
+
+    // 有効な候補があれば、それらの中で最も遠いエリアを優先する
+    if (!validCandidates.empty()) {
+      // 距離の降順でソート
+      std::sort(validCandidates.begin(), validCandidates.end(),
+                [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
+                  float distA = VSize(VSub(a.center, playerPos));
+                  float distB = VSize(VSub(b.center, playerPos));
+                  return distA > distB;
+                });
+      // 最も遠いエリア1つに絞る
+      candidates.clear();
+      candidates.push_back(validCandidates[0]);
+    } else {
+      // 有効な候補がない場合（全てのエリアが近すぎる場合）
+      // 緊急回避：最も距離が遠いエリアを選択する（エリア内だとしても、マシな場所を選ぶ）
+      std::sort(candidates.begin(), candidates.end(),
+                [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
+                  float distA = VSize(VSub(a.center, playerPos));
+                  float distB = VSize(VSub(b.center, playerPos));
+                  return distA > distB;
+                });
+      std::vector<SpawnAreaInfo> fallback;
+      fallback.push_back(candidates[0]); // 一番遠いものだけ残す
+      candidates = fallback;
+    }
+    // 有効な候補がない場合は、candidates（Y=2の全エリア）をそのまま使用（フォールバック）
+    // さらにそれもなければ以下の candidates.empty()
+    // ブロックでランダムスポーンへ
+  } else {
+    // 通常の処理
+    for (const auto &area : m_spawnAreaList) {
+      if (area.type == type) {
+        candidates.push_back(area);
+      }
     }
   }
 
@@ -655,27 +733,33 @@ VECTOR WaveManager::GenerateSpawnPos(int type, const std::string &enemyType,
   }
 
   // 敵の種類に応じたロジック
-  // AcidEnemy（遠距離）はプレイヤーから離れたエリアを優先
   std::vector<SpawnAreaInfo> filteredCandidates;
-  bool isLongRange = (enemyType == "AcidEnemy");
-  const float kLongRangeThreshold = 500.0f; // 閾値（5m相当）
 
-  if (isLongRange) {
-    for (const auto &area : candidates) {
-      // 中心点との距離で判定（簡易的）
-      VECTOR diff = VSub(area.center, playerPos);
-      float dist = VSize(diff);
-      if (dist >= kLongRangeThreshold) {
-        filteredCandidates.push_back(area);
+  // Wave 1の場合は既に選定済みなのでそのまま使用
+  if (m_currentWave == 1 && type == 0) {
+    filteredCandidates = candidates;
+  } else {
+    // AcidEnemy（遠距離）はプレイヤーから離れたエリアを優先
+    bool isLongRange = (enemyType == "AcidEnemy");
+    const float kLongRangeThreshold = 500.0f; // 閾値（5m相当）
+
+    if (isLongRange) {
+      for (const auto &area : candidates) {
+        // 中心点との距離で判定（簡易的）
+        VECTOR diff = VSub(area.center, playerPos);
+        float dist = VSize(diff);
+        if (dist >= kLongRangeThreshold) {
+          filteredCandidates.push_back(area);
+        }
       }
-    }
-    // 条件を満たすエリアがなければ、全ての候補を使用（フォールバック）
-    if (filteredCandidates.empty()) {
+      // 条件を満たすエリアがなければ、全ての候補を使用（フォールバック）
+      if (filteredCandidates.empty()) {
+        filteredCandidates = candidates;
+      }
+    } else {
+      // 近接などは全ての候補から選択
       filteredCandidates = candidates;
     }
-  } else {
-    // 近接などは全ての候補から選択
-    filteredCandidates = candidates;
   }
 
   unsigned seed =
@@ -865,8 +949,8 @@ void WaveManager::StartCurrentWave(const VECTOR &playerPos) {
       // 出現位置を生成
       EnemySpawnInfo spawnInfo;
       spawnInfo.enemyType = waveData.enemyType;
-      // 0: Main Stage
-      spawnInfo.spawnPos = GenerateSpawnPos(0, waveData.enemyType, playerPos);
+      // 実際の位置はUpdateで生成時にプレイヤー位置に基づいて再計算する
+      spawnInfo.spawnPos = VGet(0, 0, 0);
       spawnInfo.spawnTime = waveData.startTime + (i * waveData.spawnInterval);
       spawnInfo.isSpawned = false;
 
