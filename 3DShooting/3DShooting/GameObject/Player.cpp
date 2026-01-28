@@ -3,6 +3,7 @@
 #include "Bullet.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
+#include "Collision.h"
 #include "DebugUtil.h"
 #include "DirectionIndicator.h"
 #include "Effect.h"
@@ -20,6 +21,10 @@
 #include <cassert>
 #include <cmath>
 #include <cstdio>
+
+// カプセルコライダーのサイズ（PlayerMovement.cppと一致させる）
+constexpr float kCapsuleHeight = 100.0f;
+constexpr float kCapsuleRadius = 50.0f;
 
 namespace {
 // タックル関連
@@ -557,11 +562,20 @@ void Player::Update(
     // m_movementの位置も同期
     m_movement.SetPos(m_modelPos);
 
-    // 地面より下に行かないように制限
+    // 地面より下に行かないように制限 (Collision check below handles this
+    // better, but keeping as safeguard for now)
     if (m_modelPos.y < PlayerMovement::GetGroundY()) {
       m_modelPos.y = PlayerMovement::GetGroundY();
-      m_movement.SetPos(m_modelPos);
     }
+
+    // ステージとの衝突判定
+    // タックル中も壁や坂道との衝突を検知して位置を修正する
+    CollisionResult res = Collision::CheckStageCollision(
+        m_modelPos, kCapsuleHeight, kCapsuleRadius, kPlayerColliderYOffset,
+        collisionData);
+
+    // m_movementの位置も同期
+    m_movement.SetPos(m_modelPos);
 
     // タックル判定情報を作成
     TackleInfo tackleInfo = GetTackleInfo();
