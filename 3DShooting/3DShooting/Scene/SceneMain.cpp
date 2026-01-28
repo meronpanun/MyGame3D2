@@ -147,8 +147,6 @@ SceneMain::~SceneMain() {
 }
 
 void SceneMain::Init() {
-  SetWaitVSyncFlag(true); // VSync有効化で描画負荷を安定化
-
   // 経過時間リセット
   s_elapsedTime = 0.0f;
 
@@ -330,9 +328,6 @@ void SceneMain::Init() {
   } else {
     TaskTutorialManager::GetInstance()->Reset();
   }
-
-  // 非同期読み込みを無効化
-  SetUseASyncLoadFlag(false);
 }
 
 // スコアポップアップを追加する
@@ -381,9 +376,13 @@ SceneBase *SceneMain::Update() {
         m_loadingFrameCount = 0;
 
         // 非同期ロード完了後に1回だけ呼ぶ
+        // 非同期ロード完了後に1回だけ呼ぶ
         if (!m_isPlayerInit && m_pPlayer) {
           m_pPlayer->Init(m_isTutorialStage);
           m_isPlayerInit = true;
+
+          // 非同期読み込みを無効化
+          SetUseASyncLoadFlag(false);
         }
       } else {
         // グレース期間中もローディング中とみなし、処理を返して真っ暗な画面での進行を防ぐ
@@ -640,7 +639,8 @@ SceneBase *SceneMain::Update() {
   }
 
   // 合計スコアポップアップタイマー更新
-  m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
+  m_pDirectionIndicator->Update(
+      m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
   ScoreManager::Instance().Update();
   return this;
 }
