@@ -348,6 +348,17 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo) {
 }
 
 void SceneMain::SwitchToMainStage() {
+  // チュートリアルのアイテムを消去
+  m_items.clear();
+
+  // WaveManagerをリセット (敵の消去とWave情報の初期化)
+  m_pWaveManager->Reset();
+
+  // エフェクトを全て停止
+  if (m_pEffect) {
+    m_pEffect->StopAllEffects();
+  }
+
   // メインステージをロード
   m_pStage->LoadStage(false);
   m_isTutorialStage = false;

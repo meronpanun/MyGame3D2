@@ -201,6 +201,33 @@ void WaveManager::Init() {
   });
 }
 
+void WaveManager::Reset() {
+  m_currentWave = 1;
+  m_waveTimer = 0.0f;
+  m_spawnTimer = 0.0f;
+  m_currentSpawnIndex = 0;
+  m_waveIntervalTimer = 0.0f;
+  m_isWaveActive = false;
+  m_isAllWavesCompleted = false;
+
+  m_enemyList.clear();
+  m_spawnInfoList.clear(); // スポーン予定もクリア
+
+  // 全プールの敵を非アクティブ化
+  for (auto &enemy : m_enemyNormalPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyRunnerPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyAcidPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyBossPool)
+    enemy->SetActive(false);
+
+  // チュートリアル関連フラグのリセット
+  m_isShotTutorialCleared = false;
+  m_isTackleTutorialCleared = false;
+}
+
 void WaveManager::Update() {
   if (m_isAllWavesCompleted) {
     return;

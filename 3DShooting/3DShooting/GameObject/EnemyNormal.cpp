@@ -169,6 +169,31 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   // ステージとの当たり判定
   UpdateStageCollision(collisionData);
 
+  // コライダーの更新 (死亡中も判定を残すため、死亡チェックの前に移動)
+  // 体のコライダー（カプセル）
+  VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
+  VECTOR bodyCapB =
+      VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
+  m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
+  m_pBodyCollider->SetRadius(kBodyColliderRadius);
+
+  // 頭のコライダー（球）
+  int headIndex = MV1SearchFrame(m_modelHandle, "Head");
+  VECTOR headModelPos = (headIndex != -1)
+                            ? MV1GetFramePosition(m_modelHandle, headIndex)
+                            : VGet(0, 0, 0);
+  VECTOR headCenter =
+      VAdd(headModelPos,
+           m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
+  m_pHeadCollider->SetCenter(headCenter);
+  m_pHeadCollider->SetRadius(kHeadRadius);
+
+  // 攻撃範囲のコライダー（球）
+  VECTOR attackRangeCenter = m_pos;
+  attackRangeCenter.y += (kBodyColliderHeight * 0.5f);
+  m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+  m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
+
   if (m_hp <= 0.0f) {
     if (!m_isDeadAnimPlaying) {
       // スコア加算処理はTakeDamageで行うのでここでは不要
@@ -308,30 +333,7 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
     m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
   }
 
-  // コライダーの更新
-  // 体のコライダー（カプセル）
-  VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
-  VECTOR bodyCapB =
-      VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
-  m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
-  m_pBodyCollider->SetRadius(kBodyColliderRadius);
-
-  // 頭のコライダー（球）
-  int headIndex = MV1SearchFrame(m_modelHandle, "Head");
-  VECTOR headModelPos = (headIndex != -1)
-                            ? MV1GetFramePosition(m_modelHandle, headIndex)
-                            : VGet(0, 0, 0);
-  VECTOR headCenter =
-      VAdd(headModelPos,
-           m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
-  m_pHeadCollider->SetCenter(headCenter);
-  m_pHeadCollider->SetRadius(kHeadRadius);
-
-  // 攻撃範囲のコライダー（球）
-  VECTOR attackRangeCenter = m_pos;
-  attackRangeCenter.y += (kBodyColliderHeight * 0.5f);
-  m_pAttackRangeCollider->SetCenter(attackRangeCenter);
-  m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
+  // コライダーの更新は上部に移動済み
 
   // 敵とプレイヤーの押し出し処理（カプセル同士の衝突）
   if (m_pBodyCollider->IsIntersects(playerBodyCollider.get())) {

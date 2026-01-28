@@ -954,12 +954,11 @@ Player::TackleInfo Player::GetTackleInfo() const {
     // プレイヤーの前面中心（体の中心から前方へkTackleHitRangeだけ進める）
     VECTOR frontCenter = VAdd(bodyCenter, VScale(m_tackleDir, kTackleHitRange));
 
-    // カプセルの中心軸を前面中心の上下に伸ばす
-    VECTOR capA = VAdd(frontCenter, VGet(0, -tackleHeight * 0.5f, 0));
-    VECTOR capB = VAdd(frontCenter, VGet(0, tackleHeight * 0.5f, 0));
-
-    info.capA = capA;
-    info.capB = capB;
+    // カプセルの始点と終点を設定 (体から前方への範囲全体)
+    // 以前は前方の一点に縦長のカプセルを作っていたが、
+    // それだと密着時に当たらないため、プレイヤーの位置から伸ばす形に変更
+    info.capA = bodyCenter;
+    info.capB = frontCenter;
     info.radius = kTackleHitRadius;
     info.damage = m_tackleDamage;
   }

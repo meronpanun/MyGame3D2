@@ -46,6 +46,7 @@ public:
   ~WaveManager();
 
   void Init();
+  void Reset();
   void Update();
 
   /// <summary>
