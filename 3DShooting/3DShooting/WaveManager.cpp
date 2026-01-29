@@ -284,11 +284,10 @@ void WaveManager::Update() {
   }
   // ウェーブがアクティブでない場合、次のウェーブ開始までのインターバルをカウントダウン
   else {
-    if (m_waveIntervalTimer > 0.0f) {
-      m_waveIntervalTimer -= (1.0f / 60.0f) * Game::GetTimeScale();
-    } else {
-    }
-    else {
+      if (m_waveIntervalTimer > 0.0f) {
+          m_waveIntervalTimer -= (1.0f / 60.0f) * Game::GetTimeScale();
+      }
+      else {
       if (m_currentWave <= 5) {
         VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f); // プレイヤー位置の初期値
         StartCurrentWave(playerPos);

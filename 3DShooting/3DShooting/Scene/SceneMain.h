@@ -168,4 +168,9 @@ private:
   int m_loadingFrameCount; // ロード完了後の待機フレームカウンタ
   int m_loadingDotCount;   // ローディングアニメーションのドット数
   int m_loadingAnimTimer;  // ローディングアニメーションタイマー
+
+  // ローディング画面用
+  int m_loadingModelHandle;     // ローディング用モデルハンドル
+  VECTOR m_loadingModelPos;     // ローディング用モデル位置
+  float m_loadingModelAnimTime; // ローディング用モデルアニメーション時間
 };

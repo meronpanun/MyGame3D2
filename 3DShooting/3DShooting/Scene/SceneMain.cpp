@@ -115,7 +115,9 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
       m_isTaskTutorialInit(false), m_pEffect(std::make_unique<Effect>()),
       m_pAnimManager(std::make_unique<AnimationManager>()),
       m_gameOverDelayTimer(-1), m_isTutorialStage(false),
-      m_loadingFrameCount(0), m_loadingDotCount(0), m_loadingAnimTimer(0) {
+      m_loadingFrameCount(0), m_loadingDotCount(0), m_loadingAnimTimer(0),
+      m_loadingModelHandle(-1), m_loadingModelPos(VGet(0, 0, 0)),
+      m_loadingModelAnimTime(0.0f) {
   g_sceneMainInstance = this;
 
   // スコアポップアップ用フォントの作成
@@ -144,11 +146,35 @@ SceneMain::~SceneMain() {
   DeleteSoundMem(m_bgmHandle);
   // フォントの解放
   DeleteFontToHandle(m_scoreFontHandle);
+
+  // ローディング用モデルの解放
+  MV1DeleteModel(m_loadingModelHandle);
 }
 
 void SceneMain::Init() {
   // 経過時間リセット
   s_elapsedTime = 0.0f;
+
+  // ローディング用モデルの読み込み（非同期ロードの前に同期で読み込む）
+  m_loadingModelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
+  // 初期設定
+  // 歩行アニメーションを名前で検索
+  int walkAnimIndex = MV1GetAnimIndex(m_loadingModelHandle, "WALK");
+  if (walkAnimIndex == -1)
+    walkAnimIndex = 0; // 見つからなければ0番
+
+  // アニメーションをアタッチ (slot 0)
+  MV1AttachAnim(m_loadingModelHandle, walkAnimIndex, -1, FALSE);
+
+  m_loadingModelPos =
+      VGet(-200.0f, -750.0f,
+           600.0f); // 画面左外側、カメラスペースでの位置 (さらに下げる)
+  m_loadingModelAnimTime = 0.0f;
+  // スケール調整
+  MV1SetScale(m_loadingModelHandle, VGet(1.0f, 1.0f, 1.0f));
+  // 回転 (右向きに修正: 90度で左だったため-90度に変更)
+  MV1SetRotationXYZ(m_loadingModelHandle,
+                    VGet(0.0f, -90.0f * DX_PI_F / 180.0f, 0.0f));
 
   // 非同期読み込みを有効化
   SetUseASyncLoadFlag(true);
@@ -378,6 +404,30 @@ SceneBase *SceneMain::Update() {
       if (m_loadingDotCount > 3) {
         m_loadingDotCount = 0;
       }
+      if (m_loadingDotCount > 3) {
+        m_loadingDotCount = 0;
+      }
+    }
+
+    // ローディングモデルの更新 (歩行アニメーション)
+    if (m_loadingModelHandle != -1) {
+      // アニメーション進行
+      m_loadingModelAnimTime += 1.0f; // スピード調整
+      float totalTime = MV1GetAttachAnimTotalTime(m_loadingModelHandle, 0);
+      if (m_loadingModelAnimTime >= totalTime) {
+        m_loadingModelAnimTime = fmodf(m_loadingModelAnimTime, totalTime);
+      }
+      MV1SetAttachAnimTime(m_loadingModelHandle, 0, m_loadingModelAnimTime);
+
+      // 移動 (左から右へ)
+      m_loadingModelPos.x += 3.0f;
+      if (m_loadingModelPos.x > 350.0f) { // 画面右端を超えたらループ
+        m_loadingModelPos.x = -350.0f;
+      }
+
+      // 位置設定 (カメラ固定と仮定して簡易的に配置)
+      // 2D的な配置にするため、カメラの設定を行わずに描画するか、特定の座標系に従う必要がある
+      // ここではDrawでカメラ設定を変えて描画するため、座標更新のみ行う
     }
 
     // 非同期読み込みが完了しているかチェック
@@ -688,9 +738,26 @@ void SceneMain::Draw() {
 
     int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
     int textX = (screenW - textWidth) / 2;
-    int textY = (screenH - 48) / 2;
+    int textY = (screenH - 48) / 2 - 50; // テキストを少し上にずらす
     DrawString(textX, textY, loadingText.c_str(), 0xffffff);
     SetFontSize(16);
+
+    // ローディングモデルの描画
+    if (m_loadingModelHandle != -1) {
+      // カメラ設定をローディング専用にする
+      VECTOR camPos = VGet(0.0f, -550.0f, 0.0f);
+      VECTOR camTarget = VGet(0.0f, -550.0f, 1000.0f);
+      SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
+      SetCameraPositionAndTarget_UpVecY(camPos, camTarget);
+
+      // モデル位置設定
+      MV1SetPosition(m_loadingModelHandle, m_loadingModelPos);
+      MV1DrawModel(m_loadingModelHandle);
+
+      // カメラ設定を戻す (次のフレームの描画に影響しないように推奨されるが、
+      // 実際にはメインループで毎フレーム設定されるため、ここでは簡易的で良い)
+    }
+
     return; // ローディング中はこれ以降描画しない
   }
 
