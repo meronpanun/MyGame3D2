@@ -390,7 +390,7 @@
               "RelativeDocumentMoniker": "3DShooting\\GameObject\\EnemyRunner.cpp",
               "ToolTip": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\GameObject\\EnemyRunner.cpp",
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyRunner.cpp",
-              "ViewState": "AgIAAKwBAAAAAAAAAAApwKQBAAA9AAAAAAAAAA==",
+              "ViewState": "AgIAAKwBAAAAAAAAAAApwMABAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-11-06T06:00:19.221Z",
               "EditorCaption": ""
@@ -429,8 +429,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyNormal.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-10-30T02:20:50.919Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-30T02:20:50.919Z"
             },
             {
               "$type": "Document",
