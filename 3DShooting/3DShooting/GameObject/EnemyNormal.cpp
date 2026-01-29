@@ -1,7 +1,9 @@
 ﻿#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
+#include "CollisionGrid.h"
 #include "DebugUtil.h"
+#include "DxLib.h"
 #include "EffekseerForDXLib.h"
 #include "Player.h"
 #include "SceneMain.h"
@@ -166,8 +168,43 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
       context.collisionData;
   Effect *pEffect = context.pEffect;
 
+  // AI間引き処理の更新
+  UpdateThrottling(player.GetPos());
+
+  // 視界外の単純動作モード
+  if (m_isSimpleMode) {
+    // ステージとの当たり判定のみ簡易に行う（重力適用など）
+    UpdateStageCollision(collisionData);
+    return;
+  }
+
   // ステージとの当たり判定
   UpdateStageCollision(collisionData);
+
+  // コライダーの更新 (死亡中も判定を残すため、死亡チェックの前に移動)
+  // 体のコライダー（カプセル）
+  VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
+  VECTOR bodyCapB =
+      VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
+  m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
+  m_pBodyCollider->SetRadius(kBodyColliderRadius);
+
+  // 頭のコライダー（球）
+  int headIndex = MV1SearchFrame(m_modelHandle, "Head");
+  VECTOR headModelPos = (headIndex != -1)
+                            ? MV1GetFramePosition(m_modelHandle, headIndex)
+                            : VGet(0, 0, 0);
+  VECTOR headCenter =
+      VAdd(headModelPos,
+           m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
+  m_pHeadCollider->SetCenter(headCenter);
+  m_pHeadCollider->SetRadius(kHeadRadius);
+
+  // 攻撃範囲のコライダー（球）
+  VECTOR attackRangeCenter = m_pos;
+  attackRangeCenter.y += (kBodyColliderHeight * 0.5f);
+  m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+  m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
 
   if (m_hp <= 0.0f) {
     if (!m_isDeadAnimPlaying) {
@@ -180,8 +217,10 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
 
     // 死亡アニメーション中もアニメーション時間を更新
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
-      m_animTime += 1.0f * Game::GetTimeScale();
-      m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+      if (m_shouldUpdateAI) {
+        m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
+        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+      }
     }
 
     float currentAnimTotalTime =
@@ -249,42 +288,45 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   bool isPlayerInAttackRange =
       m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
-  // アニメーションの状態管理
-  if (m_currentAnimState == AnimState::Attack) {
-    // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
-    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
-        m_modelHandle, kAttackAnimName);
-    if (m_animTime > currentAnimTotalTime) {
-      if (m_attackEndDelayTimer <= 0) {
-        m_attackEndDelayTimer = kAttackEndDelay; // ディレイ開始
-      }
-    }
-    // ディレイタイマーが動作中ならカウントダウン
-    if (m_attackEndDelayTimer > 0) {
-      --m_attackEndDelayTimer;
-      if (m_attackEndDelayTimer == 0) {
-        m_isAttackHit = false; // 攻撃ヒットフラグをリセット
-        if (isPlayerInAttackRange) {
-          ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
-        } else {
-          ChangeAnimation(AnimState::Walk, true); // 範囲外なら歩行
+  // アニメーションの状態管理 (AI間引き対象)
+  if (m_shouldUpdateAI) {
+    if (m_currentAnimState == AnimState::Attack) {
+      // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
+      float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
+          m_modelHandle, kAttackAnimName);
+      if (m_animTime > currentAnimTotalTime) {
+        if (m_attackEndDelayTimer <= 0) {
+          m_attackEndDelayTimer = kAttackEndDelay; // ディレイ開始
         }
       }
-    }
-  } else if (m_currentAnimState == AnimState::Dead) {
-    // 死亡アニメーション中は移動や攻撃を行わない
-  } else // Walk 状態(常に歩行アニメーションが基本)
-  {
-    // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
-    if (CanAttackPlayer(player)) {
-      m_isAttackHit = false;
-      ChangeAnimation(AnimState::Attack, false);
+      // ディレイタイマーが動作中ならカウントダウン
+      if (m_attackEndDelayTimer > 0) {
+        m_attackEndDelayTimer -= m_aiUpdateInterval; // 間引き分減算
+        if (m_attackEndDelayTimer <= 0) {
+          m_isAttackHit = false; // 攻撃ヒットフラグをリセット
+          if (isPlayerInAttackRange) {
+            ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
+          } else {
+            ChangeAnimation(AnimState::Walk, true); // 範囲外なら歩行
+          }
+        }
+      }
+    } else if (m_currentAnimState == AnimState::Dead) {
+      // 死亡アニメーション中は移動や攻撃を行わない
+    } else // Walk 状態(常に歩行アニメーションが基本)
+    {
+      // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
+      if (CanAttackPlayer(player)) {
+        m_isAttackHit = false;
+        ChangeAnimation(AnimState::Attack, false);
+      }
     }
   }
 
-  // アニメーションがアタッチされている場合のみ時間を更新
-  if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
-    m_animTime += 1.0f * Game::GetTimeScale();
+  // アニメーションがアタッチされている場合のみ時間を更新 (AI間引き対象)
+  if (m_shouldUpdateAI &&
+      m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
+    m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
 
     float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
         m_modelHandle,
@@ -308,30 +350,7 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
     m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
   }
 
-  // コライダーの更新
-  // 体のコライダー（カプセル）
-  VECTOR bodyCapA = VAdd(m_pos, VGet(0, kBodyColliderRadius, 0));
-  VECTOR bodyCapB =
-      VAdd(m_pos, VGet(0, kBodyColliderHeight - kBodyColliderRadius, 0));
-  m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
-  m_pBodyCollider->SetRadius(kBodyColliderRadius);
-
-  // 頭のコライダー（球）
-  int headIndex = MV1SearchFrame(m_modelHandle, "Head");
-  VECTOR headModelPos = (headIndex != -1)
-                            ? MV1GetFramePosition(m_modelHandle, headIndex)
-                            : VGet(0, 0, 0);
-  VECTOR headCenter =
-      VAdd(headModelPos,
-           m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
-  m_pHeadCollider->SetCenter(headCenter);
-  m_pHeadCollider->SetRadius(kHeadRadius);
-
-  // 攻撃範囲のコライダー（球）
-  VECTOR attackRangeCenter = m_pos;
-  attackRangeCenter.y += (kBodyColliderHeight * 0.5f);
-  m_pAttackRangeCollider->SetCenter(attackRangeCenter);
-  m_pAttackRangeCollider->SetRadius(kAttackRangeRadius);
+  // コライダーの更新は上部に移動済み
 
   // 敵とプレイヤーの押し出し処理（カプセル同士の衝突）
   if (m_pBodyCollider->IsIntersects(playerBodyCollider.get())) {
@@ -366,7 +385,14 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   }
 
   // 敵同士の押し出し処理（横方向への広がり）
-  for (EnemyBase *other : enemyList) {
+  std::vector<EnemyBase *> neighbors;
+  if (context.collisionGrid) {
+    context.collisionGrid->GetNeighbors(m_pos, neighbors);
+  }
+  const std::vector<EnemyBase *> &targets =
+      (context.collisionGrid) ? neighbors : enemyList;
+
+  for (EnemyBase *other : targets) {
     if (!other)
       continue;
     // 自分自身は除外
@@ -401,30 +427,35 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   if (m_currentAnimState ==
       AnimState::Attack) // 攻撃アニメーションが再生中の場合のみ攻撃判定を行う
   {
-    // m_currentAnimTotalTime を AnimationManager から取得
-    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
-        m_modelHandle, kAttackAnimName);
-    float attackStart = currentAnimTotalTime * 0.5f; // 攻撃開始時間
-    float attackEnd = currentAnimTotalTime * 0.7f;   // 攻撃終了時間
+    // m_shouldUpdateAI
+    // で判定して、間引き時は前回の結果を維持（あるいはスキップ）
+    // ここでは攻撃の当たり判定は重いので間引き対象にする
+    if (m_shouldUpdateAI) {
+      // m_currentAnimTotalTime を AnimationManager から取得
+      float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
+          m_modelHandle, kAttackAnimName);
+      float attackStart = currentAnimTotalTime * 0.5f; // 攻撃開始時間
+      float attackEnd = currentAnimTotalTime * 0.7f;   // 攻撃終了時間
 
-    // 攻撃アニメーションの範囲内でのみ攻撃判定を行う
-    if (!m_isAttackHit && m_animTime >= attackStart &&
-        m_animTime <= attackEnd) {
-      int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
-      int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
-      if (handRIndex != -1 && handLIndex != -1) {
-        VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
-        VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
+      // 攻撃アニメーションの範囲内でのみ攻撃判定を行う
+      if (!m_isAttackHit && m_animTime >= attackStart &&
+          m_animTime <= attackEnd) {
+        int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
+        int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
+        if (handRIndex != -1 && handLIndex != -1) {
+          VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
+          VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
-        // 攻撃ヒット用コライダーの更新
-        m_pAttackHitCollider->SetSegment(handRPos, handLPos);
-        m_pAttackHitCollider->SetRadius(kAttackHitRadius);
+          // 攻撃ヒット用コライダーの更新
+          m_pAttackHitCollider->SetSegment(handRPos, handLPos);
+          m_pAttackHitCollider->SetRadius(kAttackHitRadius);
 
-        if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get())) {
-          const_cast<Player &>(player).TakeDamage(
-              m_attackPower,
-              m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
-          m_isAttackHit = true;
+          if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get())) {
+            const_cast<Player &>(player).TakeDamage(
+                m_attackPower,
+                m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
+            m_isAttackHit = true;
+          }
         }
       }
     }
@@ -464,6 +495,31 @@ void EnemyNormal::Draw() {
       m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
     return;
 
+  // 視錐台カリング (描画最適化)
+  // CheckCameraViewClip系の関数が環境によって不安定なため、
+  // 手動で「カメラ前方への内積チェック(簡易コーン判定)」を行う
+  VECTOR camPos = GetCameraPosition();
+  VECTOR camTarget = GetCameraTarget();
+  VECTOR camDir = VNorm(VSub(camTarget, camPos));
+  VECTOR toEnemy = VSub(m_pos, camPos);
+  float distSq = VSquareSize(toEnemy);
+
+  // 1. 距離チェック (Farクリップ + マージン)
+  if (distSq > 16000.0f * 16000.0f)
+    return;
+
+  // 2. 画角チェック (内積)
+  // 近距離(300.0f以内)なら無条件で描画 (すり抜け防止)
+  if (distSq > 300.0f * 300.0f) {
+    VECTOR dirToEnemy = VNorm(toEnemy);
+    float dot = VDot(camDir, dirToEnemy);
+    // 視野角90度(cos45=0.7)に対し、余裕を持ってcos66=0.4程度以上なら描画
+    // これにより視野外でも少し描画されるが、消えるよりは安全
+    if (dot < 0.4f)
+      return;
+  }
+
+  EnemyBase::IncrementDrawCount();
   MV1DrawModel(m_modelHandle);
 
 #ifdef _DEBUG

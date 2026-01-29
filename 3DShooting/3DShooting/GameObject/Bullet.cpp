@@ -1,88 +1,116 @@
 ﻿#include "Bullet.h"
+#include "Collision.h"
 #include "EffekseerForDXLib.h"
 #include <algorithm>
 
-namespace
-{
-	// 弾の速度
-	constexpr float kBulletSpeed = 60.0f;
+namespace {
+// 弾の速度
+constexpr float kBulletSpeed = 60.0f;
 
-	// プレイヤーからの画面外判定距離
-	constexpr float kPlayerBoundaryDistance = 2000.0f;
+// プレイヤーからの画面外判定距離
+constexpr float kPlayerBoundaryDistance = 2000.0f;
+} // namespace
+
+Bullet::Bullet(VECTOR position, VECTOR direction, AttackType attackType,
+               float damage)
+    : m_pos(position), m_prevPos(position), m_dir(direction),
+      m_speed(kBulletSpeed), m_isActive(true), m_damage(damage),
+      m_attackType(attackType) {}
+
+Bullet::~Bullet() {}
+
+void Bullet::Init() {}
+
+void Bullet::Update(
+    const VECTOR &playerPos,
+    const std::vector<Stage::StageCollisionData> &collisionData) {
+  if (!m_isActive)
+    return;
+
+  m_prevPos = m_pos; // 現在の位置を前フレームの位置として保存
+  m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // 新しい位置を計算
+
+  // ステージとの衝突判定
+  // 前フレームの位置と現在の位置を結ぶ線分で判定を行う
+  float minT = 1.0f;
+  bool hit = false;
+  VECTOR hitPos = m_pos;
+
+  for (const auto &col : collisionData) {
+    // HitCheck_Line_Triangle はDXライブラリの関数
+    HITRESULT_LINE result =
+        HitCheck_Line_Triangle(m_prevPos, m_pos, col.v1, col.v2, col.v3);
+    if (result.HitFlag) {
+      // 線分の始点(0.0)から終点(1.0)までのどの位置で当たったかを取得する必要があるが、
+      // HITRESULT_LINE
+      // には比率が含まれていないため、距離から算出する等の工夫が必要か、
+      // あるいは当たった位置(Position)を使う。
+
+      // 最も手前で当たったものを採用するため、距離比較を行う
+      float distSq = VSquareSize(VSub(result.Position, m_prevPos));
+      float totalDistSq = VSquareSize(VSub(m_pos, m_prevPos));
+
+      if (totalDistSq > 0.0001f) {
+        float t = distSq / totalDistSq;
+        if (t >= 0.0f && t < minT) {
+          minT = t;
+          hit = true;
+          hitPos = result.Position;
+        }
+      }
+    }
+  }
+
+  if (hit) {
+    // 衝突した場合は位置を修正し、非アクティブ化 (壁に埋まらないようにする)
+    m_pos = hitPos;
+    m_isActive = false;
+
+    // ここで着弾エフェクトなどを出すことも可能
+  }
+
+  // プレイヤーからの距離を計算
+  VECTOR toPlayer = VSub(m_pos, playerPos);
+  float distanceToPlayer =
+      sqrtf(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y +
+            toPlayer.z * toPlayer.z);
+
+  // プレイヤーから一定距離以上離れたら非アクティブにする
+  if (distanceToPlayer > kPlayerBoundaryDistance) {
+    m_isActive = false;
+  }
 }
 
-Bullet::Bullet(VECTOR position, VECTOR direction, AttackType attackType, WeaponType weaponType, float damage) :
-	m_pos(position),
-	m_prevPos(position), 
-	m_dir(direction),
-	m_speed(kBulletSpeed),
-	m_isActive(true),
-	m_damage(damage),
-	m_attackType(attackType),
-	m_weaponType(weaponType)
-{
-}
-
-Bullet::~Bullet()
-{
-}
-
-void Bullet::Init()
-{
-}
-
-void Bullet::Update(const VECTOR& playerPos)
-{
-	if (!m_isActive) return;
-
-	m_prevPos = m_pos; // 現在の位置を前フレームの位置として保存
-	m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // 新しい位置を計算
-
-	// プレイヤーからの距離を計算
-	VECTOR toPlayer = VSub(m_pos, playerPos);
-	float distanceToPlayer = sqrtf(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
-
-	// プレイヤーから一定距離以上離れたら非アクティブにする
-	if (distanceToPlayer > kPlayerBoundaryDistance)
-	{
-		m_isActive = false;
-	}
-}
-
-void Bullet::Draw() const
-{
+void Bullet::Draw() const {
 #ifdef _DEBUG
-	if (!m_isActive) return;
+  if (!m_isActive)
+    return;
 
-	// Rayのデバッグ描画
-	DrawLine3D(m_prevPos, m_pos, 0xffff00); // 黄色の線
-	DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, false); // 仮の弾の描画
+  // Rayのデバッグ描画
+  DrawLine3D(m_prevPos, m_pos, 0xffff00);                   // 黄色の線
+  DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, false); // 仮の弾の描画
 #endif
 }
 
 // 弾の更新
-void Bullet::UpdateBullets(std::vector<Bullet>& bullets, const VECTOR& playerPos)
-{
-	for (auto& bullet : bullets)
-	{
-		bullet.Update(playerPos);
-	}
-
-	// 非アクティブな弾を削除
-	bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) { return !b.IsActive(); }), bullets.end());
+void Bullet::UpdateBullets(
+    std::vector<Bullet> &bullets, const VECTOR &playerPos,
+    const std::vector<Stage::StageCollisionData> &collisionData) {
+  for (auto &bullet : bullets) {
+    bullet.Update(playerPos, collisionData);
+  }
+  // 非アクティブな弾を削除
+  bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
+                               [](const Bullet &b) { return !b.IsActive(); }),
+                bullets.end());
 }
 
 // 弾の描画
-void Bullet::DrawBullets(const std::vector<Bullet>& bullets)
-{
-	for (const auto& bullet : bullets)
-	{
-		bullet.Draw();
-	}
+void Bullet::DrawBullets(const std::vector<Bullet> &bullets) {
+  for (const auto &bullet : bullets) {
+    bullet.Draw();
+  }
 }
 
 // 弾を非アクティブ化
-void Bullet::Deactivate()
-{
-	m_isActive = false;
-}
+void Bullet::Deactivate() { m_isActive = false; }

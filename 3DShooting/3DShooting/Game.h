@@ -7,39 +7,45 @@ class SceneManager;
 /// <summary>
 /// ゲームの基本情報を定義するクラス
 /// </summary>
-class Game
-{
+class Game {
 public:
-    // 画面情報を定数定義
-    //static constexpr int kScreenWidth  = 1920;
-    //static constexpr int kScreenHeigth = 1080;
-    static constexpr int kScreenWidth  = 1280;
-    static constexpr int kScreenHeigth = 720;
-    //static constexpr int kScreenWidth  = 640;
-    //static constexpr int kScreenHeigth = 480;
-    static constexpr int kColorBitNum  = 32;
+  // 画面情報を定数定義
+  // static constexpr int kScreenWidth  = 1920;
+  // static constexpr int kScreenHeigth = 1080;
+  static constexpr int kScreenWidth = 1280;
+  static constexpr int kScreenHeigth = 720;
+  // static constexpr int kScreenWidth  = 640;
+  // static constexpr int kScreenHeigth = 480;
+  static constexpr int kColorBitNum = 32;
 
-    static constexpr bool kDefaultWindowMode = true;
+  static constexpr bool kDefaultWindowMode = true;
 
-	// ウインドウのタイトル
-	static constexpr const char* kWindowTitle = "WAVEBREAKER";
+  // ウインドウのタイトル
+  static constexpr const char *kWindowTitle = "WAVEBREAKER";
 
-    // グローバルなカメラ感度
-    static float g_cameraSensitivity;
+  static void SetTimeScale(float scale, float duration);
+  static void UpdateTimeScale();
+  static float GetTimeScale();
 
-    // プレイヤーへのポインタ
-    static Player* m_pPlayer;
+  // チュートリアル用の一時停止機能
+  static void SetPaused(bool paused);
+  static bool IsPaused();
 
-    static SceneManager* m_pSceneManager; 
+  // プレイヤーへのポインタ
+  static Player *m_pPlayer;
 
-    // タイムスケール関連
-    static float g_timeScale;
-    static float g_targetTimeScale;
-    static float g_timeScaleDuration;
-    static float g_timeScaleTimer;
-    static float g_initialTimeScale;  // 追加：補間開始時のスケール
+  static SceneManager *m_pSceneManager;
 
-    static void SetTimeScale(float scale, float duration);
-    static void UpdateTimeScale();
-    static float GetTimeScale();
+  // グローバルなカメラ感度
+  static float g_cameraSensitivity;
+
+private:
+  // タイムスケール関連
+  static float g_timeScale;
+  static float g_targetTimeScale;
+  static float g_timeScaleDuration;
+  static float g_timeScaleTimer;
+  static float g_initialTimeScale; // 追加：補間開始時のスケール
+
+  static bool s_isPaused; // 一時停止フラグ
 };

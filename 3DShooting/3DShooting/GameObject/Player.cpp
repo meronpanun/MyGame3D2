@@ -3,6 +3,7 @@
 #include "Bullet.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
+#include "Collision.h"
 #include "DebugUtil.h"
 #include "DirectionIndicator.h"
 #include "Effect.h"
@@ -20,6 +21,10 @@
 #include <cassert>
 #include <cmath>
 #include <cstdio>
+
+// カプセルコライダーのサイズ（PlayerMovement.cppと一致させる）
+constexpr float kCapsuleHeight = 100.0f;
+constexpr float kCapsuleRadius = 50.0f;
 
 namespace {
 // タックル関連
@@ -135,7 +140,7 @@ Player::Player()
       m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false),
       m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f),
       m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f),
-      m_pAnimManager(nullptr) {
+      m_pAnimManager(nullptr), m_isTutorial(false) {
   // SEの読み込み
   m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
   assert(m_playerHitSEHandle != -1);
@@ -143,15 +148,6 @@ Player::Player()
   assert(m_tackleSEHandle != -1);
   m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
   assert(m_recoverySEHandle != -1);
-
-  m_isTutorial = false;
-  
-  // 装備アニメーション初期化
-  // 装備アニメーション初期化
-  m_equipAnimDuration = 1.0f;
-  m_equipAnimDelayTimer = 0.0f;
-  m_equipAnimTimer = m_equipAnimDuration; // 最初は完了状態（オフセットなし）にしておく
-  m_isPlayingEquipAnim = false;
 }
 
 Player::~Player() {
@@ -200,14 +196,7 @@ void Player::Init(bool isTutorial) {
       break;
     }
   }
-
   m_pCamera->Init(); // カメラの初期化
-
-  // 装備アニメーション状態のリセット
-  m_equipAnimDuration = 1.0f;
-  m_equipAnimDelayTimer = 0.0f;
-  m_equipAnimTimer = m_equipAnimDuration; // 最初は完了状態（オフセットなし）にしておく
-  m_isPlayingEquipAnim = false;
 }
 
 void Player::Update(
@@ -218,56 +207,6 @@ void Player::Update(
 
   // コンポーネントの更新
   float deltaTime = kDeltaTime * Game::GetTimeScale();
-
-  // 装備アニメーション中は操作を受け付けない
-  // ただし、アニメーションタイマーの更新などは必要なので、ここでは移動などの入力処理のみをスキップする
-  // 実際にはUpdate関数の後半で行われている入力処理もスキップする必要があるため、
-  // ここでアニメーション中かどうかを判定して処理を分岐させる
-
-  if (m_isPlayingEquipAnim) {
-      // アニメーション中は移動しない
-      m_movement.Stop(); // 移動停止
-      m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling,
-                        m_isFlightMode, collisionData, false); // 物理挙動は継続、入力無効
-      
-      m_modelPos = m_movement.GetPos(); // 位置同期
-
-      // 武器の更新（アニメーション進行のため必要だが、入力は無効化する）
-      PlayerWeaponManager::UpdateContext weaponContext = {
-          deltaTime,        m_modelPos,        m_pCamera.get(),
-          false,            m_isDead,          false,
-          false,            false,             AttackType::None,
-          m_isInfiniteAmmo, enemyList,         collisionData};
-      m_weaponManager.Update(weaponContext);
-
-      // カメラの更新
-      m_pCamera->SetPlayerPos(m_modelPos);
-      m_pCamera->Update(false); // 入力無効
-
-      // 盾システムの最低限の更新（Swayなどは計算）
-      m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, false,
-                            false, false, 0.0f, 0.0f, 0.0f, false);
-
-      // アニメーションタイマーの更新
-      if (m_equipAnimDelayTimer > 0.0f) {
-          m_equipAnimDelayTimer -= deltaTime;
-          if (m_equipAnimDelayTimer < 0.0f) {
-              m_equipAnimDelayTimer = 0.0f;
-          }
-      } else {
-          m_equipAnimTimer += deltaTime;
-          if (m_equipAnimTimer >= m_equipAnimDuration) {
-              m_equipAnimTimer = m_equipAnimDuration;
-              m_isPlayingEquipAnim = false;
-          }
-      }
-      
-      // シェルケーシングなどの更新
-      ShellCasing::UpdateShellCasings(m_shellCasings);
-
-      return; // ここで早期リターンして入力処理をスキップ
-  }
-
   VECTOR playerPos = m_movement.GetPos();
   bool isGuarding = m_shieldSystem.IsGuarding();
   bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
@@ -348,8 +287,10 @@ void Player::Update(
   m_shieldSystem.SetGuarding(shouldGuard);
   bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
-  // Rキーでシールドソーを投げる/戻す（死亡中、タックル中、ガード中、武器切り替え中は不可）
-  if (!m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
+  // Rキーでシールドソーを投げる/戻す（死亡中、タックル中、ガード中、武器切り替え中、チュートリアル中は不可）
+  if ((m_allowedAttackType == AttackType::None ||
+       m_allowedAttackType == AttackType::ShieldThrow) &&
+      !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
       keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R]) {
     if (m_shieldSystem.IsShieldThrown()) {
       // 既に投げられている場合は即座に戻す
@@ -582,7 +523,9 @@ void Player::Update(
   m_shieldSystem.UpdateSparkEffect(m_pEffect, m_modelPos, m_pCamera.get());
 
   // ロックオン中に左クリックでタックル
-  if (m_isLockingOn && m_lockedOnEnemy &&
+  if ((m_allowedAttackType == AttackType::None ||
+       m_allowedAttackType == AttackType::Tackle) &&
+      m_isLockingOn && m_lockedOnEnemy &&
       InputManager::GetInstance()->IsTriggerMouseLeft() &&
       m_tackleCooldown <= 0) {
     m_isTackling = true;
@@ -619,11 +562,20 @@ void Player::Update(
     // m_movementの位置も同期
     m_movement.SetPos(m_modelPos);
 
-    // 地面より下に行かないように制限
+    // 地面より下に行かないように制限 (Collision check below handles this
+    // better, but keeping as safeguard for now)
     if (m_modelPos.y < PlayerMovement::GetGroundY()) {
       m_modelPos.y = PlayerMovement::GetGroundY();
-      m_movement.SetPos(m_modelPos);
     }
+
+    // ステージとの衝突判定
+    // タックル中も壁や坂道との衝突を検知して位置を修正する
+    CollisionResult res = Collision::CheckStageCollision(
+        m_modelPos, kCapsuleHeight, kCapsuleRadius, kPlayerColliderYOffset,
+        collisionData);
+
+    // m_movementの位置も同期
+    m_movement.SetPos(m_modelPos);
 
     // タックル判定情報を作成
     TackleInfo tackleInfo = GetTackleInfo();
@@ -718,7 +670,7 @@ void Player::Update(
   }
 
   // 弾の更新
-  Bullet::UpdateBullets(m_bullets, m_modelPos);
+  Bullet::UpdateBullets(m_bullets, m_modelPos, collisionData);
 
   // Head Bobbing状態をカメラに設定
   if (m_pCamera) {
@@ -773,17 +725,7 @@ void Player::Update(
   }
 
   ShellCasing::UpdateShellCasings(m_shellCasings);
-
-  // 装備アニメーション更新
-  if (m_isPlayingEquipAnim) {
-      m_equipAnimTimer += deltaTime;
-      if (m_equipAnimTimer >= m_equipAnimDuration) {
-          m_equipAnimTimer = m_equipAnimDuration;
-          m_isPlayingEquipAnim = false;
-      }
-  }
 }
-
 
 void Player::Draw3D() {
   bool isTryingToGuard = !m_isDead && !m_isTackling &&
@@ -818,20 +760,7 @@ void Player::Draw3D() {
       m_weaponManager.GetWeaponSwitchDuration(),
       m_weaponManager.GetPreviousWeaponType(),
       isTryingToGuard,
-      m_isTackling,
-      0.0f // デフォルト
-  };
-
-  // 装備アニメーション中のオフセット計算
-  if (m_isPlayingEquipAnim || m_equipAnimTimer < m_equipAnimDuration) {
-      float progress = m_equipAnimTimer / m_equipAnimDuration;
-      // easeOutExpo
-      float ease = (progress == 1.0f) ? 1.0f : 1.0f - powf(2.0f, -10.0f * progress);
-      weaponDrawContext.equipAnimOffsetY = (1.0f - ease) * 300.0f; // 300.0f下から上がってくる
-  } else {
-      weaponDrawContext.equipAnimOffsetY = 0.0f;
-  }
-
+      m_isTackling};
   m_weaponManager.Draw3D(weaponDrawContext);
 
   // 弾と薬莢の描画
@@ -845,18 +774,10 @@ void Player::Draw3D() {
 }
 
 void Player::DrawShield() {
-  float equipAnimOffsetY = 0.0f;
-  if (m_isPlayingEquipAnim || m_equipAnimTimer < m_equipAnimDuration) {
-      float progress = m_equipAnimTimer / m_equipAnimDuration;
-      float ease = (progress == 1.0f) ? 1.0f : 1.0f - powf(2.0f, -10.0f * progress);
-      equipAnimOffsetY = (1.0f - ease) * 300.0f;
-  }
-
   m_shieldSystem.Draw(m_pCamera.get(), m_modelPos, m_isTackling,
                       m_weaponManager.IsSwitchingWeapon(),
                       m_weaponManager.GetWeaponSwitchTimer(),
-                      m_weaponManager.GetWeaponSwitchDuration(),
-                      equipAnimOffsetY);
+                      m_weaponManager.GetWeaponSwitchDuration());
 }
 
 void Player::DrawUI() {
@@ -892,6 +813,10 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
     return;
   }
 
+  if (m_isTutorial) {
+    damage *= 0.5f;
+  }
+
   if (m_isInvincible) {
     return;
   }
@@ -911,8 +836,8 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
     // ジャストガード（パリィ）判定
     // ダメージ計算前に行う
     if (m_shieldSystem.IsJustGuarded() && isParryable) {
-      // スローモーション演出：0.1倍速になり、1.0秒かけて戻る
-      Game::SetTimeScale(0.1f, 1.0f);
+      // 特定の敵（Acid,
+      // Boss）のパリィ弾の時のみスローにするため、ここでは呼ばない
     }
 
     // カメラシェイクを発生
@@ -933,6 +858,11 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
       m_weaponManager.ShakeGun(kShieldBreakGunShakePower,
                                kShieldBreakGunShakeDuration);
       m_health -= remainingDamage; // 残ったダメージをHPに適用
+
+      // チュートリアル中は死なない
+      if (m_isTutorial && m_health <= 0.0f) {
+        m_health = 1.0f;
+      }
 
       // HPバーアニメーション用タイマーをリセット
       m_healthBarAnimTimer = 0.0f;
@@ -959,21 +889,16 @@ void Player::TakeDamage(float damage, const VECTOR &attackerPos,
     m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
   }
 
-  // チュートリアル中はダメージを半減
-  if (m_isTutorial) {
-    damage *= 0.5f;
-  }
-
   m_health -= damage; // ダメージを適用
-
-  // チュートリアル中はHPが1残るようにする
-  if (m_isTutorial && m_health < 1.0f) {
-    m_health = 1.0f;
-  }
-
   if (m_health < 0.0f) {
     m_health = 0.0f; // 体力が負にならないように制限
   }
+
+  // チュートリアル中は死なない
+  if (m_isTutorial && m_health <= 0.0f) {
+    m_health = 1.0f;
+  }
+
   // HPバーアニメーション用タイマーをリセット
   m_healthBarAnimTimer = 0.0f;
   // ダメージエフェクトを発動
@@ -1043,12 +968,11 @@ Player::TackleInfo Player::GetTackleInfo() const {
     // プレイヤーの前面中心（体の中心から前方へkTackleHitRangeだけ進める）
     VECTOR frontCenter = VAdd(bodyCenter, VScale(m_tackleDir, kTackleHitRange));
 
-    // カプセルの中心軸を前面中心の上下に伸ばす
-    VECTOR capA = VAdd(frontCenter, VGet(0, -tackleHeight * 0.5f, 0));
-    VECTOR capB = VAdd(frontCenter, VGet(0, tackleHeight * 0.5f, 0));
-
-    info.capA = capA;
-    info.capB = capB;
+    // カプセルの始点と終点を設定 (体から前方への範囲全体)
+    // 以前は前方の一点に縦長のカプセルを作っていたが、
+    // それだと密着時に当たらないため、プレイヤーの位置から伸ばす形に変更
+    info.capA = bodyCenter;
+    info.capB = frontCenter;
     info.radius = kTackleHitRadius;
     info.damage = m_tackleDamage;
   }
@@ -1116,20 +1040,4 @@ WeaponType Player::GetCurrentWeaponType() const {
 // 武器を切り替える
 void Player::SwitchWeapon(WeaponType weaponType) {
   m_weaponManager.SwitchWeapon(weaponType);
-}
-
-void Player::PlayWeaponEquipAnimation(float delaySeconds) {
-    m_isPlayingEquipAnim = true;
-    m_equipAnimTimer = 0.0f;
-    m_equipAnimDelayTimer = delaySeconds; // 遅延時間をセット
-    m_equipAnimDuration = 1.0f; // 1秒かけて持ち上げる
-}
-
-void Player::InitializeEquipAnim(bool isCompleted) {
-    if (isCompleted) {
-        m_equipAnimTimer = m_equipAnimDuration;
-    } else {
-        m_equipAnimTimer = 0.0f;
-    }
-    m_isPlayingEquipAnim = false;
 }

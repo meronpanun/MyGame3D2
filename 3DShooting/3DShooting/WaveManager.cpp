@@ -1,5 +1,6 @@
 ﻿#include "WaveManager.h"
 #include "Bullet.h"
+#include "CollisionGrid.h" // 追加
 #include "EffekseerForDXLib.h"
 #include "EnemyAcid.h"
 #include "EnemyBase.h"
@@ -15,7 +16,6 @@
 #include <map>
 #include <random>
 #include <sstream>
-
 
 namespace {
 // プレイヤーからの最大アクティブ距離
@@ -47,6 +47,8 @@ constexpr float kFrameTime = 1.0f / 60.0f; // フレーム時間
 } // namespace
 
 bool WaveManager::s_isDrawSpawnAreas = false;
+bool WaveManager::s_isShowActiveEnemyCount = false;
+bool WaveManager::s_isShowDrawnEnemyCount = false;
 
 WaveManager::WaveManager()
     : m_currentWave(1), m_waveTimer(0.0f), m_spawnTimer(0.0f),
@@ -87,39 +89,6 @@ WaveManager::~WaveManager() {
   }
 }
 
-void WaveManager::Reset() {
-  m_currentWave = 1;
-  m_waveTimer = 0.0f;
-  m_spawnTimer = 0.0f;
-  m_currentSpawnIndex = 0;
-  m_isWaveActive = false;
-  m_isAllWavesCompleted = false;
-  m_isWave1Loaded = false;
-  m_isWave1EnemySpawned = false;
-  m_roadFloorMin = kRoadFloorMin;
-  m_roadFloorMax = kRoadFloorMax;
-  m_isRoadFloorBoundsSet = false;
-  m_waveIntervalTimer = 0.0f;
-  m_totalSpawnedCount = 0;
-  m_isShotTutorialCleared = false;
-  m_isTackleTutorialCleared = false;
-  m_waveImageAnimTimer = 0;
-  m_isWaveImageAnimating = false;
-
-  m_enemyList.clear();
-  m_spawnInfoList.clear();
-
-  // 全ての敵プールを非アクティブ化
-  for (auto &enemy : m_enemyNormalPool)
-    enemy->SetActive(false);
-  for (auto &enemy : m_enemyRunnerPool)
-    enemy->SetActive(false);
-  for (auto &enemy : m_enemyAcidPool)
-    enemy->SetActive(false);
-  for (auto &enemy : m_enemyBossPool)
-    enemy->SetActive(false);
-}
-
 void WaveManager::Init() {
   m_enemyData =
       TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -128,8 +97,14 @@ void WaveManager::Init() {
 
   // ウェーブデータをロード
   LoadWaveData();
+  // ウェーブデータをロード
+  LoadWaveData();
   // スポーンエリアデータをロード
   LoadSpawnAreaData();
+
+  // グリッド初期化
+  // World size is roughly 2000x2000 based on road floor
+  m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 150.0f); // Cell size 150
 
   // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
   std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
@@ -235,6 +210,33 @@ void WaveManager::Init() {
   });
 }
 
+void WaveManager::Reset() {
+  m_currentWave = 1;
+  m_waveTimer = 0.0f;
+  m_spawnTimer = 0.0f;
+  m_currentSpawnIndex = 0;
+  m_waveIntervalTimer = 0.0f;
+  m_isWaveActive = false;
+  m_isAllWavesCompleted = false;
+
+  m_enemyList.clear();
+  m_spawnInfoList.clear(); // スポーン予定もクリア
+
+  // 全プールの敵を非アクティブ化
+  for (auto &enemy : m_enemyNormalPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyRunnerPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyAcidPool)
+    enemy->SetActive(false);
+  for (auto &enemy : m_enemyBossPool)
+    enemy->SetActive(false);
+
+  // チュートリアル関連フラグのリセット
+  m_isShotTutorialCleared = false;
+  m_isTackleTutorialCleared = false;
+}
+
 void WaveManager::Update() {
   if (m_isAllWavesCompleted) {
     return;
@@ -253,6 +255,16 @@ void WaveManager::Update() {
         while (m_currentSpawnIndex < m_spawnInfoList.size()) {
           EnemySpawnInfo &spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
           if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned) {
+            // スポーン位置を現在のプレイヤー位置に基づいて再計算
+            VECTOR currentPlayerPos = VGet(0.0f, 0.0f, 0.0f);
+            if (Game::m_pPlayer) {
+              currentPlayerPos = Game::m_pPlayer->GetPos();
+            }
+            // 0: Main Stage
+            spawnInfo.spawnPos =
+                GenerateSpawnPos(0, spawnInfo.enemyType, currentPlayerPos,
+                                 spawnInfo.spawnLocationType);
+
             std::shared_ptr<EnemyBase> pEnemy =
                 CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos);
             if (pEnemy) {
@@ -303,6 +315,7 @@ void WaveManager::UpdateEnemies(
     const Player &player,
     const std::vector<Stage::StageCollisionData> &collisionData,
     Effect *pEffect) {
+
   std::vector<EnemyBase *> activeEnemies;
   for (auto &pEnemy : m_enemyNormalPool) {
     if (pEnemy->IsActive() && pEnemy->IsAlive())
@@ -321,22 +334,18 @@ void WaveManager::UpdateEnemies(
       activeEnemies.push_back(pEnemy.get());
   }
 
+  // 1. Gridをクリアして再構築
+  m_collisionGrid.Clear();
+  for (auto *enemy : activeEnemies) {
+    m_collisionGrid.RegisterEnemy(enemy);
+  }
+
   // コンテキストを作成
   EnemyUpdateContext context = {
-      bullets,       tackleInfo, player,
-      activeEnemies, // activeEnemiesを使用（自分自身が含まれていても、各Updateで弾くか、無視されることを期待）しかしEnemyNormalなどはothersを作っていた。
-      collisionData, pEffect};
-
-  // contextのenemyListはconst参照なので、個別に除外したリストを渡すのは難しい。
-  // しかし、Refactoring前は `others` を渡していた。
-  // EnemyUpdateContextには `activeEnemies`
-  // 全体を渡して、受け取り側で自分自身を除外するのがベストだが、 既存コードは
-  // `others` を渡していたので、少し挙動が変わる可能性がある。
-  // ただし、今回変更した EnemyNormal.cpp などでは `enemyList`
-  // を使って「敵同士の押し出し」を行っている。 自分自身との押し出し判定は `if
-  // (other == this) continue;` でガードされているはず。
-  // EnemyNormal.cppの391行目を確認: `if (other == this) continue;` がある。
-  // なので、全員のリストを渡しても問題ない。
+      bullets,         tackleInfo,    player,
+      activeEnemies,   collisionData, pEffect,
+      &m_collisionGrid // Gridを渡す
+  };
 
   for (auto &pEnemy : m_enemyNormalPool) {
     if (!pEnemy->IsActive())
@@ -453,7 +462,7 @@ void WaveManager::SetOnEnemyDeathCallback(
 
 // 敵ヒット時のコールバックを設定
 void WaveManager::SetOnEnemyHitCallback(
-    std::function<void(EnemyBase::HitPart, float, WeaponType)> cb) {
+    std::function<void(EnemyBase::HitPart, float)> cb) {
   m_onEnemyHitCallback = cb;
 }
 
@@ -517,12 +526,20 @@ void WaveManager::LoadWaveData() {
       waveData.waveInterval = 0.0f;
     }
 
+    // SpawnLocation (Optional, default 0)
+    if (std::getline(ss, token, ',')) {
+      waveData.spawnLocationType = std::stoi(token);
+    } else {
+      waveData.spawnLocationType = 0;
+    }
+
     m_waveDataList.push_back(waveData);
 
     // デバッグ出力
-    printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f\n",
+    printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f, Loc %d\n",
            waveData.wave, waveData.enemyType.c_str(), waveData.count,
-           waveData.spawnInterval, waveData.startTime);
+           waveData.spawnInterval, waveData.startTime,
+           waveData.spawnLocationType);
   }
 }
 
@@ -647,42 +664,137 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR &playerPos) {
 
 // 出現位置を生成（エリア定義があればそれを使用、なければランダム）
 VECTOR WaveManager::GenerateSpawnPos(int type, const std::string &enemyType,
-                                     const VECTOR &playerPos) {
+                                     const VECTOR &playerPos,
+                                     int spawnLocationType) {
   // タイプに一致するエリアを検索
   std::vector<SpawnAreaInfo> candidates;
-  for (const auto &area : m_spawnAreaList) {
-    if (area.type == type) {
-      candidates.push_back(area);
+
+  // 指定された高さタイプに基づいてフィルタリング
+  float targetY = -999.0f;
+  if (spawnLocationType == 1)
+    targetY = 200.0f; // 下段
+  else if (spawnLocationType == 2)
+    targetY = 562.0f; // 中段
+  else if (spawnLocationType == 3)
+    targetY = 962.0f; // 上段
+
+  // Wave 1 (Main Stage) の特別処理 または 高さ指定がある場合
+  if ((m_currentWave == 1 && type == 0) ||
+      (spawnLocationType > 0 && type == 0)) {
+    // ターゲットY座標が決まっている場合はそれでフィルタリング、なければWave1デフォルトの200.0f
+    float checkY = (targetY != -999.0f) ? targetY : 200.0f;
+
+    for (const auto &area : m_spawnAreaList) {
+      if (area.type == type && std::abs(area.center.y - checkY) < 10.0f) {
+        candidates.push_back(area);
+      }
+    }
+
+    // プレイヤーとの距離判定
+    std::vector<SpawnAreaInfo> validCandidates;
+    for (const auto &area : candidates) {
+      // プレイヤーがスポーンエリア内にいるかどうかを判定 (AABB)
+      float halfSizeX = area.size.x * 0.5f;
+      float halfSizeZ = area.size.z * 0.5f;
+
+      bool isInsideX = playerPos.x >= (area.center.x - halfSizeX) &&
+                       playerPos.x <= (area.center.x + halfSizeX);
+      bool isInsideZ = playerPos.z >= (area.center.z - halfSizeZ) &&
+                       playerPos.z <= (area.center.z + halfSizeZ);
+
+      // エリア内にいる場合は除外
+      if (isInsideX && isInsideZ) {
+        continue;
+      }
+
+      // さらに一定距離（例えばエリアの最大半径 + 余裕）離れているかをチェック
+      VECTOR diff = VSub(area.center, playerPos);
+      float dist = VSize(diff);
+      float safeDistance =
+          (std::max)(area.size.x, area.size.z) + 200.0f; // サイズ + 余白
+
+      if (dist >= safeDistance) {
+        validCandidates.push_back(area);
+      }
+    }
+
+    // 有効な候補があれば、それらの中で最も遠いエリアを優先する
+    if (!validCandidates.empty()) {
+      // 距離の降順でソート
+      std::sort(validCandidates.begin(), validCandidates.end(),
+                [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
+                  float distA = VSize(VSub(a.center, playerPos));
+                  float distB = VSize(VSub(b.center, playerPos));
+                  return distA > distB;
+                });
+      // 最も遠いエリア1つに絞る
+      candidates.clear();
+      candidates.push_back(validCandidates[0]);
+    } else {
+      // 有効な候補がない場合（全てのエリアが近すぎる場合）
+      // 緊急回避：
+      // 指定された高さの中で最も距離が遠いエリアを選択する
+      if (!candidates.empty()) {
+        std::sort(candidates.begin(), candidates.end(),
+                  [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
+                    float distA = VSize(VSub(a.center, playerPos));
+                    float distB = VSize(VSub(b.center, playerPos));
+                    return distA > distB;
+                  });
+        std::vector<SpawnAreaInfo> fallback;
+        fallback.push_back(candidates[0]); // 一番遠いものだけ残す
+        candidates = fallback;
+      }
+      // 指定高さのエリア自体が見つからない場合は、全エリア検索などのフォールバックが必要だが
+      // SpawnData設定ミス以外では起きないはずなので、ここでは空のままにしてランダムスポーンへ
+    }
+  } else {
+    // 通常の処理
+    for (const auto &area : m_spawnAreaList) {
+      if (area.type == type) {
+        candidates.push_back(area);
+      }
     }
   }
 
   // 候補がなければ従来のランダムスポーン
   if (candidates.empty()) {
+    // 指定高さのエリアがない場合でも、とりあえずどこかには湧かせる
+    printf("Warning: No valid spawn area found for LocationType %d. Using "
+           "random spawn.\n",
+           spawnLocationType);
     return GenerateRandomSpawnPos(playerPos);
   }
 
   // 敵の種類に応じたロジック
-  // AcidEnemy（遠距離）はプレイヤーから離れたエリアを優先
   std::vector<SpawnAreaInfo> filteredCandidates;
-  bool isLongRange = (enemyType == "AcidEnemy");
-  const float kLongRangeThreshold = 500.0f; // 閾値（5m相当）
 
-  if (isLongRange) {
-    for (const auto &area : candidates) {
-      // 中心点との距離で判定（簡易的）
-      VECTOR diff = VSub(area.center, playerPos);
-      float dist = VSize(diff);
-      if (dist >= kLongRangeThreshold) {
-        filteredCandidates.push_back(area);
+  // Wave 1 または 高さ指定がある場合は既に選定済みなのでそのまま使用
+  if ((m_currentWave == 1 && type == 0) ||
+      (spawnLocationType > 0 && type == 0)) {
+    filteredCandidates = candidates;
+  } else {
+    // AcidEnemy（遠距離）はプレイヤーから離れたエリアを優先
+    bool isLongRange = (enemyType == "AcidEnemy");
+    const float kLongRangeThreshold = 500.0f; // 閾値（5m相当）
+
+    if (isLongRange) {
+      for (const auto &area : candidates) {
+        // 中心点との距離で判定（簡易的）
+        VECTOR diff = VSub(area.center, playerPos);
+        float dist = VSize(diff);
+        if (dist >= kLongRangeThreshold) {
+          filteredCandidates.push_back(area);
+        }
       }
-    }
-    // 条件を満たすエリアがなければ、全ての候補を使用（フォールバック）
-    if (filteredCandidates.empty()) {
+      // 条件を満たすエリアがなければ、全ての候補を使用（フォールバック）
+      if (filteredCandidates.empty()) {
+        filteredCandidates = candidates;
+      }
+    } else {
+      // 近接などは全ての候補から選択
       filteredCandidates = candidates;
     }
-  } else {
-    // 近接などは全ての候補から選択
-    filteredCandidates = candidates;
   }
 
   unsigned seed =
@@ -872,10 +984,11 @@ void WaveManager::StartCurrentWave(const VECTOR &playerPos) {
       // 出現位置を生成
       EnemySpawnInfo spawnInfo;
       spawnInfo.enemyType = waveData.enemyType;
-      // 0: Main Stage
-      spawnInfo.spawnPos = GenerateSpawnPos(0, waveData.enemyType, playerPos);
+      // 実際の位置はUpdateで生成時にプレイヤー位置に基づいて再計算する
+      spawnInfo.spawnPos = VGet(0, 0, 0);
       spawnInfo.spawnTime = waveData.startTime + (i * waveData.spawnInterval);
       spawnInfo.isSpawned = false;
+      spawnInfo.spawnLocationType = waveData.spawnLocationType; // 追加
 
       m_spawnInfoList.push_back(spawnInfo);
     }
@@ -975,6 +1088,7 @@ void WaveManager::DrawDebugInfo() {
   // フォントサイズを設定
   SetFontSize(kFontSize);
 
+#ifdef _DEBUG
   // 現在のwave情報
   char waveInfo[256];
   sprintf_s(waveInfo, "Wave:%d/3", m_currentWave);
@@ -1010,6 +1124,24 @@ void WaveManager::DrawDebugInfo() {
   sprintf_s(totalEnemyInfo, "Total:%d", m_totalSpawnedCount);
   DrawString(kDebugInfoPosX + kDebugInfoSpacing * 4, kDebugInfoPosY,
              totalEnemyInfo, 0xffffff);
+
+  int currentX = kDebugInfoPosX + kDebugInfoSpacing * 5;
+#else
+  int currentX = kDebugInfoPosX;
+#endif
+
+  if (s_isShowActiveEnemyCount) {
+    char activeInfo[256];
+    sprintf_s(activeInfo, "Active(All):%d", (int)m_enemyList.size());
+    DrawString(currentX, kDebugInfoPosY, activeInfo, 0xffffff);
+    currentX += kDebugInfoSpacing * 2; // 少し広めにとる
+  }
+
+  if (s_isShowDrawnEnemyCount) {
+    char drawnInfo[256];
+    sprintf_s(drawnInfo, "Drawn:%d", EnemyBase::GetDrawCount());
+    DrawString(currentX, kDebugInfoPosY, drawnInfo, 0xffffff);
+  }
 }
 
 int WaveManager::GetAliveEnemyCount() const {

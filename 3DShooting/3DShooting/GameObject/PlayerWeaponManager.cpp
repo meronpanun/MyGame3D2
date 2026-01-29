@@ -11,7 +11,6 @@
 #include <cassert>
 #include <cmath>
 
-
 namespace {
 // アサルトライフルオフセット (カメラ相対位置)
 constexpr float kAROffsetX = 72.0f;
@@ -227,11 +226,12 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
     return std::make_tuple(handle, offset);
   };
 
-  // ガード入力中またはタックル中は武器を非表示にする
+  // ガード入力中 または タックル中
+  // は武器を非表示にする（武器切り替え中でもガード入力があれば非表示）
   if (isTryingToGuard || isTackling) {
     MV1SetVisible(m_arHandle, false);
     MV1SetVisible(m_sgHandle, false);
-    return; // ガード中・タックル中は武器を描画しない
+    return; // ガード中、タックル中は武器を描画しない
   } else if (m_isSwitchingWeapon) {
     // 前の武器を下に隠す
     auto [prevHandle, prevOffset] = GetWeaponTransform(previousWeaponType);
@@ -244,7 +244,6 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
 
       // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
       prevOffset.y -= yOffset;
-      prevOffset.y -= context.equipAnimOffsetY; // 装備アニメーション用オフセット適用
 
       VECTOR rotModelOffset = VTransform(prevOffset, modelRot);
 
@@ -304,7 +303,6 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
 
       // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
       currentOffset.y -= yOffset;
-      currentOffset.y -= context.equipAnimOffsetY; // 装備アニメーション用オフセット適用
 
       VECTOR rotModelOffset = VTransform(currentOffset, modelRot);
 
@@ -367,7 +365,6 @@ void PlayerWeaponManager::Draw3D(const DrawContext &context) {
 
       // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
       modelOffset.y += gunOffsetY;
-      modelOffset.y -= context.equipAnimOffsetY; // 装備アニメーション用オフセット適用
 
       VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
 
@@ -467,7 +464,8 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet> &bullets,
   float shakePower = 0.0f;
   switch (m_currentWeaponType) {
   case WeaponType::AssaultRifle:
-    bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot, m_currentWeaponType, m_bulletPower);
+    bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot,
+                         m_bulletPower);
     currentShotSEHandle = m_shotSEHandle;
     currentModelHandle = m_arHandle;
     currentMuzzleFlashOffset =
@@ -497,7 +495,8 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet> &bullets,
       VECTOR spreadDir = VAdd(cameraForward, VGet(spreadX, spreadY, 0));
       spreadDir = VNorm(spreadDir);
 
-      bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot, m_currentWeaponType, m_sgBulletPower);
+      bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot,
+                           m_sgBulletPower);
     }
     break;
   default:

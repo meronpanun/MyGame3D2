@@ -6,13 +6,14 @@
 #include "Stage.h"
 #include "TaskTutorialManager.h"
 
-
 namespace {
 constexpr int kDefaultHitDisplayDuration = 60; // 1秒間表示
 constexpr float kDefaultInitialHP = 100.0f;    // デフォルトの初期体力
 constexpr float kDefaultCooldownMax = 60;      // 攻撃クールダウンの最大値
 constexpr float kDefaultAttackPower = 10.0f;   // 攻撃力
 } // namespace
+
+int EnemyBase::s_drawCount = 0;
 
 EnemyBase::EnemyBase()
     : m_pos{0, 0, 0}, m_modelHandle(-1), m_pTargetPlayer(nullptr),
@@ -22,11 +23,11 @@ EnemyBase::EnemyBase()
       m_attackCooldownMax(kDefaultCooldownMax),
       m_attackPower(kDefaultAttackPower), m_attackHitFrame(0),
       m_isAttacking(false), m_isActive(true), m_verticalVelocity(0.0f),
-      m_isGrounded(false) {}
+      m_isGrounded(false), m_updateFrameCount(0), m_aiUpdateInterval(1),
+      m_isSimpleMode(false), m_shouldUpdateAI(true) {}
 
 void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
-                                  const std::vector<Stage::StageCollisionData> &collisionData,
-                                  Effect *pEffect, const VECTOR &shooterPos) {
+                                  Effect *pEffect) {
   // 最も近いヒット情報を保持
   int hitBulletIndex = -1;
   float minHitDistSq = FLT_MAX;              // 最も近い衝突までの距離の2乗
@@ -52,40 +53,9 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
 
     if (part != HitPart::None) {
       if (currentHitDistSq < minHitDistSq) {
-        
-        // ここでステージとの遮蔽判定を行う
-        // ユーザーの要望により、レティクルと同様の「射線判定(Line of Sight)」を行う
-        // 発射地点(カメラ位置)から着弾地点までの直線上に障害物があるかをチェック
-        bool isBlocked = false;
-
-        // ヒット地点までのベクトル
-        VECTOR toHitPos = VSub(currentHitPos, shooterPos);
-        float distToHitSq = VDot(toHitPos, toHitPos); // カメラからヒット地点までの距離の二乗
-
-        // ステージ全トライアングルについて判定
-        for(const auto& col : collisionData) {
-            // カメラ位置から敵ヒット位置への線分判定
-            HITRESULT_LINE result = HitCheck_Line_Triangle(shooterPos, currentHitPos, col.v1, col.v2, col.v3);
-            
-            if(result.HitFlag == TRUE) {
-                // 壁に当たった位置までの距離の二乗
-                VECTOR diff = VSub(result.Position, shooterPos);
-                float wallDistSq = VDot(diff, diff);
-                
-                // 壁が「ヒット地点より手前」にある場合、遮蔽されているとみなす
-                // 10.0f (10cm) 程度のマージンを持たせて、敵にめり込んでいる壁などは除外
-                if(wallDistSq < distToHitSq - 10.0f) {
-                    isBlocked = true;
-                    break;
-                }
-            }
-        }
-
-        if (!isBlocked) {
-          minHitDistSq = currentHitDistSq;
-          hitBulletIndex = i;
-          determinedHitPart = part; // 最も近いヒットの部位を保持
-        }
+        minHitDistSq = currentHitDistSq;
+        hitBulletIndex = i;
+        determinedHitPart = part; // 最も近いヒットの部位を保持
       }
     }
   }
@@ -109,10 +79,9 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
 
     // ヒット時コールバック（ヒットマーク用）
     if (m_onHitCallback) {
-      printf("EnemyBase: Hit callback triggered with part: %d\n",
-             static_cast<int>(determinedHitPart));
-      // 距離（minHitDistSqの平方根）と武器タイプを渡す
-      m_onHitCallback(determinedHitPart, sqrtf(minHitDistSq), bullet.GetWeaponType()); 
+      // 距離を計算して渡す
+      float hitDist = sqrtf(minHitDistSq);
+      m_onHitCallback(determinedHitPart, hitDist);
     }
   }
 }
@@ -205,9 +174,55 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR &startPos,
     time = 20.0f; // 最低保証
 
   // 初速度計算
+  // pos + v*t + 0.5*g*t*t = target
+  // v*t = target - pos - 0.5*g*t*t
   VECTOR gravityVec = VGet(0.0f, -gravity, 0.0f);
   VECTOR term1 = VScale(toTarget, 1.0f / time);
   VECTOR term2 = VScale(gravityVec, 0.5f * time);
 
   return VSub(term1, term2);
+}
+
+void EnemyBase::UpdateThrottling(const VECTOR &playerPos) {
+  // カメラ情報の取得
+  VECTOR camPos = GetCameraPosition();
+  VECTOR camTarget = GetCameraTarget();
+  VECTOR camDir = VNorm(VSub(camTarget, camPos));
+
+  // プレイヤーとの距離チェック
+  VECTOR toPlayer = VSub(playerPos, m_pos);
+  float distSq = VSquareSize(toPlayer);
+
+  // デフォルト設定
+  m_aiUpdateInterval = 1;
+  m_isSimpleMode = false;
+
+  // 1. 距離による更新頻度変更
+  if (distSq > 800.0f * 800.0f) {
+    m_aiUpdateInterval = 3; // 遠距離: 3フレームに1回
+  } else if (distSq > 400.0f * 400.0f) {
+    m_aiUpdateInterval = 2; // 中距離: 2フレームに1回
+  }
+
+  // 2. 視界判定 (画面外停止)
+  // Bossは常にフルパワー
+  if (!IsBoss()) {
+    VECTOR toEnemy = VSub(m_pos, camPos);
+    float enemyDistSq = VSquareSize(toEnemy);
+
+    // カメラからある程度離れている場合のみ判定
+    if (enemyDistSq > 300.0f * 300.0f) {
+      VECTOR dirToEnemy = VNorm(toEnemy);
+      float dot = VDot(camDir, dirToEnemy);
+
+      // 視界外 (視野角 約66度相当) かつ プレイヤーからもある程度離れている
+      if (dot < 0.4f && distSq > 400.0f * 400.0f) {
+        m_isSimpleMode = true;
+      }
+    }
+  }
+
+  // フレームカウントの更新と実行フラグの設定
+  m_updateFrameCount++;
+  m_shouldUpdateAI = (m_updateFrameCount % m_aiUpdateInterval == 0);
 }

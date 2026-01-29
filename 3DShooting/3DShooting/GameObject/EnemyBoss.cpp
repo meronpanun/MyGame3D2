@@ -3,11 +3,13 @@
 #include "CapsuleCollider.h"
 #include "Collision.h"
 #include "DebugUtil.h"
+#include "DxLib.h"
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
 #include "SceneMain.h"
 #include "ScoreManager.h"
 #include "SphereCollider.h"
+#include "TaskTutorialManager.h"
 #include "TransformDataLoader.h"
 #include <algorithm>
 #include <cassert>
@@ -232,6 +234,9 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
           // パリィ成功
           hitDetected = true;
           bullet.isReflected = true;
+
+          // チュートリアルマネージャーに通知
+          TaskTutorialManager::GetInstance()->NotifyParrySuccess();
 
           // 反射方向計算 (プレイヤーカメラの前方へ、あるいはボスへ)
           // ここではボス（発射主）へ跳ね返す
@@ -674,6 +679,31 @@ void EnemyBoss::Draw() {
       m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
     return;
 
+  // 視錐台カリング (描画最適化)
+  // CheckCameraViewClip系の関数が環境によって不安定なため、
+  // 手動で「カメラ前方への内積チェック(簡易コーン判定)」を行う
+  VECTOR camPos = GetCameraPosition();
+  VECTOR camTarget = GetCameraTarget();
+  VECTOR camDir = VNorm(VSub(camTarget, camPos));
+  VECTOR toEnemy = VSub(m_pos, camPos);
+  float distSq = VSquareSize(toEnemy);
+
+  // 1. 距離チェック (Farクリップ + マージン)
+  if (distSq > 16000.0f * 16000.0f)
+    return;
+
+  // 2. 画角チェック (内積)
+  // ボスは巨大なので、近距離判定を広めにとる
+  if (distSq > 600.0f * 600.0f) {
+    VECTOR dirToEnemy = VNorm(toEnemy);
+    float dot = VDot(camDir, dirToEnemy);
+    // ボスは横幅もあるので、かなり広めに判定 (視野前面180度近くを許可)
+    // 0.0f = 90度(左右) -> 180度視野
+    if (dot < 0.0f)
+      return;
+  }
+
+  EnemyBase::IncrementDrawCount();
   MV1DrawModel(m_modelHandle);
 
 #ifdef _DEBUG

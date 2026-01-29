@@ -3,6 +3,7 @@
 #include "CapsuleCollider.h"
 #include "EnemyBase.h"
 #include "SphereCollider.h"
+#include "Stage.h" 
 #include <functional>
 #include <memory>
 #include <string>
@@ -14,7 +15,6 @@ class Collider;
 /// <summary>
 /// 遠距離型ゾンビクラス
 /// </summary>
-#include "Stage.h" // StageCollisionDataを使うためにインクルードが必要になった
 class EnemyAcid : public EnemyBase {
 public:
   EnemyAcid();

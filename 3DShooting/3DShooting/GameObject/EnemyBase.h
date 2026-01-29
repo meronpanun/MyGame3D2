@@ -7,13 +7,12 @@
 #include <memory>
 #include <vector>
 
-
 class Bullet;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
 class Effect;
-// struct StageCollisionData; // 不要になるはず
+class CollisionGrid;
 
 /// <summary>
 /// 敵の更新処理に必要なコンテキスト情報
@@ -25,6 +24,7 @@ struct EnemyUpdateContext {
   const std::vector<EnemyBase *> &enemyList;
   const std::vector<Stage::StageCollisionData> &collisionData;
   Effect *pEffect;
+  const CollisionGrid *collisionGrid; // 追加
 };
 
 /// <summary>
@@ -38,6 +38,11 @@ public:
   virtual void Init() abstract;
   virtual void Update(const EnemyUpdateContext &context) abstract;
   virtual void Draw() abstract;
+
+  // デバッグ用カウンタ
+  static void ResetDrawCount() { s_drawCount = 0; }
+  static void IncrementDrawCount() { s_drawCount++; }
+  static int GetDrawCount() { return s_drawCount; }
 
   /// <summary>
   /// 当たり判定の部位
@@ -76,8 +81,7 @@ public:
   /// <param name="bullets">弾のリスト</param>
   /// <param name="pEffect">エフェクトクラスのポインタ</param>
   virtual void CheckHitAndDamage(std::vector<Bullet> &bullets,
-                                 const std::vector<Stage::StageCollisionData> &collisionData,
-                                 Effect *pEffect, const VECTOR &shooterPos);
+                                 Effect *pEffect = nullptr);
 
   virtual void TakeDamage(float damage, AttackType type);
 
@@ -184,7 +188,7 @@ public:
   /// ヒット時のコールバックを設定する
   /// </summary>
   /// <param name="cb">ヒット時に呼ばれるコールバック関数</param>
-  void SetOnHitCallback(std::function<void(HitPart, float, WeaponType)> cb) {
+  void SetOnHitCallback(std::function<void(HitPart, float)> cb) {
     m_onHitCallback = cb;
   }
 
@@ -256,7 +260,7 @@ protected:
 
   std::shared_ptr<Player> m_pTargetPlayer;               // ターゲットプレイヤー
   std::function<void(const VECTOR &)> m_onDeathCallback; // 死亡コールバック
-  std::function<void(HitPart, float, WeaponType)> m_onHitCallback;          // 部位情報付き
+  std::function<void(HitPart, float)> m_onHitCallback;   // 部位情報付き
   std::function<void(const VECTOR &, AttackType)> m_onDeathWithTypeCallback;
 
   HitPart m_lastHitPart; // 最後に当たった部位
@@ -282,4 +286,18 @@ protected:
   bool m_isGrounded;        // 接地フラグ
 
   AttackType m_lastAttackType = AttackType::None;
+
+  // AI Throttling
+  int m_updateFrameCount;
+  int m_aiUpdateInterval;
+  bool m_isSimpleMode;
+  bool m_shouldUpdateAI;
+
+  /// <summary>
+  /// AIの間引き更新処理を行う
+  /// </summary>
+  void UpdateThrottling(const VECTOR &playerPos);
+
+private:
+  static int s_drawCount;
 };

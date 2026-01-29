@@ -2,58 +2,60 @@
 #include "CapsuleCollider.h"
 #include "Collision.h"
 #include "DebugUtil.h"
+#include "DxLib.h"
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
+#include "Game.h"
 #include "Player.h"
 #include "SceneMain.h"
 #include "SphereCollider.h"
+#include "TaskTutorialManager.h"
 #include "TransformDataLoader.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <functional>
 
-namespace 
-{
-    // アニメーション関連
-    constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
-    constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
-    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
-    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+namespace {
+// アニメーション関連
+constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
+constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
+constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
+constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
 
-    constexpr VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
+constexpr VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
 
-    // コライダーのサイズを定義
-    constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
-    constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
-    constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
+// コライダーのサイズを定義
+constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
+constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
+constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
 
-    // 攻撃関連（遠距離攻撃に特化）
-    constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
-    constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
-    constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
+// 攻撃関連（遠距離攻撃に特化）
+constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
+constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
+constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
 
-    // 追跡関連（遠距離型なので、近づきすぎたら離れる）
-    constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
+// 追跡関連（遠距離型なので、近づきすぎたら離れる）
+constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 
-    // スタン関連
-    constexpr int kStunDuration = 120; // スタンの総持続時間
-    constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
+// スタン関連
+constexpr int kStunDuration = 120; // スタンの総持続時間
+constexpr float kStunAnimFrameLimit =
+    60.0f; // スタンアニメーションの再生上限フレーム
 
-    // AcidBallの画面外判定距離
-    constexpr float kAcidBallBoundaryDistance = 1500.0f;
-}
+// AcidBallの画面外判定距離
+constexpr float kAcidBallBoundaryDistance = 1500.0f;
+} // namespace
 
 int EnemyAcid::s_modelHandle = -1;
 
-EnemyAcid::EnemyAcid() : 
-      m_headPosOffset{kHeadShotPositionOffset}, m_animTime(0.0f),
+EnemyAcid::EnemyAcid()
+    : m_headPosOffset{kHeadShotPositionOffset}, m_animTime(0.0f),
       m_currentAnimState(AnimState::Walk), m_onDropItem(nullptr),
       m_hasAttacked(false), m_attackEndDelayTimer(0),
       m_acidBulletSpawnOffset({0.0f, 0.0f, 0.0f}), m_backAnimCount(0),
       m_isItemDropped(false), m_chaseSpeed(0.0f), m_isStunned(false),
-      m_stunTimer(0)
-{
+      m_stunTimer(0) {
   // モデルの複製
   m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
@@ -124,8 +126,6 @@ void EnemyAcid::Init() {
   float offsetZ = static_cast<float>(GetRand(800) - 400);
   m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 }
-
-#include "Game.h"
 
 // アニメーションを変更する
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop) {
@@ -304,6 +304,13 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext &context) {
       continue; // 以降の処理をスキップ
     }
 
+    // チュートリアル表示判定 (パリィ可能な弾で、プレイヤーに近い場合)
+    // 弾速が5.0fなので、100.0fは約20フレーム（0.33秒）前。
+    // パリィの準備をするのに十分かつ、直前という距離感。
+    if (ball.isParryable && !ball.isReflected && distanceToPlayer <= 100.0f) {
+      TaskTutorialManager::GetInstance()->NotifyParryableAttack();
+    }
+
     // まだ反射されていない弾の処理
     if (!ball.isReflected) {
       SphereCollider acidCol(ball.pos, ball.radius);
@@ -332,6 +339,9 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext &context) {
           // パリィ成功
           hitDetected = true;
           ball.isReflected = true;
+
+          // チュートリアルマネージャーに通知
+          TaskTutorialManager::GetInstance()->NotifyParrySuccess();
 
           // プレイヤーSからカメラを取得
           const auto &playerCam = player.GetCamera();
@@ -719,6 +729,30 @@ void EnemyAcid::Draw() {
     // 死亡アニメーションが完全に終了したらモデルを描画しない
     return;
   }
+  // 視錐台カリング (描画最適化)
+  // CheckCameraViewClip系の関数が環境によって不安定なため、
+  // 手動で「カメラ前方への内積チェック(簡易コーン判定)」を行う
+  VECTOR camPos = GetCameraPosition();
+  VECTOR camTarget = GetCameraTarget();
+  VECTOR camDir = VNorm(VSub(camTarget, camPos));
+  VECTOR toEnemy = VSub(m_pos, camPos);
+  float distSq = VSquareSize(toEnemy);
+
+  // 1. 距離チェック (Farクリップ + マージン)
+  if (distSq > 16000.0f * 16000.0f)
+    return;
+
+  // 2. 画角チェック (内積)
+  // 近距離(300.0f以内)なら無条件で描画
+  if (distSq > 300.0f * 300.0f) {
+    VECTOR dirToEnemy = VNorm(toEnemy);
+    float dot = VDot(camDir, dirToEnemy);
+    // 視野角90度に対し余裕を持って判定
+    if (dot < 0.4f)
+      return;
+  }
+
+  EnemyBase::IncrementDrawCount();
   MV1DrawModel(m_modelHandle);
 
 #ifdef _DEBUG
