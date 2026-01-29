@@ -58,7 +58,7 @@ constexpr float kCameraRotaSpeed = 0.0001f;
 
 // スカイドーム関連
 constexpr float kSkyDomePosY = 200.0f;  // スカイドームのY座標
-constexpr float kSkyDomeScale = 100.0f; // スカイドームのスケール
+constexpr float kSkyDomeScale = 150.0f; // スカイドームのスケール
 
 // アイテムドロップ時の初期上昇量
 constexpr float kDropInitialHeight = 140.0f;
