@@ -26,6 +26,14 @@ constexpr int kSpacing = 8;
 
 constexpr int kBarMaxWidth = 225;
 constexpr int kBarHeight = 22;
+
+// 背景ボックス関連
+constexpr int kBgBoxPaddingX = 20;
+constexpr int kBgBoxPaddingY = 15;
+constexpr int kBgBoxWidth = 500;
+constexpr int kBgBoxHeight = 250;
+constexpr unsigned int kBgBoxColor = 0x000000;
+constexpr int kBgBoxAlpha = 128;
 } // namespace
 
 // 静的メンバ変数の実体を定義
@@ -365,6 +373,17 @@ void TaskTutorialManager::Draw() {
     taskText =
         std::to_string(displayedKills) + "/" + std::to_string(kShootKillGoal);
 
+    // 背景ボックスの描画
+    if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
+      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
+      int bgY = kTaskTextY - kBgBoxPaddingY;
+
+      SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
+      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+              true);
+      SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
+
     // タイトル
     DrawStringToHandle(m_titlePosX, kTaskTextY, "射撃訓練", kTaskTextColor,
                        m_titleFontHandle);
@@ -445,6 +464,17 @@ void TaskTutorialManager::Draw() {
     taskText =
         std::to_string(displayedKills) + "/" + std::to_string(kTackleKillGoal);
 
+    // 背景ボックスの描画
+    if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
+      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
+      int bgY = kTaskTextY - kBgBoxPaddingY;
+
+      SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
+      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+              true);
+      SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
+
     // タイトル
     DrawStringToHandle(m_titlePosX, kTaskTextY, "タックル訓練", kTaskTextColor,
                        m_titleFontHandle);
@@ -496,6 +526,18 @@ void TaskTutorialManager::Draw() {
     taskText = std::to_string(displayedKills) + "/" +
                std::to_string(kShieldThrowKillGoal);
 
+    // 背景ボックスの描画
+    if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
+      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
+      int bgY = kTaskTextY - kBgBoxPaddingY;
+
+      SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
+      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+              true);
+      SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
+
+    // タイトル
     DrawStringToHandle(m_titlePosX, kTaskTextY, "盾投げ訓練", kTaskTextColor,
                        m_titleFontHandle);
 
@@ -545,6 +587,18 @@ void TaskTutorialManager::Draw() {
     taskText =
         std::to_string(displayedParries) + "/" + std::to_string(kParryGoal);
 
+    // 背景ボックスの描画
+    if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
+      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
+      int bgY = kTaskTextY - kBgBoxPaddingY;
+
+      SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
+      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+              true);
+      SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
+
+    // タイトル
     DrawStringToHandle(m_titlePosX, kTaskTextY, "パリィ訓練", kTaskTextColor,
                        m_titleFontHandle);
 

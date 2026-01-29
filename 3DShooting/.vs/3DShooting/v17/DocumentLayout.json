@@ -357,7 +357,7 @@
               "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433\\crt\\src\\stl\\xthrow.cpp",
               "ToolTip": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433\\crt\\src\\stl\\xthrow.cpp",
               "RelativeToolTip": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433\\crt\\src\\stl\\xthrow.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-01-29T22:50:25.743Z",
               "EditorCaption": ""
@@ -444,8 +444,7 @@
               "RelativeToolTip": "3DShooting\\Camera.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-17T05:20:01.754Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-17T05:20:01.754Z"
             },
             {
               "$type": "Document",
@@ -457,8 +456,7 @@
               "RelativeToolTip": "3DShooting\\Game.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-10-21T05:46:00.615Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-21T05:46:00.615Z"
             },
             {
               "$type": "Document",

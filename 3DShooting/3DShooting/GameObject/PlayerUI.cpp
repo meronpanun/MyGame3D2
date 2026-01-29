@@ -5,7 +5,6 @@
 #include <cmath>
 #include <cstring>
 
-
 namespace {
 // アサルトライフルUI関連
 constexpr int kARImageWidth = 300;
