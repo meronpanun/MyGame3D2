@@ -100,6 +100,10 @@ void EnemyRunner::Init() {
   // 回避用パラメータ初期化
   m_evadeSwitchTimer = 0.0f;
   m_isEvadingRight = (GetRand(1) == 0);
+
+  // 徘徊用パラメータ初期化
+  m_wanderTimer = 0;
+  m_wanderOffset = VGet(0.0f, 0.0f, 0.0f);
 }
 
 #include "Game.h"
@@ -238,8 +242,24 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
   // 攻撃アニメーション中は回転しない
   if (m_currentAnimState == AnimState::Run) {
     VECTOR playerPos = player.GetPos();
-    // ターゲット座標にオフセットを加算
-    VECTOR targetPos = VAdd(playerPos, m_targetOffset);
+    VECTOR targetPos;
+
+    // プレイヤーが岩の上にいる場合は、プレイヤーの周囲をうろうろする
+    std::string groundObj = player.GetGroundedObjectName();
+    if (groundObj == "rock_3_br" || groundObj == "rock_6_br") {
+      m_wanderTimer--;
+      if (m_wanderTimer <= 0) {
+        // 2秒ごとに新しい目標位置を設定 (距離300~700) - 範囲拡大
+        m_wanderTimer = 120;
+        float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
+        float dist = static_cast<float>(300 + GetRand(400));
+        m_wanderOffset = VGet(cosf(angle) * dist, 0.0f, sinf(angle) * dist);
+      }
+      targetPos = VAdd(playerPos, m_wanderOffset);
+    } else {
+      // 通常時はプレイヤーに向かう（オフセット付き）
+      targetPos = VAdd(playerPos, m_targetOffset);
+    }
 
     VECTOR toPlayer = VSub(targetPos, m_pos);
     toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
@@ -253,7 +273,8 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
       yaw += DX_PI_F; // モデルの向きに合わせて調整
     }
     // 補間速度(大きいほど速く向く)
-    float rotSpeed = 0.2f * Game::GetTimeScale();
+    // 0.2f -> 0.05f に変更して滑らかにする
+    float rotSpeed = 0.05f * Game::GetTimeScale();
     float currentYaw = MV1GetRotationXYZ(m_modelHandle).y;
 
     // 角度差を計算して滑らかに回転

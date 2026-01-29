@@ -99,9 +99,14 @@ void EnemyNormal::Init() {
   ChangeAnimation(AnimState::Walk, true);
 
   // ターゲットオフセットの初期化 (±100.0f)
+  // ターゲットオフセットの初期化 (±100.0f)
   float offsetX = static_cast<float>(GetRand(200) - 100);
   float offsetZ = static_cast<float>(GetRand(200) - 100);
   m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
+
+  // 徘徊用パラメータ初期化
+  m_wanderTimer = 0;
+  m_wanderOffset = VGet(0.0f, 0.0f, 0.0f);
 }
 
 #include "Game.h"
@@ -253,8 +258,24 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
   if (m_currentAnimState == AnimState::Walk) // 追尾はWalk状態でのみ行う
   {
     VECTOR playerPos = player.GetPos();
-    // ターゲット座標にオフセットを加算
-    VECTOR targetPos = VAdd(playerPos, m_targetOffset);
+    VECTOR targetPos;
+
+    // プレイヤーが岩の上にいる場合は、プレイヤーの周囲をうろうろする
+    std::string groundObj = player.GetGroundedObjectName();
+    if (groundObj == "rock_3_br" || groundObj == "rock_6_br") {
+      m_wanderTimer--;
+      if (m_wanderTimer <= 0) {
+        // 2秒ごとに新しい目標位置を設定 (距離300~700) - 範囲拡大
+        m_wanderTimer = 120;
+        float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
+        float dist = static_cast<float>(300 + GetRand(400));
+        m_wanderOffset = VGet(cosf(angle) * dist, 0.0f, sinf(angle) * dist);
+      }
+      targetPos = VAdd(playerPos, m_wanderOffset);
+    } else {
+      // 通常時はプレイヤーに向かう（オフセット付き）
+      targetPos = VAdd(playerPos, m_targetOffset);
+    }
 
     VECTOR toPlayer = VSub(targetPos, m_pos);
     toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
@@ -268,7 +289,25 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
       yaw = atan2f(toPlayer.x, toPlayer.z);
       yaw += DX_PI_F; // モデルの向きに合わせて調整
     }
-    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
+
+    // 補間速度(0.05f で滑らかにする)
+    float rotSpeed = 0.05f * Game::GetTimeScale();
+    float currentYaw = MV1GetRotationXYZ(m_modelHandle).y;
+
+    // 角度差を計算して滑らかに回転
+    float diffYaw = yaw - currentYaw;
+    while (diffYaw <= -DX_PI_F)
+      diffYaw += DX_TWO_PI_F;
+    while (diffYaw > DX_PI_F)
+      diffYaw -= DX_TWO_PI_F;
+
+    if (fabs(diffYaw) > rotSpeed) {
+      currentYaw += (diffYaw > 0 ? rotSpeed : -rotSpeed);
+    } else {
+      currentYaw = yaw;
+    }
+
+    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, currentYaw, 0.0f));
 
     // 移動処理
     if (disToPlayer > kChaseStopDistance) {

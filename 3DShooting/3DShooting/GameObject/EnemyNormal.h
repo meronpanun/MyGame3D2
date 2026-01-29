@@ -127,5 +127,9 @@ private:
   bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
   bool m_isItemDropped;     // アイテムドロップ済みフラグ
 
+  // 徘徊挙動用
+  int m_wanderTimer;     // 徘徊位置更新タイマー
+  VECTOR m_wanderOffset; // 徘徊位置オフセット
+
   static int s_modelHandle; // 共有モデルハンドル
 };
