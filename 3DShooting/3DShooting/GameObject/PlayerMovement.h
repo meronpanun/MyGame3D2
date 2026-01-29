@@ -18,8 +18,7 @@ public:
   void Init(const VECTOR &pos, float moveSpeed, float runSpeed, float scale);
   void Update(float deltaTime, Camera *pCamera, bool isDead, bool isTackling,
               bool isFlightMode,
-              const std::vector<Stage::StageCollisionData> &collisionData,
-              bool isInputEnabled = true);
+              const std::vector<Stage::StageCollisionData> &collisionData);
 
   /// <summary>
   /// 位置取得
@@ -91,21 +90,15 @@ public:
   void CancelRunMode() { m_isRunMode = false; }
   bool IsRunMode() const { return m_isRunMode; }
 
-  /// <summary>
-  /// 移動を停止する
-  /// </summary>
-  void Stop();
-
   static constexpr float kGroundY = 0.0f;
 
 private:
   void UpdateCollider();
-  void UpdateFlightMode(float deltaTime, Camera *pCamera, bool isDead, bool isInputEnabled);
+  void UpdateFlightMode(float deltaTime, Camera *pCamera, bool isDead);
   void
   UpdateNormalMode(float deltaTime, Camera *pCamera, bool isDead,
                    bool isTackling,
-                   const std::vector<Stage::StageCollisionData> &collisionData,
-                   bool isInputEnabled);
+                   const std::vector<Stage::StageCollisionData> &collisionData);
 
   VECTOR CalculateMoveDirection(Camera *pCamera, const unsigned char *keyState);
   void HandleJump(const unsigned char *keyState,

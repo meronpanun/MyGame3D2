@@ -547,8 +547,9 @@ void Player::Update(
 
       // 集中線エフェクトを再生
       if (m_pEffect) {
+        VECTOR camPos = m_pCamera->GetPos();
         m_concentrationLineEffectHandle =
-            m_pEffect->PlayConcentrationLine(0.0f, 0.0f, 0.0f);
+            m_pEffect->PlayConcentrationLine(camPos.x, camPos.y, camPos.z);
       }
     }
     m_isLockingOn = false; // タックル開始したらロックオン解除

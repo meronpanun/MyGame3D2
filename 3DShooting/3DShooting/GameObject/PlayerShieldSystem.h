@@ -18,7 +18,7 @@ public:
 
 	void Init(float maxDurability, float regenRate);
 	void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta, bool isMoving);
-	void Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float equipAnimOffsetY = 0.0f);
+	void Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration);
 
 	/// <summary>
 	/// ガード状態かどうか

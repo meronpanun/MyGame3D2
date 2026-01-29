@@ -653,12 +653,7 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
     }
   }
 
-  // カメラ位置を取得
-  VECTOR cameraPos = VGet(0,0,0);
-  if(player.GetCamera()) {
-      cameraPos = player.GetCamera()->GetPos();
-  }
-  CheckHitAndDamage(bullets, collisionData, pEffect, cameraPos);
+  CheckHitAndDamage(bullets, pEffect);
 
   // タックル判定
   if (tackleInfo.isTackling && m_hp > 0.0f &&

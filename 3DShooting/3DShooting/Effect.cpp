@@ -20,7 +20,7 @@ constexpr float kGuardEffectScale = 10.5f;
 constexpr float kSparkEffectScale = 20.0f;
 
 // エフェクトのカリング距離 (これ以上離れたら再生しない)
-constexpr float kEffectCullDistance = 1000.0f;
+constexpr float kEffectCullDistance = 3000.0f;
 
 bool ShouldPlayEffect(float x, float y, float z) {
   VECTOR cameraPos = GetCameraPosition();
