@@ -1,7 +1,20 @@
-﻿  Camera.cpp
-C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\Camera.cpp(416,24): warning C4244: '=': 'float' から 'int' への変換です。データが失われる可能性があります。
+﻿  BossUI.cpp
+  WaveManager.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\CollisionGrid.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'WaveManager.cpp' をコンパイルしています)
+  
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(134,14): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(140,14): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(414,17): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(420,16): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(421,16): warning C4244: '初期化中': 'float' から 'int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(619,17): warning C4244: '初期化中': '_Rep' から 'unsigned int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(619,17): warning C4244:         with
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(619,17): warning C4244:         [
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(619,17): warning C4244:             _Rep=std::chrono::system_clock::rep
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(619,17): warning C4244:         ]
   コード生成しています。
-  2 of 4747 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  14 of 4747 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     7 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。

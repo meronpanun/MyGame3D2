@@ -13,19 +13,19 @@ constexpr int kShieldThrowKillGoal = 2;
 constexpr int kParryGoal = 3;
 
 // UI関連
-constexpr int kTaskTextX = 20;
-constexpr int kTaskTextY = 20;
-constexpr int kTaskFontSize = 24;
-constexpr int kTaskFontThickness = 2;
+constexpr int kTaskTextX = 30;
+constexpr int kTaskTextY = 30;
+constexpr int kTaskFontSize = 36;
+constexpr int kTaskFontThickness = 3;
 constexpr unsigned int kTaskTextColor = 0xFFFFFF;
 
-constexpr int kTitleFontSize = 32;
-constexpr int kDiamondSize = 20;
-constexpr int kMouseImgSize = 24;
-constexpr int kSpacing = 5;
+constexpr int kTitleFontSize = 48;
+constexpr int kDiamondSize = 30;
+constexpr int kMouseImgSize = 36;
+constexpr int kSpacing = 8;
 
-constexpr int kBarMaxWidth = 150;
-constexpr int kBarHeight = 15;
+constexpr int kBarMaxWidth = 225;
+constexpr int kBarHeight = 22;
 } // namespace
 
 // 静的メンバ変数の実体を定義
@@ -51,9 +51,9 @@ TaskTutorialManager::TaskTutorialManager()
       m_progressAnimSpeed(0.02f), m_transitionDelayTimer(0),
       m_hasShownParryTutorial(false), m_isParryTutorialPaused(false) {
   // フォントの作成
-  m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 32, kTaskFontThickness,
+  m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 48, kTaskFontThickness,
                                          DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-  m_taskFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 20, kTaskFontThickness,
+  m_taskFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 30, kTaskFontThickness,
                                         DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   m_diamondImg = LoadGraph("data/image/Diamond.png");
   m_mouseLeftImg = LoadGraph("data/image/MouseLeft.png");
@@ -88,7 +88,8 @@ void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
   m_parryCount = 0;
 
   // アニメション初期化
-  m_titlePosX = -300.0f; // 画面外からスタート
+  // アニメション初期化
+  m_titlePosX = -450.0f; // 画面外からスタート
   m_isTitleAnimFinished = false;
   m_taskAlpha = 0;
   m_animationWaitTimer = 0;
@@ -258,7 +259,7 @@ void TaskTutorialManager::Update() {
     if (m_transitionDelayTimer <= 0) {
       m_step = TaskStep::Tackle; // 次のステップへ
 
-      m_titlePosX = -300.0f;
+      m_titlePosX = -450.0f;
       m_isTitleAnimFinished = false;
       m_taskAlpha = 0;
       m_animationWaitTimer = 0;

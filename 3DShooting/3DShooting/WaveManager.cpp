@@ -32,7 +32,7 @@ constexpr float kMinSpawnDistance = 200.0f;
 constexpr int kMaxSpawnAttempts = 100;
 
 // ウェーブ画像の描画幅
-constexpr int kWaveImageDrawWidth = 100;
+constexpr int kWaveImageDrawWidth = 150;
 
 // 範囲が設定されていない場合のデフォルト位置
 constexpr VECTOR kDefaultRoadFloorPos = {0.0f, -0.5f, 3.0f};
