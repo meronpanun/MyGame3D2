@@ -320,7 +320,7 @@ void TaskTutorialManager::Update() {
         m_pWaveManager->SpawnTutorialWave(4); // Wave 4
       }
       if (m_pPlayer) {
-        m_pPlayer->SetAttackRestrictions(AttackType::None); // パリィは制限なし
+        m_pPlayer->SetAttackRestrictions(AttackType::Parry); // パリィのみ許可
       }
     }
     break;
