@@ -366,7 +366,7 @@
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneMain.cpp",
               "ToolTip": "C:\\Users\\sho24\\OneDrive\\\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.cpp",
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.cpp",
-              "ViewState": "AgIAANQCAAAAAAAAAAApwNYCAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAANQCAAAAAAAAAAApwNcCAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-10-29T01:27:04.265Z",
               "EditorCaption": ""
@@ -405,8 +405,7 @@
               "RelativeToolTip": "3DShooting\\WaveManager.cpp",
               "ViewState": "AgIAAFEBAAAAAAAAAAApwCABAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-05T05:55:17.897Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-05T05:55:17.897Z"
             },
             {
               "$type": "Document",
@@ -418,8 +417,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneGameOver.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-11T01:48:40.626Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-11T01:48:40.626Z"
             },
             {
               "$type": "Document",
@@ -431,8 +429,7 @@
               "RelativeToolTip": "3DShooting\\Scene\\SceneMain.h",
               "ViewState": "AgIAAJEAAAAAAAAAAAAAAKAAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-11T01:34:00.939Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-11T01:34:00.939Z"
             },
             {
               "$type": "Document",
@@ -468,8 +465,7 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyBase.h",
               "ViewState": "AgIAAAEAAAAAAAAAAAAWwBoAAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-10-30T02:21:15.105Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-30T02:21:15.105Z"
             },
             {
               "$type": "Document",
