@@ -312,16 +312,57 @@ void EnemyRunner::Update(const EnemyUpdateContext &context) {
       VECTOR moveVec = VScale(dir, m_chaseSpeed * Game::GetTimeScale());
 
       // 回避成分（左右移動）
-      m_evadeSwitchTimer += Game::GetTimeScale();
-      if (m_evadeSwitchTimer > 60.0f) { // 1秒ごとに切り替え
-        m_evadeSwitchTimer = 0.0f;
-        m_isEvadingRight = !m_isEvadingRight;
+      VECTOR evadeVec = VGet(0.0f, 0.0f, 0.0f);
+
+      // プレイヤー（カメラ）の射線がコライダーに当たっているかチェック
+      VECTOR camPos = GetCameraPosition();
+      VECTOR camTarget = GetCameraTarget();
+      VECTOR camDir = VNorm(VSub(camTarget, camPos)); // Normalize direction
+
+      // 5000.0f は Player::Update で使用されている射程距離
+      VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
+
+      VECTOR hitPos;
+      float hitDistSq;
+      HitPart hitPart = CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
+
+      // 射線が当たっている場合は回避行動（左右移動）を行う
+      bool shouldEvade = (hitPart != HitPart::None);
+
+      // 直接当たっていなくても、少し余裕を持たせる（レイと敵の位置の距離で判定）
+      if (!shouldEvade) {
+        // 敵の中心位置（足元 + 高さ/2）
+        VECTOR enemyCenter = VAdd(m_pos, VGet(0.0f, 55.0f, 0.0f));
+
+        VECTOR toEnemy = VSub(enemyCenter, camPos);
+        float t = VDot(toEnemy, camDir);
+
+        if (t > 0.0f) {
+          // レイ上の最も近い点
+          VECTOR nearestPoint = VAdd(camPos, VScale(camDir, t));
+          VECTOR distVec = VSub(enemyCenter, nearestPoint);
+          float distSq = VDot(distVec, distVec);
+
+          // 判定半径 (体の半径20.0f * 4.0倍 = 80.0f 程度余裕を持たせる)
+          constexpr float kEvasionMarginRadius = 80.0f;
+          if (distSq < kEvasionMarginRadius * kEvasionMarginRadius) {
+            shouldEvade = true;
+          }
+        }
       }
 
-      VECTOR right = VCross(dir, VGet(0.0f, 1.0f, 0.0f));
-      VECTOR evadeVec =
-          VScale(right, (m_isEvadingRight ? 1.0f : -1.0f) *
-                            (m_chaseSpeed * 0.5f) * Game::GetTimeScale());
+      if (shouldEvade) {
+        m_evadeSwitchTimer += Game::GetTimeScale();
+        if (m_evadeSwitchTimer > 60.0f) { // 1秒ごとに切り替え
+          m_evadeSwitchTimer = 0.0f;
+          m_isEvadingRight = !m_isEvadingRight;
+        }
+
+        VECTOR right = VCross(dir, VGet(0.0f, 1.0f, 0.0f));
+        evadeVec =
+            VScale(right, (m_isEvadingRight ? 1.0f : -1.0f) *
+                              (m_chaseSpeed * 0.5f) * Game::GetTimeScale());
+      }
 
       // 合成
       moveVec = VAdd(moveVec, evadeVec);
