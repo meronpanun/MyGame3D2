@@ -304,7 +304,7 @@ private:
   bool m_isAllWavesCompleted; // すべてのウェーブが完了したかどうか
 
   // ウェーブ画像アニメーション関連
-  int m_waveImages[3];             // 1,2,3ウェーブ用画像ハンドル
+  int m_waveImages[5];             // 1-5ウェーブ用画像ハンドル
   int m_waveImageAnimTimer;        // ウェーブ画像アニメーションタイマー
   int m_waveImageAnimDuration;     // ウェーブ画像アニメーションの総時間
   int m_waveImageAnimHoldDuration; // ウェーブ画像アニメーションのホールド時間

@@ -71,6 +71,8 @@ WaveManager::WaveManager()
   m_waveImages[0] = LoadGraph("data/image/wave1.png");
   m_waveImages[1] = LoadGraph("data/image/wave2.png");
   m_waveImages[2] = LoadGraph("data/image/wave3.png");
+  m_waveImages[3] = LoadGraph("data/image/wave4.png");
+  m_waveImages[4] = LoadGraph("data/image/wave5.png");
 }
 
 WaveManager::~WaveManager() {
@@ -81,7 +83,8 @@ WaveManager::~WaveManager() {
   EnemyBoss::DeleteModel();
 
   // 画像の解放
-  for (int i = 0; i < 3; ++i) {
+  // 画像の解放
+  for (int i = 0; i < 5; ++i) {
     if (m_waveImages[i] >= 0) {
       DeleteGraph(m_waveImages[i]);
       m_waveImages[i] = -1;
@@ -284,7 +287,9 @@ void WaveManager::Update() {
     if (m_waveIntervalTimer > 0.0f) {
       m_waveIntervalTimer -= (1.0f / 60.0f) * Game::GetTimeScale();
     } else {
-      if (m_currentWave <= 3) {
+    }
+    else {
+      if (m_currentWave <= 5) {
         VECTOR playerPos = VGet(0.0f, 0.0f, 0.0f); // プレイヤー位置の初期値
         StartCurrentWave(playerPos);
       }
@@ -400,7 +405,7 @@ void WaveManager::DrawEnemies(bool isTutorial) {
 // ウェーブUIの描画
 void WaveManager::DrawWaveUI() {
   // ウェーブ中は常に画像を表示
-  if (!m_isAllWavesCompleted && m_currentWave >= 1 && m_currentWave <= 3 &&
+  if (!m_isAllWavesCompleted && m_currentWave >= 1 && m_currentWave <= 5 &&
       (m_isWaveImageAnimating || m_isWaveActive)) {
     int img = m_waveImages[m_currentWave - 1];
     int imgW = 0, imgH = 0;

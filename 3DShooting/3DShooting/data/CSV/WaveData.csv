@@ -10,3 +10,7 @@
 3,RunnerEnemy,3,0,4,0,3
 3,NormalEnemy,3,0,0,0,3
 3,AcidEnemy,4,0,0,0,3
+4,NormalEnemy,5,0.5,0,5,1
+4,RunnerEnemy,5,0.5,0,0,2
+4,AcidEnemy,3,1,2,0,3
+5,Boss,1,0,0,0,1
