@@ -656,8 +656,8 @@ SceneBase *SceneMain::Update() {
     }
   }
 
-  // ウェーブ3終了後の遅延処理
-  if (m_pWaveManager->GetCurrentWave() > 3) {
+  // ウェーブ5終了後の遅延処理
+  if (m_pWaveManager->GetCurrentWave() > 5) {
     if (m_clearSceneDelayTimer == -1) // 遅延がまだ開始されていない場合
     {
       m_clearSceneDelayTimer = kClearSceneDelayFrames; // 遅延タイマーを開始
