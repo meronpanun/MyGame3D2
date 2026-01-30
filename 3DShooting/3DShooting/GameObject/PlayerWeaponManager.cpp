@@ -84,7 +84,7 @@ PlayerWeaponManager::PlayerWeaponManager()
   // SEの読み込み
   m_shotSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
   assert(m_shotSEHandle != -1);
-  m_sgShotSEHandle = LoadSoundMem("data/sound/SE/ShotgunShot.mp3");
+  m_sgShotSEHandle = LoadSoundMem("data/sound/SE/ShotGunSE.mp3");
   assert(m_sgShotSEHandle != -1);
 }
 
