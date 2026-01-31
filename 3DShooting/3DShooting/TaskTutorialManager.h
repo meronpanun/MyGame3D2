@@ -81,6 +81,7 @@ private:
 
   // 盾投げ・パリィタスク用画像
   int m_rKeyImg;            // Rキーの画像
+  int m_lockOnUIImg;        // ロックオンUIの画像
   int m_mouseRightGuardImg; // マウス右クリック(ガード用)の画像
 
   // タイトルアニメーション用

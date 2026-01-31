@@ -51,13 +51,14 @@ TaskTutorialManager::TaskTutorialManager()
       m_shootKills(0), m_tackleKills(0), m_shieldThrowKills(0), m_parryCount(0),
       m_titleFontHandle(-1), m_taskFontHandle(-1), m_diamondImg(-1),
       m_mouseLeftImg(-1), m_mouseRightImg(-1), m_alpha1Img(-1), m_alpha2Img(-1),
-      m_mouseWheelImg(-1), m_rKeyImg(-1), m_mouseRightGuardImg(-1),
-      m_titlePosX(0.0f), m_titleAnimSpeed(5.0f), m_isTitleAnimFinished(false),
-      m_taskAlpha(0), m_taskFadeSpeed(5.0f), m_animationWaitTimer(0),
-      m_displayedShootProgress(0.0f), m_displayedTackleProgress(0.0f),
-      m_displayedShieldThrowProgress(0.0f), m_displayedParryProgress(0.0f),
-      m_progressAnimSpeed(0.02f), m_transitionDelayTimer(0),
-      m_hasShownParryTutorial(false), m_isParryTutorialPaused(false) {
+      m_mouseWheelImg(-1), m_rKeyImg(-1), m_lockOnUIImg(-1),
+      m_mouseRightGuardImg(-1), m_titlePosX(0.0f), m_titleAnimSpeed(5.0f),
+      m_isTitleAnimFinished(false), m_taskAlpha(0), m_taskFadeSpeed(5.0f),
+      m_animationWaitTimer(0), m_displayedShootProgress(0.0f),
+      m_displayedTackleProgress(0.0f), m_displayedShieldThrowProgress(0.0f),
+      m_displayedParryProgress(0.0f), m_progressAnimSpeed(0.02f),
+      m_transitionDelayTimer(0), m_hasShownParryTutorial(false),
+      m_isParryTutorialPaused(false) {
   // フォントの作成
   m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 48, kTaskFontThickness,
                                          DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -70,6 +71,7 @@ TaskTutorialManager::TaskTutorialManager()
   m_alpha2Img = LoadGraph("data/image/Alpha2.png");
   m_mouseWheelImg = LoadGraph("data/image/MouseWheel.png");
   m_rKeyImg = LoadGraph("data/image/R.png");
+  m_lockOnUIImg = LoadGraph("data/image/LockOnUI.png");
   m_mouseRightGuardImg = LoadGraph("data/image/MouseRight.png");
 }
 
@@ -83,6 +85,7 @@ TaskTutorialManager::~TaskTutorialManager() {
   DeleteGraph(m_alpha2Img);
   DeleteGraph(m_mouseWheelImg);
   DeleteGraph(m_rKeyImg);
+  DeleteGraph(m_lockOnUIImg);
   DeleteGraph(m_mouseRightGuardImg);
 }
 
@@ -490,11 +493,27 @@ void TaskTutorialManager::Draw() {
                       taskY + kDiamondSize, m_diamondImg, true);
       currentX += kDiamondSize + kSpacing;
 
+      // 右クリック(長押し)
       DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
                       taskY + kMouseImgSize, m_mouseRightImg, true);
       currentX += kMouseImgSize + kSpacing;
 
-      DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor,
+      DrawStringToHandle(currentX, taskY, "長押し", kTaskTextColor,
+                         m_taskFontHandle);
+      currentX +=
+          GetDrawStringWidthToHandle("長押し", -1, m_taskFontHandle) + kSpacing;
+
+      // ロックオンUI
+      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
+                      taskY + kMouseImgSize, m_lockOnUIImg, true);
+      currentX += kMouseImgSize + kSpacing;
+
+      // 左クリック
+      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
+                      taskY + kMouseImgSize, m_mouseLeftImg, true);
+      currentX += kMouseImgSize + kSpacing;
+
+      DrawStringToHandle(currentX, taskY, "でタックル", kTaskTextColor,
                          m_taskFontHandle);
 
       // 進捗
