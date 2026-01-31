@@ -8,7 +8,6 @@
 #include <cmath>
 #include <sstream>
 
-
 namespace {
 // 時間関連
 constexpr float kFrameTime = 1.0f / 60.0f;    // 1フレームの時間
@@ -321,7 +320,7 @@ void TutorialManager::Draw(int screenW, int screenH) {
                     kBoxPaddingX * 2;
     int box_height = kKeyImageSize + kBoxPaddingY * 2;
 
-    int box_x = screenW - box_width - 20 + m_uiXOffset;
+    int box_x = screenW - box_width - 60 + m_uiXOffset;
     int box_y = 20;
 
     // 半透明の背景ボックスを描画
@@ -382,7 +381,7 @@ void TutorialManager::Draw(int screenW, int screenH) {
     int box_width = images_width + remaining_text_width + kCheckMarkBaseSize +
                     kBoxPaddingX * 2;
     int box_height = kKeyImageSize + kBoxPaddingY * 2;
-    int box_x = screenW - box_width - 20 + m_uiXOffset;
+    int box_x = screenW - box_width - 60 + m_uiXOffset;
     int box_y = 20;
 
     // 半透明の背景ボックスを描画
@@ -435,7 +434,7 @@ void TutorialManager::Draw(int screenW, int screenH) {
                     kBoxPaddingX * 2;
     int box_height = kKeyImageHeight + kBoxPaddingY * 2;
 
-    int box_x = screenW - box_width - 20 + m_uiXOffset;
+    int box_x = screenW - box_width - 60 + m_uiXOffset;
     int box_y = 20;
 
     // 半透明の背景ボックスを描画
@@ -489,7 +488,7 @@ void TutorialManager::Draw(int screenW, int screenH) {
                     kBoxPaddingX * 2;
     int box_height = kShiftImageWidth * 0.5f + kBoxPaddingY * 2;
 
-    int box_x = screenW - box_width - 20 + m_uiXOffset;
+    int box_x = screenW - box_width - 60 + m_uiXOffset;
     int box_y = 20;
 
     // 半透明の背景ボックスを描画
@@ -543,7 +542,7 @@ void TutorialManager::Draw(int screenW, int screenH) {
           GetDrawStringWidthToHandle(text, strlen(text), m_japaneseFontHandle);
       int box_width = text_width + kCheckMarkBaseSize + kBoxPaddingX * 2;
       int box_height = kCheckMarkBaseSize + kBoxPaddingY * 2;
-      int box_x = screenW - box_width - 20 + m_uiXOffset;
+      int box_x = screenW - box_width - 60 + m_uiXOffset;
       int box_y = 20;
 
       // 半透明の背景ボックスを描画
@@ -666,7 +665,7 @@ void TutorialManager::DrawMessages(int screenW, int screenH) {
     box_height += kBoxPaddingY;
 
     // 描画
-    int box_x = screenW - box_width - 20 + msg.x_offset;
+    int box_x = screenW - box_width - 60 + msg.x_offset;
     int box_y = y_pos;
 
     // 背景ボックス

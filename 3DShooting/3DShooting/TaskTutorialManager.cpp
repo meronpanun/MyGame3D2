@@ -13,8 +13,8 @@ constexpr int kShieldThrowKillGoal = 2;
 constexpr int kParryGoal = 3;
 
 // UI関連
-constexpr int kTaskTextX = 30;
-constexpr int kTaskTextY = 30;
+constexpr int kTaskTextX = 60;
+constexpr int kTaskTextY = 60;
 constexpr int kTaskFontSize = 36;
 constexpr int kTaskFontThickness = 3;
 constexpr unsigned int kTaskTextColor = 0xFFFFFF;
