@@ -425,8 +425,8 @@ void Player::Update(
 
       // 画面内にいるか、かつ垂直方向の範囲内か
       if (screenPos.z > 0) {
-        float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
-        float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
+        float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
+        float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
 
         // 垂直方向の範囲チェック
         if (fabs(dy) < kLockOnMaxScreenOffsetY) {
@@ -495,8 +495,8 @@ void Player::Update(
         VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
 
         if (screenPos.z > 0) {
-          float dx = screenPos.x - (Game::kScreenWidth / 2.0f);
-          float dy = screenPos.y - (Game::kScreenHeigth / 2.0f);
+          float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
+          float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
 
           if (fabs(dy) < kLockOnMaxScreenOffsetY) {
             // 視線チェック

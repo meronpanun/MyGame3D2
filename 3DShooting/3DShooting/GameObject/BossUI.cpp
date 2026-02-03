@@ -20,9 +20,8 @@ constexpr unsigned int kColorHpBarBorder = 0xffffff;
 constexpr float kAnimSpeed = 0.05f; // HPバーの追従速度
 } // namespace
 
-BossUI::BossUI() : m_healthBarAnim(0.0f), m_fontHandle(-1) {
-  m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", 36, 3,
-                                    DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+BossUI::BossUI() : m_healthBarAnim(0.0f), m_fontHandle(-1), m_prevScale(1.0f) {
+  ReloadFonts(1.0f);
 }
 
 BossUI::~BossUI() {
@@ -67,40 +66,58 @@ void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) {
 }
 
 void BossUI::DrawBossHPBar(float hp, float maxHp) {
-  int screenW = Game::kScreenWidth;
-  GetScreenState(&screenW, NULL, NULL);
+  // スケール変更検知
+  float currentScale = Game::GetUIScale();
+  if (fabsf(currentScale - m_prevScale) > 0.001f) {
+    ReloadFonts(currentScale);
+    m_prevScale = currentScale;
+  }
 
-  int barX = (screenW - kBossHpBarWidth) / 2;
-  int barY = kBossHpBarY;
+  int screenW = Game::GetScreenWidth();
+  float scale = Game::GetUIScale();
+
+  int barW = static_cast<int>(kBossHpBarWidth * scale);
+  int barH = static_cast<int>(kBossHpBarHeight * scale);
+  int barY = static_cast<int>(kBossHpBarY * scale);
+
+  int barX = (screenW - barW) / 2;
 
   // HP割合
   float hpRate = hp / maxHp;
   float animRate = m_healthBarAnim / maxHp;
 
   // 背景
-  DrawBox(barX, barY, barX + kBossHpBarWidth, barY + kBossHpBarHeight,
+  DrawBox(barX, barY, barX + barW, barY + barH,
           kColorHpBarBg, true);
 
   // アニメーションバー（ダメージ演出用）
   if (m_healthBarAnim > hp) {
-    int animW = static_cast<int>(kBossHpBarWidth * animRate);
-    DrawBox(barX, barY, barX + animW, barY + kBossHpBarHeight,
+    int animW = static_cast<int>(barW * animRate);
+    DrawBox(barX, barY, barX + animW, barY + barH,
             kColorHpBarDamage, true);
   }
 
   // HPバー本体
-  int hpW = static_cast<int>(kBossHpBarWidth * hpRate);
-  DrawBox(barX, barY, barX + hpW, barY + kBossHpBarHeight, kColorHpBarFill,
+  int hpW = static_cast<int>(barW * hpRate);
+  DrawBox(barX, barY, barX + hpW, barY + barH, kColorHpBarFill,
           true);
 
   // 枠
-  DrawBox(barX, barY, barX + kBossHpBarWidth, barY + kBossHpBarHeight,
+  DrawBox(barX, barY, barX + barW, barY + barH,
           kColorHpBarBorder, false);
 
   // ボス名テキスト
   const char *bossName = "BOSS";
   int textW = GetDrawStringWidthToHandle(
       bossName, static_cast<int>(strlen(bossName)), m_fontHandle);
-  DrawStringToHandle((screenW - textW) / 2, kBossHpTextY, bossName, kColorWhite,
+  DrawStringToHandle((screenW - textW) / 2, static_cast<int>(kBossHpTextY * scale), bossName, kColorWhite,
                      m_fontHandle);
+}
+
+void BossUI::ReloadFonts(float scale) {
+  if (m_fontHandle != -1) {
+    DeleteFontToHandle(m_fontHandle);
+  }
+  m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3,
+                                    DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }

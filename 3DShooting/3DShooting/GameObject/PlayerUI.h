@@ -91,6 +91,10 @@ private:
 	int m_fontHandle;
 	int m_hpFontHandle;
 	int m_warningFontHandle;
+
+	// スケール管理
+	float m_prevScale;
+	void ReloadFonts(float scale);
 };
 
 

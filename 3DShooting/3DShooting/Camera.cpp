@@ -240,6 +240,7 @@ void Camera::Update()
     // カメラの設定を更新
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
     SetupCamera_Perspective(m_fov);
+    SetCameraNearFar(kCameraNear, kCameraFar);
 }
 
 // 揺れ効果を更新

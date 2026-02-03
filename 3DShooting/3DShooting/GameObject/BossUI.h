@@ -31,4 +31,8 @@ private:
 private:
 	float m_healthBarAnim; // HPバーアニメーション用体力値
 	int m_fontHandle;      // フォントハンドル
+
+	// スケール管理
+	float m_prevScale;
+	void ReloadFonts(float scale);
 };

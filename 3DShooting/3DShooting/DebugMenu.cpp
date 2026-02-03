@@ -156,6 +156,34 @@ DebugMenu::DebugMenu() {
          },
          []() { return ItemBase::IsDrawCollision() ? "[ON]" : "[OFF]"; }}},
        nullptr},
+      {"Screen",
+       {{"Resolution",
+         {{"1280x720",
+           {},
+           []() { Game::SetResolution(1280, 720); },
+           []() {
+             return (Game::GetScreenWidth() == 1280 &&
+                     Game::GetScreenHeight() == 720)
+                        ? "[Current]"
+                        : "";
+           }},
+          {"1920x1080",
+           {},
+           []() { Game::SetResolution(1920, 1080); },
+           []() {
+             return (Game::GetScreenWidth() == 1920 &&
+                     Game::GetScreenHeight() == 1080)
+                        ? "[Current]"
+                        : "";
+           }}},
+         nullptr},
+        {"Window Mode",
+         {},
+         []() {
+           bool isWindow = !Game::GetWindowMode();
+           Game::SetWindowMode(isWindow);
+         },
+         []() { return Game::GetWindowMode() ? "[Window]" : "[Fullscreen]"; }}}},
       {"Collision",
        {{"Main Stage Collision",
          {},

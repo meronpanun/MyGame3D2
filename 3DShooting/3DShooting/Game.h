@@ -10,15 +10,17 @@ class SceneManager;
 class Game {
 public:
   // 画面情報を定数定義
-   static constexpr int kScreenWidth  = 1920;
-   static constexpr int kScreenHeigth = 1080;
-  //static constexpr int kScreenWidth = 1280;
-  //static constexpr int kScreenHeigth = 720;
-  // static constexpr int kScreenWidth  = 640;
-  // static constexpr int kScreenHeigth = 480;
-  static constexpr int kColorBitNum = 32;
+  static int m_screenWidth;
+  static int m_screenHeight;
+  static int m_colorBitNum;
+  static bool m_windowMode;
 
-  static constexpr bool kDefaultWindowMode = true;
+  static void SetResolution(int w, int h);
+  static int GetScreenWidth() { return m_screenWidth; }
+  static int GetScreenHeight() { return m_screenHeight; }
+
+  static void SetWindowMode(bool windowed);
+  static bool GetWindowMode() { return m_windowMode; }
 
   // ウインドウのタイトル
   static constexpr const char *kWindowTitle = "WAVEBREAKER";
@@ -26,6 +28,7 @@ public:
   static void SetTimeScale(float scale, float duration);
   static void UpdateTimeScale();
   static float GetTimeScale();
+  static float GetUIScale();
 
   // チュートリアル用の一時停止機能
   static void SetPaused(bool paused);

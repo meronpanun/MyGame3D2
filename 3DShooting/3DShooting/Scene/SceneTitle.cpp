@@ -13,8 +13,9 @@ namespace
     constexpr int kLogoHeight = 1080;
 
 	// タイトルロゴの表示位置
-    constexpr int kLogoX = static_cast<int>(Game::kScreenWidth * -0.5f);
-    constexpr int kLogoY = static_cast<int>((Game::kScreenHeigth - kLogoHeight) * 0.5f);
+	// タイトルロゴの表示位置
+    // constexpr int kLogoX = static_cast<int>(Game::kScreenWidth * -0.5f);
+    // constexpr int kLogoY = static_cast<int>((Game::kScreenHeigth - kLogoHeight) * 0.5f);
 
     // フェード関連
 	constexpr int kFadeDuration = 60; // フェードイン・フェードアウトのフレーム数
@@ -143,7 +144,7 @@ void SceneTitle::Draw()
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
     DrawRectExtendGraph(
         0, 0,                       
-        Game::kScreenWidth, Game::kScreenHeigth,
+        Game::GetScreenWidth(), Game::GetScreenHeight(),
         0, 0,                       
         kLogoWidth, kLogoHeight,    
         m_titleLogo, true          
@@ -156,7 +157,7 @@ void SceneTitle::Draw()
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_fontHandle);
         
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-		DrawFormatStringToHandle((Game::kScreenWidth - textWidth) * 0.5f, 750, 0xffffff, m_fontHandle, gameStartText);
+		DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, 750, 0xffffff, m_fontHandle, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 }

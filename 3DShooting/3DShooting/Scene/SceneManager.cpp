@@ -136,7 +136,7 @@ void SceneManager::Draw() {
   // ロード中はシーン側で描画を行うため、フェード膜は描画しない（フェード膜で隠すとロード画面が見えない）
   if (m_fadeAlpha > 0 && m_fadeState != FadeState::Loading) {
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
-    DrawBox(0, 0, Game::kScreenWidth, Game::kScreenHeigth, 0x000000, true);
+    DrawBox(0, 0, Game::GetScreenWidth(), Game::GetScreenHeight(), 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
   }
 

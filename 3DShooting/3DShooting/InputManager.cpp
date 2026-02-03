@@ -93,8 +93,8 @@ void InputManager::UpdateCameraRotation(float& cameraYaw, float& cameraPitch, fl
     Vec2 mousePos = GetMousePos();
 
     // マウスの移動量に基づいてカメラの回転角度を更新
-    cameraYaw   += (mousePos.x - Game::kScreenWidth  * 0.5f) * sensitivity;
-    cameraPitch -= (mousePos.y - Game::kScreenHeigth * 0.5f) * sensitivity;
+    cameraYaw   += (mousePos.x - Game::GetScreenWidth()  * 0.5f) * sensitivity;
+    cameraPitch -= (mousePos.y - Game::GetScreenHeight() * 0.5f) * sensitivity;
 
     // カメラのピッチ角度を制限 (ジンバルロック防止のため89度)
     constexpr float limit = 89.0f * (DX_PI_F / 180.0f);
@@ -102,7 +102,7 @@ void InputManager::UpdateCameraRotation(float& cameraYaw, float& cameraPitch, fl
     if (cameraPitch < -limit) cameraPitch = -limit;
 
     // マウスの位置を中央に戻す
-    SetMousePoint(static_cast<int>(Game::kScreenWidth * 0.5f), static_cast<int>(Game::kScreenHeigth * 0.5f));
+    SetMousePoint(static_cast<int>(Game::GetScreenWidth() * 0.5f), static_cast<int>(Game::GetScreenHeight() * 0.5f));
 }
 
 // マウスホイールの回転量を取得

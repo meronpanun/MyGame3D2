@@ -100,16 +100,9 @@ PlayerUI::PlayerUI()
   m_lockOnUIHandle = LoadGraph("data/image/LockOnUI.png");
   assert(m_lockOnUIHandle != -1);
 
-  // フォントの作成
-  m_fontHandle = CreateFontToHandle(kDefaultFontName, kAmmoFont,
-                                    kDefaultFontThickness, kDefaultFontType);
-  assert(m_fontHandle != -1);
-  m_hpFontHandle = CreateFontToHandle(kDefaultFontName, kHpFont,
-                                      kDefaultFontThickness, kDefaultFontType);
-  assert(m_hpFontHandle != -1);
-  m_warningFontHandle = CreateFontToHandle(
-      kWarningFontName, kWarningFont, kDefaultFontThickness, kDefaultFontType);
-  assert(m_warningFontHandle != -1);
+  // フォントの作成 (初期スケール1.0fと仮定)
+  m_prevScale = 1.0f;
+  ReloadFonts(1.0f);
 }
 
 PlayerUI::~PlayerUI() {
@@ -136,6 +129,13 @@ void PlayerUI::Draw(bool isDead, bool isGuarding, EnemyBase *lockedOnEnemy,
                     float lowHealthBlinkTimer, float ammoTextFlashTimer,
                     const PlayerWeaponManager &weaponManager,
                     const PlayerShieldSystem &shieldSystem) {
+  // スケール変更検知
+  float currentScale = Game::GetUIScale();
+  if (fabsf(currentScale - m_prevScale) > 0.001f) {
+    ReloadFonts(currentScale);
+    m_prevScale = currentScale;
+  }
+
   // ガード中のテキスト表示
   DrawGuardText(isGuarding, lockedOnEnemy, isTargetAvailable);
 
@@ -158,22 +158,29 @@ void PlayerUI::Draw(bool isDead, bool isGuarding, EnemyBase *lockedOnEnemy,
 }
 
 void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth) {
-  int screenW = Game::kScreenWidth;
-  int screenH = Game::kScreenHeigth;
-  GetScreenState(&screenW, &screenH, NULL);
+  int screenW = Game::GetScreenWidth();
+  int screenH = Game::GetScreenHeight();
+  float scale = Game::GetUIScale();
+
+  // スケール適用後のサイズとマージン
+  int scaledHpBarHeight = static_cast<int>(kHpBarHeight * scale);
+  int scaledHpBarMargin = static_cast<int>(kHpBarMargin * scale);
+  int scaledHealthUiSize = static_cast<int>(kHealthUiImageSize * scale);
+  int scaledBarSpacing = static_cast<int>(kHealthUiImageBarSpacing * scale);
+  int scaledHpBarWidth = static_cast<int>(kHpBarWidth * scale);
 
   // HPバーのY座標を計算
-  const int barY = screenH - kHpBarHeight - kHpBarMargin;
+  const int barY = screenH - scaledHpBarHeight - scaledHpBarMargin;
 
   // HPバーのパラメータ
-  const int healthUiImageX = kHpBarMargin;
-  const int healthUiImageY = screenH - kHpBarHeight - kHpBarMargin +
-                             (kHpBarHeight - kHealthUiImageSize) * 0.5f;
+  const int healthUiImageX = scaledHpBarMargin;
+  const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin +
+                             (scaledHpBarHeight - scaledHealthUiSize) / 2; // 中央揃え修正
   DrawExtendGraph(
-      healthUiImageX, healthUiImageY, healthUiImageX + kHealthUiImageSize,
-      healthUiImageY + kHealthUiImageSize, m_healthUiImageHandle, true);
+      healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize,
+      healthUiImageY + scaledHealthUiSize, m_healthUiImageHandle, true);
   const int barX =
-      healthUiImageX + kHealthUiImageSize + kHealthUiImageBarSpacing;
+      healthUiImageX + scaledHealthUiSize + scaledBarSpacing;
 
   // 最大HP
   float hp = health;
@@ -193,44 +200,48 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth) {
   float hpAnimRate = hpAnim / kMaxHp;
 
   // 背景
-  DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight, kColorHpBarBg,
+  DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, kColorHpBarBg,
           true);
 
   // HPバー本体（実際の体力を反映）
-  DrawBox(barX, barY, barX + static_cast<int>(kHpBarWidth * hpRate),
-          barY + kHpBarHeight, kColorHpBarFill, true);
+  DrawBox(barX, barY, barX + static_cast<int>(scaledHpBarWidth * hpRate),
+          barY + scaledHpBarHeight, kColorHpBarFill, true);
 
   // アニメーションバー（ゴーストバー）
   if (healthBarAnim > health) {
     // ダメージ時（黄色いバー）
-    int animStart = barX + static_cast<int>(kHpBarWidth * hpRate);
-    int animEnd = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-    DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, kColorHpBarDamage,
+    int animStart = barX + static_cast<int>(scaledHpBarWidth * hpRate);
+    int animEnd = barX + static_cast<int>(scaledHpBarWidth * hpAnimRate);
+    DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, kColorHpBarDamage,
             true);
   } else if (healthBarAnim < health) {
     // 回復時（明るい緑のバー）
-    int animStart = barX + static_cast<int>(kHpBarWidth * hpAnimRate);
-    int animEnd = barX + static_cast<int>(kHpBarWidth * hpRate);
-    DrawBox(animStart, barY, animEnd, barY + kHpBarHeight, 0x90EE90, true);
+    int animStart = barX + static_cast<int>(scaledHpBarWidth * hpAnimRate);
+    int animEnd = barX + static_cast<int>(scaledHpBarWidth * hpRate);
+    DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, 0x90EE90, true);
   }
 
   // 枠
-  DrawBox(barX, barY, barX + kHpBarWidth, barY + kHpBarHeight,
+  DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight,
           kColorHpBarBorder, false);
 
   // HP数値
-  DrawFormatStringToHandle(barX + kHpTextOffsetX, barY + kHpTextOffsetY,
+  DrawFormatStringToHandle(barX + static_cast<int>(kHpTextOffsetX * scale), barY + static_cast<int>(kHpTextOffsetY * scale),
                            kColorWhite, m_hpFontHandle, "%.0f", healthBarAnim);
 }
 
 void PlayerUI::DrawWeaponUI(const PlayerWeaponManager &weaponManager,
                             float ammoTextFlashTimer) {
-  int screenW = Game::kScreenWidth;
-  int screenH = Game::kScreenHeigth;
-  GetScreenState(&screenW, &screenH, NULL);
+  int screenW = Game::GetScreenWidth();
+  int screenH = Game::GetScreenHeight();
+  float scale = Game::GetUIScale();
 
+  // スケール適用
+  int scaledHpBarHeight = static_cast<int>(kHpBarHeight * scale);
+  int scaledHpBarMargin = static_cast<int>(kHpBarMargin * scale);
+  
   // HPバーのY座標を計算
-  const int barY = screenH - kHpBarHeight - kHpBarMargin;
+  const int barY = screenH - scaledHpBarHeight - scaledHpBarMargin;
 
   // タックルUIのY座標をHPバーに合わせる
   const int tackleUIY = barY;
@@ -249,10 +260,10 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager &weaponManager,
 
   switch (currentWeaponType) {
   case WeaponType::AssaultRifle:
-    gunImageWidth = kARImageWidth;
-    gunImageHeight = kARImageHeight;
-    gunImageMarginX = kARImageMarginX;
-    gunImageMarginY = kARImageMarginY;
+    gunImageWidth = static_cast<int>(kARImageWidth * scale);
+    gunImageHeight = static_cast<int>(kARImageHeight * scale);
+    gunImageMarginX = static_cast<int>(kARImageMarginX * scale);
+    gunImageMarginY = static_cast<int>(kARImageMarginY * scale);
     if (currentAmmo == 0 && !isInfiniteAmmo) {
       // 弾切れ時は点滅させずそのまま
       gunHandle = m_noAmmoARImageHandle;
@@ -270,10 +281,10 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager &weaponManager,
     }
     break;
   case WeaponType::Shotgun:
-    gunImageWidth = kSGImageWidth;
-    gunImageHeight = kSGImageHeight;
-    gunImageMarginX = kSGImageMarginX;
-    gunImageMarginY = kSGImageMarginY;
+    gunImageWidth = static_cast<int>(kSGImageWidth * scale);
+    gunImageHeight = static_cast<int>(kSGImageHeight * scale);
+    gunImageMarginX = static_cast<int>(kSGImageMarginX * scale);
+    gunImageMarginY = static_cast<int>(kSGImageMarginY * scale);
     if (currentAmmo == 0 && !isInfiniteAmmo) {
       // 弾切れ時は点滅させずそのまま
       gunHandle = m_noAmmoSGImageHandle;
@@ -312,9 +323,22 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager &weaponManager,
   // 弾薬数UIの位置をAR基準で固定計算
   int arGunImageX = screenW - kARImageWidth - kARImageMarginX;
   int arGunImageY = tackleUIY - kARImageHeight - kARImageMarginY;
-  int ammoTextX = arGunImageX - kAmmoTextGunOffsetX - ammoTextWidth;
-  int ammoTextY = arGunImageY + (kARImageHeight - kAmmoTextHeight) * 0.5f +
-                  kAmmoTextGunOffsetY;
+  // ここでもスケール済みの値を使用する
+  int scaledARWidth = static_cast<int>(kARImageWidth * scale);
+  int scaledARMarginX = static_cast<int>(kARImageMarginX * scale);
+  int scaledARHeight = static_cast<int>(kARImageHeight * scale);
+  int scaledARMarginY = static_cast<int>(kARImageMarginY * scale);
+  int scaledAmmoTextHeight = static_cast<int>(kAmmoTextHeight * scale);
+  
+  arGunImageX = screenW - scaledARWidth - scaledARMarginX;
+  arGunImageY = tackleUIY - scaledARHeight - scaledARMarginY;
+  
+  int scaledAmmoOffsetX = static_cast<int>(kAmmoTextGunOffsetX * scale);
+  int scaledAmmoOffsetY = static_cast<int>(kAmmoTextGunOffsetY * scale);
+
+  int ammoTextX = arGunImageX - scaledAmmoOffsetX - ammoTextWidth;
+  int ammoTextY = arGunImageY + (scaledARHeight - scaledAmmoTextHeight) * 0.5f +
+                  scaledAmmoOffsetY;
 
   // 弾薬無限モードの場合は「∞」を表示
   if (isInfiniteAmmo) {
@@ -355,8 +379,9 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager &weaponManager,
 }
 
 void PlayerUI::DrawShieldUI(const PlayerShieldSystem &shieldSystem) {
-  int screenW, screenH;
-  GetScreenState(&screenW, &screenH, NULL);
+  int screenW = Game::GetScreenWidth();
+  int screenH = Game::GetScreenHeight();
+  float scale = Game::GetUIScale();
 
   // 盾耐久値の描画
   float shieldBarAnim = shieldSystem.GetBarAnim();
@@ -372,19 +397,38 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem &shieldSystem) {
   GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
 
   // 盾ゲージのサイズと位置
-  const int shieldGaugeHeight = 225; // 縦向きのゲージの高さ
+  const int shieldGaugeHeight = static_cast<int>(150 * scale); // サイズを少し小さく (225 -> 150)
   const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW /
                                      shieldTexH); // 縦向きのゲージの幅
-  float scale = (float)shieldGaugeHeight / shieldTexH;
+  float drawScale = (float)shieldGaugeHeight / shieldTexH;
 
-  int shieldGaugeX = screenW - shieldGaugeWidth - kHpBarMargin;
-  int shieldGaugeY = kShieldUIYPosition + kShieldUIYOffset;
+  int scaledHpBarMargin = static_cast<int>(kHpBarMargin * scale);
+  
+  // 盾UIを左側に移動 (HPバーの上、アイコンの真上あたりに配置)
+  // HPアイコンの高さ分 + のマージンを考慮して配置
+  // HPアイコンのY座標トップ = screenH - scaledHpBarHeight - scaledHpBarMargin + (offset)
+  // 簡略化して screenH - scaledHpBarMargin - scaledHpBarHeight - 小さなマージン - shiledGaugeHeight
+  
+  // HP UIの全高を計算 (margin + height + icon_offset)
+  // Icon Size = 96, Bar Height = 36. 
+  // Icon Top is roughly Margin + 96 from bottom?
+  // Let's use fixed offset from bottom for simplicity to sit above HP UI.
+  // HP UI occupies roughly 120px from bottom (45 margin + 96 icon height appx).
+  // "もう少し下でいい" -> マージンを詰める
+  int hpUITopFromBottom = static_cast<int>((kHpBarMargin + kHealthUiImageSize - 15) * scale);  // +10 -> -15 に変更して少し下げる 
+
+  int shieldGaugeY = screenH - hpUITopFromBottom - shieldGaugeHeight;
+  
+  // 盾UIを左側に移動 (HPバーの上あたり)
+  // HPバーのマージンを基準にする
+  int shieldGaugeX = scaledHpBarMargin;
+
 
   // ゲージの背景（半透明の盾）
   SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
   DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
                   shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-                  shieldTexH * 0.5f, scale, scale, 0.0f, m_shieldImageHandle,
+                  shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle,
                   true);
   SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -398,7 +442,7 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem &shieldSystem) {
     // 盾を満タン状態で描画
     DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
                     shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-                    shieldTexH * 0.5f, scale, scale, 0.0f, m_shieldImageHandle,
+                    shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle,
                     true);
 
     // 描画範囲をリセット
@@ -408,8 +452,14 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem &shieldSystem) {
 
 void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
                              const PlayerWeaponManager &weaponManager) {
-  int screenW, screenH;
-  GetScreenState(&screenW, &screenH, NULL);
+  int screenW = Game::GetScreenWidth();
+  int screenH = Game::GetScreenHeight();
+  float scale = Game::GetUIScale();
+
+  int scaledWarningSize = static_cast<int>(kWarningImageSize * scale);
+  int scaledWarningYOffset = static_cast<int>(kWarningImageYOffset * scale);
+  int scaledWarningTextYOffset = static_cast<int>(kWarningTextYOffset * scale);
+  int scaledWarningSpacing = static_cast<int>(kWarningImageSpacing * scale);
 
   // 警告表示ロジック
   // 体力低下と弾薬低下の警告を分離して処理
@@ -420,8 +470,8 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
          1.0f) *
         0.5f;
     int alphaInt = static_cast<int>(alpha * 255);
-    int drawX = (screenW - kWarningImageSize) * 0.5f;
-    int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
+    int drawX = (screenW - scaledWarningSize) * 0.5f;
+    int drawY = (screenH - scaledWarningSize) * 0.5f + scaledWarningYOffset;
 
     // 弾薬警告も表示する必要がある場合は、体力警告を左にずらす
     bool isLowAmmoForHealth = weaponManager.IsLowAmmo();
@@ -434,18 +484,18 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         (isSwitchingWeaponForHealth &&
          (prevWeaponHadLowAmmoForHealth || prevWeaponHadNoAmmoForHealth))) {
       drawX =
-          (screenW * 0.5f) - kWarningImageSize - (kWarningImageSpacing * 0.5f);
+          (screenW * 0.5f) - scaledWarningSize - (scaledWarningSpacing * 0.5f);
     }
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-    DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize,
-                    drawY + kWarningImageSize, m_noHealthImageHandle, true);
+    DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize,
+                    drawY + scaledWarningSize, m_noHealthImageHandle, true);
 
     const char *text = "体力低下";
     int textWidth =
         GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-    int textX = drawX + (kWarningImageSize - textWidth) / 2;
-    int textY = drawY + kWarningImageSize + kWarningTextYOffset;
+    int textX = drawX + (scaledWarningSize - textWidth) / 2;
+    int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
     unsigned int textColor = (alphaInt << 24) | kColorWhite;
     DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 
@@ -498,22 +548,22 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         0.5f;
     int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * 255);
 
-    int drawX = (screenW - kWarningImageSize) * 0.5f;
-    int drawY = (screenH - kWarningImageSize) * 0.5f + kWarningImageYOffset;
+    int drawX = (screenW - scaledWarningSize) * 0.5f;
+    int drawY = (screenH - scaledWarningSize) * 0.5f + scaledWarningYOffset;
 
     // 体力警告も表示する必要がある場合は、弾薬警告を右にずらす
     if (isLowHealth) {
-      drawX = (screenW * 0.5f) + (kWarningImageSpacing * 0.5f);
+      drawX = (screenW * 0.5f) + (scaledWarningSpacing * 0.5f);
     }
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-    DrawExtendGraph(drawX, drawY, drawX + kWarningImageSize,
-                    drawY + kWarningImageSize, m_noAmmoImageHandle, true);
+    DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize,
+                    drawY + scaledWarningSize, m_noAmmoImageHandle, true);
 
     int textWidth =
         GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-    int textX = drawX + (kWarningImageSize - textWidth) / 2;
-    int textY = drawY + kWarningImageSize + kWarningTextYOffset;
+    int textX = drawX + (scaledWarningSize - textWidth) / 2;
+    int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
     unsigned int textColor = (alphaInt << 24) | kColorWhite;
     DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
 
@@ -524,8 +574,9 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
 void PlayerUI::DrawLockOnUI(EnemyBase *lockedOnEnemy) {
   if (lockedOnEnemy) {
     constexpr float kLockOnUISize = 64.0f;
-    constexpr float kLockOnUIYOffset =
-        90.0f; // UIを足元から上に移動させるためのオフセット
+    constexpr float kLockOnUIYOffset = 90.0f; // UIを足元から上に移動させるためのオフセット
+    float scale = Game::GetUIScale();
+    float scaledSize = kLockOnUISize * scale;
 
     VECTOR enemyPos = lockedOnEnemy->GetPos();
     enemyPos.y += kLockOnUIYOffset; // Y座標を調整して体の中心に近づける
@@ -533,7 +584,7 @@ void PlayerUI::DrawLockOnUI(EnemyBase *lockedOnEnemy) {
 
     if (screenPos.z > 0) // 画面内にあるか
     {
-      float halfSize = kLockOnUISize / 2.0f;
+      float halfSize = scaledSize / 2.0f;
       DrawExtendGraph(screenPos.x - halfSize, screenPos.y - halfSize,
                       screenPos.x + halfSize, screenPos.y + halfSize,
                       m_lockOnUIHandle, true);
@@ -544,14 +595,17 @@ void PlayerUI::DrawLockOnUI(EnemyBase *lockedOnEnemy) {
 void PlayerUI::DrawGuardText(bool isGuarding, EnemyBase *lockedOnEnemy,
                              bool isTargetAvailable) {
   // ガード中にターゲットがいない場合にテキストを表示
-  if (isGuarding && !lockedOnEnemy && !isTargetAvailable) {
-    const char *text = "ターゲットなし";
-    int screenW, screenH;
-    GetScreenState(&screenW, &screenH, NULL);
-    int textWidth =
-        GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
-    int textX = (screenW - textWidth) / 2;
-    int textY = screenH / 2 + 30; // レティクルの少し下に表示
-    DrawStringToHandle(textX, textY, text, kColorWhite, m_warningFontHandle);
-  }
+}
+
+void PlayerUI::ReloadFonts(float scale) {
+  if (m_fontHandle != -1) DeleteFontToHandle(m_fontHandle);
+  if (m_hpFontHandle != -1) DeleteFontToHandle(m_hpFontHandle);
+  if (m_warningFontHandle != -1) DeleteFontToHandle(m_warningFontHandle);
+
+  m_fontHandle = CreateFontToHandle(kDefaultFontName, static_cast<int>(kAmmoFont * scale),
+                                    kDefaultFontThickness, kDefaultFontType);
+  m_hpFontHandle = CreateFontToHandle(kDefaultFontName, static_cast<int>(kHpFont * scale),
+                                      kDefaultFontThickness, kDefaultFontType);
+  m_warningFontHandle = CreateFontToHandle(
+      kWarningFontName, static_cast<int>(kWarningFont * scale), kDefaultFontThickness, kDefaultFontType);
 }

@@ -41,8 +41,8 @@ void ShellCasing::Update()
     // 画面外に出たら削除
     // 画面の境界に少しマージンを持たせる
     constexpr float margin = 50.0f;
-    if (screenPos.x < -margin || screenPos.x > Game::kScreenWidth + margin ||
-        screenPos.y < -margin || screenPos.y > Game::kScreenHeigth + margin ||
+    if (screenPos.x < -margin || screenPos.x > Game::GetScreenWidth() + margin ||
+        screenPos.y < -margin || screenPos.y > Game::GetScreenHeight() + margin ||
         screenPos.z < 0.0f) // Zが0未満はカメラの後ろ、または遠すぎる場合
     {
         m_lifeTime = 0; // 寿命を0にして削除対象にする
