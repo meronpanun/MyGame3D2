@@ -57,13 +57,9 @@ TaskTutorialManager::TaskTutorialManager()
       m_animationWaitTimer(0), m_displayedShootProgress(0.0f),
       m_displayedTackleProgress(0.0f), m_displayedShieldThrowProgress(0.0f),
       m_displayedParryProgress(0.0f), m_progressAnimSpeed(0.02f),
-      m_transitionDelayTimer(0), m_hasShownParryTutorial(false),
-      m_isParryTutorialPaused(false) {
+  m_isParryTutorialPaused(false), m_prevScale(1.0f) {
   // フォントの作成
-  m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 48, kTaskFontThickness,
-                                         DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-  m_taskFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", 30, kTaskFontThickness,
-                                        DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  ReloadFonts(1.0f);
   m_diamondImg = LoadGraph("data/image/Diamond.png");
   m_mouseLeftImg = LoadGraph("data/image/MouseLeft.png");
   m_mouseRightImg = LoadGraph("data/image/MouseRight.png");
@@ -87,6 +83,15 @@ TaskTutorialManager::~TaskTutorialManager() {
   DeleteGraph(m_rKeyImg);
   DeleteGraph(m_lockOnUIImg);
   DeleteGraph(m_mouseRightGuardImg);
+}
+
+void TaskTutorialManager::ReloadFonts(float scale) {
+  if (m_titleFontHandle != -1) DeleteFontToHandle(m_titleFontHandle);
+  if (m_taskFontHandle != -1) DeleteFontToHandle(m_taskFontHandle);
+
+  // フォントサイズもスケール
+  m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(48 * scale), kTaskFontThickness, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_taskFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(30 * scale), kTaskFontThickness, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }
 
 void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
@@ -363,6 +368,28 @@ bool TaskTutorialManager::IsCompleted() const {
 }
 
 void TaskTutorialManager::Draw() {
+  float scale = Game::GetUIScale();
+  if (fabs(scale - m_prevScale) > 0.001f) {
+      ReloadFonts(scale);
+      m_prevScale = scale;
+  }
+
+  int scaledTaskTextX = static_cast<int>(kTaskTextX * scale);
+  int scaledTaskTextY = static_cast<int>(kTaskTextY * scale);
+  int scaledBgBoxWidth = static_cast<int>(kBgBoxWidth * scale);
+  int scaledBgBoxHeight = static_cast<int>(kBgBoxHeight * scale);
+  int scaledBgBoxPaddingX = static_cast<int>(kBgBoxPaddingX * scale);
+  int scaledBgBoxPaddingY = static_cast<int>(kBgBoxPaddingY * scale); // Used?
+  // int scaledTaskFontSize = static_cast<int>(kTaskFontSize * scale); // Font handle handles size, but spacing might need it?
+  int scaledTitleFontSize = static_cast<int>(kTitleFontSize * scale);
+  int scaledTaskFontSize = static_cast<int>(kTaskFontSize * scale); // Logic uses kTaskFontSize for layout
+
+  int scaledDiamondSize = static_cast<int>(kDiamondSize * scale);
+  int scaledMouseImgSize = static_cast<int>(kMouseImgSize * scale);
+  int scaledSpacing = static_cast<int>(kSpacing * scale);
+  int scaledBarMaxWidth = static_cast<int>(kBarMaxWidth * scale);
+  int scaledBarHeight = static_cast<int>(kBarHeight * scale);
+
   std::string taskText = "";
 
   switch (m_step) {
@@ -378,56 +405,56 @@ void TaskTutorialManager::Draw() {
 
     // 背景ボックスの描画
     if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
-      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
-      int bgY = kTaskTextY - kBgBoxPaddingY;
+      int bgX = static_cast<int>(m_titlePosX * scale) - scaledBgBoxPaddingX;
+      int bgY = scaledTaskTextY - scaledBgBoxPaddingY;
 
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
-      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+      DrawBox(bgX, bgY, bgX + scaledBgBoxWidth, bgY + scaledBgBoxHeight, kBgBoxColor,
               true);
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
     // タイトル
-    DrawStringToHandle(m_titlePosX, kTaskTextY, "射撃訓練", kTaskTextColor,
+    DrawStringToHandle(static_cast<int>(m_titlePosX * scale), scaledTaskTextY, "射撃訓練", kTaskTextColor,
                        m_titleFontHandle);
 
     // タスク内容
     if (m_isTitleAnimFinished) {
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_taskAlpha);
 
-      int taskY = kTaskTextY + kTitleFontSize + 10;
-      int currentX = kTaskTextX;
+      int taskY = scaledTaskTextY + scaledTitleFontSize + static_cast<int>(10 * scale);
+      int currentX = scaledTaskTextX;
 
-      DrawExtendGraph(currentX, taskY, currentX + kDiamondSize,
-                      taskY + kDiamondSize, m_diamondImg, true);
-      currentX += kDiamondSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledDiamondSize,
+                      taskY + scaledDiamondSize, m_diamondImg, true);
+      currentX += scaledDiamondSize + scaledSpacing;
 
-      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
-                      taskY + kMouseImgSize, m_mouseLeftImg, true);
-      currentX += kMouseImgSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledMouseImgSize,
+                      taskY + scaledMouseImgSize, m_mouseLeftImg, true);
+      currentX += scaledMouseImgSize + scaledSpacing;
 
       DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor,
                          m_taskFontHandle);
 
       // 進捗
-      int barY = taskY + kTaskFontSize + 10;
+      int barY = taskY + scaledTaskFontSize + static_cast<int>(10 * scale);
       float progress = m_displayedShootProgress;
-      int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+      int currentBarWidth = static_cast<int>(scaledBarMaxWidth * progress);
 
       unsigned int barColor = (progress >= 1.0f) ? 0x00ff80 : 0x6496ff;
 
-      DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + scaledBarMaxWidth, barY + scaledBarHeight,
               0x646464, true);
-      DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + currentBarWidth, barY + scaledBarHeight,
               barColor, true);
 
-      DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
+      DrawStringToHandle(scaledTaskTextX + scaledBarMaxWidth + static_cast<int>(5 * scale), barY, taskText.c_str(),
                          kTaskTextColor, m_taskFontHandle);
 
       // 武器切り替えヒントの表示 (射撃タスク中のみ、進捗バーの下に表示)
       if (m_taskAlpha >= 200) {
-        int hintY = barY + kBarHeight + 20;
-        int hintX = kTaskTextX;
+        int hintY = barY + scaledBarHeight + static_cast<int>(20 * scale);
+        int hintX = scaledTaskTextX;
 
         DrawStringToHandle(hintX, hintY, "武器切り替え: ", kTaskTextColor,
                            m_taskFontHandle);
@@ -435,14 +462,14 @@ void TaskTutorialManager::Draw() {
             GetDrawStringWidthToHandle("武器切り替え: ", -1, m_taskFontHandle);
 
         // Alpha1画像
-        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
-                        hintY + kMouseImgSize, m_alpha1Img, true);
-        hintX += kMouseImgSize + kSpacing;
+        DrawExtendGraph(hintX, hintY, hintX + scaledMouseImgSize,
+                        hintY + scaledMouseImgSize, m_alpha1Img, true);
+        hintX += scaledMouseImgSize + scaledSpacing;
 
         // Alpha2画像
-        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
-                        hintY + kMouseImgSize, m_alpha2Img, true);
-        hintX += kMouseImgSize + kSpacing;
+        DrawExtendGraph(hintX, hintY, hintX + scaledMouseImgSize,
+                        hintY + scaledMouseImgSize, m_alpha2Img, true);
+        hintX += scaledMouseImgSize + scaledSpacing;
 
         // " / " テキスト
         DrawStringToHandle(hintX, hintY, " / ", kTaskTextColor,
@@ -450,8 +477,8 @@ void TaskTutorialManager::Draw() {
         hintX += GetDrawStringWidthToHandle(" / ", -1, m_taskFontHandle);
 
         // マウスホイール画像
-        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
-                        hintY + kMouseImgSize, m_mouseWheelImg, true);
+        DrawExtendGraph(hintX, hintY, hintX + scaledMouseImgSize,
+                        hintY + scaledMouseImgSize, m_mouseWheelImg, true);
       }
 
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -469,67 +496,67 @@ void TaskTutorialManager::Draw() {
 
     // 背景ボックスの描画
     if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
-      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
-      int bgY = kTaskTextY - kBgBoxPaddingY;
+      int bgX = static_cast<int>(m_titlePosX * scale) - scaledBgBoxPaddingX;
+      int bgY = scaledTaskTextY - scaledBgBoxPaddingY;
 
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
-      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+      DrawBox(bgX, bgY, bgX + scaledBgBoxWidth, bgY + scaledBgBoxHeight, kBgBoxColor,
               true);
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
     // タイトル
-    DrawStringToHandle(m_titlePosX, kTaskTextY, "タックル訓練", kTaskTextColor,
+    DrawStringToHandle(static_cast<int>(m_titlePosX * scale), scaledTaskTextY, "タックル訓練", kTaskTextColor,
                        m_titleFontHandle);
 
     // タスク内容
     if (m_isTitleAnimFinished) {
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_taskAlpha);
 
-      int taskY = kTaskTextY + kTitleFontSize + 10;
-      int currentX = kTaskTextX;
+      int taskY = scaledTaskTextY + scaledTitleFontSize + static_cast<int>(10 * scale);
+      int currentX = scaledTaskTextX;
 
-      DrawExtendGraph(currentX, taskY, currentX + kDiamondSize,
-                      taskY + kDiamondSize, m_diamondImg, true);
-      currentX += kDiamondSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledDiamondSize,
+                      taskY + scaledDiamondSize, m_diamondImg, true);
+      currentX += scaledDiamondSize + scaledSpacing;
 
       // 右クリック(長押し)
-      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
-                      taskY + kMouseImgSize, m_mouseRightImg, true);
-      currentX += kMouseImgSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledMouseImgSize,
+                      taskY + scaledMouseImgSize, m_mouseRightImg, true);
+      currentX += scaledMouseImgSize + scaledSpacing;
 
       DrawStringToHandle(currentX, taskY, "長押し", kTaskTextColor,
                          m_taskFontHandle);
       currentX +=
-          GetDrawStringWidthToHandle("長押し", -1, m_taskFontHandle) + kSpacing;
+          GetDrawStringWidthToHandle("長押し", -1, m_taskFontHandle) + scaledSpacing;
 
       // ロックオンUI
-      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
-                      taskY + kMouseImgSize, m_lockOnUIImg, true);
-      currentX += kMouseImgSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledMouseImgSize,
+                      taskY + scaledMouseImgSize, m_lockOnUIImg, true);
+      currentX += scaledMouseImgSize + scaledSpacing;
 
       // 左クリック
-      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
-                      taskY + kMouseImgSize, m_mouseLeftImg, true);
-      currentX += kMouseImgSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledMouseImgSize,
+                      taskY + scaledMouseImgSize, m_mouseLeftImg, true);
+      currentX += scaledMouseImgSize + scaledSpacing;
 
       DrawStringToHandle(currentX, taskY, "でタックル", kTaskTextColor,
                          m_taskFontHandle);
 
       // 進捗
-      int barY = taskY + kTaskFontSize + 10;
+      int barY = taskY + scaledTaskFontSize + static_cast<int>(10 * scale);
       float progress = m_displayedTackleProgress;
-      int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+      int currentBarWidth = static_cast<int>(scaledBarMaxWidth * progress);
 
       unsigned int barColor =
           (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
 
-      DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + scaledBarMaxWidth, barY + scaledBarHeight,
               GetColor(100, 100, 100), true);
-      DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + currentBarWidth, barY + scaledBarHeight,
               barColor, true);
 
-      DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
+      DrawStringToHandle(scaledTaskTextX + scaledBarMaxWidth + static_cast<int>(5 * scale), barY, taskText.c_str(),
                          kTaskTextColor, m_taskFontHandle);
 
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -547,50 +574,50 @@ void TaskTutorialManager::Draw() {
 
     // 背景ボックスの描画
     if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
-      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
-      int bgY = kTaskTextY - kBgBoxPaddingY;
+      int bgX = static_cast<int>(m_titlePosX * scale) - scaledBgBoxPaddingX;
+      int bgY = scaledTaskTextY - scaledBgBoxPaddingY;
 
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
-      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+      DrawBox(bgX, bgY, bgX + scaledBgBoxWidth, bgY + scaledBgBoxHeight, kBgBoxColor,
               true);
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
     // タイトル
-    DrawStringToHandle(m_titlePosX, kTaskTextY, "盾投げ訓練", kTaskTextColor,
+    DrawStringToHandle(static_cast<int>(m_titlePosX * scale), scaledTaskTextY, "盾投げ訓練", kTaskTextColor,
                        m_titleFontHandle);
 
     if (m_isTitleAnimFinished) {
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_taskAlpha);
 
-      int taskY = kTaskTextY + kTitleFontSize + 10;
-      int currentX = kTaskTextX;
+      int taskY = scaledTaskTextY + scaledTitleFontSize + static_cast<int>(10 * scale);
+      int currentX = scaledTaskTextX;
 
-      DrawExtendGraph(currentX, taskY, currentX + kDiamondSize,
-                      taskY + kDiamondSize, m_diamondImg, true);
-      currentX += kDiamondSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledDiamondSize,
+                      taskY + scaledDiamondSize, m_diamondImg, true);
+      currentX += scaledDiamondSize + scaledSpacing;
 
-      DrawExtendGraph(currentX, taskY, currentX + kMouseImgSize,
-                      taskY + kMouseImgSize, m_rKeyImg, true);
-      currentX += kMouseImgSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledMouseImgSize,
+                      taskY + scaledMouseImgSize, m_rKeyImg, true);
+      currentX += scaledMouseImgSize + scaledSpacing;
 
       DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor,
                          m_taskFontHandle);
 
       // 進捗バー
-      int barY = taskY + kTaskFontSize + 10;
+      int barY = taskY + scaledTaskFontSize + static_cast<int>(10 * scale);
       float progress = m_displayedShieldThrowProgress;
-      int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+      int currentBarWidth = static_cast<int>(scaledBarMaxWidth * progress);
 
       unsigned int barColor =
           (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
 
-      DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + scaledBarMaxWidth, barY + scaledBarHeight,
               GetColor(100, 100, 100), true);
-      DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + currentBarWidth, barY + scaledBarHeight,
               barColor, true);
 
-      DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
+      DrawStringToHandle(scaledTaskTextX + scaledBarMaxWidth + static_cast<int>(5 * scale), barY, taskText.c_str(),
                          kTaskTextColor, m_taskFontHandle);
 
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -608,60 +635,60 @@ void TaskTutorialManager::Draw() {
 
     // 背景ボックスの描画
     if (m_isTitleAnimFinished || m_titlePosX > -450.0f) {
-      int bgX = static_cast<int>(m_titlePosX) - kBgBoxPaddingX;
-      int bgY = kTaskTextY - kBgBoxPaddingY;
+      int bgX = static_cast<int>(m_titlePosX * scale) - scaledBgBoxPaddingX;
+      int bgY = scaledTaskTextY - scaledBgBoxPaddingY;
 
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
-      DrawBox(bgX, bgY, bgX + kBgBoxWidth, bgY + kBgBoxHeight, kBgBoxColor,
+      DrawBox(bgX, bgY, bgX + scaledBgBoxWidth, bgY + scaledBgBoxHeight, kBgBoxColor,
               true);
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
     // タイトル
-    DrawStringToHandle(m_titlePosX, kTaskTextY, "パリィ訓練", kTaskTextColor,
+    DrawStringToHandle(static_cast<int>(m_titlePosX * scale), scaledTaskTextY, "パリィ訓練", kTaskTextColor,
                        m_titleFontHandle);
 
     if (m_isTitleAnimFinished) {
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_taskAlpha);
 
-      int taskY = kTaskTextY + kTitleFontSize + 10;
-      int currentX = kTaskTextX;
+      int taskY = scaledTaskTextY + scaledTitleFontSize + static_cast<int>(10 * scale);
+      int currentX = scaledTaskTextX;
 
-      DrawExtendGraph(currentX, taskY, currentX + kDiamondSize,
-                      taskY + kDiamondSize, m_diamondImg, true);
-      currentX += kDiamondSize + kSpacing;
+      DrawExtendGraph(currentX, taskY, currentX + scaledDiamondSize,
+                      taskY + scaledDiamondSize, m_diamondImg, true);
+      currentX += scaledDiamondSize + scaledSpacing;
 
       DrawStringToHandle(currentX, taskY, "遠距離攻撃をパリィする",
                          kTaskTextColor, m_taskFontHandle);
 
       // 進捗バー
-      int barY = taskY + kTaskFontSize + 10;
+      int barY = taskY + scaledTaskFontSize + static_cast<int>(10 * scale);
       float progress = m_displayedParryProgress;
-      int currentBarWidth = static_cast<int>(kBarMaxWidth * progress);
+      int currentBarWidth = static_cast<int>(scaledBarMaxWidth * progress);
 
       unsigned int barColor =
           (progress >= 1.0f) ? GetColor(0, 255, 128) : GetColor(100, 150, 255);
 
-      DrawBox(kTaskTextX, barY, kTaskTextX + kBarMaxWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + scaledBarMaxWidth, barY + scaledBarHeight,
               GetColor(100, 100, 100), true);
-      DrawBox(kTaskTextX, barY, kTaskTextX + currentBarWidth, barY + kBarHeight,
+      DrawBox(scaledTaskTextX, barY, scaledTaskTextX + currentBarWidth, barY + scaledBarHeight,
               barColor, true);
 
-      DrawStringToHandle(kTaskTextX + kBarMaxWidth + 5, barY, taskText.c_str(),
+      DrawStringToHandle(scaledTaskTextX + scaledBarMaxWidth + static_cast<int>(5 * scale), barY, taskText.c_str(),
                          kTaskTextColor, m_taskFontHandle);
 
       // ガードヒント表示
       if (m_taskAlpha >= 200) {
-        int hintY = barY + kBarHeight + 20;
-        int hintX = kTaskTextX;
+        int hintY = barY + scaledBarHeight + static_cast<int>(20 * scale);
+        int hintX = scaledTaskTextX;
 
         DrawStringToHandle(hintX, hintY, "ガード: ", kTaskTextColor,
                            m_taskFontHandle);
         hintX += GetDrawStringWidthToHandle("ガード: ", -1, m_taskFontHandle);
 
         // マウス右クリック画像
-        DrawExtendGraph(hintX, hintY, hintX + kMouseImgSize,
-                        hintY + kMouseImgSize, m_mouseRightGuardImg, true);
+        DrawExtendGraph(hintX, hintY, hintX + scaledMouseImgSize,
+                        hintY + scaledMouseImgSize, m_mouseRightGuardImg, true);
       }
 
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -671,11 +698,11 @@ void TaskTutorialManager::Draw() {
     if (m_isParryTutorialPaused) {
       // 画面全体を少し暗くする
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-      DrawBox(0, 0, 1920, 1080, 0x000000, true);
+      DrawBox(0, 0, Game::GetScreenWidth(), Game::GetScreenHeight(), 0x000000, true);
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-      int centerX = 1920 / 2;
-      int centerY = 1080 / 2;
+      int centerX = Game::GetScreenWidth() / 2;
+      int centerY = Game::GetScreenHeight() / 2;
 
       // テキスト表示
       // 「緑色の攻撃はタイミングよくシールドブロック（MouseRight.png）を行うことでパリィできる」
@@ -685,7 +712,7 @@ void TaskTutorialManager::Draw() {
       // 中央揃えのために幅計算
       int text1Width =
           GetDrawStringWidthToHandle(text1.c_str(), -1, m_titleFontHandle);
-      int iconWidth = 32; // アイコンサイズ
+      int iconWidth = static_cast<int>(32 * scale); // アイコンサイズ scaled
       int text2Width =
           GetDrawStringWidthToHandle(text2.c_str(), -1, m_titleFontHandle);
 
@@ -693,7 +720,7 @@ void TaskTutorialManager::Draw() {
       int startX = centerX - totalWidth / 2;
 
       int currentX = startX;
-      int currentY = centerY - 50;
+      int currentY = centerY - static_cast<int>(50 * scale);
 
       // テキスト描画
       DrawStringToHandle(currentX, currentY, text1.c_str(), 0xFFFFFF,
@@ -713,7 +740,7 @@ void TaskTutorialManager::Draw() {
       std::string resumeText = "右クリックを押して再開";
       int resumeTextWidth =
           GetDrawStringWidthToHandle(resumeText.c_str(), -1, m_taskFontHandle);
-      DrawStringToHandle(centerX - resumeTextWidth / 2, centerY + 50,
+      DrawStringToHandle(centerX - resumeTextWidth / 2, centerY + static_cast<int>(50 * scale),
                          resumeText.c_str(), 0xAAAAAA, m_taskFontHandle);
     }
 

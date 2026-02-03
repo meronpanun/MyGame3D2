@@ -79,6 +79,9 @@ public:
 	/// <param name="detail">メッセージの詳細</param>
 	void AddMessage(const std::string& title, const std::string& detail);
 
+	// スケール変更時のフォントリロード
+	void ReloadFonts(float scale);
+
 private:
 	/// <summary>
 	/// UIアニメーション用の更新
@@ -143,4 +146,6 @@ private:
 
 	// メッセージ関連
 	std::vector<TutorialMessage> m_messages;
+    
+    float m_prevScale;
 };

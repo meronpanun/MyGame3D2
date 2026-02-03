@@ -2,6 +2,7 @@
 #include "EffekseerForDXLib.h"
 #include "InputManager.h"
 #include "SceneMain.h"
+#include "Game.h"
 #include "WaveManager.h"
 #include <algorithm>
 #include <cassert>
@@ -107,16 +108,8 @@ TutorialManager::TutorialManager()
   assert(m_crossHandle != -1);
 
   // フォントの作成
-  m_japaneseFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-  assert(m_japaneseFontHandle != -1);
-  m_japaneseLargeFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-  assert(m_japaneseLargeFontHandle != -1);
-  m_messageDetailFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", kMessageDetailFontSize, 3,
-                         DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-  assert(m_messageDetailFontHandle != -1);
+  m_prevScale = 1.0f;
+  ReloadFonts(1.0f);
 }
 
 TutorialManager::~TutorialManager() {
@@ -137,6 +130,16 @@ TutorialManager::~TutorialManager() {
   DeleteFontToHandle(m_japaneseFontHandle);
   DeleteFontToHandle(m_japaneseLargeFontHandle);
   DeleteFontToHandle(m_messageDetailFontHandle);
+}
+
+void TutorialManager::ReloadFonts(float scale) {
+  if (m_japaneseFontHandle != -1) DeleteFontToHandle(m_japaneseFontHandle);
+  if (m_japaneseLargeFontHandle != -1) DeleteFontToHandle(m_japaneseLargeFontHandle);
+  if (m_messageDetailFontHandle != -1) DeleteFontToHandle(m_messageDetailFontHandle);
+
+  m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(30 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(54 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_messageDetailFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(kMessageDetailFontSize * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }
 
 void TutorialManager::Init() {
@@ -298,6 +301,12 @@ void TutorialManager::Draw(int screenW, int screenH) {
   if (m_uiState == UIState::Hidden && m_messages.empty())
     return;
 
+  float scale = Game::GetUIScale();
+  if (fabs(scale - m_prevScale) > 0.001f) {
+      ReloadFonts(scale);
+      m_prevScale = scale;
+  }
+
   DrawMessages(screenW, screenH);
 
   const char *text = "";
@@ -315,13 +324,19 @@ void TutorialManager::Draw(int screenW, int screenH) {
     int remaining_text_width = GetDrawStringWidthToHandle(
         remaining_text, strlen(remaining_text), m_japaneseFontHandle);
 
-    int images_width = kKeyImageSize * 4 + kKeyImageSpacing * 3;
-    int box_width = images_width + remaining_text_width + kCheckMarkBaseSize +
-                    kBoxPaddingX * 2;
-    int box_height = kKeyImageSize + kBoxPaddingY * 2;
+    int scaledKeyImageSize = static_cast<int>(kKeyImageSize * scale);
+    int scaledKeyImageSpacing = static_cast<int>(kKeyImageSpacing * scale);
+    int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
+    int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
+    int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
 
-    int box_x = screenW - box_width - 60 + m_uiXOffset;
-    int box_y = 20;
+    int images_width = scaledKeyImageSize * 4 + scaledKeyImageSpacing * 3;
+    int box_width = images_width + remaining_text_width + scaledCheckMarkBaseSize +
+                    scaledBoxPaddingX * 2;
+    int box_height = scaledKeyImageSize + scaledBoxPaddingY * 2;
+
+    int box_x = screenW - box_width - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
+    int box_y = static_cast<int>(20 * scale);
 
     // 半透明の背景ボックスを描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -330,39 +345,39 @@ void TutorialManager::Draw(int screenW, int screenH) {
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // キー画像を描画
-    int image_x = box_x + kBoxPaddingX;
-    int image_y = box_y + kBoxPaddingY;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize,
-                    image_y + kKeyImageSize, m_wKeyHandle, true);
-    image_x += kKeyImageSize + kKeyImageSpacing;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize,
-                    image_y + kKeyImageSize, m_aKeyHandle, true);
-    image_x += kKeyImageSize + kKeyImageSpacing;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize,
-                    image_y + kKeyImageSize, m_sKeyHandle, true);
-    image_x += kKeyImageSize + kKeyImageSpacing;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize,
-                    image_y + kKeyImageSize, m_dKeyHandle, true);
+    int image_x = box_x + scaledBoxPaddingX;
+    int image_y = box_y + scaledBoxPaddingY;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageSize,
+                    image_y + scaledKeyImageSize, m_wKeyHandle, true);
+    image_x += scaledKeyImageSize + scaledKeyImageSpacing;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageSize,
+                    image_y + scaledKeyImageSize, m_aKeyHandle, true);
+    image_x += scaledKeyImageSize + scaledKeyImageSpacing;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageSize,
+                    image_y + scaledKeyImageSize, m_sKeyHandle, true);
+    image_x += scaledKeyImageSize + scaledKeyImageSpacing;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageSize,
+                    image_y + scaledKeyImageSize, m_dKeyHandle, true);
 
     // 残りのテキストを描画
-    int text_x = image_x + kKeyImageSize + kKeyImageSpacing;
-    int text_y = box_y + (box_height - kFontSize) * 0.5f;
+    int text_x = image_x + scaledKeyImageSize + scaledKeyImageSpacing;
+    int text_y = box_y + (box_height - static_cast<int>(kFontSize * scale)) * 0.5f;
     DrawStringToHandle(text_x, text_y, remaining_text, 0xffffff,
                        m_japaneseFontHandle);
 
     // チェックマークを描画
     if (is_done && m_checkMarkHandle >= 0) {
-      float scale = 1.0f;
+      float animScale = 1.0f;
       if (is_check_anim && check_anim_time < kCheckAnimDuration) {
         float t = check_anim_time / kCheckAnimDuration;
-        scale = kCheckMarkAnimScale - t;
-        if (scale < 1.0f)
-          scale = 1.0f;
+        animScale = kCheckMarkAnimScale - t;
+        if (animScale < 1.0f)
+          animScale = 1.0f;
       }
 
-      int size = static_cast<int>(kCheckMarkBaseSize * scale);
-      int cx = text_x + remaining_text_width + kBoxPaddingX +
-               (kCheckMarkBaseSize * 0.5f);
+      int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
+      int cx = text_x + remaining_text_width + scaledBoxPaddingX +
+               (scaledCheckMarkBaseSize * 0.5f);
       int cy = box_y + box_height * 0.5f;
       DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f,
                       cy + size * 0.5f, m_checkMarkHandle, true);
@@ -377,12 +392,17 @@ void TutorialManager::Draw(int screenW, int screenH) {
     int remaining_text_width = GetDrawStringWidthToHandle(
         remaining_text, strlen(remaining_text), m_japaneseFontHandle);
 
-    int images_width = kKeyImageSize;
-    int box_width = images_width + remaining_text_width + kCheckMarkBaseSize +
-                    kBoxPaddingX * 2;
-    int box_height = kKeyImageSize + kBoxPaddingY * 2;
-    int box_x = screenW - box_width - 60 + m_uiXOffset;
-    int box_y = 20;
+    int scaledKeyImageSize = static_cast<int>(kKeyImageSize * scale);
+    int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
+    int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
+    int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
+
+    int images_width = scaledKeyImageSize;
+    int box_width = images_width + remaining_text_width + scaledCheckMarkBaseSize +
+                    scaledBoxPaddingX * 2;
+    int box_height = scaledKeyImageSize + scaledBoxPaddingY * 2;
+    int box_x = screenW - box_width - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
+    int box_y = static_cast<int>(20 * scale);
 
     // 半透明の背景ボックスを描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -391,30 +411,30 @@ void TutorialManager::Draw(int screenW, int screenH) {
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // キー画像を描画
-    int image_x = box_x + kBoxPaddingX;
-    int image_y = box_y + kBoxPaddingY;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize,
-                    image_y + kKeyImageSize, m_mouseMoveHorHandle, true);
+    int image_x = box_x + scaledBoxPaddingX;
+    int image_y = box_y + scaledBoxPaddingY;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageSize,
+                    image_y + scaledKeyImageSize, m_mouseMoveHorHandle, true);
 
     // 残りのテキストを描画
-    int text_x = image_x + kKeyImageSize + 5;
-    int text_y = box_y + (box_height - kFontSize) * 0.5f;
+    int text_x = image_x + scaledKeyImageSize + 5; // 5 is small offset, maybe scale it too? let's kept it simple or static_cast<int>(5 * scale)
+    int text_y = box_y + (box_height - static_cast<int>(kFontSize * scale)) * 0.5f;
     DrawStringToHandle(text_x, text_y, remaining_text, 0xffffff,
                        m_japaneseFontHandle);
 
     // チェックマークを描画
     if (is_done && m_checkMarkHandle >= 0) {
-      float scale = 1.0f;
+      float animScale = 1.0f;
       if (is_check_anim && check_anim_time < kCheckAnimDuration) {
         float t = check_anim_time / kCheckAnimDuration;
-        scale = kCheckMarkAnimScale - t;
-        if (scale < 1.0f)
-          scale = 1.0f;
+        animScale = kCheckMarkAnimScale - t;
+        if (animScale < 1.0f)
+          animScale = 1.0f;
       }
 
-      int size = static_cast<int>(kCheckMarkBaseSize * scale);
-      int cx = text_x + remaining_text_width + kBoxPaddingX +
-               (kCheckMarkBaseSize * 0.5f);
+      int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
+      int cx = text_x + remaining_text_width + scaledBoxPaddingX +
+               (scaledCheckMarkBaseSize * 0.5f);
       int cy = box_y + box_height * 0.5f;
       DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f,
                       cy + size * 0.5f, m_checkMarkHandle, true);
@@ -429,13 +449,19 @@ void TutorialManager::Draw(int screenW, int screenH) {
     int remaining_text_width = GetDrawStringWidthToHandle(
         remaining_text, strlen(remaining_text), m_japaneseFontHandle);
 
-    int images_width = kKeyImageWidth;
-    int box_width = images_width + remaining_text_width + kCheckMarkBaseSize +
-                    kBoxPaddingX * 2;
-    int box_height = kKeyImageHeight + kBoxPaddingY * 2;
+    int scaledKeyImageWidth = static_cast<int>(kKeyImageWidth * scale);
+    int scaledKeyImageHeight = static_cast<int>(kKeyImageHeight * scale);
+    int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
+    int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
+    int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
 
-    int box_x = screenW - box_width - 60 + m_uiXOffset;
-    int box_y = 20;
+    int images_width = scaledKeyImageWidth;
+    int box_width = images_width + remaining_text_width + scaledCheckMarkBaseSize +
+                    scaledBoxPaddingX * 2;
+    int box_height = scaledKeyImageHeight + scaledBoxPaddingY * 2;
+
+    int box_x = screenW - box_width - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
+    int box_y = static_cast<int>(20 * scale);
 
     // 半透明の背景ボックスを描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -444,30 +470,30 @@ void TutorialManager::Draw(int screenW, int screenH) {
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // キー画像を描画
-    int image_x = box_x + kBoxPaddingX;
-    int image_y = box_y + kBoxPaddingY;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageWidth,
-                    image_y + kKeyImageHeight, m_spaceKeyHandle, true);
+    int image_x = box_x + scaledBoxPaddingX;
+    int image_y = box_y + scaledBoxPaddingY;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageWidth,
+                    image_y + scaledKeyImageHeight, m_spaceKeyHandle, true);
 
     // 残りのテキストを描画
-    int text_x = image_x + kKeyImageWidth + 5;
-    int text_y = box_y + (box_height - kFontSize) * 0.5f;
+    int text_x = image_x + scaledKeyImageWidth + 5;
+    int text_y = box_y + (box_height - static_cast<int>(kFontSize * scale)) * 0.5f;
     DrawStringToHandle(text_x, text_y, remaining_text, 0xffffff,
                        m_japaneseFontHandle);
 
     // チェックマークを描画
     if (is_done && m_checkMarkHandle >= 0) {
-      float scale = 1.0f;
+      float animScale = 1.0f;
       if (is_check_anim && check_anim_time < kCheckAnimDuration) {
         float t = check_anim_time / kCheckAnimDuration;
-        scale = kCheckMarkAnimScale - t;
-        if (scale < 1.0f)
-          scale = 1.0f;
+        animScale = kCheckMarkAnimScale - t;
+        if (animScale < 1.0f)
+          animScale = 1.0f;
       }
 
-      int size = static_cast<int>(kCheckMarkBaseSize * scale);
-      int cx = text_x + remaining_text_width + kBoxPaddingX +
-               (kCheckMarkBaseSize * 0.5f);
+      int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
+      int cx = text_x + remaining_text_width + scaledBoxPaddingX +
+               (scaledCheckMarkBaseSize * 0.5f);
       int cy = box_y + box_height * 0.5f;
       DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f,
                       cy + size * 0.5f, m_checkMarkHandle, true);
@@ -482,14 +508,21 @@ void TutorialManager::Draw(int screenW, int screenH) {
     int remaining_text_width = GetDrawStringWidthToHandle(
         remaining_text, strlen(remaining_text), m_japaneseFontHandle);
 
-    int images_width =
-        kShiftImageWidth + kKeyImageSize + kKeyImageSize + kKeyImageSpacing * 2;
-    int box_width = images_width + remaining_text_width + kCheckMarkBaseSize +
-                    kBoxPaddingX * 2;
-    int box_height = kShiftImageWidth * 0.5f + kBoxPaddingY * 2;
+    int scaledKeyImageSize = static_cast<int>(kKeyImageSize * scale);
+    int scaledKeyImageSpacing = static_cast<int>(kKeyImageSpacing * scale);
+    int scaledShiftImageWidth = static_cast<int>(kShiftImageWidth * scale);
+    int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
+    int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
+    int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
 
-    int box_x = screenW - box_width - 60 + m_uiXOffset;
-    int box_y = 20;
+    int images_width =
+        scaledShiftImageWidth + scaledKeyImageSize + scaledKeyImageSize + scaledKeyImageSpacing * 2;
+    int box_width = images_width + remaining_text_width + scaledCheckMarkBaseSize +
+                    scaledBoxPaddingX * 2;
+    int box_height = static_cast<int>(kShiftImageWidth * 0.5f * scale) + scaledBoxPaddingY * 2;
+
+    int box_x = screenW - box_width - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
+    int box_y = static_cast<int>(20 * scale);
 
     // 半透明の背景ボックスを描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -498,36 +531,36 @@ void TutorialManager::Draw(int screenW, int screenH) {
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // キー画像を描画
-    int image_x = box_x + kBoxPaddingX;
-    int image_y = box_y + kBoxPaddingY;
-    DrawExtendGraph(image_x, image_y, image_x + kShiftImageWidth,
-                    image_y + kKeyImageSize, m_leftShiftKeyHandle, true);
-    image_x += kShiftImageWidth + kKeyImageSpacing;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize,
-                    image_y + kKeyImageSize, m_crossHandle, true);
-    image_x += kKeyImageSize + kKeyImageSpacing;
-    DrawExtendGraph(image_x, image_y, image_x + kKeyImageSize,
-                    image_y + kKeyImageSize, m_wKeyHandle, true);
+    int image_x = box_x + scaledBoxPaddingX;
+    int image_y = box_y + scaledBoxPaddingY;
+    DrawExtendGraph(image_x, image_y, image_x + scaledShiftImageWidth,
+                    image_y + scaledKeyImageSize, m_leftShiftKeyHandle, true);
+    image_x += scaledShiftImageWidth + scaledKeyImageSpacing;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageSize,
+                    image_y + scaledKeyImageSize, m_crossHandle, true);
+    image_x += scaledKeyImageSize + scaledKeyImageSpacing;
+    DrawExtendGraph(image_x, image_y, image_x + scaledKeyImageSize,
+                    image_y + scaledKeyImageSize, m_wKeyHandle, true);
 
     // 残りのテキストを描画
-    int text_x = image_x + kKeyImageSize + 5;
-    int text_y = box_y + (box_height - kFontSize) * 0.5f;
+    int text_x = image_x + scaledKeyImageSize + 5;
+    int text_y = box_y + (box_height - static_cast<int>(kFontSize * scale)) * 0.5f;
     DrawStringToHandle(text_x, text_y, remaining_text, 0xffffff,
                        m_japaneseFontHandle);
 
     // チェックマークを描画
     if (is_done && m_checkMarkHandle >= 0) {
-      float scale = kCheckMarkDrawSize;
+      float animScale = kCheckMarkDrawSize;
       if (is_check_anim && check_anim_time < kCheckAnimDuration) {
         float t = check_anim_time / kCheckAnimDuration;
-        scale = kCheckMarkAnimScale - t;
-        if (scale < 1.0f)
-          scale = 1.0f;
+        animScale = kCheckMarkAnimScale - t;
+        if (animScale < 1.0f)
+          animScale = 1.0f;
       }
 
-      int size = static_cast<int>(kCheckMarkBaseSize * scale);
-      int cx = text_x + remaining_text_width + kBoxPaddingX +
-               (kCheckMarkBaseSize * 0.5f);
+      int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
+      int cx = text_x + remaining_text_width + scaledBoxPaddingX +
+               (scaledCheckMarkBaseSize * 0.5f);
       int cy = box_y + box_height * 0.5f;
       DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f,
                       cy + size * 0.5f, m_checkMarkHandle, true);
@@ -540,10 +573,15 @@ void TutorialManager::Draw(int screenW, int screenH) {
         m_step != Step::Run) {
       int text_width =
           GetDrawStringWidthToHandle(text, strlen(text), m_japaneseFontHandle);
-      int box_width = text_width + kCheckMarkBaseSize + kBoxPaddingX * 2;
-      int box_height = kCheckMarkBaseSize + kBoxPaddingY * 2;
-      int box_x = screenW - box_width - 60 + m_uiXOffset;
-      int box_y = 20;
+      
+      int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
+      int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
+      int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
+
+      int box_width = text_width + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
+      int box_height = scaledCheckMarkBaseSize + scaledBoxPaddingY * 2;
+      int box_x = screenW - box_width - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
+      int box_y = static_cast<int>(20 * scale);
 
       // 半透明の背景ボックスを描画
       SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -552,23 +590,23 @@ void TutorialManager::Draw(int screenW, int screenH) {
       SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
       // テキストを描画
-      int text_x = box_x + kBoxPaddingX;
-      int text_y = box_y + (box_height - kFontSize) * 0.5f;
+      int text_x = box_x + scaledBoxPaddingX;
+      int text_y = box_y + (box_height - static_cast<int>(kFontSize * scale)) * 0.5f;
       DrawStringToHandle(text_x, text_y, text, 0xffffff, m_japaneseFontHandle);
 
       // チェックマークを描画
       if (is_done && m_checkMarkHandle >= 0) {
-        float scale = 1.0f;
+        float animScale = 1.0f;
         if (is_check_anim && check_anim_time < kCheckAnimDuration) {
           float t = check_anim_time / kCheckAnimDuration;
-          scale = kCheckMarkAnimScale - t;
-          if (scale < 1.0f)
-            scale = 1.0f;
+          animScale = kCheckMarkAnimScale - t;
+          if (animScale < 1.0f)
+            animScale = 1.0f;
         }
 
-        int size = static_cast<int>(kCheckMarkBaseSize * scale);
+        int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
         int cx =
-            text_x + text_width + kBoxPaddingX + (kCheckMarkBaseSize * 0.5f);
+            text_x + text_width + scaledBoxPaddingX + (scaledCheckMarkBaseSize * 0.5f);
         int cy = box_y + box_height * 0.5f;
         DrawExtendGraph(cx - size * 0.5f, cy - size * 0.5f, cx + size * 0.5f,
                         cy + size * 0.5f, m_checkMarkHandle, true);
@@ -628,7 +666,16 @@ void TutorialManager::UpdateMessages() {
 }
 
 void TutorialManager::DrawMessages(int screenW, int screenH) {
-  int y_pos = kMessageOffsetY;
+  float scale = Game::GetUIScale();
+  int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
+  int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
+  int scaledMessageTitleFontSize = static_cast<int>(kMessageTitleFontSize * scale);
+  int scaledMessageTimeBarPaddingY = static_cast<int>(kMessageTimeBarPaddingY * scale);
+  int scaledMessageTimeBarHeight = static_cast<int>(kMessageTimeBarHeight * scale);
+  int scaledMessageDetailFontSize = static_cast<int>(kMessageDetailFontSize * scale);
+  int scaledMessageLineSpacing = static_cast<int>(kMessageLineSpacing * scale);
+
+  int y_pos = static_cast<int>(kMessageOffsetY * scale);
   for (const auto &msg : m_messages) {
     // detail文字列を'\n'で分割
     std::vector<std::string> detail_lines;
@@ -650,22 +697,22 @@ void TutorialManager::DrawMessages(int screenW, int screenH) {
       }
     }
     int box_width =
-        (std::max)(title_width, max_detail_width) + kBoxPaddingX * 2;
+        (std::max)(title_width, max_detail_width) + scaledBoxPaddingX * 2;
 
     // 高さの計算
-    int box_height = kBoxPaddingY;
-    box_height += kMessageTitleFontSize;
-    box_height += kMessageTimeBarPaddingY;
-    box_height += kMessageTimeBarHeight;
-    box_height += kMessageTimeBarPaddingY;
-    box_height += kMessageDetailFontSize * detail_lines.size();
+    int box_height = scaledBoxPaddingY;
+    box_height += scaledMessageTitleFontSize;
+    box_height += scaledMessageTimeBarPaddingY;
+    box_height += scaledMessageTimeBarHeight;
+    box_height += scaledMessageTimeBarPaddingY;
+    box_height += scaledMessageDetailFontSize * detail_lines.size();
     if (detail_lines.size() > 1) {
-      box_height += kMessageLineSpacing * (detail_lines.size() - 1);
+      box_height += scaledMessageLineSpacing * (detail_lines.size() - 1);
     }
-    box_height += kBoxPaddingY;
+    box_height += scaledBoxPaddingY;
 
     // 描画
-    int box_x = screenW - box_width - 60 + msg.x_offset;
+    int box_x = screenW - box_width - static_cast<int>(60 * scale) + static_cast<int>(msg.x_offset * scale);
     int box_y = y_pos;
 
     // 背景ボックス
@@ -675,23 +722,23 @@ void TutorialManager::DrawMessages(int screenW, int screenH) {
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // テキストとタイムバーを上から順に描画
-    int current_y = box_y + kBoxPaddingY;
-    int content_x = box_x + kBoxPaddingX;
-    int content_width = box_width - kBoxPaddingX * 2;
+    int current_y = box_y + scaledBoxPaddingY;
+    int content_x = box_x + scaledBoxPaddingX;
+    int content_width = box_width - scaledBoxPaddingX * 2;
 
     // タイトル
     DrawStringToHandle(content_x, current_y, msg.title.c_str(), 0xFFFFFF,
                        m_japaneseLargeFontHandle);
-    current_y += kMessageTitleFontSize + kMessageTimeBarPaddingY;
+    current_y += scaledMessageTitleFontSize + scaledMessageTimeBarPaddingY;
 
     // タイムバー
     if (msg.state == UIState::OnScreen) {
       float progress = 1.0f - (msg.display_timer / kMessageDisplayTime);
       int bar_width = static_cast<int>(content_width * progress);
       DrawBox(content_x, current_y, content_x + bar_width,
-              current_y + kMessageTimeBarHeight, 0xFF0000, true);
+              current_y + scaledMessageTimeBarHeight, 0xFF0000, true);
     }
-    current_y += kMessageTimeBarHeight + kMessageTimeBarPaddingY;
+    current_y += scaledMessageTimeBarHeight + scaledMessageTimeBarPaddingY;
 
     // 詳細 (複数行、色分けあり)
     for (const auto &line : detail_lines) {
@@ -734,9 +781,9 @@ void TutorialManager::DrawMessages(int screenW, int screenH) {
                            m_messageDetailFontHandle);
       }
 
-      current_y += kMessageDetailFontSize + kMessageLineSpacing;
+      current_y += scaledMessageDetailFontSize + scaledMessageLineSpacing;
     }
 
-    y_pos += box_height + 10;
+    y_pos += box_height + static_cast<int>(10 * scale);
   }
 }

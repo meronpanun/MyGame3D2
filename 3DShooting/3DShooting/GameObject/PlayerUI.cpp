@@ -397,7 +397,7 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem &shieldSystem) {
   GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
 
   // 盾ゲージのサイズと位置
-  const int shieldGaugeHeight = static_cast<int>(150 * scale); // サイズを少し小さく (225 -> 150)
+  const int shieldGaugeHeight = static_cast<int>(230 * scale); // サイズを少し大きく (190 -> 230)
   const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW /
                                      shieldTexH); // 縦向きのゲージの幅
   float drawScale = (float)shieldGaugeHeight / shieldTexH;

@@ -40,6 +40,9 @@ public:
   // チュートリアルをスキップする
   void Skip(WaveManager *pWaveManager);
 
+  // スケール変更時のフォントリロード
+  void ReloadFonts(float scale);
+
 private:
   // チュートリアルの進行ステップ
   enum class TaskStep {
@@ -109,4 +112,6 @@ private:
   // パリィチュートリアル用一時停止制御
   bool m_hasShownParryTutorial; // パリィ説明を表示したかどうか
   bool m_isParryTutorialPaused; // パリィ説明表示中で停止しているか
+
+  float m_prevScale; // 前回のスケール値
 };
