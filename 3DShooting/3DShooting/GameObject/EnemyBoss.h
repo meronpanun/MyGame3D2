@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
+#include "Stage.h" 
 #include <memory>
 #include <vector>
 
-#include "Stage.h" // StageCollisionDataを使うためにインクルード
 
 class Bullet;
 class Player;

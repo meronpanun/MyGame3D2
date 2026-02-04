@@ -370,12 +370,16 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
       m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) {
     m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
 
-    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
-        m_modelHandle,
-        (m_currentAnimState == AnimState::Walk
-             ? kWalkAnimName
-             : (m_currentAnimState == AnimState::Attack ? kAttackAnimName
-                                                        : kDeadAnimName)));
+    const char* animName = nullptr;
+    if (m_currentAnimState == AnimState::Walk || m_currentAnimState == AnimState::Damage) {
+        animName = kWalkAnimName;
+    } else if (m_currentAnimState == AnimState::Attack) {
+        animName = kAttackAnimName;
+    } else {
+        animName = kDeadAnimName;
+    }
+    
+    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, animName);
 
     if (m_currentAnimState == AnimState::Attack) {
       // ここは何もしない
@@ -383,7 +387,7 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
       if (m_animTime >= currentAnimTotalTime) {
         m_animTime = currentAnimTotalTime;
       }
-    } else if (m_currentAnimState == AnimState::Walk) {
+    } else if (m_currentAnimState == AnimState::Walk || m_currentAnimState == AnimState::Damage) {
       if (m_animTime >= currentAnimTotalTime) {
         m_animTime = fmodf(m_animTime, currentAnimTotalTime);
       }
@@ -513,7 +517,7 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
     // プレイヤーと逆方向に少し移動
     VECTOR toPlayer = VSub(player.GetPos(), m_pos);
     toPlayer.y = 0.0f;
-    if (VSize(toPlayer) > 0.1f) {
+    if (VSquareSize(toPlayer) > 0.0001f) {
       VECTOR knockbackDir = VNorm(VScale(toPlayer, -1.0f));
       // 減衰させつつ移動
       if (m_damageTimer > 10) // 最初だけ下がる
