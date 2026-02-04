@@ -1086,6 +1086,9 @@ void SceneMain::DrawDebugHUD() {
     DrawFormatString(x, y, color, "FPS: %.1f", fps); y += lineHeight;
     DrawFormatString(x, y, color, "Delta Time: %.4f", m_lastDeltaTime); y += lineHeight;
     DrawFormatString(x, y, color, "Player Pos: (%.1f, %.1f, %.1f)", playerPos.x, playerPos.y, playerPos.z); y += lineHeight;
+    if (m_pPlayer) {
+      DrawFormatString(x, y, color, "Speed: %.2f", m_pPlayer->GetCurrentSpeed()); y += lineHeight;
+    }
     
     DrawFormatString(x, y, color, "Active Enemy Count: %d", aliveEnemyCount); y += lineHeight;
     DrawFormatString(x, y, color, "Drawn Enemy Count: %d", drawnEnemyCount); y += lineHeight;

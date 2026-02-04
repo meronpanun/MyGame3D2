@@ -143,6 +143,12 @@ public:
   void AddARAmmo(int value);
 
   /// <summary>
+  /// 現在の移動速度を取得
+  /// </summary>
+  /// <returns>移動速度</returns>
+  float GetCurrentSpeed() const { return m_movement.GetCurrentSpeed(); }
+
+  /// <summary>
   /// SG弾薬回復用関数
   /// </summary>
   /// <param name="value">弾薬数</param>

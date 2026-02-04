@@ -37,6 +37,12 @@ public:
   /// </summary>
   /// <returns>移動中ならtrue</returns>
   bool IsMoving() const { return m_isMoving; }
+  
+  /// <summary>
+  /// 現在の移動速度を取得
+  /// </summary>
+  /// <returns>移動速度</returns>
+  float GetCurrentSpeed() const { return m_currentSpeed; }
 
   /// <summary>
   /// ジャンプ中かどうか
@@ -137,4 +143,6 @@ private:
   std::shared_ptr<CapsuleCollider> m_pBodyCollider;
 
   std::string m_groundedObjectName;
+  
+  float m_currentSpeed;
 };

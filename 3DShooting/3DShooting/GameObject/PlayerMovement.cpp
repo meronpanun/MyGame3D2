@@ -52,7 +52,7 @@ PlayerMovement::PlayerMovement()
       m_jumpVelocity(0.0f), m_jumpStartYaw(0.0f), m_jumpSpeedScalar(0.0f),
       m_jumpMoveVelocity(VGet(0, 0, 0)),
       m_airSideControlVelocity(VGet(0, 0, 0)),
-      m_pBodyCollider(std::make_shared<CapsuleCollider>()) {}
+      m_pBodyCollider(std::make_shared<CapsuleCollider>()), m_currentSpeed(0.0f) {}
 
 void PlayerMovement::Init(const VECTOR &pos, float moveSpeed, float runSpeed,
                           float scale) {
@@ -66,12 +66,19 @@ void PlayerMovement::Update(
     float deltaTime, Camera *pCamera, bool isDead, bool isTackling,
     bool isFlightMode,
     const std::vector<Stage::StageCollisionData> &collisionData) {
+  VECTOR prevPos = m_modelPos;
+
   UpdateCollider();
 
   if (m_coyoteTimeTimer > 0.0f)
     m_coyoteTimeTimer -= deltaTime;
-  if (isTackling)
-    return;
+  if (isTackling) 
+  {
+      // タックル中は速度計算を一応更新（単純移動と仮定）
+      float dist = VSize(VSub(m_modelPos, prevPos));
+      m_currentSpeed = (deltaTime > 0.0001f) ? dist / deltaTime : 0.0f;
+      return;
+  }
 
   // 接地判定（移動前）
   CollisionResult preCollisionResult =
@@ -94,6 +101,10 @@ void PlayerMovement::Update(
   } else {
     UpdateNormalMode(deltaTime, pCamera, isDead, isTackling, collisionData);
   }
+
+  // 速度計算
+  float dist = VSize(VSub(m_modelPos, prevPos));
+  m_currentSpeed = (deltaTime > 0.0001f) ? dist / deltaTime : 0.0f;
 }
 
 void PlayerMovement::UpdateCollider() {
