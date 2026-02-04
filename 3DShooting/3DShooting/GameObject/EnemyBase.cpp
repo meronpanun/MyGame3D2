@@ -115,8 +115,28 @@ void EnemyBase::TakeDamage(float damage, AttackType type) {
     }
   }
 
-  // デバッグ表示用 (TakeDamageの汎用処理から削除し、ここで個別対応)
-  // if (s_showDamage) ... // TakeDamage側で消すので、ここでは不要、またはTackle用に書く
+  // デバッグ表示用
+  if (s_showDamage) {
+    s_debugLastDamage = damage;
+    s_debugDamageTimer = 120;
+    switch (type) {
+    case AttackType::Shoot:
+      s_debugHitInfo = "(Shot)"; // 後で詳細(Head/Body)で上書きされる可能性あり
+      break;
+    case AttackType::Tackle:
+      s_debugHitInfo = "(Tackle)";
+      break;
+    case AttackType::ShieldThrow:
+      s_debugHitInfo = "(Shield)";
+      break;
+    case AttackType::Parry:
+      s_debugHitInfo = "(Parry)";
+      break;
+    default:
+      s_debugHitInfo = "(Unknown)";
+      break;
+    }
+  }
 }
 
 // 敵がタックルダメージを受ける処理

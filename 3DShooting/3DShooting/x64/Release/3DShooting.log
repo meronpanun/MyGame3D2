@@ -1,19 +1,15 @@
-﻿  EnemyBase.cpp
-  SceneMain.cpp
+﻿  EnemyAcid.cpp
+  EnemyBoss.cpp
 C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Collision.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'GameObject/EnemyBase.cpp' をコンパイルしています)
+  (ソース ファイル 'GameObject/EnemyAcid.cpp' をコンパイルしています)
   
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\EnemyBase.cpp(28,26): warning C4244: '初期化中': 'const float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\GameObject\ShellCasing.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
+C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Collision.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'GameObject/EnemyBoss.cpp' をコンパイルしています)
   
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\CollisionGrid.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル 'Scene/SceneMain.cpp' をコンパイルしています)
-  
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneMain.cpp(880,21): warning C4244: '初期化中': 'double' から 'float' への変換です。データが失われる可能性があります。
   コード生成しています。
-  Previous IPDB and IOBJ mismatch, fall back to full compilation.
-  All 4946 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  2 of 4960 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    6 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
 EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
   3DShooting.vcxproj -> C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\x64\Release\3DShooting.exe

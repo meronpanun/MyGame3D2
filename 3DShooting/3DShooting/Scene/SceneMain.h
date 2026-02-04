@@ -43,6 +43,10 @@ public:
   /// <param name="paused">一時停止状態</param>
   void SetPaused(bool paused);
 
+  // デバッグHUD表示設定
+  void SetShowDebugHUD(bool show);
+  bool IsShowDebugHUD() const { return m_isShowDebugHUD; }
+
   /// <summary>
   /// カメラを取得
   /// </summary>
@@ -98,8 +102,10 @@ public:
 
 private:
   void DrawPauseMenu();
+  void DrawDebugHUD(); // デバッグHUD描画
 
 private:
+  bool m_isShowDebugHUD;
   // ゲームオブジェクト管理
   std::unique_ptr<Player> m_pPlayer;
   std::shared_ptr<Camera> m_pCamera;

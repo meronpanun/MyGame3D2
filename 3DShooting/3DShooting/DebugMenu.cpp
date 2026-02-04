@@ -100,14 +100,7 @@ DebugMenu::DebugMenu() {
            },
            []() {
              return WaveManager::IsShowDrawnEnemyCount() ? "[ON]" : "[OFF]";
-           }},
-          {"Show Last Damage",
-           {},
-           []() {
-             bool isShow = !EnemyBase::IsShowDamage();
-             EnemyBase::SetShowDamage(isShow);
-           },
-           []() { return EnemyBase::IsShowDamage() ? "[ON]" : "[OFF]"; }}},
+           }}},
          nullptr}}},
       {"Scene",
        {{"Skip Tutorial",
@@ -190,7 +183,21 @@ DebugMenu::DebugMenu() {
            bool isWindow = !Game::GetWindowMode();
            Game::SetWindowMode(isWindow);
          },
-         []() { return Game::GetWindowMode() ? "[Window]" : "[Fullscreen]"; }}}},
+         []() { return Game::GetWindowMode() ? "[Window]" : "[Fullscreen]"; }},
+        {"Show Debug HUD",
+         {},
+         []() {
+           if (SceneMain::Instance()) {
+             bool isShow = !SceneMain::Instance()->IsShowDebugHUD();
+             SceneMain::Instance()->SetShowDebugHUD(isShow);
+           }
+         },
+         []() {
+           if (SceneMain::Instance()) {
+             return SceneMain::Instance()->IsShowDebugHUD() ? "[ON]" : "[OFF]";
+           }
+           return "[N/A]";
+         }}}},
       {"Collision",
        {{"Main Stage Collision",
          {},

@@ -118,7 +118,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
       m_gameOverDelayTimer(-1), m_isTutorialStage(false),
       m_loadingFrameCount(0), m_loadingDotCount(0), m_loadingAnimTimer(0),
       m_loadingModelHandle(-1), m_loadingModelPos(VGet(0, 0, 0)),
-      m_loadingModelAnimTime(0.0f) {
+      m_loadingModelAnimTime(0.0f), m_isShowDebugHUD(false) {
   g_sceneMainInstance = this;
 
   // スコアポップアップ用フォントの作成
@@ -1035,8 +1035,54 @@ void SceneMain::Draw() {
   // タスクチュートリアルUI描画
   TaskTutorialManager::GetInstance()->Draw();
 
-  // デバッグ用ダメージ描画（最前面）
-  EnemyBase::DrawDebugDamage();
+  // デバッグHUD描画
+  if (m_isShowDebugHUD) {
+      DrawDebugHUD();
+  }
+}
+
+void SceneMain::SetShowDebugHUD(bool show) {
+  m_isShowDebugHUD = show;
+  // EnemyBase側のフラグも連動させる
+  EnemyBase::SetShowDamage(show);
+}
+
+void SceneMain::DrawDebugHUD() {
+    int screenW = Game::GetScreenWidth();
+    int screenH = Game::GetScreenHeight();
+
+    // 画面全体を半透明の黒で覆う
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+    DrawBox(0, 0, screenW, screenH, 0x000000, TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+    // 情報収集
+    VECTOR playerPos = m_pPlayer ? m_pPlayer->GetPos() : VGet(0, 0, 0);
+    
+    float fps = GetFPS();
+    // WaveManager.hでは GetAliveEnemyCount() となっていた
+    int aliveEnemyCount = m_pWaveManager ? m_pWaveManager->GetAliveEnemyCount() : 0;
+    int drawnEnemyCount = EnemyBase::GetDrawCount();
+
+    // Last Damage
+    float lastDamage = EnemyBase::GetDebugLastDamage();
+    std::string hitInfo = EnemyBase::GetDebugHitInfo();
+    int damageTimer = EnemyBase::GetDebugDamageTimer();
+    std::string damageStr = (damageTimer > 0) ? 
+        std::to_string((int)lastDamage) + (hitInfo.empty() ? "" : " " + hitInfo) : "-";
+
+    // テキスト描画 (左上)
+    int x = 20;
+    int y = 20;
+    int lineHeight = 20;
+    unsigned int color = 0xFFFFFF;
+
+    DrawFormatString(x, y, color, "FPS: %.1f", fps); y += lineHeight;
+    DrawFormatString(x, y, color, "Player Pos: (%.1f, %.1f, %.1f)", playerPos.x, playerPos.y, playerPos.z); y += lineHeight;
+    
+    DrawFormatString(x, y, color, "Active Enemy Count: %d", aliveEnemyCount); y += lineHeight;
+    DrawFormatString(x, y, color, "Drawn Enemy Count: %d", drawnEnemyCount); y += lineHeight;
+    DrawFormatString(x, y, color, "Last Damage: %s", damageStr.c_str()); y += lineHeight;
 }
 
 void SceneMain::DrawPauseMenu() {

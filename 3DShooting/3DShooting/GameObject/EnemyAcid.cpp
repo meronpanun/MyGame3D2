@@ -401,7 +401,7 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext &context) {
         if (reflectedAcidCol.IsIntersects(this->GetBodyCollider().get())) {
           // 自分自身にダメージ
           this->TakeDamage(ball.damage,
-                           AttackType::Shoot); // AttackTypeは適切なものを選ぶ
+                           AttackType::Parry); // AttackTypeは適切なものを選ぶ
           // 敵を怯ませる
           this->OnParried();
           ball.active = false;

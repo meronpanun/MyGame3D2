@@ -311,4 +311,10 @@ private:
   static float s_debugLastDamage;
   static int s_debugDamageTimer;
   static std::string s_debugHitInfo; // ヒット部位情報
+
+public:
+  // デバッグ用ゲッター
+  static float GetDebugLastDamage() { return s_debugLastDamage; }
+  static std::string GetDebugHitInfo() { return s_debugHitInfo; }
+  static int GetDebugDamageTimer() { return s_debugDamageTimer; }
 };

@@ -276,7 +276,7 @@ void EnemyBoss::Update(const EnemyUpdateContext &context) {
         SphereCollider reflectedCol(bullet.pos, kHomingBulletRadius);
         // ボスの当たり判定を使用
         if (reflectedCol.IsIntersects(this->GetBodyCollider().get())) {
-          this->TakeDamage(bullet.damage, AttackType::Shoot);
+          this->TakeDamage(bullet.damage, AttackType::Parry);
           this->OnParried(); // 怯み処理
           bullet.active = false;
           if (bullet.effectHandle != -1) {
