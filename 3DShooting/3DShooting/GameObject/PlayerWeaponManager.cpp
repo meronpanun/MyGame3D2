@@ -500,7 +500,7 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet> &bullets,
       VECTOR spreadDir = VAdd(cameraForward, VGet(spreadX, spreadY, 0));
       spreadDir = VNorm(spreadDir);
 
-      bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot,
+      bullets.emplace_back(spawnPos, spreadDir, AttackType::Shotgun,
                            m_sgBulletPower, kSGAttenuationStartDist,
                            kSGAttenuationEndDist, kSGMinDamageRatio);
     }

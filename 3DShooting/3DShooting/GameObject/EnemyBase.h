@@ -75,6 +75,7 @@ public:
     Run,             // 走行
     Attack,          // 攻撃
     LongRangeAttack, // 遠距離攻撃
+    Damage,          // ダメージ（怯み）
     Dead             // 死亡
   };
 

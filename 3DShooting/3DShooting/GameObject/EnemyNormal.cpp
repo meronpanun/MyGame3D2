@@ -76,6 +76,7 @@ void EnemyNormal::Init() {
   m_isItemDropped = false;
   m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
   m_hitDisplayTimer = 0;         // ヒット表示タイマーもリセット
+  m_damageTimer = 0;             // ダメージタイマー初期化
 
   // CSVからNormalEnemyのTransform情報を取得
   auto dataList =
@@ -98,7 +99,6 @@ void EnemyNormal::Init() {
   // 初期化時に歩行アニメーションを開始
   ChangeAnimation(AnimState::Walk, true);
 
-  // ターゲットオフセットの初期化 (±100.0f)
   // ターゲットオフセットの初期化 (±100.0f)
   float offsetX = static_cast<float>(GetRand(200) - 100);
   float offsetZ = static_cast<float>(GetRand(200) - 100);
@@ -130,6 +130,9 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop) {
     break;
   case AnimState::Attack:
     animName = kAttackAnimName;
+    break;
+  case AnimState::Damage: // ダメージ（怯み）時は歩行モーションなどを流用（あるいは専用）
+    animName = kWalkAnimName; 
     break;
   case AnimState::Dead:
     animName = kDeadAnimName;
@@ -498,6 +501,27 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
         }
       }
     }
+  } else if (m_currentAnimState == AnimState::Damage) {
+    // ダメージ（怯み）状態の更新
+    if (m_damageTimer > 0) {
+      m_damageTimer--;
+      if (m_damageTimer <= 0) {
+        ChangeAnimation(AnimState::Walk, true); // 復帰
+      }
+    }
+    // ノックバック処理（少し後ろに下がる）
+    // プレイヤーと逆方向に少し移動
+    VECTOR toPlayer = VSub(player.GetPos(), m_pos);
+    toPlayer.y = 0.0f;
+    if (VSize(toPlayer) > 0.1f) {
+      VECTOR knockbackDir = VNorm(VScale(toPlayer, -1.0f));
+      // 減衰させつつ移動
+      if (m_damageTimer > 10) // 最初だけ下がる
+      {
+        float knockbackSpeed = 2.0f * Game::GetTimeScale();
+        m_pos = VAdd(m_pos, VScale(knockbackDir, knockbackSpeed));
+      }
+    }
   }
 
   CheckHitAndDamage(const_cast<std::vector<Bullet> &>(bullets), pEffect);
@@ -667,6 +691,14 @@ void EnemyNormal::SetOnDropItemCallback(
 // ダメージ処理
 void EnemyNormal::TakeDamage(float damage, AttackType type) {
   EnemyBase::TakeDamage(damage, type);
+
+  // ショットガンによる怯み処理
+  if (type == AttackType::Shotgun && m_hp > 0.0f) {
+    // 既に怯み中でなければ、あるいは上書きありなら
+    ChangeAnimation(AnimState::Damage, false); // ダメージモーションへ
+    m_damageTimer = 30; // 0.5秒程度怯む (60FPS基準)
+  }
+
   // HP減算・死亡判定は基底クラスで行う
   if (m_hp <= 0.0f) // 死亡時一度だけ
   {

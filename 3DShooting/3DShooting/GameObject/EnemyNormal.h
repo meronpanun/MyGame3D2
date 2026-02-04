@@ -118,6 +118,7 @@ private:
       m_animationManager; // EnemyNormal가 애니메이션マネージャーを所有
 
   int m_attackEndDelayTimer; // 攻撃終了までの遅延タイマー
+  int m_damageTimer;         // ダメージ（怯み）タイマー
 
   float m_animTime;   // アニメーションの経過時間
   float m_chaseSpeed; // 追跡速度
