@@ -4,6 +4,7 @@
 #include "Collision.h"
 #include "Effect.h"
 #include "Stage.h"
+#include "Game.h"
 #include "TaskTutorialManager.h"
 
 namespace {
@@ -14,6 +15,10 @@ constexpr float kDefaultAttackPower = 10.0f;   // 攻撃力
 } // namespace
 
 int EnemyBase::s_drawCount = 0;
+bool EnemyBase::s_showDamage = false;
+float EnemyBase::s_debugLastDamage = 0.0f;
+int EnemyBase::s_debugDamageTimer = 0;
+std::string EnemyBase::s_debugHitInfo = "";
 
 EnemyBase::EnemyBase()
     : m_pos{0, 0, 0}, m_modelHandle(-1), m_pTargetPlayer(nullptr),
@@ -66,6 +71,15 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet> &bullets,
     float damage = CalcDamage(bullet.GetDamage(), determinedHitPart);
     TakeDamage(damage, bullet.GetAttackType()); // 攻撃種別を渡す
 
+    // デバッグ表示用更新
+    if (s_showDamage) {
+      s_debugLastDamage = damage;
+      s_debugDamageTimer = 120;
+      if (determinedHitPart == HitPart::Head) s_debugHitInfo = "(Head)";
+      else if (determinedHitPart == HitPart::Body) s_debugHitInfo = "(Body)";
+      else s_debugHitInfo = "(None)";
+    }
+
     m_lastHitPart = determinedHitPart;
     m_hitDisplayTimer = kDefaultHitDisplayDuration;
 
@@ -100,6 +114,9 @@ void EnemyBase::TakeDamage(float damage, AttackType type) {
       OnDeath(); // 敵が死亡した際にOnDeathを呼び出す
     }
   }
+
+  // デバッグ表示用 (TakeDamageの汎用処理から削除し、ここで個別対応)
+  // if (s_showDamage) ... // TakeDamage側で消すので、ここでは不要、またはTackle用に書く
 }
 
 // 敵がタックルダメージを受ける処理
@@ -107,6 +124,13 @@ void EnemyBase::TakeTackleDamage(float damage) {
   TakeDamage(damage, AttackType::Tackle);
   m_lastHitPart = HitPart::Body;
   m_hitDisplayTimer = kDefaultHitDisplayDuration;
+  
+  // デバッグ表示用
+  if (s_showDamage) {
+    s_debugLastDamage = damage;
+    s_debugDamageTimer = 120;
+    s_debugHitInfo = "(Tackle)";
+  }
 }
 
 void EnemyBase::UpdateStageCollision(
@@ -225,4 +249,43 @@ void EnemyBase::UpdateThrottling(const VECTOR &playerPos) {
   // フレームカウントの更新と実行フラグの設定
   m_updateFrameCount++;
   m_shouldUpdateAI = (m_updateFrameCount % m_aiUpdateInterval == 0);
+}
+
+// デバッグ用ダメージ描画
+void EnemyBase::DrawDebugDamage() {
+  if (s_showDamage && s_debugDamageTimer > 0) {
+    s_debugDamageTimer--;
+
+    int screenW = Game::GetScreenWidth();
+    int screenH = Game::GetScreenHeight();
+
+    // 表示テキストの整形
+    char text[256];
+    sprintf_s(text, "Last Damage: %.1f %s", s_debugLastDamage,
+              s_debugHitInfo.c_str());
+
+    // テキストサイズ計算 (簡易的に文字数 * 幅と仮定、または等幅フォントなら正確)
+    // DxLibのデフォルトフォント前提
+    int strLen = static_cast<int>(strlen(text));
+    int fontSize = GetFontSize();
+    // 全角半角混じりは GetDrawStringWidth が確実
+    int strWidth = GetDrawStringWidth(text, strLen);
+
+    // 背景ボックスのサイズと位置
+    int paddingX = 20;
+    int paddingY = 10;
+    int boxW = strWidth + paddingX * 2;
+    int boxH = fontSize + paddingY * 2;
+
+    int boxX = (screenW - boxW) / 2;     // 横中央
+    int boxY = static_cast<int>(screenH * 0.15f); // 画面上部から15%の位置
+
+    // 半透明背景描画 (黒, alpha=128)
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+    DrawBox(boxX, boxY, boxX + boxW, boxY + boxH, 0x000000, TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+    // テキスト描画 (赤)
+    DrawString(boxX + paddingX, boxY + paddingY, text, 0xFF0000);
+  }
 }

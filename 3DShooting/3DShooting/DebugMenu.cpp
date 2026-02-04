@@ -100,7 +100,14 @@ DebugMenu::DebugMenu() {
            },
            []() {
              return WaveManager::IsShowDrawnEnemyCount() ? "[ON]" : "[OFF]";
-           }}},
+           }},
+          {"Show Last Damage",
+           {},
+           []() {
+             bool isShow = !EnemyBase::IsShowDamage();
+             EnemyBase::SetShowDamage(isShow);
+           },
+           []() { return EnemyBase::IsShowDamage() ? "[ON]" : "[OFF]"; }}},
          nullptr}}},
       {"Scene",
        {{"Skip Tutorial",

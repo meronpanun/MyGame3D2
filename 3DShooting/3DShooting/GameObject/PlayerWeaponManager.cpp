@@ -47,6 +47,11 @@ constexpr float kARShootShakePower = 4.0f;
 constexpr float kSGShootShakePower = 32.0f;
 constexpr int kShootShakeDuration = 8;
 
+// ショットガン距離減衰パラメータ
+constexpr float kSGAttenuationStartDist = 50.0f;
+constexpr float kSGAttenuationEndDist = 300.0f;
+constexpr float kSGMinDamageRatio = 0.1f;
+
 // Update関連
 constexpr float kFrameRate = 60.0f;
 constexpr float kDeltaTime = 1.0f / kFrameRate;
@@ -496,7 +501,8 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet> &bullets,
       spreadDir = VNorm(spreadDir);
 
       bullets.emplace_back(spawnPos, spreadDir, AttackType::Shoot,
-                           m_sgBulletPower);
+                           m_sgBulletPower, kSGAttenuationStartDist,
+                           kSGAttenuationEndDist, kSGMinDamageRatio);
     }
     break;
   default:

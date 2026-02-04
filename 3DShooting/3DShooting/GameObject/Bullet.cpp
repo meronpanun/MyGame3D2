@@ -12,10 +12,14 @@ constexpr float kPlayerBoundaryDistance = 2000.0f;
 } // namespace
 
 Bullet::Bullet(VECTOR position, VECTOR direction, AttackType attackType,
-               float damage)
-    : m_pos(position), m_prevPos(position), m_dir(direction),
-      m_speed(kBulletSpeed), m_isActive(true), m_damage(damage),
-      m_attackType(attackType) {}
+               float damage, float attenuationStartDist,
+               float attenuationEndDist, float minDamageRatio)
+    : m_pos(position), m_prevPos(position), m_spawnPos(position),
+      m_dir(direction), m_speed(kBulletSpeed), m_isActive(true),
+      m_damage(damage), m_attackType(attackType),
+      m_attenuationStartDist(attenuationStartDist),
+      m_attenuationEndDist(attenuationEndDist),
+      m_minDamageRatio(minDamageRatio) {}
 
 Bullet::~Bullet() {}
 
@@ -114,3 +118,32 @@ void Bullet::DrawBullets(const std::vector<Bullet> &bullets) {
 
 // 弾を非アクティブ化
 void Bullet::Deactivate() { m_isActive = false; }
+
+// 弾のダメージを取得
+float Bullet::GetDamage() const {
+  // 減衰なしの設定ならそのまま返す
+  if (m_attenuationEndDist <= 0.0f ||
+      m_attenuationStartDist >= m_attenuationEndDist) {
+    return m_damage;
+  }
+
+  // 発射位置からの距離を計算
+  float distance = VSize(VSub(m_pos, m_spawnPos));
+
+  // 減衰開始距離以内ならダメージ減衰なし
+  if (distance <= m_attenuationStartDist) {
+    return m_damage;
+  }
+
+  // 減衰終了距離以遠なら最低ダメージ
+  if (distance >= m_attenuationEndDist) {
+    return m_damage * m_minDamageRatio;
+  }
+
+  // 距離に応じて線形補間
+  float t = (distance - m_attenuationStartDist) /
+            (m_attenuationEndDist - m_attenuationStartDist);
+  float currentRatio = 1.0f - t * (1.0f - m_minDamageRatio);
+
+  return m_damage * currentRatio;
+}

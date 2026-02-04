@@ -44,6 +44,11 @@ public:
   static void IncrementDrawCount() { s_drawCount++; }
   static int GetDrawCount() { return s_drawCount; }
 
+  // デバッグ用: ダメージ可視化
+  static void SetShowDamage(bool show) { s_showDamage = show; }
+  static bool IsShowDamage() { return s_showDamage; }
+  static void DrawDebugDamage(); // ダメージ描画用関数
+
   /// <summary>
   /// 当たり判定の部位
   /// </summary>
@@ -300,4 +305,10 @@ protected:
 
 private:
   static int s_drawCount;
+
+  // デバッグ用
+  static bool s_showDamage;
+  static float s_debugLastDamage;
+  static int s_debugDamageTimer;
+  static std::string s_debugHitInfo; // ヒット部位情報
 };

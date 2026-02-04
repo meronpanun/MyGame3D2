@@ -1034,6 +1034,9 @@ void SceneMain::Draw() {
 
   // タスクチュートリアルUI描画
   TaskTutorialManager::GetInstance()->Draw();
+
+  // デバッグ用ダメージ描画（最前面）
+  EnemyBase::DrawDebugDamage();
 }
 
 void SceneMain::DrawPauseMenu() {

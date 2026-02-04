@@ -11,7 +11,8 @@
 class Bullet {
 public:
   Bullet(VECTOR position, VECTOR direction, AttackType attackType,
-         float damage = 10.0f);
+         float damage = 10.0f, float attenuationStartDist = 0.0f,
+         float attenuationEndDist = 0.0f, float minDamageRatio = 1.0f);
   virtual ~Bullet();
 
   void Init();
@@ -55,7 +56,7 @@ public:
   /// 弾のダメージを取得
   /// </summary>
   /// <returns>ダメージ値</returns>
-  float GetDamage() const { return m_damage; }
+  float GetDamage() const;
 
   /// <summary>
   /// 攻撃の種類を取得
@@ -64,12 +65,18 @@ public:
   AttackType GetAttackType() const { return m_attackType; }
 
 private:
-  VECTOR m_pos;     // 現在の位置
-  VECTOR m_prevPos; // 前フレームの位置 (Rayの始点)
-  VECTOR m_dir;     // 進行方向
+  VECTOR m_pos;      // 現在の位置
+  VECTOR m_prevPos;  // 前フレームの位置 (Rayの始点)
+  VECTOR m_spawnPos; // 発射位置
+  VECTOR m_dir;      // 進行方向
 
   float m_speed; // 速度
   float m_damage;
+
+  // 距離減衰パラメータ
+  float m_attenuationStartDist; // 減衰開始距離
+  float m_attenuationEndDist;   // 減衰終了距離
+  float m_minDamageRatio;       // 最低ダメージ倍率
 
   bool m_isActive;
   AttackType m_attackType; // 攻撃の種類
