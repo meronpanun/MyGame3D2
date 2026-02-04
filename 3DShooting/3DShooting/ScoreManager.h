@@ -58,6 +58,11 @@ public:
     /// </summary>
     /// <returns>ヘッドショットキル数</returns>
     int GetHeadKillCount() const { return m_headKillCount; }
+    
+    /// <summary>
+    /// 総撃破数を取得(ボディ+ヘッド)
+    /// </summary>
+    int GetTotalDefeatedCount() const { return m_bodyKillCount + m_headKillCount; }
 
     /// <summary>
     /// 最後のコンボ倍率を取得

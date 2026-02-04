@@ -1,5 +1,6 @@
 ﻿#include "ScoreManager.h"
 #include <cmath>
+#include "TaskTutorialManager.h"
 #include <fstream>
 #include <algorithm>
 
@@ -50,13 +51,15 @@ int ScoreManager::AddScore(bool isHeadShot)
     m_totalScore += add; // 累計スコアにも加算
     m_comboTimer = kComboGraceFrame; // コンボ猶予リセット
 
-    if (isHeadShot) 
-    {
-        m_headKillCount++;
-    }
-    else 
-    {
-        m_bodyKillCount++;
+    if (TaskTutorialManager::GetInstance() && TaskTutorialManager::GetInstance()->IsCompleted()) {
+        if (isHeadShot) 
+        {
+            m_headKillCount++;
+        }
+        else 
+        {
+            m_bodyKillCount++;
+        }
     }
     return add;
 }

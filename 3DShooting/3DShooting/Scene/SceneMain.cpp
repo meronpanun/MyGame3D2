@@ -1082,6 +1082,7 @@ void SceneMain::DrawDebugHUD() {
     
     DrawFormatString(x, y, color, "Active Enemy Count: %d", aliveEnemyCount); y += lineHeight;
     DrawFormatString(x, y, color, "Drawn Enemy Count: %d", drawnEnemyCount); y += lineHeight;
+    DrawFormatString(x, y, color, "Total Defeated: %d", ScoreManager::Instance().GetTotalDefeatedCount()); y += lineHeight;
     DrawFormatString(x, y, color, "Last Damage: %s", damageStr.c_str()); y += lineHeight;
 }
 
