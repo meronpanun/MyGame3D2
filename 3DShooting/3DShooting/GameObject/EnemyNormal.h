@@ -132,5 +132,10 @@ private:
   int m_wanderTimer;     // 徘徊位置更新タイマー
   VECTOR m_wanderOffset; // 徘徊位置オフセット
 
+  // 死亡時吹き飛び用
+  bool m_isBlownAway;         // 吹き飛ばされて死亡したか
+  VECTOR m_deathKnockbackDir; // 吹き飛び方向
+  float m_deathKnockbackSpeed; // 吹き飛び速度
+
   static int s_modelHandle; // 共有モデルハンドル
 };

@@ -54,6 +54,12 @@ public:
   Camera *GetCamera() const { return m_pCamera.get(); }
 
   /// <summary>
+  /// プレイヤーを取得
+  /// </summary>
+  /// <returns>プレイヤーの参照</returns>
+  Player &GetPlayer() const { return *m_pPlayer; }
+
+  /// <summary>
   /// カメラ感度を設定
   /// </summary>
   /// <param name="sensitivity">感度</param>

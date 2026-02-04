@@ -77,6 +77,8 @@ void EnemyNormal::Init() {
   m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
   m_hitDisplayTimer = 0;         // ヒット表示タイマーもリセット
   m_damageTimer = 0;             // ダメージタイマー初期化
+  m_isBlownAway = false;         // 吹き飛びフラグリセット
+  m_deathKnockbackSpeed = 0.0f;  // 速度リセット
 
   // CSVからNormalEnemyのTransform情報を取得
   auto dataList =
@@ -230,6 +232,23 @@ void EnemyNormal::Update(const EnemyUpdateContext &context) {
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
       }
     }
+
+    // 死亡吹き飛び処理
+    if (m_isBlownAway && m_deathKnockbackSpeed > 0.0f) {
+      // 移動
+      m_pos = VAdd(m_pos, VScale(m_deathKnockbackDir,
+                                 m_deathKnockbackSpeed * Game::GetTimeScale()));
+      // 減速 (摩擦)
+      m_deathKnockbackSpeed -= 0.5f * Game::GetTimeScale();
+      if (m_deathKnockbackSpeed < 0.0f)
+        m_deathKnockbackSpeed = 0.0f;
+
+      // ステージ衝突判定 (壁抜け防止)
+      UpdateStageCollision(collisionData);
+    }
+    
+    // モデル位置更新 (死亡中も移動するため必要)
+    MV1SetPosition(m_modelHandle, m_pos);
 
     float currentAnimTotalTime =
         m_animationManager.GetAnimationTotalTime(m_modelHandle, kDeadAnimName);
@@ -603,6 +622,7 @@ void EnemyNormal::Draw() {
   if (*hitMsg) {
     DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
   }
+
 #endif
 }
 
@@ -706,6 +726,46 @@ void EnemyNormal::TakeDamage(float damage, AttackType type) {
   // HP減算・死亡判定は基底クラスで行う
   if (m_hp <= 0.0f) // 死亡時一度だけ
   {
+    if (type == AttackType::Shotgun)
+    {
+        m_isBlownAway = true;
+        // プレイヤーと逆方向に吹き飛ぶ
+        // プレイヤー位置を取得（Playerシングルトンがあれば楽だが、ここからはアクセスしにくいので
+        // TakeDamageの引数に本来はAttackerの情報を渡すべきだが、今回はカメラ位置や既存情報から推測するか、
+        // 単に少し前のm_pos更新時に取得したプレイヤー位置を使いたいが、
+        // 簡易的に「ダメージを与えた弾」の逆ベクトルがあればベスト。
+        // しかし弾の情報はここに来ていない。
+        // Shotgunならプレイヤーから撃たれているはずなので、Player::GetInstance()があれば良いが、
+        // SceneMainからプレイヤーを参照できるか？
+        // ここではSceneMain経由でプレイヤー位置を取得する
+        if (SceneMain::Instance())
+        {
+            VECTOR playerPos = SceneMain::Instance()->GetPlayer().GetPos();
+            VECTOR toEnemy = VSub(m_pos, playerPos);
+            toEnemy.y = 0.0f; // 水平方向のみ
+            if (VSquareSize(toEnemy) > 0.0001f)
+            {
+                m_deathKnockbackDir = VNorm(toEnemy);
+                m_deathKnockbackSpeed = 15.0f; // 初速を強化
+            }
+        }
+
+        // フォールバック: もし速度が設定されなかった場合（プレイヤー位置取得失敗 or 重なり）
+        if (m_deathKnockbackSpeed <= 0.0f)
+        {
+             // 敵の向いている方向の逆（後ろ）へ飛ばす
+             MATRIX worldMat = MV1GetLocalWorldMatrix(m_modelHandle);
+             VECTOR forward = VGet(worldMat.m[2][0], worldMat.m[2][1], worldMat.m[2][2]);
+             forward.y = 0.0f;
+             if (VSquareSize(forward) > 0.0001f) {
+                 m_deathKnockbackDir = VScale(VNorm(forward), -1.0f);
+             } else {
+                 m_deathKnockbackDir = VGet(0, 0, 1); // 完全なフォールバック
+             }
+             m_deathKnockbackSpeed = 15.0f;
+        }
+    }
+
     if (m_lastHitPart == HitPart::None)
       m_lastHitPart = HitPart::Body;
     bool isHeadShot = (m_lastHitPart == HitPart::Head);
