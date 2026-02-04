@@ -106,6 +106,8 @@ private:
 
 private:
   bool m_isShowDebugHUD;
+  float m_lastDeltaTime; // デバッグ用デルタタイム
+  long long m_prevTimeCount; // デルタタイム計測用
   // ゲームオブジェクト管理
   std::unique_ptr<Player> m_pPlayer;
   std::shared_ptr<Camera> m_pCamera;

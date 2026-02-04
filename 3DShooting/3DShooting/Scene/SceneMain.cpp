@@ -118,7 +118,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
       m_gameOverDelayTimer(-1), m_isTutorialStage(false),
       m_loadingFrameCount(0), m_loadingDotCount(0), m_loadingAnimTimer(0),
       m_loadingModelHandle(-1), m_loadingModelPos(VGet(0, 0, 0)),
-      m_loadingModelAnimTime(0.0f), m_isShowDebugHUD(false) {
+      m_loadingModelAnimTime(0.0f), m_isShowDebugHUD(false), m_lastDeltaTime(0.0f),
+      m_prevTimeCount(GetNowHiPerformanceCount()) {
   g_sceneMainInstance = this;
 
   // スコアポップアップ用フォントの作成
@@ -472,7 +473,12 @@ SceneBase *SceneMain::Update() {
   Game::UpdateTimeScale();
 
   // 経過時間を加算
-  s_elapsedTime += (1.0f / 60.0f) * Game::GetTimeScale();
+  long long now = GetNowHiPerformanceCount();
+  m_lastDeltaTime = (now - m_prevTimeCount) / 1000000.0f;
+  m_prevTimeCount = now;
+
+  float dt = (1.0f / 60.0f) * Game::GetTimeScale();
+  s_elapsedTime += dt;
 
   // デバックウィンドウが表示されている場合は、更新をスキップ
   if (DebugUtil::IsDebugWindowVisible()) {
@@ -1078,6 +1084,7 @@ void SceneMain::DrawDebugHUD() {
     unsigned int color = 0xFFFFFF;
 
     DrawFormatString(x, y, color, "FPS: %.1f", fps); y += lineHeight;
+    DrawFormatString(x, y, color, "Delta Time: %.4f", m_lastDeltaTime); y += lineHeight;
     DrawFormatString(x, y, color, "Player Pos: (%.1f, %.1f, %.1f)", playerPos.x, playerPos.y, playerPos.z); y += lineHeight;
     
     DrawFormatString(x, y, color, "Active Enemy Count: %d", aliveEnemyCount); y += lineHeight;
