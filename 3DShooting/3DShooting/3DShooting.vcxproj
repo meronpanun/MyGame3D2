@@ -195,7 +195,9 @@
     <ClCompile Include="TutorialManager.cpp" />
     <ClCompile Include="Vec2.cpp" />
     <ClCompile Include="Vec3.cpp" />
+    <ClCompile Include="WaveDataLoader.cpp" />
     <ClCompile Include="WaveManager.cpp" />
+    <ClCompile Include="WaveUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AttackType.h" />
@@ -244,7 +246,10 @@
     <ClInclude Include="TutorialManager.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Vec3.h" />
+    <ClInclude Include="WaveData.h" />
+    <ClInclude Include="WaveDataLoader.h" />
     <ClInclude Include="WaveManager.h" />
+    <ClInclude Include="WaveUI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

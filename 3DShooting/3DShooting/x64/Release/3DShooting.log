@@ -1,14 +1,40 @@
-﻿  SceneGameOver.cpp
-  SceneResult.cpp
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(224,60): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(238,8): warning C4101: 'scoreStr': ローカル変数は 1 度も使われていません。
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneGameOver.cpp(230,8): warning C4101: 'killStr': ローカル変数は 1 度も使われていません。
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(219,43): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
-C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\3DShooting\Scene\SceneResult.cpp(238,45): warning C4244: '引数': 'float' から 'int' への変換です。データが失われる可能性があります。
+﻿  WaveManager.cpp
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\CollisionGrid.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'WaveManager.cpp' をコンパイルしています)
+  
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\SpawnAreaInfo.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'WaveManager.cpp' をコンパイルしています)
+  
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveData.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'WaveManager.cpp' をコンパイルしています)
+  
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveUI.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'WaveManager.cpp' をコンパイルしています)
+  
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveDataLoader.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
+  (ソース ファイル 'WaveManager.cpp' をコンパイルしています)
+  
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(120,16): warning C4267: '初期化中': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+      C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(120,16):
+      テンプレートインスタンス化コンテキスト (最初に最も古いもの) は
+          C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(128,3):
+          コンパイル対象の関数 テンプレート インスタンス化 'auto WaveManager::Init::<lambda_1>::operator ()<EnemyNormal>(std::vector<std::shared_ptr<EnemyNormal>,std::allocator<std::shared_ptr<EnemyNormal>>> &,int) const' のリファレンスを確認してください
+  
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(380,17): warning C4244: '初期化中': '_Rep' から 'unsigned int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(380,17): warning C4244:         with
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(380,17): warning C4244:         [
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(380,17): warning C4244:             _Rep=std::chrono::system_clock::rep
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(380,17): warning C4244:         ]
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(509,60): warning C4267: '引数': 'size_t' から 'int' に変換しました。データが失われているかもしれません。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(513,17): warning C4244: '初期化中': '_Rep' から 'unsigned int' への変換です。データが失われる可能性があります。
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(513,17): warning C4244:         with
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(513,17): warning C4244:         [
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(513,17): warning C4244:             _Rep=std::chrono::system_clock::rep
+C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\3DShooting\WaveManager.cpp(513,17): warning C4244:         ]
   コード生成しています。
-  33 of 5045 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
-    2 functions were new in current compilation
-    32 functions had inline decision re-evaluated but remain unchanged
+  84 of 5031 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    25 functions had inline decision re-evaluated but remain unchanged
   コード生成が終了しました。
 EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj) : warning LNK4099: PDB '' が 'EffekseerForDXLib_vs2019_x64.lib(EffekseerForDXLib.obj)' で、または '' に見つかりません。デバッグ情報がないものとして、オブジェクトにリンクします。
-  3DShooting.vcxproj -> C:\Users\由留部 瑛人.FICPCROOMB14\Documents\GitHub\MyGame3D2\3DShooting\x64\Release\3DShooting.exe
+  3DShooting.vcxproj -> C:\Users\sho24\OneDrive\ドキュメント\MyGame3D2\3DShooting\x64\Release\3DShooting.exe

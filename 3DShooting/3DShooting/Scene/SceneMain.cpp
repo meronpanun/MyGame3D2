@@ -118,8 +118,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
       m_gameOverDelayTimer(-1), m_isTutorialStage(false),
       m_loadingFrameCount(0), m_loadingDotCount(0), m_loadingAnimTimer(0),
       m_loadingModelHandle(-1), m_loadingModelPos(VGet(0, 0, 0)),
-      m_loadingModelAnimTime(0.0f), m_isShowDebugHUD(false), m_lastDeltaTime(0.0f),
-      m_prevTimeCount(GetNowHiPerformanceCount()) {
+      m_loadingModelAnimTime(0.0f), m_isShowDebugHUD(false),
+      m_lastDeltaTime(0.0f), m_prevTimeCount(GetNowHiPerformanceCount()) {
   g_sceneMainInstance = this;
 
   // スコアポップアップ用フォントの作成
@@ -567,6 +567,10 @@ SceneBase *SceneMain::Update() {
   // タスクチュートリアルが完了していない間
   if (!TaskTutorialManager::GetInstance()->IsCompleted()) {
     TaskTutorialManager::GetInstance()->Update();
+
+    // タスクチュートリアル中もWaveManagerの更新（スポーン処理のみ）を行う
+    m_pWaveManager->Update();
+
     // タスクチュートリアル中はWaveManagerの通常の更新は行わない
     // ただし、敵の更新とプレイヤーの更新は必要
 
@@ -746,7 +750,8 @@ void SceneMain::Draw() {
     int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
     int textX = (screenW - textWidth) / 2;
     float scale = Game::GetUIScale();
-    int textY = (screenH - static_cast<int>(48 * scale)) / 2 - static_cast<int>(50 * scale); // テキストを少し上にずらす
+    int textY = (screenH - static_cast<int>(48 * scale)) / 2 -
+                static_cast<int>(50 * scale); // テキストを少し上にずらす
     DrawString(textX, textY, loadingText.c_str(), 0xffffff);
     SetFontSize(16);
 
@@ -829,15 +834,14 @@ void SceneMain::Draw() {
       int reticleWidth = 0;
       int reticleHeight = 0;
       GetGraphSize(currentReticleHandle, &reticleWidth, &reticleHeight);
-      
+
       int scaledReticleW = static_cast<int>(reticleWidth * scale);
       int scaledReticleH = static_cast<int>(reticleHeight * scale);
 
       DrawExtendGraph(centerX - scaledReticleW / 2,
-                      centerY - scaledReticleH / 2, 
+                      centerY - scaledReticleH / 2,
                       centerX + scaledReticleW / 2,
-                      centerY + scaledReticleH / 2,
-                      currentReticleHandle, true);
+                      centerY + scaledReticleH / 2, currentReticleHandle, true);
     }
 
     // ドットレティクルを常に描画
@@ -851,13 +855,11 @@ void SceneMain::Draw() {
       int scaledDotW = static_cast<int>(dotReticleWidth * scale);
       int scaledDotH = static_cast<int>(dotReticleHeight * scale);
 
-      DrawExtendGraph(centerX - scaledDotW / 2,
-                      centerY - scaledDotH / 2, 
-                      centerX + scaledDotW / 2,
-                      centerY + scaledDotH / 2,
+      DrawExtendGraph(centerX - scaledDotW / 2, centerY - scaledDotH / 2,
+                      centerX + scaledDotW / 2, centerY + scaledDotH / 2,
                       dotReticleHandle, true);
     }
-    
+
     // 描画モードをデフォルト(Nearest)に戻す
     SetDrawMode(DX_DRAWMODE_NEAREST);
   }
@@ -877,8 +879,10 @@ void SceneMain::Draw() {
   bool showTotalScoreOnly = (m_totalScorePopupTimer > 0);
   if (showScorePopup || showTotalScoreOnly) {
     float scale = Game::GetUIScale();
-    int popupBaseX = Game::GetScreenWidth() / 2 + static_cast<int>(kScorePopupX * scale);
-    int popupBaseY = Game::GetScreenHeight() / 2 + static_cast<int>(kScorePopupY * scale);
+    int popupBaseX =
+        Game::GetScreenWidth() / 2 + static_cast<int>(kScorePopupX * scale);
+    int popupBaseY =
+        Game::GetScreenHeight() / 2 + static_cast<int>(kScorePopupY * scale);
     int scaledPopupOffsetY = static_cast<int>(kPopupOffsetY * scale);
     int idx = 0;
     int totalScore = ScoreManager::Instance().GetScore();
@@ -914,11 +918,12 @@ void SceneMain::Draw() {
     } else if (showScorePopup) {
       // 合計スコア
       if (lastComboRate > 1.0f) {
-        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                                 0x00ffcc, m_scoreFontHandle, "%d ×%.2f",
-                                 comboScore, lastComboRate);
+        DrawFormatStringToHandle(
+            popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0x00ffcc,
+            m_scoreFontHandle, "%d ×%.2f", comboScore, lastComboRate);
       } else {
-        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
+        DrawFormatStringToHandle(popupBaseX,
+                                 popupBaseY + idx * scaledPopupOffsetY,
                                  0x00ffcc, m_scoreFontHandle, "%d", comboScore);
       }
       idx++;
@@ -974,29 +979,24 @@ void SceneMain::Draw() {
     float scale = Game::GetUIScale();
     int scaledLineLength = static_cast<int>(kHitMarkLineLength * scale);
     int scaledCenterSpacing = static_cast<int>(kHitMarkCenterSpacing * scale);
-    int scaledThickness = (std::max)(1, static_cast<int>(kHitMarkLineThickness * scale));
+    int scaledThickness =
+        (std::max)(1, static_cast<int>(kHitMarkLineThickness * scale));
     int centerX = Game::GetScreenWidth() / 2;
     int centerY = Game::GetScreenHeight() / 2;
 
-    DrawLine(centerX - scaledLineLength,
-             centerY - scaledLineLength,
-             centerX - scaledCenterSpacing,
-             centerY - scaledCenterSpacing, color,
+    DrawLine(centerX - scaledLineLength, centerY - scaledLineLength,
+             centerX - scaledCenterSpacing, centerY - scaledCenterSpacing,
+             color, scaledThickness);
+    DrawLine(centerX + scaledCenterSpacing, centerY + scaledCenterSpacing,
+             centerX + scaledLineLength, centerY + scaledLineLength, color,
              scaledThickness);
-    DrawLine(centerX + scaledCenterSpacing,
-             centerY + scaledCenterSpacing,
-             centerX + scaledLineLength,
-             centerY + scaledLineLength, color, scaledThickness);
     // 左下→右上
-    DrawLine(centerX - scaledLineLength,
-             centerY + scaledLineLength,
-             centerX - scaledCenterSpacing,
-             centerY + scaledCenterSpacing, color,
+    DrawLine(centerX - scaledLineLength, centerY + scaledLineLength,
+             centerX - scaledCenterSpacing, centerY + scaledCenterSpacing,
+             color, scaledThickness);
+    DrawLine(centerX + scaledCenterSpacing, centerY - scaledCenterSpacing,
+             centerX + scaledLineLength, centerY - scaledLineLength, color,
              scaledThickness);
-    DrawLine(centerX + scaledCenterSpacing,
-             centerY - scaledCenterSpacing,
-             centerX + scaledLineLength,
-             centerY - scaledLineLength, color, scaledThickness);
 
     // ヘッドショットの場合は二重線を描画
     if (m_hitMarkType == EnemyBase::HitPart::Head) {
@@ -1004,30 +1004,29 @@ void SceneMain::Draw() {
       DrawLine(centerX - scaledLineLength - offset,
                centerY - scaledLineLength + offset,
                centerX - scaledCenterSpacing - offset,
-               centerY - scaledCenterSpacing + offset, color,
-               scaledThickness);
+               centerY - scaledCenterSpacing + offset, color, scaledThickness);
       DrawLine(centerX + scaledCenterSpacing + offset,
                centerY + scaledCenterSpacing - offset,
                centerX + scaledLineLength + offset,
-               centerY + scaledLineLength - offset, color,
-               scaledThickness);
+               centerY + scaledLineLength - offset, color, scaledThickness);
       DrawLine(centerX - scaledLineLength - offset,
                centerY + scaledLineLength - offset,
                centerX - scaledCenterSpacing - offset,
-               centerY + scaledCenterSpacing - offset, color,
-               scaledThickness);
+               centerY + scaledCenterSpacing - offset, color, scaledThickness);
       DrawLine(centerX + scaledCenterSpacing + offset,
                centerY - scaledCenterSpacing + offset,
                centerX + scaledLineLength + offset,
-               centerY - scaledLineLength + offset, color,
-               scaledThickness);
+               centerY - scaledLineLength + offset, color, scaledThickness);
     }
 
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
   }
 
   // デバッグ情報を表示
-  m_pWaveManager->DrawDebugInfo();
+  // デバッグ情報を表示
+  if (m_isShowDebugHUD) {
+    m_pWaveManager->DrawDebugInfo();
+  }
 
   // ボスUIの描画
   if (m_pBossUI) {
@@ -1043,7 +1042,7 @@ void SceneMain::Draw() {
 
   // デバッグHUD描画
   if (m_isShowDebugHUD) {
-      DrawDebugHUD();
+    DrawDebugHUD();
   }
 }
 
@@ -1054,54 +1053,67 @@ void SceneMain::SetShowDebugHUD(bool show) {
 }
 
 void SceneMain::DrawDebugHUD() {
-    int screenW = Game::GetScreenWidth();
-    int screenH = Game::GetScreenHeight();
+  int screenW = Game::GetScreenWidth();
+  int screenH = Game::GetScreenHeight();
 
-    // 画面全体を半透明の黒で覆う
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-    DrawBox(0, 0, screenW, screenH, 0x000000, TRUE);
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+  // 画面全体を半透明の黒で覆う
+  SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+  DrawBox(0, 0, screenW, screenH, 0x000000, TRUE);
+  SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // 情報収集
-    VECTOR playerPos = m_pPlayer ? m_pPlayer->GetPos() : VGet(0, 0, 0);
-    
-    float fps = GetFPS();
-    // WaveManager.hでは GetAliveEnemyCount() となっていた
-    int aliveEnemyCount = m_pWaveManager ? m_pWaveManager->GetAliveEnemyCount() : 0;
-    int drawnEnemyCount = EnemyBase::GetDrawCount();
+  // 情報収集
+  VECTOR playerPos = m_pPlayer ? m_pPlayer->GetPos() : VGet(0, 0, 0);
 
-    // Last Damage
-    float lastDamage = EnemyBase::GetDebugLastDamage();
-    std::string hitInfo = EnemyBase::GetDebugHitInfo();
-    int damageTimer = EnemyBase::GetDebugDamageTimer();
-    std::string damageStr = (damageTimer > 0) ? 
-        std::to_string((int)lastDamage) + (hitInfo.empty() ? "" : " " + hitInfo) : "-";
+  float fps = GetFPS();
+  // WaveManager.hでは GetAliveEnemyCount() となっていた
+  int aliveEnemyCount =
+      m_pWaveManager ? m_pWaveManager->GetAliveEnemyCount() : 0;
+  int drawnEnemyCount = EnemyBase::GetDrawCount();
 
-    // テキスト描画 (左上)
-    int x = 20;
-    int y = 20;
-    int lineHeight = 20;
-    unsigned int color = 0xFFFFFF;
+  // Last Damage
+  float lastDamage = EnemyBase::GetDebugLastDamage();
+  std::string hitInfo = EnemyBase::GetDebugHitInfo();
+  int damageTimer = EnemyBase::GetDebugDamageTimer();
+  std::string damageStr = (damageTimer > 0)
+                              ? std::to_string((int)lastDamage) +
+                                    (hitInfo.empty() ? "" : " " + hitInfo)
+                              : "-";
 
-    DrawFormatString(x, y, color, "FPS: %.1f", fps); y += lineHeight;
-    DrawFormatString(x, y, color, "Delta Time: %.4f", m_lastDeltaTime); y += lineHeight;
-    DrawFormatString(x, y, color, "Player Pos: (%.1f, %.1f, %.1f)", playerPos.x, playerPos.y, playerPos.z); y += lineHeight;
-    if (m_pPlayer) {
-      DrawFormatString(x, y, color, "Speed: %.2f", m_pPlayer->GetCurrentSpeed()); y += lineHeight;
-    }
-    
-    DrawFormatString(x, y, color, "Active Enemy Count: %d", aliveEnemyCount); y += lineHeight;
-    DrawFormatString(x, y, color, "Drawn Enemy Count: %d", drawnEnemyCount); y += lineHeight;
-    DrawFormatString(x, y, color, "Total Defeated: %d", ScoreManager::Instance().GetTotalDefeatedCount()); y += lineHeight;
-    DrawFormatString(x, y, color, "Last Damage: %s", damageStr.c_str()); y += lineHeight;
+  // テキスト描画 (左上)
+  int x = 20;
+  int y = 20;
+  int lineHeight = 20;
+  unsigned int color = 0xFFFFFF;
+
+  DrawFormatString(x, y, color, "FPS: %.1f", fps);
+  y += lineHeight;
+  DrawFormatString(x, y, color, "Delta Time: %.4f", m_lastDeltaTime);
+  y += lineHeight;
+  DrawFormatString(x, y, color, "Player Pos: (%.1f, %.1f, %.1f)", playerPos.x,
+                   playerPos.y, playerPos.z);
+  y += lineHeight;
+  if (m_pPlayer) {
+    DrawFormatString(x, y, color, "Speed: %.2f", m_pPlayer->GetCurrentSpeed());
+    y += lineHeight;
+  }
+
+  DrawFormatString(x, y, color, "Active Enemy Count: %d", aliveEnemyCount);
+  y += lineHeight;
+  DrawFormatString(x, y, color, "Drawn Enemy Count: %d", drawnEnemyCount);
+  y += lineHeight;
+  DrawFormatString(x, y, color, "Total Defeated: %d",
+                   ScoreManager::Instance().GetTotalDefeatedCount());
+  y += lineHeight;
+  DrawFormatString(x, y, color, "Last Damage: %s", damageStr.c_str());
+  y += lineHeight;
 }
 
 void SceneMain::DrawPauseMenu() {
   Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
 
   SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-  DrawBox(50, 50, Game::GetScreenWidth() - 50, Game::GetScreenHeight() - 50, 0x000000,
-          true);
+  DrawBox(50, 50, Game::GetScreenWidth() - 50, Game::GetScreenHeight() - 50,
+          0x000000, true);
   SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
