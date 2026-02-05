@@ -2,6 +2,7 @@
 #include "ItemBase.h"
 #include "EffekseerForDXLib.h"
 #include "SphereCollider.h"
+#include "Stage.h"
 
 class Player;
 class SphereCollider;

@@ -135,10 +135,7 @@ void EnemyBoss::Init()
 void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
 {
     // 遠距離攻撃など、同じ状態でも再度再生したいケースがある場合は調整
-    if (m_currentAnimState == newAnimState && newAnimState != AnimState::Attack && newAnimState != AnimState::LongRangeAttack)
-    {
-        return;
-    }
+    if (m_currentAnimState == newAnimState && newAnimState != AnimState::Attack && newAnimState != AnimState::LongRangeAttack) return;
 
     const char* animName = nullptr;
     switch (newAnimState)
@@ -187,8 +184,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     // ホーミング弾の更新
     for (auto& bullet : m_homingBullets)
     {
-        if (!bullet.active)
-            continue;
+        if (!bullet.active) continue;
 
         // プレイヤーへの方向
         VECTOR toPlayer = VSub(player.GetPos(), bullet.pos);
@@ -525,8 +521,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         if (m_animTime >= totalTime)
         {
             // アニメーション終了
-            if (m_attackEndDelayTimer <= 0)
-                m_attackEndDelayTimer = 30; // 硬直
+            if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = 30; // 硬直
         }
 
         if (m_attackEndDelayTimer > 0)
@@ -542,8 +537,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     else if (m_currentAnimState == AnimState::Idle)
     {
         // 待機状態 (Idle)
-        if (m_longRangeAttackCooldown > 0)
-            m_longRangeAttackCooldown--;
+        if (m_longRangeAttackCooldown > 0) m_longRangeAttackCooldown--;
 
         VECTOR toPlayer = VSub(playerPos, m_pos);
         toPlayer.y = 0.0f;
@@ -583,8 +577,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         if (m_currentAnimState == AnimState::Walk)
         {
             // クールダウン減少
-            if (m_longRangeAttackCooldown > 0)
-                m_longRangeAttackCooldown--;
+            if (m_longRangeAttackCooldown > 0) m_longRangeAttackCooldown--;
 
             VECTOR toPlayer = VSub(playerPos, m_pos);
             toPlayer.y = 0.0f;
@@ -771,8 +764,7 @@ void EnemyBoss::Draw()
     float distSq = VSquareSize(toEnemy);
 
     // 1. 距離チェック (Farクリップ + マージン)
-    if (distSq > EnemyBossConstants::kDrawDistanceSq)
-        return;
+    if (distSq > EnemyBossConstants::kDrawDistanceSq) return;
 
     // 2. 画角チェック (内積)
     // ボスは巨大なので、近距離判定を広めにとる
@@ -781,8 +773,7 @@ void EnemyBoss::Draw()
         VECTOR dirToEnemy = VNorm(toEnemy);
         float dot = VDot(camDir, dirToEnemy);
         // ボスは横幅もあるので、かなり広めに判定 (視野前面180度近くを許可)
-        if (dot < 0.0f)
-            return;
+        if (dot < 0.0f) return;
     }
 
     EnemyBase::IncrementDrawCount();

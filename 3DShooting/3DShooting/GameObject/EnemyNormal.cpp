@@ -150,10 +150,7 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
             // 同じ攻撃アニメーションをリセットして再開
             m_animationManager.PlayAnimation(m_modelHandle, EnemyNormalConstants::kAttackAnimName, loop);
         }
-        else
-        {
-            return;
-        }
+        else return;
     }
 
     const char* animName = nullptr;
@@ -361,10 +358,8 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 
         // 角度差を計算して滑らかに回転
         float diffYaw = yaw - currentYaw;
-        while (diffYaw <= -DX_PI_F)
-            diffYaw += DX_TWO_PI_F;
-        while (diffYaw > DX_PI_F)
-            diffYaw -= DX_TWO_PI_F;
+        while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
+        while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
 
         if (fabs(diffYaw) > rotSpeed)
         {
@@ -403,10 +398,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
             float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyNormalConstants::kAttackAnimName);
             if (m_animTime > currentAnimTotalTime)
             {
-                if (m_attackEndDelayTimer <= 0)
-                {
-                    m_attackEndDelayTimer = EnemyNormalConstants::kAttackEndDelay; // ディレイ開始
-                }
+                if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = EnemyNormalConstants::kAttackEndDelay; // ディレイ開始
             }
             // ディレイタイマーが動作中ならカウントダウン
             if (m_attackEndDelayTimer > 0)
@@ -525,11 +517,9 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 
     for (EnemyBase* other : targets)
     {
-        if (!other)
-            continue;
+        if (!other) continue;
         // 自分自身は除外
-        if (other == this)
-            continue;
+        if (other == this) continue;
 
         // 位置取得
         VECTOR otherPos = other->GetPos();
@@ -674,8 +664,7 @@ void EnemyNormal::Draw()
         float dot = VDot(camDir, dirToEnemy);
         // 視野角90度(cos45=0.7)に対し、余裕を持ってcos66=0.4程度以上なら描画
         // これにより視野外でも少し描画されるが、消えるよりは安全
-        if (dot < EnemyNormalConstants::kDrawDotThreshold)
-            return;
+        if (dot < EnemyNormalConstants::kDrawDotThreshold) return;
     }
 
     EnemyBase::IncrementDrawCount();
@@ -689,10 +678,10 @@ void EnemyNormal::Draw()
     switch (m_lastHitPart)
     {
     case HitPart::Head:
-        hitMsg = "HeadShot!";
+        hitMsg = "ヘッドショット！";
         break;
     case HitPart::Body:
-        hitMsg = "BodyHit!";
+        hitMsg = "ボディヒット！";
         break;
     default:
         break;

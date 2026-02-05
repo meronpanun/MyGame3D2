@@ -329,10 +329,8 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
 
         // 角度差を計算して滑らかに回転
         float diffYaw = yaw - currentYaw;
-        while (diffYaw <= -DX_PI_F)
-            diffYaw += DX_TWO_PI_F;
-        while (diffYaw > DX_PI_F)
-            diffYaw -= DX_TWO_PI_F;
+        while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
+        while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
 
         if (fabs(diffYaw) > rotSpeed)
         {
@@ -627,16 +625,14 @@ void EnemyRunner::Draw()
     float distSq = VSquareSize(toEnemy);
 
     // 1. 距離チェック
-    if (distSq > EnemyRunnerConstants::kDrawDistanceSq)
-        return;
+    if (distSq > EnemyRunnerConstants::kDrawDistanceSq) return;
 
     // 2. 画角チェック
     if (distSq > EnemyRunnerConstants::kDrawNearDistanceSq)
     {
         VECTOR dirToEnemy = VNorm(toEnemy);
         float dot = VDot(camDir, dirToEnemy);
-        if (dot < EnemyRunnerConstants::kDrawDotThreshold)
-            return;
+        if (dot < EnemyRunnerConstants::kDrawDotThreshold) return;
     }
 
     EnemyBase::IncrementDrawCount();

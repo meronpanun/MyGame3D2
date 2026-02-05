@@ -98,10 +98,7 @@ int EnemyBase::FindClosestHitBullet(const std::vector<Bullet>& bullets, HitPart&
     for (int i = 0; i < bullets.size(); ++i)
     {
         const auto& bullet = bullets[i];
-        if (!bullet.IsActive())
-        {
-            continue;
-        }
+        if (!bullet.IsActive()) continue;
 
         // 弾のRay情報を取得
         VECTOR rayStart = bullet.GetPrevPos();
@@ -262,10 +259,7 @@ bool EnemyBase::IsTargetVisible(
 {
     VECTOR dir = VSub(targetPos, startPos);
     float dist = VSize(dir);
-    if (dist < 0.001f)
-    {
-        return true;
-    }
+    if (dist < 0.001f) return true;
     dir = VNorm(dir);
 
     // レイキャスト判定
@@ -274,10 +268,7 @@ bool EnemyBase::IsTargetVisible(
         float t;
         if (Collision::IntersectRayTriangle(startPos, dir, col.v1, col.v2, col.v3, t))
         {
-            if (t < dist)
-            {
-                return false; // 遮蔽物あり
-            }
+            if (t < dist) return false; // 遮蔽物あり
         }
     }
 
@@ -294,10 +285,7 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos,
     float dist = VSize(toTarget);
     // 直線より速い速度を基準にして放物線を低くする
     float time = dist / (speed * EnemyConstants::kParabolicTimeFactor);
-    if (time < EnemyConstants::kParabolicMinTime)
-    {
-        time = EnemyConstants::kParabolicMinTime; // 最低保証
-    }
+    if (time < EnemyConstants::kParabolicMinTime) time = EnemyConstants::kParabolicMinTime; // 最低保証
 
     // 初速度計算
     // pos + v*t + 0.5*g*t*t = target
@@ -325,14 +313,8 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
     m_isSimpleMode = false;
 
     // 1. 距離による更新頻度変更
-    if (distSq > EnemyConstants::kThrottlingLongRangeSq)
-    {
-        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong; // 遠距離: 3フレームに1回
-    }
-    else if (distSq > EnemyConstants::kThrottlingMidRangeSq)
-    {
-        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid; // 中距離: 2フレームに1回
-    }
+    if (distSq > EnemyConstants::kThrottlingLongRangeSq) m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong; // 遠距離: 3フレームに1回
+    else if (distSq > EnemyConstants::kThrottlingMidRangeSq) m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid; // 中距離: 2フレームに1回
 
     // 2. 視界判定 (画面外停止)
     // Bossは常にフルパワー
@@ -348,10 +330,7 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
             float dot = VDot(camDir, dirToEnemy);
 
             // 視界外 (視野角 約66度相当) かつ プレイヤーからもある程度離れている
-            if (dot < EnemyConstants::kThrottlingFOVThreshold && distSq > EnemyConstants::kThrottlingMidRangeSq)
-            {
-                m_isSimpleMode = true;
-            }
+            if (dot < EnemyConstants::kThrottlingFOVThreshold && distSq > EnemyConstants::kThrottlingMidRangeSq) m_isSimpleMode = true;
         }
     }
 
@@ -380,15 +359,7 @@ void EnemyBase::DrawDebugDamage()
         
         // 全角半角混じりは GetDrawStringWidth が確実
         int strWidth = GetDrawStringWidth(text, strLen);
-        
-        // Font size not directly available unless we know the handle, assuming default or use context
-        // Here implying default usage or static usage which might be tricky if not set.
-        // Previously called GetFontSize() which might be a global or member?
-        // Checking previous file content... it called GetFontSize(). 
-        // Assuming GetFontSize() exists in context or is a global helper.
-        // Wait, previous file called `GetFontSize()`. Is it a member of EnemyBase? No.
-        // Is it a global? It's typically a DXLib function `GetFontSize()` usually returns the current font size used by DrawString.
-        // So I will keep it.
+
         int fontSize = GetFontSize();
 
         // 背景ボックスのサイズと位置
