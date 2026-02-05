@@ -780,7 +780,10 @@ void EnemyBoss::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    DrawCollisionDebug();
+    if (s_drawCollision)
+    {
+        DrawCollisionDebug();
+    }
 }
 
 void EnemyBoss::TakeDamage(float damage, AttackType type)

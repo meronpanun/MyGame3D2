@@ -639,7 +639,10 @@ void EnemyRunner::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    DrawCollisionDebug();
+    if (s_drawCollision)
+    {
+        DrawCollisionDebug();
+    }
 
 #ifdef _DEBUG
     const char* hitMsg = "";

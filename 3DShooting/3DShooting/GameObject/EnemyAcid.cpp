@@ -816,7 +816,10 @@ void EnemyAcid::Draw()
     MV1DrawModel(m_modelHandle);
 
     // デバッグ用の当たり判定描画
-    DrawCollisionDebug();
+    if (s_drawCollision)
+    {
+        DrawCollisionDebug();
+    }
 
 #ifdef _DEBUG
     // 体力デバッグ表示
