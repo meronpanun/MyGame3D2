@@ -850,6 +850,8 @@ void EnemyAcid::DrawCollisionDebug() const
 // どこに当たったのか判定する
 EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
+    if (m_isDeadAnimPlaying) return HitPart::None;
+
     VECTOR hitPosHead, hitPosBody; // 当たった位置
     float hitDistSqHead = FLT_MAX;
     float hitDistSqBody = FLT_MAX;
@@ -919,6 +921,8 @@ void EnemyAcid::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 // ダメージ処理
 void EnemyAcid::TakeDamage(float damage, AttackType type)
 {
+    if (m_isDeadAnimPlaying) return;
+
     EnemyBase::TakeDamage(damage, type);
     // HP減算・死亡判定は基底クラスで行う
     if (m_hp <= 0.0f) // 死亡時一度だけ
@@ -936,6 +940,8 @@ void EnemyAcid::TakeDamage(float damage, AttackType type)
 // タックル攻撃のダメージ処理
 void EnemyAcid::TakeTackleDamage(float damage)
 {
+    if (m_isDeadAnimPlaying) return;
+
     EnemyBase::TakeTackleDamage(damage);
 }
 
