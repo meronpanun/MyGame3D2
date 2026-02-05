@@ -27,6 +27,22 @@ public:
     virtual void DrawCollisionDebug() const override;
 
     /// <summary>
+    /// モデルの読み込み(共有)
+    /// </summary>
+    static void LoadModel();
+
+    /// <summary>
+    /// モデルの解放(共有)
+    /// </summary>
+    static void DeleteModel();
+
+    static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
+    static bool IsDrawCollision() { return s_drawCollision; }
+
+private:
+    static bool s_drawCollision;
+
+    /// <summary>
     /// どこに当たったかを判定する
     /// </summary>
     /// <param name="rayStart">弾のRayの始点</param>
@@ -66,15 +82,7 @@ public:
     /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
-    /// <summary>
-    /// モデルの読み込み(共有)
-    /// </summary>
-    static void LoadModel();
 
-    /// <summary>
-    /// モデルの解放(共有)
-    /// </summary>
-    static void DeleteModel();
 
     /// <summary>
     /// ボディコライダーを取得する

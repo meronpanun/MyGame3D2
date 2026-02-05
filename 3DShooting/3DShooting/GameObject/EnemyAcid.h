@@ -29,7 +29,26 @@ public:
     /// <summary>
     /// デバッグ用の当たり判定を描画する
     /// </summary>
+    /// <summary>
+    /// モデルの読み込み(共有)
+    /// </summary>
+    static void LoadModel();
+
+    /// <summary>
+    /// モデルの解放(共有)
+    /// </summary>
+    static void DeleteModel();
+
+    /// <summary>
+    /// デバッグ用の当たり判定を描画する
+    /// </summary>
     virtual void DrawCollisionDebug() const override;
+
+    static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
+    static bool IsDrawCollision() { return s_drawCollision; }
+
+private:
+    static bool s_drawCollision;
 
     /// <summary>
     /// どこに当たったかを判定する
@@ -77,15 +96,8 @@ public:
     /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
-    /// <summary>
-    /// モデルの読み込み(共有)
-    /// </summary>
-    static void LoadModel();
 
-    /// <summary>
-    /// モデルの解放(共有)
-    /// </summary>
-    static void DeleteModel();
+
 
     /// <summary>
     /// ボディコライダーを取得する
@@ -183,10 +195,8 @@ private:
 
     static int s_modelHandle; // 共有モデルハンドル
 
-#ifdef _DEBUG
-    bool m_shouldDrawParryCollider; // パリィコライダーを描画するか
-    VECTOR m_debugParryCapA;        // デバッグ用パリィカプセルのA点
-    VECTOR m_debugParryCapB;        // デバッグ用パリィカプセルのB点
-    float m_debugParryRadius;       // デバッグ用パリィカプセルの半径
-#endif
+    bool m_shouldDrawParryCollider = false; // パリィコライダーを描画するか
+    VECTOR m_debugParryCapA = { 0,0,0 };    // デバッグ用パリィカプセルのA点
+    VECTOR m_debugParryCapB = { 0,0,0 };    // デバッグ用パリィカプセルのB点
+    float m_debugParryRadius = 0.0f;        // デバッグ用パリィカプセルの半径
 };

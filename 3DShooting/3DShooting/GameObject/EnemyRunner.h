@@ -27,6 +27,15 @@ public:
     /// </summary>
     virtual void DrawCollisionDebug() const override;
 
+    static void LoadModel();
+    static void DeleteModel();
+
+    static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
+    static bool IsDrawCollision() { return s_drawCollision; }
+
+private:
+    static bool s_drawCollision;
+
     /// <summary>
     /// どこに当たったかを判定する
     /// </summary>
@@ -58,8 +67,7 @@ public:
     void TakeDamage(float damage, AttackType type) override;
     void TakeTackleDamage(float damage) override;
 
-    static void LoadModel();
-    static void DeleteModel();
+
 
     /// <summary>
     /// ボディコライダーを取得する

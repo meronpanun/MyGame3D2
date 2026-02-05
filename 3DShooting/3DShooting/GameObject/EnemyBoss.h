@@ -23,6 +23,9 @@ public:
     static void LoadModel();
     static void DeleteModel();
 
+    static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
+    static bool IsDrawCollision() { return s_drawCollision; }
+
     void Init() override;
     void Update(const EnemyUpdateContext& context) override;
     void Draw() override;
@@ -52,6 +55,11 @@ protected:
 
     // デバッグ描画
     void DrawCollisionDebug() const override;
+
+
+
+private:
+    static bool s_drawCollision;
 
 private:
     /// <summary>
@@ -142,10 +150,8 @@ private:
     bool m_isStunned; // 怯み状態か
     int m_stunTimer;  // 怯みタイマー
 
-#ifdef _DEBUG
-    bool m_shouldDrawParryCollider; // パリィコライダーを描画するか
-    VECTOR m_debugParryCapA;        // デバッグ用パリィカプセルのA点
-    VECTOR m_debugParryCapB;        // デバッグ用パリィカプセルのB点
-    float m_debugParryRadius;       // デバッグ用パリィカプセルの半径
-#endif
+    bool m_shouldDrawParryCollider = false; // パリィコライダーを描画するか
+    VECTOR m_debugParryCapA = { 0,0,0 };    // デバッグ用パリィカプセルのA点
+    VECTOR m_debugParryCapB = { 0,0,0 };    // デバッグ用パリィカプセルのB点
+    float m_debugParryRadius = 0.0f;        // デバッグ用パリィカプセルの半径
 };

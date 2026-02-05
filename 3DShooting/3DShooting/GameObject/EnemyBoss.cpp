@@ -49,6 +49,7 @@ namespace EnemyBossConstants
 }
 
 int EnemyBoss::s_modelHandle = -1;
+bool EnemyBoss::s_drawCollision = false;
 
 void EnemyBoss::LoadModel()
 {
@@ -779,9 +780,7 @@ void EnemyBoss::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-#ifdef _DEBUG
     DrawCollisionDebug();
-#endif
 }
 
 void EnemyBoss::TakeDamage(float damage, AttackType type)
@@ -830,6 +829,8 @@ float EnemyBoss::CalcDamage(float bulletDamage, HitPart part) const
 
 void EnemyBoss::DrawCollisionDebug() const
 {
+    if (!s_drawCollision) return;
+
     // 体
     if (m_pBodyCollider)
         DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000); // 赤

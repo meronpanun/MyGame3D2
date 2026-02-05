@@ -56,6 +56,7 @@ namespace EnemyRunnerConstants
 }
 
 int EnemyRunner::s_modelHandle = -1;
+bool EnemyRunner::s_drawCollision = false;
 
 EnemyRunner::EnemyRunner()
     : m_headPosOffset{ EnemyRunnerConstants::kHeadShotPositionOffset }
@@ -638,9 +639,9 @@ void EnemyRunner::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-#ifdef _DEBUG
     DrawCollisionDebug();
 
+#ifdef _DEBUG
     const char* hitMsg = "";
 
     switch (m_lastHitPart)
@@ -666,6 +667,8 @@ void EnemyRunner::Draw()
 
 void EnemyRunner::DrawCollisionDebug() const
 {
+    if (!s_drawCollision) return;
+
     // 体のコライダーデバッグ描画
     DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000);
 

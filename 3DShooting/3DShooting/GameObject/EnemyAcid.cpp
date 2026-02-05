@@ -49,6 +49,7 @@ namespace EnemyAcidConstants
 }
 
 int EnemyAcid::s_modelHandle = -1;
+bool EnemyAcid::s_drawCollision = false;
 
 EnemyAcid::EnemyAcid()
     : m_headPosOffset{ EnemyAcidConstants::kHeadShotPositionOffset }
@@ -814,10 +815,10 @@ void EnemyAcid::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-#ifdef _DEBUG
     // デバッグ用の当たり判定描画
     DrawCollisionDebug();
 
+#ifdef _DEBUG
     // 体力デバッグ表示
     DebugUtil::DrawFormat(20, 100, 0xffffff, "EnemyAcid HP: %.1f", m_hp);
 #endif
@@ -825,7 +826,8 @@ void EnemyAcid::Draw()
 
 void EnemyAcid::DrawCollisionDebug() const
 {
-#ifdef _DEBUG
+    if (!s_drawCollision) return;
+
     if (m_pBodyCollider)
     {
         DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff00ff);
@@ -842,7 +844,7 @@ void EnemyAcid::DrawCollisionDebug() const
     {
         DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0x0000ff);
     }
-#endif
+
 }
 
 // どこに当たったのか判定する

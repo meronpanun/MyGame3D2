@@ -56,6 +56,7 @@ namespace EnemyNormalConstants
 }
 
 int EnemyNormal::s_modelHandle = -1;
+bool EnemyNormal::s_drawCollision = false;
 
 EnemyNormal::EnemyNormal()
     : m_headPosOffset(EnemyNormalConstants::kHeadShotPositionOffset)
@@ -670,9 +671,9 @@ void EnemyNormal::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-#ifdef _DEBUG
     DrawCollisionDebug();
 
+#ifdef _DEBUG
     const char* hitMsg = "";
 
     switch (m_lastHitPart)
@@ -691,13 +692,14 @@ void EnemyNormal::Draw()
     {
         DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
     }
-
 #endif
 }
 
 // デバック用の当たり判定を描画する
 void EnemyNormal::DrawCollisionDebug() const
 {
+    if (!s_drawCollision) return;
+
     // 体のコライダーデバッグ描画
     DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000);
 

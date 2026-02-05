@@ -11,6 +11,10 @@
 #include "SceneTitle.h"
 #include "Stage.h"
 #include "WaveManager.h"
+#include "GameObject/EnemyNormal.h"
+#include "GameObject/EnemyRunner.h"
+#include "GameObject/EnemyBoss.h"
+#include "GameObject/EnemyAcid.h"
 #include <cassert>
 
 
@@ -83,24 +87,39 @@ DebugMenu::DebugMenu() {
              WaveManager::SetDrawSpawnAreas(isDraw);
            },
            []() { return WaveManager::IsDrawSpawnAreas() ? "[ON]" : "[OFF]"; }},
-          {"Active Enemy Count",
-           {},
-           []() {
-             bool isShow = !WaveManager::IsShowActiveEnemyCount();
-             WaveManager::SetShowActiveEnemyCount(isShow);
-           },
-           []() {
-             return WaveManager::IsShowActiveEnemyCount() ? "[ON]" : "[OFF]";
-           }},
-          {"Drawn Enemy Count",
-           {},
-           []() {
-             bool isShow = !WaveManager::IsShowDrawnEnemyCount();
-             WaveManager::SetShowDrawnEnemyCount(isShow);
-           },
-           []() {
-             return WaveManager::IsShowDrawnEnemyCount() ? "[ON]" : "[OFF]";
-           }}},
+
+          {"Collision",
+           {{"Normal Enemy",
+             {},
+             []() {
+               bool isDraw = !EnemyNormal::IsDrawCollision();
+               EnemyNormal::SetDrawCollision(isDraw);
+             },
+             []() { return EnemyNormal::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+            {"Runner Enemy",
+             {},
+             []() {
+               bool isDraw = !EnemyRunner::IsDrawCollision();
+               EnemyRunner::SetDrawCollision(isDraw);
+             },
+             []() { return EnemyRunner::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+            {"Acid Enemy",
+             {},
+             []() {
+               bool isDraw = !EnemyAcid::IsDrawCollision();
+               EnemyAcid::SetDrawCollision(isDraw);
+             },
+             []() { return EnemyAcid::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+            {"Boss Enemy",
+             {},
+             []() {
+               bool isDraw = !EnemyBoss::IsDrawCollision();
+               EnemyBoss::SetDrawCollision(isDraw);
+             },
+             []() {
+               return EnemyBoss::IsDrawCollision() ? "[ON]" : "[OFF]";
+             }}},
+           nullptr}},
          nullptr}}},
       {"Scene",
        {{"Skip Tutorial",
