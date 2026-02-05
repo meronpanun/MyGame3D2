@@ -48,29 +48,29 @@ float EnemyBase::s_debugLastDamage = 0.0f;
 int EnemyBase::s_debugDamageTimer = 0;
 std::string EnemyBase::s_debugHitInfo = "";
 
-EnemyBase::EnemyBase() :
-    m_pos{ 0, 0, 0 },
-    m_modelHandle(-1),
-    m_pTargetPlayer(nullptr),
-    m_hp(EnemyConstants::kDefaultInitialHP),
-    m_maxHp(EnemyConstants::kDefaultInitialHP),
-    m_lastHitPart(HitPart::None),
-    m_lastTackleId(-1),
-    m_hitDisplayTimer(0),
-    m_isAlive(true),
-    m_isTackleHit(false),
-    m_attackCooldown(0),
-    m_attackCooldownMax(static_cast<int>(EnemyConstants::kDefaultCooldownMax)),
-    m_attackPower(EnemyConstants::kDefaultAttackPower),
-    m_attackHitFrame(0),
-    m_isAttacking(false),
-    m_isActive(true),
-    m_verticalVelocity(0.0f),
-    m_isGrounded(false),
-    m_updateFrameCount(0),
-    m_aiUpdateInterval(1),
-    m_isSimpleMode(false),
-    m_shouldUpdateAI(true)
+EnemyBase::EnemyBase() 
+    : m_pos{ 0, 0, 0 }
+    , m_modelHandle(-1)
+    , m_pTargetPlayer(nullptr)
+    , m_hp(EnemyConstants::kDefaultInitialHP)
+    , m_maxHp(EnemyConstants::kDefaultInitialHP)
+    , m_lastHitPart(HitPart::None)
+    , m_lastTackleId(-1)
+    , m_hitDisplayTimer(0)
+    , m_isAlive(true)
+    , m_isTackleHit(false)
+    , m_attackCooldown(0)
+    , m_attackCooldownMax(static_cast<int>(EnemyConstants::kDefaultCooldownMax))
+    , m_attackPower(EnemyConstants::kDefaultAttackPower)
+    , m_attackHitFrame(0)
+    , m_isAttacking(false)
+    , m_isActive(true)
+    , m_verticalVelocity(0.0f)
+    , m_isGrounded(false)
+    , m_updateFrameCount(0)
+    , m_aiUpdateInterval(1)
+    , m_isSimpleMode(false)
+    , m_shouldUpdateAI(true)
 {
 }
 
