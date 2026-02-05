@@ -128,7 +128,7 @@ void TaskTutorialManager::Init(WaveManager *pWaveManager, Player *pPlayer) {
 void TaskTutorialManager::NotifyEnemyKilled(AttackType attackType) {
   switch (m_step) {
   case TaskStep::Shoot:
-    if (attackType == AttackType::Shoot) {
+    if (attackType == AttackType::Shoot || attackType == AttackType::Shotgun) {
       m_shootKills++;
     }
     break;
