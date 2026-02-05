@@ -4,6 +4,7 @@
 #include "SceneMain.h"
 #include "SceneTitle.h"
 #include "ScoreManager.h"
+#include "Game.h"
 #include <cassert>
 
 namespace {
@@ -35,20 +36,21 @@ SceneResult::SceneResult()
   assert(m_gameClearImageHandle != -1);
 
   // フォントの作成
+  float scale = Game::GetUIScale();
   m_japaneseFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+      CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(30 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_japaneseFontHandle != -1);
   m_arialBlackFontHandle = CreateFontToHandle(
-      "Arial Black", 48, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+      "Arial Black", (int)(48 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_arialBlackFontHandle != -1);
   m_arialBlackLargeFontHandle = CreateFontToHandle(
-      "Arial Black", 96, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+      "Arial Black", (int)(96 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_arialBlackLargeFontHandle != -1);
   m_japaneseLargeFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+      CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(54 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_japaneseLargeFontHandle != -1);
   m_japaneseButtonFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+      CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_japaneseButtonFontHandle != -1);
 }
 
@@ -95,6 +97,8 @@ void SceneResult::Init() {
 }
 
 SceneBase *SceneResult::Update() {
+  UpdateLayout();
+
   // 背景をスクロール
   m_scrollX += kScrollSpeed;
   m_scrollY += kScrollSpeed;
@@ -107,26 +111,10 @@ SceneBase *SceneResult::Update() {
   ScoreManager::Instance().Update();
 
   if (InputManager::GetInstance()->IsTriggerMouseLeft()) {
-    int screenW, screenH;
-    GetScreenState(&screenW, &screenH, nullptr);
-    int btnY = screenH - 150;
-    int btnW = 270;
-    int btnH = 70;
-    int btnSpacing = 60;
-    int centerX = screenW * 0.5f;
-    // タイトルボタン
-    int titleBtnX1 = centerX - btnW - btnSpacing * 0.5f;
-    int titleBtnY1 = btnY;
-    int titleBtnX2 = centerX - btnSpacing * 0.5f;
-    int titleBtnY2 = btnY + btnH;
-    // リトライボタン
-    int retryBtnX1 = centerX + btnSpacing * 0.5f;
-    int retryBtnY1 = btnY;
-    int retryBtnX2 = centerX + btnW + btnSpacing * 0.5f;
-    int retryBtnY2 = btnY + btnH;
     Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
-    if (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 &&
-        mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2) {
+    
+    if (mousePos.x >= m_layout.titleBtnX1 && mousePos.x <= m_layout.titleBtnX2 &&
+        mousePos.y >= m_layout.titleBtnY1 && mousePos.y <= m_layout.titleBtnY2) {
       // BGMを停止
       StopSoundMem(m_bgmHandle);
       PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
@@ -136,8 +124,8 @@ SceneBase *SceneResult::Update() {
 
       return new SceneTitle(true);
     }
-    if (mousePos.x >= retryBtnX1 && mousePos.x <= retryBtnX2 &&
-        mousePos.y >= retryBtnY1 && mousePos.y <= retryBtnY2) {
+    if (mousePos.x >= m_layout.retryBtnX1 && mousePos.x <= m_layout.retryBtnX2 &&
+        mousePos.y >= m_layout.retryBtnY1 && mousePos.y <= m_layout.retryBtnY2) {
       // BGMを停止
       StopSoundMem(m_bgmHandle);
       PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
@@ -182,63 +170,56 @@ void SceneResult::Draw() {
   SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
   // ゲームクリア画像を描画 (サイズと位置を調整)
-  int titleW = 800;
-  int titleH = 200;
-  int titleX = (screenW - titleW) / 2;
-  int titleY = 50;
-  DrawExtendGraph(titleX, titleY, titleX + titleW, titleY + titleH,
+  DrawExtendGraph(m_layout.imageDrawX, m_layout.imageDrawY, 
+                  m_layout.imageDrawX + m_layout.imageDrawWidth, 
+                  m_layout.imageDrawY + m_layout.imageDrawHeight,
                   m_gameClearImageHandle, true);
 
   // リザルト表示エリアの背景（少し濃い黒）
-  int resBgW = 700;
-  int resBgH = 240; // ハイスコアを含めないように高さを縮小
-  int resBgX = (screenW - resBgW) / 2;
-  int resBgY = 280;
   SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
-  DrawBox(resBgX, resBgY, resBgX + resBgW, resBgY + resBgH, 0x000000, true);
+  DrawBox(m_layout.resBgX, m_layout.resBgY, m_layout.resBgX + m_layout.resBgW, m_layout.resBgY + m_layout.resBgH, 0x000000, true);
   SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
   // 枠線
-  DrawBox(resBgX, resBgY, resBgX + resBgW, resBgY + resBgH, 0xffffff, false);
+  DrawBox(m_layout.resBgX, m_layout.resBgY, m_layout.resBgX + m_layout.resBgW, m_layout.resBgY + m_layout.resBgH, 0xffffff, false);
 
-  int y = resBgY + 40;
+  int y = m_layout.textBaseY;
 
   // スコア、キル数、タイムの表示 (左寄せ気味に揃える)
-  int labelX = resBgX + 100;
-  int valueX = resBgX + 450;
-
   // 合計スコア
-  DrawFormatStringToHandle(labelX, y, 0xffffff, m_japaneseLargeFontHandle,
+  DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFontHandle,
                            "合計スコア");
-  DrawFormatStringToHandle(valueX, y, 0xffffff, m_japaneseLargeFontHandle, "%d",
+  DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFontHandle, "%d",
                            ScoreManager::Instance().GetDisplayTotalScore());
-  y += 70;
+  y += m_layout.textIntervalHigh;
 
   // 倒した敵の数
   int killCount = ScoreManager::Instance().GetBodyKillCount() +
                   ScoreManager::Instance().GetHeadKillCount();
-  DrawFormatStringToHandle(labelX, y, 0xffffff, m_japaneseLargeFontHandle,
+  DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFontHandle,
                            "倒した敵の数");
-  DrawFormatStringToHandle(valueX, y, 0xffffff, m_japaneseLargeFontHandle, "%d",
+  DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFontHandle, "%d",
                            killCount);
-  y += 70;
+  y += m_layout.textIntervalHigh;
 
   // クリアタイム
-  DrawFormatStringToHandle(labelX, y, 0xffffff, m_japaneseLargeFontHandle,
+  DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFontHandle,
                            "クリアタイム");
-  DrawFormatStringToHandle(valueX, y, 0xffffff, m_japaneseLargeFontHandle,
+  DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFontHandle,
                            "%.1f秒", SceneMain::GetElapsedTime());
-  y += 100;
-
+  
   // ハイスコア表示
-  int highScoreY = y + 20;
+  int highScoreY = m_layout.highScoreY;
+  float scale = Game::GetUIScale();
+  int highScoreInterval = (int)(60 * scale);
+
   // タイトル
   int highScoreTextWidth = GetDrawStringWidthToHandle("--- High Score ---", -1,
                                                       m_arialBlackFontHandle);
   DrawFormatStringToHandle(screenW * 0.5f - highScoreTextWidth * 0.5f,
                            highScoreY, 0xffff00, m_arialBlackFontHandle,
                            "--- High Score ---");
-  highScoreY += 60;
+  highScoreY += highScoreInterval;
 
   const auto &scores = ScoreManager::Instance().GetHighScores();
   for (int i = 0; i < 3 && i < (int)scores.size(); ++i) {
@@ -256,56 +237,96 @@ void SceneResult::Draw() {
 
     DrawFormatStringToHandle(screenW * 0.5f - highStrWidth * 0.5f, highScoreY,
                              color, m_japaneseLargeFontHandle, "%s", highStr);
-    highScoreY += 60;
+    highScoreY += highScoreInterval;
   }
 
   // ボタン描画
-  int btnY = screenH - 150;
-  int btnW = 270;
-  int btnH = 70;
-  int btnSpacing = 60;
-  int centerX = screenW * 0.5f;
-
   Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
 
   // タイトルボタン
-  int titleBtnX1 = centerX - btnW - btnSpacing * 0.5f;
-  int titleBtnY1 = btnY;
-  int titleBtnX2 = centerX - btnSpacing * 0.5f;
-  int titleBtnY2 = btnY + btnH;
-
   // ホバー判定
-  bool isTitleHover = (mousePos.x >= titleBtnX1 && mousePos.x <= titleBtnX2 &&
-                       mousePos.y >= titleBtnY1 && mousePos.y <= titleBtnY2);
+  bool isTitleHover = (mousePos.x >= m_layout.titleBtnX1 && mousePos.x <= m_layout.titleBtnX2 &&
+                       mousePos.y >= m_layout.titleBtnY1 && mousePos.y <= m_layout.titleBtnY2);
   unsigned int titleBtnColor =
       isTitleHover ? 0xaaaaaa : 0x666666; // ホバー時は少し明るく
 
-  DrawBox(titleBtnX1, titleBtnY1, titleBtnX2, titleBtnY2, titleBtnColor, true);
-  DrawBox(titleBtnX1, titleBtnY1, titleBtnX2, titleBtnY2, 0xffffff,
+  DrawBox(m_layout.titleBtnX1, m_layout.titleBtnY1, m_layout.titleBtnX2, m_layout.titleBtnY2, titleBtnColor, true);
+  DrawBox(m_layout.titleBtnX1, m_layout.titleBtnY1, m_layout.titleBtnX2, m_layout.titleBtnY2, 0xffffff,
           false); // 枠線
   int titleTextWidth = GetDrawStringWidthToHandle("タイトルに戻る", -1,
                                                   m_japaneseButtonFontHandle);
-  DrawFormatStringToHandle(titleBtnX1 + (btnW - titleTextWidth) * 0.5f,
-                           titleBtnY1 + (btnH - 36) * 0.5f, 0xffffff,
+  int titleTextHeight = (int)(36 * Game::GetUIScale());
+
+  DrawFormatStringToHandle(m_layout.titleBtnX1 + (m_layout.btnW - titleTextWidth) / 2,
+                           m_layout.titleBtnY1 + (m_layout.btnH - titleTextHeight) / 2, 0xffffff,
                            m_japaneseButtonFontHandle, "タイトルに戻る");
 
   // リトライボタン
-  int retryBtnX1 = centerX + btnSpacing * 0.5f;
-  int retryBtnY1 = btnY;
-  int retryBtnX2 = centerX + btnW + btnSpacing * 0.5f;
-  int retryBtnY2 = btnY + btnH;
-
   // ホバー判定
-  bool isRetryHover = (mousePos.x >= retryBtnX1 && mousePos.x <= retryBtnX2 &&
-                       mousePos.y >= retryBtnY1 && mousePos.y <= retryBtnY2);
+  bool isRetryHover = (mousePos.x >= m_layout.retryBtnX1 && mousePos.x <= m_layout.retryBtnX2 &&
+                       mousePos.y >= m_layout.retryBtnY1 && mousePos.y <= m_layout.retryBtnY2);
   unsigned int retryBtnColor = isRetryHover ? 0xaaaaaa : 0x666666;
 
-  DrawBox(retryBtnX1, retryBtnY1, retryBtnX2, retryBtnY2, retryBtnColor, true);
-  DrawBox(retryBtnX1, retryBtnY1, retryBtnX2, retryBtnY2, 0xffffff,
+  DrawBox(m_layout.retryBtnX1, m_layout.retryBtnY1, m_layout.retryBtnX2, m_layout.retryBtnY2, retryBtnColor, true);
+  DrawBox(m_layout.retryBtnX1, m_layout.retryBtnY1, m_layout.retryBtnX2, m_layout.retryBtnY2, 0xffffff,
           false); // 枠線
   int retryTextWidth =
       GetDrawStringWidthToHandle("リトライ", -1, m_japaneseButtonFontHandle);
-  DrawFormatStringToHandle(retryBtnX1 + (btnW - retryTextWidth) * 0.5f,
-                           retryBtnY1 + (btnH - 36) * 0.5f, 0xffffff,
+  int retryTextHeight = (int)(36 * Game::GetUIScale());
+
+  DrawFormatStringToHandle(m_layout.retryBtnX1 + (m_layout.btnW - retryTextWidth) / 2,
+                           m_layout.retryBtnY1 + (m_layout.btnH - retryTextHeight) / 2, 0xffffff,
                            m_japaneseButtonFontHandle, "リトライ");
+}
+
+void SceneResult::UpdateLayout() {
+  int screenW = Game::GetScreenWidth();
+  int screenH = Game::GetScreenHeight();
+  float scale = Game::GetUIScale();
+
+  // Draw Game Clear Image
+  m_layout.imageDrawWidth = (int)(800 * scale);
+  m_layout.imageDrawHeight = (int)(200 * scale);
+  m_layout.imageDrawX = (screenW - m_layout.imageDrawWidth) / 2;
+  m_layout.imageDrawY = (int)(50 * scale);
+
+  // Result BG
+  m_layout.resBgW = (int)(700 * scale);
+  m_layout.resBgH = (int)(240 * scale);
+  m_layout.resBgX = (screenW - m_layout.resBgW) / 2;
+  m_layout.resBgY = (int)(280 * scale);
+
+  // Text
+  m_layout.textLabelX = m_layout.resBgX + (int)(100 * scale);
+  m_layout.textValueX = m_layout.resBgX + (int)(450 * scale);
+  m_layout.textBaseY = m_layout.resBgY + (int)(40 * scale);
+  m_layout.textIntervalHigh = (int)(70 * scale);
+
+  // High Score
+  // Calculated based on previous layout accumulation logic + interval
+  // 3 text items * 70 (actually last interval was 100 in original) 
+  // Let's stick to consistent intervals or replicate original logic
+  // Original: y+=70, y+=70, y+=100 => total +240 from base.
+  m_layout.highScoreY = m_layout.textBaseY + (int)((70 + 70 + 100 + 20) * scale);
+  
+  // Buttons
+  int bottomMargin = (int)(150 * scale);
+  int btnY = screenH - bottomMargin;
+  
+  m_layout.btnW = (int)(270 * scale);
+  m_layout.btnH = (int)(70 * scale);
+  int btnSpacing = (int)(60 * scale);
+  int centerX = screenW / 2;
+  
+  // Title Button
+  m_layout.titleBtnX1 = centerX - m_layout.btnW - btnSpacing / 2;
+  m_layout.titleBtnY1 = btnY;
+  m_layout.titleBtnX2 = centerX - btnSpacing / 2;
+  m_layout.titleBtnY2 = btnY + m_layout.btnH;
+  
+  // Retry Button
+  m_layout.retryBtnX1 = centerX + btnSpacing / 2;
+  m_layout.retryBtnY1 = btnY;
+  m_layout.retryBtnX2 = centerX + m_layout.btnW + btnSpacing / 2;
+  m_layout.retryBtnY2 = btnY + m_layout.btnH;
 }

@@ -45,5 +45,28 @@ private:
     int m_currentImageIndex;         // 現在表示中の画像インデックス（0:通常, 1:乱れ2, 2:乱れ3）
     int m_imageChangeTimer;          // 画像切り替えタイマー
     int m_imageChangeInterval;       // 画像切り替え間隔（フレーム数）
+
+    struct GameOverLayout {
+        // 画像
+        int imageDrawX, imageDrawY, imageDrawWidth, imageDrawHeight;
+
+        // リザルト背景
+        int resBgX, resBgY, resBgW, resBgH;
+
+        // テキスト領域
+        int textLabelX, textValueX, textBaseY;
+
+        // ボタン
+        int titleBtnX1, titleBtnY1, titleBtnX2, titleBtnY2;
+        int retryBtnX1, retryBtnY1, retryBtnX2, retryBtnY2;
+        int btnW, btnH;
+    };
+
+    GameOverLayout m_layout;
+
+    /// <summary>
+    /// 画面サイズに合わせてレイアウトを計算する
+    /// </summary>
+    void UpdateLayout();
 };
 

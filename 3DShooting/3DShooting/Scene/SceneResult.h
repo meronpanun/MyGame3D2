@@ -32,6 +32,33 @@ private:
     float m_scrollY;                 // 背景のスクロールY座標
 
 	// BGM管理
+	// BGM管理
     bool m_isBGMStarted;             // BGM再生済みフラグ
+
+    struct ResultLayout {
+        // 画像
+        int imageDrawX, imageDrawY, imageDrawWidth, imageDrawHeight;
+
+        // リザルト背景
+        int resBgX, resBgY, resBgW, resBgH;
+
+        // テキスト
+        int textLabelX, textValueX, textBaseY, textIntervalHigh;
+
+        // ハイスコア位置
+        int highScoreY;
+
+        // ボタン
+        int titleBtnX1, titleBtnY1, titleBtnX2, titleBtnY2;
+        int retryBtnX1, retryBtnY1, retryBtnX2, retryBtnY2;
+        int btnW, btnH;
+    };
+
+    ResultLayout m_layout;
+
+    /// <summary>
+    /// 画面サイズに合わせてレイアウトを計算する
+    /// </summary>
+    void UpdateLayout();
 };
 
