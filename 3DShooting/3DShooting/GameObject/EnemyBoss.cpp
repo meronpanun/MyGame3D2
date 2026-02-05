@@ -369,36 +369,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
     if (m_hp <= 0.0f)
     {
-        if (!m_isDeadAnimPlaying)
-        {
-            ChangeAnimation(AnimState::Dead, false);
-            m_isDeadAnimPlaying = true;
-            m_animTime = 0.0f;
-            m_isAlive = true;
-        }
-
-        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-        {
-            m_animTime += 1.0f * Game::GetTimeScale();
-            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
-        }
-
-        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kDeadAnimName);
-        if (m_animTime >= currentAnimTotalTime)
-        {
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-            {
-                MV1DetachAnim(m_modelHandle, 0);
-                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
-            }
-            if (m_onDeathCallback)
-            {
-                m_onDeathCallback(m_pos);
-                m_onDeathCallback = nullptr;
-            }
-            m_isAlive = false;
-            SetActive(false);
-        }
+        UpdateDeath(collisionData);
         return;
     }
 
@@ -788,6 +759,8 @@ void EnemyBoss::Draw()
 
 void EnemyBoss::TakeDamage(float damage, AttackType type)
 {
+    if (m_isDeadAnimPlaying) return;
+
     EnemyBase::TakeDamage(damage, type);
 
     // UIへのスコア加算などの演出
@@ -804,6 +777,8 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
 
 void EnemyBoss::TakeTackleDamage(float damage)
 {
+    if (m_isDeadAnimPlaying) return;
+
     EnemyBase::TakeTackleDamage(damage);
 }
 
@@ -849,19 +824,51 @@ void EnemyBoss::DrawCollisionDebug() const
     // 攻撃判定
     if (m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
     {
-        DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0x0000ff);
+        DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0xff00ff); // マゼンタ
     }
 
-    // 遠距離攻撃有効範囲
-    DebugUtil::DrawSphere(m_pos, EnemyBossConstants::kLongRangeAttackMinDist, 32, 0xff00ff);
-
-#ifdef _DEBUG
-    if (m_shouldDrawParryCollider)
+    // パリィ判定
+    if (s_drawCollision && m_shouldDrawParryCollider)
     {
-        DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0x00ffff);
+        DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0xffff00); // 黄色 (パリィ)
     }
-#endif
 }
+
+// 死亡時の更新処理
+void EnemyBoss::UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision)
+{
+    if (!m_isDeadAnimPlaying)
+    {
+        ChangeAnimation(AnimState::Dead, false);
+        m_isDeadAnimPlaying = true;
+        m_animTime = 0.0f; // アニメーション時間をリセット
+        m_isAlive = true;  // 死亡アニメーション中はtrueのまま
+    }
+
+    // 死亡アニメーション中もアニメーション時間を更新
+    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+    {
+        m_animTime += 1.0f * Game::GetTimeScale();
+        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+    }
+
+    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kDeadAnimName);
+    if (m_animTime >= currentAnimTotalTime)
+    {
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+        {
+            MV1DetachAnim(m_modelHandle, 0);
+            m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
+        }
+        if (m_onDeathCallback)
+        {
+            m_onDeathCallback(m_pos);
+            m_onDeathCallback = nullptr; // 一度だけ呼び出す
+        }
+        m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+    }
+}
+
 
 bool EnemyBoss::CanAttackPlayer(const Player& player)
 {
@@ -870,8 +877,11 @@ bool EnemyBoss::CanAttackPlayer(const Player& player)
     return m_pAttackRangeCollider->IsIntersects(playerCol.get());
 }
 
+// どこに当たったのか判定する
 EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
+    if (m_isDeadAnimPlaying) return HitPart::None;
+
     HitPart part = HitPart::None;
     float minDistSq = FLT_MAX;
     VECTOR hitPos = VGet(0, 0, 0);

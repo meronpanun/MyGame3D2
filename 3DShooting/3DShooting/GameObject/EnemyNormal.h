@@ -105,6 +105,8 @@ private:
     /// <returns>攻撃可能ならtrue</returns>
     bool CanAttackPlayer(const Player& player);
 
+    void UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData);
+
 private:
     VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
 

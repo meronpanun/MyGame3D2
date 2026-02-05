@@ -168,6 +168,8 @@ private:
     void UpdateState(const EnemyUpdateContext& context);
     void UpdateCollision(const EnemyUpdateContext& context);
 
+    void UpdateDeath();
+
 private:
     VECTOR m_headPosOffset;              // ヘッドショット判定用オフセット座標
     VECTOR m_acidBulletSpawnOffset;      // 酸を吐く場所のオフセット

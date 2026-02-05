@@ -101,6 +101,7 @@ void EnemyRunner::Init()
 {
     m_attackCooldownMax = EnemyRunnerConstants::kAttackCooldownMax;
     m_isAlive = true;
+    m_isDeadAnimPlaying = false;
     m_isItemDropped = false;
     m_lastHitPart = HitPart::None;
     m_hitDisplayTimer = 0;
@@ -237,48 +238,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
 
     if (m_hp <= 0.0f)
     {
-        if (!m_isDeadAnimPlaying)
-        {
-            // スコア加算処理はTakeDamageで行うのでここでは不要
-            ChangeAnimation(AnimState::Dead, false);
-            m_isDeadAnimPlaying = true;
-            m_animTime = 0.0f; // アニメーション時間をリセット
-            m_isAlive = true;  // 死亡アニメーション中はtrueのまま
-        }
-
-        // 死亡アニメーション中もアニメーション時間を更新
-        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-        {
-            if (m_shouldUpdateAI)
-            {
-                m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
-                m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
-            }
-        }
-
-        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyRunnerConstants::kDeadAnimName);
-        if (m_animTime >= currentAnimTotalTime)
-        {
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-            {
-                MV1DetachAnim(m_modelHandle, 0);
-                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
-            }
-            // アイテムドロップと死亡コールバックを呼び出し
-            if (!m_isItemDropped && m_onDropItem)
-            {
-                m_onDropItem(m_pos);
-                m_onDropItem = nullptr;
-                m_isItemDropped = true;
-            }
-            if (m_onDeathCallback)
-            {
-                m_onDeathCallback(m_pos);
-                m_onDeathCallback = nullptr; // 一度だけ呼び出す
-            }
-            m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
-            SetActive(false);  // プールに戻す
-        }
+        UpdateDeath(collisionData);
         return;
     }
 
@@ -696,6 +656,8 @@ void EnemyRunner::DrawCollisionDebug() const
 
 EnemyBase::HitPart EnemyRunner::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
+    if (m_isDeadAnimPlaying) return HitPart::None;
+
     VECTOR hitPosHead, hitPosBody;
     float hitDistSqHead = FLT_MAX;
     float hitDistSqBody = FLT_MAX;
@@ -753,9 +715,11 @@ void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
-
+// ダメージ処理
 void EnemyRunner::TakeDamage(float damage, AttackType type)
 {
+    if (m_isDeadAnimPlaying) return;
+
     EnemyBase::TakeDamage(damage, type);
     // HP減算・死亡判定は基底クラスで行う
     if (m_hp <= 0.0f) // 死亡時一度だけ
@@ -773,10 +737,59 @@ void EnemyRunner::TakeDamage(float damage, AttackType type)
 
 void EnemyRunner::TakeTackleDamage(float damage)
 {
+    if (m_isDeadAnimPlaying) return;
+
     EnemyBase::TakeTackleDamage(damage);
 }
 
 std::shared_ptr<CapsuleCollider> EnemyRunner::GetBodyCollider() const
 {
     return m_pBodyCollider;
+}
+
+// 死亡時の更新処理
+void EnemyRunner::UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData)
+{
+    if (!m_isDeadAnimPlaying)
+    {
+        // スコア加算処理はTakeDamageで行うのでここでは不要
+        ChangeAnimation(AnimState::Dead, false);
+        m_isDeadAnimPlaying = true;
+        m_animTime = 0.0f; // アニメーション時間をリセット
+        m_isAlive = true;  // 死亡アニメーション中はtrueのまま
+    }
+
+    // 死亡アニメーション中もアニメーション時間を更新
+    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+    {
+        if (m_shouldUpdateAI)
+        {
+            m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+    }
+
+    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyRunnerConstants::kDeadAnimName);
+    if (m_animTime >= currentAnimTotalTime)
+    {
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+        {
+            MV1DetachAnim(m_modelHandle, 0);
+            m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
+        }
+        // アイテムドロップと死亡コールバックを呼び出し
+        if (!m_isItemDropped && m_onDropItem)
+        {
+            m_onDropItem(m_pos);
+            m_onDropItem = nullptr;
+            m_isItemDropped = true;
+        }
+        if (m_onDeathCallback)
+        {
+            m_onDeathCallback(m_pos);
+            m_onDeathCallback = nullptr; // 一度だけ呼び出す
+        }
+        m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+        SetActive(false);  // プールに戻す
+    }
 }

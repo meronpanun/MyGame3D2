@@ -545,43 +545,7 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext& context)
 
     if (m_hp <= 0.0f)
     {
-        if (!m_isDeadAnimPlaying)
-        {
-            ChangeAnimation(AnimState::Dead, false);
-            m_isDeadAnimPlaying = true;
-            m_animTime = 0.0f; // アニメーション時間をリセット
-            m_isAlive = true;  // 死亡アニメーション中はtrueのまま
-        }
-
-        // 死亡アニメーション中もアニメーション時間を更新
-        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-        {
-            m_animTime += 1.0f * Game::GetTimeScale();
-            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
-        }
-
-        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kDeadAnimName);
-        if (m_animTime >= currentAnimTotalTime)
-        {
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
-            {
-                MV1DetachAnim(m_modelHandle, 0);
-                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
-            }
-            // アイテムドロップと死亡コールバックを呼び出し
-            if (!m_isItemDropped && m_onDropItem)
-            {
-                m_onDropItem(m_pos);
-                m_onDropItem = nullptr;
-                m_isItemDropped = true;
-            }
-            if (m_onDeathCallback)
-            {
-                m_onDeathCallback(m_pos);
-                m_onDeathCallback = nullptr; // 一度だけ呼び出す
-            }
-            m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
-        }
+        UpdateDeath();
         // 死亡アニメーション中は、敵のモデル更新や行動ロジックはスキップ
         return;
     }
@@ -985,4 +949,46 @@ void EnemyAcid::AcidBall::Update(float timeScale)
     }
 
     if (pos.y < 0.0f) active = false; // 地面で消滅
+}
+
+// 死亡時の更新処理
+void EnemyAcid::UpdateDeath()
+{
+    if (!m_isDeadAnimPlaying)
+    {
+        ChangeAnimation(AnimState::Dead, false);
+        m_isDeadAnimPlaying = true;
+        m_animTime = 0.0f; // アニメーション時間をリセット
+        m_isAlive = true;  // 死亡アニメーション中はtrueのまま
+    }
+
+    // 死亡アニメーション中もアニメーション時間を更新
+    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+    {
+        m_animTime += 1.0f * Game::GetTimeScale();
+        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+    }
+
+    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kDeadAnimName);
+    if (m_animTime >= currentAnimTotalTime)
+    {
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+        {
+            MV1DetachAnim(m_modelHandle, 0);
+            m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
+        }
+        // アイテムドロップと死亡コールバックを呼び出し
+        if (!m_isItemDropped && m_onDropItem)
+        {
+            m_onDropItem(m_pos);
+            m_onDropItem = nullptr;
+            m_isItemDropped = true;
+        }
+        if (m_onDeathCallback)
+        {
+            m_onDeathCallback(m_pos);
+            m_onDeathCallback = nullptr; // 一度だけ呼び出す
+        }
+        m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+    }
 }

@@ -91,6 +91,8 @@ private:
     /// <returns>攻撃可能ならtrue</returns>
     bool CanAttackPlayer(const Player& player, float checkRadius = -1.0f);
 
+    void UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData);
+
 private:
     VECTOR m_headPosOffset; // ヘッドショット判定用座標
 
@@ -122,6 +124,7 @@ private:
     // 回避挙動用
     float m_evadeSwitchTimer; // 回避方向切り替えタイマー
     bool m_isEvadingRight;    // 現在右に避けているか
+
 
     static int s_modelHandle; // 共有モデルハンドル
 };

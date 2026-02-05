@@ -154,4 +154,7 @@ private:
     VECTOR m_debugParryCapA = { 0,0,0 };    // デバッグ用パリィカプセルのA点
     VECTOR m_debugParryCapB = { 0,0,0 };    // デバッグ用パリィカプセルのB点
     float m_debugParryRadius = 0.0f;        // デバッグ用パリィカプセルの半径
+
+    // リファクタリング用メソッド
+    void UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision);
 };
