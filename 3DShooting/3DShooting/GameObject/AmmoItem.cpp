@@ -18,18 +18,23 @@ namespace
 	constexpr float kDropGravity   = 0.5f;  // ドロップ時の重力加速度
 	constexpr float kGroundY       = 0.0f;  // 地面のY座標
 	constexpr float kRotateSpeed   = 0.05f; // 回転速度
+
+	// 接地判定と衝突解決
+	constexpr float kItemCollisionHeight = 10.0f;
+	constexpr float kItemCollisionRadius = 60.0f; // 半径を大きくして埋まりを防ぐ
+	constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
 }
 
-AmmoItem::AmmoItem() :
-	m_modelHandle(-1),
-	m_radius(kInitialRadius),
-	m_pos(VGet(0.0f, 0.0f, 0.0f)),
-	m_collider(m_pos, m_radius),
-	m_isHit(false),
-	m_isUsed(false),
-	m_isDropping(true),
-	m_velocityY(0.0f),
-	m_rotY(0.0f)
+AmmoItem::AmmoItem()
+	: m_modelHandle(-1)
+	, m_radius(kInitialRadius)
+	, m_pos(VGet(0.0f, 0.0f, 0.0f))
+	, m_collider(m_pos, m_radius)
+	, m_isHit(false)
+	, m_isUsed(false)
+	, m_isDropping(true)
+	, m_velocityY(0.0f)
+	, m_rotY(0.0f)
 {
 	// モデルの複製
 	m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -69,13 +74,6 @@ void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionDat
     // 重力適用
     m_velocityY -= kDropGravity;
     m_pos.y += m_velocityY;
-
-    // 接地判定と衝突解決
-    // アイテム用の簡易的なサイズとオフセットを使用
-    // アイテム用の簡易的なサイズとオフセットを使用
-    constexpr float kItemCollisionHeight = 10.0f;
-    constexpr float kItemCollisionRadius = 60.0f; // 半径を大きくして埋まりを防ぐ
-    constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
     
     CollisionResult result = Collision::CheckStageCollision(m_pos, kItemCollisionHeight, kItemCollisionRadius, kItemCollisionYOffset, collisionData);
 

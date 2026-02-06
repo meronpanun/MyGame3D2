@@ -104,6 +104,12 @@ public:
     void CancelRunMode() { m_isRunMode = false; }
     bool IsRunMode() const { return m_isRunMode; }
 
+    /// <summary>
+    /// ノックバック力を適用
+    /// </summary>
+    /// <param name="velocity">ノックバック速度ベクトル</param>
+    void ApplyKnockback(const VECTOR& velocity);
+
     static constexpr float kGroundY = 0.0f;
 
 private:
@@ -126,6 +132,7 @@ private:
     VECTOR m_scale;
     VECTOR m_jumpMoveVelocity;
     VECTOR m_airSideControlVelocity; // 空中での左右操作速度
+    VECTOR m_knockbackVelocity;      // ノックバック速度
 
     float m_moveSpeed;
     float m_runSpeed;

@@ -34,7 +34,7 @@ namespace PlayerMovementConstants
 
     // ダッシュ着地時のシェイク（画面全体の振動）
     constexpr float kRunLandingShakeIntensity = 1.0f; // ベースシェイク強度
-    constexpr float kRunLandingShakeVelocityFactor = 0.2f;                                   // 速度によるシェイク加算係数
+    constexpr float kRunLandingShakeVelocityFactor = 0.2f; // 速度によるシェイク加算係数
     constexpr int kRunLandingShakeDuration = 5; // シェイク持続時間（フレーム）
 
     // 空中制御
@@ -44,14 +44,26 @@ namespace PlayerMovementConstants
 }
 
 PlayerMovement::PlayerMovement()
-    : m_modelPos(VGet(0, 0, 0)), m_scale(VGet(1, 1, 1)), m_moveSpeed(0.0f),
-    m_runSpeed(0.0f), m_isMoving(false), m_isJumping(false),
-    m_wasJumping(false), m_isWasRunning(false), m_isGroundedOnStage(false),
-    m_isRunMode(false), m_isRunJumping(false), m_isJumpInertiaActive(false),
-    m_jumpVelocity(0.0f), m_jumpStartYaw(0.0f), m_jumpSpeedScalar(0.0f),
-    m_jumpMoveVelocity(VGet(0, 0, 0)),
-    m_airSideControlVelocity(VGet(0, 0, 0)),
-    m_pBodyCollider(std::make_shared<CapsuleCollider>()), m_currentSpeed(0.0f)
+    : m_modelPos(VGet(0, 0, 0))
+    , m_scale(VGet(1, 1, 1))
+    , m_moveSpeed(0.0f)
+    , m_runSpeed(0.0f)
+    , m_isMoving(false)
+    , m_isJumping(false)
+    , m_wasJumping(false)
+    , m_isWasRunning(false)
+    , m_isGroundedOnStage(false)
+    , m_isRunMode(false)
+    , m_isRunJumping(false)
+    , m_isJumpInertiaActive(false)
+    , m_jumpVelocity(0.0f)
+    , m_jumpStartYaw(0.0f)
+    , m_jumpSpeedScalar(0.0f)
+    , m_jumpMoveVelocity(VGet(0, 0, 0))
+    , m_airSideControlVelocity(VGet(0, 0, 0))
+    , m_knockbackVelocity(VGet(0, 0, 0))
+    , m_pBodyCollider(std::make_shared<CapsuleCollider>())
+    , m_currentSpeed(0.0f)
 {
 }
 
@@ -193,6 +205,17 @@ void PlayerMovement::UpdateNormalMode(
 
     float timeScale = Game::GetTimeScale();
 
+    // ノックバック処理
+    if (VSize(m_knockbackVelocity) > 0.0f)
+    {
+        m_modelPos = VAdd(m_modelPos, VScale(m_knockbackVelocity, timeScale));
+        m_knockbackVelocity = VScale(m_knockbackVelocity, 0.9f); // 減衰
+        if (VSize(m_knockbackVelocity) < 0.1f)
+        {
+            m_knockbackVelocity = VGet(0, 0, 0);
+        }
+    }
+
     if (!isDead)
     {
         if (m_isJumpInertiaActive)
@@ -286,6 +309,11 @@ void PlayerMovement::UpdateNormalMode(
         pCamera->SetHeadBobbingState(m_isMoving && isOnGround, m_isRunMode);
 
     ResolveCollisions(collisionData, pCamera, m_isMoving);
+}
+
+void PlayerMovement::ApplyKnockback(const VECTOR& velocity)
+{
+    m_knockbackVelocity = velocity;
 }
 
 VECTOR PlayerMovement::CalculateMoveDirection(Camera* pCamera,

@@ -3,7 +3,8 @@
 /// <summary>
 /// シーン基底クラス
 /// </summary>
-class SceneBase abstract {
+class SceneBase abstract
+{
 public:
   SceneBase() = default;
   virtual ~SceneBase() = default;

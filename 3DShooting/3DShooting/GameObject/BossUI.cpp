@@ -21,7 +21,10 @@ namespace
     constexpr float kAnimSpeed = 0.05f; // HPバーの追従速度
 } 
 
-BossUI::BossUI() : m_healthBarAnim(0.0f), m_fontHandle(-1), m_prevScale(1.0f)
+BossUI::BossUI()
+    : m_healthBarAnim(0.0f)
+    , m_fontHandle(-1)
+    , m_prevScale(1.0f)
 {
     ReloadFonts(1.0f);
 }
@@ -101,32 +104,26 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
   float animRate = m_healthBarAnim / maxHp;
 
   // 背景
-  DrawBox(barX, barY, barX + barW, barY + barH,
-          kColorHpBarBg, true);
+  DrawBox(barX, barY, barX + barW, barY + barH, kColorHpBarBg, true);
 
   // アニメーションバー（ダメージ演出用）
   if (m_healthBarAnim > hp) 
   {
     int animW = static_cast<int>(barW * animRate);
-    DrawBox(barX, barY, barX + animW, barY + barH,
-            kColorHpBarDamage, true);
+    DrawBox(barX, barY, barX + animW, barY + barH, kColorHpBarDamage, true);
   }
 
   // HPバー本体
   int hpW = static_cast<int>(barW * hpRate);
-  DrawBox(barX, barY, barX + hpW, barY + barH, kColorHpBarFill,
-          true);
+  DrawBox(barX, barY, barX + hpW, barY + barH, kColorHpBarFill, true);
 
   // 枠
-  DrawBox(barX, barY, barX + barW, barY + barH,
-          kColorHpBarBorder, false);
+  DrawBox(barX, barY, barX + barW, barY + barH, kColorHpBarBorder, false);
 
   // ボス名テキスト
   const char *bossName = "BOSS";
-  int textW = GetDrawStringWidthToHandle(
-      bossName, static_cast<int>(strlen(bossName)), m_fontHandle);
-  DrawStringToHandle((screenW - textW) / 2, static_cast<int>(kBossHpTextY * scale), bossName, kColorWhite,
-                     m_fontHandle);
+  int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_fontHandle);
+  DrawStringToHandle((screenW - textW) / 2, static_cast<int>(kBossHpTextY * scale), bossName, kColorWhite, m_fontHandle);
 }
 
 void BossUI::ReloadFonts(float scale) 
@@ -135,6 +132,5 @@ void BossUI::ReloadFonts(float scale)
   {
     DeleteFontToHandle(m_fontHandle);
   }
-  m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3,
-                                    DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }

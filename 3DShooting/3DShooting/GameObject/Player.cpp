@@ -121,23 +121,23 @@ namespace PlayerConstants
 }
 
 Player::Player()
-    : m_playerHitSEHandle(-1), m_tackleSEHandle(-1), m_recoverySEHandle(-1),
-    m_ammoItemSEHandle(-1), m_modelPos(VGet(0, 0, 0)), m_pEffect(nullptr),
-    m_pCamera(std::make_shared<Camera>()), m_pos(VGet(0, 0, 0)),
-    m_health(100.0f), m_healthBarAnim(100.0f), m_healthBarAnimTimer(0.0f),
-    m_hasShot(false), m_tackleFrame(0), m_tackleDir(VGet(0, 0, 0)),
-    m_isTackling(false), m_tackleCooldown(0), m_tackleId(0),
-    m_concentrationLineEffectHandle(-1), m_isLowHealth(false),
-    m_lowHealthBlinkTimer(0.0f), m_ammoTextFlashTimer(0.0f),
-    m_idleSwayTimer(0.0f), m_gunSwayOffset(VGet(0, 0, 0)),
-    m_gunSwayRotOffset(VGet(0, 0, 0)), m_isDead(false), m_deathTimer(0.0f),
-    m_pDirectionIndicator(nullptr), m_isLockingOn(false),
-    m_lockedOnEnemy(nullptr), m_isTargetAvailable(false),
-    m_isAimingAtEnemy(false), m_ignoreGuardInput(false),
-    m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false),
-    m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f),
-    m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f),
-    m_pAnimManager(nullptr), m_isTutorial(false)
+    : m_playerHitSEHandle(-1), m_tackleSEHandle(-1), m_recoverySEHandle(-1)
+    , m_ammoItemSEHandle(-1), m_modelPos(VGet(0, 0, 0)), m_pEffect(nullptr)
+    , m_pCamera(std::make_shared<Camera>()), m_pos(VGet(0, 0, 0))
+    , m_health(100.0f), m_healthBarAnim(100.0f), m_healthBarAnimTimer(0.0f)
+    , m_hasShot(false), m_tackleFrame(0), m_tackleDir(VGet(0, 0, 0))
+    , m_isTackling(false), m_tackleCooldown(0), m_tackleId(0)
+    , m_concentrationLineEffectHandle(-1), m_isLowHealth(false)
+    , m_lowHealthBlinkTimer(0.0f), m_ammoTextFlashTimer(0.0f)
+    , m_idleSwayTimer(0.0f), m_gunSwayOffset(VGet(0, 0, 0))
+    , m_gunSwayRotOffset(VGet(0, 0, 0)), m_isDead(false), m_deathTimer(0.0f)
+    , m_pDirectionIndicator(nullptr), m_isLockingOn(false)
+    , m_lockedOnEnemy(nullptr), m_isTargetAvailable(false)
+    , m_isAimingAtEnemy(false), m_ignoreGuardInput(false)
+    , m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false)
+    , m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f)
+    , m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f)
+    , m_pAnimManager(nullptr), m_isTutorial(false)
 {
     // SEの読み込み
     m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
@@ -477,20 +477,11 @@ void Player::DeathUpdate()
 // ダメージを受ける処理
 void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryable)
 {
-    if (m_isDead)
-    {
-        return;
-    }
+    if (m_isDead) return;
 
-    if (m_isTutorial)
-    {
-        damage *= 0.5f;
-    }
+    if (m_isTutorial) damage *= 0.5f;
 
-    if (m_isInvincible)
-    {
-        return;
-    }
+    if (m_isInvincible) return;
 
     // ダメージを受けたらダッシュ解除
     m_movement.CancelRunMode();
@@ -1066,9 +1057,17 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
         // タックル終了判定
         if (m_tackleFrame <= 0 || isBodyHit)
         {
-            if (isBodyHit && m_pCamera)
+            if (isBodyHit)
             {
-                m_pCamera->Shake(20.0f, 10);
+                if (m_pCamera)
+                {
+                    m_pCamera->Shake(20.0f, 10);
+                }
+
+                // ノックバック適用
+                // タックル方向の逆ベクトル方向に弾き飛ばす
+                VECTOR knockbackDir = VScale(m_tackleDir, -1.0f);
+                m_movement.ApplyKnockback(VScale(knockbackDir, 15.0f));
             }
 
             m_isTackling = false;

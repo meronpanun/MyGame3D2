@@ -6,20 +6,29 @@
 #include "Game.h"
 #include <cassert>
 
-namespace {
-constexpr int kButtonWidth = 220;       // ボタンの幅
-constexpr int kButtonHeight = 60;       // ボタンの高さ
-constexpr int kButtonSpacing = 40;      // ボタン間のスペース
-constexpr int kBgImageSize = 1024;      // 背景画像のサイズ
-constexpr float kScrollSpeed = 1.0f;    // 背景のスクロール速度
-constexpr int kImageChangeInterval = 3; // 画像切り替え間隔（フレーム数）
-} // namespace
+namespace
+{
+    constexpr int kButtonWidth = 220;       // ボタンの幅
+    constexpr int kButtonHeight = 60;       // ボタンの高さ
+    constexpr int kButtonSpacing = 40;      // ボタン間のスペース
+    constexpr int kBgImageSize = 1024;      // 背景画像のサイズ
+    constexpr float kScrollSpeed = 1.0f;    // 背景のスクロール速度
+    constexpr int kImageChangeInterval = 3; // 画像切り替え間隔（フレーム数）
+}
 
 SceneGameOver::SceneGameOver(int wave, int killCount, int score)
-    : m_wave(wave), m_killCount(killCount), m_score(score), m_bgmHandle(-1),
-      m_isBGMStarted(false), m_backgroundHandle(-1), m_scrollX(0.0f),
-      m_scrollY(0.0f), m_currentImageIndex(0), m_imageChangeTimer(0),
-      m_imageChangeInterval(kImageChangeInterval) {
+    : m_wave(wave)
+    , m_killCount(killCount)
+    , m_score(score)
+    , m_bgmHandle(-1)
+    , m_isBGMStarted(false)
+    , m_backgroundHandle(-1)
+    , m_scrollX(0.0f)
+    , m_scrollY(0.0f)
+    , m_currentImageIndex(0)
+    , m_imageChangeTimer(0)
+    , m_imageChangeInterval(kImageChangeInterval)
+{
   // BGMのロード
   m_bgmHandle = LoadSoundMem("data/sound/BGM/GameOverBGM.mp3");
   assert(m_bgmHandle != -1);
@@ -40,24 +49,20 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score)
 
   // フォントの作成
   float scale = Game::GetUIScale();
-  m_japaneseFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(20 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(20 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_japaneseFontHandle != -1);
-  m_arialBlackFontHandle = CreateFontToHandle(
-      "Arial Black", (int)(32 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_arialBlackFontHandle = CreateFontToHandle( "Arial Black", (int)(32 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_arialBlackFontHandle != -1);
-  m_arialBlackLargeFontHandle = CreateFontToHandle(
-      "Arial Black", (int)(64 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_arialBlackLargeFontHandle = CreateFontToHandle("Arial Black", (int)(64 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_arialBlackLargeFontHandle != -1);
-  m_japaneseLargeFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_japaneseLargeFontHandle != -1);
-  m_japaneseButtonFontHandle =
-      CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(24 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+  m_japaneseButtonFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(24 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
   assert(m_japaneseButtonFontHandle != -1);
 }
 
-SceneGameOver::~SceneGameOver() {
+SceneGameOver::~SceneGameOver()
+{
   // BGMの解放
   DeleteSoundMem(m_bgmHandle);
   DeleteSoundMem(m_returnSEHandle);
@@ -76,14 +81,15 @@ SceneGameOver::~SceneGameOver() {
   DeleteFontToHandle(m_japaneseButtonFontHandle);
 }
 
-void SceneGameOver::Init() {
+void SceneGameOver::Init() 
+{
   // マウスカーソルの表示/非表示を設定
   SetMouseDispFlag(true);
 
   // カウントアップ演出用スコア初期化
   ScoreManager::Instance().ResetDisplayScore();
   ScoreManager::Instance().SetTargetDisplayScore(
-      ScoreManager::Instance().GetTotalScore());
+  ScoreManager::Instance().GetTotalScore());
 
   m_isBGMStarted = false;
 
