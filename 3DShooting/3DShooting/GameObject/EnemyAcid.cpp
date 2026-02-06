@@ -61,7 +61,6 @@ EnemyAcid::EnemyAcid()
     , m_acidBulletSpawnOffset({ 0.0f, 0.0f, 0.0f })
     , m_backAnimCount(0)
     , m_isItemDropped(false)
-    , m_chaseSpeed(0.0f)
     , m_isStunned(false)
     , m_stunTimer(0)
 {
@@ -115,21 +114,9 @@ void EnemyAcid::Init()
     m_isDeadAnimPlaying = false;
 
     // CSVからAcidEnemyのTransform情報を取得
-    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-    for (const auto& data : dataList)
-    {
-        if (data.name == "AcidEnemy")
-        {
-            MV1SetRotationXYZ(m_modelHandle, data.rot);
-            MV1SetScale(m_modelHandle, data.scale);
-            m_attackPower = data.attack;
-            m_hp = data.hp;
-            m_chaseSpeed = data.chaseSpeed;
-            break;
-        }
-    }
+    LoadTransformData("AcidEnemy");
 
-    // ここで一度「絶対にRunでない値」にリセット
+     // ここで一度「絶対にRunでない値」にリセット
     // 初期アニメーションを強制的に再生させるため
     m_currentAnimState = AnimState::Dead;
 
@@ -554,47 +541,19 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext& context)
 
     // プレイヤーの方向を向く
     VECTOR playerPos = player.GetPos();
+    // 補間速度(0.05f で滑らかにする)
+    float rotSpeed = 0.05f * Game::GetTimeScale();
+    RotateTowards(playerPos, rotSpeed);
+
+    // プレイヤーまでの距離を計算
     VECTOR toPlayer = VSub(playerPos, m_pos);
-    toPlayer.y = 0.0f;
-    float disToPlayer = sqrtf(VSquareSize(toPlayer));
-    float yaw = 0.0f;
-    if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
-    {
-        yaw = atan2f(toPlayer.x, toPlayer.z);
-        yaw += DX_PI_F;
-    }
-    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
+    toPlayer.y = 0.0f; // 水平距離
+    float disToPlayer = VSize(toPlayer);
 
     // プレイヤーとの物理衝突判定
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
-    if (m_pBodyCollider->IsIntersects(playerBodyCollider.get()))
-    {
-        VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
-        VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
-        VECTOR diff = VSub(enemyCenter, playerCenter);
-
-        float distSq = VDot(diff, diff);
-        float minDist = EnemyAcidConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
-
-        // 0.0001fはゼロ除算回避のための閾値
-        if (distSq < minDist * minDist && distSq > 0.0001f)
-        {
-            float dist = std::sqrt(distSq);
-            float pushBack = minDist - dist;
-
-            if (dist > 0)
-            {
-                VECTOR pushDir = VSub(enemyCenter, playerCenter);
-                pushDir.y = 0.0f;
-                float horizontalDistSq = VDot(pushDir, pushDir);
-                if (horizontalDistSq > 0.0001f)
-                {
-                    pushDir = VNorm(pushDir);
-                    m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
-                }
-            }
-        }
-    }
+    float minDist = EnemyAcidConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
+    ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
 
     // プレイヤーが攻撃範囲内か
     bool inAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
@@ -725,10 +684,7 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext& context)
 void EnemyAcid::OnParried()
 {
     // 既に怯んでいるか、死んでいる場合は何もしない
-    if (m_isStunned || m_hp <= 0.0f)
-    {
-        return;
-    }
+    if (m_isStunned || m_hp <= 0.0f) return;
 
     m_isStunned = true;
     m_stunTimer = EnemyAcidConstants::kStunDuration; // 怯み時間（アニメーション50F + 硬直30F）
@@ -749,32 +705,12 @@ void EnemyAcid::Draw()
         return;
     }
 
-    if (m_hp <= 0.0f && m_animationManager.IsAnimationFinished(m_modelHandle))
-    {
-        // 死亡アニメーションが完全に終了したらモデルを描画しない
-        return;
-    }
+    // 死亡アニメーションが完全に終了したらモデルを描画しない
+    if (m_hp <= 0.0f && m_animationManager.IsAnimationFinished(m_modelHandle)) return;
+       
     // 視錐台カリング (描画最適化)
-    // CheckCameraViewClip系の関数が環境によって不安定なため、
-    // 手動で「カメラ前方への内積チェック(簡易コーン判定)」を行う
-    VECTOR camPos = GetCameraPosition();
-    VECTOR camTarget = GetCameraTarget();
-    VECTOR camDir = VNorm(VSub(camTarget, camPos));
-    VECTOR toEnemy = VSub(m_pos, camPos);
-    float distSq = VSquareSize(toEnemy);
-
-    // 1. 距離チェック (Farクリップ + マージン)
-    if (distSq > 16000.0f * 16000.0f) return;
-
-    // 2. 画角チェック (内積)
-    // 近距離(300.0f以内)なら無条件で描画
-    if (distSq > 300.0f * 300.0f)
-    {
-        VECTOR dirToEnemy = VNorm(toEnemy);
-        float dot = VDot(camDir, dirToEnemy);
-        // 視野角90度に対し余裕を持って判定
-        if (dot < 0.4f) return;
-    }
+    // 距離チェック: 16000^2, 近距離: 300^2, 内積閾値: 0.4
+    if (!ShouldDraw(16000.0f * 16000.0f, 300.0f * 300.0f, 0.4f)) return;
 
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
@@ -863,20 +799,6 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     outHtPos = VGet(0, 0, 0);
     outHtDistSq = FLT_MAX;
     return HitPart::None;
-}
-
-// 部位ごとのダメージ計算
-float EnemyAcid::CalcDamage(float bulletDamage, HitPart part) const
-{
-    if (part == HitPart::Head)
-    {
-        return bulletDamage * 2.0f; // ヘッドショットは2倍ダメージ
-    }
-    else if (part == HitPart::Body)
-    {
-        return bulletDamage; // ボディショットは通常のダメージ
-    }
-    return 0.0f;
 }
 
 // アイテムドロップ時のコールバック関数

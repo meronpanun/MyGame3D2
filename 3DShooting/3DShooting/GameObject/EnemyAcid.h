@@ -59,14 +59,6 @@ private:
     HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const override;
 
     /// <summary>
-    /// ダメージを計算する
-    /// </summary>
-    /// <param name="bulletDamage">弾のダメージ量</param>
-    /// <param name="part">当たった部位</param>
-    /// <returns>計算されたダメージ</returns>
-    float CalcDamage(float bulletDamage, HitPart part) const override;
-
-    /// <summary>
     /// タックルダメージを受けたかどうかのフラグをリセットする
     /// </summary>
     void ResetTackleHitFlag() override { m_isTackleHit = false; }
@@ -95,9 +87,6 @@ private:
     /// </summary>
     /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
-
-
-
 
     /// <summary>
     /// ボディコライダーを取得する
@@ -187,7 +176,6 @@ private:
     bool m_isNextAttackNormal; // 次の攻撃が通常弾かどうか
 
     float m_animTime;   // 現在のアニメーション再生時間
-    float m_chaseSpeed; // 追跡速度
 
     bool m_hasAttacked;       // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ

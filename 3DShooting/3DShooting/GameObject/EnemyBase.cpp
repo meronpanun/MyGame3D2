@@ -1,5 +1,7 @@
 ﻿#include "EnemyBase.h"
 #include "Bullet.h"
+#include "TransformDataLoader.h"
+#include "CapsuleCollider.h"
 #include "Collider.h"
 #include "Collision.h"
 #include "Effect.h"
@@ -15,13 +17,13 @@ namespace EnemyConstants
     constexpr float kDefaultCooldownMax = 60;      // 攻撃クールダウンの最大値
     constexpr float kDefaultAttackPower = 10.0f;   // 攻撃力
 
-    // Collision constants
+	// 物理関連定数
     constexpr float kCapsuleHeight = 100.0f;
     constexpr float kCapsuleRadius = 30.0f;
     constexpr float kColliderYOffset = 60.0f;
     constexpr float kGravity = 0.35f;
 
-    // AI Throttling constants
+	// 描画最適化関連定数
     constexpr float kThrottlingLongRangeSq = 800.0f * 800.0f;
     constexpr float kThrottlingMidRangeSq = 400.0f * 400.0f;
     constexpr float kThrottlingViewCheckDistSq = 300.0f * 300.0f;
@@ -30,12 +32,12 @@ namespace EnemyConstants
     constexpr int kUpdateIntervalMid = 2;
     constexpr int kUpdateIntervalDefault = 1;
 
-    // Parabolic velocity constants
+	// 放物線運動関連定数
     constexpr float kParabolicMinTime = 20.0f;
     constexpr float kParabolicTimeFactor = 2.0f;
     constexpr float kParabolicGravityFactor = 0.5f;
 
-    // Debug constants
+	// デバッグ表示関連定数
     constexpr int kDebugDamageDisplayTimer = 120;
     constexpr int kDebugBoxPaddingX = 20;
     constexpr int kDebugBoxPaddingY = 10;
@@ -71,6 +73,7 @@ EnemyBase::EnemyBase()
     , m_aiUpdateInterval(1)
     , m_isSimpleMode(false)
     , m_shouldUpdateAI(true)
+    , m_chaseSpeed(0.0f)
 {
 }
 
@@ -271,7 +274,6 @@ bool EnemyBase::IsTargetVisible(
             if (t < dist) return false; // 遮蔽物あり
         }
     }
-
     return true;
 }
 
@@ -377,4 +379,133 @@ void EnemyBase::DrawDebugDamage()
         // テキスト描画 (赤)
         DrawString(boxX + EnemyConstants::kDebugBoxPaddingX, boxY + EnemyConstants::kDebugBoxPaddingY, text, 0xFF0000);
     }
+}
+
+// Transformデータをロードする
+bool EnemyBase::LoadTransformData(const std::string& enemyName)
+{
+    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
+    for (const auto& data : dataList)
+    {
+        if (data.name == enemyName)
+        {
+            MV1SetRotationXYZ(m_modelHandle, data.rot);
+            MV1SetScale(m_modelHandle, data.scale);
+            m_attackPower = data.attack;
+            m_hp = data.hp;
+            m_maxHp = data.hp;
+            m_chaseSpeed = data.chaseSpeed;
+            return true;
+        }
+    }
+    return false;
+}
+
+// ターゲットに向かって回転する
+void EnemyBase::RotateTowards(const VECTOR& targetPos, float rotationSpeed)
+{
+    VECTOR toTarget = VSub(targetPos, m_pos);
+    toTarget.y = 0.0f;
+    if (VSquareSize(toTarget) < 0.0001f) return;
+
+    float yaw = atan2f(toTarget.x, toTarget.z) + DX_PI_F;
+    float currentYaw = MV1GetRotationXYZ(m_modelHandle).y;
+
+    float diffYaw = yaw - currentYaw;
+    while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
+    while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
+
+    if (fabs(diffYaw) > rotationSpeed)
+    {
+        currentYaw += (diffYaw > 0 ? rotationSpeed : -rotationSpeed);
+    }
+    else
+    {
+        currentYaw = yaw;
+    }
+    MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, currentYaw, 0.0f));
+}
+
+// 描画すべきかどうかを判定
+bool EnemyBase::ShouldDraw(float drawDistSq, float nearDistSq, float dotThreshold) const
+{
+    VECTOR camPos = GetCameraPosition();
+    VECTOR camTarget = GetCameraTarget();
+    VECTOR toEnemy = VSub(m_pos, camPos);
+    float distSq = VSquareSize(toEnemy);
+
+    if (distSq > drawDistSq) return false;
+    if (distSq <= nearDistSq) return true;
+
+    VECTOR camDir = VNorm(VSub(camTarget, camPos));
+    VECTOR dirToEnemy = VNorm(toEnemy);
+    float dot = VDot(camDir, dirToEnemy);
+    return dot >= dotThreshold;
+}
+
+// プレイヤーとの衝突（押し出し）処理
+void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& playerCol, float radiusSum, float pushBackEpsilon)
+{
+    auto myCol = GetBodyCollider();
+    if (!myCol || !playerCol) return;
+
+    if (myCol->IsIntersects(playerCol.get()))
+    {
+        VECTOR enemyCenter = VScale(VAdd(myCol->GetSegmentA(), myCol->GetSegmentB()), 0.5f);
+        VECTOR playerCenter = VScale(VAdd(playerCol->GetSegmentA(), playerCol->GetSegmentB()), 0.5f);
+        VECTOR diff = VSub(enemyCenter, playerCenter);
+        float distSq = VDot(diff, diff);
+        float minDist = radiusSum;
+
+        if (distSq < minDist * minDist && distSq > pushBackEpsilon)
+        {
+            float dist = std::sqrt(distSq);
+            float pushBack = minDist - dist;
+            if (dist > 0)
+            {
+                VECTOR pushDir = VSub(enemyCenter, playerCenter);
+                pushDir.y = 0.0f;
+                // 水平成分がある場合のみ
+                if (VDot(pushDir, pushDir) > pushBackEpsilon)
+                {
+                    pushDir = VNorm(pushDir);
+                    m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
+                }
+            }
+        }
+    }
+}
+
+// 敵同士の衝突（押し出し）処理
+void EnemyBase::ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, float radius, float pushBackEpsilon)
+{
+    for (EnemyBase* other : targets)
+    {
+        if (!other || other == this) continue;
+
+        VECTOR otherPos = other->GetPos();
+        VECTOR diff = VSub(m_pos, otherPos);
+        diff.y = 0.0f;
+        float distSq = VDot(diff, diff);
+        float minDist = radius * 2.0f;
+
+        if (distSq < minDist * minDist && distSq > pushBackEpsilon)
+        {
+            float dist = std::sqrt(distSq);
+            float pushBack = minDist - dist;
+            if (dist > 0)
+            {
+                VECTOR pushDir = VNorm(diff);
+                m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
+            }
+        }
+    }
+}
+
+// 弾のダメージを計算する（デフォルト実装）
+float EnemyBase::CalcDamage(float bulletDamage, HitPart part) const
+{
+    if (part == HitPart::Head) return bulletDamage * 2.0f;
+    if (part == HitPart::Body) return bulletDamage;
+    return 0.0f;
 }

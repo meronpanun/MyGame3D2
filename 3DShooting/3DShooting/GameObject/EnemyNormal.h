@@ -52,14 +52,6 @@ private:
                          VECTOR& outHtPos, float& outHtDistSq) const override;
 
     /// <summary>
-    /// ダメージを計算する
-    /// </summary>
-    /// <param name="bulletDamage">弾のダメージ量</param>
-    /// <param name="part">当たった部位</param>
-    /// <returns>計算されたダメージ</returns>
-    float CalcDamage(float bulletDamage, HitPart part) const override;
-
-    /// <summary>
     /// タックルダメージを受ける処理
     /// </summary>
     void ResetTackleHitFlag() { m_isTackleHit = false; }
@@ -81,8 +73,6 @@ private:
     /// </summary>
     /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
-
-
 
     /// <summary>
     /// ボディコライダーを取得する
@@ -125,7 +115,6 @@ private:
     int m_damageTimer;         // ダメージ（怯み）タイマー
 
     float m_animTime;   // アニメーションの経過時間
-    float m_chaseSpeed; // 追跡速度
 
     bool m_isTackleHit;       // 1フレームで複数回ダメージを受けないためのフラグ
     bool m_isAttackHit;       // 攻撃がヒットしたかどうか

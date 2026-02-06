@@ -230,17 +230,44 @@ public:
 
 protected:
     /// <summary>
+    /// 弾によるダメージを適用する
+    /// </summary>
+    virtual void ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect);
+
+    /// <summary>
+    /// Transformデータをロードする
+    /// </summary>
+    bool LoadTransformData(const std::string& enemyName);
+
+    /// <summary>
+    /// ターゲットに向かって回転する
+    /// </summary>
+    void RotateTowards(const VECTOR& targetPos, float rotationSpeed);
+
+    /// <summary>
+    /// 描画すべきかどうかを判定（カリング）
+    /// </summary>
+    bool ShouldDraw(float drawDistSq, float nearDistSq, float dotThreshold) const;
+
+    /// <summary>
+    /// プレイヤーとの衝突（押し出し）処理
+    /// </summary>
+    void ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& playerCol, float radiusSum, float pushBackEpsilon);
+
+    /// <summary>
+    /// 敵同士の衝突（押し出し）処理
+    /// </summary>
+    void ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, float radius, float pushBackEpsilon);
+
+protected:
+    /// <summary>
     /// 弾のダメージを計算する
     /// </summary>
-    /// <param name="bulletDamage">弾のダメージ量</param>
-    /// <param name="part">当たった部位</param>
-    /// <returns>計算されたダメージ量</returns>
-    virtual float CalcDamage(float bulletDamage, HitPart part) const abstract;
+    virtual float CalcDamage(float bulletDamage, HitPart part) const;
 
     /// <summary>
     /// ステージとの当たり判定を更新する
     /// </summary>
-    /// <param name="collisionData">ステージの当たり判定データ</param>
     void UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData);
 
     /// <summary>
@@ -265,11 +292,6 @@ protected:
     /// </summary>
     int FindClosestHitBullet(const std::vector<Bullet>& bullets, HitPart& outPart, float& outDistSq) const;
 
-    /// <summary>
-    /// 弾によるダメージを適用する
-    /// </summary>
-    void ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect);
-
 protected:
     VECTOR m_pos;          // 位置
     VECTOR m_targetOffset; // ターゲット座標オフセット
@@ -291,6 +313,7 @@ protected:
     float m_hp;          // 体力
     float m_maxHp;       // 最大体力
     float m_attackPower; // 攻撃力
+    float m_chaseSpeed;  // 追跡速度
 
     bool m_isAlive;     // 生存状態フラグ
     bool m_isTackleHit; // タックルで既にダメージを受けたか

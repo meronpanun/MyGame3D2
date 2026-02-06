@@ -67,7 +67,6 @@ EnemyRunner::EnemyRunner()
     , m_currentAnimState(AnimState::Run)
     , m_attackEndDelayTimer(0)
     , m_isDeadAnimPlaying(false)
-    , m_chaseSpeed(0.0f)
     , m_isItemDropped(false)
 {
     // モデルの複製
@@ -106,22 +105,8 @@ void EnemyRunner::Init()
     m_lastHitPart = HitPart::None;
     m_hitDisplayTimer = 0;
     
-    // 基底クラスでも初期化されているが、ここでも明示するなら可
-
     // CSVからRunnerEnemyのTransform情報を取得
-    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-    for (const auto& data : dataList)
-    {
-        if (data.name == "RunnerEnemy")
-        {
-            MV1SetRotationXYZ(m_modelHandle, data.rot);
-            MV1SetScale(m_modelHandle, data.scale);
-            m_attackPower = data.attack;
-            m_hp = data.hp;
-            m_chaseSpeed = data.chaseSpeed;
-            break;
-        }
-    }
+    LoadTransformData("RunnerEnemy");
 
     // ここで一度「絶対にRunでない値」にリセット
     // 初期アニメーションを強制的に再生させるため
@@ -278,31 +263,9 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
         // 距離計算
         float disToPlayer = VSize(toPlayer);
 
-        float yaw = 0.0f;
-        if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
-        {
-            yaw = atan2f(toPlayer.x, toPlayer.z);
-            yaw += DX_PI_F; // モデルの向きに合わせて調整
-        }
         // 補間速度(大きいほど速く向く)
         float rotSpeed = 0.05f * Game::GetTimeScale();
-        float currentYaw = MV1GetRotationXYZ(m_modelHandle).y;
-
-        // 角度差を計算して滑らかに回転
-        float diffYaw = yaw - currentYaw;
-        while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
-        while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
-
-        if (fabs(diffYaw) > rotSpeed)
-        {
-            currentYaw += (diffYaw > 0 ? rotSpeed : -rotSpeed);
-        }
-        else
-        {
-            currentYaw = yaw;
-        }
-
-        MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, currentYaw, 0.0f));
+        RotateTowards(targetPos, rotSpeed);
 
         // 回避行動
         // 移動計算は毎フレームの方が滑らかだが、決定は間引ける
@@ -473,30 +436,8 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
     m_pAttackRangeCollider->SetRadius(EnemyRunnerConstants::kAttackRangeRadius);
 
     // 敵とプレイヤーの押し出し処理
-    if (m_pBodyCollider->IsIntersects(playerBodyCollider.get()))
-    {
-        VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
-        VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
-        VECTOR diff = VSub(enemyCenter, playerCenter);
-        float distSq = VDot(diff, diff);
-        float minDist = EnemyRunnerConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
-
-        if (distSq < minDist * minDist && distSq > EnemyRunnerConstants::kPushBackEpsilon)
-        {
-            float dist = std::sqrt(distSq);
-            float pushBack = minDist - dist;
-            if (dist > 0)
-            {
-                VECTOR pushDir = VSub(enemyCenter, playerCenter);
-                pushDir.y = 0.0f;
-                if (VDot(pushDir, pushDir) > EnemyRunnerConstants::kPushBackEpsilon)
-                {
-                    pushDir = VNorm(pushDir);
-                    m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
-                }
-            }
-        }
-    }
+    float minDist = EnemyRunnerConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
+    ResolvePlayerCollision(playerBodyCollider, minDist, EnemyRunnerConstants::kPushBackEpsilon);
 
     // 敵同士の押し出し処理
     std::vector<EnemyBase*> neighbors;
@@ -506,26 +447,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
     }
     const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : enemyList;
 
-    for (EnemyBase* other : targets)
-    {
-        if (!other || other == this)
-            continue;
-
-        VECTOR otherPos = other->GetPos();
-        VECTOR diff = VSub(m_pos, otherPos);
-        diff.y = 0.0f; // Y軸は無視
-        float distSq = VDot(diff, diff);
-        float minDist = EnemyRunnerConstants::kBodyColliderRadius * 2.0f;
-
-        if (distSq < minDist * minDist && distSq > EnemyRunnerConstants::kPushBackEpsilon)
-        {
-            float dist = std::sqrt(distSq);
-            float pushBack = (minDist - dist) * 0.5f; // 押し出す量を半分にする
-            VECTOR pushDir = VNorm(diff);
-
-            m_pos = VAdd(m_pos, VScale(pushDir, pushBack));
-        }
-    }
+    ResolveEnemyCollision(targets, EnemyRunnerConstants::kBodyColliderRadius, EnemyRunnerConstants::kPushBackEpsilon);
 
     // 攻撃判定 (間引き)
     if (m_currentAnimState == AnimState::Attack)
@@ -575,26 +497,10 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
 
 void EnemyRunner::Draw()
 {
-    if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
-        return;
+    if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return;
 
     // 視錐台カリング (描画最適化)
-    VECTOR camPos = GetCameraPosition();
-    VECTOR camTarget = GetCameraTarget();
-    VECTOR camDir = VNorm(VSub(camTarget, camPos));
-    VECTOR toEnemy = VSub(m_pos, camPos);
-    float distSq = VSquareSize(toEnemy);
-
-    // 1. 距離チェック
-    if (distSq > EnemyRunnerConstants::kDrawDistanceSq) return;
-
-    // 2. 画角チェック
-    if (distSq > EnemyRunnerConstants::kDrawNearDistanceSq)
-    {
-        VECTOR dirToEnemy = VNorm(toEnemy);
-        float dot = VDot(camDir, dirToEnemy);
-        if (dot < EnemyRunnerConstants::kDrawDotThreshold) return;
-    }
+    if (!ShouldDraw(EnemyRunnerConstants::kDrawDistanceSq, EnemyRunnerConstants::kDrawNearDistanceSq, EnemyRunnerConstants::kDrawDotThreshold)) return;
 
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
@@ -696,19 +602,6 @@ EnemyBase::HitPart EnemyRunner::CheckHitPart(const VECTOR& rayStart, const VECTO
     outHtPos = VGet(0, 0, 0);
     outHtDistSq = FLT_MAX;
     return HitPart::None;
-}
-
-float EnemyRunner::CalcDamage(float bulletDamage, HitPart part) const
-{
-    if (part == HitPart::Head)
-    {
-        return bulletDamage * 2.0f;
-    }
-    else if (part == HitPart::Body)
-    {
-        return bulletDamage;
-    }
-    return 0.0f;
 }
 
 void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)

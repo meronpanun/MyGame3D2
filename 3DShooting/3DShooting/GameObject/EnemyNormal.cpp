@@ -67,7 +67,6 @@ EnemyNormal::EnemyNormal()
     , m_currentAnimState(AnimState::Walk)
     , m_attackEndDelayTimer(0)
     , m_isDeadAnimPlaying(false)
-    , m_chaseSpeed(0.0f)
     , m_isItemDropped(false)
 {
     // モデルの複製
@@ -111,19 +110,7 @@ void EnemyNormal::Init()
     m_deathKnockbackSpeed = 0.0f;  // 速度リセット
 
     // CSVからNormalEnemyのTransform情報を取得
-    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-    for (const auto& data : dataList)
-    {
-        if (data.name == "NormalEnemy")
-        {
-            MV1SetRotationXYZ(m_modelHandle, data.rot);
-            MV1SetScale(m_modelHandle, data.scale);
-            m_attackPower = data.attack;
-            m_hp = data.hp;
-            m_chaseSpeed = data.chaseSpeed;
-            break;
-        }
-    }
+    LoadTransformData("NormalEnemy");
 
     // ここで一度「絶対にWalkでない値」にリセット
     // 初期アニメーションを強制的に再生させるため
@@ -288,33 +275,9 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
         // プレイヤー(ターゲット)との距離を計算
         float disToPlayer = VSize(toPlayer);
 
-        // プレイヤーの方向を常に向く
-        float yaw = 0.0f;
-        if (toPlayer.x != 0.0f || toPlayer.z != 0.0f)
-        {
-            yaw = atan2f(toPlayer.x, toPlayer.z);
-            yaw += DX_PI_F; // モデルの向きに合わせて調整
-        }
-
         // 補間速度(0.05f で滑らかにする)
         float rotSpeed = 0.05f * Game::GetTimeScale();
-        float currentYaw = MV1GetRotationXYZ(m_modelHandle).y;
-
-        // 角度差を計算して滑らかに回転
-        float diffYaw = yaw - currentYaw;
-        while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
-        while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
-
-        if (fabs(diffYaw) > rotSpeed)
-        {
-            currentYaw += (diffYaw > 0 ? rotSpeed : -rotSpeed);
-        }
-        else
-        {
-            currentYaw = yaw;
-        }
-
-        MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, currentYaw, 0.0f));
+        RotateTowards(targetPos, rotSpeed);
 
         // 移動処理
         if (disToPlayer > EnemyNormalConstants::kChaseStopDistance)
@@ -420,38 +383,11 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
     }
 
-    // コライダーの更新は上部に移動済み
-
     // 敵とプレイヤーの押し出し処理（カプセル同士の衝突）
-    if (m_pBodyCollider->IsIntersects(playerBodyCollider.get()))
-    {
-        // 押し出し処理
-        VECTOR enemyCenter = VScale(VAdd(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB()), 0.5f);
-        VECTOR playerCenter = VScale(VAdd(playerBodyCollider->GetSegmentA(), playerBodyCollider->GetSegmentB()), 0.5f);
-        VECTOR diff = VSub(enemyCenter, playerCenter);
-        float distSq = VDot(diff, diff);
-        float minDist = EnemyNormalConstants::kBodyColliderRadius + playerBodyCollider->GetRadius(); // 最小距離は両方の半径の和
+    float minDist = EnemyNormalConstants::kBodyColliderRadius + playerBodyCollider->GetRadius(); // 最小距離は両方の半径の和
+    ResolvePlayerCollision(playerBodyCollider, minDist, EnemyNormalConstants::kPushBackEpsilon);
 
-        if (distSq < minDist * minDist && distSq > EnemyNormalConstants::kPushBackEpsilon)
-        {
-            float dist = std::sqrt(distSq);
-            float pushBack = minDist - dist;
-            if (dist > 0)
-            {
-                VECTOR pushDir = VSub(enemyCenter, playerCenter);
-                pushDir.y = 0.0f; // Y成分を無視して水平方向の押し出しにする
-                float horizontalDistSq = VDot(pushDir, pushDir);
-
-                if (horizontalDistSq > EnemyNormalConstants::kPushBackEpsilon) // 水平方向の成分がある場合のみ正規化して適用
-                {
-                    pushDir = VNorm(pushDir); // Y成分を0にした後に正規化
-                    m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
-                }
-            }
-        }
-    }
-
-    // 敵同士の押し出し処理（横方向への広がり）
+    // 敵同士の押し出し処理
     std::vector<EnemyBase*> neighbors;
     if (context.collisionGrid)
     {
@@ -459,38 +395,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
     }
     const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : enemyList;
 
-    for (EnemyBase* other : targets)
-    {
-        if (!other) continue;
-        // 自分自身は除外
-        if (other == this) continue;
-
-        // 位置取得
-        VECTOR otherPos = other->GetPos();
-        VECTOR diff = VSub(m_pos, otherPos);
-
-        diff.y = 0.0f;
-        float distSq = VDot(diff, diff);
-        float minDist = EnemyNormalConstants::kBodyColliderRadius * 2.0f; // 体の半径×2
-        if (distSq < minDist * minDist && distSq > EnemyNormalConstants::kPushBackEpsilon)
-        {
-            float dist = std::sqrt(distSq);
-            float pushBack = minDist - dist;
-            if (dist > 0)
-            {
-                VECTOR pushDir = VNorm(diff);
-                // 横方向に広がるように、プレイヤー方向ベクトルと直交する方向に少し加算
-                VECTOR playerDir = VNorm(VSub(player.GetPos(), m_pos));
-                VECTOR up = VGet(0, 1, 0);
-                VECTOR side = VNorm(VCross(playerDir, up));
-                // 直交方向にランダム性を加える（左右どちらか）
-                float sign = (reinterpret_cast<size_t>(this) % 2 == 0) ? 1.0f : -1.0f;
-                side = VScale(side, sign * 0.5f); // 横成分を少し加える
-                pushDir = VNorm(VAdd(pushDir, side));
-                m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
-            }
-        }
-    }
+    ResolveEnemyCollision(targets, EnemyNormalConstants::kBodyColliderRadius, EnemyNormalConstants::kPushBackEpsilon);
 
     if (m_currentAnimState == AnimState::Attack) // 攻撃アニメーションが再生中の場合のみ攻撃判定を行う
     {
@@ -584,32 +489,10 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 void EnemyNormal::Draw()
 {
     // 死亡アニメーション終了後も描画しない
-    if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
-        return;
+    if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return;
 
     // 視錐台カリング (描画最適化)
-    // CheckCameraViewClip系の関数が環境によって不安定なため、
-    // 手動で「カメラ前方への内積チェック(簡易コーン判定)」を行う
-    VECTOR camPos = GetCameraPosition();
-    VECTOR camTarget = GetCameraTarget();
-    VECTOR camDir = VNorm(VSub(camTarget, camPos));
-    VECTOR toEnemy = VSub(m_pos, camPos);
-    float distSq = VSquareSize(toEnemy);
-
-    // 1. 距離チェック (Farクリップ + マージン)
-    if (distSq > EnemyNormalConstants::kDrawDistanceSq)
-        return;
-
-    // 2. 画角チェック (内積)
-    // 近距離(300.0f以内)なら無条件で描画 (すり抜け防止)
-    if (distSq > EnemyNormalConstants::kDrawNearDistanceSq)
-    {
-        VECTOR dirToEnemy = VNorm(toEnemy);
-        float dot = VDot(camDir, dirToEnemy);
-        // 視野角90度(cos45=0.7)に対し、余裕を持ってcos66=0.4程度以上なら描画
-        // これにより視野外でも少し描画されるが、消えるよりは安全
-        if (dot < EnemyNormalConstants::kDrawDotThreshold) return;
-    }
+    if (!ShouldDraw(EnemyNormalConstants::kDrawDistanceSq, EnemyNormalConstants::kDrawNearDistanceSq, EnemyNormalConstants::kDrawDotThreshold)) return;
 
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
@@ -717,20 +600,6 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTO
     return HitPart::None;
 }
 
-// 部位ごとのダメージ計算処理
-float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
-{
-    if (part == HitPart::Head)
-    {
-        return bulletDamage * 2.0f; // ヘッドショットは2倍ダメージ
-    }
-    else if (part == HitPart::Body)
-    {
-        return bulletDamage; // ボディショットは通常のダメージ
-    }
-    return 0.0f;
-}
-
 // アイテムドロップ時のコールバック関数
 void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
@@ -748,7 +617,7 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
     if (type == AttackType::Shotgun && m_hp > 0.0f)
     {
         // 既に怯み中でなければ、あるいは上書きありなら
-        ChangeAnimation(AnimState::Damage, false);                // ダメージモーションへ
+        ChangeAnimation(AnimState::Damage, false);             // ダメージモーションへ
         m_damageTimer = EnemyNormalConstants::kDamageDuration; // 30フレーム
     }
 
@@ -813,7 +682,6 @@ std::shared_ptr<CapsuleCollider> EnemyNormal::GetBodyCollider() const
 {
     return m_pBodyCollider;
 }
-
 
 // 死亡時の更新処理
 void EnemyNormal::UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData)
