@@ -604,10 +604,18 @@ void PlayerWeaponManager::ConsumeAmmo()
         if (m_currentWeaponType == WeaponType::AssaultRifle)
         {
             m_arAmmo--;
+            if (m_arAmmo <= 0 && m_sgAmmo > 0)
+            {
+                SwitchWeapon(WeaponType::Shotgun);
+            }
         }
         else if (m_currentWeaponType == WeaponType::Shotgun)
         {
             m_sgAmmo--;
+            if (m_sgAmmo <= 0 && m_arAmmo > 0)
+            {
+                SwitchWeapon(WeaponType::AssaultRifle);
+            }
         }
     }
 }
