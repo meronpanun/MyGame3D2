@@ -10,9 +10,11 @@ class SceneBase;
 /// <summary>
 /// シーン管理クラス
 /// </summary>
-class SceneManager {
+class SceneManager
+{
 public:
-    enum class FadeState {
+    enum class FadeState
+    {
         Idle,
         FadingOut,
         FadingIn,
