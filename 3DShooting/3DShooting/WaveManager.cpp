@@ -84,101 +84,84 @@ void WaveManager::Init() {
   // グリッド初期化
   m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 150.0f);
 
-  // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
-  std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
-  for (const auto &wave : m_waveDataList) {
-    if (wave.enemyType == "NormalEnemy")
-      normalPerWave[wave.wave] += wave.count;
-    if (wave.enemyType == "RunnerEnemy")
-      runnerPerWave[wave.wave] += wave.count;
-    if (wave.enemyType == "AcidEnemy")
-      acidPerWave[wave.wave] += wave.count;
-    if (wave.enemyType == "Boss")
-      bossPerWave[wave.wave] += wave.count;
-  }
-  int maxNormal = 0, maxRunner = 0, maxAcid = 0, maxBoss = 0;
+    // 敵プール初期化
+    InitEnemyPools();
 
-  // 各ウェーブでの最大出現数を計算
-  for (const auto &[wave, cnt] : normalPerWave)
-    maxNormal = (std::max)(maxNormal, cnt);
-  for (const auto &[wave, cnt] : runnerPerWave)
-    maxRunner = (std::max)(maxRunner, cnt);
-  for (const auto &[wave, cnt] : acidPerWave)
-    maxAcid = (std::max)(maxAcid, cnt);
-  for (const auto &[wave, cnt] : bossPerWave)
-    maxBoss = (std::max)(maxBoss, cnt);
-
-  // その数だけ各プールを確保
-  // (既に存在する場合もあるので、足りない分だけ追加するロジックにするか、プール管理を別にするのが理想だが、
-  // ここでは単純に追加のみ行う。リセット時に再確保はしないのでOK)
-  // ただしInitが複数回呼ばれると増え続けるので注意が必要。今回はコンストラクタ直後のInit想定
-
-  // プール確保ロジックは既存のまま
-  // ... (省略せず実装)
-  auto ensurePoolSize = []<typename T>(std::vector<std::shared_ptr<T>> &pool,
-                                       int size) {
-    for (int i = pool.size(); i < size; ++i) {
-      auto pEnemy = std::make_shared<T>();
-      pEnemy->Init();
-      pEnemy->SetActive(false);
-      pool.push_back(pEnemy);
-    }
-  };
-
-  ensurePoolSize(m_enemyNormalPool, maxNormal);
-  ensurePoolSize(m_enemyRunnerPool, maxRunner);
-  ensurePoolSize(m_enemyAcidPool, maxAcid);
-  ensurePoolSize(m_enemyBossPool, maxBoss);
-
-  // チュートリアル達成判定コルバック
-  auto deathTypeCallback = [this](const VECTOR &pos, AttackType type) {
-    if (m_currentWave == 1) {
-      if (type == AttackType::Shoot)
-        m_isShotTutorialCleared = true;
-      if (type == AttackType::Tackle)
-        m_isTackleTutorialCleared = true;
-    }
-  };
-  // 各敵プールの死亡時コールバックを設定
-  for (auto &enemy : m_enemyNormalPool)
-    enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
-  for (auto &enemy : m_enemyRunnerPool)
-    enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
-  for (auto &enemy : m_enemyAcidPool)
-    enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
-  for (auto &enemy : m_enemyBossPool)
-    enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
-
-  // 敵の死亡時コールバックを設定
-  SetOnEnemyDeathCallback([this](const VECTOR &pos) {
-    // 死亡した敵を特定
-    auto checkAndSet = [this](EnemyBase *enemy) {
-      if (!enemy)
-        return false;
-      // チュートリアル達成判定
-      if (m_currentWave == 1) {
-        if (enemy->GetLastAttackType() == AttackType::Shoot)
-          m_isShotTutorialCleared = true;
-        if (enemy->GetLastAttackType() == AttackType::Tackle)
-          m_isTackleTutorialCleared = true;
-      }
-      return true;
-    };
-    // 敵のプールから位置が一致する敵を探して死亡処理
-    auto checkPool = [&](auto &pool) {
-      for (auto &enemy : pool) {
-        if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y &&
-            enemy->GetPos().z == pos.z) {
-          if (checkAndSet(enemy.get()))
-            break;
+    // チュートリアル達成判定コルバック
+    auto deathTypeCallback = [this](const VECTOR& pos, AttackType type) {
+        if (m_currentWave == 1)
+        {
+            if (type == AttackType::Shoot) m_isShotTutorialCleared = true;
+            if (type == AttackType::Tackle) m_isTackleTutorialCleared = true;
         }
-      }
     };
-    checkPool(m_enemyNormalPool);
-    checkPool(m_enemyRunnerPool);
-    checkPool(m_enemyAcidPool);
-    checkPool(m_enemyBossPool);
-  });
+    
+    // 全敵プールにコールバック設定
+    auto setCallback = [&](auto& pool) {
+        for (auto& enemy : pool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
+    };
+    setCallback(m_enemyNormalPool);
+    setCallback(m_enemyRunnerPool);
+    setCallback(m_enemyAcidPool);
+    setCallback(m_enemyBossPool);
+
+    // 敵の死亡時コールバックを設定
+    SetOnEnemyDeathCallback([this](const VECTOR& pos) {
+        // 死亡した敵を特定
+        // m_enemyListから検索すればプールを全検索する必要はない
+        // ただしOnEnemyDeathはm_enemyListから削除される前に呼ばれる必要がある
+        // 現状の仕様ではUpdate内で削除されるので、ここでm_enemyListを使うのは安全
+
+        for (auto& enemy : m_enemyList)
+        {
+            if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z)
+            {
+                if (!enemy) continue;
+                 // チュートリアル達成判定
+                if (m_currentWave == 1)
+                {
+                    if (enemy->GetLastAttackType() == AttackType::Shoot) m_isShotTutorialCleared = true;
+                    if (enemy->GetLastAttackType() == AttackType::Tackle) m_isTackleTutorialCleared = true;
+                }
+                break;
+            }
+        }
+    });
+}
+
+void WaveManager::InitEnemyPools()
+{
+    // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
+    std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
+    for (const auto& wave : m_waveDataList)
+    {
+        if (wave.enemyType == "NormalEnemy") normalPerWave[wave.wave] += wave.count;
+        if (wave.enemyType == "RunnerEnemy") runnerPerWave[wave.wave] += wave.count;
+        if (wave.enemyType == "AcidEnemy") acidPerWave[wave.wave] += wave.count;
+        if (wave.enemyType == "Boss") bossPerWave[wave.wave] += wave.count;
+    }
+    int maxNormal = 0, maxRunner = 0, maxAcid = 0, maxBoss = 0;
+
+    // 各ウェーブでの最大出現数を計算
+    for (const auto& [wave, cnt] : normalPerWave) maxNormal = (std::max)(maxNormal, cnt);
+    for (const auto& [wave, cnt] : runnerPerWave) maxRunner = (std::max)(maxRunner, cnt);
+    for (const auto& [wave, cnt] : acidPerWave) maxAcid = (std::max)(maxAcid, cnt);
+    for (const auto& [wave, cnt] : bossPerWave) maxBoss = (std::max)(maxBoss, cnt);
+
+    auto ensurePoolSize = []<typename T>(std::vector<std::shared_ptr<T>>& pool, int size) {
+        for (int i = pool.size(); i < size; ++i)
+        {
+            auto pEnemy = std::make_shared<T>();
+            pEnemy->Init();
+            pEnemy->SetActive(false);
+            pool.push_back(pEnemy);
+        }
+    };
+
+    ensurePoolSize(m_enemyNormalPool, maxNormal);
+    ensurePoolSize(m_enemyRunnerPool, maxRunner);
+    ensurePoolSize(m_enemyAcidPool, maxAcid);
+    ensurePoolSize(m_enemyBossPool, maxBoss);
 }
 
 void WaveManager::Reset() {
@@ -279,52 +262,40 @@ void WaveManager::UpdateEnemies(
     const Player &player,
     const std::vector<Stage::StageCollisionData> &collisionData,
     Effect *pEffect) {
-  std::vector<EnemyBase *> activeEnemies;
-  auto addActive = [&](auto &pool) {
-    for (auto &pEnemy : pool) {
-      if (pEnemy->IsActive() && pEnemy->IsAlive())
-        activeEnemies.push_back(pEnemy.get());
+    std::vector<EnemyBase*> activeEnemies;
+    for (const auto& pEnemy : m_enemyList)
+    {
+        if (pEnemy->IsActive() && pEnemy->IsAlive())
+        {
+            activeEnemies.push_back(pEnemy.get());
+        }
     }
-  };
-  addActive(m_enemyNormalPool);
-  addActive(m_enemyRunnerPool);
-  addActive(m_enemyAcidPool);
-  addActive(m_enemyBossPool);
 
-  m_collisionGrid.Clear();
-  for (auto *enemy : activeEnemies) {
-    m_collisionGrid.RegisterEnemy(enemy);
-  }
-
-  EnemyUpdateContext context = {bullets,         tackleInfo,    player,
-                                activeEnemies,   collisionData, pEffect,
-                                &m_collisionGrid};
-
-  auto updatePool = [&](auto &pool) {
-    for (auto &pEnemy : pool) {
-      if (!pEnemy->IsActive())
-        continue;
-      pEnemy->Update(context);
+    m_collisionGrid.Clear();
+    for (auto* enemy : activeEnemies)
+    {
+        m_collisionGrid.RegisterEnemy(enemy);
     }
-  };
-  updatePool(m_enemyNormalPool);
-  updatePool(m_enemyRunnerPool);
-  updatePool(m_enemyAcidPool);
-  updatePool(m_enemyBossPool);
+
+    EnemyUpdateContext context = { bullets, tackleInfo, player, activeEnemies, collisionData, pEffect, &m_collisionGrid };
+
+    for (auto& pEnemy : m_enemyList)
+    {
+        if (pEnemy->IsActive())
+        {
+            pEnemy->Update(context);
+        }
+    }
 }
 
 void WaveManager::DrawEnemies(bool isTutorial) {
-  auto drawPool = [&](auto &pool) {
-    for (auto &pEnemy : pool) {
-      if (!pEnemy->IsActive())
-        continue;
-      pEnemy->Draw();
+    for (const auto& pEnemy : m_enemyList)
+    {
+        if (pEnemy->IsActive())
+        {
+            pEnemy->Draw();
+        }
     }
-  };
-  drawPool(m_enemyNormalPool);
-  drawPool(m_enemyRunnerPool);
-  drawPool(m_enemyAcidPool);
-  drawPool(m_enemyBossPool);
 
   // デバッグ表示
   // (UIクラスに移譲、フラグチェックはWaveManagerが持つか、UI側で持つか)
@@ -418,119 +389,120 @@ VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR &playerPos) {
 VECTOR WaveManager::GenerateSpawnPos(int type, const std::string &enemyType,
                                      const VECTOR &playerPos,
                                      int spawnLocationType) {
-  // 省略されていたロジックを復元
-  std::vector<SpawnAreaInfo> candidates;
+    const SpawnAreaInfo* pArea = SelectSpawnArea(type, enemyType, playerPos, spawnLocationType);
+    if (!pArea)
+    {
+        return GenerateRandomSpawnPos(playerPos);
+    }
+    return CalculateRandomSpawnPos(*pArea);
+}
 
-  float targetY = -999.0f;
-  if (spawnLocationType == 1)
-    targetY = 200.0f;
-  else if (spawnLocationType == 2)
-    targetY = 562.0f;
-  else if (spawnLocationType == 3)
-    targetY = 962.0f;
+const SpawnAreaInfo* WaveManager::SelectSpawnArea(int type, const std::string& enemyType, const VECTOR& playerPos, int spawnLocationType)
+{
+    std::vector<SpawnAreaInfo> candidates;
 
-  if ((m_currentWave == 1 && type == 0) ||
-      (spawnLocationType > 0 && type == 0)) {
-    float checkY = (targetY != -999.0f) ? targetY : 200.0f;
-    for (const auto &area : m_spawnAreaList) {
-      if (area.type == type && std::abs(area.center.y - checkY) < 10.0f) {
-        candidates.push_back(area);
-      }
+    float targetY = -999.0f;
+    if (spawnLocationType == 1) targetY = 200.0f;
+    else if (spawnLocationType == 2) targetY = 562.0f;
+    else if (spawnLocationType == 3) targetY = 962.0f;
+
+    if ((m_currentWave == 1 && type == 0) || (spawnLocationType > 0 && type == 0))
+    {
+        float checkY = (targetY != -999.0f) ? targetY : 200.0f;
+        for (const auto& area : m_spawnAreaList)
+        {
+            if (area.type == type && std::abs(area.center.y - checkY) < 10.0f)
+            {
+                candidates.push_back(area);
+            }
+        }
+
+        std::vector<SpawnAreaInfo> validCandidates;
+        for (const auto& area : candidates)
+        {
+            float halfSizeX = area.size.x * 0.5f;
+            float halfSizeZ = area.size.z * 0.5f;
+            bool isInsideX = playerPos.x >= (area.center.x - halfSizeX) && playerPos.x <= (area.center.x + halfSizeX);
+            bool isInsideZ = playerPos.z >= (area.center.z - halfSizeZ) && playerPos.z <= (area.center.z + halfSizeZ);
+            if (isInsideX && isInsideZ) continue;
+
+            VECTOR diff = VSub(area.center, playerPos);
+            float dist = VSize(diff);
+            float safeDistance = (std::max)(area.size.x, area.size.z) + 200.0f;
+            if (dist >= safeDistance) validCandidates.push_back(area);
+        }
+        if (!validCandidates.empty())
+        {
+            std::sort(validCandidates.begin(), validCandidates.end(), [&](const SpawnAreaInfo& a, const SpawnAreaInfo& b) {
+                return VSize(VSub(a.center, playerPos)) > VSize(VSub(b.center, playerPos));
+            });
+            return &validCandidates[0]; // 最も遠い有効なエリア
+        }
+        else
+        {
+             if (!candidates.empty())
+             {
+                 std::sort(candidates.begin(), candidates.end(), [&](const SpawnAreaInfo& a, const SpawnAreaInfo& b) {
+                     return VSize(VSub(a.center, playerPos)) > VSize(VSub(b.center, playerPos));
+                 });
+                 return &candidates[0]; // フォールバック
+             }
+        }
+    }
+    else
+    {
+        for (const auto& area : m_spawnAreaList)
+        {
+            if (area.type == type) candidates.push_back(area);
+        }
     }
 
-    std::vector<SpawnAreaInfo> validCandidates;
-    for (const auto &area : candidates) {
-      float halfSizeX = area.size.x * 0.5f;
-      float halfSizeZ = area.size.z * 0.5f;
-      bool isInsideX = playerPos.x >= (area.center.x - halfSizeX) &&
-                       playerPos.x <= (area.center.x + halfSizeX);
-      bool isInsideZ = playerPos.z >= (area.center.z - halfSizeZ) &&
-                       playerPos.z <= (area.center.z + halfSizeZ);
-      if (isInsideX && isInsideZ)
-        continue;
+    if (candidates.empty()) return nullptr;
 
-      VECTOR diff = VSub(area.center, playerPos);
-      float dist = VSize(diff);
-      float safeDistance = (std::max)(area.size.x, area.size.z) + 200.0f;
-      if (dist >= safeDistance)
-        validCandidates.push_back(area);
-    }
-    if (!validCandidates.empty()) {
-      std::sort(validCandidates.begin(), validCandidates.end(),
-                [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
-                  return VSize(VSub(a.center, playerPos)) >
-                         VSize(VSub(b.center, playerPos));
-                });
-      candidates.clear();
-      candidates.push_back(validCandidates[0]);
-    } else {
-      if (!candidates.empty()) {
-        std::sort(candidates.begin(), candidates.end(),
-                  [&](const SpawnAreaInfo &a, const SpawnAreaInfo &b) {
-                    return VSize(VSub(a.center, playerPos)) >
-                           VSize(VSub(b.center, playerPos));
-                  });
-        std::vector<SpawnAreaInfo> fallback;
-        fallback.push_back(candidates[0]);
-        candidates = fallback;
-      }
-    }
-  } else {
-    for (const auto &area : m_spawnAreaList) {
-      if (area.type == type)
-        candidates.push_back(area);
-    }
-  }
-
-  if (candidates.empty()) {
-    return GenerateRandomSpawnPos(playerPos);
-  }
-
-  std::vector<SpawnAreaInfo> filteredCandidates;
-  if ((m_currentWave == 1 && type == 0) ||
-      (spawnLocationType > 0 && type == 0)) {
-    filteredCandidates = candidates;
-  } else {
-    bool isLongRange = (enemyType == "AcidEnemy");
-    const float kLongRangeThreshold = 500.0f;
-    if (isLongRange) {
-      for (const auto &area : candidates) {
-        if (VSize(VSub(area.center, playerPos)) >= kLongRangeThreshold)
-          filteredCandidates.push_back(area);
-      }
-      if (filteredCandidates.empty())
+    std::vector<SpawnAreaInfo> filteredCandidates;
+    if ((m_currentWave == 1 && type == 0) || (spawnLocationType > 0 && type == 0))
+    {
         filteredCandidates = candidates;
-    } else {
-      filteredCandidates = candidates;
     }
-  }
+    else
+    {
+        bool isLongRange = (enemyType == "AcidEnemy");
+        const float kLongRangeThreshold = 500.0f;
+        if (isLongRange)
+        {
+            for (const auto& area : candidates)
+            {
+                if (VSize(VSub(area.center, playerPos)) >= kLongRangeThreshold) filteredCandidates.push_back(area);
+            }
+            if (filteredCandidates.empty()) filteredCandidates = candidates;
+        }
+        else
+        {
+            filteredCandidates = candidates;
+        }
+    }
 
-  const SpawnAreaInfo &area =
-      filteredCandidates[GetRand(filteredCandidates.size() - 1)];
+    // staticなrandom_deviceを使い回すか、呼び出しごとに生成するか
+    // ここでは簡易的にrand()を使用するか、std::mt19937を再利用する
+    // GetRandはDXLibの関数? あるいはHelper? 元コードでは GetRand が使われていた
+    return &filteredCandidates[GetRand(static_cast<int>(filteredCandidates.size()) - 1)];
+}
 
-  // エリア内ランダム位置
-  // 乱数生成器の初期化
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  std::mt19937 gen(seed);
-  std::uniform_real_distribution<float> xDist(-0.5f, 0.5f);
-  std::uniform_real_distribution<float> zDist(-0.5f, 0.5f);
+VECTOR WaveManager::CalculateRandomSpawnPos(const SpawnAreaInfo& area)
+{
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<float> xDist(-0.5f, 0.5f);
+    std::uniform_real_distribution<float> zDist(-0.5f, 0.5f);
 
-  VECTOR offset = VGet(xDist(gen) * area.size.x, 0, zDist(gen) * area.size.z);
-  return VAdd(area.center, offset);
+    VECTOR offset = VGet(xDist(gen) * area.size.x, 0, zDist(gen) * area.size.z);
+    return VAdd(area.center, offset);
 }
 
 std::shared_ptr<EnemyBase>
 WaveManager::CreateEnemy(const std::string &enemyType, const VECTOR &spawnPos) {
   std::shared_ptr<EnemyBase> pEnemy = nullptr;
-  if (enemyType == "NormalEnemy") {
-    pEnemy = GetPooledNormalEnemy();
-  } else if (enemyType == "RunnerEnemy") {
-    pEnemy = GetPooledRunnerEnemy();
-  } else if (enemyType == "AcidEnemy") {
-    pEnemy = GetPooledAcidEnemy();
-  } else if (enemyType == "Boss") {
-    pEnemy = GetPooledBossEnemy();
-  }
+    pEnemy = GetPooledEnemy(enemyType);
 
   if (pEnemy) {
     pEnemy->SetPos(spawnPos);
@@ -589,10 +561,19 @@ std::shared_ptr<EnemyBoss> WaveManager::GetPooledBossEnemy() {
     if (!enemy->IsActive())
       return enemy;
   }
-  auto pNew = std::make_shared<EnemyBoss>();
-  pNew->Init();
-  m_enemyBossPool.push_back(pNew);
-  return pNew;
+    auto pNew = std::make_shared<EnemyBoss>();
+    pNew->Init();
+    m_enemyBossPool.push_back(pNew);
+    return pNew;
+}
+
+std::shared_ptr<EnemyBase> WaveManager::GetPooledEnemy(const std::string& type)
+{
+    if (type == "NormalEnemy") return GetPooledNormalEnemy();
+    if (type == "RunnerEnemy") return GetPooledRunnerEnemy();
+    if (type == "AcidEnemy") return GetPooledAcidEnemy();
+    if (type == "Boss") return GetPooledBossEnemy();
+    return nullptr;
 }
 
 void WaveManager::StartCurrentWave(const VECTOR &playerPos) {
@@ -684,16 +665,10 @@ void WaveManager::OnEnemyDeath(const VECTOR &pos) {
 
 int WaveManager::GetAliveEnemyCount() const {
   int count = 0;
-  auto countActive = [&](const auto &pool) {
-    for (const auto &enemy : pool) {
-      if (enemy->IsActive() && enemy->IsAlive())
-        count++;
-    }
-  };
-  countActive(m_enemyNormalPool);
-  countActive(m_enemyRunnerPool);
-  countActive(m_enemyAcidPool);
-  countActive(m_enemyBossPool);
+  for (const auto& enemy : m_enemyList)
+  {
+      if (enemy->IsActive() && enemy->IsAlive()) count++;
+  }
   return count;
 }
 

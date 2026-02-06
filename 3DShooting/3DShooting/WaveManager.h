@@ -198,6 +198,14 @@ private:
   std::shared_ptr<EnemyAcid> GetPooledAcidEnemy();
   std::shared_ptr<EnemyBoss> GetPooledBossEnemy();
 
+  // リファクタリング用ヘルパー
+  std::shared_ptr<EnemyBase> GetPooledEnemy(const std::string &type);
+  void InitEnemyPools();
+  
+  // スポーン位置計算ヘルパー
+  const SpawnAreaInfo* SelectSpawnArea(int type, const std::string& enemyType, const VECTOR& playerPos, int spawnLocationType);
+  VECTOR CalculateRandomSpawnPos(const SpawnAreaInfo& area);
+
 private:
   std::unique_ptr<WaveUI> m_pWaveUI; // UI管理クラス
 
