@@ -68,25 +68,45 @@ namespace PlayerShieldConstants
 }
 
 PlayerShieldSystem::PlayerShieldSystem()
-    : m_shieldModelHandle(-1), m_shieldImageHandle(-1),
-    m_shieldDurability(0.0f), m_shieldBarAnim(0.0f),
-    m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f),
-    m_isShieldBroken(false), m_isGuarding(false), m_wasGuarding(false),
-    m_guardAnimTimer(0.0f), m_guardAnimDuration(PlayerShieldConstants::kGuardAnimDuration),
-    m_guardTimer(0), m_isShieldAnimating(false), m_isShieldRecovering(false),
-    m_shieldAnimTimer(0.0f), m_shieldAnimDuration(1.0f),
-    m_guardEffectHandle(-1), m_sparkEffectHandle(-1), m_sparkEffectTimer(0),
-    m_shieldSwayOffset(VGet(0, 0, 0)), m_shieldSwayRotOffset(VGet(0, 0, 0)),
-    m_wasSwitchingWeapon(false), m_shieldThrowState(ShieldThrowState::Idle),
-    m_isShieldThrown(false), m_shieldThrowPos(VGet(0, 0, 0)),
-    m_shieldThrowDir(VGet(0, 0, 0)), m_shieldThrowStartPos(VGet(0, 0, 0)),
-    m_shieldThrowDistance(0.0f), m_shieldThrowSpeed(PlayerShieldConstants::kShieldThrowSpeed),
-    m_shieldThrowMaxRange(PlayerShieldConstants::kShieldThrowMaxRange),
-    m_shieldThrowDamage(PlayerShieldConstants::kShieldThrowDamage), m_shieldThrowHitEnemyId(-1),
-    m_shieldReflectCount(0), m_shieldThrowRotationTimer(0.0f),
-    m_shieldThrowCooldownTimer(0.0f), m_isShieldThrowFailedAnimating(false),
-    m_shieldThrowFailedAnimTimer(0.0f), m_isTutorial(false),
-    m_idleSwayTimer(0.0f)
+    : m_shieldModelHandle(-1)
+    , m_shieldImageHandle(-1)
+    , m_shieldDurability(0.0f)
+    , m_shieldBarAnim(0.0f)
+    , m_maxShieldDurability(0.0f)
+    , m_shieldRegenRate(0.0f)
+    , m_isShieldBroken(false)
+    , m_isGuarding(false)
+    , m_wasGuarding(false)
+    , m_guardAnimTimer(0.0f)
+    , m_guardAnimDuration(PlayerShieldConstants::kGuardAnimDuration)
+    , m_guardTimer(0)
+    , m_isShieldAnimating(false)
+    , m_isShieldRecovering(false)
+    , m_shieldAnimTimer(0.0f)
+    , m_shieldAnimDuration(1.0f)
+    , m_guardEffectHandle(-1)
+    , m_sparkEffectHandle(-1)
+    , m_sparkEffectTimer(0)
+    , m_shieldSwayOffset(VGet(0, 0, 0))
+    , m_shieldSwayRotOffset(VGet(0, 0, 0))
+    , m_wasSwitchingWeapon(false)
+    , m_shieldThrowState(ShieldThrowState::Idle)
+    , m_isShieldThrown(false)
+    , m_shieldThrowPos(VGet(0, 0, 0))
+    , m_shieldThrowDir(VGet(0, 0, 0))
+    , m_shieldThrowStartPos(VGet(0, 0, 0))
+    , m_shieldThrowDistance(0.0f)
+    , m_shieldThrowSpeed(PlayerShieldConstants::kShieldThrowSpeed)
+    , m_shieldThrowMaxRange(PlayerShieldConstants::kShieldThrowMaxRange)
+    , m_shieldThrowDamage(PlayerShieldConstants::kShieldThrowDamage)
+    , m_shieldThrowHitEnemyId(-1)
+    , m_shieldReflectCount(0)
+    , m_shieldThrowRotationTimer(0.0f)
+    , m_shieldThrowCooldownTimer(0.0f)
+    , m_isShieldThrowFailedAnimating(false)
+    , m_shieldThrowFailedAnimTimer(0.0f)
+    , m_isTutorial(false)
+    , m_idleSwayTimer(0.0f)
 {
     // 盾モデルの読み込み
     m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
@@ -808,7 +828,6 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera,
     // 横向きにする回転（X軸90度回転）
     MATRIX rotX = MGetRotX(DX_PI_F * 0.5f);
 
-    // forward方向を軸として回転させる（横向きの状態を維持）
     // forward方向を軸として回転させるには、forward方向をローカルZ軸として扱い、
     // そのZ軸周りに回転させる
     // 回転の順序：forward方向を向く → 横向きにする → forward方向を軸として回転

@@ -62,20 +62,38 @@ namespace PlayerWeaponConstants
 }
 
 PlayerWeaponManager::PlayerWeaponManager()
-    : m_arHandle(-1), m_sgHandle(-1), m_ejectionPortFrame(-1), m_arAmmo(0),
-    m_sgAmmo(0), m_arMaxAmmo(0), m_sgMaxAmmo(0), m_bulletPower(0.0f),
-    m_sgBulletPower(0.0f), m_shootCooldown(1.0f / PlayerWeaponConstants::kARShootRate),
-    m_shootCooldownTimer(0.0f), m_arShootRate(PlayerWeaponConstants::kARShootRate),
-    m_currentWeaponType(WeaponType::AssaultRifle),
-    m_previousWeaponType(WeaponType::AssaultRifle), m_currentWeaponIndex(0),
-    m_isSwitchingWeapon(false), m_weaponSwitchTimer(0.0f),
-    m_weaponSwitchDuration(PlayerWeaponConstants::kWeaponSwitchDuration),
-    m_prevWeaponHadLowAmmo(false), m_prevWeaponHadNoAmmo(false),
-    m_isLowAmmo(false), m_isNoAmmoWarning(false), m_lowAmmoBlinkTimer(0.0f),
-    m_isInfiniteAmmo(false), m_gunShakeOffset(VGet(0, 0, 0)),
-    m_gunShakeTimer(0.0f), m_gunShakePower(0.0f), m_isSGAnimPlaying(false),
-    m_sgAnimTime(0.0f), m_shotSEHandle(-1), m_sgShotSEHandle(-1),
-    m_pullBackOffset(0.0f)
+    : m_arHandle(-1)
+    , m_sgHandle(-1)
+    , m_ejectionPortFrame(-1)
+    , m_arAmmo(0)
+    , m_sgAmmo(0)
+    , m_arMaxAmmo(0)
+    , m_sgMaxAmmo(0)
+    , m_bulletPower(0.0f)
+    , m_sgBulletPower(0.0f)
+    , m_shootCooldown(1.0f / PlayerWeaponConstants::kARShootRate)
+    , m_shootCooldownTimer(0.0f)
+    , m_arShootRate(PlayerWeaponConstants::kARShootRate)
+    , m_currentWeaponType(WeaponType::AssaultRifle)
+    , m_previousWeaponType(WeaponType::AssaultRifle)
+    , m_currentWeaponIndex(0)
+    , m_isSwitchingWeapon(false)
+    , m_weaponSwitchTimer(0.0f)
+    , m_weaponSwitchDuration(PlayerWeaponConstants::kWeaponSwitchDuration)
+    , m_prevWeaponHadLowAmmo(false)
+    , m_prevWeaponHadNoAmmo(false)
+    , m_isLowAmmo(false)
+    , m_isNoAmmoWarning(false)
+    , m_lowAmmoBlinkTimer(0.0f)
+    , m_isInfiniteAmmo(false)
+    , m_gunShakeOffset(VGet(0, 0, 0))
+    , m_gunShakeTimer(0.0f)
+    , m_gunShakePower(0.0f)
+    , m_isSGAnimPlaying(false)
+    , m_sgAnimTime(0.0f)
+    , m_shotSEHandle(-1)
+    , m_sgShotSEHandle(-1)
+    , m_pullBackOffset(0.0f)
 {
     // アサルトライフルモデルの読み込み
     m_arHandle = MV1LoadModel("data/model/AR.mv1");

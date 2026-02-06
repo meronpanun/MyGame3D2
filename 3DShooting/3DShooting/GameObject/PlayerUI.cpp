@@ -65,10 +65,18 @@ namespace PlayerUIConstants
 }
 
 PlayerUI::PlayerUI()
-    : m_noAmmoImageHandle(-1), m_noHealthImageHandle(-1), m_arImageHandle(-1),
-    m_noAmmoARImageHandle(-1), m_sgImageHandle(-1), m_noAmmoSGImageHandle(-1),
-    m_healthUiImageHandle(-1), m_shieldImageHandle(-1), m_lockOnUIHandle(-1),
-    m_fontHandle(-1), m_hpFontHandle(-1), m_warningFontHandle(-1)
+    : m_noAmmoImageHandle(-1)
+    , m_noHealthImageHandle(-1)
+    , m_arImageHandle(-1)
+    , m_noAmmoARImageHandle(-1)
+    , m_sgImageHandle(-1)
+    , m_noAmmoSGImageHandle(-1)
+    , m_healthUiImageHandle(-1)
+    , m_shieldImageHandle(-1)
+    , m_lockOnUIHandle(-1)
+    , m_fontHandle(-1)
+    , m_hpFontHandle(-1)
+    , m_warningFontHandle(-1)
 {
     // 弾薬切れ画像の読み込み
     m_noAmmoImageHandle = LoadGraph("data/image/NoAmmo.png");
@@ -183,9 +191,7 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     const int healthUiImageX = scaledHpBarMargin;
     const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin +
         (scaledHpBarHeight - scaledHealthUiSize) / 2; // 中央揃え修正
-    DrawExtendGraph(
-        healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize,
-        healthUiImageY + scaledHealthUiSize, m_healthUiImageHandle, true);
+    DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize, m_healthUiImageHandle, true);
     const int barX = healthUiImageX + scaledHealthUiSize + scaledBarSpacing;
 
     // 最大HP
@@ -276,10 +282,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         else if (isLowAmmo)
         {
             // 低弾薬時は点滅させる
-            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f *
-                DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) +
-                1.0f) *
-                0.5f;
+            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
             int alphaInt = static_cast<int>(blinkAlpha * 255);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
             gunHandle = m_noAmmoARImageHandle;
@@ -302,10 +305,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         else if (isLowAmmo)
         {
             // 低弾薬時は点滅させる
-            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f *
-                DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) +
-                1.0f) *
-                0.5f;
+            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
             int alphaInt = static_cast<int>(blinkAlpha * 255);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
             gunHandle = m_noAmmoSGImageHandle;
@@ -322,8 +322,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
     int gunImageY = tackleUIY - gunImageHeight - gunImageMarginY;
     int gunImageX = screenW - gunImageWidth - gunImageMarginX;
 
-    DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth,
-        gunImageY + gunImageHeight, gunHandle, true);
+    DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
 
     // ブレンドモードをリセット
     if (isLowAmmo && currentAmmo > 0)
@@ -390,8 +389,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
             textColor = GetColor(currentR, currentG, currentB);
         }
 
-        DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle,
-            "%d", currentAmmo);
+        DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", currentAmmo);
     }
 }
 
@@ -415,8 +413,7 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
 
     // 盾ゲージのサイズと位置
     const int shieldGaugeHeight = static_cast<int>(230 * scale);
-    const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW /
-        shieldTexH); // 縦向きのゲージの幅
+    const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW / shieldTexH); // 縦向きのゲージの幅
     float drawScale = (float)shieldGaugeHeight / shieldTexH;
 
     int scaledHpBarMargin = static_cast<int>(PlayerUIConstants::kHpBarMargin * scale);
@@ -472,10 +469,7 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
     // 体力低下の警告
     if (isLowHealth)
     {
-        float alpha =
-            (sinf(lowHealthBlinkTimer * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) +
-                1.0f) *
-            0.5f;
+        float alpha = (sinf(lowHealthBlinkTimer * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
         int alphaInt = static_cast<int>(alpha * 255);
         int drawX = (screenW - scaledWarningSize) * 0.5f;
         int drawY = (screenH - scaledWarningSize) * 0.5f + scaledWarningYOffset;
@@ -496,8 +490,7 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         }
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize,
-            drawY + scaledWarningSize, m_noHealthImageHandle, true);
+        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noHealthImageHandle, true);
 
         const char* text = "体力低下";
         int textWidth =
@@ -574,8 +567,7 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         }
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize,
-            drawY + scaledWarningSize, m_noAmmoImageHandle, true);
+        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noAmmoImageHandle, true);
 
         int textWidth =
             GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
@@ -604,9 +596,7 @@ void PlayerUI::DrawLockOnUI(EnemyBase* lockedOnEnemy)
         if (screenPos.z > 0) // 画面内にあるか
         {
             float halfSize = scaledSize / 2.0f;
-            DrawExtendGraph(screenPos.x - halfSize, screenPos.y - halfSize,
-                screenPos.x + halfSize, screenPos.y + halfSize,
-                m_lockOnUIHandle, true);
+            DrawExtendGraph(screenPos.x - halfSize, screenPos.y - halfSize, screenPos.x + halfSize, screenPos.y + halfSize, m_lockOnUIHandle, true);
         }
     }
 }

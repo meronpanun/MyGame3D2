@@ -15,6 +15,12 @@ public:
     void Draw() override;
 
 private:
+    /// <summary>
+    /// 画面サイズに合わせてレイアウトを計算する
+    /// </summary>
+    void UpdateLayout();
+
+private:
     // リソース管理
     int m_backgroundHandle;          // 背景画像のハンドル
     int m_gameOverImageHandle;       // ゲームオーバー画像のハンドル
@@ -46,7 +52,8 @@ private:
     int m_imageChangeTimer;          // 画像切り替えタイマー
     int m_imageChangeInterval;       // 画像切り替え間隔（フレーム数）
 
-    struct GameOverLayout {
+    struct GameOverLayout
+    {
         // 画像
         int imageDrawX, imageDrawY, imageDrawWidth, imageDrawHeight;
 
@@ -63,10 +70,5 @@ private:
     };
 
     GameOverLayout m_layout;
-
-    /// <summary>
-    /// 画面サイズに合わせてレイアウトを計算する
-    /// </summary>
-    void UpdateLayout();
 };
 
