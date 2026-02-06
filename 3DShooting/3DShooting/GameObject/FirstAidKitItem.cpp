@@ -19,6 +19,13 @@ namespace
 	constexpr float kHealAmount  = 30.0f; // 回復量
 	constexpr float kDropGravity = 0.5f;  // 落下重力加速度
 	constexpr float kGroundY     = 0.0f;  // 地面の高さ
+
+	// アイテム用のサイズとオフセット
+	constexpr float kItemCollisionHeight = 10.0f;
+	constexpr float kItemCollisionRadius = 60.0f; // 半径を大きくして埋まりを防ぐ
+	constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
+
+	const float kRotateSpeed = 0.05f; // 回転速度
 }
 
 FirstAidKitItem::FirstAidKitItem():
@@ -71,13 +78,6 @@ void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageColli
     // 重力適用
     m_velocityY -= kDropGravity;
     m_pos.y += m_velocityY;
-
-    // 接地判定と衝突解決
-    // アイテム用の簡易的なサイズとオフセットを使用
-    // アイテム用の簡易的なサイズとオフセットを使用
-    constexpr float kItemCollisionHeight = 10.0f;
-    constexpr float kItemCollisionRadius = 60.0f; // 半径を大きくして埋まりを防ぐ
-    constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
     
     CollisionResult result = Collision::CheckStageCollision(m_pos, kItemCollisionHeight, kItemCollisionRadius, kItemCollisionYOffset, collisionData);
 
@@ -95,7 +95,7 @@ void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageColli
     }
 
     // 常に回転させる
-    const float kRotateSpeed = 0.05f; // 回転速度
+
     m_rotY += kRotateSpeed;
     if (m_rotY > DX_TWO_PI) m_rotY -= DX_TWO_PI;
 

@@ -8,7 +8,8 @@
 /// <summary>
 /// 弾クラス
 /// </summary>
-class Bullet {
+class Bullet
+{
 public:
   Bullet(VECTOR position, VECTOR direction, AttackType attackType,
          float damage = 10.0f, float attenuationStartDist = 0.0f,
@@ -16,8 +17,7 @@ public:
   virtual ~Bullet();
 
   void Init();
-  void Update(const VECTOR &playerPos,
-              const std::vector<Stage::StageCollisionData> &collisionData);
+  void Update(const VECTOR &playerPos, const std::vector<Stage::StageCollisionData> &collisionData);
   void Draw() const;
 
   // 弾の現在の位置を取得
