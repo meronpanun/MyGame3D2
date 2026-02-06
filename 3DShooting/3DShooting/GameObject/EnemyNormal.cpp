@@ -175,8 +175,7 @@ bool EnemyNormal::CanAttackPlayer(const Player& player)
 {
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
     int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
-    if (handRIndex == -1 || handLIndex == -1)
-        return false;
+    if (handRIndex == -1 || handLIndex == -1) return false;
 
     VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
     VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
@@ -712,8 +711,7 @@ void EnemyNormal::UpdateDeath(const std::vector<Stage::StageCollisionData>& coll
         m_pos = VAdd(m_pos, VScale(m_deathKnockbackDir, m_deathKnockbackSpeed * Game::GetTimeScale()));
         // 減速 (摩擦)
         m_deathKnockbackSpeed -= 0.5f * Game::GetTimeScale();
-        if (m_deathKnockbackSpeed < 0.0f)
-            m_deathKnockbackSpeed = 0.0f;
+        if (m_deathKnockbackSpeed < 0.0f) m_deathKnockbackSpeed = 0.0f;
 
         // ステージ衝突判定 (壁抜け防止)
         UpdateStageCollision(collisionData);

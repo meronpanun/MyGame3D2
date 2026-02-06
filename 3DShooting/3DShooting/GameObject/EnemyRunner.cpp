@@ -181,8 +181,7 @@ bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
     // 手の位置を取得
     int handRIndex = MV1SearchFrame(m_modelHandle, "mixamorig:RightHand");
     int handLIndex = MV1SearchFrame(m_modelHandle, "mixamorig:LeftHand");
-    if (handRIndex == -1 || handLIndex == -1)
-        return false;
+    if (handRIndex == -1 || handLIndex == -1) return false;
 
     VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
     VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
@@ -490,8 +489,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
     if (m_hitDisplayTimer > 0)
     {
         --m_hitDisplayTimer;
-        if (m_hitDisplayTimer == 0)
-            m_lastHitPart = HitPart::None;
+        if (m_hitDisplayTimer == 0) m_lastHitPart = HitPart::None;
     }
 }
 

@@ -3,44 +3,52 @@
 #include "Game.h"
 #include <algorithm>
 
-namespace {
-// ボスHPバー関連
-constexpr int kBossHpBarWidth = 900;
-constexpr int kBossHpBarHeight = 24;
-constexpr int kBossHpBarY = 165;
-constexpr int kBossHpTextY = 120;
+namespace 
+{
+    // ボスHPバー関連
+    constexpr int kBossHpBarWidth = 900;
+    constexpr int kBossHpBarHeight = 24;
+    constexpr int kBossHpBarY = 165;
+    constexpr int kBossHpTextY = 120;
 
-// 色関連
-constexpr unsigned int kColorWhite = 0xffffff;
-constexpr unsigned int kColorHpBarBg = 0x303030;
-constexpr unsigned int kColorHpBarFill = 0xcc0000;   // ボスは真紅
-constexpr unsigned int kColorHpBarDamage = 0xaaaaaa; // 被ダメ時はグレー
-constexpr unsigned int kColorHpBarBorder = 0xffffff;
+    // 色関連
+    constexpr unsigned int kColorWhite = 0xffffff;
+    constexpr unsigned int kColorHpBarBg = 0x303030;
+    constexpr unsigned int kColorHpBarFill = 0xcc0000;   // ボスは真紅
+    constexpr unsigned int kColorHpBarDamage = 0xaaaaaa; // 被ダメ時はグレー
+    constexpr unsigned int kColorHpBarBorder = 0xffffff;
 
-constexpr float kAnimSpeed = 0.05f; // HPバーの追従速度
-} // namespace
+    constexpr float kAnimSpeed = 0.05f; // HPバーの追従速度
+} 
 
-BossUI::BossUI() : m_healthBarAnim(0.0f), m_fontHandle(-1), m_prevScale(1.0f) {
-  ReloadFonts(1.0f);
+BossUI::BossUI() : m_healthBarAnim(0.0f), m_fontHandle(-1), m_prevScale(1.0f)
+{
+    ReloadFonts(1.0f);
 }
 
-BossUI::~BossUI() {
-  if (m_fontHandle != -1) {
-    DeleteFontToHandle(m_fontHandle);
+BossUI::~BossUI() 
+{
+  if (m_fontHandle != -1) 
+  {
+      DeleteFontToHandle(m_fontHandle);
   }
 }
 
-void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) {
+void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) 
+{
   // 生存しているボスを探す
   EnemyBase *pBoss = nullptr;
-  for (auto &enemy : enemyList) {
-    if (enemy->IsBoss() && enemy->IsAlive()) {
+  for (auto &enemy : enemyList) 
+  {
+    if (enemy->IsBoss() && enemy->IsAlive()) 
+    {
       pBoss = enemy.get();
       break;
     }
   }
 
-  if (!pBoss) {
+  if (!pBoss) 
+  {
     m_healthBarAnim = 0.0f;
     return;
   }
@@ -49,26 +57,32 @@ void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) {
   float maxHp = pBoss->GetMaxHp();
 
   // 初回時やリセット用
-  if (m_healthBarAnim <= 0.0f) {
+  if (m_healthBarAnim <= 0.0f) 
+  {
     m_healthBarAnim = hp;
   }
 
   // アニメーション更新
-  if (m_healthBarAnim > hp) {
+  if (m_healthBarAnim > hp) 
+  {
     m_healthBarAnim -= (m_healthBarAnim - hp) * kAnimSpeed;
-    if (m_healthBarAnim < hp)
-      m_healthBarAnim = hp;
-  } else if (m_healthBarAnim < hp) {
+
+    if (m_healthBarAnim < hp) m_healthBarAnim = hp;
+  } 
+  else if (m_healthBarAnim < hp) 
+  {
     m_healthBarAnim = hp;
   }
 
   DrawBossHPBar(hp, maxHp);
 }
 
-void BossUI::DrawBossHPBar(float hp, float maxHp) {
+void BossUI::DrawBossHPBar(float hp, float maxHp) 
+{
   // スケール変更検知
   float currentScale = Game::GetUIScale();
-  if (fabsf(currentScale - m_prevScale) > 0.001f) {
+  if (fabsf(currentScale - m_prevScale) > 0.001f) 
+  {
     ReloadFonts(currentScale);
     m_prevScale = currentScale;
   }
@@ -91,7 +105,8 @@ void BossUI::DrawBossHPBar(float hp, float maxHp) {
           kColorHpBarBg, true);
 
   // アニメーションバー（ダメージ演出用）
-  if (m_healthBarAnim > hp) {
+  if (m_healthBarAnim > hp) 
+  {
     int animW = static_cast<int>(barW * animRate);
     DrawBox(barX, barY, barX + animW, barY + barH,
             kColorHpBarDamage, true);
@@ -114,8 +129,10 @@ void BossUI::DrawBossHPBar(float hp, float maxHp) {
                      m_fontHandle);
 }
 
-void BossUI::ReloadFonts(float scale) {
-  if (m_fontHandle != -1) {
+void BossUI::ReloadFonts(float scale) 
+{
+  if (m_fontHandle != -1) 
+  {
     DeleteFontToHandle(m_fontHandle);
   }
   m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3,
