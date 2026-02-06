@@ -5,7 +5,7 @@
 namespace
 {
 	// カメラ関連の定数
-	constexpr float kPitchLimit = 89.0f * (DX_PI_F / 180.0f);   // カメラの上下最大角度
+	constexpr float kPitchLimit = 89.0f * (DX_PI_F / 180.0f); // カメラの上下最大角度
     constexpr float kCameraXPos = 8.0f;             // カメラのX軸
     constexpr float kCameraYPos = 90.0f;            // カメラのY軸
     constexpr float kCameraZPos = 20.0f;            // カメラのZ軸
@@ -41,41 +41,41 @@ namespace
 	constexpr float kSwayDamping   = 0.9f;   // Swayの減衰率
 }
 
-Camera::Camera() :
-    m_pos(VGet(0, 0, 0)),
-    m_target(VGet(0, 0, 0)),
-    m_offset(VGet(kCameraXPos, kCameraYPos, kCameraZPos)),
-    m_defaultOffset(VGet(kCameraXPos, kCameraYPos, kCameraZPos)),
-    m_playerPos(VGet(0, 0, 0)),
-    m_yaw(DX_PI_F),
-    m_pitch(0.0f),
-	m_roll(0.0f),
-    m_sensitivity(0.1f),
-    m_fov(DX_PI_F * 0.5f),
-    m_defaultFov(DX_PI_F * 0.5f), 
-    m_targetFov(DX_PI_F * 0.5f),
-    m_fovLerpSpeed(0.15f),
-    m_headBobOffset(VGet(0, 0, 0)),
-    m_headBobTimer(0.0f),
-    m_headBobIntensity(0.0f),
-    m_targetBobIntensity(0.0f),
-    m_headBobSpeed(0.0f),
-    m_targetBobSpeed(0.0f),
-    m_isMoving(false),
-    m_isRunning(false),
-    m_landingSwayOffset(VGet(0, 0, 0)),
-    m_landingSwayTimer(0.0f),
-    m_landingSwayIntensity(0.0f),
-    m_jumpSwayOffset(VGet(0, 0, 0)),
-    m_jumpSwayTimer(0.0f),
-    m_jumpSwayIntensity(0.0f),
-    m_prevYaw(0.0f),
-    m_yawDelta(0.0f),
-    m_swayOffset(VGet(0, 0, 0)),
-    m_swayRotOffset(VGet(0, 0, 0)),
-	m_isDeathAnimationPlaying(false),
-	m_deathAnimationTimer(0.0f),
-	m_hasBounced(false)
+Camera::Camera() 
+    : m_pos(VGet(0, 0, 0))
+    , m_target(VGet(0, 0, 0))
+    , m_offset(VGet(kCameraXPos, kCameraYPos, kCameraZPos))
+    , m_defaultOffset(VGet(kCameraXPos, kCameraYPos, kCameraZPos))
+    , m_playerPos(VGet(0, 0, 0))
+    , m_yaw(DX_PI_F)
+    , m_pitch(0.0f)
+    , m_roll(0.0f)
+    , m_sensitivity(0.1f)
+    , m_fov(DX_PI_F * 0.5f)
+    , m_defaultFov(DX_PI_F * 0.5f)
+    , m_targetFov(DX_PI_F * 0.5f)
+    , m_fovLerpSpeed(0.15f)
+    , m_headBobOffset(VGet(0, 0, 0))
+    , m_headBobTimer(0.0f)
+    , m_headBobIntensity(0.0f)
+    , m_targetBobIntensity(0.0f)
+    , m_headBobSpeed(0.0f)
+    , m_targetBobSpeed(0.0f)
+    , m_isMoving(false)
+    , m_isRunning(false)
+    , m_landingSwayOffset(VGet(0, 0, 0))
+    , m_landingSwayTimer(0.0f)
+    , m_landingSwayIntensity(0.0f)
+    , m_jumpSwayOffset(VGet(0, 0, 0))
+    , m_jumpSwayTimer(0.0f)
+    , m_jumpSwayIntensity(0.0f)
+    , m_prevYaw(0.0f)
+    , m_yawDelta(0.0f)
+    , m_swayOffset(VGet(0, 0, 0))
+    , m_swayRotOffset(VGet(0, 0, 0))
+    , m_isDeathAnimationPlaying(false)
+    , m_deathAnimationTimer(0.0f)
+    , m_hasBounced(false)
 {
 }
 

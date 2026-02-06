@@ -1,7 +1,8 @@
 ﻿#pragma once
 
 // 攻撃の種類を定義するenum
-enum class AttackType {
+enum class AttackType
+{
   None,
   Shoot,       // 射撃
   Shotgun,     // ショットガン

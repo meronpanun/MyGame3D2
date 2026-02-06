@@ -18,6 +18,4 @@ public:
   /// </summary>
   /// <returns>ロード中ならtrue</returns>
   virtual bool IsLoading() const { return false; }
-
-protected:
 };
