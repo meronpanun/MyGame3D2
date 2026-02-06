@@ -67,7 +67,6 @@ EnemyBoss::EnemyBoss()
     : m_currentAnimState(AnimState::Idle)
     , m_isDeadAnimPlaying(false)
     , m_animTime(0.0f)
-    , m_chaseSpeed(0.0f)
     , m_attackEndDelayTimer(0)
     , m_isAttackHit(false)
     , m_headNodeIndex(-1)
@@ -99,21 +98,8 @@ void EnemyBoss::Init()
     m_pos = VGet(0.0f, 0.0f, 1000.0f);
     MV1SetPosition(m_modelHandle, m_pos);
 
-    // CSVからデータをロード
-    auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
-    for (const auto& data : dataList)
-    {
-        if (data.name == "Boss")
-        {
-            MV1SetRotationXYZ(m_modelHandle, data.rot);
-            MV1SetScale(m_modelHandle, data.scale);
-            m_attackPower = data.attack;
-            m_hp = data.hp;
-            m_maxHp = data.hp;
-            m_chaseSpeed = data.chaseSpeed;
-            break;
-        }
-    }
+    // CSVからBossのTransform情報を取得
+    LoadTransformData("Boss");
 
     // フレームインデックスのキャッシュ
     m_headNodeIndex = MV1SearchFrame(m_modelHandle, "Head");
@@ -515,13 +501,9 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         toPlayer.y = 0.0f;
         float disToPlayer = VSize(toPlayer);
 
-        // 向き変更
-        if (disToPlayer > 0.1f)
-        {
-            float yaw = atan2f(toPlayer.x, toPlayer.z);
-            yaw += DX_PI_F;
-            MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
-        }
+        // 向き変更(共通関数使用)
+        float rotSpeed = 0.05f * Game::GetTimeScale();
+        RotateTowards(playerPos, rotSpeed);
 
         // 攻撃判定
         if (CanAttackPlayer(player))
@@ -537,7 +519,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         else
         {
             // 移動が必要かチェック
-            if (disToPlayer > EnemyBossConstants::kLongRangeAttackMaxDist || disToPlayer < EnemyBossConstants::kLongRangeAttackMinDist)
+            if (disToPlayer >= EnemyBossConstants::kLongRangeAttackMaxDist || disToPlayer < EnemyBossConstants::kLongRangeAttackMinDist)
             {
                 ChangeAnimation(AnimState::Walk, true);
             }
@@ -555,13 +537,9 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             toPlayer.y = 0.0f;
             float disToPlayer = VSize(toPlayer);
 
-            // 向き変更
-            if (disToPlayer > 0.1f)
-            {
-                float yaw = atan2f(toPlayer.x, toPlayer.z);
-                yaw += DX_PI_F; // モデルの向き補正が必要なら調整
-                MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
-            }
+            // 向き変更(共通関数使用)
+            float rotSpeed = 0.05f * Game::GetTimeScale();
+            RotateTowards(playerPos, rotSpeed);
 
             // 攻撃判定
             if (CanAttackPlayer(player))
@@ -578,11 +556,12 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             else
             {
                 // 範囲外なら近づく
-                if (disToPlayer > EnemyBossConstants::kLongRangeAttackMaxDist)
+                if (disToPlayer >= EnemyBossConstants::kLongRangeAttackMaxDist)
                 {
                     VECTOR dir = VNorm(toPlayer);
                     m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
                 }
+                // 範囲内過ぎるなら離れる 
                 else if (disToPlayer < EnemyBossConstants::kLongRangeAttackMinDist)
                 {
                     VECTOR dir = VNorm(toPlayer);
@@ -668,19 +647,9 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         m_pHeadCollider->SetRadius(EnemyBossConstants::kHeadRadius);
     }
 
-    // プレイヤーとの押し出しなど
-    if (m_pBodyCollider->IsIntersects(playerBodyCollider.get()))
-    {
-        // 簡易押し出し
-        VECTOR diff = VSub(m_pos, player.GetPos());
-        diff.y = 0.0f;
-        if (VSize(diff) > 0.001f)
-        {
-            VECTOR pushDir = VNorm(diff);
-            float pushDist = 2.0f; // 適当な押し出し係数
-            m_pos = VAdd(m_pos, VScale(pushDir, pushDist));
-        }
-    }
+    // プレイヤーとの押し出し処理(共通関数使用)
+    float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius(); // kBodyColliderRadiusは40
+    ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
 
     // 攻撃判定発生
     if (m_currentAnimState == AnimState::Attack && !m_isAttackHit)
@@ -728,25 +697,10 @@ void EnemyBoss::Draw()
     if (!m_isAlive && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
         return;
 
-    // 視錐台カリング (描画最適化)
-    VECTOR camPos = GetCameraPosition();
-    VECTOR camTarget = GetCameraTarget();
-    VECTOR camDir = VNorm(VSub(camTarget, camPos));
-    VECTOR toEnemy = VSub(m_pos, camPos);
-    float distSq = VSquareSize(toEnemy);
-
-    // 1. 距離チェック (Farクリップ + マージン)
-    if (distSq > EnemyBossConstants::kDrawDistanceSq) return;
-
-    // 2. 画角チェック (内積)
-    // ボスは巨大なので、近距離判定を広めにとる
-    if (distSq > EnemyBossConstants::kDrawNearDistanceSq)
-    {
-        VECTOR dirToEnemy = VNorm(toEnemy);
-        float dot = VDot(camDir, dirToEnemy);
-        // ボスは横幅もあるので、かなり広めに判定 (視野前面180度近くを許可)
-        if (dot < 0.0f) return;
-    }
+    // 視錐台カリング (描画最適化) (共通関数使用)
+    // ボスは大きいので描画距離も少し緩めに設定してもいいが、基本的なロジックは統合
+    // 第3引数のdotThresholdは0.0f (180度)をとりあえず維持
+    if (!ShouldDraw(EnemyBossConstants::kDrawDistanceSq, EnemyBossConstants::kDrawNearDistanceSq, 0.0f)) return;
 
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);

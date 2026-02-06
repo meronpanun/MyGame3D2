@@ -56,8 +56,6 @@ protected:
     // デバッグ描画
     void DrawCollisionDebug() const override;
 
-
-
 private:
     static bool s_drawCollision;
 
@@ -94,7 +92,6 @@ private:
     std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;  // 攻撃判定(腕など)
     std::shared_ptr<SphereCollider> m_pWeakCollider;        // 弱点
 
-    float m_chaseSpeed;        // 追跡速度
     int m_attackEndDelayTimer; // 攻撃後の硬直タイマー
     bool m_isAttackHit;        // 攻撃がヒットしたか
 
