@@ -387,39 +387,27 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem &shieldSystem) {
   float shieldBarAnim = shieldSystem.GetBarAnim();
   float maxShieldDurability = shieldSystem.GetMaxDurability();
   float shieldDurabilityRate = shieldBarAnim / maxShieldDurability;
-  if (shieldDurabilityRate < 0.0f)
-    shieldDurabilityRate = 0.0f;
-  if (shieldDurabilityRate > 1.0f)
-    shieldDurabilityRate = 1.0f;
+
+  if (shieldDurabilityRate < 0.0f) shieldDurabilityRate = 0.0f;
+  if (shieldDurabilityRate > 1.0f) shieldDurabilityRate = 1.0f;
 
   // 盾のテクスチャサイズを取得
   int shieldTexW, shieldTexH;
   GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
 
   // 盾ゲージのサイズと位置
-  const int shieldGaugeHeight = static_cast<int>(230 * scale); // サイズを少し大きく (190 -> 230)
+  const int shieldGaugeHeight = static_cast<int>(230 * scale);
   const int shieldGaugeWidth = (int)((float)shieldGaugeHeight * shieldTexW /
                                      shieldTexH); // 縦向きのゲージの幅
   float drawScale = (float)shieldGaugeHeight / shieldTexH;
 
   int scaledHpBarMargin = static_cast<int>(kHpBarMargin * scale);
   
-  // 盾UIを左側に移動 (HPバーの上、アイコンの真上あたりに配置)
-  // HPアイコンの高さ分 + のマージンを考慮して配置
-  // HPアイコンのY座標トップ = screenH - scaledHpBarHeight - scaledHpBarMargin + (offset)
-  // 簡略化して screenH - scaledHpBarMargin - scaledHpBarHeight - 小さなマージン - shiledGaugeHeight
-  
-  // HP UIの全高を計算 (margin + height + icon_offset)
-  // Icon Size = 96, Bar Height = 36. 
-  // Icon Top is roughly Margin + 96 from bottom?
-  // Let's use fixed offset from bottom for simplicity to sit above HP UI.
-  // HP UI occupies roughly 120px from bottom (45 margin + 96 icon height appx).
-  // "もう少し下でいい" -> マージンを詰める
-  int hpUITopFromBottom = static_cast<int>((kHpBarMargin + kHealthUiImageSize - 15) * scale);  // +10 -> -15 に変更して少し下げる 
+  // HP UIの全高を計算 
+  int hpUITopFromBottom = static_cast<int>((kHpBarMargin + kHealthUiImageSize - 15) * scale); 
 
   int shieldGaugeY = screenH - hpUITopFromBottom - shieldGaugeHeight;
   
-  // 盾UIを左側に移動 (HPバーの上あたり)
   // HPバーのマージンを基準にする
   int shieldGaugeX = scaledHpBarMargin;
 
