@@ -10,7 +10,7 @@ class DebugMenu
 {
 public:
     /// <summary>
-	/// メニューアイテムの構造体
+    /// メニューアイテムの構造体
     /// </summary>
     struct MenuItem
     {
@@ -29,28 +29,28 @@ public:
 
 private:
     /// <summary>
-	/// メニューアイテムを再帰的に描画する関数
+    /// メニューアイテムを再帰的に描画する関数
     /// </summary>
-	/// <param name="item">描画するメニューアイテム</param>
-	/// <param name="x">x座標</param>
+    /// <param name="item">描画するメニューアイテム</param>
+    /// <param name="x">x座標</param>
     /// <param name="y">y座標</param>
-	/// <param name="depth">階層の深さ</param>
-	/// <param name="currentPath">現在のメニューアイテムのパス</param>
-	/// <param name="selectedPath">選択されているメニューアイテムのパス</param>
-	/// <param name="mouseX">x座標のマウス位置</param>
-	/// <param name="mouseY">y座標のマウス位置</param>
-	/// <param name="leftClicked">左クリックされたかどうか</param>
+    /// <param name="depth">階層の深さ</param>
+    /// <param name="currentPath">現在のメニューアイテムのパス</param>
+    /// <param name="selectedPath">選択されているメニューアイテムのパス</param>
+    /// <param name="mouseX">x座標のマウス位置</param>
+    /// <param name="mouseY">y座標のマウス位置</param>
+    /// <param name="leftClicked">左クリックされたかどうか</param>
     void DrawItem(MenuItem& item, int& x, int& y, int depth, const std::vector<int>& currentPath, const std::vector<int>& selectedPath, int mouseX, int mouseY, bool leftClicked);
 
     /// <summary>
-	/// メニューの入力処理を行う
+    /// メニューの入力処理を行う
     /// </summary>
     void HandleInput();
 
     /// <summary>
-	/// 現在選択されているメニューアイテムを取得する
+    /// 現在選択されているメニューアイテムを取得する
     /// </summary>
-	/// <returns>選択されているメニューアイテムのポインタ</returns>
+    /// <returns>選択されているメニューアイテムのポインタ</returns>
     MenuItem* GetSelectedItem();
 
     MenuItem m_root;

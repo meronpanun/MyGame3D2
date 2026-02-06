@@ -10,8 +10,8 @@ InputManager* InputManager::GetInstance()
     return &instance;
 }
 
-InputManager::InputManager() : 
-    m_mouseWheelRot(0)
+InputManager::InputManager()
+    : m_mouseWheelRot(0)
 {
     for (int i = 0; i < kLogNum; ++i)
     {
