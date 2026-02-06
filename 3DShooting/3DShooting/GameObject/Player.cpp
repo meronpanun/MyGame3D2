@@ -211,36 +211,19 @@ void Player::Update(
   bool isGuarding = m_shieldSystem.IsGuarding();
   bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
-  // タックル中もコライダーを更新する必要があるため、常にUpdateを呼ぶ
-  // ただし、タックル中は移動処理はスキップされる
+  // タックル中もコライダーを更新（移動処理は内部でスキップされる）
   m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling,
                     m_isFlightMode, collisionData);
 
-  // 敵との衝突（近接）チェック: 敵に近い場合はダッシュ解除
-  if (!m_isTackling) {
-    for (const auto &enemy : enemyList) {
-      if (!enemy || !enemy->IsAlive())
-        continue;
+  // 敵接近時のダッシュ解除
+  CheckEnemyProximity(enemyList);
 
-      // プレイヤーと敵の距離をチェック
-      // カプセル半径の和 + マージン
-      constexpr float kEnemyCollisionDist = 100.0f;
-      VECTOR diff = VSub(m_movement.GetPos(), enemy->GetPos());
-      float distSq = VSize(
-          diff); // VSizeも2乗を返すわけではないので注意。VSizeはsqrtを取る。
-      // ここでは距離そのもので比較
-      if (distSq < kEnemyCollisionDist) {
-        m_movement.CancelRunMode();
-        break;
-      }
-    }
+  // 位置同期
+  if (!m_isTackling) {
+    m_modelPos = m_movement.GetPos();
   }
 
-  // タックル中でない場合は位置を同期
-  if (!m_isTackling) {
-    m_modelPos = m_movement.GetPos(); // 位置を同期
-  }
-
+  // 武器マネージャー更新
   PlayerWeaponManager::UpdateContext weaponContext = {
       deltaTime,        m_modelPos,        m_pCamera.get(),
       isGuarding,       m_isDead,          m_isTackling,
@@ -248,435 +231,109 @@ void Player::Update(
       m_isInfiniteAmmo, enemyList,         collisionData};
   m_weaponManager.Update(weaponContext);
 
-  // 武器切り替え（ガード中は不可）
-  if (!isGuarding) {
-    if (keyState[KEY_INPUT_1] && !m_prevKeyState[KEY_INPUT_1]) {
-      m_weaponManager.SwitchWeapon(WeaponType::AssaultRifle);
-    } else if (keyState[KEY_INPUT_2] && !m_prevKeyState[KEY_INPUT_2]) {
-      m_weaponManager.SwitchWeapon(WeaponType::Shotgun);
-    }
+  // 武器切り替え
+  UpdateWeaponSwitching(keyState);
 
-    // マウスホイールで武器切り替え
-    int wheelRot = InputManager::GetInstance()->GetMouseWheelRotVol();
-    if (wheelRot != 0) {
-      WeaponType currentWeapon = m_weaponManager.GetCurrentWeaponType();
-      WeaponType nextWeapon = (currentWeapon == WeaponType::AssaultRifle)
-                                  ? WeaponType::Shotgun
-                                  : WeaponType::AssaultRifle;
-      m_weaponManager.SwitchWeapon(nextWeapon);
-    }
-  }
-
-  // プレイヤーの位置をカメラに設定
+  // カメラ位置設定
   m_pCamera->SetPlayerPos(m_modelPos);
 
-  // Swayの計算
+  // Sway更新
   float yawDelta = m_pCamera->GetYawDelta();
-
-  // 盾システムの更新
   m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding,
                         m_isTackling, isSwitchingWeapon,
                         m_weaponManager.GetWeaponSwitchTimer(),
                         m_weaponManager.GetWeaponSwitchDuration(), yawDelta,
                         m_movement.IsMoving());
 
-  // 右クリック長押しでガード
+  // ガード入力処理
   bool shouldGuard = !m_isDead && !m_isTackling &&
                      InputManager::GetInstance()->IsPressMouseRight() &&
                      !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
   m_shieldSystem.SetGuarding(shouldGuard);
   bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
-  // Rキーでシールドソーを投げる/戻す（死亡中、タックル中、ガード中、武器切り替え中、チュートリアル中は不可）
+  // シールド投擲
   if ((m_allowedAttackType == AttackType::None ||
        m_allowedAttackType == AttackType::ShieldThrow) &&
       !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
       keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R]) {
     if (m_shieldSystem.IsShieldThrown()) {
-      // 既に投げられている場合は即座に戻す
       m_shieldSystem.ImmediateReturnShield(m_modelPos);
     } else {
-      // 投げられていない場合は投げる
       m_shieldSystem.ThrowShield(m_pCamera.get(), m_modelPos);
     }
   }
 
-  // シールドソーの更新（前フレームのガード状態を使用）
   m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos,
                                    enemyList, collisionData, m_pEffect,
                                    currentIsGuarding, m_prevIsGuarding);
+  m_prevIsGuarding = currentIsGuarding; // 更新
 
-  // 前フレームのガード状態を更新
-  m_prevIsGuarding = currentIsGuarding;
-
-  // 銃のSwayの計算
+  // 銃揺れ計算
   m_gunSwayOffset.x -= yawDelta * kGunSwayAmount;
   m_gunSwayOffset.x *= kGunSwayDamping;
   m_gunSwayRotOffset.y -= yawDelta * kGunSwayAmount * 0.5f;
   m_gunSwayRotOffset.y *= kGunSwayDamping;
 
-  // 待機時の揺れ
+  // 待機揺れ
   m_idleSwayTimer += deltaTime;
-  bool isMoving = m_movement.IsMoving();
-  if (!isMoving) {
-    // サイン波とコサイン波を使って、ゆっくりとした円運動のような揺れを生成
+  if (!m_movement.IsMoving()) {
     VECTOR idleSway =
         VGet(sinf(m_idleSwayTimer * kIdleSwaySpeed * 2.0f) * kIdleSwayAmount,
              cosf(m_idleSwayTimer * kIdleSwaySpeed) * kIdleSwayAmount, 0.0f);
-
-    // 既存のSwayに加算
     m_gunSwayOffset = VAdd(m_gunSwayOffset, idleSway);
   }
 
-  if (m_pEffect) {
-    m_pEffect->Update(); // エフェクトの更新
-  }
+  if (m_pEffect) m_pEffect->Update();
 
-  // ショットガンアニメーション更新
   m_weaponManager.UpdateSGAnimation(m_pAnimManager, deltaTime);
-
-  // カメラの更新
   m_pCamera->Update();
 
-  // タックルクールタイム減少
+  // タックルクールダウン
   if (m_tackleCooldown > 0) {
     m_tackleCooldown--;
-
-    // クールタイムが0になった瞬間に全敵のタックルヒットフラグをリセット
     if (m_tackleCooldown == 0) {
       for (EnemyBase *enemy : enemyList) {
-        if (enemy) {
-          enemy->ResetTackleHitFlag();
-        }
+        if (enemy) enemy->ResetTackleHitFlag();
       }
     }
   }
 
-  // マウスの左クリックで射撃（タックル中、ガード中は射撃不可、死亡中も射撃不可）
-  if (!m_isDead &&
-      (m_allowedAttackType == AttackType::None ||
-       m_allowedAttackType == AttackType::Shoot) &&
-      !m_isTackling && !isGuarding && !m_isLockingOn && !isSwitchingWeapon &&
-      InputManager::GetInstance()->IsPressMouseLeft() &&
-      (m_weaponManager.GetCurrentAmmo() > 0 || m_isInfiniteAmmo) &&
-      m_weaponManager.CanShoot()) {
-    m_weaponManager.Shoot(m_bullets, m_modelPos, m_pCamera.get(), m_pEffect,
-                          m_pAnimManager, m_shellCasings);
-    m_weaponManager.ConsumeAmmo();
-  }
+  // 射撃
+  UpdateShooting();
 
-  // 地面にいるかどうかの判定
-  bool isOnGround =
-      (m_modelPos.y <= PlayerMovement::GetGroundY() +
-                           PlayerMovement::GetGroundCheckTolerance());
-
-  // 右クリック長押しでガード＆ロックオン
+  // 右クリックガード解除で入力無視解除
   if (!InputManager::GetInstance()->IsPressMouseRight()) {
     m_ignoreGuardInput = false;
   }
 
-  // 視線が通っているかどうかのチェック関数
-  auto checkLineOfSight = [&](const VECTOR &start, const VECTOR &end) -> bool {
-    for (const auto &col : collisionData) {
-      HITRESULT_LINE result =
-          HitCheck_Line_Triangle(start, end, col.v1, col.v2, col.v3);
-      if (result.HitFlag) {
-        return false;
-      }
-    }
-    return true;
-  };
+  // ロックオン更新
+  UpdateLockOn(enemyList, collisionData);
 
-  // ロックオン可能な敵がいるかどうかの判定
-  m_isTargetAvailable = false;
-
-  VECTOR camPos = m_pCamera->GetPos();
-  VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
-
-  // タックルが届く最大距離 (移動距離 + 当たり判定の突き出し分)
-  // 移動距離 = 速度 * 時間
-  // 当たり判定 = 250.0f (kTackleHitRange)
-  float tackleMaxReach = m_tackleSpeed * kTackleDuration + kTackleHitRange;
-  float tackleMaxReachSq = tackleMaxReach * tackleMaxReach;
-
-  for (EnemyBase *enemy : enemyList) {
-    if (!enemy || !enemy->IsAlive())
-      continue;
-
-    VECTOR enemyPos = enemy->GetPos();
-    enemyPos.y += 70.0f; // 敵の胴体あたりをターゲットにするためのオフセット
-    VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
-
-    // 距離チェック
-    VECTOR diff = VSub(m_modelPos, enemy->GetPos()); // プレイヤー位置からの距離
-    float distSq =
-        VSize(diff) *
-        VSize(diff); // VSizeはsqrtを取るので、distSqを計算するには2乗するか
-                     // VSquareSize を使うべきだが、ここでは単純に2乗する
-
-    // 距離が届かない場合はロックオン対象外
-    if (distSq > tackleMaxReachSq) {
-      continue;
-    }
-
-    // プレイヤーの前方一定角度内にいるか
-    if (VDot(camDir, toEnemyDir) > kLockOnAngleCos) {
-      VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
-
-      // 画面内にいるか、かつ垂直方向の範囲内か
-      if (screenPos.z > 0) {
-        float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
-        float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
-
-        // 垂直方向の範囲チェック
-        if (fabs(dy) < kLockOnMaxScreenOffsetY) {
-          // 視線チェック
-          if (checkLineOfSight(camPos, enemyPos)) {
-            m_isTargetAvailable = true;
-            break; // 1体でも見つかればOK
-          }
-        }
-      }
-    }
-  }
-
-  // 敵に照準が合っているかどうかの判定
-  m_isAimingAtEnemy = false;
-  VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
-
-  for (const auto &enemy : enemyList) {
-    if (!enemy || !enemy->IsAlive()) {
-      continue;
-    }
-
-    VECTOR hitPos;
-    float hitDistSq;
-    EnemyBase::HitPart part =
-        enemy->CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
-
-    if (part == EnemyBase::HitPart::Body || part == EnemyBase::HitPart::Head) {
-      // 照準が合っている敵に対しても視線チェック
-      // (敵の手前に壁がある場合などを考慮)
-      if (checkLineOfSight(camPos, hitPos)) {
-        m_isAimingAtEnemy = true;
-        break;
-      }
-    }
-  }
-
-  // タックルクールダウン中でない場合のみロックオンを許可
-  if (shouldGuard && m_tackleCooldown <= 0) {
-    m_isLockingOn = true;
-    m_lockedOnEnemy = nullptr;
-
-    constexpr float kLockOnAngleCos = 0.966f;
-    constexpr float kLockOnMaxScreenOffsetY = 100.0f;
-    float minScreenDistSq = -1.0f;
-
-    VECTOR camPos = m_pCamera->GetPos();
-    VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
-
-    for (EnemyBase *enemy : enemyList) {
-      if (!enemy || !enemy->IsAlive())
-        continue;
-
-      // 距離チェック
-      VECTOR diff = VSub(m_modelPos, enemy->GetPos());
-      float distSqWorld = VSize(diff) * VSize(diff);
-      if (distSqWorld > tackleMaxReachSq) {
-        continue;
-      }
-
-      VECTOR enemyPos = enemy->GetPos();
-      enemyPos.y += 70.0f;
-      VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
-
-      if (VDot(camDir, toEnemyDir) > kLockOnAngleCos) {
-        VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
-
-        if (screenPos.z > 0) {
-          float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
-          float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
-
-          if (fabs(dy) < kLockOnMaxScreenOffsetY) {
-            // 視線チェック
-            if (checkLineOfSight(camPos, enemyPos)) {
-              float distSq = dx * dx + dy * dy;
-
-              if (minScreenDistSq < 0 || distSq < minScreenDistSq) {
-                minScreenDistSq = distSq;
-                m_lockedOnEnemy = enemy;
-              }
-            }
-          }
-        }
-      }
-    }
-  } else {
-    m_isLockingOn = false;
-    m_lockedOnEnemy = nullptr;
-  }
-
-  // ガードエフェクトの更新
-  m_shieldSystem.UpdateGuardEffect(m_pEffect, m_pCamera.get(), m_modelPos,
-                                   isSwitchingWeapon);
+  // ガードエフェクト更新
+  m_shieldSystem.UpdateGuardEffect(m_pEffect, m_pCamera.get(), m_modelPos, isSwitchingWeapon);
   m_shieldSystem.UpdateSparkEffect(m_pEffect, m_modelPos, m_pCamera.get());
 
-  // ロックオン中に左クリックでタックル
-  if ((m_allowedAttackType == AttackType::None ||
-       m_allowedAttackType == AttackType::Tackle) &&
-      m_isLockingOn && m_lockedOnEnemy &&
-      InputManager::GetInstance()->IsTriggerMouseLeft() &&
-      m_tackleCooldown <= 0) {
-    m_isTackling = true;
+  // タックル更新 (開始判定と実行中の処理含む)
+  UpdateTackle(enemyList, collisionData);
 
-    PlaySoundMem(m_tackleSEHandle, DX_PLAYTYPE_BACK); // タックルSE再生
-    m_tackleFrame = kTackleDuration;
-    m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
-    m_tackleId++;                           // タックルごとにIDを更新
-
-    // ロックオンした敵の方向をタックル方向とする
-    m_tackleDir = VNorm(VSub(m_lockedOnEnemy->GetPos(), m_modelPos));
-
-    // タックル開始時にFOVを広げ、カメラを後ろに引く
-    if (m_pCamera) {
-      m_pCamera->SetTargetFOV(kTackleFov * DX_PI_F / 180.0f);
-      VECTOR offset = m_pCamera->GetOffset();
-      offset.z = kTackleCameraZOffset;
-      m_pCamera->SetOffset(offset);
-
-      // 集中線エフェクトを再生
-      if (m_pEffect) {
-        VECTOR camPos = m_pCamera->GetPos();
-        m_concentrationLineEffectHandle =
-            m_pEffect->PlayConcentrationLine(camPos.x, camPos.y, camPos.z);
+  // タックルが実行されていない場合のみ、通常の敵更新を行う
+  if (!m_isTackling)
+  {
+     
+      TackleInfo tackleInfo = GetTackleInfo(); // 初期値(isTackling=false)
+      for (EnemyBase *enemy : enemyList) {
+        if (!enemy) continue;
+        EnemyUpdateContext context = {m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect};
+        enemy->Update(context);
       }
-    }
-    m_isLockingOn = false; // タックル開始したらロックオン解除
-    m_lockedOnEnemy = nullptr;
   }
 
-  // タックル中の処理
-  if (m_isTackling) {
-    m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
-
-    // m_movementの位置も同期
-    m_movement.SetPos(m_modelPos);
-
-    // 地面より下に行かないように制限 (Collision check below handles this
-    // better, but keeping as safeguard for now)
-    if (m_modelPos.y < PlayerMovement::GetGroundY()) {
-      m_modelPos.y = PlayerMovement::GetGroundY();
-    }
-
-    // ステージとの衝突判定
-    // タックル中も壁や坂道との衝突を検知して位置を修正する
-    CollisionResult res = Collision::CheckStageCollision(
-        m_modelPos, kCapsuleHeight, kCapsuleRadius, kPlayerColliderYOffset,
-        collisionData);
-
-    // m_movementの位置も同期
-    m_movement.SetPos(m_modelPos);
-
-    // タックル判定情報を作成
-    TackleInfo tackleInfo = GetTackleInfo();
-
-    // タックル停止判定用（ダメージ判定とは別に、体の衝突で停止させる）
-    bool isBodyHit = false;
-    VECTOR bodyCapA, bodyCapB;
-    float bodyRadius;
-    GetCapsuleInfo(bodyCapA, bodyCapB, bodyRadius);
-    CapsuleCollider bodyCol(bodyCapA, bodyCapB, bodyRadius + kTackleStopMargin);
-
-    // 各敵にタックル情報を渡してUpdate
-    for (EnemyBase *enemy : enemyList) {
-      // 敵がnullptrの場合はスキップ
-      if (!enemy)
-        continue;
-
-      // 敵の更新処理（ダメージ判定などはここで行われる）
-      EnemyUpdateContext context = {m_bullets, tackleInfo,    *this,
-                                    enemyList, collisionData, m_pEffect};
-      enemy->Update(context);
-
-      // タックル停止判定(プレイヤーの体と敵の体が衝突したら停止)
-      // すでに停止フラグが立っている場合は判定しない
-      if (m_isTackling && !isBodyHit && enemy->IsAlive()) {
-        auto enemyCollider = enemy->GetBodyCollider();
-        if (enemyCollider && bodyCol.IsIntersects(enemyCollider.get())) {
-          isBodyHit = true;
-        }
-      }
-    }
-
-#ifdef _DEBUG
-    // タックル判定カプセルのデバッグ描画
-    DebugUtil::DrawCapsule(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius,
-                           16, 0x00ff00, false);
-#endif
-    m_tackleFrame--;
-    // タックル終了判定（時間経過 または 敵の体に衝突）
-    if (m_tackleFrame <= 0 || isBodyHit) {
-      // 敵に衝突した場合はカメラを揺らす
-      if (isBodyHit && m_pCamera) {
-        m_pCamera->Shake(20.0f, 10);
-      }
-
-      m_isTackling = false;
-      m_ignoreGuardInput = true; // ガード入力を無視
-
-      // タックル終了時にFOVとカメラオフセットを元に戻す
-      if (m_pCamera) {
-        m_pCamera->ResetFOV();
-        m_pCamera->ResetOffset();
-      }
-
-      // 集中線エフェクトを停止
-      if (m_concentrationLineEffectHandle != -1) {
-        StopEffekseer3DEffect(m_concentrationLineEffectHandle);
-        m_concentrationLineEffectHandle = -1;
-      }
-    }
-    // タックル中は他の移動・ジャンプを無効化
-
-    // 集中線エフェクトをカメラに追従させる
-    if (m_concentrationLineEffectHandle != -1) {
-      VECTOR camPos = m_pCamera->GetPos();
-      VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
-      VECTOR effectPos =
-          VAdd(camPos,
-               VScale(camDir,
-                      kConcentrationLineEffectZOffset)); // カメラの少し前に出す
-      SetPosPlayingEffekseer3DEffect(m_concentrationLineEffectHandle,
-                                     effectPos.x, effectPos.y, effectPos.z);
-
-      // エフェクトをカメラの向きに合わせる
-      float pitch = -m_pCamera->GetPitch();
-      float yaw = m_pCamera->GetYaw();
-      SetRotationPlayingEffekseer3DEffect(m_concentrationLineEffectHandle,
-                                          pitch, yaw, 0.0f);
-    }
-
-    return;
-  }
-
-  // 各敵に更新処理を行うためのタックル情報を作成
-  TackleInfo tackleInfo{};
-  for (EnemyBase *enemy : enemyList) {
-    if (!enemy)
-      continue;
-    EnemyUpdateContext context = {m_bullets, tackleInfo,    *this,
-                                  enemyList, collisionData, m_pEffect};
-    enemy->Update(context);
-  }
-
-  // 弾の更新
+  // 弾更新
   Bullet::UpdateBullets(m_bullets, m_modelPos, collisionData);
 
-  // Head Bobbing状態をカメラに設定
   if (m_pCamera) {
-    m_pCamera->SetHeadBobbingState(m_movement.IsMoving(),
-                                   m_movement.IsWasRunning());
+    m_pCamera->SetHeadBobbingState(m_movement.IsMoving(), m_movement.IsWasRunning());
   }
 
   if (m_isDead) {
@@ -689,38 +346,29 @@ void Player::Update(
     m_deathTimer = 0.0f;
   }
 
-  std::copy(std::begin(keyState), std::end(keyState),
-            std::begin(m_prevKeyState));
+  std::copy(std::begin(keyState), std::end(keyState), std::begin(m_prevKeyState));
 
   // HPバーアニメーション
   if (m_healthBarAnim != m_health) {
     if (m_healthBarAnim > m_health) {
-      // ダメージ: アニメーション値を減少させる
       m_healthBarAnim -= kHpBarAnimSpeed;
-      if (m_healthBarAnim < m_health) {
-        m_healthBarAnim = m_health;
-      }
+      if (m_healthBarAnim < m_health) m_healthBarAnim = m_health;
     } else {
-      // 回復: アニメーション値を増加させる
       m_healthBarAnim += kHpBarAnimSpeed;
-      if (m_healthBarAnim > m_health) {
-        m_healthBarAnim = m_health;
-      }
+      if (m_healthBarAnim > m_health) m_healthBarAnim = m_health;
     }
   }
 
-  // 体力低下の警告表示処理
+  // 体力低下警告
   if (m_health <= kLowHealthThreshold) {
     m_isLowHealth = true;
-    m_lowHealthBlinkTimer += kDeltaTime; // タイマー更新
+    m_lowHealthBlinkTimer += kDeltaTime;
   } else {
     m_isLowHealth = false;
     m_lowHealthBlinkTimer = 0.0f;
   }
-  // エフェクトの更新
   m_effectManager.Update(deltaTime, m_isLowHealth, m_lowHealthBlinkTimer);
 
-  // 残弾数テキストのフラッシュタイマー更新
   if (m_ammoTextFlashTimer > 0.0f) {
     m_ammoTextFlashTimer -= 1.0f;
   }
@@ -736,17 +384,7 @@ void Player::Draw3D() {
   bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
   // カメラのジャンプ・着地揺れを銃の揺れに反映
-  // 修正:
-  // カメラが既に揺れているため、銃にも同じ揺れを加えると画面上で静止して見える。
-  // そのため、銃にはジャンプ・着地揺れを加算しないことで、相対的な揺れ（ボビング）を表現する。
   VECTOR totalSway = m_gunSwayOffset;
-  /*
-  if (m_pCamera)
-  {
-          totalSway = VAdd(totalSway, m_pCamera->GetJumpSwayOffset());
-          totalSway = VAdd(totalSway, m_pCamera->GetLandingSwayOffset());
-  }
-  */
 
   PlayerWeaponManager::DrawContext weaponDrawContext = {
       m_modelPos,
@@ -1041,4 +679,322 @@ WeaponType Player::GetCurrentWeaponType() const {
 // 武器を切り替える
 void Player::SwitchWeapon(WeaponType weaponType) {
   m_weaponManager.SwitchWeapon(weaponType);
+}
+
+bool Player::CheckLineOfSight(const VECTOR &start, const VECTOR &end,
+                              const std::vector<Stage::StageCollisionData> &collisionData) const {
+  for (const auto &col : collisionData) {
+    HITRESULT_LINE result =
+        HitCheck_Line_Triangle(start, end, col.v1, col.v2, col.v3);
+    if (result.HitFlag) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void Player::CheckEnemyProximity(const std::vector<EnemyBase *> &enemyList) {
+  if (m_isTackling) return;
+
+  for (const auto &enemy : enemyList) {
+    if (!enemy || !enemy->IsAlive())
+      continue;
+
+    // プレイヤーと敵の距離をチェック
+    // カプセル半径の和 + マージン
+    constexpr float kEnemyCollisionDist = 100.0f;
+    VECTOR diff = VSub(m_movement.GetPos(), enemy->GetPos());
+    float distSq = VSize(diff); // VSizeも2乗を返すわけではないので注意。VSizeはsqrtを取る。
+    // ここでは距離そのもので比較
+    if (distSq < kEnemyCollisionDist) {
+      m_movement.CancelRunMode();
+      break;
+    }
+  }
+}
+
+void Player::UpdateWeaponSwitching(const unsigned char *keyState) {
+  if (m_shieldSystem.IsGuarding()) return;
+
+  if (keyState[KEY_INPUT_1] && !m_prevKeyState[KEY_INPUT_1]) {
+    m_weaponManager.SwitchWeapon(WeaponType::AssaultRifle);
+  } else if (keyState[KEY_INPUT_2] && !m_prevKeyState[KEY_INPUT_2]) {
+    m_weaponManager.SwitchWeapon(WeaponType::Shotgun);
+  }
+
+  // マウスホイールで武器切り替え
+  int wheelRot = InputManager::GetInstance()->GetMouseWheelRotVol();
+  if (wheelRot != 0) {
+    WeaponType currentWeapon = m_weaponManager.GetCurrentWeaponType();
+    WeaponType nextWeapon = (currentWeapon == WeaponType::AssaultRifle)
+                                ? WeaponType::Shotgun
+                                : WeaponType::AssaultRifle;
+    m_weaponManager.SwitchWeapon(nextWeapon);
+  }
+}
+
+void Player::UpdateShooting() {
+  if (m_isDead ||
+      (m_allowedAttackType != AttackType::None &&
+       m_allowedAttackType != AttackType::Shoot) ||
+      m_isTackling || m_shieldSystem.IsGuarding() || m_isLockingOn || m_weaponManager.IsSwitchingWeapon()) {
+    return;
+  }
+
+  if (InputManager::GetInstance()->IsPressMouseLeft() &&
+      (m_weaponManager.GetCurrentAmmo() > 0 || m_isInfiniteAmmo) &&
+      m_weaponManager.CanShoot()) {
+    m_weaponManager.Shoot(m_bullets, m_modelPos, m_pCamera.get(), m_pEffect,
+                          m_pAnimManager, m_shellCasings);
+    m_weaponManager.ConsumeAmmo();
+  }
+}
+
+void Player::UpdateLockOn(const std::vector<EnemyBase *> &enemyList,
+                          const std::vector<Stage::StageCollisionData> &collisionData) {
+  // ロックオン可能な敵がいるかどうかの判定
+  m_isTargetAvailable = false;
+
+  VECTOR camPos = m_pCamera->GetPos();
+  VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+
+  // タックルが届く最大距離 (移動距離 + 当たり判定の突き出し分)
+  float tackleMaxReach = m_tackleSpeed * kTackleDuration + kTackleHitRange;
+  float tackleMaxReachSq = tackleMaxReach * tackleMaxReach;
+  constexpr float kLockOnAngleCos = 0.966f;
+  constexpr float kLockOnMaxScreenOffsetY = 100.0f;
+
+  for (EnemyBase *enemy : enemyList) {
+    if (!enemy || !enemy->IsAlive())
+      continue;
+
+    VECTOR enemyPos = enemy->GetPos();
+    enemyPos.y += 70.0f; // 敵の胴体あたりをターゲットにするためのオフセット
+    VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
+
+    // 距離チェック
+    VECTOR diff = VSub(m_modelPos, enemy->GetPos());
+    float distSq = VSize(diff) * VSize(diff);
+
+    // 距離が届かない場合はロックオン対象外
+    if (distSq > tackleMaxReachSq) {
+      continue;
+    }
+
+    // プレイヤーの前方一定角度内にいるか
+    if (VDot(camDir, toEnemyDir) > kLockOnAngleCos) {
+      VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+
+      // 画面内にいるか、かつ垂直方向の範囲内か
+      if (screenPos.z > 0) {
+        float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
+        float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
+
+        // 垂直方向の範囲チェック
+        if (fabs(dy) < kLockOnMaxScreenOffsetY) {
+          // 視線チェック
+          if (CheckLineOfSight(camPos, enemyPos, collisionData)) {
+            m_isTargetAvailable = true;
+            break; // 1体でも見つかればOK
+          }
+        }
+      }
+    }
+  }
+
+  // 敵に照準が合っているかどうかの判定
+  m_isAimingAtEnemy = false;
+  VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
+
+  for (const auto &enemy : enemyList) {
+    if (!enemy || !enemy->IsAlive()) {
+      continue;
+    }
+
+    VECTOR hitPos;
+    float hitDistSq;
+    EnemyBase::HitPart part =
+        enemy->CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
+
+    if (part == EnemyBase::HitPart::Body || part == EnemyBase::HitPart::Head) {
+      // 照準が合っている敵に対しても視線チェック
+      if (CheckLineOfSight(camPos, hitPos, collisionData)) {
+        m_isAimingAtEnemy = true;
+        break;
+      }
+    }
+  }
+
+  // タックルクールダウン中でない場合のみロックオンを許可
+  bool shouldGuard = m_shieldSystem.IsGuarding();
+  
+  if (m_shieldSystem.IsGuarding() && m_tackleCooldown <= 0) {
+    m_isLockingOn = true;
+    m_lockedOnEnemy = nullptr;
+    float minScreenDistSq = -1.0f;
+
+    for (EnemyBase *enemy : enemyList) {
+      if (!enemy || !enemy->IsAlive())
+        continue;
+
+      // 距離チェック
+      VECTOR diff = VSub(m_modelPos, enemy->GetPos());
+      float distSqWorld = VSize(diff) * VSize(diff);
+      if (distSqWorld > tackleMaxReachSq) {
+        continue;
+      }
+
+      VECTOR enemyPos = enemy->GetPos();
+      enemyPos.y += 70.0f;
+      VECTOR toEnemyDir = VNorm(VSub(enemyPos, camPos));
+
+      if (VDot(camDir, toEnemyDir) > kLockOnAngleCos) {
+        VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+
+        if (screenPos.z > 0) {
+          float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
+          float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
+
+          if (fabs(dy) < kLockOnMaxScreenOffsetY) {
+            // 視線チェック
+            if (CheckLineOfSight(camPos, enemyPos, collisionData)) {
+              float distSq = dx * dx + dy * dy;
+
+              if (minScreenDistSq < 0 || distSq < minScreenDistSq) {
+                minScreenDistSq = distSq;
+                m_lockedOnEnemy = enemy;
+              }
+            }
+          }
+        }
+      }
+    }
+  } else {
+    m_isLockingOn = false;
+    m_lockedOnEnemy = nullptr;
+  }
+}
+
+void Player::UpdateTackle(const std::vector<EnemyBase *> &enemyList,
+                          const std::vector<Stage::StageCollisionData> &collisionData) {
+  // ロックオン中に左クリックでタックル開始
+  if ((m_allowedAttackType == AttackType::None ||
+       m_allowedAttackType == AttackType::Tackle) &&
+      m_isLockingOn && m_lockedOnEnemy &&
+      InputManager::GetInstance()->IsTriggerMouseLeft() &&
+      m_tackleCooldown <= 0) {
+    m_isTackling = true;
+
+    PlaySoundMem(m_tackleSEHandle, DX_PLAYTYPE_BACK); // タックルSE再生
+    m_tackleFrame = kTackleDuration;
+    m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
+    m_tackleId++;                           // タックルごとにIDを更新
+
+    // ロックオンした敵の方向をタックル方向とする
+    m_tackleDir = VNorm(VSub(m_lockedOnEnemy->GetPos(), m_modelPos));
+
+    // タックル開始時にFOVを広げ、カメラを後ろに引く
+    if (m_pCamera) {
+      m_pCamera->SetTargetFOV(kTackleFov * DX_PI_F / 180.0f);
+      VECTOR offset = m_pCamera->GetOffset();
+      offset.z = kTackleCameraZOffset;
+      m_pCamera->SetOffset(offset);
+
+      // 集中線エフェクトを再生
+      if (m_pEffect) {
+        VECTOR camPos = m_pCamera->GetPos();
+        m_concentrationLineEffectHandle =
+            m_pEffect->PlayConcentrationLine(camPos.x, camPos.y, camPos.z);
+      }
+    }
+    m_isLockingOn = false; // タックル開始したらロックオン解除
+    m_lockedOnEnemy = nullptr;
+  }
+
+  // タックル中の処理
+  if (m_isTackling) {
+    m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
+
+    // m_movementの位置も同期
+    m_movement.SetPos(m_modelPos);
+
+    if (m_modelPos.y < PlayerMovement::GetGroundY()) {
+      m_modelPos.y = PlayerMovement::GetGroundY();
+    }
+
+    // ステージとの衝突判定
+    CollisionResult res = Collision::CheckStageCollision(
+        m_modelPos, kCapsuleHeight, kCapsuleRadius, kPlayerColliderYOffset,
+        collisionData);
+
+    // m_movementの位置も同期
+    m_movement.SetPos(m_modelPos);
+
+    // タックル判定情報を作成
+    TackleInfo tackleInfo = GetTackleInfo();
+
+    // タックル停止判定用
+    bool isBodyHit = false;
+    VECTOR bodyCapA, bodyCapB;
+    float bodyRadius;
+    GetCapsuleInfo(bodyCapA, bodyCapB, bodyRadius);
+    CapsuleCollider bodyCol(bodyCapA, bodyCapB, bodyRadius + kTackleStopMargin);
+
+    // 各敵と衝突判定
+    for (EnemyBase *enemy : enemyList) {
+      if (!enemy)
+        continue;
+
+      EnemyUpdateContext context = {m_bullets, tackleInfo,    *this,
+                                    enemyList, collisionData, m_pEffect};
+      enemy->Update(context);
+
+      // タックル停止判定
+      if (m_isTackling && !isBodyHit && enemy->IsAlive()) {
+        auto enemyCollider = enemy->GetBodyCollider();
+        if (enemyCollider && bodyCol.IsIntersects(enemyCollider.get())) {
+          isBodyHit = true;
+        }
+      }
+    }
+
+#ifdef _DEBUG
+    DebugUtil::DrawCapsule(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius,
+                           16, 0x00ff00, false);
+#endif
+    m_tackleFrame--;
+    // タックル終了判定
+    if (m_tackleFrame <= 0 || isBodyHit) {
+      if (isBodyHit && m_pCamera) {
+        m_pCamera->Shake(20.0f, 10);
+      }
+
+      m_isTackling = false;
+      m_ignoreGuardInput = true;
+
+      if (m_pCamera) {
+        m_pCamera->ResetFOV();
+        m_pCamera->ResetOffset();
+      }
+
+      if (m_concentrationLineEffectHandle != -1) {
+        StopEffekseer3DEffect(m_concentrationLineEffectHandle);
+        m_concentrationLineEffectHandle = -1;
+      }
+    }
+
+    // 集中線エフェクト更新
+    if (m_concentrationLineEffectHandle != -1 && m_pCamera) {
+      VECTOR camPos = m_pCamera->GetPos();
+      VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+      VECTOR effectPos = VAdd(camPos, VScale(camDir, kConcentrationLineEffectZOffset));
+      SetPosPlayingEffekseer3DEffect(m_concentrationLineEffectHandle,
+                                     effectPos.x, effectPos.y, effectPos.z);
+
+      float pitch = -m_pCamera->GetPitch();
+      float yaw = m_pCamera->GetYaw();
+      SetRotationPlayingEffekseer3DEffect(m_concentrationLineEffectHandle,
+                                          pitch, yaw, 0.0f);
+    }
+  }
 }

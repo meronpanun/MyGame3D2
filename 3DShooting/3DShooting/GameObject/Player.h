@@ -307,6 +307,39 @@ private:
   /// <param name="weaponType">切り替える武器の種類</param>
   void SwitchWeapon(WeaponType weaponType);
 
+  /// <summary>
+  /// ロックオン処理の更新
+  /// </summary>
+  void UpdateLockOn(const std::vector<EnemyBase *> &enemyList,
+                    const std::vector<Stage::StageCollisionData> &collisionData);
+
+  /// <summary>
+  /// タックル処理の更新
+  /// </summary>
+  void UpdateTackle(const std::vector<EnemyBase *> &enemyList,
+                    const std::vector<Stage::StageCollisionData> &collisionData);
+
+  /// <summary>
+  /// 射撃処理の更新
+  /// </summary>
+  void UpdateShooting();
+
+  /// <summary>
+  /// 武器切り替え処理の更新
+  /// </summary>
+  void UpdateWeaponSwitching(const unsigned char *keyState);
+
+  /// <summary>
+  /// 敵接近時のダッシュ解除チェック
+  /// </summary>
+  void CheckEnemyProximity(const std::vector<EnemyBase *> &enemyList);
+
+  /// <summary>
+  /// 視線チェック
+  /// </summary>
+  bool CheckLineOfSight(const VECTOR &start, const VECTOR &end,
+                        const std::vector<Stage::StageCollisionData> &collisionData) const;
+
 private:
   // コンポーネント
   PlayerWeaponManager m_weaponManager;
