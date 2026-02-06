@@ -9,65 +9,60 @@
 namespace
 {
     // タイトルロゴの幅と高さ
-	constexpr int kLogoWidth  = 1050;
+    constexpr int kLogoWidth = 1050;
     constexpr int kLogoHeight = 1080;
 
-	// タイトルロゴの表示位置
-	// タイトルロゴの表示位置
-    // constexpr int kLogoX = static_cast<int>(Game::kScreenWidth * -0.5f);
-    // constexpr int kLogoY = static_cast<int>((Game::kScreenHeigth - kLogoHeight) * 0.5f);
-
     // フェード関連
-	constexpr int kFadeDuration = 60; // フェードイン・フェードアウトのフレーム数
-	constexpr int kWaitDuration = 60; // フェードイン後の待機時間（フレーム数）
+    constexpr int kFadeDuration = 60; // フェードイン・フェードアウトのフレーム数
+    constexpr int kWaitDuration = 60; // フェードイン後の待機時間（フレーム数）
 
-	// ゲームスタートテキストの点滅速度
-	constexpr int kGameStartTextBlinkSpeed = 4;
+    // ゲームスタートテキストの点滅速度
+    constexpr int kGameStartTextBlinkSpeed = 4;
 }
 
-SceneTitle::SceneTitle(bool isReturningFromOtherScene) :
-	m_fontHandle(-1),
-    m_titleLogo(-1),
-    m_bannerHandle(-1),
-    m_bgmHandle(-1),
-	m_fadeAlpha(0),
-	m_fadeFrame(0),
-	m_sceneFadeAlpha(0),
-	m_waitFrame(0),
-	m_isFadeComplete(false),
-	m_isFadeOut(false),
-	m_isSceneFadeIn(false),
-	m_isBGMStarted(false),
-	m_gameStartTextAlpha(0),
-	m_gameStartTextAlphaDir(1)
+SceneTitle::SceneTitle(bool isReturningFromOtherScene)
+    : m_fontHandle(-1)
+    , m_titleLogo(-1)
+    , m_bannerHandle(-1)
+    , m_bgmHandle(-1)
+    , m_fadeAlpha(0)
+    , m_fadeFrame(0)
+    , m_sceneFadeAlpha(0)
+    , m_waitFrame(0)
+    , m_isFadeComplete(false)
+    , m_isFadeOut(false)
+    , m_isSceneFadeIn(false)
+    , m_isBGMStarted(false)
+    , m_gameStartTextAlpha(0)
+    , m_gameStartTextAlphaDir(1)
 {
     // タイトルロゴ画像を読み込む
     m_titleLogo = LoadGraph("data/image/TitleLogo.png");
     assert(m_titleLogo != -1);
-    
+
     // タイトルBGMを読み込む
     m_bgmHandle = LoadSoundMem("data/sound/BGM/TitleBGM.wav");
     assert(m_bgmHandle != -1);
 
-	// 決定ボタンSEを読み込む
+    // 決定ボタンSEを読み込む
     m_confirmSEHandle = LoadSoundMem("data/sound/SE/ConfirmButton.mp3");
     assert(m_confirmSEHandle != -1);
 
-	// フォントの作成
+    // フォントの作成
     m_fontHandle = CreateFontToHandle("Arial Black", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }
 
 SceneTitle::~SceneTitle()
 {
     // フォントハンドルの解放
-	DeleteFontToHandle(m_fontHandle); 
+    DeleteFontToHandle(m_fontHandle);
 
-	// 画像の解放
-	DeleteGraph(m_titleLogo);
+    // 画像の解放
+    DeleteGraph(m_titleLogo);
 
-	// サウンドの解放
-	DeleteSoundMem(m_bgmHandle);
-	DeleteSoundMem(m_confirmSEHandle);
+    // サウンドの解放
+    DeleteSoundMem(m_bgmHandle);
+    DeleteSoundMem(m_confirmSEHandle);
 }
 
 void SceneTitle::Init()
@@ -86,9 +81,9 @@ SceneBase* SceneTitle::Update()
         }
         else
         {
-            m_fadeAlpha      = 255;
+            m_fadeAlpha = 255;
             m_isFadeComplete = true; // フェードインが完了
-            m_fadeFrame      = 0;    // フェードアウト用にリセット
+            m_fadeFrame = 0;    // フェードアウト用にリセット
         }
         return this;
     }
@@ -117,7 +112,7 @@ SceneBase* SceneTitle::Update()
         m_gameStartTextAlpha = 255;
         m_gameStartTextAlphaDir = -1;
     }
-    else if (m_gameStartTextAlpha < 0) 
+    else if (m_gameStartTextAlpha < 0)
     {
         m_gameStartTextAlpha = 0;
         m_gameStartTextAlphaDir = 1;
@@ -143,11 +138,11 @@ void SceneTitle::Draw()
     // タイトルロゴの描画
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
     DrawRectExtendGraph(
-        0, 0,                       
+        0, 0,
         Game::GetScreenWidth(), Game::GetScreenHeight(),
-        0, 0,                       
-        kLogoWidth, kLogoHeight,    
-        m_titleLogo, true          
+        0, 0,
+        kLogoWidth, kLogoHeight,
+        m_titleLogo, true
     );
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -155,10 +150,10 @@ void SceneTitle::Draw()
     {
         const char* gameStartText = "Press Left Click to Start Game";
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_fontHandle);
-        
+
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-		DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, 750, 0xffffff, m_fontHandle, gameStartText);
+        DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, 750, 0xffffff, m_fontHandle, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	}
+    }
 }
 

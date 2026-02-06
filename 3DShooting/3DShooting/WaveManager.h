@@ -77,8 +77,7 @@ public:
     /// <summary>
     /// 敵の一括更新
     /// </summary>
-    void
-    UpdateEnemies(std::vector<Bullet>& bullets,
+    void UpdateEnemies(std::vector<Bullet>& bullets,
                   const Player::TackleInfo& tackleInfo, const Player& player,
                   const std::vector<Stage::StageCollisionData>& collisionData,
                   Effect* pEffect);

@@ -238,6 +238,7 @@
     <ClInclude Include="Scene\SceneResult.h" />
     <ClInclude Include="Scene\SceneTitle.h" />
     <ClInclude Include="ScoreManager.h" />
+    <ClInclude Include="SpawnAreaInfo.h" />
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="Stage.h" />
     <ClInclude Include="StageObject.h" />

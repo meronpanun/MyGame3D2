@@ -7,12 +7,18 @@
 class SceneResult : public SceneBase
 {
 public:
-	SceneResult();
-	virtual ~SceneResult();
+    SceneResult();
+    virtual ~SceneResult();
 
-	void Init() override;
-	SceneBase* Update() override;
-	void Draw() override;
+    void Init() override;
+    SceneBase* Update() override;
+    void Draw() override;
+
+private:
+    /// <summary>
+    /// 画面サイズに合わせてレイアウトを計算する
+    /// </summary>
+    void UpdateLayout();
 
 private:
     // リソース管理
@@ -31,11 +37,11 @@ private:
     float m_scrollX;                 // 背景のスクロールX座標
     float m_scrollY;                 // 背景のスクロールY座標
 
-	// BGM管理
-	// BGM管理
+    // BGM管理
     bool m_isBGMStarted;             // BGM再生済みフラグ
 
-    struct ResultLayout {
+    struct ResultLayout
+    {
         // 画像
         int imageDrawX, imageDrawY, imageDrawWidth, imageDrawHeight;
 
@@ -55,10 +61,5 @@ private:
     };
 
     ResultLayout m_layout;
-
-    /// <summary>
-    /// 画面サイズに合わせてレイアウトを計算する
-    /// </summary>
-    void UpdateLayout();
 };
 

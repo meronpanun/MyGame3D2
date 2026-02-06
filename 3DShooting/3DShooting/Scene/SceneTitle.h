@@ -7,12 +7,12 @@
 class SceneTitle : public SceneBase
 {
 public:
-	SceneTitle(bool skipLogo = false);
-	virtual ~SceneTitle();
+    SceneTitle(bool skipLogo = false);
+    virtual ~SceneTitle();
 
-	void Init() override;
-	SceneBase* Update() override;
-	void Draw() override;
+    void Init() override;
+    SceneBase* Update() override;
+    void Draw() override;
 
 private:
     // リソース管理
@@ -30,7 +30,7 @@ private:
     bool m_isFadeOut;       // フェードアウトフラグ
     bool m_isSceneFadeIn;   // シーンフェードインフラグ
 
-	// 演出管理
+    // 演出管理
     int  m_waitFrame;       // 待機フレーム
     bool m_isBGMStarted;    // BGM再生済みフラグ
 

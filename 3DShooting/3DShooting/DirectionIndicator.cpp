@@ -18,8 +18,8 @@ namespace
 
 int DirectionIndicator::s_indicatorImage = -1;
 
-DirectionIndicator::DirectionIndicator() :
-    m_pPlayer(nullptr)
+DirectionIndicator::DirectionIndicator() 
+    : m_pPlayer(nullptr)
 {
 }
 
