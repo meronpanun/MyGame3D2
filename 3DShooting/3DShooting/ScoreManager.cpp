@@ -20,21 +20,21 @@ ScoreManager& ScoreManager::Instance()
     return instance;
 }
 
-ScoreManager::ScoreManager() : 
-    m_score(0),
-    m_combo(0),
-    m_comboTimer(kComboGraceFrame),
-    m_totalScore(0),
-    m_bodyKillCount(0),
-    m_headKillCount(0),
-    m_lastComboRate(1.0f),
-    m_displayScore(0),
-    m_targetDisplayScore(0),
-    m_displayTotalScore(0),
-    m_targetTotalScore(0),
-    m_targetBodyKillCount(0),
-    m_targetHeadKillCount(0),
-    m_scoreCountUpSpeed(30)
+ScoreManager::ScoreManager()
+    : m_score(0)
+    , m_combo(0)
+    , m_comboTimer(kComboGraceFrame)
+    , m_totalScore(0)
+    , m_bodyKillCount(0)
+    , m_headKillCount(0)
+    , m_lastComboRate(1.0f)
+    , m_displayScore(0)
+    , m_targetDisplayScore(0)
+    , m_displayTotalScore(0)
+    , m_targetTotalScore(0)
+    , m_targetBodyKillCount(0)
+    , m_targetHeadKillCount(0)
+    , m_scoreCountUpSpeed(30)
 {
     LoadScores(); // 初期化時にスコアを読み込み
 }
@@ -51,7 +51,8 @@ int ScoreManager::AddScore(bool isHeadShot)
     m_totalScore += add; // 累計スコアにも加算
     m_comboTimer = kComboGraceFrame; // コンボ猶予リセット
 
-    if (TaskTutorialManager::GetInstance() && TaskTutorialManager::GetInstance()->IsCompleted()) {
+    if (TaskTutorialManager::GetInstance() && TaskTutorialManager::GetInstance()->IsCompleted())
+    {
         if (isHeadShot) 
         {
             m_headKillCount++;
