@@ -166,9 +166,7 @@ public:
     /// <param name="rayStart">弾のRayの始点</param>
     /// <param name="rayEnd">弾のRayの終点</param>
     /// <returns>当たった部位</returns>
-    virtual HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const {
-        return HitPart::None;
-    }
+    virtual HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const { return HitPart::None; }
 
     /// <summary>
     /// タックルでダメージを受けたかどうかのフラグを取得

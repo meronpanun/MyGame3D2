@@ -24,7 +24,7 @@
 
 namespace PlayerConstants
 {
-    // カプセルコライダーのサイズ（PlayerMovement.cppと一致させる）
+    // カプセルコライダーのサイズ
     constexpr float kCapsuleHeight = 100.0f;
     constexpr float kCapsuleRadius = 50.0f;
 

@@ -30,7 +30,7 @@ namespace
         VECTOR diff = VSub(effectPos, cameraPos);
         return VSquareSize(diff) <= kEffectCullDistance * kEffectCullDistance;
     }
-} // namespace
+}
 
 Effect::Effect()
     : m_lossOfBloodEffectHandle(-1)
@@ -112,8 +112,7 @@ void Effect::Init()
 void Effect::Update()
 {
     // ゲームが一時停止中はエフェクトの更新を行わない
-    if (Game::IsPaused())
-        return;
+    if (Game::IsPaused()) return;
 
     // 3Dエフェクトの更新
     UpdateEffekseer3D();
@@ -126,11 +125,9 @@ void Effect::Draw()
 }
 
 // マズルフラッシュを再生する
-int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY,
-    float rotZ)
+int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     int index = rand() % 5;
     if (m_muzzleFlashEffectHandles[index] != -1)
@@ -148,11 +145,9 @@ int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY,
 }
 
 // 出血エフェクトを再生する
-int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY,
-    float rotZ)
+int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     if (m_lossOfBloodEffectHandle != -1)
     {
@@ -172,8 +167,7 @@ int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY,
 // 集中線エフェクトを再生する
 int Effect::PlayConcentrationLine(float x, float y, float z)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     if (m_concentrationLineEffectHandle != -1)
     {
@@ -189,11 +183,9 @@ int Effect::PlayConcentrationLine(float x, float y, float z)
 }
 
 // ガードエフェクトを再生する
-int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY,
-    float rotZ)
+int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     if (m_guardEffectHandle != -1)
     {
@@ -212,8 +204,7 @@ int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY,
 // スパークエフェクトを再生する
 int Effect::PlaySparkEffect(float x, float y, float z)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     if (m_sparkEffectHandle != -1)
     {
@@ -231,8 +222,7 @@ int Effect::PlaySparkEffect(float x, float y, float z)
 // スパークエフェクト2を再生する
 int Effect::PlaySparkEffect2(float x, float y, float z)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     if (m_sparkEffectHandle2 != -1)
     {
@@ -253,8 +243,7 @@ int Effect::PlaySparkEffect2(float x, float y, float z)
 // 酸エフェクトを再生する
 int Effect::PlayAcidEffect(float x, float y, float z)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     if (m_acidEffectHandle != -1)
     {
@@ -272,8 +261,7 @@ int Effect::PlayAcidEffect(float x, float y, float z)
 // 通常弾エフェクトを再生する
 int Effect::PlayNormalBulletEffect(float x, float y, float z)
 {
-    if (!ShouldPlayEffect(x, y, z))
-        return -1;
+    if (!ShouldPlayEffect(x, y, z)) return -1;
 
     if (m_normalBulletEffectHandle != -1)
     {

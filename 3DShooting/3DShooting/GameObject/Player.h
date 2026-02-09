@@ -264,9 +264,7 @@ public:
     /// 方向インジケーターを設定する
     /// </summary>
     /// <param name="directionIndicator">方向インジケーターのポインタ</param>
-    void SetDirectionIndicator(DirectionIndicator* directionIndicator) {
-        m_pDirectionIndicator = directionIndicator;
-    }
+    void SetDirectionIndicator(DirectionIndicator* directionIndicator) { m_pDirectionIndicator = directionIndicator; }
 
     /// <summary>
     /// 銃を揺らす
