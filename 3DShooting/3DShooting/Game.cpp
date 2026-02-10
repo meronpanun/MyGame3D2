@@ -39,11 +39,8 @@ void Game::SetWindowMode(bool windowed)
 {
     m_windowMode = windowed;
     ChangeWindowMode(m_windowMode);
-    // ウィンドウモード時はマウスカーソルを表示する
-    if (m_windowMode)
-    {
-        SetMouseDispFlag(true);
-    }
+    // 画面モード切替時はマウスカーソルを表示する（デバッグ操作用）
+    SetMouseDispFlag(true);
 }
 
 void Game::SetTimeScale(float scale, float duration)

@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Scene\\SceneMain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|solutionrelative:3DShooting\\Game.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8D19763E-48CD-4F58-9C4C-583387D89FA0}|3DShooting\\3DShooting.vcxproj|C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\TransformDataLoader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -432,7 +432,7 @@
         },
         {
           "DockedWidth": 275,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -448,8 +448,7 @@
               "RelativeToolTip": "3DShooting\\WaveUI.cpp",
               "ViewState": "AgIAAFwAAAAAAAAAAADwv4cAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-02-05T11:47:09.508Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-05T11:47:09.508Z"
             },
             {
               "$type": "Document",
@@ -461,25 +460,24 @@
               "RelativeToolTip": "3DShooting\\DebugMenu.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-25T03:07:25.576Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-25T03:07:25.576Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "Game.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\Game.cpp",
               "RelativeDocumentMoniker": "3DShooting\\Game.cpp",
               "ToolTip": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\Game.cpp",
               "RelativeToolTip": "3DShooting\\Game.cpp",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAAACcAAAAcAAAAAAAAAA==",
+              "ViewState": "AgIAABUAAAAAAAAAAAAAABoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-10-21T05:45:59.052Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "SceneMain.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\Scene\\SceneMain.cpp",
               "RelativeDocumentMoniker": "3DShooting\\Scene\\SceneMain.cpp",
@@ -500,12 +498,11 @@
               "RelativeToolTip": "3DShooting\\GameObject\\EnemyBase.cpp",
               "ViewState": "AgIAAHcBAAAAAAAAAAAAAHcBAABEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-10-14T06:57:31.343Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-14T06:57:31.343Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "main.cpp",
               "DocumentMoniker": "C:\\Users\\\u7531\u7559\u90E8 \u745B\u4EBA.FICPCROOMB14\\Documents\\GitHub\\MyGame3D2\\3DShooting\\3DShooting\\main.cpp",
               "RelativeDocumentMoniker": "3DShooting\\main.cpp",
@@ -513,8 +510,7 @@
               "RelativeToolTip": "3DShooting\\main.cpp",
               "ViewState": "AgIAABsAAAAAAAAAAAAgwCwAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-04T00:57:11.291Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-04T00:57:11.291Z"
             },
             {
               "$type": "Document",
@@ -526,8 +522,7 @@
               "RelativeToolTip": "3DShooting\\WaveUI.h",
               "ViewState": "AgIAABYAAAAAAAAAAADwvywAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-02-05T11:47:05.774Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-05T11:47:05.774Z"
             },
             {
               "$type": "Document",
@@ -539,8 +534,7 @@
               "RelativeToolTip": "3DShooting\\WaveManager.h",
               "ViewState": "AgIAADoAAAAAAAAAAADwv0cAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-10T07:30:48.725Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-10T07:30:48.725Z"
             },
             {
               "$type": "Document",
@@ -552,8 +546,7 @@
               "RelativeToolTip": "3DShooting\\TransformDataLoader.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-12T07:09:32.941Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-12T07:09:32.941Z"
             },
             {
               "$type": "Document",
@@ -565,8 +558,7 @@
               "RelativeToolTip": "3DShooting\\WaveManager.cpp",
               "ViewState": "AgIAAEoBAAAAAAAAAAAAwFoBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-05T05:55:17.897Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-05T05:55:17.897Z"
             },
             {
               "$type": "Document",
@@ -578,8 +570,7 @@
               "RelativeToolTip": "3DShooting\\DebugMenu.h",
               "ViewState": "AgIAAAIAAAAAAAAAAADwv0EAAAACAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-02-04T02:40:08.292Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-04T02:40:08.292Z"
             },
             {
               "$type": "Document",
@@ -591,8 +582,7 @@
               "RelativeToolTip": "3DShooting\\DirectionIndicator.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAHwAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-11-11T00:36:15.72Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-11T00:36:15.72Z"
             },
             {
               "$type": "Document",
@@ -604,8 +594,7 @@
               "RelativeToolTip": "3DShooting\\DirectionIndicator.h",
               "ViewState": "AgIAAB4AAAAAAAAAAAAAAA4AAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-11-11T00:36:03.201Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-11T00:36:03.201Z"
             },
             {
               "$type": "Document",
@@ -617,8 +606,7 @@
               "RelativeToolTip": "3DShooting\\DebugUtil.h",
               "ViewState": "AgIAABIAAAAAAAAAAAAAABcAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-02-03T03:10:25.845Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-03T03:10:25.845Z"
             },
             {
               "$type": "Document",
