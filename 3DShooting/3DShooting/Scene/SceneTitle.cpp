@@ -119,7 +119,8 @@ SceneBase* SceneTitle::Update()
     }
 
     // マウスの左クリックをチェック
-    if (InputManager::GetInstance()->IsTriggerMouseLeft())
+    // デバッグメニューが表示されていない場合のみ有効
+    if (!DebugUtil::IsDebugWindowVisible() && InputManager::GetInstance()->IsTriggerMouseLeft())
     {
         // BGMを停止
         StopSoundMem(m_bgmHandle);
@@ -152,7 +153,7 @@ void SceneTitle::Draw()
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_fontHandle);
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-        DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, 750, 0xffffff, m_fontHandle, gameStartText);
+        DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, Game::GetScreenHeight() - 180, 0xffffff, m_fontHandle, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }
