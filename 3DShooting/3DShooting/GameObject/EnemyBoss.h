@@ -144,8 +144,12 @@ private:
 
     bool m_isNextAttackNormal; // 次の攻撃が通常弾かどうか
 
+    int m_currentEffectHandle; // 再生中の近接攻撃エフェクトハンドル
+    int m_effectTimer;         // エフェクト再生タイマー
+
     bool m_isStunned; // 怯み状態か
     int m_stunTimer;  // 怯みタイマー
+    bool m_hasPlayedCloseRangeEffect; // 近接攻撃エフェクト再生済みか
 
     bool m_shouldDrawParryCollider = false; // パリィコライダーを描画するか
     VECTOR m_debugParryCapA = { 0,0,0 };    // デバッグ用パリィカプセルのA点

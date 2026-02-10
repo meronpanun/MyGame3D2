@@ -35,6 +35,7 @@ namespace
 Effect::Effect()
     : m_lossOfBloodEffectHandle(-1)
     , m_concentrationLineEffectHandle(-1)
+    , m_closeRangeAttackEffectHandle(-1)
     , m_muzzleFlashEffectHandles{ -1, -1, -1, -1, -1 }
 {
     // 乱数のシードを設定
@@ -87,6 +88,11 @@ Effect::Effect()
     m_normalBulletEffectHandle =
         LoadEffekseerEffect("data/Effekseer/NormalBullet.efkefc", 15.0f);
     assert(m_normalBulletEffectHandle != -1);
+
+    // 近接範囲攻撃エフェクトハンドルの読み込み
+    m_closeRangeAttackEffectHandle =
+        LoadEffekseerEffect("data/Effekseer/CloseRangeAttack.efkefc", 30.0f);
+    assert(m_closeRangeAttackEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -103,6 +109,7 @@ Effect::~Effect()
     DeleteEffekseerEffect(m_sparkEffectHandle2);
     DeleteEffekseerEffect(m_acidEffectHandle);
     DeleteEffekseerEffect(m_normalBulletEffectHandle);
+    DeleteEffekseerEffect(m_closeRangeAttackEffectHandle);
 }
 
 void Effect::Init()
@@ -283,4 +290,22 @@ void Effect::StopAllEffects()
         StopEffekseer3DEffect(handle);
     }
     m_playingEffectHandles.clear();
+}
+
+// 近接範囲攻撃エフェクトを再生する
+int Effect::PlayCloseRangeAttackEffect(float x, float y, float z)
+{
+    if (!ShouldPlayEffect(x, y, z)) return -1;
+
+    if (m_closeRangeAttackEffectHandle != -1)
+    {
+        int handle = PlayEffekseer3DEffect(m_closeRangeAttackEffectHandle);
+        if (handle != -1)
+        {
+            SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+            m_playingEffectHandles.push_back(handle);
+        }
+        return handle;
+    }
+    return -1;
 }

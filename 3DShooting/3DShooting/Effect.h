@@ -64,6 +64,14 @@ public:
     int PlayNormalBulletEffect(float x, float y, float z);
 
     /// <summary>
+    /// 近接範囲攻撃エフェクトを再生する
+    /// </summary>
+    /// <param name="x">X座標</param>
+    /// <param name="y">Y座標</param>
+    /// <param name="z">Z座標</param>
+    int PlayCloseRangeAttackEffect(float x, float y, float z);
+
+    /// <summary>
     /// 再生中のエフェクトをすべて停止する
     /// </summary>
     void StopAllEffects();
@@ -77,6 +85,7 @@ private:
     int m_sparkEffectHandle2; // スパークエフェクトハンドル2
     int m_acidEffectHandle; // 酸エフェクトハンドル
     int m_normalBulletEffectHandle; // 通常弾エフェクトハンドル
+    int m_closeRangeAttackEffectHandle; // 近接範囲攻撃エフェクトハンドル
 
     std::vector<int> m_playingEffectHandles; // 再生中のエフェクトハンドル
 };

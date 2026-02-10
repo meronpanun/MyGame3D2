@@ -69,10 +69,11 @@ EnemyBoss::EnemyBoss()
     , m_animTime(0.0f)
     , m_attackEndDelayTimer(0)
     , m_isAttackHit(false)
-    , m_headNodeIndex(-1)
-    , m_headTopEndNodeIndex(-1)
     , m_handRNodeIndex(-1)
     , m_handLNodeIndex(-1)
+    , m_currentEffectHandle(-1)
+    , m_effectTimer(0)
+    , m_hasPlayedCloseRangeEffect(false)
 {
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
@@ -115,6 +116,9 @@ void EnemyBoss::Init()
     m_homingBullets.clear();
     m_hasShotLongRange = false;
     m_isNextAttackNormal = false; // 最初はパリィ弾から
+    m_hasPlayedCloseRangeEffect = false;
+    m_currentEffectHandle = -1;
+    m_effectTimer = 0;
 
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
@@ -125,6 +129,15 @@ void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
     if (m_currentAnimState == newAnimState && newAnimState != AnimState::Attack && newAnimState != AnimState::LongRangeAttack) return;
 
     const char* animName = nullptr;
+
+    // アニメーション切り替え時にエフェクトが残っていたら停止
+    if (m_currentEffectHandle != -1)
+    {
+        StopEffekseer3DEffect(m_currentEffectHandle);
+        m_currentEffectHandle = -1;
+        m_effectTimer = 0;
+    }
+
     switch (newAnimState)
     {
     case AnimState::Idle:
@@ -150,6 +163,10 @@ void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
         m_animTime = 0.0f;
     }
     m_currentAnimState = newAnimState;
+    if (m_currentAnimState == AnimState::Attack)
+    {
+        m_hasPlayedCloseRangeEffect = false;
+    }
 }
 
 void EnemyBoss::Update(const EnemyUpdateContext& context)
@@ -382,6 +399,29 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             if (m_attackEndDelayTimer <= 0)
             {
                 m_attackEndDelayTimer = EnemyBossConstants::kAttackEndDelay;
+            }
+        }
+
+        // エフェクト再生 (ヒット判定開始タイミングに合わせて再生)
+        if (!m_hasPlayedCloseRangeEffect && m_animTime > currentAnimTotalTime * 0.3f)
+        {
+            if (pEffect)
+            {
+                // 足元を中心に再生
+                m_currentEffectHandle = pEffect->PlayCloseRangeAttackEffect(m_pos.x, m_pos.y, m_pos.z);
+                m_effectTimer = 100; // 100フレームで強制終了
+            }
+            m_hasPlayedCloseRangeEffect = true;
+        }
+        
+        // エフェクトタイマー更新
+        if (m_currentEffectHandle != -1)
+        {
+            m_effectTimer--;
+            if (m_effectTimer <= 0)
+            {
+                StopEffekseer3DEffect(m_currentEffectHandle);
+                m_currentEffectHandle = -1;
             }
         }
 
