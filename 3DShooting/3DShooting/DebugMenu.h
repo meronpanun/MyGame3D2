@@ -53,6 +53,14 @@ private:
     /// <returns>選択されているメニューアイテムのポインタ</returns>
     MenuItem* GetSelectedItem();
 
+    // メニュー構築用ヘルパーメソッド
+    MenuItem CreatePlayerMenu();
+    MenuItem CreateEnemyMenu();
+    MenuItem CreateSceneMenu();
+    MenuItem CreateItemMenu();
+    MenuItem CreateScreenMenu();
+    MenuItem CreateStageMenu();
+
     MenuItem m_root;
     std::vector<int> m_selectedPath;
 };

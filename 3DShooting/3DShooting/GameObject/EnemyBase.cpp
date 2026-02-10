@@ -373,7 +373,7 @@ void EnemyBase::DrawDebugDamage()
 
         // 半透明背景描画 (黒, alpha=128)
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-        DrawBox(boxX, boxY, boxX + boxW, boxY + boxH, 0x000000, TRUE);
+        DrawBox(boxX, boxY, boxX + boxW, boxY + boxH, 0x000000, true);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
         // テキスト描画 (赤)

@@ -69,10 +69,7 @@ public:
     /// </summary>
     void SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos);
 
-    /// <summary>
-    /// デバッグ情報を表示
-    /// </summary>
-    void DrawDebugInfo();
+
 
     /// <summary>
     /// 敵の一括更新
@@ -169,14 +166,12 @@ private:
     /// <summary>
     /// 出現位置を生成（エリア定義があればそれを使用、なければランダム）
     /// </summary>
-    VECTOR GenerateSpawnPos(int type, const std::string& enemyType,
-                            const VECTOR& playerPos, int spawnLocationType = 0);
+    VECTOR GenerateSpawnPos(int type, const std::string& enemyType, const VECTOR& playerPos, int spawnLocationType = 0);
 
     /// <summary>
     /// 敵を生成
     /// </summary>
-    std::shared_ptr<EnemyBase> CreateEnemy(const std::string& enemyType,
-                                           const VECTOR& spawnPos);
+    std::shared_ptr<EnemyBase> CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos);
 
     /// <summary>
     /// 次のウェーブに進む

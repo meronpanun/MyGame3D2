@@ -42,17 +42,14 @@ public:
     /// <param name="spawnTimer">スポーンタイマー</param>
     /// <param name="nextSpawnTime">次のスポーン時間</param>
     /// <param name="remainingEnemiesInWave">ウェーブ内の残り敵数</param>
-    void DrawDebugInfo(int currentWave, int aliveEnemyCount,
-        int totalSpawnedCount, float waveTimer, float spawnTimer,
-        float nextSpawnTime, int remainingEnemiesInWave);
+
 
     /// <summary>
     /// スポーンエリアのデバッグ表示
     /// </summary>
     /// <param name="spawnAreaList">スポーンエリアリスト</param>
     /// <param name="isTutorial">チュートリアルかどうか</param>
-    void DrawDebugSpawnAreas(const std::vector<SpawnAreaInfo>& spawnAreaList,
-        bool isTutorial);
+    void DrawDebugSpawnAreas(const std::vector<SpawnAreaInfo>& spawnAreaList, bool isTutorial);
 
     /// <summary>
     /// アニメーションの開始

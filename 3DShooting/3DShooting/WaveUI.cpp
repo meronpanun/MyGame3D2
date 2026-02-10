@@ -133,44 +133,15 @@ void WaveUI::DrawWaveUI(int currentWave, bool isWaveActive,
     }
 }
 
-void WaveUI::DrawDebugInfo(int currentWave, int aliveEnemyCount,
-                           int totalSpawnedCount, float waveTimer,
-                           float spawnTimer, float nextSpawnTime,
-                           int remainingEnemiesInWave)
-{
-    int y = kDebugInfoPosY;
-    SetFontSize(kFontSize); // フォントサイズ設定
 
-    // ウェーブ情報
-    DrawFormatString(kDebugInfoPosX, y, 0xffffff, "Wave: %d", currentWave);
-    y += 20;
-    DrawFormatString(kDebugInfoPosX, y, 0xffffff, "Time: %.1f", waveTimer);
-    y += 20;
 
-    // スポーン情報
-    DrawFormatString(kDebugInfoPosX, y, 0xffffff, "Next Spawn: %.1f / %.1f",
-                     spawnTimer, nextSpawnTime);
-    y += 20;
-
-    // 敵カウント
-    DrawFormatString(kDebugInfoPosX, y, 0xffffff, "Alive: %d", aliveEnemyCount);
-    y += 20;
-    DrawFormatString(kDebugInfoPosX, y, 0xffffff, "Total Spawned: %d",
-                     totalSpawnedCount);
-    y += 20;
-    DrawFormatString(kDebugInfoPosX, y, 0xffffff, "Remaining In Wave: %d",
-                     remainingEnemiesInWave);
-}
-
-void WaveUI::DrawDebugSpawnAreas(
-    const std::vector<SpawnAreaInfo>& spawnAreaList, bool isTutorial)
+void WaveUI::DrawDebugSpawnAreas(const std::vector<SpawnAreaInfo>& spawnAreaList, bool isTutorial)
 {
     for (const auto& area : spawnAreaList)
     {
         // 現在のモード（Tutorial/Main）と一致するエリアのみ描画
         if ((isTutorial && area.type == 1) || (!isTutorial && area.type == 0))
         {
-
             // ワイヤーフレームの色設定
             unsigned int color;
             if (area.type == 0) // Main

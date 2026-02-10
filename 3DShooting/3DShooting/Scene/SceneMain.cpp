@@ -1085,13 +1085,6 @@ void SceneMain::Draw()
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // デバッグ情報を表示
-    // デバッグ情報を表示
-    if (m_isShowDebugHUD)
-    {
-        m_pWaveManager->DrawDebugInfo();
-    }
-
     // ボスUIの描画
     if (m_pBossUI)
     {
@@ -1127,7 +1120,7 @@ void SceneMain::DrawDebugHUD()
 
     // 画面全体を半透明の黒で覆う
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-    DrawBox(0, 0, screenW, screenH, 0x000000, TRUE);
+    DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // 情報収集

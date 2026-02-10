@@ -117,10 +117,6 @@ void WaveManager::Init()
     // 敵の死亡時コールバックを設定
     SetOnEnemyDeathCallback([this](const VECTOR& pos) {
         // 死亡した敵を特定
-        // m_enemyListから検索すればプールを全検索する必要はない
-        // ただしOnEnemyDeathはm_enemyListから削除される前に呼ばれる必要がある
-        // 現状の仕様ではUpdate内で削除されるので、ここでm_enemyListを使うのは安全
-
         for (auto& enemy : m_enemyList)
         {
             if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z)
@@ -338,18 +334,7 @@ void WaveManager::DrawWaveUI()
     }
 }
 
-void WaveManager::DrawDebugInfo()
-{
-    float nextSpawnTime = 0.0f;
-    int remainingEnemiesInWave = 0;
-    if (m_currentSpawnIndex < m_spawnInfoList.size())
-    {
-        nextSpawnTime = m_spawnInfoList[m_currentSpawnIndex].spawnTime;
-        remainingEnemiesInWave = static_cast<int>(m_spawnInfoList.size() - m_currentSpawnIndex);
-    }
 
-    m_pWaveUI->DrawDebugInfo(m_currentWave, GetAliveEnemyCount(), m_totalSpawnedCount, m_waveTimer, m_spawnTimer, nextSpawnTime, remainingEnemiesInWave);
-}
 
 void WaveManager::SetOnEnemyDeathCallback(std::function<void(const VECTOR&)> callback)
 {
@@ -629,12 +614,10 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
                 info.spawnLocationType = waveData.spawnLocationType;
                 m_spawnInfoList.push_back(info);
             }
-            if (waveData.waveInterval > 0)
-            {
-                // このWaveの後にインターバル設定（ここでは単純に最初に見つかったものを採用など）
-                // 実際にはNextWaveでインターバル設定するので、ここではデータ保持のみか
-                // 元のコードではデータメンバになかったので、NextWave時に計算または固定値だった可能性
-            }
+            //if (waveData.waveInterval > 0)
+            //{
+            //    // このWaveの後にインターバル設定（ここでは単純に最初に見つかったものを採用など）
+            //}
         }
     }
 
