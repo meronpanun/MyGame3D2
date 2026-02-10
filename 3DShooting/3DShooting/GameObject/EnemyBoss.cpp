@@ -48,8 +48,10 @@ namespace EnemyBossConstants
     constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
 }
 
+// static変数の初期化
 int EnemyBoss::s_modelHandle = -1;
 bool EnemyBoss::s_drawCollision = false;
+bool EnemyBoss::s_drawAttackHit = false;
 
 void EnemyBoss::LoadModel()
 {
@@ -402,6 +404,27 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
         }
 
+        // デバッグ用ヒット表示も更新 (ボスの位置に追従させる)
+        // 常に更新しないと、攻撃アニメーション中に移動した場合に表示が置いていかれる
+        m_pAttackHitCollider->SetSegment(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetCenter());
+        m_pAttackHitCollider->SetRadius(m_pAttackRangeCollider->GetRadius());
+
+        // 攻撃ヒット判定
+        // 判定期間 (0.4 ~ 0.6)
+        if (m_animTime >= currentAnimTotalTime * 0.4f && m_animTime <= currentAnimTotalTime * 0.6f)
+        {
+            if (!m_isAttackHit)
+            {
+                // 範囲攻撃判定
+                if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
+                {
+                    // ダメージを与える
+                    const_cast<Player&>(player).TakeDamage(static_cast<float>(m_attackPower), m_pos);
+                    m_isAttackHit = true;
+                }
+            }
+        }
+
         // エフェクト再生 (ヒット判定開始タイミングに合わせて再生)
         if (!m_hasPlayedCloseRangeEffect && m_animTime > currentAnimTotalTime * 0.3f)
         {
@@ -691,28 +714,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius(); // kBodyColliderRadiusは40
     ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
 
-    // 攻撃判定発生
-    if (m_currentAnimState == AnimState::Attack && !m_isAttackHit)
-    {
-        // アニメーションの特定タイミングでのみヒット判定を出す
-        float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kCloseAttackAnimName);
-        // 判定期間を少し広げる or 調整
-        if (m_animTime > totalTime * 0.4f && m_animTime < totalTime * 0.6f)
-        {
-            // 範囲攻撃なので、攻撃範囲コライダーとプレイヤーが接触していればヒットとする
-            if (m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get()))
-            {
-                // ダメージを与える (CSVから読み込んだ攻撃力を使用)
-                const_cast<Player&>(player).TakeDamage(static_cast<float>(m_attackPower), m_pos);
-                m_isAttackHit = true;
 
-                // デバッグ用ヒット表示も更新しておく（青色表示用）
-                // カプセルとして設定（球として扱う）
-                m_pAttackHitCollider->SetSegment(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetCenter());
-                m_pAttackHitCollider->SetRadius(m_pAttackRangeCollider->GetRadius());
-            }
-        }
-    }
 
     CheckHitAndDamage(bullets, pEffect);
 
@@ -745,7 +747,7 @@ void EnemyBoss::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    if (s_drawCollision)
+    if (s_drawCollision || s_drawAttackHit)
     {
         DrawCollisionDebug();
     }
@@ -801,22 +803,23 @@ float EnemyBoss::CalcDamage(float bulletDamage, HitPart part) const
 
 void EnemyBoss::DrawCollisionDebug() const
 {
-    if (!s_drawCollision) return;
+    // どちらかが有効なら描画処理を行う
+    if (!s_drawCollision && !s_drawAttackHit) return;
 
     // 体
-    if (m_pBodyCollider)
+    if (s_drawCollision && m_pBodyCollider)
         DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000); // 赤
 
     // 頭
-    if (m_pHeadCollider)
+    if (s_drawCollision && m_pHeadCollider)
         DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0x00ff00); // 緑
 
     // 攻撃範囲
-    if (m_pAttackRangeCollider)
+    if (s_drawAttackHit && m_pAttackRangeCollider)
         DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 32, 0xffaa00);
 
     // 攻撃判定
-    if (m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
+    if (s_drawAttackHit && m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
     {
         DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0xff00ff); // マゼンタ
     }
@@ -826,6 +829,23 @@ void EnemyBoss::DrawCollisionDebug() const
     {
         DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0xffff00); // 黄色 (パリィ)
     }
+
+    // 攻撃ヒット判定（ダメージ発生期間のみ表示）
+    if (s_drawAttackHit && m_currentAnimState == AnimState::Attack)
+    {
+        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kCloseAttackAnimName);
+        // ダメージ発生期間 (0.4 ~ 0.6)
+        if (m_animTime >= currentAnimTotalTime * 0.4f && m_animTime <= currentAnimTotalTime * 0.6f)
+        {
+            if (m_pAttackRangeCollider)
+            {
+                // 赤色で描画
+                DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 32, 0xff0000);
+            }
+        }
+    }
+
+
 }
 
 // 死亡時の更新処理

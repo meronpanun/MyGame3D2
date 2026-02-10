@@ -113,15 +113,24 @@ DebugMenu::DebugMenu()
                },
                []() { return EnemyAcid::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
               {"Boss Enemy",
-               {},
-               []() {
-                 bool isDraw = !EnemyBoss::IsDrawCollision();
-                 EnemyBoss::SetDrawCollision(isDraw);
-               },
-               []() {
-                 return EnemyBoss::IsDrawCollision() ? "[ON]" : "[OFF]";
-               }}},
-             nullptr}},
+               {{"Show Collision",
+                 {},
+                 []() {
+                   bool isDraw = !EnemyBoss::IsDrawCollision();
+                   EnemyBoss::SetDrawCollision(isDraw);
+                 },
+                 []() {
+                   return EnemyBoss::IsDrawCollision() ? "[ON]" : "[OFF]";
+                 }},
+                {"Attack Hit",
+                 {},
+                 []() {
+                   bool isDraw = !EnemyBoss::IsDrawAttackHit();
+                   EnemyBoss::SetDrawAttackHit(isDraw);
+                 },
+                 []() { return EnemyBoss::IsDrawAttackHit() ? "[ON]" : "[OFF]"; }}},
+               nullptr},
+             }, nullptr}},
            nullptr}}},
         {"Scene",
          {{"Skip Tutorial",
@@ -320,8 +329,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth,
 
         // 描画位置を計算
         int indicatorDrawX = itemX + kIndicatorOffsetX;
-        int indicatorDrawY =
-            itemY + (itemHeight * 0.5f) - (charHeight * 0.5f) + kIndicatorOffsetY;
+        int indicatorDrawY = itemY + (itemHeight * 0.5f) - (charHeight * 0.5f) + kIndicatorOffsetY;
 
         // DrawRotaString で回転して描画
         DrawRotaString(indicatorDrawX, indicatorDrawY, 1.0, 1.0, rotCenterX,
@@ -332,8 +340,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth,
     int textStartX = itemX;
     if (!item.children.empty())
     {
-        textStartX +=
-            kIndicatorTextOffset; // インジケータの分だけテキストを右にずらす
+        textStartX += kIndicatorTextOffset; // インジケータの分だけテキストを右にずらす
     }
 
     std::string displayText = item.name;

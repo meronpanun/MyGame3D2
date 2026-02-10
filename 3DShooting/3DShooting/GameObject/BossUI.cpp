@@ -31,106 +31,102 @@ BossUI::BossUI()
 
 BossUI::~BossUI() 
 {
-  if (m_fontHandle != -1) 
-  {
-      DeleteFontToHandle(m_fontHandle);
-  }
+    DeleteFontToHandle(m_fontHandle);
 }
 
 void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) 
 {
-  // 生存しているボスを探す
-  EnemyBase *pBoss = nullptr;
-  for (auto &enemy : enemyList) 
-  {
-    if (enemy->IsBoss() && enemy->IsAlive()) 
+    // 生存しているボスを探す
+    EnemyBase *pBoss = nullptr;
+    for (auto &enemy : enemyList) 
     {
-      pBoss = enemy.get();
-      break;
+        if (enemy->IsBoss() && enemy->IsAlive()) 
+        {
+            pBoss = enemy.get();
+            break;
+        }
     }
-  }
 
-  if (!pBoss) 
-  {
-    m_healthBarAnim = 0.0f;
-    return;
-  }
+    if (!pBoss) 
+    {
+        m_healthBarAnim = 0.0f;
+        return;
+    }
 
-  float hp = pBoss->GetHp();
-  float maxHp = pBoss->GetMaxHp();
+    float hp = pBoss->GetHp();
+    float maxHp = pBoss->GetMaxHp();
 
-  // 初回時やリセット用
-  if (m_healthBarAnim <= 0.0f) 
-  {
-    m_healthBarAnim = hp;
-  }
+    // 初回時やリセット用
+    if (m_healthBarAnim <= 0.0f) 
+    {
+        m_healthBarAnim = hp;
+    }
 
-  // アニメーション更新
-  if (m_healthBarAnim > hp) 
-  {
-    m_healthBarAnim -= (m_healthBarAnim - hp) * kAnimSpeed;
+    // アニメーション更新
+    if (m_healthBarAnim > hp) 
+    {
+        m_healthBarAnim -= (m_healthBarAnim - hp) * kAnimSpeed;
+        if (m_healthBarAnim < hp) m_healthBarAnim = hp;
+    } 
+    else if (m_healthBarAnim < hp) 
+    {
+        m_healthBarAnim = hp;
+    }
 
-    if (m_healthBarAnim < hp) m_healthBarAnim = hp;
-  } 
-  else if (m_healthBarAnim < hp) 
-  {
-    m_healthBarAnim = hp;
-  }
-
-  DrawBossHPBar(hp, maxHp);
+    DrawBossHPBar(hp, maxHp);
 }
 
 void BossUI::DrawBossHPBar(float hp, float maxHp) 
 {
-  // スケール変更検知
-  float currentScale = Game::GetUIScale();
-  if (fabsf(currentScale - m_prevScale) > 0.001f) 
-  {
-    ReloadFonts(currentScale);
-    m_prevScale = currentScale;
-  }
+    // スケール変更検知
+    float currentScale = Game::GetUIScale();
+    if (fabsf(currentScale - m_prevScale) > 0.001f) 
+    {
+        ReloadFonts(currentScale);
+        m_prevScale = currentScale;
+    }
 
-  int screenW = Game::GetScreenWidth();
-  float scale = Game::GetUIScale();
+    int screenW = Game::GetScreenWidth();
+     float scale = Game::GetUIScale();
 
-  int barW = static_cast<int>(kBossHpBarWidth * scale);
-  int barH = static_cast<int>(kBossHpBarHeight * scale);
-  int barY = static_cast<int>(kBossHpBarY * scale);
+    int barW = static_cast<int>(kBossHpBarWidth * scale);
+    int barH = static_cast<int>(kBossHpBarHeight * scale);
+    int barY = static_cast<int>(kBossHpBarY * scale);
 
-  int barX = (screenW - barW) / 2;
+    int barX = (screenW - barW) / 2;
 
-  // HP割合
-  float hpRate = hp / maxHp;
-  float animRate = m_healthBarAnim / maxHp;
+    // HP割合
+    float hpRate = hp / maxHp;
+    float animRate = m_healthBarAnim / maxHp;
 
-  // 背景
-  DrawBox(barX, barY, barX + barW, barY + barH, kColorHpBarBg, true);
+    // 背景
+    DrawBox(barX, barY, barX + barW, barY + barH, kColorHpBarBg, true);
 
-  // アニメーションバー（ダメージ演出用）
-  if (m_healthBarAnim > hp) 
-  {
-    int animW = static_cast<int>(barW * animRate);
-    DrawBox(barX, barY, barX + animW, barY + barH, kColorHpBarDamage, true);
-  }
+    // アニメーションバー（ダメージ演出用）
+    if (m_healthBarAnim > hp) 
+    {
+        int animW = static_cast<int>(barW * animRate);
+        DrawBox(barX, barY, barX + animW, barY + barH, kColorHpBarDamage, true);
+    }
 
-  // HPバー本体
-  int hpW = static_cast<int>(barW * hpRate);
-  DrawBox(barX, barY, barX + hpW, barY + barH, kColorHpBarFill, true);
+    // HPバー本体
+    int hpW = static_cast<int>(barW * hpRate);
+    DrawBox(barX, barY, barX + hpW, barY + barH, kColorHpBarFill, true);
 
-  // 枠
-  DrawBox(barX, barY, barX + barW, barY + barH, kColorHpBarBorder, false);
+    // 枠
+    DrawBox(barX, barY, barX + barW, barY + barH, kColorHpBarBorder, false);
 
-  // ボス名テキスト
-  const char *bossName = "BOSS";
-  int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_fontHandle);
-  DrawStringToHandle((screenW - textW) / 2, static_cast<int>(kBossHpTextY * scale), bossName, kColorWhite, m_fontHandle);
+    // ボス名テキスト
+    const char *bossName = "BOSS";
+    int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_fontHandle);
+    DrawStringToHandle((screenW - textW) / 2, static_cast<int>(kBossHpTextY * scale), bossName, kColorWhite, m_fontHandle);
 }
 
 void BossUI::ReloadFonts(float scale) 
 {
-  if (m_fontHandle != -1) 
-  {
-    DeleteFontToHandle(m_fontHandle);
-  }
-  m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    if (m_fontHandle != -1) 
+    {
+        DeleteFontToHandle(m_fontHandle);
+    }
+    m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }

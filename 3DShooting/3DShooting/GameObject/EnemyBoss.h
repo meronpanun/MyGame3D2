@@ -26,6 +26,9 @@ public:
     static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
     static bool IsDrawCollision() { return s_drawCollision; }
 
+    static void SetDrawAttackHit(bool draw) { s_drawAttackHit = draw; }
+    static bool IsDrawAttackHit() { return s_drawAttackHit; }
+
     void Init() override;
     void Update(const EnemyUpdateContext& context) override;
     void Draw() override;
@@ -58,6 +61,7 @@ protected:
 
 private:
     static bool s_drawCollision;
+    static bool s_drawAttackHit;
 
 private:
     /// <summary>

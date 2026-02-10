@@ -75,7 +75,7 @@ void AnimationManager::UpdateAnimationTime(int modelHandle, float animTime)
 }
 
 // 指定アニメーションの総時間を取得
-float AnimationManager::GetAnimationTotalTime(int modelHandle, const std::string& animName)
+float AnimationManager::GetAnimationTotalTime(int modelHandle, const std::string& animName) const
 {
     // 指定アニメーション名のインデックスを取得
     int animIndex = MV1GetAnimIndex(modelHandle, animName.c_str());

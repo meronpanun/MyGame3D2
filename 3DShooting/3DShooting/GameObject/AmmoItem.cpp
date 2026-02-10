@@ -124,6 +124,7 @@ void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionDat
 void AmmoItem::Draw()
 {
 	if (IsUsed()) return;
+
 	MV1SetPosition(m_modelHandle, m_pos);
 	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, m_rotY, 0.0f));
 	MV1DrawModel(m_modelHandle);
