@@ -41,6 +41,9 @@ public:
     // チュートリアルをスキップする
     void Skip(WaveManager* pWaveManager);
 
+    // 制限されたアクションが行われたことを通知する
+    void NotifyRestrictedAction(AttackType attemptedType);
+
     // スケール変更時のフォントリロード
     void ReloadFonts(float scale);
 
@@ -88,6 +91,7 @@ private:
     int m_rKeyImg;            // Rキーの画像
     int m_lockOnUIImg;        // ロックオンUIの画像
     int m_mouseRightGuardImg; // マウス右クリック(ガード用)の画像
+    int m_designerImg;        // Designer.png画像
 
     // タイトルアニメーション用
     float m_titlePosX;
@@ -114,6 +118,11 @@ private:
     // パリィチュートリアル用一時停止制御
     bool m_hasShownParryTutorial; // パリィ説明を表示したかどうか
     bool m_isParryTutorialPaused; // パリィ説明表示中で停止しているか
+
+    // 制限アクションフィードバック用
+    int m_restrictedActionTimer;      // 表示タイマー
+    AttackType m_restrictedActionType; // 制限されたアクションの種類
+    int m_restrictedActionAlpha;      // フェード用アルファ値
 
     float m_prevScale; // 前回のスケール値
 };

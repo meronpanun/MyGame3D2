@@ -95,6 +95,7 @@ TaskTutorialManager::TaskTutorialManager()
     m_rKeyImg = LoadGraph("data/image/R.png");
     m_lockOnUIImg = LoadGraph("data/image/LockOnUI.png");
     m_mouseRightGuardImg = LoadGraph("data/image/MouseRight.png");
+    m_designerImg = LoadGraph("data/image/Designer.png");
 }
 
 TaskTutorialManager::~TaskTutorialManager()
@@ -110,6 +111,7 @@ TaskTutorialManager::~TaskTutorialManager()
     DeleteGraph(m_rKeyImg);
     DeleteGraph(m_lockOnUIImg);
     DeleteGraph(m_mouseRightGuardImg);
+    DeleteGraph(m_designerImg);
 }
 
 void TaskTutorialManager::ReloadFonts(float scale)
@@ -144,6 +146,10 @@ void TaskTutorialManager::Init(WaveManager* pWaveManager, Player* pPlayer)
     m_transitionDelayTimer = 0;
     m_hasShownParryTutorial = false;
     m_isParryTutorialPaused = false;
+    
+    m_restrictedActionTimer = 0;
+    m_restrictedActionType = AttackType::None;
+    m_restrictedActionAlpha = 0;
 
     if (m_pWaveManager)
     {
@@ -187,6 +193,23 @@ void TaskTutorialManager::NotifyShieldThrowKill()
     if (m_step == TaskStep::ShieldThrow)
     {
         m_shieldThrowKills++;
+    }
+}
+
+void TaskTutorialManager::NotifyRestrictedAction(AttackType attemptedType)
+{
+    // すでに表示中ならタイプだけ更新してタイマーリセット（または無視）
+    // 違うタイプならリセット
+    if (m_restrictedActionTimer > 0 && m_restrictedActionType == attemptedType)
+    {
+        // タイマー延長
+        m_restrictedActionTimer = 120; // 2秒表示
+    }
+    else
+    {
+        m_restrictedActionType = attemptedType;
+        m_restrictedActionTimer = 120;
+        m_restrictedActionAlpha = 0; // フェードインから開始
     }
 }
 
@@ -242,6 +265,32 @@ void TaskTutorialManager::Update()
             Game::SetPaused(false); // ゲーム再開
         }
         return; // 停止中は他の更新を行わない
+    }
+
+    // 制限アクションフィードバックの更新
+    if (m_restrictedActionTimer > 0)
+    {
+        m_restrictedActionTimer--;
+        
+        // フェードイン・アウト
+        if (m_restrictedActionTimer > 100) // 最初の20fでフェードイン
+        {
+            m_restrictedActionAlpha += 25;
+            if (m_restrictedActionAlpha > 255) m_restrictedActionAlpha = 255;
+        }
+        else if (m_restrictedActionTimer < 30) // 最後の30fでフェードアウト
+        {
+            m_restrictedActionAlpha -= 10;
+            if (m_restrictedActionAlpha < 0) m_restrictedActionAlpha = 0;
+        }
+        else
+        {
+            m_restrictedActionAlpha = 255;
+        }
+    }
+    else
+    {
+        m_restrictedActionAlpha = 0;
     }
 
     // プログレスバーのアニメーション
@@ -772,5 +821,65 @@ void TaskTutorialManager::Draw()
         break;
     default:
         break;
+    }
+
+    // 制限アクションフィードバックの描画
+    if (m_restrictedActionTimer > 0 && m_restrictedActionAlpha > 0)
+    {
+        // 画面中央下
+        int screenW = Game::GetScreenWidth();
+        int screenH = Game::GetScreenHeight();
+        
+        // 画像サイズ取得
+        int designerW = 0, designerH = 0;
+        GetGraphSize(m_designerImg, &designerW, &designerH);
+        
+        // 少し縮小して表示 (1024x1024なのでかなり小さくする)
+        float feedbackScale = scale * 0.12f; 
+        int targetW = static_cast<int>(designerW * feedbackScale);
+        int targetH = static_cast<int>(designerH * feedbackScale); 
+        
+        int centerX = screenW / 2;
+        // 画面中央やや下（クロスヘアと警告UIの間）に表示
+        int centerY = static_cast<int>(screenH * 0.6f);
+        
+        int drawX = centerX - targetW / 2;
+        int drawY = centerY - targetH / 2;
+        
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_restrictedActionAlpha);
+        DrawExtendGraph(drawX, drawY, drawX + targetW, drawY + targetH, m_designerImg, true);
+        
+        // アクションアイコンの描画（Designer.pngの上に重ねる）
+        int iconImg = -1;
+        switch (m_restrictedActionType)
+        {
+        case AttackType::Shoot:
+        case AttackType::Shotgun:
+            iconImg = m_mouseLeftImg;
+            break;
+        case AttackType::Tackle:
+            // タックルは右クリック+ロックオン+左などの組み合わせだが、とりあえず右クリックか左クリックを表示
+            iconImg = m_mouseRightImg; 
+            break;
+        case AttackType::ShieldThrow:
+            iconImg = m_rKeyImg;
+            break;
+        case AttackType::Parry:
+             iconImg = m_mouseRightGuardImg;
+             break;
+        default:
+            break;
+        }
+        
+        if (iconImg != -1)
+        {
+            int iconW = static_cast<int>(kMouseImgSize * scale * 1.5f); // 少し大きめに
+            int iconH = static_cast<int>(kMouseImgSize * scale * 1.5f);
+            
+            // Designer.pngの中央あたりに表示（微調整必要）
+             DrawExtendGraph(centerX - iconW / 2, drawY + targetH / 2 - iconH / 2, centerX + iconW / 2, drawY + targetH / 2 + iconH / 2, iconImg, true);
+        }
+        
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }
