@@ -196,8 +196,7 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
 
     // HPバーのパラメータ
     const int healthUiImageX = scaledHpBarMargin;
-    const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin +
-        (scaledHpBarHeight - scaledHealthUiSize) / 2; // 中央揃え修正
+    const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin + (scaledHpBarHeight - scaledHealthUiSize) / 2; // 中央揃え修正
     DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize, m_healthUiImageHandle, true);
     const int barX = healthUiImageX + scaledHealthUiSize + scaledBarSpacing;
 
@@ -222,8 +221,7 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     if (hpRate > 0.0f)
     {
         int currentBarWidth = static_cast<int>(scaledHpBarWidth * hpRate);
-        DrawGradientBox(barX, barY, barX + currentBarWidth, barY + scaledHpBarHeight,
-            PlayerUIConstants::kColorHpBarTop, PlayerUIConstants::kColorHpBarBottom);
+        DrawGradientBox(barX, barY, barX + currentBarWidth, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarTop, PlayerUIConstants::kColorHpBarBottom);
     }
 
     // アニメーションバー（ゴーストバー）
@@ -245,8 +243,7 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     }
 
     // 枠
-    DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight,
-        PlayerUIConstants::kColorHpBarBorder, false);
+    DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarBorder, false);
 
     // HP数値（影付き）
     int textX = barX + static_cast<int>(PlayerUIConstants::kHpTextOffsetX * scale);
@@ -349,8 +346,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
     }
 
     // 残弾数の表示
-    int ammoTextWidth = GetDrawStringWidthToHandle(
-        PlayerUIConstants::kAmmoTextMaxWidthStr, strlen(PlayerUIConstants::kAmmoTextMaxWidthStr), m_fontHandle);
+    int ammoTextWidth = GetDrawStringWidthToHandle(PlayerUIConstants::kAmmoTextMaxWidthStr, strlen(PlayerUIConstants::kAmmoTextMaxWidthStr), m_fontHandle);
 
     // 弾薬数UIの位置をAR基準で固定計算
     int arGunImageX = screenW - PlayerUIConstants::kARImageWidth - PlayerUIConstants::kARImageMarginX;
@@ -470,13 +466,11 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
     // HPバーのマージンを基準にする
     int shieldGaugeX = scaledHpBarMargin;
 
-
     // ゲージの背景（半透明の盾）
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
     DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
         shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-        shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle,
-        true);
+        shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // ゲージ本体
@@ -484,14 +478,12 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
     {
         int filledWidth = (int)(shieldGaugeWidth * shieldDurabilityRate);
         // 描画範囲を設定してクリッピング
-        SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth,
-            shieldGaugeY + shieldGaugeHeight);
+        SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth, shieldGaugeY + shieldGaugeHeight);
 
         // 盾を満タン状態で描画
         DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
             shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-            shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle,
-            true);
+            shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle, true);
 
         // 描画範囲をリセット
         SetDrawArea(0, 0, screenW, screenH);
@@ -522,28 +514,22 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         bool isLowAmmoForHealth = weaponManager.IsLowAmmo();
         bool isNoAmmoWarningForHealth = weaponManager.IsNoAmmoWarning();
         bool isSwitchingWeaponForHealth = weaponManager.IsSwitchingWeapon();
-        bool prevWeaponHadLowAmmoForHealth =
-            weaponManager.GetPrevWeaponHadLowAmmo();
+        bool prevWeaponHadLowAmmoForHealth = weaponManager.GetPrevWeaponHadLowAmmo();
         bool prevWeaponHadNoAmmoForHealth = weaponManager.GetPrevWeaponHadNoAmmo();
-        if (isLowAmmoForHealth || isNoAmmoWarningForHealth ||
-            (isSwitchingWeaponForHealth &&
-                (prevWeaponHadLowAmmoForHealth || prevWeaponHadNoAmmoForHealth)))
+        if (isLowAmmoForHealth || isNoAmmoWarningForHealth || (isSwitchingWeaponForHealth && (prevWeaponHadLowAmmoForHealth || prevWeaponHadNoAmmoForHealth)))
         {
-            drawX =
-                (screenW * 0.5f) - scaledWarningSize - (scaledWarningSpacing * 0.5f);
+            drawX = (screenW * 0.5f) - scaledWarningSize - (scaledWarningSpacing * 0.5f);
         }
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
         DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noHealthImageHandle, true);
 
         const char* text = "体力低下";
-        int textWidth =
-            GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
         int textX = drawX + (scaledWarningSize - textWidth) / 2;
         int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
         unsigned int textColor = (alphaInt << 24) | PlayerUIConstants::kColorWhite;
         DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
@@ -591,14 +577,12 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
 
     if (shouldDraw)
     {
-        bool isFadingOut =
-            isSwitchingWeapon && (weaponSwitchTimer < weaponSwitchDuration / 2.0f);
+        bool isFadingOut = isSwitchingWeapon && (weaponSwitchTimer < weaponSwitchDuration / 2.0f);
         bool isNoAmmo = isFadingOut ? prevWeaponHadNoAmmo : isNoAmmoWarning;
         const char* text = isNoAmmo ? "残弾なし" : "残弾僅か";
 
         float lowAmmoBlinkTimer = weaponManager.GetLowAmmoBlinkTimer();
-        float blinkAlpha =
-            (sinf(lowAmmoBlinkTimer * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
+        float blinkAlpha = (sinf(lowAmmoBlinkTimer * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
         int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * 255);
 
         int drawX = (screenW - scaledWarningSize) * 0.5f;
@@ -613,13 +597,11 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
         DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noAmmoImageHandle, true);
 
-        int textWidth =
-            GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
         int textX = drawX + (scaledWarningSize - textWidth) / 2;
         int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
         unsigned int textColor = (alphaInt << 24) | PlayerUIConstants::kColorWhite;
         DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
-
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }

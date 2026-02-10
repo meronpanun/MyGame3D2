@@ -20,6 +20,11 @@ private:
     /// </summary>
     void UpdateLayout();
 
+    /// <summary>
+    /// グラデーション矩形描画
+    /// </summary>
+    void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
+
 private:
     // リソース管理
     int m_backgroundHandle;          // 背景画像のハンドル
@@ -39,6 +44,15 @@ private:
 
     // BGM管理
     bool m_isBGMStarted;             // BGM再生済みフラグ
+
+    // スケール管理
+    float m_prevScale = 1.0f;        // 前回のスケール
+
+    /// <summary>
+    /// フォントを再読み込みする
+    /// </summary>
+    /// <param name="scale">UIスケール</param>
+    void ReloadFonts(float scale);
 
     struct ResultLayout
     {
