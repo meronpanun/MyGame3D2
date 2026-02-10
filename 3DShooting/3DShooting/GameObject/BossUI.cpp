@@ -8,8 +8,8 @@ namespace
     // ボスHPバー関連
     constexpr int kBossHpBarWidth = 900;
     constexpr int kBossHpBarHeight = 24;
-    constexpr int kBossHpBarY = 165;
-    constexpr int kBossHpTextY = 120;
+    constexpr int kBossHpBarY = 225;
+    constexpr int kBossHpTextY = 170;
 
     // 色関連
     constexpr unsigned int kColorWhite = 0xffffff;
