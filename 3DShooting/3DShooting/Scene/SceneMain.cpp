@@ -891,7 +891,7 @@ void SceneMain::Draw()
             break;
         }
 
-        // ターゲットに照準が合っているかに応じてハンドルを決定
+        // ターゲットに照準が合っているかに応じてハンドルを決定（色はブレンドモードで付ける）
         int currentReticleHandle = m_pPlayer->IsAimingAtEnemy() ? onTargetHandle : defaultHandle;
 
         // レティクルの描画
@@ -903,20 +903,39 @@ void SceneMain::Draw()
         // 拡大描画時のジャギー対策としてバイリニア補間を有効にする
         SetDrawMode(DX_DRAWMODE_BILINEAR);
 
+        // 反動によるスケール計算
+        // GetRecoilScaleは0.0~1.0を返す。これを1.0~1.5倍程度の拡大率に変換
+        float recoil = m_pPlayer->GetWeaponManager().GetRecoilScale();
+        float recoilScale = 1.0f + (recoil * 0.5f); // 最大1.5倍
+
         if (currentReticleHandle != -1)
         {
             int reticleWidth = 0;
             int reticleHeight = 0;
             GetGraphSize(currentReticleHandle, &reticleWidth, &reticleHeight);
 
-            int scaledReticleW = static_cast<int>(reticleWidth * scale);
-            int scaledReticleH = static_cast<int>(reticleHeight * scale);
+            int scaledReticleW = static_cast<int>(reticleWidth * scale * recoilScale);
+            int scaledReticleH = static_cast<int>(reticleHeight * scale * recoilScale);
+
+            // 敵に照準が合っている場合は赤くする
+            bool isAiming = m_pPlayer->IsAimingAtEnemy();
+            if (isAiming)
+            {
+                SetDrawBlendMode(DX_BLENDMODE_ADD, 255); // 加算ブレンドで光らせる
+                SetDrawBright(255, 100, 100); // 赤みを帯びさせる
+            }
 
             DrawExtendGraph(centerX - scaledReticleW / 2, centerY - scaledReticleH / 2,
                 centerX + scaledReticleW / 2, centerY + scaledReticleH / 2, currentReticleHandle, true);
+
+            if (isAiming)
+            {
+                SetDrawBright(255, 255, 255);
+                SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+            }
         }
 
-        // ドットレティクルを常に描画
+        // ドットレティクルを常に描画（こちらは反動の影響を受けず、常に中心）
         int dotReticleHandle = m_pPlayer->IsAimingAtEnemy() ? m_dotOnTargetHandle : m_dotDefaultHandle;
         if (dotReticleHandle != -1)
         {
@@ -1057,7 +1076,7 @@ void SceneMain::Draw()
         int scaledThickness = (std::max)(1, static_cast<int>(kHitMarkLineThickness * scale));
         int centerX = Game::GetScreenWidth() / 2;
         int centerY = Game::GetScreenHeight() / 2;
-
+        
         DrawLine(centerX - scaledLineLength, centerY - scaledLineLength,
             centerX - scaledCenterSpacing, centerY - scaledCenterSpacing, color, scaledThickness);
         DrawLine(centerX + scaledCenterSpacing, centerY + scaledCenterSpacing,

@@ -291,6 +291,12 @@ public:
     /// <returns>現在の武器タイプ</returns>
     WeaponType GetCurrentWeaponType() const;
 
+    /// <summary>
+    /// 武器マネージャーを取得する
+    /// </summary>
+    /// <returns>武器マネージャーの参照</returns>
+    const PlayerWeaponManager& GetWeaponManager() const { return m_weaponManager; }
+
 private:
     /// <summary>
     /// 死亡時の更新処理

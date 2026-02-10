@@ -35,4 +35,6 @@ private:
 	// スケール管理
 	float m_prevScale;
 	void ReloadFonts(float scale);
+
+	void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
 };

@@ -101,4 +101,15 @@ private:
 
     // スケール管理
     float m_prevScale;
+
+    /// <summary>
+    /// グラデーション矩形を描画する
+    /// </summary>
+    /// <param name="x1">左上X</param>
+    /// <param name="y1">左上Y</param>
+    /// <param name="x2">右下X</param>
+    /// <param name="y2">右下Y</param>
+    /// <param name="topColor">上部の色</param>
+    /// <param name="bottomColor">下部の色</param>
+    void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
 };

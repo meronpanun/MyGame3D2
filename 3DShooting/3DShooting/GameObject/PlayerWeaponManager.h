@@ -301,6 +301,13 @@ private:
         const std::vector<EnemyBase*>& enemyList,
         const std::vector<Stage::StageCollisionData>& collisionData) const;
 
+public:
+    /// <summary>
+    /// 射撃反動（演出用）のスケールを取得 (0.0f ~ 1.0f)
+    /// </summary>
+    /// <returns>反動スケール</returns>
+    float GetRecoilScale() const;
+
 private:
     // 武器モデルハンドル
     int m_arHandle;

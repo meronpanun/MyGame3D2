@@ -830,3 +830,15 @@ float PlayerWeaponManager::CalculatePullBackOffset(
 
     return 0.0f;
 }
+
+float PlayerWeaponManager::GetRecoilScale() const
+{
+    if (m_shootCooldown <= 0.0f) return 0.0f;
+
+    // クールダウンの残り時間を正規化して返す
+    float progress = m_shootCooldownTimer / m_shootCooldown;
+    if (progress < 0.0f) progress = 0.0f;
+    if (progress > 1.0f) progress = 1.0f;
+
+    return progress;
+}

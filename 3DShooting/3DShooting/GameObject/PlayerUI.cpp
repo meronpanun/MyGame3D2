@@ -62,6 +62,13 @@ namespace PlayerUIConstants
     constexpr char kDefaultFontName[] = "Arial Black";
     constexpr char kWarningFontName[] = "HGPｺﾞｼｯｸE";
     constexpr int kDefaultFontType = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
+
+    // ビジュアル強化用定数
+    constexpr unsigned int kColorHpBarTop = 0xff6060;       // HPバー上部（明るい赤）
+    constexpr unsigned int kColorHpBarBottom = 0xa00000;    // HPバー下部（暗い赤）
+    constexpr unsigned int kColorHpBarDamageFlash = 0xffffff;// ダメージ時のフラッシュ色
+    constexpr unsigned int kColorShadow = 0x000000;          // 影の色
+    constexpr int kShadowOffset = 2;                         // 影のオフセット
 }
 
 PlayerUI::PlayerUI()
@@ -211,16 +218,23 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarBg, true);
 
     // HPバー本体（実際の体力を反映）
-    DrawBox(barX, barY, barX + static_cast<int>(scaledHpBarWidth * hpRate),
-        barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarFill, true);
+    // グラデーション描画
+    if (hpRate > 0.0f)
+    {
+        int currentBarWidth = static_cast<int>(scaledHpBarWidth * hpRate);
+        DrawGradientBox(barX, barY, barX + currentBarWidth, barY + scaledHpBarHeight,
+            PlayerUIConstants::kColorHpBarTop, PlayerUIConstants::kColorHpBarBottom);
+    }
 
     // アニメーションバー（ゴーストバー）
     if (healthBarAnim > health)
     {
-        // ダメージ時（黄色いバー）
+        // ダメージ時（黄色いバー -> 白フラッシュ）
         int animStart = barX + static_cast<int>(scaledHpBarWidth * hpRate);
         int animEnd = barX + static_cast<int>(scaledHpBarWidth * hpAnimRate);
-        DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarDamage, true);
+        
+        // ダメージを受けた瞬間のフラッシュ効果
+        DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarDamageFlash, true);
     }
     else if (healthBarAnim < health)
     {
@@ -234,8 +248,12 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight,
         PlayerUIConstants::kColorHpBarBorder, false);
 
-    // HP数値
-    DrawFormatStringToHandle(barX + static_cast<int>(PlayerUIConstants::kHpTextOffsetX * scale), barY + static_cast<int>(PlayerUIConstants::kHpTextOffsetY * scale),
+    // HP数値（影付き）
+    int textX = barX + static_cast<int>(PlayerUIConstants::kHpTextOffsetX * scale);
+    int textY = barY + static_cast<int>(PlayerUIConstants::kHpTextOffsetY * scale);
+    DrawFormatStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset,
+        PlayerUIConstants::kColorShadow, m_hpFontHandle, "%.0f", healthBarAnim);
+    DrawFormatStringToHandle(textX, textY,
         PlayerUIConstants::kColorWhite, m_hpFontHandle, "%.0f", healthBarAnim);
 }
 
@@ -356,14 +374,17 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
     // 弾薬無限モードの場合は「∞」を表示
     if (isInfiniteAmmo)
     {
+        DrawFormatStringToHandle(ammoTextX + PlayerUIConstants::kShadowOffset, ammoTextY + PlayerUIConstants::kShadowOffset,
+            PlayerUIConstants::kColorShadow, m_fontHandle, "∞");
         DrawFormatStringToHandle(ammoTextX, ammoTextY, PlayerUIConstants::kColorWhite, m_fontHandle, "∞");
     }
     else
     {
         // デフォルトの色を決定
         int textColor = isLowAmmo ? PlayerUIConstants::kColorLowAmmo : PlayerUIConstants::kColorWhite;
+        float textScale = 1.0f;
 
-        // フラッシュタイマーが作動中なら色を補間
+        // フラッシュタイマーが作動中なら色とサイズを補間
         if (ammoTextFlashTimer > 0.0f)
         {
             float flashProgress = ammoTextFlashTimer / 60.0f;
@@ -388,8 +409,31 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
 
             textColor = GetColor(currentR, currentG, currentB);
         }
+        else if (isLowAmmo)
+        {
+            // 低弾薬時のパルスアニメーション
+            float pulse = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 5.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
+            textScale = 1.0f + pulse * 0.2f; // 1.0 ~ 1.2倍
+        }
+        
+        // テキスト描画（影付き・拡大縮小対応）
+        char ammoStr[16];
+        sprintf_s(ammoStr, "%d", currentAmmo);
+        
+        // サイズ取得
+        int strW = GetDrawStringWidthToHandle(ammoStr, static_cast<int>(strlen(ammoStr)), m_fontHandle);
+        int strH = GetFontSizeToHandle(m_fontHandle);
 
-        DrawFormatStringToHandle(ammoTextX, ammoTextY, textColor, m_fontHandle, "%d", currentAmmo);
+        // 中心基準で拡大縮小
+        int drawW = static_cast<int>(strW * textScale);
+        int drawH = static_cast<int>(strH * textScale);
+        int offsetX = (drawW - strW) / 2;
+        int offsetY = (drawH - strH) / 2;
+
+        DrawExtendStringToHandle(ammoTextX - offsetX + PlayerUIConstants::kShadowOffset, ammoTextY - offsetY + PlayerUIConstants::kShadowOffset,
+            textScale, textScale, ammoStr, PlayerUIConstants::kColorShadow, m_fontHandle);
+        DrawExtendStringToHandle(ammoTextX - offsetX, ammoTextY - offsetY,
+            textScale, textScale, ammoStr, textColor, m_fontHandle);
     }
 }
 
@@ -614,6 +658,7 @@ void PlayerUI::DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy,
         int textX = (screenW - textWidth) / 2;
         int textY = screenH / 2 + 60; // レティクルの下あたりに表示
 
+        DrawStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset, text, PlayerUIConstants::kColorShadow, m_warningFontHandle);
         DrawStringToHandle(textX, textY, text, PlayerUIConstants::kColorWhite, m_warningFontHandle);
     }
 }
@@ -630,4 +675,38 @@ void PlayerUI::ReloadFonts(float scale)
         PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType);
     m_warningFontHandle = CreateFontToHandle(
         PlayerUIConstants::kWarningFontName, static_cast<int>(PlayerUIConstants::kWarningFont * scale), PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType);
+}
+
+void PlayerUI::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor)
+{
+    VERTEX2D Vertex[6];
+    float fx1 = static_cast<float>(x1);
+    float fy1 = static_cast<float>(y1);
+    float fx2 = static_cast<float>(x2);
+    float fy2 = static_cast<float>(y2);
+
+    // 0xRRGGBB 形式からRGBを抽出
+    unsigned char topR = (topColor >> 16) & 0xFF;
+    unsigned char topG = (topColor >> 8) & 0xFF;
+    unsigned char topB = topColor & 0xFF;
+    
+    unsigned char btmR = (bottomColor >> 16) & 0xFF;
+    unsigned char btmG = (bottomColor >> 8) & 0xFF;
+    unsigned char btmB = bottomColor & 0xFF;
+
+    // 左上
+    Vertex[0].pos = VGet(fx1, fy1, 0.0f); Vertex[0].rhw = 1.0f; Vertex[0].u = 0.0f; Vertex[0].v = 0.0f; Vertex[0].dif = GetColorU8(topR, topG, topB, 255);
+    // 右上
+    Vertex[1].pos = VGet(fx2, fy1, 0.0f); Vertex[1].rhw = 1.0f; Vertex[1].u = 0.0f; Vertex[1].v = 0.0f; Vertex[1].dif = GetColorU8(topR, topG, topB, 255);
+    // 左下
+    Vertex[2].pos = VGet(fx1, fy2, 0.0f); Vertex[2].rhw = 1.0f; Vertex[2].u = 0.0f; Vertex[2].v = 0.0f; Vertex[2].dif = GetColorU8(btmR, btmG, btmB, 255);
+
+    // 左下
+    Vertex[3] = Vertex[2];
+    // 右上
+    Vertex[4] = Vertex[1];
+    // 右下
+    Vertex[5].pos = VGet(fx2, fy2, 0.0f); Vertex[5].rhw = 1.0f; Vertex[5].u = 0.0f; Vertex[5].v = 0.0f; Vertex[5].dif = GetColorU8(btmR, btmG, btmB, 255);
+
+    DrawPolygon2D(Vertex, 2, DX_NONE_GRAPH, true);
 }
