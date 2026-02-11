@@ -339,8 +339,8 @@ void SceneResult::UpdateLayout()
     // Text
     m_layout.textLabelX = m_layout.resBgX + (int)(100 * scale);
     m_layout.textValueX = m_layout.resBgX + (int)(450 * scale);
-    m_layout.textBaseY = m_layout.resBgY + (int)(40 * scale);
-    m_layout.textIntervalHigh = (int)(70 * scale);
+    m_layout.textBaseY = m_layout.resBgY + (int)(25 * scale);
+    m_layout.textIntervalHigh = (int)(65 * scale);
 
     // High Score
     m_layout.highScoreY = m_layout.textBaseY + (int)((70 + 70 + 100 + 20) * scale);
