@@ -20,8 +20,6 @@ class Player;
 class Effect;
 
 // 敵の出現情報
-// この構造体はWaveManager内部状態として使用されるためここに残すが、
-// 必要に応じて別ヘッダに移動も検討可能
 struct EnemySpawnInfo
 {
     std::string enemyType;     // 敵の種類

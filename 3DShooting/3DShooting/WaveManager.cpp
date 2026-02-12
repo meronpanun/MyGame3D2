@@ -614,10 +614,6 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
                 info.spawnLocationType = waveData.spawnLocationType;
                 m_spawnInfoList.push_back(info);
             }
-            //if (waveData.waveInterval > 0)
-            //{
-            //    // このWaveの後にインターバル設定（ここでは単純に最初に見つかったものを採用など）
-            //}
         }
     }
 

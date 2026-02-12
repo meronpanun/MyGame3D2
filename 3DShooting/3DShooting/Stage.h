@@ -6,12 +6,12 @@
 /// <summary>
 /// ウェーブの種類を表す列挙型
 /// </summary>
-enum class WaveType : int
-{
-	Wave1,
-	Wave2,
-	Wave3
-};
+//enum class WaveType : int
+//{
+//	Wave1,
+//	Wave2,
+//	Wave3
+//};
 
 /// <summary>
 /// ステージクラス

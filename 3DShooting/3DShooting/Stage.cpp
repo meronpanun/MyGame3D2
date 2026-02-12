@@ -174,7 +174,6 @@ void Stage::Draw()
 	}
 
 	// 当たり判定のデバッグ描画
-	// 当たり判定のデバッグ描画
 	bool isDraw = m_isTutorial ? s_isDrawTutorialCollision : s_isDrawCollision;
 	if (isDraw)
 	{
@@ -188,10 +187,7 @@ void Stage::Draw()
 void Stage::LoadCollisionData(const char* fileName)
 {
 	std::ifstream file(fileName);
-	if (!file.is_open())
-	{
-		return;
-	}
+	if (!file.is_open()) return;
 
 	std::string line;
 	bool isHeader = true;
