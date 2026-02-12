@@ -100,24 +100,80 @@ TaskTutorialManager::TaskTutorialManager()
 
 TaskTutorialManager::~TaskTutorialManager()
 {
-    DeleteFontToHandle(m_titleFontHandle);
-    DeleteFontToHandle(m_taskFontHandle);
-    DeleteGraph(m_diamondImg);
-    DeleteGraph(m_mouseLeftImg);
-    DeleteGraph(m_mouseRightImg);
-    DeleteGraph(m_alpha1Img);
-    DeleteGraph(m_alpha2Img);
-    DeleteGraph(m_mouseWheelImg);
-    DeleteGraph(m_rKeyImg);
-    DeleteGraph(m_lockOnUIImg);
-    DeleteGraph(m_mouseRightGuardImg);
-    DeleteGraph(m_designerImg);
+    if (m_titleFontHandle != -1)
+    {
+        DeleteFontToHandle(m_titleFontHandle);
+        m_titleFontHandle = -1;
+    }
+    if (m_taskFontHandle != -1)
+    {
+        DeleteFontToHandle(m_taskFontHandle);
+        m_taskFontHandle = -1;
+    }
+    if (m_diamondImg != -1)
+    {
+        DeleteGraph(m_diamondImg);
+        m_diamondImg = -1;
+    }
+    if (m_mouseLeftImg != -1)
+    {
+        DeleteGraph(m_mouseLeftImg);
+        m_mouseLeftImg = -1;
+    }
+    if (m_mouseRightImg != -1)
+    {
+        DeleteGraph(m_mouseRightImg);
+        m_mouseRightImg = -1;
+    }
+    if (m_alpha1Img != -1)
+    {
+        DeleteGraph(m_alpha1Img);
+        m_alpha1Img = -1;
+    }
+    if (m_alpha2Img != -1)
+    {
+        DeleteGraph(m_alpha2Img);
+        m_alpha2Img = -1;
+    }
+    if (m_mouseWheelImg != -1)
+    {
+        DeleteGraph(m_mouseWheelImg);
+        m_mouseWheelImg = -1;
+    }
+    if (m_rKeyImg != -1)
+    {
+        DeleteGraph(m_rKeyImg);
+        m_rKeyImg = -1;
+    }
+    if (m_lockOnUIImg != -1)
+    {
+        DeleteGraph(m_lockOnUIImg);
+        m_lockOnUIImg = -1;
+    }
+    if (m_mouseRightGuardImg != -1)
+    {
+        DeleteGraph(m_mouseRightGuardImg);
+        m_mouseRightGuardImg = -1;
+    }
+    if (m_designerImg != -1)
+    {
+        DeleteGraph(m_designerImg);
+        m_designerImg = -1;
+    }
 }
 
 void TaskTutorialManager::ReloadFonts(float scale)
 {
-    if (m_titleFontHandle != -1) DeleteFontToHandle(m_titleFontHandle);
-    if (m_taskFontHandle != -1) DeleteFontToHandle(m_taskFontHandle);
+    if (m_titleFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_titleFontHandle);
+        m_titleFontHandle = -1;
+    }
+    if (m_taskFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_taskFontHandle);
+        m_taskFontHandle = -1;
+    }
 
     // フォントサイズもスケール
     m_titleFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(48 * scale), kTaskFontThickness, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);

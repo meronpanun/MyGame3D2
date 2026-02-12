@@ -125,20 +125,68 @@ PlayerUI::PlayerUI()
 PlayerUI::~PlayerUI()
 {
     // 画像の解放
-    DeleteGraph(m_noAmmoImageHandle);
-    DeleteGraph(m_noHealthImageHandle);
-    DeleteGraph(m_arImageHandle);
-    DeleteGraph(m_noAmmoARImageHandle);
-    DeleteGraph(m_sgImageHandle);
-    DeleteGraph(m_noAmmoSGImageHandle);
-    DeleteGraph(m_healthUiImageHandle);
-    DeleteGraph(m_shieldImageHandle);
-    DeleteGraph(m_lockOnUIHandle);
+    if (m_noAmmoImageHandle != -1)
+    {
+        DeleteGraph(m_noAmmoImageHandle);
+        m_noAmmoImageHandle = -1;
+    }
+    if (m_noHealthImageHandle != -1)
+    {
+        DeleteGraph(m_noHealthImageHandle);
+        m_noHealthImageHandle = -1;
+    }
+    if (m_arImageHandle != -1)
+    {
+        DeleteGraph(m_arImageHandle);
+        m_arImageHandle = -1;
+    }
+    if (m_noAmmoARImageHandle != -1)
+    {
+        DeleteGraph(m_noAmmoARImageHandle);
+        m_noAmmoARImageHandle = -1;
+    }
+    if (m_sgImageHandle != -1)
+    {
+        DeleteGraph(m_sgImageHandle);
+        m_sgImageHandle = -1;
+    }
+    if (m_noAmmoSGImageHandle != -1)
+    {
+        DeleteGraph(m_noAmmoSGImageHandle);
+        m_noAmmoSGImageHandle = -1;
+    }
+    if (m_healthUiImageHandle != -1)
+    {
+        DeleteGraph(m_healthUiImageHandle);
+        m_healthUiImageHandle = -1;
+    }
+    if (m_shieldImageHandle != -1)
+    {
+        DeleteGraph(m_shieldImageHandle);
+        m_shieldImageHandle = -1;
+    }
+    if (m_lockOnUIHandle != -1)
+    {
+        DeleteGraph(m_lockOnUIHandle);
+        m_lockOnUIHandle = -1;
+    }
 
     // フォントの解放
-    DeleteFontToHandle(m_fontHandle);
-    DeleteFontToHandle(m_hpFontHandle);
-    DeleteFontToHandle(m_warningFontHandle);
+    if (m_fontHandle != -1)
+    {
+        DeleteFontToHandle(m_fontHandle);
+        m_fontHandle = -1;
+    }
+    if (m_hpFontHandle != -1)
+    {
+        DeleteFontToHandle(m_hpFontHandle);
+        m_hpFontHandle = -1;
+    }
+    if (m_warningFontHandle != -1)
+    {
+        DeleteFontToHandle(m_warningFontHandle);
+        m_warningFontHandle = -1;
+    }
 }
 
 void PlayerUI::Draw(bool isDead, bool isGuarding, EnemyBase* lockedOnEnemy,
@@ -647,9 +695,21 @@ void PlayerUI::DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy,
 
 void PlayerUI::ReloadFonts(float scale)
 {
-    if (m_fontHandle != -1) DeleteFontToHandle(m_fontHandle);
-    if (m_hpFontHandle != -1) DeleteFontToHandle(m_hpFontHandle);
-    if (m_warningFontHandle != -1) DeleteFontToHandle(m_warningFontHandle);
+    if (m_fontHandle != -1) 
+    {
+        DeleteFontToHandle(m_fontHandle);
+        m_fontHandle = -1;
+    }
+    if (m_hpFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_hpFontHandle);
+        m_hpFontHandle = -1;
+    }
+    if (m_warningFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_warningFontHandle);
+        m_warningFontHandle = -1;
+    }
 
     m_fontHandle = CreateFontToHandle(PlayerUIConstants::kDefaultFontName, static_cast<int>(PlayerUIConstants::kAmmoFont * scale),
         PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType);

@@ -34,7 +34,11 @@ BossUI::BossUI()
 
 BossUI::~BossUI() 
 {
-    DeleteFontToHandle(m_fontHandle);
+    if (m_fontHandle != -1)
+    {
+        DeleteFontToHandle(m_fontHandle);
+        m_fontHandle = -1;
+    }
 }
 
 void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) 
@@ -143,6 +147,7 @@ void BossUI::ReloadFonts(float scale)
     if (m_fontHandle != -1) 
     {
         DeleteFontToHandle(m_fontHandle);
+        m_fontHandle = -1;
     }
     m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 }

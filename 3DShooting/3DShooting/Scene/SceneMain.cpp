@@ -146,29 +146,62 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     assert(m_scoreFontHandle != -1);
 }
 
-SceneMain::~SceneMain() {
-  // モデルやリソースの解放
-  MV1DeleteModel(m_skyDomeHandle);
-  DeleteGraph(m_dotDefaultHandle);
-  DeleteGraph(m_dotOnTargetHandle);
-  DeleteGraph(m_sgDefaultReticleHandle);
-  DeleteGraph(m_sgOnTargetReticleHandle);
+SceneMain::~SceneMain()
+{
+    // モデルやリソースの解放
+    if (m_skyDomeHandle != -1)
+    {
+        MV1DeleteModel(m_skyDomeHandle);
+        m_skyDomeHandle = -1;
+    }
+    if (m_dotDefaultHandle != -1)
+    {
+        DeleteGraph(m_dotDefaultHandle);
+        m_dotDefaultHandle = -1;
+    }
+    if (m_dotOnTargetHandle != -1)
+    {
+        DeleteGraph(m_dotOnTargetHandle);
+        m_dotOnTargetHandle = -1;
+    }
+    if (m_sgDefaultReticleHandle != -1)
+    {
+        DeleteGraph(m_sgDefaultReticleHandle);
+        m_sgDefaultReticleHandle = -1;
+    }
+    if (m_sgOnTargetReticleHandle != -1)
+    {
+        DeleteGraph(m_sgOnTargetReticleHandle);
+        m_sgOnTargetReticleHandle = -1;
+    }
 
-  // アイテムモデルの解放
-  FirstAidKitItem::DeleteModel();
-  AmmoItem::DeleteModel();
-  ShellCasing::DeleteModel();
+    // アイテムモデルの解放
+    FirstAidKitItem::DeleteModel();
+    AmmoItem::DeleteModel();
+    ShellCasing::DeleteModel();
 
-  // インジケーター画像の解放
-  DirectionIndicator::DeleteResources();
+    // インジケーター画像の解放
+    DirectionIndicator::DeleteResources();
 
-  // BGMの解放
-  DeleteSoundMem(m_bgmHandle);
-  // フォントの解放
-  DeleteFontToHandle(m_scoreFontHandle);
+    // BGMの解放
+    if (m_bgmHandle != -1)
+    {
+        DeleteSoundMem(m_bgmHandle);
+        m_bgmHandle = -1;
+    }
+    // フォントの解放
+    if (m_scoreFontHandle != -1)
+    {
+        DeleteFontToHandle(m_scoreFontHandle);
+        m_scoreFontHandle = -1;
+    }
 
-  // ローディング用モデルの解放
-  MV1DeleteModel(m_loadingModelHandle);
+    // ローディング用モデルの解放
+    if (m_loadingModelHandle != -1)
+    {
+        MV1DeleteModel(m_loadingModelHandle);
+        m_loadingModelHandle = -1;
+    }
 }
 
 void SceneMain::Init()

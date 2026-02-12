@@ -55,14 +55,30 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
 SceneTitle::~SceneTitle()
 {
     // フォントハンドルの解放
-    DeleteFontToHandle(m_fontHandle);
+    if (m_fontHandle != -1)
+    {
+        DeleteFontToHandle(m_fontHandle);
+        m_fontHandle = -1;
+    }
 
     // 画像の解放
-    DeleteGraph(m_titleLogo);
+    if (m_titleLogo != -1)
+    {
+        DeleteGraph(m_titleLogo);
+        m_titleLogo = -1;
+    }
 
     // サウンドの解放
-    DeleteSoundMem(m_bgmHandle);
-    DeleteSoundMem(m_confirmSEHandle);
+    if (m_bgmHandle != -1)
+    {
+        DeleteSoundMem(m_bgmHandle);
+        m_bgmHandle = -1;
+    }
+    if (m_confirmSEHandle != -1)
+    {
+        DeleteSoundMem(m_confirmSEHandle);
+        m_confirmSEHandle = -1;
+    }
 }
 
 void SceneTitle::Init()

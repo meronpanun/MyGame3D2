@@ -43,18 +43,39 @@ SceneResult::SceneResult()
     m_gameClearImageHandle = LoadGraph("data/image/GameClear.png");
     assert(m_gameClearImageHandle != -1);
 
-    // フォントの作成 (初期化時はスケール1.0で作成、UpdateLayoutで即座に更新されるはずだが一応)
+    // フォントの作成 
     ReloadFonts(Game::GetUIScale());
 }
 
+// フォントリロード
 void SceneResult::ReloadFonts(float scale)
 {
     // 既存フォントの削除
-    if (m_japaneseFontHandle != -1) DeleteFontToHandle(m_japaneseFontHandle);
-    if (m_arialBlackFontHandle != -1) DeleteFontToHandle(m_arialBlackFontHandle);
-    if (m_arialBlackLargeFontHandle != -1) DeleteFontToHandle(m_arialBlackLargeFontHandle);
-    if (m_japaneseLargeFontHandle != -1) DeleteFontToHandle(m_japaneseLargeFontHandle);
-    if (m_japaneseButtonFontHandle != -1) DeleteFontToHandle(m_japaneseButtonFontHandle);
+    if (m_japaneseFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_japaneseFontHandle);
+        m_japaneseFontHandle = -1;
+    }
+    if (m_arialBlackFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_arialBlackFontHandle);
+        m_arialBlackFontHandle = -1;
+    }
+    if (m_arialBlackLargeFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_arialBlackLargeFontHandle);
+        m_arialBlackLargeFontHandle = -1;
+    }
+    if (m_japaneseLargeFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_japaneseLargeFontHandle);
+        m_japaneseLargeFontHandle = -1;
+    }
+    if (m_japaneseButtonFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_japaneseButtonFontHandle);
+        m_japaneseButtonFontHandle = -1;
+    }
 
     // フォントの作成
     m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(30 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
@@ -73,21 +94,57 @@ void SceneResult::ReloadFonts(float scale)
 SceneResult::~SceneResult()
 {
     // BGMの解放
-    DeleteSoundMem(m_bgmHandle);
-    DeleteSoundMem(m_returnSEHandle);
+    if (m_bgmHandle != -1)
+    {
+        DeleteSoundMem(m_bgmHandle);
+        m_bgmHandle = -1;
+    }
+    if (m_returnSEHandle != -1)
+    {
+        DeleteSoundMem(m_returnSEHandle);
+        m_returnSEHandle = -1;
+    }
 
     // 背景画像の解放
-    DeleteGraph(m_backgroundHandle);
+    if (m_backgroundHandle != -1)
+    {
+        DeleteGraph(m_backgroundHandle);
+        m_backgroundHandle = -1;
+    }
 
     // ゲームクリア画像の解放
-    DeleteGraph(m_gameClearImageHandle);
+    if (m_gameClearImageHandle != -1)
+    {
+        DeleteGraph(m_gameClearImageHandle);
+        m_gameClearImageHandle = -1;
+    }
 
     // フォントの解放
-    DeleteFontToHandle(m_japaneseFontHandle);
-    DeleteFontToHandle(m_arialBlackFontHandle);
-    DeleteFontToHandle(m_arialBlackLargeFontHandle);
-    DeleteFontToHandle(m_japaneseLargeFontHandle);
-    DeleteFontToHandle(m_japaneseButtonFontHandle);
+    if (m_japaneseFontHandle != -1)
+    {
+        DeleteFontToHandle(m_japaneseFontHandle);
+        m_japaneseFontHandle = -1;
+    }
+    if (m_arialBlackFontHandle != -1)
+    {
+        DeleteFontToHandle(m_arialBlackFontHandle);
+        m_arialBlackFontHandle = -1;
+    }
+    if (m_arialBlackLargeFontHandle != -1)
+    {
+        DeleteFontToHandle(m_arialBlackLargeFontHandle);
+        m_arialBlackLargeFontHandle = -1;
+    }
+    if (m_japaneseLargeFontHandle != -1)
+    {
+        DeleteFontToHandle(m_japaneseLargeFontHandle);
+        m_japaneseLargeFontHandle = -1;
+    }
+    if (m_japaneseButtonFontHandle != -1)
+    {
+        DeleteFontToHandle(m_japaneseButtonFontHandle);
+        m_japaneseButtonFontHandle = -1;
+    }
 }
 
 void SceneResult::Init()

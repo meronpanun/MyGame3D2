@@ -128,29 +128,89 @@ TutorialManager::TutorialManager()
 TutorialManager::~TutorialManager()
 {
     // チェックマーク画像の解放
-    DeleteGraph(m_checkMarkHandle);
+    if (m_checkMarkHandle != -1)
+    {
+        DeleteGraph(m_checkMarkHandle);
+        m_checkMarkHandle = -1;
+    }
 
     // キー画像の解放
-    DeleteGraph(m_wKeyHandle);
-    DeleteGraph(m_aKeyHandle);
-    DeleteGraph(m_sKeyHandle);
-    DeleteGraph(m_dKeyHandle);
-    DeleteGraph(m_mouseMoveHorHandle);
-    DeleteGraph(m_spaceKeyHandle);
-    DeleteGraph(m_leftShiftKeyHandle);
-    DeleteGraph(m_crossHandle);
+    if (m_wKeyHandle != -1)
+    {
+        DeleteGraph(m_wKeyHandle);
+        m_wKeyHandle = -1;
+    }
+    if (m_aKeyHandle != -1)
+    {
+        DeleteGraph(m_aKeyHandle);
+        m_aKeyHandle = -1;
+    }
+    if (m_sKeyHandle != -1)
+    {
+        DeleteGraph(m_sKeyHandle);
+        m_sKeyHandle = -1;
+    }
+    if (m_dKeyHandle != -1)
+    {
+        DeleteGraph(m_dKeyHandle);
+        m_dKeyHandle = -1;
+    }
+    if (m_mouseMoveHorHandle != -1)
+    {
+        DeleteGraph(m_mouseMoveHorHandle);
+        m_mouseMoveHorHandle = -1;
+    }
+    if (m_spaceKeyHandle != -1)
+    {
+        DeleteGraph(m_spaceKeyHandle);
+        m_spaceKeyHandle = -1;
+    }
+    if (m_leftShiftKeyHandle != -1)
+    {
+        DeleteGraph(m_leftShiftKeyHandle);
+        m_leftShiftKeyHandle = -1;
+    }
+    if (m_crossHandle != -1)
+    {
+        DeleteGraph(m_crossHandle);
+        m_crossHandle = -1;
+    }
 
     // フォントの解放
-    DeleteFontToHandle(m_japaneseFontHandle);
-    DeleteFontToHandle(m_japaneseLargeFontHandle);
-    DeleteFontToHandle(m_messageDetailFontHandle);
+    if (m_japaneseFontHandle != -1)
+    {
+        DeleteFontToHandle(m_japaneseFontHandle);
+        m_japaneseFontHandle = -1;
+    }
+    if (m_japaneseLargeFontHandle != -1)
+    {
+        DeleteFontToHandle(m_japaneseLargeFontHandle);
+        m_japaneseLargeFontHandle = -1;
+    }
+    if (m_messageDetailFontHandle != -1)
+    {
+        DeleteFontToHandle(m_messageDetailFontHandle);
+        m_messageDetailFontHandle = -1;
+    }
 }
 
 void TutorialManager::ReloadFonts(float scale)
 {
-    if (m_japaneseFontHandle != -1) DeleteFontToHandle(m_japaneseFontHandle);
-    if (m_japaneseLargeFontHandle != -1) DeleteFontToHandle(m_japaneseLargeFontHandle);
-    if (m_messageDetailFontHandle != -1) DeleteFontToHandle(m_messageDetailFontHandle);
+    if (m_japaneseFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_japaneseFontHandle);
+        m_japaneseFontHandle = -1;
+    }
+    if (m_japaneseLargeFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_japaneseLargeFontHandle);
+        m_japaneseLargeFontHandle = -1;
+    }
+    if (m_messageDetailFontHandle != -1) 
+    {
+        DeleteFontToHandle(m_messageDetailFontHandle);
+        m_messageDetailFontHandle = -1;
+    }
 
     m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(30 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
     m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(54 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);

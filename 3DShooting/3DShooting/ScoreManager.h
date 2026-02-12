@@ -104,14 +104,11 @@ public:
     /// </summary>
     void ResetDisplayScore() { m_displayScore = 0; m_targetDisplayScore = m_score; }
 
-    // 表示用スコアの目標値設定
     /// <summary>
 	/// 表示用スコアの目標値を設定
     /// </summary>
 	/// <param name="score">目標スコア</param>
     void SetTargetDisplayScore(int score) { m_targetDisplayScore = score; }
-
-    // カウントアップ速度設定
 
     /// <summary>
 	/// カウントアップ速度を設定
@@ -165,6 +162,5 @@ private:
     int m_targetBodyKillCount; // 表示用ボディショットキル数の目標値
 	int m_targetHeadKillCount; // 表示用ヘッドショットキル数の目標値
     int m_scoreCountUpSpeed;   // カウントアップ速度
-
 };
 

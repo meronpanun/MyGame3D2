@@ -40,6 +40,6 @@ public:
 	/// </summary>
 	/// <param name="fileName">ファイル名</param>
 	/// <returns>読み込んだオブジェクト変換データのベクトル</returns>
-	static std::vector< ObjectTransformData> LoadDataCSV(const char* fileName);
+	static std::vector<ObjectTransformData> LoadDataCSV(const char* fileName);
 };
 
