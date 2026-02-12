@@ -87,8 +87,6 @@ private:
     // フレームインデックスキャッシュ
     int m_headNodeIndex;
     int m_headTopEndNodeIndex;
-    int m_handRNodeIndex;
-    int m_handLNodeIndex;
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider;       // 体の当たり判定
     std::shared_ptr<SphereCollider> m_pHeadCollider;        // 頭の当たり判定
@@ -162,4 +160,6 @@ private:
 
     // リファクタリング用メソッド
     void UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision);
+
+    int m_shieldEffectHandle = -1; // シールドエフェクトハンドル
 };

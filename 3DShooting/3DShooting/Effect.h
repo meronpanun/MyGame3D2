@@ -72,9 +72,22 @@ public:
     int PlayCloseRangeAttackEffect(float x, float y, float z);
 
     /// <summary>
+    /// ボスシールドエフェクトを再生する
+    /// </summary>
+    /// <param name="x">X座標</param>
+    /// <param name="y">Y座標</param>
+    /// <param name="z">Z座標</param>
+    int PlayBossShieldEffect(float x, float y, float z);
+
+    /// <summary>
     /// 再生中のエフェクトをすべて停止する
     /// </summary>
     void StopAllEffects();
+
+    /// <summary>
+    /// ボスシールドエフェクトの再生時間を取得する
+    /// </summary>
+    int GetBossShieldEffectDuration() const;
 
 private:
     int m_muzzleFlashEffectHandles[5]; // マズルフラッシュのエフェクトハンドル配列
@@ -86,6 +99,7 @@ private:
     int m_acidEffectHandle; // 酸エフェクトハンドル
     int m_normalBulletEffectHandle; // 通常弾エフェクトハンドル
     int m_closeRangeAttackEffectHandle; // 近接範囲攻撃エフェクトハンドル
+    int m_bossShieldEffectHandle; // ボスシールドエフェクトハンドル
 
     std::vector<int> m_playingEffectHandles; // 再生中のエフェクトハンドル
 };

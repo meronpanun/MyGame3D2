@@ -19,6 +19,7 @@ namespace
     constexpr float kConcentrationLineEffectScale = 20.0f;
     constexpr float kGuardEffectScale = 10.5f;
     constexpr float kSparkEffectScale = 20.0f;
+    constexpr float kBossShieldEffectScale = 30.0f; 
 
     // エフェクトのカリング距離 (これ以上離れたら再生しない)
     constexpr float kEffectCullDistance = 3000.0f;
@@ -36,6 +37,7 @@ Effect::Effect()
     : m_lossOfBloodEffectHandle(-1)
     , m_concentrationLineEffectHandle(-1)
     , m_closeRangeAttackEffectHandle(-1)
+    , m_bossShieldEffectHandle(-1)
     , m_muzzleFlashEffectHandles{ -1, -1, -1, -1, -1 }
 {
     // 乱数のシードを設定
@@ -93,6 +95,11 @@ Effect::Effect()
     m_closeRangeAttackEffectHandle =
         LoadEffekseerEffect("data/Effekseer/CloseRangeAttack.efkefc", 30.0f);
     assert(m_closeRangeAttackEffectHandle != -1);
+
+    // ボスシールドエフェクトハンドルの読み込み
+    m_bossShieldEffectHandle =
+        LoadEffekseerEffect("data/Effekseer/Shield.efkefc", kBossShieldEffectScale);
+    assert(m_bossShieldEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -110,6 +117,7 @@ Effect::~Effect()
     DeleteEffekseerEffect(m_acidEffectHandle);
     DeleteEffekseerEffect(m_normalBulletEffectHandle);
     DeleteEffekseerEffect(m_closeRangeAttackEffectHandle);
+    DeleteEffekseerEffect(m_bossShieldEffectHandle);
 }
 
 void Effect::Init()
@@ -308,4 +316,32 @@ int Effect::PlayCloseRangeAttackEffect(float x, float y, float z)
         return handle;
     }
     return -1;
+}
+
+// ボスシールドエフェクトを再生する
+int Effect::PlayBossShieldEffect(float x, float y, float z)
+{
+    if (!ShouldPlayEffect(x, y, z)) return -1;
+
+    if (m_bossShieldEffectHandle != -1)
+    {
+        int handle = PlayEffekseer3DEffect(m_bossShieldEffectHandle);
+        if (handle != -1)
+        {
+            SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+            m_playingEffectHandles.push_back(handle);
+        }
+        return handle;
+    }
+    return -1;
+}
+
+int Effect::GetBossShieldEffectDuration() const
+{
+    if (m_bossShieldEffectHandle == -1) return 0;
+
+    auto effectRef = GetEffekseerEffect(m_bossShieldEffectHandle);
+    if (effectRef == nullptr) return 0;
+
+    return effectRef->CalculateTerm().TermMax;
 }

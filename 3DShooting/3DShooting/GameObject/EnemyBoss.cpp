@@ -71,8 +71,6 @@ EnemyBoss::EnemyBoss()
     , m_animTime(0.0f)
     , m_attackEndDelayTimer(0)
     , m_isAttackHit(false)
-    , m_handRNodeIndex(-1)
-    , m_handLNodeIndex(-1)
     , m_currentEffectHandle(-1)
     , m_effectTimer(0)
     , m_hasPlayedCloseRangeEffect(false)
@@ -97,19 +95,12 @@ void EnemyBoss::Init()
     m_isDeadAnimPlaying = false;
     m_animTime = 0.0f;
 
-    // 位置はWaveManagerでセットされるが、初期値として
-    m_pos = VGet(0.0f, 0.0f, 1000.0f);
-    MV1SetPosition(m_modelHandle, m_pos);
-
     // CSVからBossのTransform情報を取得
     LoadTransformData("Boss");
 
     // フレームインデックスのキャッシュ
     m_headNodeIndex = MV1SearchFrame(m_modelHandle, "Head");
     m_headTopEndNodeIndex = MV1SearchFrame(m_modelHandle, "mixamorig:HeadTop_End");
-    // 手は未使用なら検索しなくてもよいが、念のため
-    m_handRNodeIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
-    m_handLNodeIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
 
     // 攻撃範囲コライダー設定
     m_pAttackRangeCollider->SetRadius(EnemyBossConstants::kAttackRangeRadius);
@@ -120,7 +111,10 @@ void EnemyBoss::Init()
     m_isNextAttackNormal = false; // 最初はパリィ弾から
     m_hasPlayedCloseRangeEffect = false;
     m_currentEffectHandle = -1;
+    m_hasPlayedCloseRangeEffect = false;
+    m_currentEffectHandle = -1;
     m_effectTimer = 0;
+    m_shieldEffectHandle = -1;
 
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
@@ -374,6 +368,11 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
     if (m_hp <= 0.0f)
     {
+        if (m_shieldEffectHandle != -1)
+        {
+            StopEffekseer3DEffect(m_shieldEffectHandle);
+            m_shieldEffectHandle = -1;
+        }
         UpdateDeath(collisionData);
         return;
     }
@@ -731,6 +730,31 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     else if (!tackleInfo.isTackling)
     {
         m_lastTackleId = -1;
+    }
+
+    // 最終的な位置をモデルに反映
+    MV1SetPosition(m_modelHandle, m_pos);
+
+    // シールドエフェクト更新 (移動後の最終位置で更新)
+    // ノード位置取得による遅延・不具合を避けるため、m_pos基準のオフセットを使用する
+    VECTOR shieldPos = m_pos;
+    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
+
+    if (m_shieldEffectHandle == -1 || IsEffekseer3DEffectPlaying(m_shieldEffectHandle) == -1)
+    {
+        if (pEffect)
+        {
+             m_shieldEffectHandle = pEffect->PlayBossShieldEffect(shieldPos.x, shieldPos.y, shieldPos.z);
+        }
+    }
+    else
+    {
+        // 位置更新
+        SetPosPlayingEffekseer3DEffect(m_shieldEffectHandle, shieldPos.x, shieldPos.y, shieldPos.z);
+        
+        // 回転も合わせる（念のため）
+        VECTOR rot = MV1GetRotationXYZ(m_modelHandle);
+        SetRotationPlayingEffekseer3DEffect(m_shieldEffectHandle, rot.x, rot.y, rot.z);
     }
 }
 
