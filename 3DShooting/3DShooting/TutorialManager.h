@@ -70,10 +70,7 @@ public:
     /// チュートリアル完了後の待機中かどうか 
     /// </summary>
     /// <returns>完了演出表示中ならtrue</returns>
-    bool IsCompletedDisplay() const
-    {
-        return m_isCompletedDisplay;
-    }
+    bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
 
     /// <summary>
     /// 新しいチュートリアルメッセージを追加する

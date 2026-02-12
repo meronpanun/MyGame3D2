@@ -20,13 +20,15 @@ class Player;
 class Effect;
 
 // 敵の出現情報
+// ゲーム実行時に生成される「個別の敵の出現予定」
+// WaveData の count の数だけ作成される
 struct EnemySpawnInfo
 {
     std::string enemyType;     // 敵の種類
     VECTOR spawnPos;           // 出現位置
     float spawnTime = 0;       // 出現時間
     bool isSpawned = false;    // 出現済みフラグ
-    int spawnLocationType = 0; // スポーン位置タイプ
+	int spawnLocationType = 0; // スポーン位置タイプ (0:ランダム, 1:下段, 2:中段, 3:上段)
 };
 
 /// <summary>
@@ -66,8 +68,6 @@ public:
     /// Road_floorオブジェクトの範囲を設定
     /// </summary>
     void SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos);
-
-
 
     /// <summary>
     /// 敵の一括更新

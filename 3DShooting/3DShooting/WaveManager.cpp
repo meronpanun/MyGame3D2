@@ -412,7 +412,7 @@ const SpawnAreaInfo* WaveManager::SelectSpawnArea(int type, const std::string& e
 
     float targetY = -999.0f;
     if (spawnLocationType == 1) targetY = 200.0f;
-    else if (spawnLocationType == 2) targetY = 562.0f;
+    else if (spawnLocationType == 2) targetY = 500.0f;
     else if (spawnLocationType == 3) targetY = 962.0f;
 
     if ((m_currentWave == 1 && type == 0) || (spawnLocationType > 0 && type == 0))

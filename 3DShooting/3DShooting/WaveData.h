@@ -2,6 +2,8 @@
 #include <string>
 
 // Waveデータの構造体
+// CSVから読み込まれる「ウェーブの設計図」
+// 1つのWaveDataから count 個の EnemySpawnInfo が生成される
 struct WaveData
 {
   int wave = 0;            // ウェーブ番号
