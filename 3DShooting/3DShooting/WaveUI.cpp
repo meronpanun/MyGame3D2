@@ -69,8 +69,7 @@ void WaveUI::StartWaveAnimation()
     m_waveImageAnimTimer = 0;
 }
 
-void WaveUI::DrawWaveUI(int currentWave, bool isWaveActive,
-                        bool isAllWavesCompleted)
+void WaveUI::DrawWaveUI(int currentWave, bool isWaveActive, bool isAllWavesCompleted)
 {
     // ウェーブ中は常に画像を表示
     if (!isAllWavesCompleted && currentWave >= 1 && currentWave <= 5 && (m_isWaveImageAnimating || isWaveActive))
@@ -128,12 +127,9 @@ void WaveUI::DrawWaveUI(int currentWave, bool isWaveActive,
             currentDrawH = targetDrawH;
         }
 
-        DrawExtendGraph(currentX, currentY, currentX + currentDrawW,
-                        currentY + currentDrawH, img, true);
+        DrawExtendGraph(currentX, currentY, currentX + currentDrawW, currentY + currentDrawH, img, true);
     }
 }
-
-
 
 void WaveUI::DrawDebugSpawnAreas(const std::vector<SpawnAreaInfo>& spawnAreaList, bool isTutorial)
 {

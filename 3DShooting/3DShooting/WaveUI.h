@@ -14,14 +14,7 @@ public:
     WaveUI();
     ~WaveUI();
 
-    /// <summary>
-    /// 初期化
-    /// </summary>
     void Init();
-
-    /// <summary>
-    /// 更新処理（アニメーション用）
-    /// </summary>
     void Update();
 
     /// <summary>
@@ -31,18 +24,6 @@ public:
     /// <param name="isWaveActive">ウェーブが進行中か</param>
     /// <param name="isAllWavesCompleted">全ウェーブ完了したか</param>
     void DrawWaveUI(int currentWave, bool isWaveActive, bool isAllWavesCompleted);
-
-    /// <summary>
-    /// デバッグ情報を描画
-    /// </summary>
-    /// <param name="currentWave">現在のウェーブ</param>
-    /// <param name="aliveEnemyCount">生存敵数</param>
-    /// <param name="totalSpawnedCount">累計出現数</param>
-    /// <param name="waveTimer">ウェーブタイマー</param>
-    /// <param name="spawnTimer">スポーンタイマー</param>
-    /// <param name="nextSpawnTime">次のスポーン時間</param>
-    /// <param name="remainingEnemiesInWave">ウェーブ内の残り敵数</param>
-
 
     /// <summary>
     /// スポーンエリアのデバッグ表示

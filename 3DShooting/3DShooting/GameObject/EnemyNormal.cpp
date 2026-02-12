@@ -203,8 +203,35 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
     // 視界外の単純動作モード
     if (m_isSimpleMode)
     {
+        // 生存していれば簡易移動
+        if (m_hp > 0.0f)
+        {
+            VECTOR playerPos = player.GetPos();
+            VECTOR targetPos = VAdd(playerPos, m_targetOffset); // オフセット付き
+            VECTOR toPlayer = VSub(targetPos, m_pos);
+            toPlayer.y = 0.0f;
+            float disToPlayer = VSize(toPlayer);
+
+            if (disToPlayer > EnemyNormalConstants::kChaseStopDistance)
+            {
+                VECTOR dir = VNorm(toPlayer);
+                float moveDist = disToPlayer - EnemyNormalConstants::kChaseStopDistance;
+                float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+                float step = (std::min)(moveDist, scaledSpeed);
+                m_pos.x += dir.x * step;
+                m_pos.z += dir.z * step;
+
+                // 向きも更新しておく (急に振り向くのを防ぐため、あるいは描画時に正しい向きにするため)
+                float rotSpeed = 0.05f * Game::GetTimeScale();
+                RotateTowards(targetPos, rotSpeed);
+            }
+        }
+
         // ステージとの当たり判定のみ簡易に行う（重力適用など）
         UpdateStageCollision(collisionData);
+        
+        // モデルの位置更新
+        MV1SetPosition(m_modelHandle, m_pos);
         return;
     }
 

@@ -212,8 +212,30 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
     // 視界外の単純動作モード
     if (m_isSimpleMode)
     {
+        // 生存していれば簡易移動
+        if (m_hp > 0.0f)
+        {
+            VECTOR playerPos = player.GetPos();
+            VECTOR targetPos = VAdd(playerPos, m_targetOffset);
+            VECTOR toPlayer = VSub(targetPos, m_pos);
+            toPlayer.y = 0.0f;
+
+            // 簡易移動 (回避行動なし、直線移動のみ)
+            VECTOR dir = VNorm(toPlayer);
+            float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+            m_pos.x += dir.x * scaledSpeed;
+            m_pos.z += dir.z * scaledSpeed;
+
+            // 向き更新
+            float rotSpeed = 0.05f * Game::GetTimeScale();
+            RotateTowards(targetPos, rotSpeed);
+        }
+
         // ステージとの当たり判定のみ簡易に行う
         UpdateStageCollision(collisionData);
+        
+        // モデルの位置更新
+        MV1SetPosition(m_modelHandle, m_pos);
         return;
     }
 
