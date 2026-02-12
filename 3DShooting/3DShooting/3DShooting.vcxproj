@@ -179,6 +179,9 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="GameObject\Player.cpp" />
+    <ClCompile Include="ManagedFont.cpp" />
+    <ClCompile Include="ManagedGraph.cpp" />
+    <ClCompile Include="ManagedSound.cpp" />
     <ClCompile Include="Scene\SceneGameOver.cpp" />
     <ClCompile Include="Scene\SceneBase.cpp" />
     <ClCompile Include="Scene\SceneMain.cpp" />
@@ -230,6 +233,10 @@
     <ClInclude Include="GameObject\ShellCasing.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="GameObject\Player.h" />
+    <ClInclude Include="ManagedFont.h" />
+    <ClInclude Include="ManagedGraph.h" />
+    <ClInclude Include="ManagedSound.h" />
+    <ClInclude Include="SafeHandle.h" />
     <ClInclude Include="Scene\SceneGameOver.h" />
     <ClInclude Include="Scene\SceneBase.h" />
     <ClInclude Include="Scene\SceneMain.h" />

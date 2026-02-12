@@ -25,113 +25,40 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score)
     : m_wave(wave)
     , m_killCount(killCount)
     , m_score(score)
-    , m_bgmHandle(-1)
+    , m_bgm("data/sound/BGM/GameOverBGM.mp3")
+    , m_returnSE("data/sound/SE/ButtonReturn.mp3")
+    , m_background("data/image/BackGrand.png")
+    , m_gameOverImage("data/image/GameOverZombie.png")
+    , m_gameOverImage2("data/image/GameOverZombie2.png")
+    , m_gameOverImage3("data/image/GameOverZombie3.png")
+    , m_japaneseFont("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_arialBlackFont("Arial Black", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_arialBlackLargeFont("Arial Black", 64, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseLargeFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseButtonFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_isBGMStarted(false)
-    , m_backgroundHandle(-1)
     , m_scrollX(0.0f)
     , m_scrollY(0.0f)
     , m_currentImageIndex(0)
     , m_imageChangeTimer(0)
     , m_imageChangeInterval(kImageChangeInterval)
 {
-    // BGMのロード
-    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameOverBGM.mp3");
-    assert(m_bgmHandle != -1);
-    m_returnSEHandle = LoadSoundMem("data/sound/SE/ButtonReturn.mp3");
-    assert(m_returnSEHandle != -1);
+    // フォントのリロード（初期化）
+    ReloadFonts(Game::GetUIScale());
+}
 
-    // 背景画像のロード
-    m_backgroundHandle = LoadGraph("data/image/BackGrand.png");
-    assert(m_backgroundHandle != -1);
-
-    // ゲームオーバー画像のロード
-    m_gameOverImageHandle = LoadGraph("data/image/GameOverZombie.png");
-    assert(m_gameOverImageHandle != -1);
-    m_gameOverImageHandle2 = LoadGraph("data/image/GameOverZombie2.png");
-    assert(m_gameOverImageHandle2 != -1);
-    m_gameOverImageHandle3 = LoadGraph("data/image/GameOverZombie3.png");
-    assert(m_gameOverImageHandle3 != -1);
-
-    // フォントの作成
-    float scale = Game::GetUIScale();
-    m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(20 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    assert(m_japaneseFontHandle != -1);
-
-    m_arialBlackFontHandle = CreateFontToHandle("Arial Black", (int)(32 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    assert(m_arialBlackFontHandle != -1);
-
-    m_arialBlackLargeFontHandle = CreateFontToHandle("Arial Black", (int)(64 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    assert(m_arialBlackLargeFontHandle != -1);
-
-    m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    assert(m_japaneseLargeFontHandle != -1);
-
-    m_japaneseButtonFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    assert(m_japaneseButtonFontHandle != -1);
+void SceneGameOver::ReloadFonts(float scale)
+{
+    m_japaneseFont.Reload(scale);
+    m_arialBlackFont.Reload(scale);
+    m_arialBlackLargeFont.Reload(scale);
+    m_japaneseLargeFont.Reload(scale);
+    m_japaneseButtonFont.Reload(scale);
 }
 
 SceneGameOver::~SceneGameOver()
 {
-    // BGMの解放
-    if (m_bgmHandle != -1)
-    {
-        DeleteSoundMem(m_bgmHandle);
-        m_bgmHandle = -1;
-    }
-    if (m_returnSEHandle != -1)
-    {
-        DeleteSoundMem(m_returnSEHandle);
-        m_returnSEHandle = -1;
-    }
-
-    // 背景画像の解放
-    if (m_backgroundHandle != -1)
-    {
-        DeleteGraph(m_backgroundHandle);
-        m_backgroundHandle = -1;
-    }
-    if (m_gameOverImageHandle != -1)
-    {
-        DeleteGraph(m_gameOverImageHandle);
-        m_gameOverImageHandle = -1;
-    }
-    if (m_gameOverImageHandle2 != -1)
-    {
-        DeleteGraph(m_gameOverImageHandle2);
-        m_gameOverImageHandle2 = -1;
-    }
-    if (m_gameOverImageHandle3 != -1)
-    {
-        DeleteGraph(m_gameOverImageHandle3);
-        m_gameOverImageHandle3 = -1;
-    }
-
-    // フォントの解放
-    if (m_japaneseFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseFontHandle);
-        m_japaneseFontHandle = -1;
-    }
-    if (m_arialBlackFontHandle != -1)
-    {
-        DeleteFontToHandle(m_arialBlackFontHandle);
-        m_arialBlackFontHandle = -1;
-    }
-    if (m_arialBlackLargeFontHandle != -1)
-    {
-        DeleteFontToHandle(m_arialBlackLargeFontHandle);
-        m_arialBlackLargeFontHandle = -1;
-    }
-    if (m_japaneseLargeFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseLargeFontHandle);
-        m_japaneseLargeFontHandle = -1;
-    }
-    if (m_japaneseButtonFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseButtonFontHandle);
-        m_japaneseButtonFontHandle = -1;
-    }
+    // 自動解放されるため処理不要
 }
 
 void SceneGameOver::Init()
@@ -146,9 +73,10 @@ void SceneGameOver::Init()
     m_isBGMStarted = false;
 
     // BGM再生（既に再生中でなければ）
-    if (CheckSoundMem(m_bgmHandle) == 0)
+    if (!m_bgm.IsPlaying())
     {
-        PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
+        ChangeVolumeSoundMem(200, m_bgm);
+        m_bgm.Play(DX_PLAYTYPE_LOOP);
         m_isBGMStarted = true;
     }
 }
@@ -188,8 +116,8 @@ SceneBase* SceneGameOver::Update()
             mousePos.y <= m_layout.titleBtnY2)
         {
             // BGMを停止
-            StopSoundMem(m_bgmHandle);
-            PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
+            m_bgm.Stop();
+            m_returnSE.Play(DX_PLAYTYPE_BACK);
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -202,8 +130,8 @@ SceneBase* SceneGameOver::Update()
             mousePos.y <= m_layout.retryBtnY2)
         {
             // BGMを停止
-            StopSoundMem(m_bgmHandle);
-            PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
+            m_bgm.Stop();
+            m_returnSE.Play(DX_PLAYTYPE_BACK);
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -235,7 +163,7 @@ void SceneGameOver::Draw()
         {
             int drawX = x * kBgImageSize + offsetX;
             int drawY = y * kBgImageSize + offsetY;
-            DrawExtendGraph(drawX, drawY, drawX + kBgImageSize, drawY + kBgImageSize, m_backgroundHandle, true);
+            DrawExtendGraph(drawX, drawY, drawX + kBgImageSize, drawY + kBgImageSize, m_background, true);
         }
     }
 
@@ -249,16 +177,16 @@ void SceneGameOver::Draw()
     switch (m_currentImageIndex)
     {
     case 0:
-        currentImageHandle = m_gameOverImageHandle;
+        currentImageHandle = m_gameOverImage;
         break;
     case 1:
-        currentImageHandle = m_gameOverImageHandle2;
+        currentImageHandle = m_gameOverImage2;
         break;
     case 2:
-        currentImageHandle = m_gameOverImageHandle3;
+        currentImageHandle = m_gameOverImage3;
         break;
     default:
-        currentImageHandle = m_gameOverImageHandle;
+        currentImageHandle = m_gameOverImage;
         break;
     }
 
@@ -292,35 +220,35 @@ void SceneGameOver::Draw()
     char waveStr[64];
     sprintf_s(waveStr, sizeof(waveStr), "%dウェーブ生き残った", m_wave);
     // ウェーブ数は中央寄せ
-    int waveStrW = GetDrawStringWidthToHandle(waveStr, strlen(waveStr), m_japaneseLargeFontHandle);
+    int waveStrW = GetDrawStringWidthToHandle(waveStr, strlen(waveStr), m_japaneseLargeFont);
 
     // 影
-    DrawFormatStringToHandle((screenW - waveStrW) / 2 + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "%s", waveStr);
+    DrawFormatStringToHandle((screenW - waveStrW) / 2 + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", waveStr);
 
     // 本体
-    DrawFormatStringToHandle((screenW - waveStrW) / 2, textY, 0xffffff, m_japaneseLargeFontHandle, "%s", waveStr);
+    DrawFormatStringToHandle((screenW - waveStrW) / 2, textY, 0xffffff, m_japaneseLargeFont, "%s", waveStr);
     textY += textInterval;
 
     char killStr[64];
     int killCount = m_killCount;
 
     // 影
-    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "倒した敵の数");
-    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "%d", killCount);
+    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "倒した敵の数");
+    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "%d", killCount);
 
     // 本体
-    DrawFormatStringToHandle(m_layout.textLabelX, textY, 0xffffff, m_japaneseLargeFontHandle, "倒した敵の数");
-    DrawFormatStringToHandle(m_layout.textValueX, textY, 0xffffff, m_japaneseLargeFontHandle, "%d", killCount);
+    DrawFormatStringToHandle(m_layout.textLabelX, textY, 0xffffff, m_japaneseLargeFont, "倒した敵の数");
+    DrawFormatStringToHandle(m_layout.textValueX, textY, 0xffffff, m_japaneseLargeFont, "%d", killCount);
     textY += textInterval;
 
     char scoreStr[64];
     // 影
-    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "スコア");
-    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "%d",
+    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "スコア");
+    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "%d",
                              ScoreManager::Instance().GetDisplayScore());
     // 本体
-    DrawFormatStringToHandle(m_layout.textLabelX, textY, 0xffffff, m_japaneseLargeFontHandle, "スコア");
-    DrawFormatStringToHandle(m_layout.textValueX, textY, 0xffffff, m_japaneseLargeFontHandle, "%d",
+    DrawFormatStringToHandle(m_layout.textLabelX, textY, 0xffffff, m_japaneseLargeFont, "スコア");
+    DrawFormatStringToHandle(m_layout.textValueX, textY, 0xffffff, m_japaneseLargeFont, "%d",
                              ScoreManager::Instance().GetDisplayScore());
 
     // マウス位置取得
@@ -344,15 +272,15 @@ void SceneGameOver::Draw()
         }
 
         // テキスト
-        int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFontHandle);
+        int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
         int textHeight = (int)(36 * Game::GetUIScale()); // フォントサイズに合わせて調整
         int textX = x1 + (x2 - x1 - textWidth) / 2;
         int textY = y1 + (y2 - y1 - textHeight) / 2;
 
         // 影
-        DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFontHandle, text);
+        DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFont, text);
         // 本体
-        DrawFormatStringToHandle(textX, textY, 0xffffff, m_japaneseButtonFontHandle, text);
+        DrawFormatStringToHandle(textX, textY, 0xffffff, m_japaneseButtonFont, text);
     };
 
     // タイトルボタン

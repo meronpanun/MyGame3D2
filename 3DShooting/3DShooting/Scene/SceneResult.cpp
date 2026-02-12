@@ -17,134 +17,61 @@ namespace
 }
 
 SceneResult::SceneResult()
-    : m_bgmHandle(-1)
-    , m_gameClearImageHandle(-1)
+    : m_background("data/image/GameClearBackGrand.png")
+    , m_gameClearImage("data/image/GameClear.png")
+    , m_returnSE("data/sound/SE/ButtonReturn.mp3")
+    , m_bgm("data/sound/BGM/GameClearBGM.mp3")
+    , m_japaneseFont("HGPｺﾞｼｯｸE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_arialBlackFont("Arial Black", 48, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_arialBlackLargeFont("Arial Black", 96, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseLargeFont("HGPｺﾞｼｯｸE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseButtonFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_isBGMStarted(false)
-    , m_backgroundHandle(-1)
     , m_scrollX(0.0f)
     , m_scrollY(0.0f)
-    , m_japaneseFontHandle(-1)
-    , m_arialBlackFontHandle(-1)
-    , m_arialBlackLargeFontHandle(-1)
-    , m_japaneseLargeFontHandle(-1)
-    , m_japaneseButtonFontHandle(-1)
+    , m_score(0)
+    , m_killCount(0)
+    , m_headShotCount(0)
+    , m_maxCombo(0)
+    , m_rank('C')
+    , m_frame(0)
+    , m_scoreAnim(0)
+    , m_killAnim(0)
+    , m_headAnim(0)
+    , m_rankAnimAlpha(0)
+    , m_buttonAnimAlpha(0)
+    , m_rankScale(2.0f)
+    , m_prevScale(1.0f)
 {
-    // BGMのロード
-    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameClearBGM.mp3");
-    assert(m_bgmHandle != -1);
-    m_returnSEHandle = LoadSoundMem("data/sound/SE/ButtonReturn.mp3");
-    assert(m_returnSEHandle != -1);
+    // スコア情報の取得
+    m_score = ScoreManager::Instance().GetTotalScore();
+    m_killCount = ScoreManager::Instance().GetBodyKillCount();
+    m_headShotCount = ScoreManager::Instance().GetHeadKillCount();
+    m_maxCombo = ScoreManager::Instance().GetMaxCombo();
 
-    // 背景画像のロード
-    m_backgroundHandle = LoadGraph("data/image/GameClearBackGrand.png");
-    assert(m_backgroundHandle != -1);
+    // ランク計算
+    if (m_score >= 10000) m_rank = 'S';
+    else if (m_score >= 5000) m_rank = 'A';
+    else if (m_score >= 3000) m_rank = 'B';
+    else m_rank = 'C';
 
-    // ゲームクリア画像のロード
-    m_gameClearImageHandle = LoadGraph("data/image/GameClear.png");
-    assert(m_gameClearImageHandle != -1);
-
-    // フォントの作成 
+    // Fonts setup
     ReloadFonts(Game::GetUIScale());
 }
 
 // フォントリロード
 void SceneResult::ReloadFonts(float scale)
 {
-    // 既存フォントの削除
-    if (m_japaneseFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_japaneseFontHandle);
-        m_japaneseFontHandle = -1;
-    }
-    if (m_arialBlackFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_arialBlackFontHandle);
-        m_arialBlackFontHandle = -1;
-    }
-    if (m_arialBlackLargeFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_arialBlackLargeFontHandle);
-        m_arialBlackLargeFontHandle = -1;
-    }
-    if (m_japaneseLargeFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_japaneseLargeFontHandle);
-        m_japaneseLargeFontHandle = -1;
-    }
-    if (m_japaneseButtonFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_japaneseButtonFontHandle);
-        m_japaneseButtonFontHandle = -1;
-    }
-
-    // フォントの作成
-    m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(30 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    m_arialBlackFontHandle = CreateFontToHandle("Arial Black", (int)(48 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    m_arialBlackLargeFontHandle = CreateFontToHandle("Arial Black", (int)(96 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(54 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    m_japaneseButtonFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", (int)(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-
-    assert(m_japaneseFontHandle != -1);
-    assert(m_arialBlackFontHandle != -1);
-    assert(m_arialBlackLargeFontHandle != -1);
-    assert(m_japaneseLargeFontHandle != -1);
-    assert(m_japaneseButtonFontHandle != -1);
+    m_japaneseFont.Reload(scale);
+    m_arialBlackFont.Reload(scale);
+    m_arialBlackLargeFont.Reload(scale);
+    m_japaneseLargeFont.Reload(scale);
+    m_japaneseButtonFont.Reload(scale);
 }
 
 SceneResult::~SceneResult()
 {
-    // BGMの解放
-    if (m_bgmHandle != -1)
-    {
-        DeleteSoundMem(m_bgmHandle);
-        m_bgmHandle = -1;
-    }
-    if (m_returnSEHandle != -1)
-    {
-        DeleteSoundMem(m_returnSEHandle);
-        m_returnSEHandle = -1;
-    }
-
-    // 背景画像の解放
-    if (m_backgroundHandle != -1)
-    {
-        DeleteGraph(m_backgroundHandle);
-        m_backgroundHandle = -1;
-    }
-
-    // ゲームクリア画像の解放
-    if (m_gameClearImageHandle != -1)
-    {
-        DeleteGraph(m_gameClearImageHandle);
-        m_gameClearImageHandle = -1;
-    }
-
-    // フォントの解放
-    if (m_japaneseFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseFontHandle);
-        m_japaneseFontHandle = -1;
-    }
-    if (m_arialBlackFontHandle != -1)
-    {
-        DeleteFontToHandle(m_arialBlackFontHandle);
-        m_arialBlackFontHandle = -1;
-    }
-    if (m_arialBlackLargeFontHandle != -1)
-    {
-        DeleteFontToHandle(m_arialBlackLargeFontHandle);
-        m_arialBlackLargeFontHandle = -1;
-    }
-    if (m_japaneseLargeFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseLargeFontHandle);
-        m_japaneseLargeFontHandle = -1;
-    }
-    if (m_japaneseButtonFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseButtonFontHandle);
-        m_japaneseButtonFontHandle = -1;
-    }
+    // 自動解放されるため処理不要
 }
 
 void SceneResult::Init()
@@ -165,9 +92,10 @@ void SceneResult::Init()
     m_isBGMStarted = false;
 
     // BGM再生（既に再生中でなければ）
-    if (CheckSoundMem(m_bgmHandle) == 0)
+    if (!m_bgm.IsPlaying())
     {
-        PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
+        ChangeVolumeSoundMem(200, m_bgm);
+        m_bgm.Play(DX_PLAYTYPE_LOOP);
         m_isBGMStarted = true;
     }
 }
@@ -193,8 +121,8 @@ SceneBase* SceneResult::Update()
             mousePos.y >= m_layout.titleBtnY1 && mousePos.y <= m_layout.titleBtnY2)
         {
             // BGMを停止
-            StopSoundMem(m_bgmHandle);
-            PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
+            m_bgm.Stop();
+            m_returnSE.Play(DX_PLAYTYPE_BACK);
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -205,8 +133,8 @@ SceneBase* SceneResult::Update()
             mousePos.y >= m_layout.retryBtnY1 && mousePos.y <= m_layout.retryBtnY2)
         {
             // BGMを停止
-            StopSoundMem(m_bgmHandle);
-            PlaySoundMem(m_returnSEHandle, DX_PLAYTYPE_BACK); // 戻るボタンSE再生
+            m_bgm.Stop();
+            m_returnSE.Play(DX_PLAYTYPE_BACK);
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -239,7 +167,7 @@ void SceneResult::Draw()
             int drawX = x * kBgImageSize + offsetX;
             int drawY = y * kBgImageSize + offsetY;
             DrawExtendGraph(drawX, drawY, drawX + kBgImageSize, drawY + kBgImageSize,
-                m_backgroundHandle, true);
+                m_background, true);
         }
     }
 
@@ -252,7 +180,7 @@ void SceneResult::Draw()
     DrawExtendGraph(m_layout.imageDrawX, m_layout.imageDrawY,
         m_layout.imageDrawX + m_layout.imageDrawWidth,
         m_layout.imageDrawY + m_layout.imageDrawHeight,
-        m_gameClearImageHandle, true);
+        m_gameClearImage, true);
 
     // リザルト表示エリアの背景（グラデーション）
     // 上: 透明度のある濃い黒, 下: 少し明るい黒
@@ -270,30 +198,30 @@ void SceneResult::Draw()
     // スコア、キル数、タイムの表示 (左寄せ気味に揃える)
     // 合計スコア
     // 影
-    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "合計スコア");
-    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "%d", ScoreManager::Instance().GetDisplayTotalScore());
+    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFont, "合計スコア");
+    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFont, "%d", ScoreManager::Instance().GetDisplayTotalScore());
     // 本体
-    DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFontHandle, "合計スコア");
-    DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFontHandle, "%d", ScoreManager::Instance().GetDisplayTotalScore());
+    DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFont, "合計スコア");
+    DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFont, "%d", ScoreManager::Instance().GetDisplayTotalScore());
     y += m_layout.textIntervalHigh;
 
     // 倒した敵の数
     int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
     // 影
-    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "倒した敵の数");
-    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "%d", killCount);
+    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFont, "倒した敵の数");
+    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFont, "%d", killCount);
     // 本体
-    DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFontHandle, "倒した敵の数");
-    DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFontHandle, "%d", killCount);
+    DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFont, "倒した敵の数");
+    DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFont, "%d", killCount);
     y += m_layout.textIntervalHigh;
 
     // クリアタイム
     // 影
-    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "クリアタイム");
-    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "%.1f秒", SceneMain::GetElapsedTime());
+    DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFont, "クリアタイム");
+    DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, y + shadowOffset, 0x000000, m_japaneseLargeFont, "%.1f秒", SceneMain::GetElapsedTime());
     // 本体
-    DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFontHandle, "クリアタイム");
-    DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFontHandle, "%.1f秒", SceneMain::GetElapsedTime());
+    DrawFormatStringToHandle(m_layout.textLabelX, y, 0xffffff, m_japaneseLargeFont, "クリアタイム");
+    DrawFormatStringToHandle(m_layout.textValueX, y, 0xffffff, m_japaneseLargeFont, "%.1f秒", SceneMain::GetElapsedTime());
 
     // ハイスコア表示
     int highScoreY = m_layout.highScoreY;
@@ -301,11 +229,11 @@ void SceneResult::Draw()
     int highScoreInterval = (int)(60 * scale);
 
     // タイトル
-    int highScoreTextWidth = GetDrawStringWidthToHandle("--- High Score ---", -1, m_arialBlackFontHandle);
+    int highScoreTextWidth = GetDrawStringWidthToHandle("--- High Score ---", -1, m_arialBlackFont);
     // 影
-    DrawFormatStringToHandle(screenW / 2 - highScoreTextWidth / 2 + shadowOffset, highScoreY + shadowOffset, 0x000000, m_arialBlackFontHandle, "--- High Score ---");
+    DrawFormatStringToHandle(screenW / 2 - highScoreTextWidth / 2 + shadowOffset, highScoreY + shadowOffset, 0x000000, m_arialBlackFont, "--- High Score ---");
     // 本体 (金色のグラデーションっぽく見せるため、黄色で点滅させてもいいが、今回は固定)
-    DrawFormatStringToHandle(screenW / 2 - highScoreTextWidth / 2, highScoreY, 0xffff00, m_arialBlackFontHandle, "--- High Score ---");
+    DrawFormatStringToHandle(screenW / 2 - highScoreTextWidth / 2, highScoreY, 0xffff00, m_arialBlackFont, "--- High Score ---");
     highScoreY += highScoreInterval;
 
     const auto& scores = ScoreManager::Instance().GetHighScores();
@@ -313,16 +241,16 @@ void SceneResult::Draw()
     {
         char highStr[64];
         sprintf_s(highStr, sizeof(highStr), "%d位: %d", i + 1, scores[i]);
-        int highStrWidth = GetDrawStringWidthToHandle(highStr, -1, m_japaneseLargeFontHandle);
+        int highStrWidth = GetDrawStringWidthToHandle(highStr, -1, m_japaneseLargeFont);
         unsigned int color = 0xffffff;
         if (i == 0) color = 0xffd700; // Gold
         else if (i == 1) color = 0xc0c0c0; // Silver
         else if (i == 2) color = 0xff8c00; // Bronze
 
         // 影
-        DrawFormatStringToHandle(screenW / 2 - highStrWidth / 2 + shadowOffset, highScoreY + shadowOffset, 0x000000, m_japaneseLargeFontHandle, "%s", highStr);
+        DrawFormatStringToHandle(screenW / 2 - highStrWidth / 2 + shadowOffset, highScoreY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", highStr);
         // 本体
-        DrawFormatStringToHandle(screenW / 2 - highStrWidth / 2, highScoreY, color, m_japaneseLargeFontHandle, "%s", highStr);
+        DrawFormatStringToHandle(screenW / 2 - highStrWidth / 2, highScoreY, color, m_japaneseLargeFont, "%s", highStr);
         highScoreY += highScoreInterval;
     }
 
@@ -346,15 +274,15 @@ void SceneResult::Draw()
         }
 
         // テキスト
-        int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFontHandle);
+        int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
         int textHeight = (int)(36 * Game::GetUIScale());
         int textX = x1 + (x2 - x1 - textWidth) / 2;
         int textY = y1 + (y2 - y1 - textHeight) / 2;
 
         // 影
-        DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFontHandle, text);
+        DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFont, text);
         // 本体
-        DrawFormatStringToHandle(textX, textY, 0xffffff, m_japaneseButtonFontHandle, text);
+        DrawFormatStringToHandle(textX, textY, 0xffffff, m_japaneseButtonFont, text);
     };
 
     // タイトルボタン

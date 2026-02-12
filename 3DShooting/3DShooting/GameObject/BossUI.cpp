@@ -26,7 +26,7 @@ namespace
 
 BossUI::BossUI()
     : m_healthBarAnim(0.0f)
-    , m_fontHandle(-1)
+    , m_font("ＭＳ ゴシック", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_prevScale(1.0f)
 {
     ReloadFonts(1.0f);
@@ -34,11 +34,7 @@ BossUI::BossUI()
 
 BossUI::~BossUI() 
 {
-    if (m_fontHandle != -1)
-    {
-        DeleteFontToHandle(m_fontHandle);
-        m_fontHandle = -1;
-    }
+    // 自動解放されるため処理不要
 }
 
 void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) 
@@ -134,22 +130,17 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
 
     // ボス名テキスト（影付き）
     const char *bossName = "BOSS";
-    int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_fontHandle);
+    int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_font);
     int textX = (screenW - textW) / 2;
     int textY = static_cast<int>(kBossHpTextY * scale);
     
-    DrawStringToHandle(textX + kShadowOffset, textY + kShadowOffset, bossName, 0x000000, m_fontHandle);
-    DrawStringToHandle(textX, textY, bossName, kColorWhite, m_fontHandle);
+    DrawStringToHandle(textX + kShadowOffset, textY + kShadowOffset, bossName, 0x000000, m_font);
+    DrawStringToHandle(textX, textY, bossName, kColorWhite, m_font);
 }
 
 void BossUI::ReloadFonts(float scale) 
 {
-    if (m_fontHandle != -1) 
-    {
-        DeleteFontToHandle(m_fontHandle);
-        m_fontHandle = -1;
-    }
-    m_fontHandle = CreateFontToHandle("ＭＳ ゴシック", static_cast<int>(36 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_font.Reload(scale);
 }
 
 void BossUI::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor)
@@ -160,7 +151,6 @@ void BossUI::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topCol
     float fx2 = static_cast<float>(x2);
     float fy2 = static_cast<float>(y2);
 
-    // 0xRRGGBB 形式からRGBを抽出
     unsigned char topR = (topColor >> 16) & 0xFF;
     unsigned char topG = (topColor >> 8) & 0xFF;
     unsigned char topB = topColor & 0xFF;

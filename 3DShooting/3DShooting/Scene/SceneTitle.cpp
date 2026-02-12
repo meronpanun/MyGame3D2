@@ -21,10 +21,10 @@ namespace
 }
 
 SceneTitle::SceneTitle(bool isReturningFromOtherScene)
-    : m_fontHandle(-1)
-    , m_titleLogo(-1)
-    , m_bannerHandle(-1)
-    , m_bgmHandle(-1)
+    : m_font("Arial Black", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_titleLogo("data/image/TitleLogo.png")
+    , m_bgm("data/sound/BGM/TitleBGM.wav")
+    , m_confirmSE("data/sound/SE/ConfirmButton.mp3")
     , m_fadeAlpha(0)
     , m_fadeFrame(0)
     , m_sceneFadeAlpha(0)
@@ -36,49 +36,15 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     , m_gameStartTextAlpha(0)
     , m_gameStartTextAlphaDir(1)
 {
-    // タイトルロゴ画像を読み込む
-    m_titleLogo = LoadGraph("data/image/TitleLogo.png");
-    assert(m_titleLogo != -1);
-
-    // タイトルBGMを読み込む
-    m_bgmHandle = LoadSoundMem("data/sound/BGM/TitleBGM.wav");
-    assert(m_bgmHandle != -1);
-
-    // 決定ボタンSEを読み込む
-    m_confirmSEHandle = LoadSoundMem("data/sound/SE/ConfirmButton.mp3");
-    assert(m_confirmSEHandle != -1);
-
-    // フォントの作成
-    m_fontHandle = CreateFontToHandle("Arial Black", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    // ロード確認
+    assert(m_titleLogo.IsValid());
+    assert(m_bgm.IsValid());
+    assert(m_confirmSE.IsValid());
 }
 
 SceneTitle::~SceneTitle()
 {
-    // フォントハンドルの解放
-    if (m_fontHandle != -1)
-    {
-        DeleteFontToHandle(m_fontHandle);
-        m_fontHandle = -1;
-    }
-
-    // 画像の解放
-    if (m_titleLogo != -1)
-    {
-        DeleteGraph(m_titleLogo);
-        m_titleLogo = -1;
-    }
-
-    // サウンドの解放
-    if (m_bgmHandle != -1)
-    {
-        DeleteSoundMem(m_bgmHandle);
-        m_bgmHandle = -1;
-    }
-    if (m_confirmSEHandle != -1)
-    {
-        DeleteSoundMem(m_confirmSEHandle);
-        m_confirmSEHandle = -1;
-    }
+    // 自動解放されるため処理不要
 }
 
 void SceneTitle::Init()
@@ -114,9 +80,9 @@ SceneBase* SceneTitle::Update()
     // BGM再生（ロゴ演出が終わった直後に一度だけ）
     if (!m_isBGMStarted)
     {
-        if (CheckSoundMem(m_bgmHandle) == 0)
+        if (!m_bgm.IsPlaying())
         {
-            PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
+            m_bgm.Play(DX_PLAYTYPE_LOOP);
         }
         m_isBGMStarted = true;
     }
@@ -139,8 +105,8 @@ SceneBase* SceneTitle::Update()
     if (!DebugUtil::IsDebugWindowVisible() && InputManager::GetInstance()->IsTriggerMouseLeft())
     {
         // BGMを停止
-        StopSoundMem(m_bgmHandle);
-        PlaySoundMem(m_confirmSEHandle, DX_PLAYTYPE_BACK);
+        m_bgm.Stop();
+        m_confirmSE.Play(DX_PLAYTYPE_BACK);
         return new SceneMain();
     }
     // 何もしなければシーン遷移しない(タイトル画面のまま)
@@ -166,10 +132,10 @@ void SceneTitle::Draw()
     if (m_isFadeComplete)
     {
         const char* gameStartText = "Press Left Click to Start Game";
-        int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_fontHandle);
+        int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_font);
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-        DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, Game::GetScreenHeight() - 180, 0xffffff, m_fontHandle, gameStartText);
+        DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, Game::GetScreenHeight() - 180, 0xffffff, m_font, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }

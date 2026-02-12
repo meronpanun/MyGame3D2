@@ -2,6 +2,7 @@
 #include "DxLib.h"
 #include <vector>
 #include <memory>
+#include "ManagedFont.h"
 
 class EnemyBase;
 
@@ -30,7 +31,7 @@ private:
 
 private:
 	float m_healthBarAnim; // HPバーアニメーション用体力値
-	int m_fontHandle;      // フォントハンドル
+	ManagedFont m_font;    // フォントハンドル
 
 	// スケール管理
 	float m_prevScale;

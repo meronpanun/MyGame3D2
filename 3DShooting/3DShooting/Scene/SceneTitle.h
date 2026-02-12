@@ -1,5 +1,8 @@
 ﻿#pragma once
 #include "SceneBase.h"
+#include "ManagedFont.h"
+#include "ManagedGraph.h"
+#include "ManagedSound.h"
 
 /// <summary>
 /// タイトルシーンクラス
@@ -16,11 +19,11 @@ public:
 
 private:
     // リソース管理
-    int m_fontHandle;      // フォントハンドル
-    int m_titleLogo;       // タイトルロゴのハンドル
-    int m_bannerHandle;    // バナー画像のハンドル
-    int m_bgmHandle;       // タイトルBGMのハンドル
-    int m_confirmSEHandle; // 決定ボタンSEのハンドル
+    ManagedFont m_font;            // フォント
+    ManagedGraph m_titleLogo;      // タイトルロゴ
+    ManagedGraph m_banner;         // バナー画像
+    ManagedSound m_bgm;            // タイトルBGM
+    ManagedSound m_confirmSE;      // 決定ボタンSE
 
     // フェード・シーン遷移管理
     int  m_fadeAlpha;       // フェードのアルファ値

@@ -5,6 +5,10 @@
 #include "ScoreManager.h"
 #include "TaskTutorialManager.h"
 #include "TutorialManager.h"
+#include "ManagedFont.h"
+#include "ManagedGraph.h"
+#include "ManagedSound.h"
+#include "SafeHandle.h"
 #include <chrono>
 #include <deque>
 #include <memory>
@@ -27,7 +31,8 @@ class BossUI;
 /// <summary>
 /// メインシーンクラス
 /// </summary>
-class SceneMain : public SceneBase {
+class SceneMain : public SceneBase 
+{
 public:
     SceneMain(bool isReturningFromOtherScene = false);
     virtual ~SceneMain();
@@ -145,14 +150,14 @@ private:
     EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
 
     // リソース管理
-    int m_skyDomeHandle; // スカイドーム画像ハンドル
-    int m_dotDefaultHandle;
-    int m_dotOnTargetHandle;
-    int m_sgDefaultReticleHandle;
-    int m_sgOnTargetReticleHandle;
-    int m_scoreFontHandle; // スコアポップアップ用フォントハンドル
-    int m_bgmHandle;       // BGMハンドル
-    bool m_isBGMStarted;   // BGM再生済みフラグ
+    SafeHandle<ModelDeleter> m_skyDome; // スカイドーム画像ハンドル
+    ManagedGraph m_dotDefault;
+    ManagedGraph m_dotOnTarget;
+    ManagedGraph m_sgDefaultReticle;
+    ManagedGraph m_sgOnTargetReticle;
+    ManagedFont m_scoreFont;       // スコアポップアップ用フォントハンドル
+    ManagedSound m_bgm;            // BGMハンドル
+    bool m_isBGMStarted;           // BGM再生済みフラグ
 
     // スコアポップアップ管理
     struct ScorePopup
@@ -188,7 +193,7 @@ private:
     int m_loadingAnimTimer;  // ローディングアニメーションタイマー
 
     // ローディング画面用
-    int m_loadingModelHandle;     // ローディング用モデルハンドル
-    VECTOR m_loadingModelPos;     // ローディング用モデル位置
-    float m_loadingModelAnimTime; // ローディング用モデルアニメーション時間
+    SafeHandle<ModelDeleter> m_loadingModel; // ローディング用モデルハンドル
+    VECTOR m_loadingModelPos;                // ローディング用モデル位置
+    float m_loadingModelAnimTime;            // ローディング用モデルアニメーション時間
 };

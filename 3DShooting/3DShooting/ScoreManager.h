@@ -136,6 +136,12 @@ public:
 	/// <param name="headKill">目標ヘッドショットキル数</param>
     void SetTargetDisplayValues(int score, int totalScore, int bodyKill, int headKill);
 
+    /// <summary>
+    /// 最大コンボ数を取得
+    /// </summary>
+    /// <returns>最大コンボ数</returns>
+    int GetMaxCombo() const { return m_maxCombo; }
+
     void ResetAll(); // スコア・キル数・コンボなど全リセット
 
 private:
@@ -147,6 +153,7 @@ private:
 
 	// コンボ関連
     int m_combo;               // 現在のコンボ数
+    int m_maxCombo;            // 最大コンボ数
     int m_comboTimer;          // コンボ継続猶予タイマー
     float m_lastComboRate;     // 最後のコンボ倍率
 

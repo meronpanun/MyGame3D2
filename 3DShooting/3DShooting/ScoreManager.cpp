@@ -23,6 +23,7 @@ ScoreManager& ScoreManager::Instance()
 ScoreManager::ScoreManager()
     : m_score(0)
     , m_combo(0)
+    , m_maxCombo(0)
     , m_comboTimer(kComboGraceFrame)
     , m_totalScore(0)
     , m_bodyKillCount(0)
@@ -44,6 +45,8 @@ int ScoreManager::AddScore(bool isHeadShot)
 {
     int baseScore = isHeadShot ? kBaseHeadShotScore : kBaseBodyShotScore;
     m_combo++;
+    if (m_combo > m_maxCombo) m_maxCombo = m_combo; // 最大コンボ更新
+
     float comboRate = std::pow(kInitialComboRate, m_combo - 1);
     m_lastComboRate = comboRate;
     int add = static_cast<int>(baseScore * comboRate);
@@ -82,13 +85,13 @@ void ScoreManager::Update()
     if (m_displayScore < m_targetDisplayScore)
     {
         int diff = m_targetDisplayScore - m_displayScore;
-        int add = std::min(m_scoreCountUpSpeed, diff);
+        int add = (std::min)(m_scoreCountUpSpeed, diff);
         m_displayScore += add;
     }
     if (m_displayTotalScore < m_targetTotalScore)
     {
         int diff = m_targetTotalScore - m_displayTotalScore;
-        int add = std::min(m_scoreCountUpSpeed, diff);
+        int add = (std::min)(m_scoreCountUpSpeed, diff);
         m_displayTotalScore += add;
     }
 }
@@ -176,6 +179,7 @@ void ScoreManager::ResetAll()
     m_score = 0;
     m_totalScore = 0;
     m_combo = 0;
+    m_maxCombo = 0;
     m_comboTimer = 0;
     m_lastComboRate = 1.0f;
     m_bodyKillCount = 0;

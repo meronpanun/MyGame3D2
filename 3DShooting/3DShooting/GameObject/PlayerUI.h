@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include "PlayerWeaponManager.h"
 #include "PlayerShieldSystem.h"
+#include "ManagedFont.h"
+#include "ManagedGraph.h"
+
 
 class EnemyBase;
 
@@ -75,8 +78,7 @@ private:
     /// <param name="lockedOnEnemy">ロックオンしている敵</param>
     /// <param name="isTargetAvailable">ロックオン可能な敵がいるか</param>
     void DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy, bool isTargetAvailable);
-
-    /// <summary>
+    
     /// フォントのリロード（スケール変更時）
     /// </summary>
     /// <param name="scale">UIスケール</param>
@@ -84,20 +86,20 @@ private:
 
 private:
     // UI画像ハンドル
-    int m_noAmmoImageHandle;
-    int m_noHealthImageHandle;
-    int m_arImageHandle;
-    int m_noAmmoARImageHandle;
-    int m_sgImageHandle;
-    int m_noAmmoSGImageHandle;
-    int m_healthUiImageHandle;
-    int m_shieldImageHandle;
-    int m_lockOnUIHandle;
+    ManagedGraph m_noAmmoImage;
+    ManagedGraph m_noHealthImage;
+    ManagedGraph m_arImage;
+    ManagedGraph m_noAmmoARImage;
+    ManagedGraph m_sgImage;
+    ManagedGraph m_noAmmoSGImage;
+    ManagedGraph m_healthUiImage;
+    ManagedGraph m_shieldImage;
+    ManagedGraph m_lockOnUI;
 
     // フォントハンドル
-    int m_fontHandle;
-    int m_hpFontHandle;
-    int m_warningFontHandle;
+    ManagedFont m_font;
+    ManagedFont m_hpFont;
+    ManagedFont m_warningFont;
 
     // スケール管理
     float m_prevScale;

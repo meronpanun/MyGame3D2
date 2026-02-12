@@ -72,121 +72,27 @@ namespace PlayerUIConstants
 }
 
 PlayerUI::PlayerUI()
-    : m_noAmmoImageHandle(-1)
-    , m_noHealthImageHandle(-1)
-    , m_arImageHandle(-1)
-    , m_noAmmoARImageHandle(-1)
-    , m_sgImageHandle(-1)
-    , m_noAmmoSGImageHandle(-1)
-    , m_healthUiImageHandle(-1)
-    , m_shieldImageHandle(-1)
-    , m_lockOnUIHandle(-1)
-    , m_fontHandle(-1)
-    , m_hpFontHandle(-1)
-    , m_warningFontHandle(-1)
+    : m_noAmmoImage("data/image/NoAmmo.png")
+    , m_noHealthImage("data/image/NoHealthUI.png")
+    , m_arImage("data/image/ARUI.png")
+    , m_noAmmoARImage("data/image/NoAmmoARUI.png")
+    , m_sgImage("data/image/SGUI.png")
+    , m_noAmmoSGImage("data/image/NoAmmoSGUI.png")
+    , m_healthUiImage("data/image/HealthUI.png")
+    , m_shieldImage("data/image/ShieldUI.png")
+    , m_lockOnUI("data/image/LockOnUI.png")
+    , m_font(PlayerUIConstants::kDefaultFontName, PlayerUIConstants::kAmmoFont, PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType)
+    , m_hpFont(PlayerUIConstants::kDefaultFontName, PlayerUIConstants::kHpFont, PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType)
+    , m_warningFont(PlayerUIConstants::kWarningFontName, PlayerUIConstants::kWarningFont, PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType)
+    , m_prevScale(1.0f)
 {
-    // 弾薬切れ画像の読み込み
-    m_noAmmoImageHandle = LoadGraph("data/image/NoAmmo.png");
-    assert(m_noAmmoImageHandle != -1);
-
-    // 体力低下画像の読み込み
-    m_noHealthImageHandle = LoadGraph("data/image/NoHealthUI.png");
-    assert(m_noHealthImageHandle != -1);
-
-    // アサルトライフルUI画像の読み込み
-    m_arImageHandle = LoadGraph("data/image/ARUI.png");
-    assert(m_arImageHandle != -1);
-    m_noAmmoARImageHandle = LoadGraph("data/image/NoAmmoARUI.png");
-    assert(m_noAmmoARImageHandle != -1);
-
-    // ショットガンUI画像の読み込み
-    m_sgImageHandle = LoadGraph("data/image/SGUI.png");
-    assert(m_sgImageHandle != -1);
-    m_noAmmoSGImageHandle = LoadGraph("data/image/NoAmmoSGUI.png");
-    assert(m_noAmmoSGImageHandle != -1);
-
-    // HPUI画像の読み込み
-    m_healthUiImageHandle = LoadGraph("data/image/HealthUI.png");
-    assert(m_healthUiImageHandle != -1);
-
-    // 盾UI画像の読み込み
-    m_shieldImageHandle = LoadGraph("data/image/ShieldUI.png");
-    assert(m_shieldImageHandle != -1);
-
-    // ロックオンUI画像の読み込み
-    m_lockOnUIHandle = LoadGraph("data/image/LockOnUI.png");
-    assert(m_lockOnUIHandle != -1);
-
-    // フォントの作成 (初期スケール1.0fと仮定)
-    m_prevScale = 1.0f;
+    // 初期化時はスケール1.0でロード済みだが、確実に合わせるために呼び出す
     ReloadFonts(1.0f);
 }
 
 PlayerUI::~PlayerUI()
 {
-    // 画像の解放
-    if (m_noAmmoImageHandle != -1)
-    {
-        DeleteGraph(m_noAmmoImageHandle);
-        m_noAmmoImageHandle = -1;
-    }
-    if (m_noHealthImageHandle != -1)
-    {
-        DeleteGraph(m_noHealthImageHandle);
-        m_noHealthImageHandle = -1;
-    }
-    if (m_arImageHandle != -1)
-    {
-        DeleteGraph(m_arImageHandle);
-        m_arImageHandle = -1;
-    }
-    if (m_noAmmoARImageHandle != -1)
-    {
-        DeleteGraph(m_noAmmoARImageHandle);
-        m_noAmmoARImageHandle = -1;
-    }
-    if (m_sgImageHandle != -1)
-    {
-        DeleteGraph(m_sgImageHandle);
-        m_sgImageHandle = -1;
-    }
-    if (m_noAmmoSGImageHandle != -1)
-    {
-        DeleteGraph(m_noAmmoSGImageHandle);
-        m_noAmmoSGImageHandle = -1;
-    }
-    if (m_healthUiImageHandle != -1)
-    {
-        DeleteGraph(m_healthUiImageHandle);
-        m_healthUiImageHandle = -1;
-    }
-    if (m_shieldImageHandle != -1)
-    {
-        DeleteGraph(m_shieldImageHandle);
-        m_shieldImageHandle = -1;
-    }
-    if (m_lockOnUIHandle != -1)
-    {
-        DeleteGraph(m_lockOnUIHandle);
-        m_lockOnUIHandle = -1;
-    }
-
-    // フォントの解放
-    if (m_fontHandle != -1)
-    {
-        DeleteFontToHandle(m_fontHandle);
-        m_fontHandle = -1;
-    }
-    if (m_hpFontHandle != -1)
-    {
-        DeleteFontToHandle(m_hpFontHandle);
-        m_hpFontHandle = -1;
-    }
-    if (m_warningFontHandle != -1)
-    {
-        DeleteFontToHandle(m_warningFontHandle);
-        m_warningFontHandle = -1;
-    }
+    // 画像・フォントはManagedクラスにより自動解放されるため処理不要
 }
 
 void PlayerUI::Draw(bool isDead, bool isGuarding, EnemyBase* lockedOnEnemy,
@@ -245,7 +151,7 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     // HPバーのパラメータ
     const int healthUiImageX = scaledHpBarMargin;
     const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin + (scaledHpBarHeight - scaledHealthUiSize) / 2; // 中央揃え修正
-    DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize, m_healthUiImageHandle, true);
+    DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize, m_healthUiImage, true);
     const int barX = healthUiImageX + scaledHealthUiSize + scaledBarSpacing;
 
     // 最大HP
@@ -297,9 +203,9 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     int textX = barX + static_cast<int>(PlayerUIConstants::kHpTextOffsetX * scale);
     int textY = barY + static_cast<int>(PlayerUIConstants::kHpTextOffsetY * scale);
     DrawFormatStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset,
-        PlayerUIConstants::kColorShadow, m_hpFontHandle, "%.0f", healthBarAnim);
+        PlayerUIConstants::kColorShadow, m_hpFont, "%.0f", healthBarAnim);
     DrawFormatStringToHandle(textX, textY,
-        PlayerUIConstants::kColorWhite, m_hpFontHandle, "%.0f", healthBarAnim);
+        PlayerUIConstants::kColorWhite, m_hpFont, "%.0f", healthBarAnim);
 }
 
 void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammoTextFlashTimer)
@@ -340,7 +246,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         if (currentAmmo == 0 && !isInfiniteAmmo)
         {
             // 弾切れ時は点滅させずそのまま
-            gunHandle = m_noAmmoARImageHandle;
+            gunHandle = static_cast<int>(m_noAmmoARImage);
         }
         else if (isLowAmmo)
         {
@@ -348,11 +254,11 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
             float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
             int alphaInt = static_cast<int>(blinkAlpha * 255);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-            gunHandle = m_noAmmoARImageHandle;
+            gunHandle = static_cast<int>(m_noAmmoARImage);
         }
         else
         {
-            gunHandle = m_arImageHandle;
+            gunHandle = static_cast<int>(m_arImage);
         }
         break;
     case WeaponType::Shotgun:
@@ -363,7 +269,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         if (currentAmmo == 0 && !isInfiniteAmmo)
         {
             // 弾切れ時は点滅させずそのまま
-            gunHandle = m_noAmmoSGImageHandle;
+            gunHandle = static_cast<int>(m_noAmmoSGImage);
         }
         else if (isLowAmmo)
         {
@@ -371,11 +277,11 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
             float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
             int alphaInt = static_cast<int>(blinkAlpha * 255);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-            gunHandle = m_noAmmoSGImageHandle;
+            gunHandle = static_cast<int>(m_noAmmoSGImage);
         }
         else
         {
-            gunHandle = m_sgImageHandle;
+            gunHandle = static_cast<int>(m_sgImage);
         }
         break;
     default:
@@ -394,7 +300,7 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
     }
 
     // 残弾数の表示
-    int ammoTextWidth = GetDrawStringWidthToHandle(PlayerUIConstants::kAmmoTextMaxWidthStr, strlen(PlayerUIConstants::kAmmoTextMaxWidthStr), m_fontHandle);
+    int ammoTextWidth = GetDrawStringWidthToHandle(PlayerUIConstants::kAmmoTextMaxWidthStr, strlen(PlayerUIConstants::kAmmoTextMaxWidthStr), m_font);
 
     // 弾薬数UIの位置をAR基準で固定計算
     int arGunImageX = screenW - PlayerUIConstants::kARImageWidth - PlayerUIConstants::kARImageMarginX;
@@ -419,8 +325,8 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
     if (isInfiniteAmmo)
     {
         DrawFormatStringToHandle(ammoTextX + PlayerUIConstants::kShadowOffset, ammoTextY + PlayerUIConstants::kShadowOffset,
-            PlayerUIConstants::kColorShadow, m_fontHandle, "∞");
-        DrawFormatStringToHandle(ammoTextX, ammoTextY, PlayerUIConstants::kColorWhite, m_fontHandle, "∞");
+            PlayerUIConstants::kColorShadow, m_font, "∞");
+        DrawFormatStringToHandle(ammoTextX, ammoTextY, PlayerUIConstants::kColorWhite, m_font, "∞");
     }
     else
     {
@@ -465,8 +371,8 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         sprintf_s(ammoStr, "%d", currentAmmo);
         
         // サイズ取得
-        int strW = GetDrawStringWidthToHandle(ammoStr, static_cast<int>(strlen(ammoStr)), m_fontHandle);
-        int strH = GetFontSizeToHandle(m_fontHandle);
+        int strW = GetDrawStringWidthToHandle(ammoStr, static_cast<int>(strlen(ammoStr)), m_font);
+        int strH = GetFontSizeToHandle(m_font);
 
         // 中心基準で拡大縮小
         int drawW = static_cast<int>(strW * textScale);
@@ -475,9 +381,9 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         int offsetY = (drawH - strH) / 2;
 
         DrawExtendStringToHandle(ammoTextX - offsetX + PlayerUIConstants::kShadowOffset, ammoTextY - offsetY + PlayerUIConstants::kShadowOffset,
-            textScale, textScale, ammoStr, PlayerUIConstants::kColorShadow, m_fontHandle);
+            textScale, textScale, ammoStr, PlayerUIConstants::kColorShadow, m_font);
         DrawExtendStringToHandle(ammoTextX - offsetX, ammoTextY - offsetY,
-            textScale, textScale, ammoStr, textColor, m_fontHandle);
+            textScale, textScale, ammoStr, textColor, m_font);
     }
 }
 
@@ -497,7 +403,7 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
 
     // 盾のテクスチャサイズを取得
     int shieldTexW, shieldTexH;
-    GetGraphSize(m_shieldImageHandle, &shieldTexW, &shieldTexH);
+    GetGraphSize(m_shieldImage, &shieldTexW, &shieldTexH);
 
     // 盾ゲージのサイズと位置
     const int shieldGaugeHeight = static_cast<int>(230 * scale);
@@ -518,7 +424,7 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
     DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
         shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-        shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle, true);
+        shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImage, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     // ゲージ本体
@@ -531,7 +437,7 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
         // 盾を満タン状態で描画
         DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
             shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-            shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImageHandle, true);
+            shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImage, true);
 
         // 描画範囲をリセット
         SetDrawArea(0, 0, screenW, screenH);
@@ -570,14 +476,14 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         }
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noHealthImageHandle, true);
+        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noHealthImage, true);
 
         const char* text = "体力低下";
-        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFont);
         int textX = drawX + (scaledWarningSize - textWidth) / 2;
         int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
         unsigned int textColor = (alphaInt << 24) | PlayerUIConstants::kColorWhite;
-        DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+        DrawStringToHandle(textX, textY, text, textColor, m_warningFont);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
@@ -643,13 +549,13 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
         }
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
-        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noAmmoImageHandle, true);
+        DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noAmmoImage, true);
 
-        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFont);
         int textX = drawX + (scaledWarningSize - textWidth) / 2;
         int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
         unsigned int textColor = (alphaInt << 24) | PlayerUIConstants::kColorWhite;
-        DrawStringToHandle(textX, textY, text, textColor, m_warningFontHandle);
+        DrawStringToHandle(textX, textY, text, textColor, m_warningFont);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }
@@ -670,7 +576,7 @@ void PlayerUI::DrawLockOnUI(EnemyBase* lockedOnEnemy)
         if (screenPos.z > 0) // 画面内にあるか
         {
             float halfSize = scaledSize / 2.0f;
-            DrawExtendGraph(screenPos.x - halfSize, screenPos.y - halfSize, screenPos.x + halfSize, screenPos.y + halfSize, m_lockOnUIHandle, true);
+            DrawExtendGraph(screenPos.x - halfSize, screenPos.y - halfSize, screenPos.x + halfSize, screenPos.y + halfSize, m_lockOnUI, true);
         }
     }
 }
@@ -684,39 +590,20 @@ void PlayerUI::DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy,
         int screenH = Game::GetScreenHeight();
 
         const char* text = "ターゲットなし";
-        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFontHandle);
+        int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFont);
         int textX = (screenW - textWidth) / 2;
         int textY = screenH / 2 + 60; // レティクルの下あたりに表示
 
-        DrawStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset, text, PlayerUIConstants::kColorShadow, m_warningFontHandle);
-        DrawStringToHandle(textX, textY, text, PlayerUIConstants::kColorWhite, m_warningFontHandle);
+        DrawStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset, text, PlayerUIConstants::kColorShadow, m_warningFont);
+        DrawStringToHandle(textX, textY, text, PlayerUIConstants::kColorWhite, m_warningFont);
     }
 }
 
 void PlayerUI::ReloadFonts(float scale)
 {
-    if (m_fontHandle != -1) 
-    {
-        DeleteFontToHandle(m_fontHandle);
-        m_fontHandle = -1;
-    }
-    if (m_hpFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_hpFontHandle);
-        m_hpFontHandle = -1;
-    }
-    if (m_warningFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_warningFontHandle);
-        m_warningFontHandle = -1;
-    }
-
-    m_fontHandle = CreateFontToHandle(PlayerUIConstants::kDefaultFontName, static_cast<int>(PlayerUIConstants::kAmmoFont * scale),
-        PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType);
-    m_hpFontHandle = CreateFontToHandle(PlayerUIConstants::kDefaultFontName, static_cast<int>(PlayerUIConstants::kHpFont * scale),
-        PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType);
-    m_warningFontHandle = CreateFontToHandle(
-        PlayerUIConstants::kWarningFontName, static_cast<int>(PlayerUIConstants::kWarningFont * scale), PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType);
+    m_font.Reload(scale);
+    m_hpFont.Reload(scale);
+    m_warningFont.Reload(scale);
 }
 
 void PlayerUI::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor)

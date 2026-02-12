@@ -73,7 +73,7 @@ TutorialManager::TutorialManager()
     , m_uiXOffset(kUIOffscreenOffsetX)
     , m_isMoveDone(false)
     , m_isViewDone(false)
-    , m_checkMarkHandle(-1)
+    , m_checkMarkHandle("data/image/CheckMark.png")
     , m_prevMousePos{ 0, 0 }
     , m_moveAccumTime(0.0f)
     , m_viewAccumTime(0.0f)
@@ -93,128 +93,33 @@ TutorialManager::TutorialManager()
     , m_runCheckAnimTime(0.0f)
     , m_stepCompleteWaitTime(0.0f)
     , m_isStepCompleted(false)
+    , m_wKeyHandle("data/image/W.png")
+    , m_aKeyHandle("data/image/A.png")
+    , m_sKeyHandle("data/image/S.png")
+    , m_dKeyHandle("data/image/D.png")
+    , m_mouseMoveHorHandle("data/image/MouseMoveHor.png")
+    , m_spaceKeyHandle("data/image/Space.png")
+    , m_leftShiftKeyHandle("data/image/LeftShift.png")
+    , m_crossHandle("data/image/Cross.png")
+    , m_japaneseFontHandle("HGPｺﾞｼｯｸE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseLargeFontHandle("HGPｺﾞｼｯｸE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_messageDetailFontHandle("HGPｺﾞｼｯｸE", kMessageDetailFontSize, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_prevScale(1.0f)
 {
-    // チェックマーク画像の読み込み
-    m_checkMarkHandle = LoadGraph("data/image/CheckMark.png");
-    assert(m_checkMarkHandle != -1);
-
-    // キー画像の読み込み
-    m_wKeyHandle = LoadGraph("data/image/W.png");
-    m_aKeyHandle = LoadGraph("data/image/A.png");
-    m_sKeyHandle = LoadGraph("data/image/S.png");
-    m_dKeyHandle = LoadGraph("data/image/D.png");
-    assert(m_wKeyHandle != -1);
-    assert(m_aKeyHandle != -1);
-    assert(m_sKeyHandle != -1);
-    assert(m_dKeyHandle != -1);
-
-    m_mouseMoveHorHandle = LoadGraph("data/image/MouseMoveHor.png");
-    assert(m_mouseMoveHorHandle != -1);
-
-    m_spaceKeyHandle = LoadGraph("data/image/Space.png");
-    assert(m_spaceKeyHandle != -1);
-
-    m_leftShiftKeyHandle = LoadGraph("data/image/LeftShift.png");
-    assert(m_leftShiftKeyHandle != -1);
-
-    m_crossHandle = LoadGraph("data/image/Cross.png");
-    assert(m_crossHandle != -1);
-
-    // フォントの作成
-    m_prevScale = 1.0f;
+    // フォントの作成 (初期化リストで行われているためReloadFontsは不要だが、スケール適用のため呼ぶなら呼ぶ)
     ReloadFonts(1.0f);
 }
 
 TutorialManager::~TutorialManager()
 {
-    // チェックマーク画像の解放
-    if (m_checkMarkHandle != -1)
-    {
-        DeleteGraph(m_checkMarkHandle);
-        m_checkMarkHandle = -1;
-    }
-
-    // キー画像の解放
-    if (m_wKeyHandle != -1)
-    {
-        DeleteGraph(m_wKeyHandle);
-        m_wKeyHandle = -1;
-    }
-    if (m_aKeyHandle != -1)
-    {
-        DeleteGraph(m_aKeyHandle);
-        m_aKeyHandle = -1;
-    }
-    if (m_sKeyHandle != -1)
-    {
-        DeleteGraph(m_sKeyHandle);
-        m_sKeyHandle = -1;
-    }
-    if (m_dKeyHandle != -1)
-    {
-        DeleteGraph(m_dKeyHandle);
-        m_dKeyHandle = -1;
-    }
-    if (m_mouseMoveHorHandle != -1)
-    {
-        DeleteGraph(m_mouseMoveHorHandle);
-        m_mouseMoveHorHandle = -1;
-    }
-    if (m_spaceKeyHandle != -1)
-    {
-        DeleteGraph(m_spaceKeyHandle);
-        m_spaceKeyHandle = -1;
-    }
-    if (m_leftShiftKeyHandle != -1)
-    {
-        DeleteGraph(m_leftShiftKeyHandle);
-        m_leftShiftKeyHandle = -1;
-    }
-    if (m_crossHandle != -1)
-    {
-        DeleteGraph(m_crossHandle);
-        m_crossHandle = -1;
-    }
-
-    // フォントの解放
-    if (m_japaneseFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseFontHandle);
-        m_japaneseFontHandle = -1;
-    }
-    if (m_japaneseLargeFontHandle != -1)
-    {
-        DeleteFontToHandle(m_japaneseLargeFontHandle);
-        m_japaneseLargeFontHandle = -1;
-    }
-    if (m_messageDetailFontHandle != -1)
-    {
-        DeleteFontToHandle(m_messageDetailFontHandle);
-        m_messageDetailFontHandle = -1;
-    }
+    // 自動解放されるため処理不要
 }
 
 void TutorialManager::ReloadFonts(float scale)
 {
-    if (m_japaneseFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_japaneseFontHandle);
-        m_japaneseFontHandle = -1;
-    }
-    if (m_japaneseLargeFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_japaneseLargeFontHandle);
-        m_japaneseLargeFontHandle = -1;
-    }
-    if (m_messageDetailFontHandle != -1) 
-    {
-        DeleteFontToHandle(m_messageDetailFontHandle);
-        m_messageDetailFontHandle = -1;
-    }
-
-    m_japaneseFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(30 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    m_japaneseLargeFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(54 * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    m_messageDetailFontHandle = CreateFontToHandle("HGPｺﾞｼｯｸE", static_cast<int>(kMessageDetailFontSize * scale), 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    m_japaneseFontHandle.Reload(scale);
+    m_japaneseLargeFontHandle.Reload(scale);
+    m_messageDetailFontHandle.Reload(scale);
 }
 
 void TutorialManager::Init()

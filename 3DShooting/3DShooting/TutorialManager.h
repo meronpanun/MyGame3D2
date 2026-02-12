@@ -3,6 +3,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "ManagedFont.h"
+#include "ManagedGraph.h"
+
 
 /// <summary>
 /// チュートリアル管理クラス
@@ -104,18 +107,18 @@ private:
     UIState m_uiState; // UIの状態
 
     // リソース関連
-    int m_checkMarkHandle;         // チェックマーク画像のハンドル
-    int m_japaneseFontHandle;      // 日本語フォントハンドル
-    int m_japaneseLargeFontHandle; // 日本語ラージフォントハンドル
-    int m_messageDetailFontHandle; // メッセージ詳細用のフォントハンドル
-    int m_wKeyHandle;
-    int m_aKeyHandle;
-    int m_sKeyHandle;
-    int m_dKeyHandle;
-    int m_mouseMoveHorHandle;
-    int m_spaceKeyHandle;
-    int m_leftShiftKeyHandle;
-    int m_crossHandle;
+    ManagedGraph m_checkMarkHandle;         // チェックマーク画像のハンドル
+    ManagedFont m_japaneseFontHandle;      // 日本語フォントハンドル
+    ManagedFont m_japaneseLargeFontHandle; // 日本語ラージフォントハンドル
+    ManagedFont m_messageDetailFontHandle; // メッセージ詳細用のフォントハンドル
+    ManagedGraph m_wKeyHandle;
+    ManagedGraph m_aKeyHandle;
+    ManagedGraph m_sKeyHandle;
+    ManagedGraph m_dKeyHandle;
+    ManagedGraph m_mouseMoveHorHandle;
+    ManagedGraph m_spaceKeyHandle;
+    ManagedGraph m_leftShiftKeyHandle;
+    ManagedGraph m_crossHandle;
 
     // チュートリアル進行関連
     float m_completeWaitTime;   // チュートリアル完了後の待機タイマー

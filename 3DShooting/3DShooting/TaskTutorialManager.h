@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "AttackType.h"
+#include "ManagedFont.h"
+#include "ManagedGraph.h"
 
 class WaveManager;
 class Player;
@@ -76,22 +78,23 @@ private:
     int m_shieldThrowKills; // 盾投げキル数
     int m_parryCount;       // パリィ成功回数
 
-    int m_titleFontHandle; // タイトル用のフォントハンドル
-    int m_taskFontHandle;  // タスク内容用のフォントハンドル
-    int m_diamondImg;
-    int m_mouseLeftImg;
-    int m_mouseRightImg;
+    ManagedFont m_titleFont; // タイトル用のフォントハンドル
+    ManagedFont m_taskFont;  // タスク内容用のフォントハンドル
+    
+    ManagedGraph m_diamondImg;
+    ManagedGraph m_mouseLeftImg;
+    ManagedGraph m_mouseRightImg;
 
     // 武器切り替えヒント用画像
-    int m_alpha1Img;     // キーボード1キーの画像
-    int m_alpha2Img;     // キーボード2キーの画像
-    int m_mouseWheelImg; // マウスホイールの画像
+    ManagedGraph m_alpha1Img;     // キーボード1キーの画像
+    ManagedGraph m_alpha2Img;     // キーボード2キーの画像
+    ManagedGraph m_mouseWheelImg; // マウスホイールの画像
 
     // 盾投げ・パリィタスク用画像
-    int m_rKeyImg;            // Rキーの画像
-    int m_lockOnUIImg;        // ロックオンUIの画像
-    int m_mouseRightGuardImg; // マウス右クリック(ガード用)の画像
-    int m_designerImg;        // Designer.png画像
+    ManagedGraph m_rKeyImg;            // Rキーの画像
+    ManagedGraph m_lockOnUIImg;        // ロックオンUIの画像
+    ManagedGraph m_mouseRightGuardImg; // マウス右クリック(ガード用)の画像
+    ManagedGraph m_designerImg;        // Designer.png画像
 
     // タイトルアニメーション用
     float m_titlePosX;

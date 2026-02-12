@@ -105,23 +105,17 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_cameraSensitivity(Game::g_cameraSensitivity)
     , m_hitDistance(0.0f)
     , m_pCamera(std::make_unique<Camera>())
-    , m_skyDomeHandle(-1)
-    , m_dotDefaultHandle(-1)
-    , m_dotOnTargetHandle(-1)
-    , m_sgDefaultReticleHandle(-1)
-    , m_sgOnTargetReticleHandle(-1)
     , m_hitMarkTimer(0)
     , m_isWave1FirstAidDropped(false)
     , m_isWave1AmmoDropped(false)
     , m_wave1DropCount(0)
     , m_totalScorePopupTimer(0)
     , m_lastTotalScorePopupValue(0)
-    , m_bgmHandle(-1)
     , m_isBGMStarted(false)
     , m_isLoading(true)
     , m_isReturningFromOtherScene(isReturningFromOtherScene)
     , m_clearSceneDelayTimer(-1)
-    , m_scoreFontHandle(-1)
+    , m_scoreFont("Abadi MT", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_isPlayerInit(false)
     , m_isTaskTutorialInit(false)
     , m_pEffect(std::make_unique<Effect>())
@@ -131,7 +125,6 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_loadingFrameCount(0)
     , m_loadingDotCount(0)
     , m_loadingAnimTimer(0)
-    , m_loadingModelHandle(-1)
     , m_loadingModelPos(VGet(0, 0, 0))
     , m_loadingModelAnimTime(0.0f)
     , m_isShowDebugHUD(false)
@@ -139,42 +132,12 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_prevTimeCount(GetNowHiPerformanceCount())
 {
     g_sceneMainInstance = this;
-
-    // スコアポップアップ用フォントの作成
-    m_scoreFontHandle =
-        CreateFontToHandle("Abadi MT", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
-    assert(m_scoreFontHandle != -1);
+    
+    // ManagedFontによりコンストラクタでロードされるため、ここでのロードは不要
 }
 
 SceneMain::~SceneMain()
 {
-    // モデルやリソースの解放
-    if (m_skyDomeHandle != -1)
-    {
-        MV1DeleteModel(m_skyDomeHandle);
-        m_skyDomeHandle = -1;
-    }
-    if (m_dotDefaultHandle != -1)
-    {
-        DeleteGraph(m_dotDefaultHandle);
-        m_dotDefaultHandle = -1;
-    }
-    if (m_dotOnTargetHandle != -1)
-    {
-        DeleteGraph(m_dotOnTargetHandle);
-        m_dotOnTargetHandle = -1;
-    }
-    if (m_sgDefaultReticleHandle != -1)
-    {
-        DeleteGraph(m_sgDefaultReticleHandle);
-        m_sgDefaultReticleHandle = -1;
-    }
-    if (m_sgOnTargetReticleHandle != -1)
-    {
-        DeleteGraph(m_sgOnTargetReticleHandle);
-        m_sgOnTargetReticleHandle = -1;
-    }
-
     // アイテムモデルの解放
     FirstAidKitItem::DeleteModel();
     AmmoItem::DeleteModel();
@@ -182,26 +145,6 @@ SceneMain::~SceneMain()
 
     // インジケーター画像の解放
     DirectionIndicator::DeleteResources();
-
-    // BGMの解放
-    if (m_bgmHandle != -1)
-    {
-        DeleteSoundMem(m_bgmHandle);
-        m_bgmHandle = -1;
-    }
-    // フォントの解放
-    if (m_scoreFontHandle != -1)
-    {
-        DeleteFontToHandle(m_scoreFontHandle);
-        m_scoreFontHandle = -1;
-    }
-
-    // ローディング用モデルの解放
-    if (m_loadingModelHandle != -1)
-    {
-        MV1DeleteModel(m_loadingModelHandle);
-        m_loadingModelHandle = -1;
-    }
 }
 
 void SceneMain::Init()
@@ -210,21 +153,21 @@ void SceneMain::Init()
     s_elapsedTime = 0.0f;
 
     // ローディング用モデルの読み込み（非同期ロードの前に同期で読み込む）
-    m_loadingModelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
+    m_loadingModel.Reset(MV1LoadModel("data/model/NormalZombie.mv1"));
     // 初期設定
     // 歩行アニメーションを名前で検索
-    int walkAnimIndex = MV1GetAnimIndex(m_loadingModelHandle, "WALK");
+    int walkAnimIndex = MV1GetAnimIndex(m_loadingModel, "WALK");
     if (walkAnimIndex == -1) walkAnimIndex = 0; // 見つからなければ0番
 
     // アニメーションをアタッチ (slot 0)
-    MV1AttachAnim(m_loadingModelHandle, walkAnimIndex, -1, FALSE);
+    MV1AttachAnim(m_loadingModel, walkAnimIndex, -1, FALSE);
 
     m_loadingModelPos = VGet(-200.0f, -750.0f, 600.0f); // 画面左外側、カメラスペースでの位置 (さらに下げる)
     m_loadingModelAnimTime = 0.0f;
     // スケール調整
-    MV1SetScale(m_loadingModelHandle, VGet(1.0f, 1.0f, 1.0f));
+    MV1SetScale(m_loadingModel, VGet(1.0f, 1.0f, 1.0f));
     // 回転 (右向きに修正: 90度で左だったため-90度に変更)
-    MV1SetRotationXYZ(m_loadingModelHandle, VGet(0.0f, -90.0f * DX_PI_F / 180.0f, 0.0f));
+    MV1SetRotationXYZ(m_loadingModel, VGet(0.0f, -90.0f * DX_PI_F / 180.0f, 0.0f));
 
     // 非同期読み込みを有効化
     SetUseASyncLoadFlag(true);
@@ -238,12 +181,12 @@ void SceneMain::Init()
     DirectionIndicator::LoadResources();
 
     // 重いリソースの非同期読み込みを開始
-    m_skyDomeHandle = MV1LoadModel("data/model/Dome.mv1");
-    m_dotDefaultHandle = LoadGraph("data/image/DotDefault.png");
-    m_dotOnTargetHandle = LoadGraph("data/image/DotOnTarget.png");
-    m_sgDefaultReticleHandle = LoadGraph("data/image/SGDefaultReticl.png");
-    m_sgOnTargetReticleHandle = LoadGraph("data/image/SGOnTargetReticle.png");
-    m_bgmHandle = LoadSoundMem("data/sound/BGM/GameSceneBGM.mp3");
+    m_skyDome.Reset(MV1LoadModel("data/model/Dome.mv1"));
+    m_dotDefault.Load("data/image/DotDefault.png");
+    m_dotOnTarget.Load("data/image/DotOnTarget.png");
+    m_sgDefaultReticle.Load("data/image/SGDefaultReticl.png");
+    m_sgOnTargetReticle.Load("data/image/SGOnTargetReticle.png");
+    m_bgm.Load("data/sound/BGM/GameSceneBGM.mp3");
 
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->SetEffect(m_pEffect.get());
@@ -298,10 +241,10 @@ void SceneMain::Init()
     SetMouseDispFlag(m_isPaused);
 
     // スカイドームのY座標を設定
-    MV1SetPosition(m_skyDomeHandle, VGet(0, kSkyDomePosY, 0));
+    MV1SetPosition(m_skyDome, VGet(0, kSkyDomePosY, 0));
 
     // スカイドームのスケールを設定
-    MV1SetScale(m_skyDomeHandle, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
+    MV1SetScale(m_skyDome, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
 
     m_isReturningFromOption = false;
 
@@ -481,16 +424,16 @@ SceneBase* SceneMain::Update()
         }
 
         // ローディングモデルの更新 (歩行アニメーション)
-        if (m_loadingModelHandle != -1)
+        if (m_loadingModel.IsValid())
         {
             // アニメーション進行
             m_loadingModelAnimTime += 1.0f; // スピード調整
-            float totalTime = MV1GetAttachAnimTotalTime(m_loadingModelHandle, 0);
+            float totalTime = MV1GetAttachAnimTotalTime(m_loadingModel, 0);
             if (m_loadingModelAnimTime >= totalTime)
             {
                 m_loadingModelAnimTime = fmodf(m_loadingModelAnimTime, totalTime);
             }
-            MV1SetAttachAnimTime(m_loadingModelHandle, 0, m_loadingModelAnimTime);
+            MV1SetAttachAnimTime(m_loadingModel, 0, m_loadingModelAnimTime);
 
             // 移動 (左から右へ)
             m_loadingModelPos.x += 3.0f;
@@ -538,10 +481,10 @@ SceneBase* SceneMain::Update()
     // BGM再生
     if (!m_isBGMStarted && !m_isLoading) // ロード完了後に再生開始
     {
-        if (CheckSoundMem(m_bgmHandle) == 0)
+        if (!m_bgm.IsPlaying())
         {
-            ChangeVolumeSoundMem(200, m_bgmHandle);
-            PlaySoundMem(m_bgmHandle, DX_PLAYTYPE_LOOP);
+            ChangeVolumeSoundMem(200, m_bgm);
+            m_bgm.Play(DX_PLAYTYPE_LOOP);
         }
         m_isBGMStarted = true;
     }
@@ -564,7 +507,7 @@ SceneBase* SceneMain::Update()
     }
 
     // スカイドームの回転
-    MV1SetRotationXYZ(m_skyDomeHandle, VGet(0, MV1GetRotationXYZ(m_skyDomeHandle).y + kCameraRotaSpeed, 0));
+    MV1SetRotationXYZ(m_skyDome, VGet(0, MV1GetRotationXYZ(m_skyDome).y + kCameraRotaSpeed, 0));
 
     // エスケープキーが押されたかチェック
     if (CheckHitKey(KEY_INPUT_ESCAPE))
@@ -603,7 +546,7 @@ SceneBase* SceneMain::Update()
                 mousePos.y <= kReturnButtonY + kButtonHeight)
             {
                 // BGMを停止
-                StopSoundMem(m_bgmHandle);
+                m_bgm.Stop();
                 return new SceneTitle(true);
             }
 
@@ -714,7 +657,7 @@ SceneBase* SceneMain::Update()
                 int wave = m_pWaveManager->GetCurrentWave();
                 int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
                 int score = ScoreManager::Instance().GetTotalScore();
-                StopSoundMem(m_bgmHandle);
+                m_bgm.Stop();
                 return new SceneGameOver(wave, killCount, score);
             }
         }
@@ -756,7 +699,7 @@ SceneBase* SceneMain::Update()
             int wave = m_pWaveManager->GetCurrentWave();
             int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
             int score = ScoreManager::Instance().GetTotalScore();
-            StopSoundMem(m_bgmHandle);
+            m_bgm.Stop();
             return new SceneGameOver(wave, killCount, score);
         }
     }
@@ -767,7 +710,7 @@ SceneBase* SceneMain::Update()
         if (m_clearSceneDelayTimer == -1) // 遅延がまだ開始されていない場合
         {
             m_clearSceneDelayTimer = kClearSceneDelayFrames; // 遅延タイマーを開始
-            StopSoundMem(m_bgmHandle);                       // BGMを停止
+            m_bgm.Stop();                       // BGMを停止
         }
         else if (m_clearSceneDelayTimer > 0) // 遅延中の場合
         {
@@ -826,7 +769,7 @@ void SceneMain::Draw()
 
     m_pStage->Draw();
 
-    MV1DrawModel(m_skyDomeHandle);
+    MV1DrawModel(m_skyDome);
 
     for (std::shared_ptr<ItemBase>& item : m_items)
     {
@@ -855,7 +798,8 @@ void SceneMain::Draw()
         SetFontSize(16);
 
         // ローディングモデルの描画
-        if (m_loadingModelHandle != -1)
+        // ローディングモデルの描画
+        if (m_loadingModel.IsValid())
         {
             // カメラ設定をローディング専用にする
             VECTOR camPos = VGet(0.0f, -550.0f, 0.0f);
@@ -865,8 +809,8 @@ void SceneMain::Draw()
             SetCameraPositionAndTarget_UpVecY(camPos, camTarget);
 
             // モデル位置設定
-            MV1SetPosition(m_loadingModelHandle, m_loadingModelPos);
-            MV1DrawModel(m_loadingModelHandle);
+            MV1SetPosition(m_loadingModel, m_loadingModelPos);
+            MV1DrawModel(m_loadingModel);
 
             // カメラ設定を戻す (次のフレームの描画に影響しないように推奨されるが、
             // 実際にはメインループで毎フレーム設定されるため、ここでは簡易的で良い)
@@ -915,12 +859,12 @@ void SceneMain::Draw()
         switch (m_pPlayer->GetCurrentWeaponType())
         {
         case WeaponType::AssaultRifle:
-            defaultHandle = m_dotDefaultHandle;
-            onTargetHandle = m_dotOnTargetHandle;
+            defaultHandle = static_cast<int>(m_dotDefault);
+            onTargetHandle = static_cast<int>(m_dotOnTarget);
             break;
         case WeaponType::Shotgun:
-            defaultHandle = m_sgDefaultReticleHandle;
-            onTargetHandle = m_sgOnTargetReticleHandle;
+            defaultHandle = static_cast<int>(m_sgDefaultReticle);
+            onTargetHandle = static_cast<int>(m_sgOnTargetReticle);
             break;
         }
 
@@ -969,7 +913,7 @@ void SceneMain::Draw()
         }
 
         // ドットレティクルを常に描画（こちらは反動の影響を受けず、常に中心）
-        int dotReticleHandle = m_pPlayer->IsAimingAtEnemy() ? m_dotOnTargetHandle : m_dotDefaultHandle;
+        int dotReticleHandle = m_pPlayer->IsAimingAtEnemy() ? static_cast<int>(m_dotOnTarget) : static_cast<int>(m_dotDefault);
         if (dotReticleHandle != -1)
         {
             int dotReticleWidth = 0;
@@ -1030,12 +974,12 @@ void SceneMain::Draw()
             float lastComboRate = ScoreManager::Instance().GetLastComboRate();
             if (lastComboRate > 1.0f)
             {
-                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFontHandle,
+                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFont,
                     "%d ×%.2f", m_lastTotalScorePopupValue, lastComboRate);
             }
             else
             {
-                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFontHandle,
+                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFont,
                     "%d", m_lastTotalScorePopupValue);
             }
         }
@@ -1045,12 +989,12 @@ void SceneMain::Draw()
             if (lastComboRate > 1.0f)
             {
                 DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                    0x00ffcc, m_scoreFontHandle, "%d ×%.2f", comboScore, lastComboRate);
+                    0x00ffcc, m_scoreFont, "%d ×%.2f", comboScore, lastComboRate);
             }
             else
             {
                 DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                    0x00ffcc, m_scoreFontHandle, "%d", comboScore);
+                    0x00ffcc, m_scoreFont, "%d", comboScore);
             }
             idx++;
             int lastIsHeadShot = -1;
@@ -1061,12 +1005,12 @@ void SceneMain::Draw()
                     if (popup.isHeadShot)
                     {
                         DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                            0xffe000, m_scoreFontHandle, "%dpt ヘッドショットキル×%d", 200, displayCombo);
+                            0xffe000, m_scoreFont, "%dpt ヘッドショットキル×%d", 200, displayCombo);
                     }
                     else
                     {
                         DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                            0xffffff, m_scoreFontHandle, "%dpt ゾンビキル×%d", 100, displayCombo);
+                            0xffffff, m_scoreFont, "%dpt ゾンビキル×%d", 100, displayCombo);
                     }
                     idx++;
                 }
