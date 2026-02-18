@@ -461,10 +461,11 @@ void Player::DrawUI()
     m_effectManager.Draw();
 
     // Effekseerエフェクトの描画
-    if (m_pEffect)
+    // SceneMain::Draw() で描画するため、ここでは描画しない
+    /*if (m_pEffect)
     {
         m_pEffect->Draw();
-    }
+    }*/
 }
 
 void Player::DeathUpdate()

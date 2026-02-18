@@ -310,15 +310,10 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
             finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
 
-            // 最前面に描画するために Z バッファをクリア
-            ClearDrawScreenZBuffer();
-
             MV1SetPosition(prevHandle, finalPos);
 
             // 回転の補正 (反時計回りにひねる等)
-            VECTOR baseRot =
-                VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f),
-                    gunSwayRotOffset);
+            VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
             baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる (ラジアン)
 
             MV1SetRotationXYZ(prevHandle, baseRot);
@@ -360,16 +355,10 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
             finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
 
-            // 最前面に描画するために Z バッファをクリア
-            // (既に前の武器の描画でクリアされている可能性もあるが、安全のため)
-            ClearDrawScreenZBuffer();
-
             MV1SetPosition(currentHandle, finalPos);
 
             // 回転の補正
-            VECTOR baseRot =
-                VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f),
-                    gunSwayRotOffset);
+            VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
             baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる
 
             MV1SetRotationXYZ(currentHandle, baseRot);
@@ -419,15 +408,10 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
             finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
 
-            // 最前面に描画するために Z バッファをクリア
-            ClearDrawScreenZBuffer();
-
             MV1SetPosition(currentHandle, finalPos);
 
             // モデルの回転を設定 (ひねりを加える)
-            VECTOR baseRot =
-                VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f),
-                    gunSwayRotOffset);
+            VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
             baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる
 
             MV1SetRotationXYZ(currentHandle, baseRot);
@@ -494,21 +478,17 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
             m_bulletPower);
         currentShotSEHandle = m_shotSEHandle;
         currentModelHandle = m_arHandle;
-        currentMuzzleFlashOffset =
-            VGet(PlayerWeaponConstants::kARMuzzleFlashEffectOffsetX, PlayerWeaponConstants::kARMuzzleFlashEffectOffsetY, PlayerWeaponConstants::kARMuzzleFlashEffectOffsetZ);
+        currentMuzzleFlashOffset = VGet(PlayerWeaponConstants::kARMuzzleFlashEffectOffsetX, PlayerWeaponConstants::kARMuzzleFlashEffectOffsetY, PlayerWeaponConstants::kARMuzzleFlashEffectOffsetZ);
         shakePower = PlayerWeaponConstants::kARShootShakePower;
         break;
     case WeaponType::Shotgun:
         currentShotSEHandle = m_sgShotSEHandle;
         currentModelHandle = m_sgHandle;
-        currentMuzzleFlashOffset =
-            VGet(PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetX, PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetY, PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetZ);
+        currentMuzzleFlashOffset = VGet(PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetX, PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetY, PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetZ);
         shakePower = PlayerWeaponConstants::kSGShootShakePower;
         if (pAnimManager)
         {
-            pAnimManager->PlayAnimation(
-                m_sgHandle,
-                "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
+            pAnimManager->PlayAnimation(m_sgHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
             m_isSGAnimPlaying = true;
             m_sgAnimTime = 0.0f;
         }
@@ -534,8 +514,7 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
     if (m_currentWeaponType == WeaponType::AssaultRifle)
     {
         VECTOR ejectionPos = GetEjectionPortPos();
-        VECTOR ejectionDir = VGet(sinf(pCamera->GetYaw() + DX_PI_F * 0.5f), 0.5f,
-            cosf(pCamera->GetYaw() + DX_PI_F * 0.5f));
+        VECTOR ejectionDir = VGet(sinf(pCamera->GetYaw() + DX_PI_F * 0.5f), 0.5f, cosf(pCamera->GetYaw() + DX_PI_F * 0.5f));
         shellCasings.emplace_back(ejectionPos, ejectionDir);
     }
 
