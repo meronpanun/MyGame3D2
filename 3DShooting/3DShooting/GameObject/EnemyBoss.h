@@ -29,6 +29,9 @@ public:
     static void SetDrawAttackHit(bool draw) { s_drawAttackHit = draw; }
     static bool IsDrawAttackHit() { return s_drawAttackHit; }
 
+    static void SetDrawShieldCollision(bool draw) { s_drawShieldCollision = draw; }
+    static bool IsDrawShieldCollision() { return s_drawShieldCollision; }
+
     void Init() override;
     void Update(const EnemyUpdateContext& context) override;
     void Draw() override;
@@ -55,6 +58,9 @@ public:
 protected:
     // ダメージ計算
     float CalcDamage(float bulletDamage, HitPart part) const override;
+    
+    // ダメージ適用（シールドヒット時はエフェクトを変えるためオーバーライド）
+    void ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect) override;
 
     // デバッグ描画
     void DrawCollisionDebug() const override;
@@ -62,6 +68,7 @@ protected:
 private:
     static bool s_drawCollision;
     static bool s_drawAttackHit;
+    static bool s_drawShieldCollision;
 
 private:
     /// <summary>
@@ -93,6 +100,7 @@ private:
     std::shared_ptr<SphereCollider> m_pAttackRangeCollider; // 攻撃範囲
     std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;  // 攻撃判定(腕など)
     std::shared_ptr<SphereCollider> m_pWeakCollider;        // 弱点
+    std::shared_ptr<SphereCollider> m_pShieldCollider;      // シールド当たり判定
 
     int m_attackEndDelayTimer; // 攻撃後の硬直タイマー
     bool m_isAttackHit;        // 攻撃がヒットしたか

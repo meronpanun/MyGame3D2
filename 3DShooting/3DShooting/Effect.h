@@ -80,6 +80,11 @@ public:
     int PlayBossShieldEffect(float x, float y, float z);
 
     /// <summary>
+    /// シールドヒットエフェクトを再生する
+    /// </summary>
+    int PlayShieldHitEffect(float x, float y, float z);
+
+    /// <summary>
     /// 再生中のエフェクトをすべて停止する
     /// </summary>
     void StopAllEffects();
@@ -100,6 +105,7 @@ private:
     int m_normalBulletEffectHandle; // 通常弾エフェクトハンドル
     int m_closeRangeAttackEffectHandle; // 近接範囲攻撃エフェクトハンドル
     int m_bossShieldEffectHandle; // ボスシールドエフェクトハンドル
+	int m_shieldHitEffectHandle; // シールドヒットエフェクトハンドル
 
     std::vector<int> m_playingEffectHandles; // 再生中のエフェクトハンドル
 };

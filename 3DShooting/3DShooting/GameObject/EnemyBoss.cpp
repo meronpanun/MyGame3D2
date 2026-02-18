@@ -52,6 +52,7 @@ namespace EnemyBossConstants
 int EnemyBoss::s_modelHandle = -1;
 bool EnemyBoss::s_drawCollision = false;
 bool EnemyBoss::s_drawAttackHit = false;
+bool EnemyBoss::s_drawShieldCollision = false;
 
 void EnemyBoss::LoadModel()
 {
@@ -112,6 +113,10 @@ void EnemyBoss::Init()
 
     // 攻撃範囲コライダー設定
     m_pAttackRangeCollider->SetRadius(EnemyBossConstants::kAttackRangeRadius);
+
+    // シールドコライダー設定 (初期化)
+    m_pShieldCollider = std::make_shared<SphereCollider>();
+    m_pShieldCollider->SetRadius(300.0f); 
 
     m_longRangeAttackCooldown = 0;
     m_homingBullets.clear();
@@ -764,6 +769,12 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     VECTOR shieldPos = m_pos;
     shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
 
+    // シールドコライダーの位置更新
+    if (m_pShieldCollider)
+    {
+        m_pShieldCollider->SetCenter(shieldPos);
+    }
+
     // シールドエフェクト制御 (シームレスループ & 回転実装)
     if (!m_isShieldBroken)
     {
@@ -852,7 +863,7 @@ void EnemyBoss::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    if (s_drawCollision || s_drawAttackHit)
+    if (s_drawCollision || s_drawAttackHit || s_drawShieldCollision)
     {
         DrawCollisionDebug();
     }
@@ -942,7 +953,7 @@ float EnemyBoss::CalcDamage(float bulletDamage, HitPart part) const
 void EnemyBoss::DrawCollisionDebug() const
 {
     // どちらかが有効なら描画処理を行う
-    if (!s_drawCollision && !s_drawAttackHit) return;
+    if (!s_drawCollision && !s_drawAttackHit && !s_drawShieldCollision) return;
 
     // 体
     if (s_drawCollision && m_pBodyCollider)
@@ -987,6 +998,21 @@ void EnemyBoss::DrawCollisionDebug() const
                 DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 32, 0xff0000);
             }
         }
+    }
+
+    // シールド（デバッグ表示）
+    if ((s_drawCollision || s_drawShieldCollision) && !m_isShieldBroken && m_pShieldCollider)
+    {
+        // 描画設定を一時的に変更して確実に表示させる
+        SetUseLighting(FALSE);       // ライティング無効化（色はそのまま表示）
+        SetUseZBufferFlag(FALSE);    // Zバッファ無効化（最前面に表示）
+
+        // シアン色で描画
+        DebugUtil::DrawSphere(m_pShieldCollider->GetCenter(), m_pShieldCollider->GetRadius(), 16, 0x00ffff);
+
+        // 設定復元（通常描画用に戻す）
+        SetUseLighting(TRUE);
+        SetUseZBufferFlag(TRUE);
     }
 }
 
@@ -1033,6 +1059,39 @@ bool EnemyBoss::CanAttackPlayer(const Player& player)
     return m_pAttackRangeCollider->IsIntersects(playerCol.get());
 }
 
+// ダメージ適用（シールドヒット時はエフェクトを変えるためオーバーライド）
+void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect)
+{
+    // シールドヒット時
+    if (part == HitPart::Shield)
+    {
+        // シールド専用エフェクト (HitBurst)
+        if (pEffect)
+        {
+            VECTOR hitPos = bullet.GetPos();
+            pEffect->PlayShieldHitEffect(hitPos.x, hitPos.y, hitPos.z);
+        }
+
+        // ダメージ計算と適用 (シールドHP減少)
+        float damage = CalcDamage(bullet.GetDamage(), part);
+        TakeDamage(damage, bullet.GetAttackType());
+        
+        // デバッグ表示用
+        if (s_showDamage)
+        {
+            s_debugLastDamage = damage;
+            s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;
+            s_debugHitInfo = "(Shield)";
+        }
+    }
+    else
+    {
+        // それ以外は基底クラス（出血エフェクトあり）
+        EnemyBase::ApplyBulletDamage(bullet, part, distSq, pEffect);
+    }
+}
+
+
 // どこに当たったのか判定する
 EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
@@ -1041,6 +1100,22 @@ EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     HitPart part = HitPart::None;
     float minDistSq = FLT_MAX;
     VECTOR hitPos = VGet(0, 0, 0);
+
+    // シールドとの判定（破壊されていなければ最優先）
+    if (!m_isShieldBroken && m_pShieldCollider)
+    {
+        VECTOR tmpHitPos;
+        float tmpDistSq;
+        if (m_pShieldCollider->IsIsIntersectsRay(rayStart, rayEnd, tmpHitPos, tmpDistSq))
+        {
+            if (tmpDistSq < minDistSq)
+            {
+                minDistSq = tmpDistSq;
+                hitPos = tmpHitPos;
+                part = HitPart::Shield;
+            }
+        }
+    }
 
     // 頭との判定
     if (m_pHeadCollider)

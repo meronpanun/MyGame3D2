@@ -27,6 +27,11 @@ struct EnemyUpdateContext
     const CollisionGrid* collisionGrid;
 };
 
+namespace EnemyConstants
+{
+    constexpr int kDebugDamageDisplayTimer = 120;
+}
+
 /// <summary>
 /// 敵の基底クラス
 /// </summary>
@@ -57,7 +62,8 @@ public:
     {
         None,
         Body,
-        Head
+        Head,
+        Shield
     };
 
     /// <summary>
@@ -330,7 +336,7 @@ protected:
     bool m_isSimpleMode;
     bool m_shouldUpdateAI;
 
-private:
+protected:
     static int s_drawCount;
 
     // デバッグ用

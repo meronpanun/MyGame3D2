@@ -38,7 +38,6 @@ namespace EnemyConstants
     constexpr float kParabolicGravityFactor = 0.5f;
 
 	// デバッグ表示関連定数
-    constexpr int kDebugDamageDisplayTimer = 120;
     constexpr int kDebugBoxPaddingX = 20;
     constexpr int kDebugBoxPaddingY = 10;
     constexpr float kDebugBoxValidYRatio = 0.15f;

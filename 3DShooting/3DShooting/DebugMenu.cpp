@@ -316,7 +316,14 @@ DebugMenu::MenuItem DebugMenu::CreateEnemyMenu()
                bool isDraw = !EnemyBoss::IsDrawAttackHit();
                EnemyBoss::SetDrawAttackHit(isDraw);
              },
-             []() { return EnemyBoss::IsDrawAttackHit() ? "[ON]" : "[OFF]"; }}},
+             []() { return EnemyBoss::IsDrawAttackHit() ? "[ON]" : "[OFF]"; }},
+            {"Shield Collision",
+             {},
+             []() {
+               bool isDraw = !EnemyBoss::IsDrawShieldCollision();
+               EnemyBoss::SetDrawShieldCollision(isDraw);
+             },
+             []() { return EnemyBoss::IsDrawShieldCollision() ? "[ON]" : "[OFF]"; }}},
            nullptr}},
          nullptr}
     };

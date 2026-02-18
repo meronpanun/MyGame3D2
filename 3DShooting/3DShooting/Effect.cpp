@@ -99,6 +99,10 @@ Effect::Effect()
     // ボスシールドエフェクトハンドルの読み込み
     m_bossShieldEffectHandle = LoadEffekseerEffect("data/Effekseer/Shield.efkefc", kBossShieldEffectScale);
     assert(m_bossShieldEffectHandle != -1);
+
+    // シールドヒットエフェクトハンドルの読み込み
+    m_shieldHitEffectHandle = LoadEffekseerEffect("data/Effekseer/HitBurst.efkefc", 10.0f);
+    assert(m_shieldHitEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -117,6 +121,7 @@ Effect::~Effect()
     DeleteEffekseerEffect(m_normalBulletEffectHandle);
     DeleteEffekseerEffect(m_closeRangeAttackEffectHandle);
     DeleteEffekseerEffect(m_bossShieldEffectHandle);
+    DeleteEffekseerEffect(m_shieldHitEffectHandle);
 }
 
 void Effect::Init()
@@ -343,4 +348,24 @@ int Effect::GetBossShieldEffectDuration() const
     if (effectRef == nullptr) return 0;
 
     return effectRef->CalculateTerm().TermMax;
+}
+
+// シールドヒットエフェクトを再生する
+int Effect::PlayShieldHitEffect(float x, float y, float z)
+{
+    if (!ShouldPlayEffect(x, y, z)) return -1;
+
+    if (m_shieldHitEffectHandle != -1)
+    {
+        int handle = PlayEffekseer3DEffect(m_shieldHitEffectHandle);
+        if (handle != -1)
+        {
+            SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+            // HitBurstは少し大きめにしたり調整が必要ならここで
+            SetScalePlayingEffekseer3DEffect(handle, 2.0f, 2.0f, 2.0f);
+            m_playingEffectHandles.push_back(handle);
+        }
+        return handle;
+    }
+    return -1;
 }
