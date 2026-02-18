@@ -97,8 +97,7 @@ Effect::Effect()
     assert(m_closeRangeAttackEffectHandle != -1);
 
     // ボスシールドエフェクトハンドルの読み込み
-    m_bossShieldEffectHandle =
-        LoadEffekseerEffect("data/Effekseer/Shield.efkefc", kBossShieldEffectScale);
+    m_bossShieldEffectHandle = LoadEffekseerEffect("data/Effekseer/Shield.efkefc", kBossShieldEffectScale);
     assert(m_bossShieldEffectHandle != -1);
 }
 

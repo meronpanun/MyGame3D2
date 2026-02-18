@@ -98,6 +98,14 @@ void EnemyBoss::Init()
     // CSVからBossのTransform情報を取得
     LoadTransformData("Boss");
 
+    m_isFirstUpdate = true;
+
+    // 基本パラメータ初期化
+    m_isAttackHit = false;
+    m_attackEndDelayTimer = 0;
+    m_attackCooldown = 0;
+    m_hitDisplayTimer = 0;
+
     // フレームインデックスのキャッシュ
     m_headNodeIndex = MV1SearchFrame(m_modelHandle, "Head");
     m_headTopEndNodeIndex = MV1SearchFrame(m_modelHandle, "mixamorig:HeadTop_End");
@@ -114,10 +122,12 @@ void EnemyBoss::Init()
     m_hasPlayedCloseRangeEffect = false;
     m_currentEffectHandle = -1;
     m_effectTimer = 0;
-    m_shieldEffectHandle = -1;
-    m_maxShieldHp = 2000.0f; // シールド最大耐久値設定
+    m_maxShieldHp = 200.0f; // シールド最大耐久値設定
     m_shieldHp = m_maxShieldHp;
     m_isShieldBroken = false;
+    m_shieldRotation = 0.0f;
+    m_shieldEffectTimer = 0.0f;
+    m_shieldEffectHandles.clear();
 
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
@@ -179,6 +189,19 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     Effect* pEffect = context.pEffect;
 
     UpdateStageCollision(collisionData);
+
+    // 初回更新時にプレイヤーの方へ強制的に向く
+    if (m_isFirstUpdate)
+    {
+        VECTOR toPlayer = VSub(player.GetPos(), m_pos);
+        toPlayer.y = 0.0f;
+        if (VSquareSize(toPlayer) > 0.0001f)
+        {
+            float yaw = atan2f(toPlayer.x, toPlayer.z) + DX_PI_F;
+            MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
+        }
+        m_isFirstUpdate = false;
+    }
 
 #ifdef _DEBUG
     m_shouldDrawParryCollider = false;
@@ -371,11 +394,11 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
     if (m_hp <= 0.0f)
     {
-        if (m_shieldEffectHandle != -1)
+        for (int handle : m_shieldEffectHandles)
         {
-            StopEffekseer3DEffect(m_shieldEffectHandle);
-            m_shieldEffectHandle = -1;
+            StopEffekseer3DEffect(handle);
         }
+        m_shieldEffectHandles.clear();
         UpdateDeath(collisionData);
         return;
     }
@@ -713,10 +736,8 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     }
 
     // プレイヤーとの押し出し処理(共通関数使用)
-    float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius(); // kBodyColliderRadiusは40
+    float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
     ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
-
-
 
     CheckHitAndDamage(bullets, pEffect);
 
@@ -743,46 +764,89 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     VECTOR shieldPos = m_pos;
     shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
 
-    if (m_shieldEffectHandle == -1 || IsEffekseer3DEffectPlaying(m_shieldEffectHandle) == -1)
+    // シールドエフェクト制御 (シームレスループ & 回転実装)
+    if (!m_isShieldBroken)
     {
-        if (pEffect)
+        // エフェクト生成ロジック
+        // フェードイン30F, 総再生240F を想定 -> 210Fで次を生成して重ねる
+        const float kEffectDuration = 240.0f;
+        const float kFadeInDuration = 30.0f; 
+        const float kOverlapSpawnTime = kEffectDuration - kFadeInDuration;
+
+        // タイマー更新
+        m_shieldEffectTimer += 1.0f * Game::GetTimeScale();
+
+        // エフェクトがない、または再生時間が重なり開始時間を超えたら新規生成
+        if (m_shieldEffectHandles.empty() || m_shieldEffectTimer >= kOverlapSpawnTime)
         {
-             m_shieldEffectHandle = pEffect->PlayBossShieldEffect(shieldPos.x, shieldPos.y, shieldPos.z);
+            if (pEffect)
+            {
+                int handle = pEffect->PlayBossShieldEffect(shieldPos.x, shieldPos.y, shieldPos.z);
+                if (handle != -1)
+                {
+                    m_shieldEffectHandles.push_back(handle);
+                    // 次の生成までの時間を計測するためにタイマーをリセット
+                    m_shieldEffectTimer = 0.0f;
+                }
+            }
+        }
+
+        // 回転更新
+        m_shieldRotation += 0.1f * Game::GetTimeScale(); // 回転速度調整
+        while (m_shieldRotation >= 360.0f) m_shieldRotation -= 360.0f;
+
+        // 有効なエフェクト全てのパラメータを更新
+        auto it = m_shieldEffectHandles.begin();
+        while (it != m_shieldEffectHandles.end())
+        {
+            int handle = *it;
+            if (IsEffekseer3DEffectPlaying(handle) == -1)
+            {
+                // 再生終了していたら削除
+                it = m_shieldEffectHandles.erase(it);
+                continue;
+            }
+
+            // 位置・回転更新
+            SetPosPlayingEffekseer3DEffect(handle, shieldPos.x, shieldPos.y, shieldPos.z);
+            
+            // シールドの回転はボスの向きに依存せず、独自に回転させる
+            // X, Z回転は0固定 (垂直に保つ)
+            SetRotationPlayingEffekseer3DEffect(handle, 0.0f, (m_shieldRotation * DX_PI_F / 180.0f), 0.0f);
+
+            // 色変更ロジック (青 -> 赤)
+            if (m_maxShieldHp > 0.0f)
+            {
+                float ratio = m_shieldHp / m_maxShieldHp;
+                if (ratio < 0.0f) ratio = 0.0f;
+                if (ratio > 1.0f) ratio = 1.0f;
+
+                int r = static_cast<int>(255.0f * (1.0f - ratio));
+                int g = 0;
+                int b = static_cast<int>(255.0f * ratio);
+                
+                SetColorPlayingEffekseer3DEffect(handle, r, g, b, 255);
+            }
+
+            ++it;
         }
     }
     else
     {
-        // 位置更新
-        SetPosPlayingEffekseer3DEffect(m_shieldEffectHandle, shieldPos.x, shieldPos.y, shieldPos.z);
-        
-        // 回転も合わせる（念のため）
-        VECTOR rot = MV1GetRotationXYZ(m_modelHandle);
-        SetRotationPlayingEffekseer3DEffect(m_shieldEffectHandle, rot.x, rot.y, rot.z);
-
-        // シールドの色を耐久値に応じて変更
-        // 白 (255, 255, 255) -> 赤 (255, 0, 0)
-        // m_shieldHp / m_maxShieldHp の割合で G と B を減らす
-        if (m_maxShieldHp > 0.0f && !m_isShieldBroken)
+        // 破壊されているなら全エフェクト停止
+        for (int handle : m_shieldEffectHandles)
         {
-            float ratio = m_shieldHp / m_maxShieldHp;
-            if (ratio < 0.0f) ratio = 0.0f;
-            if (ratio > 1.0f) ratio = 1.0f;
-
-            int colorVal = static_cast<int>(255.0f * ratio);
-            // Rは常に255, GとBを減らしていくことで赤くする
-            SetColorPlayingEffekseer3DEffect(m_shieldEffectHandle, 255, colorVal, colorVal, 255);
+             StopEffekseer3DEffect(handle);
         }
+        m_shieldEffectHandles.clear();
     }
 }
 
 void EnemyBoss::Draw()
 {
-    if (!m_isAlive && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1)
-        return;
+    if (!m_isAlive && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return;
 
     // 視錐台カリング (描画最適化) (共通関数使用)
-    // ボスは大きいので描画距離も少し緩めに設定してもいいが、基本的なロジックは統合
-    // 第3引数のdotThresholdは0.0f (180度)をとりあえず維持
     if (!ShouldDraw(EnemyBossConstants::kDrawDistanceSq, EnemyBossConstants::kDrawNearDistanceSq, 0.0f)) return;
 
     EnemyBase::IncrementDrawCount();
@@ -805,11 +869,11 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
         if (m_shieldHp <= 0.0f && type == AttackType::ShieldThrow)
         {
             m_isShieldBroken = true;
-            if (m_shieldEffectHandle != -1)
+            for (int handle : m_shieldEffectHandles)
             {
-                StopEffekseer3DEffect(m_shieldEffectHandle);
-                m_shieldEffectHandle = -1;
+                StopEffekseer3DEffect(handle);
             }
+            m_shieldEffectHandles.clear();
             // 破壊音やエフェクトなどをここで追加可能
             // 例: Game::PlaySound("ShieldBreak");
         }
@@ -882,22 +946,28 @@ void EnemyBoss::DrawCollisionDebug() const
 
     // 体
     if (s_drawCollision && m_pBodyCollider)
+    {
         DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000); // 赤
+    }
 
     // 頭
     if (s_drawCollision && m_pHeadCollider)
+    {
         DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0x00ff00); // 緑
+    }
 
     // 攻撃範囲
     if (s_drawAttackHit && m_pAttackRangeCollider)
+    {
         DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 32, 0xffaa00);
+    }
 
     // 攻撃判定
     if (s_drawAttackHit && m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
     {
         DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0xff00ff); // マゼンタ
     }
-
+        
     // パリィ判定
     if (s_drawCollision && m_shouldDrawParryCollider)
     {
@@ -918,8 +988,6 @@ void EnemyBoss::DrawCollisionDebug() const
             }
         }
     }
-
-
 }
 
 // 死亡時の更新処理

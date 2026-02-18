@@ -152,6 +152,7 @@ private:
     bool m_isStunned; // 怯み状態か
     int m_stunTimer;  // 怯みタイマー
     bool m_hasPlayedCloseRangeEffect; // 近接攻撃エフェクト再生済みか
+    bool m_isFirstUpdate;             // 初回更新フラグ
 
     bool m_shouldDrawParryCollider = false; // パリィコライダーを描画するか
     VECTOR m_debugParryCapA = { 0,0,0 };    // デバッグ用パリィカプセルのA点
@@ -161,8 +162,10 @@ private:
     // リファクタリング用メソッド
     void UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision);
 
-    int m_shieldEffectHandle = -1; // シールドエフェクトハンドル
+    std::vector<int> m_shieldEffectHandles; // シールドエフェクトハンドル(複数管理用)
     float m_shieldHp = 0.0f;       // シールド耐久値
     float m_maxShieldHp = 0.0f;    // シールド最大耐久値
     bool m_isShieldBroken = false; // シールド破壊フラグ
+    float m_shieldRotation = 0.0f; // シールドの回転角度
+    float m_shieldEffectTimer = 0.0f; // シールドエフェクトの再生タイマー
 };
