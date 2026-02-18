@@ -96,8 +96,7 @@ void PlayerMovement::Update(
     }
 
     // 接地判定（移動前）
-    CollisionResult preCollisionResult =
-        Collision::CheckStageCollision(m_modelPos, PlayerMovementConstants::kCapsuleHeight, PlayerMovementConstants::kCapsuleRadius,
+    CollisionResult preCollisionResult = Collision::CheckStageCollision(m_modelPos, PlayerMovementConstants::kCapsuleHeight, PlayerMovementConstants::kCapsuleRadius,
             PlayerMovementConstants::kPlayerColliderYOffset, collisionData);
     m_isGroundedOnStage = preCollisionResult.isGrounded;
     if (preCollisionResult.isGrounded)
@@ -139,8 +138,7 @@ void PlayerMovement::UpdateCollider()
     m_pBodyCollider->SetRadius(PlayerMovementConstants::kCapsuleRadius);
 }
 
-void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera,
-    bool isDead)
+void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead)
 {
     m_jumpVelocity = 0.0f;
     m_isJumping = false;
@@ -150,15 +148,11 @@ void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera,
 
     float timeScale = Game::GetTimeScale();
 
-    if (keyState[KEY_INPUT_SPACE])
-        m_modelPos.y += PlayerMovementConstants::kFlightAscendSpeed * timeScale;
-    if (keyState[KEY_INPUT_LSHIFT])
-        m_modelPos.y -= PlayerMovementConstants::kFlightDescendSpeed * timeScale;
+    if (keyState[KEY_INPUT_SPACE]) m_modelPos.y += PlayerMovementConstants::kFlightAscendSpeed * timeScale;
+    if (keyState[KEY_INPUT_LSHIFT]) m_modelPos.y -= PlayerMovementConstants::kFlightDescendSpeed * timeScale;
 
     bool isAccelerating = (keyState[KEY_INPUT_LCONTROL] != 0);
-    float speed =
-        (isAccelerating ? m_runSpeed * PlayerMovementConstants::kFlightAccelMultiplier : m_moveSpeed) *
-        timeScale;
+    float speed = (isAccelerating ? m_runSpeed * PlayerMovementConstants::kFlightAccelMultiplier : m_moveSpeed) * timeScale;
 
     VECTOR moveDir = CalculateMoveDirection(pCamera, keyState);
 
@@ -174,27 +168,20 @@ void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera,
 
     m_isWasRunning = isAccelerating;
     m_wasJumping = false;
-    if (pCamera)
-        pCamera->SetHeadBobbingState(m_isMoving, isAccelerating);
+    if (pCamera) pCamera->SetHeadBobbingState(m_isMoving, isAccelerating);
 }
 
-void PlayerMovement::UpdateNormalMode(
-    float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
-    const std::vector<Stage::StageCollisionData>& collisionData)
+void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, const std::vector<Stage::StageCollisionData>& collisionData)
 {
-    bool isOnGround =
-        (m_modelPos.y <= kGroundY + PlayerMovementConstants::kGroundCheckTolerance) || m_isGroundedOnStage;
-    if (isOnGround)
-        m_coyoteTimeTimer = PlayerMovementConstants::kCoyoteTimeDuration;
+    bool isOnGround = (m_modelPos.y <= kGroundY + PlayerMovementConstants::kGroundCheckTolerance) || m_isGroundedOnStage;
+    if (isOnGround) m_coyoteTimeTimer = PlayerMovementConstants::kCoyoteTimeDuration;
 
     unsigned char keyState[256];
     GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
     static unsigned char prevKeyState[256] = {};
 
-    if (keyState[KEY_INPUT_LSHIFT] && keyState[KEY_INPUT_W])
-        m_isRunMode = true;
-    if (!keyState[KEY_INPUT_W])
-        m_isRunMode = false;
+    if (keyState[KEY_INPUT_LSHIFT] && keyState[KEY_INPUT_W]) m_isRunMode = true;
+    if (!keyState[KEY_INPUT_W]) m_isRunMode = false;
 
     VECTOR moveDir = CalculateMoveDirection(pCamera, keyState);
     HandleJump(keyState, prevKeyState, isDead, isTackling, moveDir, pCamera);
@@ -226,30 +213,24 @@ void PlayerMovement::UpdateNormalMode(
 
             if (VSize(moveDir) > 0.0f && pCamera)
             {
-                float currentSpeed =
-                    (m_isRunMode || m_isRunJumping) ? m_runSpeed : m_moveSpeed;
+                float currentSpeed = (m_isRunMode || m_isRunJumping) ? m_runSpeed : m_moveSpeed;
                 // currentSpeedもScale適用
                 currentSpeed *= timeScale;
 
-                float inertiaSpeed =
-                    VSize(m_jumpMoveVelocity); // 元の慣性速度（制御用）
+                float inertiaSpeed = VSize(m_jumpMoveVelocity); // 元の慣性速度（制御用）
 
                 if (inertiaSpeed > 0.1f)
                 {
                     float yaw = pCamera->GetYaw();
                     VECTOR camFwd = VGet(sinf(yaw), 0.0f, cosf(yaw));
-                    VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f,
-                        cosf(yaw + DX_PI_F * 0.5f));
+                    VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f, cosf(yaw + DX_PI_F * 0.5f));
                     float dotFwd = VDot(moveDir, camFwd);
                     float dotRight = VDot(moveDir, camRight);
 
-                    VECTOR targetSideVelocity =
-                        VScale(camRight, dotRight * currentSpeed * PlayerMovementConstants::kAirControlFactor);
-                    m_airSideControlVelocity.x +=
-                        (targetSideVelocity.x - m_airSideControlVelocity.x) *
+                    VECTOR targetSideVelocity = VScale(camRight, dotRight * currentSpeed * PlayerMovementConstants::kAirControlFactor);
+                    m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) *
                         PlayerMovementConstants::kAirAccelFactor * timeScale;
-                    m_airSideControlVelocity.z +=
-                        (targetSideVelocity.z - m_airSideControlVelocity.z) *
+                    m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) *
                         PlayerMovementConstants::kAirAccelFactor * timeScale;
                     m_modelPos = VAdd(m_modelPos, m_airSideControlVelocity);
 
@@ -259,34 +240,26 @@ void PlayerMovement::UpdateNormalMode(
 
                     if (fabsf(diffYaw) < DX_PI_F * 0.5f && dotFwd > 0.0f)
                     {
-                        VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed *
-                            PlayerMovementConstants::kAirControlFactor * 0.1f);
+                        VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor * 0.1f);
                         m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
                         if (VSize(m_jumpMoveVelocity) > 0.001f)
-                            m_jumpMoveVelocity =
-                            VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
+                            m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
                     }
 
                     VECTOR inertiaDir = VNorm(m_jumpMoveVelocity);
-                    float fwdProjDot =
-                        VDot(VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor),
-                            inertiaDir);
+                    float fwdProjDot = VDot(VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor), inertiaDir);
                     if (fwdProjDot < 0.0f)
                     {
                         float currentInertiaSpeed = VSize(m_jumpMoveVelocity);
-                        float targetInertiaSpeed =
-                            (std::max)(0.0f, currentInertiaSpeed + fwdProjDot);
-                        float newInertiaSpeed = currentInertiaSpeed +
-                            (targetInertiaSpeed - currentInertiaSpeed) *
-                            PlayerMovementConstants::kAirBrakeFactor * timeScale;
+                        float targetInertiaSpeed = (std::max)(0.0f, currentInertiaSpeed + fwdProjDot);
+                        float newInertiaSpeed = currentInertiaSpeed + (targetInertiaSpeed - currentInertiaSpeed) * PlayerMovementConstants::kAirBrakeFactor * timeScale;
                         m_jumpMoveVelocity = VScale(inertiaDir, newInertiaSpeed);
                         m_jumpSpeedScalar = newInertiaSpeed;
                     }
                 }
                 else
                 {
-                    m_modelPos = VAdd(m_modelPos,
-                        VScale(moveDir, currentSpeed * PlayerMovementConstants::kAirControlFactor));
+                    m_modelPos = VAdd(m_modelPos, VScale(moveDir, currentSpeed * PlayerMovementConstants::kAirControlFactor));
                 }
             }
             m_isMoving = true;
@@ -305,8 +278,7 @@ void PlayerMovement::UpdateNormalMode(
 
     m_isWasRunning = m_isRunMode;
     m_wasJumping = m_isJumping;
-    if (pCamera)
-        pCamera->SetHeadBobbingState(m_isMoving && isOnGround, m_isRunMode);
+    if (pCamera) pCamera->SetHeadBobbingState(m_isMoving && isOnGround, m_isRunMode);
 
     ResolveCollisions(collisionData, pCamera, m_isMoving);
 }
@@ -356,8 +328,7 @@ void PlayerMovement::HandleJump(const unsigned char* keyState,
 {
     if (isDead || isTackling) return;
 
-    if (keyState[KEY_INPUT_SPACE] && !prevKeyState[KEY_INPUT_SPACE] &&
-        m_coyoteTimeTimer > 0.0f && !m_isJumping)
+    if (keyState[KEY_INPUT_SPACE] && !prevKeyState[KEY_INPUT_SPACE] && m_coyoteTimeTimer > 0.0f && !m_isJumping)
     {
         m_jumpVelocity = m_isRunMode ? PlayerMovementConstants::kRunJumpPower : PlayerMovementConstants::kJumpPower;
         m_isJumping = true;
@@ -367,14 +338,11 @@ void PlayerMovement::HandleJump(const unsigned char* keyState,
         if (VSize(moveDir) > 0.0f)
         {
             m_isJumpInertiaActive = true;
-            m_jumpMoveVelocity =
-                VScale(moveDir, m_isRunMode ? m_runSpeed : m_moveSpeed);
-            if (pCamera)
-                m_jumpStartYaw = pCamera->GetYaw();
+            m_jumpMoveVelocity = VScale(moveDir, m_isRunMode ? m_runSpeed : m_moveSpeed);
+            if (pCamera) m_jumpStartYaw = pCamera->GetYaw();
             m_jumpSpeedScalar = VSize(m_jumpMoveVelocity);
         }
-        if (pCamera)
-            pCamera->ApplyJumpSway(PlayerMovementConstants::kJumpSwayPower);
+        if (pCamera) pCamera->ApplyJumpSway(PlayerMovementConstants::kJumpSwayPower);
     }
 }
 
@@ -396,15 +364,14 @@ void PlayerMovement::HandlePhysics(bool isOnGround, Camera* pCamera)
 
             if (m_wasJumping && pCamera)
             {
-                float swayPower =
-                    (m_isRunJumping ? PlayerMovementConstants::kRunLandingSwayPower : PlayerMovementConstants::kLandingSwayPower) +
+                float swayPower = (m_isRunJumping ? PlayerMovementConstants::kRunLandingSwayPower : PlayerMovementConstants::kLandingSwayPower) +
                     fabsf(lastJumpVelocity) * PlayerMovementConstants::kLandingVelocityFactor;
                 pCamera->ApplyLandingSway(swayPower);
                 if (m_isRunJumping)
-                    pCamera->Shake(PlayerMovementConstants::kRunLandingShakeIntensity +
-                        fabsf(lastJumpVelocity) *
-                        PlayerMovementConstants::kRunLandingShakeVelocityFactor,
-                        PlayerMovementConstants::kRunLandingShakeDuration);
+                {
+                    pCamera->Shake(PlayerMovementConstants::kRunLandingShakeIntensity + fabsf(lastJumpVelocity) *
+                        PlayerMovementConstants::kRunLandingShakeVelocityFactor, PlayerMovementConstants::kRunLandingShakeDuration);
+                }
             }
             m_isRunJumping = false;
             m_isJumpInertiaActive = false;
@@ -413,13 +380,10 @@ void PlayerMovement::HandlePhysics(bool isOnGround, Camera* pCamera)
     }
 }
 
-void PlayerMovement::ResolveCollisions(
-    const std::vector<Stage::StageCollisionData>& collisionData,
-    Camera* pCamera, bool isMoving)
+void PlayerMovement::ResolveCollisions(const std::vector<Stage::StageCollisionData>& collisionData, Camera* pCamera, bool isMoving)
 {
     VECTOR posBefore = m_modelPos;
-    CollisionResult res =
-        Collision::CheckStageCollision(m_modelPos, PlayerMovementConstants::kCapsuleHeight, PlayerMovementConstants::kCapsuleRadius,
+    CollisionResult res = Collision::CheckStageCollision(m_modelPos, PlayerMovementConstants::kCapsuleHeight, PlayerMovementConstants::kCapsuleRadius,
             PlayerMovementConstants::kPlayerColliderYOffset, collisionData);
     m_isGroundedOnStage = res.isGrounded;
     if (res.isGrounded)
@@ -433,8 +397,7 @@ void PlayerMovement::ResolveCollisions(
 
     if (m_isRunMode && !m_isJumping && isMoving)
     {
-        float pushBackSq = powf(m_modelPos.x - posBefore.x, 2) +
-            powf(m_modelPos.z - posBefore.z, 2);
+        float pushBackSq = powf(m_modelPos.x - posBefore.x, 2) + powf(m_modelPos.z - posBefore.z, 2);
         bool isOnSlope = res.isGrounded && res.groundNormal.y > 0.6f;
         if (pushBackSq > 1.0f && !isOnSlope) m_isRunMode = false;
     }

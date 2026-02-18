@@ -290,9 +290,8 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos,
     VECTOR shieldCamPos = VGet(0, 0, PlayerShieldConstants::kShieldCamZ * scaleAvg);
     shieldCamPos.x += totalCameraOffset.x;
     shieldCamPos.y += totalCameraOffset.y;
-    VECTOR shieldCamTarget =
-        VGet(totalCameraOffset.x * PlayerShieldConstants::kShieldCamTargetFactor,
-            totalCameraOffset.y * PlayerShieldConstants::kShieldCamTargetFactor, 0);
+    VECTOR shieldCamTarget = VGet(totalCameraOffset.x * PlayerShieldConstants::kShieldCamTargetFactor, 
+        totalCameraOffset.y * PlayerShieldConstants::kShieldCamTargetFactor, 0);
     SetCameraPositionAndTarget_UpVecY(shieldCamPos, shieldCamTarget);
 
     // ガードアニメーションの進行度を計算
@@ -300,14 +299,12 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos,
     float easeProgress = 1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f); // イージング
 
     // 待機位置とガード位置を定義
-    VECTOR waitPos =
-        VAdd(VGet(PlayerShieldConstants::kShieldWaitX * scaleW, PlayerShieldConstants::kShieldWaitY * scaleH, PlayerShieldConstants::kShieldWaitZ),
+    VECTOR waitPos = VAdd(VGet(PlayerShieldConstants::kShieldWaitX * scaleW, PlayerShieldConstants::kShieldWaitY * scaleH, PlayerShieldConstants::kShieldWaitZ),
             m_shieldSwayOffset);
     VECTOR guardPos = VGet(0.0f, PlayerShieldConstants::kShieldWaitY * scaleH, -15.0f); // 中央の位置
 
     // 進行度に応じて位置を補間
-    VECTOR currentPos =
-        VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
+    VECTOR currentPos = VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
 
     // 待機回転とガード回転を定義
     constexpr float kShieldWaitAngleY = -0.3f; // 待機時のY軸回転角度
@@ -400,8 +397,7 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos,
     // モデルの位置と回転を直接設定
     MV1SetPosition(m_shieldModelHandle, currentPos);
     MV1SetRotationXYZ(m_shieldModelHandle, currentRot);
-    MV1SetScale(m_shieldModelHandle,
-        VGet(PlayerShieldConstants::kShieldModelScale * scaleAvg, PlayerShieldConstants::kShieldModelScale * scaleAvg,
+    MV1SetScale(m_shieldModelHandle, VGet(PlayerShieldConstants::kShieldModelScale * scaleAvg, PlayerShieldConstants::kShieldModelScale * scaleAvg,
             PlayerShieldConstants::kShieldModelScale * scaleAvg));
 
     // 盾が壊れていない、またはアニメーション中のみ描画
@@ -501,13 +497,11 @@ void PlayerShieldSystem::UpdateGuardEffect(Effect* pEffect, Camera* pCamera,
         VECTOR up = VTransform(VGet(0, 1, 0), cameraRot);
 
         // カメラ位置基準でエフェクト位置を計算
-        VECTOR effectPos =
-            VAdd(pCamera->GetPos(), VScale(forward, PlayerShieldConstants::kGuardEffectOffsetZ));
+        VECTOR effectPos = VAdd(pCamera->GetPos(), VScale(forward, PlayerShieldConstants::kGuardEffectOffsetZ));
         effectPos = VAdd(effectPos, VScale(right, PlayerShieldConstants::kGuardEffectOffsetX));
         effectPos = VAdd(effectPos, VScale(up, PlayerShieldConstants::kGuardEffectOffsetY));
 
-        m_guardEffectHandle = pEffect->PlayGuardEffect(
-            effectPos.x, effectPos.y, effectPos.z, pitch, yaw, 0.0f);
+        m_guardEffectHandle = pEffect->PlayGuardEffect(effectPos.x, effectPos.y, effectPos.z, pitch, yaw, 0.0f);
     }
     // ガード終了時（解除された場合）
     else if (!m_isGuarding && m_wasGuarding)
@@ -534,13 +528,11 @@ void PlayerShieldSystem::UpdateGuardEffect(Effect* pEffect, Camera* pCamera,
         VECTOR up = VTransform(VGet(0, 1, 0), cameraRot);
 
         // カメラ位置基準でエフェクト位置を計算
-        VECTOR effectPos =
-            VAdd(pCamera->GetPos(), VScale(forward, PlayerShieldConstants::kGuardEffectOffsetZ));
+        VECTOR effectPos = VAdd(pCamera->GetPos(), VScale(forward, PlayerShieldConstants::kGuardEffectOffsetZ));
         effectPos = VAdd(effectPos, VScale(right, PlayerShieldConstants::kGuardEffectOffsetX));
         effectPos = VAdd(effectPos, VScale(up, PlayerShieldConstants::kGuardEffectOffsetY));
 
-        SetPosPlayingEffekseer3DEffect(m_guardEffectHandle, effectPos.x,
-            effectPos.y, effectPos.z);
+        SetPosPlayingEffekseer3DEffect(m_guardEffectHandle, effectPos.x, effectPos.y, effectPos.z);
         SetRotationPlayingEffekseer3DEffect(m_guardEffectHandle, pitch, yaw, 0.0f);
     }
 }
@@ -652,8 +644,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
         // プレイヤーの位置にYオフセットを加えた位置（投げ始めた位置と同じ高さ）に向かって移動
         constexpr float kShieldThrowStartYOffset = 80.0f;
         VECTOR returnTargetPos = playerPos;
-        returnTargetPos.y +=
-            kShieldThrowStartYOffset; // 投げ始めた位置と同じ高さにする
+        returnTargetPos.y += kShieldThrowStartYOffset; // 投げ始めた位置と同じ高さにする
 
         VECTOR toReturnTarget = VSub(returnTargetPos, m_shieldThrowPos);
         float distToReturnTarget = VSize(toReturnTarget);
@@ -733,14 +724,11 @@ void PlayerShieldSystem::UpdateShieldThrow(
     }
 
     // 敵との当たり判定
-    if (m_shieldThrowState == ShieldThrowState::Throwing ||
-        m_shieldThrowState == ShieldThrowState::Returning)
+    if (m_shieldThrowState == ShieldThrowState::Throwing || m_shieldThrowState == ShieldThrowState::Returning)
     {
         // シールドの当たり判定（カプセル形状）
-        VECTOR shieldCapA =
-            VAdd(m_shieldThrowPos, VGet(0, -PlayerShieldConstants::kShieldThrowHeight * 0.5f, 0));
-        VECTOR shieldCapB =
-            VAdd(m_shieldThrowPos, VGet(0, PlayerShieldConstants::kShieldThrowHeight * 0.5f, 0));
+        VECTOR shieldCapA = VAdd(m_shieldThrowPos, VGet(0, -PlayerShieldConstants::kShieldThrowHeight * 0.5f, 0));
+        VECTOR shieldCapB = VAdd(m_shieldThrowPos, VGet(0, PlayerShieldConstants::kShieldThrowHeight * 0.5f, 0));
 
         for (EnemyBase* enemy : enemyList)
         {
@@ -841,8 +829,7 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera,
     // シールドモデルを描画
     MV1SetPosition(m_shieldModelHandle, shieldPos);
     MV1SetRotationMatrix(m_shieldModelHandle, rotMatrix);
-    MV1SetScale(m_shieldModelHandle,
-        VGet(PlayerShieldConstants::kShieldModelScale, PlayerShieldConstants::kShieldModelScale, PlayerShieldConstants::kShieldModelScale));
+    MV1SetScale(m_shieldModelHandle, VGet(PlayerShieldConstants::kShieldModelScale, PlayerShieldConstants::kShieldModelScale, PlayerShieldConstants::kShieldModelScale));
     MV1DrawModel(m_shieldModelHandle);
 }
 

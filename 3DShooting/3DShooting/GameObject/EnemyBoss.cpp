@@ -115,6 +115,9 @@ void EnemyBoss::Init()
     m_currentEffectHandle = -1;
     m_effectTimer = 0;
     m_shieldEffectHandle = -1;
+    m_maxShieldHp = 2000.0f; // シールド最大耐久値設定
+    m_shieldHp = m_maxShieldHp;
+    m_isShieldBroken = false;
 
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
@@ -755,6 +758,20 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         // 回転も合わせる（念のため）
         VECTOR rot = MV1GetRotationXYZ(m_modelHandle);
         SetRotationPlayingEffekseer3DEffect(m_shieldEffectHandle, rot.x, rot.y, rot.z);
+
+        // シールドの色を耐久値に応じて変更
+        // 白 (255, 255, 255) -> 赤 (255, 0, 0)
+        // m_shieldHp / m_maxShieldHp の割合で G と B を減らす
+        if (m_maxShieldHp > 0.0f && !m_isShieldBroken)
+        {
+            float ratio = m_shieldHp / m_maxShieldHp;
+            if (ratio < 0.0f) ratio = 0.0f;
+            if (ratio > 1.0f) ratio = 1.0f;
+
+            int colorVal = static_cast<int>(255.0f * ratio);
+            // Rは常に255, GとBを減らしていくことで赤くする
+            SetColorPlayingEffekseer3DEffect(m_shieldEffectHandle, 255, colorVal, colorVal, 255);
+        }
     }
 }
 
@@ -780,6 +797,39 @@ void EnemyBoss::Draw()
 void EnemyBoss::TakeDamage(float damage, AttackType type)
 {
     if (m_isDeadAnimPlaying) return;
+
+    // シールド破壊判定
+    if (!m_isShieldBroken)
+    {
+        // シールドHPが0以下の状態で盾投げを食らったら破壊
+        if (m_shieldHp <= 0.0f && type == AttackType::ShieldThrow)
+        {
+            m_isShieldBroken = true;
+            if (m_shieldEffectHandle != -1)
+            {
+                StopEffekseer3DEffect(m_shieldEffectHandle);
+                m_shieldEffectHandle = -1;
+            }
+            // 破壊音やエフェクトなどをここで追加可能
+            // 例: Game::PlaySound("ShieldBreak");
+        }
+        else if (type != AttackType::ShieldThrow) // 盾投げ以外はシールドHPを減らす
+        {
+            m_shieldHp -= damage;
+            if (m_shieldHp < 0.0f)
+            {
+                m_shieldHp = 0.0f;
+            }
+            // ボス本体にはダメージが入らない
+            return;
+        }
+        else
+        {
+            // シールドHPが残っている状態での盾投げは無効（あるいは微小ダメージ？）
+            // 現状は無効とする
+            return;
+        }
+    }
 
     EnemyBase::TakeDamage(damage, type);
 

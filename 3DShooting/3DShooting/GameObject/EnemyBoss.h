@@ -162,4 +162,7 @@ private:
     void UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision);
 
     int m_shieldEffectHandle = -1; // シールドエフェクトハンドル
+    float m_shieldHp = 0.0f;       // シールド耐久値
+    float m_maxShieldHp = 0.0f;    // シールド最大耐久値
+    bool m_isShieldBroken = false; // シールド破壊フラグ
 };
