@@ -843,9 +843,9 @@ void SceneMain::Draw()
         m_pWaveManager->DrawEnemies(m_isTutorialStage);
     }
 
-    m_pPlayer->Draw3D();
-
     m_pEffect->Draw();
+
+    m_pPlayer->Draw3D();
 
     // ここからUI描画
     m_pPlayer->DrawShield();

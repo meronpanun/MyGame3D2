@@ -310,6 +310,9 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
             finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
 
+            // 最前面に描画するために Z バッファをクリア
+            ClearDrawScreenZBuffer();
+
             MV1SetPosition(prevHandle, finalPos);
 
             // 回転の補正 (反時計回りにひねる等)
@@ -354,6 +357,9 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
             finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
             finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
+
+            // 最前面に描画するために Z バッファをクリア
+            ClearDrawScreenZBuffer();
 
             MV1SetPosition(currentHandle, finalPos);
 
@@ -407,6 +413,9 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
             finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
             finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
+
+            // 最前面に描画するために Z バッファをクリア
+            ClearDrawScreenZBuffer();
 
             MV1SetPosition(currentHandle, finalPos);
 

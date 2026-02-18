@@ -459,13 +459,6 @@ void Player::DrawUI()
 
     // エフェクトの描画
     m_effectManager.Draw();
-
-    // Effekseerエフェクトの描画
-    // SceneMain::Draw() で描画するため、ここでは描画しない
-    /*if (m_pEffect)
-    {
-        m_pEffect->Draw();
-    }*/
 }
 
 void Player::DeathUpdate()
@@ -524,8 +517,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
         if (remainingDamage > 0)
         {
             // 銃を揺らす
-            m_weaponManager.ShakeGun(PlayerConstants::kShieldBreakGunShakePower,
-                PlayerConstants::kShieldBreakGunShakeDuration);
+            m_weaponManager.ShakeGun(PlayerConstants::kShieldBreakGunShakePower, PlayerConstants::kShieldBreakGunShakeDuration);
             m_health -= remainingDamage; // 残ったダメージをHPに適用
 
             // チュートリアル中は死なない
