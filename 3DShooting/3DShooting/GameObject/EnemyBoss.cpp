@@ -37,7 +37,7 @@ namespace EnemyBossConstants
     constexpr float kBodyColliderRadius = 40.0f;
     constexpr float kBodyColliderHeight = 350.0f;
     constexpr float kHeadRadius = 25.0f;
-    constexpr float kAttackRangeRadius = 450.0f; // 指定された近接範囲 (シールド接触(350f) + 余裕で確実に当てる)
+    constexpr float kAttackRangeRadius = 450.0f; // 指定された近接範囲 
     constexpr float kAttackHitRadius = 60.0f;    // 攻撃自体の当たり判定
 
     constexpr int kAttackCooldownMax = 60;
@@ -1174,7 +1174,19 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
         if (pEffect)
         {
             VECTOR hitPos = bullet.GetPos();
-            pEffect->PlayShieldHitEffect(hitPos.x, hitPos.y, hitPos.z);
+            VECTOR normal = VGet(0.0f, 0.0f, -1.0f); // デフォルト
+
+            if (m_pShieldCollider)
+            {
+                VECTOR center = m_pShieldCollider->GetCenter();
+                VECTOR diff = VSub(hitPos, center);
+                if (VSquareSize(diff) > 0.0001f)
+                {
+                    normal = VNorm(diff);
+                }
+            }
+
+            pEffect->PlayShieldHitEffect(hitPos, normal);
         }
 
         // ダメージ計算と適用 (シールドHP減少)
@@ -1188,6 +1200,9 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
             s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;
             s_debugHitInfo = "(Shield)";
         }
+
+        // 弾を消す（これを忘れると貫通して再度衝突判定が発生する）
+        bullet.Deactivate();
     }
     else
     {
@@ -1209,15 +1224,32 @@ EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     // シールドとの判定（破壊されていなければ最優先）
     if (!m_isShieldBroken && m_pShieldCollider)
     {
-        VECTOR tmpHitPos;
-        float tmpDistSq;
-        if (m_pShieldCollider->IsIsIntersectsRay(rayStart, rayEnd, tmpHitPos, tmpDistSq))
+        // まず、Rayの始点がシールド内部にあるかチェック（ショットガン等の貫通対策）
+        // 始点が内部にある場合、IsIsIntersectsRayは「出口」の距離を返してしまうため、
+        // 内部にある体（Body）の方が「近い」と判定されてすり抜けてしまう。
+        VECTOR diff = VSub(rayStart, m_pShieldCollider->GetCenter());
+        float distSqFromCenter = VSquareSize(diff);
+        float radius = m_pShieldCollider->GetRadius();
+        
+        if (distSqFromCenter <= radius * radius)
         {
-            if (tmpDistSq < minDistSq)
+            // 内部にいるなら、即座にシールドヒットとみなす
+            minDistSq = 0.0f;
+            hitPos = rayStart;
+            part = HitPart::Shield;
+        }
+        else
+        {
+            VECTOR tmpHitPos;
+            float tmpDistSq;
+            if (m_pShieldCollider->IsIsIntersectsRay(rayStart, rayEnd, tmpHitPos, tmpDistSq))
             {
-                minDistSq = tmpDistSq;
-                hitPos = tmpHitPos;
-                part = HitPart::Shield;
+                if (tmpDistSq < minDistSq)
+                {
+                    minDistSq = tmpDistSq;
+                    hitPos = tmpHitPos;
+                    part = HitPart::Shield;
+                }
             }
         }
     }

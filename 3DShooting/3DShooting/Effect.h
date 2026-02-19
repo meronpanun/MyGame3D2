@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <vector>
+#include "DxLib.h"
 
 /// <summary>
 /// エフェクトクラス
@@ -82,7 +83,9 @@ public:
     /// <summary>
     /// シールドヒットエフェクトを再生する
     /// </summary>
-    int PlayShieldHitEffect(float x, float y, float z);
+    /// <param name="pos">座標</param>
+    /// <param name="normal">法線</param>
+    int PlayShieldHitEffect(const VECTOR& pos, const VECTOR& normal);
 
     /// <summary>
     /// 再生中のエフェクトをすべて停止する

@@ -44,7 +44,6 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
 
 SceneTitle::~SceneTitle()
 {
-    // 自動解放されるため処理不要
 }
 
 void SceneTitle::Init()

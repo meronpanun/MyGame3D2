@@ -7,6 +7,7 @@
 #include <string>
 #include <time.h>
 #include <vector>
+#include <cmath>
 
 namespace
 {
@@ -44,16 +45,11 @@ Effect::Effect()
     srand(time(NULL));
 
     // エフェクトハンドルの読み込み
-    m_muzzleFlashEffectHandles[0] = LoadEffekseerEffect(
-        "data/Effekseer/MuzzleFlash.efkefc", kMuzzleFlashEffectScale);
-    m_muzzleFlashEffectHandles[1] = LoadEffekseerEffect(
-        "data/Effekseer/MuzzleFlash2.efkefc", kMuzzleFlashEffectScale);
-    m_muzzleFlashEffectHandles[2] = LoadEffekseerEffect(
-        "data/Effekseer/MuzzleFlash3.efkefc", kMuzzleFlashEffectScale);
-    m_muzzleFlashEffectHandles[3] = LoadEffekseerEffect(
-        "data/Effekseer/MuzzleFlash4.efkefc", kMuzzleFlashEffectScale3);
-    m_muzzleFlashEffectHandles[4] = LoadEffekseerEffect(
-        "data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale2);
+    m_muzzleFlashEffectHandles[0] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", kMuzzleFlashEffectScale);
+    m_muzzleFlashEffectHandles[1] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash2.efkefc", kMuzzleFlashEffectScale);
+    m_muzzleFlashEffectHandles[2] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash3.efkefc", kMuzzleFlashEffectScale);
+    m_muzzleFlashEffectHandles[3] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash4.efkefc", kMuzzleFlashEffectScale3);
+    m_muzzleFlashEffectHandles[4] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale2);
     for (int i = 0; i < 5; ++i)
     {
         assert(m_muzzleFlashEffectHandles[i] != -1);
@@ -347,16 +343,30 @@ int Effect::GetBossShieldEffectDuration() const
 }
 
 // シールドヒットエフェクトを再生する
-int Effect::PlayShieldHitEffect(float x, float y, float z)
+int Effect::PlayShieldHitEffect(const VECTOR& pos, const VECTOR& normal)
 {
-    if (!ShouldPlayEffect(x, y, z)) return -1;
+    if (!ShouldPlayEffect(pos.x, pos.y, pos.z)) return -1;
 
     if (m_shieldHitEffectHandle != -1)
     {
         int handle = PlayEffekseer3DEffect(m_shieldHitEffectHandle);
         if (handle != -1)
         {
-            SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+            SetPosPlayingEffekseer3DEffect(handle, pos.x, pos.y, pos.z);
+            
+            // 水平距離
+            float hDist = sqrtf(normal.x * normal.x + normal.z * normal.z);
+            
+            // Yaw (Y軸回転)
+            // atan2(x, z) で角度取得
+            float rotY = atan2f(normal.x, normal.z);
+            
+            // Pitch (X軸回転)
+            // Y成分から角度取得 (-asinで上向きベクトルに対応)
+            float rotX = -atan2f(normal.y, hDist);
+
+            SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, 0.0f);
+
             // HitBurstは少し大きめにしたり調整が必要ならここで
             SetScalePlayingEffekseer3DEffect(handle, 2.0f, 2.0f, 2.0f);
             m_playingEffectHandles.push_back(handle);
