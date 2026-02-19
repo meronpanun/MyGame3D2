@@ -43,7 +43,7 @@ public:
     /// <param name="x">X座標</param>
     /// <param name="y">Y座標</param>
     /// <param name="z">Z座標</param>
-    int PlaySparkEffect(float x, float y, float z);
+    int PlaySparkEffect(float x, float y, float z, float speed = 1.0f);
 
     int PlaySparkEffect2(float x, float y, float z);
 

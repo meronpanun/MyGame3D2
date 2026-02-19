@@ -221,7 +221,7 @@ int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, f
 }
 
 // スパークエフェクトを再生する
-int Effect::PlaySparkEffect(float x, float y, float z)
+int Effect::PlaySparkEffect(float x, float y, float z, float speed)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
 
@@ -231,6 +231,10 @@ int Effect::PlaySparkEffect(float x, float y, float z)
         if (handle != -1)
         {
             SetPosPlayingEffekseer3DEffect(handle, x, y, z);
+            if (speed != 1.0f)
+            {
+                SetSpeedPlayingEffekseer3DEffect(handle, speed);
+            }
             m_playingEffectHandles.push_back(handle);
         }
         return handle;

@@ -35,8 +35,8 @@ namespace EnemyBossConstants
 
     // コライダーサイズ
     constexpr float kBodyColliderRadius = 40.0f;
-    constexpr float kBodyColliderHeight = 200.0f;
-    constexpr float kHeadRadius = 20.0f;
+    constexpr float kBodyColliderHeight = 350.0f;
+    constexpr float kHeadRadius = 25.0f;
     constexpr float kAttackRangeRadius = 150.0f; // 指定された近接範囲
     constexpr float kAttackHitRadius = 60.0f;    // 攻撃自体の当たり判定
 
@@ -97,8 +97,7 @@ void EnemyBoss::Init()
     m_animTime = 0.0f;
 
     // CSVからBossのTransform情報を取得
-    LoadTransformData("Boss");
-
+    bool loadResult = LoadTransformData("Boss");
     m_isFirstUpdate = true;
 
     // 基本パラメータ初期化
@@ -133,6 +132,9 @@ void EnemyBoss::Init()
     m_shieldRotation = 0.0f;
     m_shieldEffectTimer = 0.0f;
     m_shieldEffectHandles.clear();
+
+    m_isStunned = false;
+    m_stunTimer = 0;
 
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
@@ -189,7 +191,6 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     std::vector<Bullet>& bullets = context.bullets;
     const Player::TackleInfo& tackleInfo = context.tackleInfo;
     const Player& player = context.player;
-    // const std::vector<EnemyBase*>& enemyList = context.enemyList; // EnemyBossでは使っていない
     const std::vector<Stage::StageCollisionData>& collisionData = context.collisionData;
     Effect* pEffect = context.pEffect;
 
@@ -670,7 +671,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     }
 
     // アニメーション更新
-    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+    // ハンドルが取得できなくても時間は進める（フリーズ防止）
     {
         const char* animName = nullptr;
         float animSpeed = 1.0f;
@@ -705,12 +706,22 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             m_animTime += animSpeed;
 
             float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, animName);
-            // ループ処理
-            if (m_currentAnimState == AnimState::Walk /*|| m_currentAnimState == AnimState::Idle*/)
+            
+            // アニメーション総時間が取得できた場合のみループ処理を行う
+            if (totalTime > 0.0f)
             {
-                m_animTime = fmodf(m_animTime, totalTime);
+                // ループ処理
+                if (m_currentAnimState == AnimState::Walk /*|| m_currentAnimState == AnimState::Idle*/)
+                {
+                    m_animTime = fmodf(m_animTime, totalTime);
+                }
             }
-            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+
+            // アニメーションがアタッチされている場合のみ実際のモデル時間を更新
+            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+            {
+                m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+            }
         }
     }
 
@@ -744,6 +755,47 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
     ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
 
+    // シールドとの押し出し処理
+    if (!m_isShieldBroken && m_pShieldCollider)
+    {
+        float shieldRadius = m_pShieldCollider->GetRadius();
+        float playerRadius = playerBodyCollider->GetRadius();
+        VECTOR shieldCenter = m_pShieldCollider->GetCenter();
+        
+        // プレイヤーカプセルとシールド球の最短距離計算
+        VECTOR playerSegA = playerBodyCollider->GetSegmentA();
+        VECTOR playerSegB = playerBodyCollider->GetSegmentB();
+        VECTOR playerCenter = VAdd(playerSegA, VScale(VSub(playerSegB, playerSegA), 0.5f)); // 簡易的に中心を使用
+
+        // 厳密なカプセルvs球の判定 (カプセル線分上の最近点を探す)
+        VECTOR segVec = VSub(playerSegB, playerSegA);
+        float segLenSq = VSquareSize(segVec);
+        float t = 0.0f;
+        if (segLenSq > 0.0f) {
+            t = VDot(VSub(shieldCenter, playerSegA), segVec) / segLenSq;
+            t = (t < 0.0f) ? 0.0f : ((t > 1.0f) ? 1.0f : t);
+        }
+        VECTOR closestPointOnSeg = VAdd(playerSegA, VScale(segVec, t));
+        
+        VECTOR toPlayer = VSub(closestPointOnSeg, shieldCenter);
+        float distSq = VSquareSize(toPlayer);
+        float minShieldDist = shieldRadius + playerRadius;
+
+        if (distSq < minShieldDist * minShieldDist && distSq > 0.0001f)
+        {
+            float dist = sqrtf(distSq);
+            float pushLen = minShieldDist - dist;
+            VECTOR pushDir = VScale(toPlayer, 1.0f / dist);
+            
+            if (Game::m_pPlayer)
+            {
+                VECTOR currentPlayerPos = Game::m_pPlayer->GetPos();
+                VECTOR newPos = VAdd(currentPlayerPos, VScale(pushDir, pushLen));
+                Game::m_pPlayer->SetPos(newPos);
+            }
+        }
+    }
+
     CheckHitAndDamage(bullets, pEffect);
 
     // タックル判定
@@ -765,7 +817,6 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     MV1SetPosition(m_modelHandle, m_pos);
 
     // シールドエフェクト更新 (移動後の最終位置で更新)
-    // ノード位置取得による遅延・不具合を避けるため、m_pos基準のオフセットを使用する
     VECTOR shieldPos = m_pos;
     shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
 
@@ -803,7 +854,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         }
 
         // 回転更新
-        m_shieldRotation += 0.1f * Game::GetTimeScale(); // 回転速度調整
+        m_shieldRotation += 0.3f * Game::GetTimeScale(); // 回転速度調整
         while (m_shieldRotation >= 360.0f) m_shieldRotation -= 360.0f;
 
         // 有効なエフェクト全てのパラメータを更新
@@ -1001,18 +1052,10 @@ void EnemyBoss::DrawCollisionDebug() const
     }
 
     // シールド（デバッグ表示）
-    if ((s_drawCollision || s_drawShieldCollision) && !m_isShieldBroken && m_pShieldCollider)
+    if (s_drawShieldCollision && !m_isShieldBroken && m_pShieldCollider)
     {
-        // 描画設定を一時的に変更して確実に表示させる
-        SetUseLighting(FALSE);       // ライティング無効化（色はそのまま表示）
-        SetUseZBufferFlag(FALSE);    // Zバッファ無効化（最前面に表示）
-
         // シアン色で描画
         DebugUtil::DrawSphere(m_pShieldCollider->GetCenter(), m_pShieldCollider->GetRadius(), 16, 0x00ffff);
-
-        // 設定復元（通常描画用に戻す）
-        SetUseLighting(TRUE);
-        SetUseZBufferFlag(TRUE);
     }
 }
 
@@ -1028,9 +1071,9 @@ void EnemyBoss::UpdateDeath(const std::vector<Stage::StageCollisionData>& stageC
     }
 
     // 死亡アニメーション中もアニメーション時間を更新
+    m_animTime += 1.0f * Game::GetTimeScale();
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
     {
-        m_animTime += 1.0f * Game::GetTimeScale();
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
     }
 

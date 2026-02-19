@@ -144,13 +144,21 @@ void WaveUI::DrawDebugSpawnAreas(const std::vector<SpawnAreaInfo>& spawnAreaList
             {
                 // 高さタイプによって色を変える
                 if (std::abs(area.center.y - 200.0f) < 10.0f)
+                {
                     color = 0x00ff00; // 緑 (下段)
+                }
                 else if (std::abs(area.center.y - 562.0f) < 10.0f)
+                {
                     color = 0xffff00; // 黄 (中段)
+                }
                 else if (std::abs(area.center.y - 962.0f) < 10.0f)
+                {
                     color = 0xff0000; // 赤 (上段)
+                }
                 else
+                {
                     color = 0x00ffff; // シアン (その他)
+                }
             }
             else // Tutorial
             {

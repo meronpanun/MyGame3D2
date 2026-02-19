@@ -255,9 +255,7 @@ void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData
     }
 }
 
-bool EnemyBase::IsTargetVisible(
-    const VECTOR& startPos, const VECTOR& targetPos,
-    const std::vector<Stage::StageCollisionData>& stageCollision)
+bool EnemyBase::IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos,const std::vector<Stage::StageCollisionData>& stageCollision)
 {
     VECTOR dir = VSub(targetPos, startPos);
     float dist = VSize(dir);
@@ -276,9 +274,7 @@ bool EnemyBase::IsTargetVisible(
     return true;
 }
 
-VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos,
-                                             const VECTOR& targetPos,
-                                             float gravity, float speed)
+VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos, const VECTOR& targetPos, float gravity, float speed)
 {
     VECTOR toTarget = VSub(targetPos, startPos);
 
@@ -289,8 +285,6 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos,
     if (time < EnemyConstants::kParabolicMinTime) time = EnemyConstants::kParabolicMinTime; // 最低保証
 
     // 初速度計算
-    // pos + v*t + 0.5*g*t*t = target
-    // v*t = target - pos - 0.5*g*t*t
     VECTOR gravityVec = VGet(0.0f, -gravity, 0.0f);
     VECTOR term1 = VScale(toTarget, 1.0f / time);
     VECTOR term2 = VScale(gravityVec, EnemyConstants::kParabolicGravityFactor * time);

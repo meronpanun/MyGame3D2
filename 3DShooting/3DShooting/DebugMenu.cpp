@@ -95,8 +95,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth,
     int itemWidth = kItemWidth;
     int itemHeight = kItemHeight;
 
-    bool isHovered = (mouseX >= itemX && mouseX <= itemX + itemWidth &&
-        mouseY >= itemY && mouseY <= itemY + itemHeight);
+    bool isHovered = (mouseX >= itemX && mouseX <= itemX + itemWidth && mouseY >= itemY && mouseY <= itemY + itemHeight);
 
     if (isHovered && leftClicked)
     {
@@ -137,8 +136,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth,
         int indicatorDrawY = itemY + (itemHeight * 0.5f) - (charHeight * 0.5f) + kIndicatorOffsetY;
 
         // DrawRotaString で回転して描画
-        DrawRotaString(indicatorDrawX, indicatorDrawY, 1.0, 1.0, rotCenterX,
-            rotCenterY, rotationAngle, color, 0, false, indicatorChar);
+        DrawRotaString(indicatorDrawX, indicatorDrawY, 1.0, 1.0, rotCenterX, rotCenterY, rotationAngle, color, 0, false, indicatorChar);
     }
 
     // テキストの描画

@@ -55,6 +55,10 @@ public:
     // 衝突判定
     HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const override;
 
+    // シールド状態取得
+    bool IsShieldBroken() const { return m_isShieldBroken; }
+    std::shared_ptr<SphereCollider> GetShieldCollider() const { return m_pShieldCollider; }
+
 protected:
     // ダメージ計算
     float CalcDamage(float bulletDamage, HitPart part) const override;

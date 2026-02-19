@@ -4,8 +4,10 @@
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
 #include "EnemyBase.h"
+#include "EnemyBoss.h"
 #include "Game.h"
 #include "PlayerMovement.h"
+#include "SphereCollider.h"
 #include <cassert>
 #include <cmath>
 
@@ -733,6 +735,60 @@ void PlayerShieldSystem::UpdateShieldThrow(
         for (EnemyBase* enemy : enemyList)
         {
             if (!enemy || !enemy->IsAlive()) continue;
+
+            // Bossの場合、シールドとの当たり判定を先に行う
+            if (enemy->IsBoss())
+            {
+                auto boss = static_cast<EnemyBoss*>(enemy);
+                if (!boss->IsShieldBroken())
+                {
+                    auto shieldCollider = boss->GetShieldCollider();
+                    if (shieldCollider)
+                    {
+                        VECTOR shieldCenter = shieldCollider->GetCenter();
+                        float shieldRadius = shieldCollider->GetRadius();
+
+                        // シールド投げ(カプセル) vs Bossシールド(球)
+                        // 簡易判定: カプセル中心と球中心の距離
+                        VECTOR shieldCapCenter = VAdd(shieldCapA, VScale(VSub(shieldCapB, shieldCapA), 0.5f));
+                        float distSq = VSquareSize(VSub(shieldCenter, shieldCapCenter));
+                        float hitRadiussum = PlayerShieldConstants::kShieldThrowRadius + shieldRadius;
+
+                        if (distSq < hitRadiussum * hitRadiussum)
+                        {
+                            // ヒット
+                             int enemyId = reinterpret_cast<intptr_t>(enemy); // IDはBoss本体と同じにする
+                             if (m_shieldThrowHitEnemyId != enemyId)
+                             {
+                                 m_shieldThrowHitEnemyId = enemyId;
+
+                                 // シールドにダメージを与える
+                                 boss->TakeDamage(m_shieldThrowDamage, AttackType::ShieldThrow);
+
+                                 // エフェクト再生
+                                 if (pEffect)
+                                 {
+                                     // 接触点付近に出す
+                                     VECTOR hitPos = VAdd(shieldCenter, VScale(VNorm(VSub(shieldCapCenter, shieldCenter)), shieldRadius));
+                                     pEffect->PlaySparkEffect(hitPos.x, hitPos.y, hitPos.z, 3.0f);
+                                 }
+
+                                 // 反射処理の変更: 弾かれて戻ってくる挙動にする
+                                 // 法線は Boss -> ShieldThrow の方向（概算）
+                                 VECTOR normal = VNorm(VSub(shieldCapCenter, shieldCenter));
+
+                                 // 状態をReturningに変更（即座にプレイヤーに戻る）
+                                 m_shieldThrowState = ShieldThrowState::Returning;
+                                 
+                                 // めり込み防止（法線方向に少し押し出す）
+                                 m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, 5.0f));
+
+                                 continue; // 本体との判定はスキップ
+                             }
+                        }
+                    }
+                }
+            }
 
             // 敵のコライダーを取得
             auto enemyCollider = enemy->GetBodyCollider();
