@@ -88,6 +88,12 @@ public:
     int PlayShieldHitEffect(const VECTOR& pos, const VECTOR& normal);
 
     /// <summary>
+    /// シールド破壊可能エフェクトを再生する
+    /// </summary>
+    /// <param name="pos">座標</param>
+    int PlayShieldBreakEffect(const VECTOR& pos);
+
+    /// <summary>
     /// 再生中のエフェクトをすべて停止する
     /// </summary>
     void StopAllEffects();
@@ -109,7 +115,7 @@ private:
     int m_closeRangeAttackEffectHandle; // 近接範囲攻撃エフェクトハンドル
     int m_bossShieldEffectHandle; // ボスシールドエフェクトハンドル
 	int m_shieldHitEffectHandle; // シールドヒットエフェクトハンドル
+    int m_shieldBreakEffectHandle; // シールド破壊可能エフェクトハンドル
 
     std::vector<int> m_playingEffectHandles; // 再生中のエフェクトハンドル
 };
-

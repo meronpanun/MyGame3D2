@@ -46,6 +46,9 @@ namespace EnemyBossConstants
     // 描画関連
     constexpr float kDrawDistanceSq = 16000.0f * 16000.0f;
     constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
+
+	// シールド関連
+	constexpr float kShieldMaxHp = 200.0f; // シールドの最大耐久値
 }
 
 // static変数の初期化
@@ -126,9 +129,10 @@ void EnemyBoss::Init()
     m_hasPlayedCloseRangeEffect = false;
     m_currentEffectHandle = -1;
     m_effectTimer = 0;
-    m_maxShieldHp = 200.0f; // シールド最大耐久値設定
+    m_maxShieldHp = EnemyBossConstants::kShieldMaxHp; // シールド最大耐久値設定
     m_shieldHp = m_maxShieldHp;
     m_isShieldBroken = false;
+    m_hasPlayedShieldBreakableEffect = false;
     m_shieldRotation = 0.0f;
     m_shieldEffectTimer = 0.0f;
     m_shieldEffectHandles.clear();
@@ -1007,6 +1011,17 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
             if (m_shieldHp < 0.0f)
             {
                 m_shieldHp = 0.0f;
+            }
+
+            // シールドHPが0になった瞬間に、破壊可能エフェクトを再生
+            if (m_shieldHp <= 0.0f && !m_hasPlayedShieldBreakableEffect)
+            {
+                if (m_pShieldCollider)
+                {
+                    // シールドの位置で再生
+                    SceneMain::Instance()->GetEffect()->PlayShieldBreakEffect(m_pShieldCollider->GetCenter());
+                }
+                m_hasPlayedShieldBreakableEffect = true;
             }
             // ボス本体にはダメージが入らない
             return;

@@ -60,6 +60,13 @@ public:
     std::shared_ptr<SphereCollider> GetShieldCollider() const { return m_pShieldCollider; }
 
 protected:
+    // シールド関連メンバ
+    bool m_isShieldBroken;  // シールドが破壊されたか
+    bool m_hasPlayedShieldBreakableEffect; // シールド破壊可能エフェクトを再生したか
+    float m_shieldHp;       // シールドHP
+    std::shared_ptr<SphereCollider> m_pShieldCollider; // シールドコライダー
+
+protected:
     // ダメージ計算
     float CalcDamage(float bulletDamage, HitPart part) const override;
     
@@ -104,7 +111,6 @@ private:
     std::shared_ptr<SphereCollider> m_pAttackRangeCollider; // 攻撃範囲
     std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;  // 攻撃判定(腕など)
     std::shared_ptr<SphereCollider> m_pWeakCollider;        // 弱点
-    std::shared_ptr<SphereCollider> m_pShieldCollider;      // シールド当たり判定
 
     int m_attackEndDelayTimer; // 攻撃後の硬直タイマー
     bool m_isAttackHit;        // 攻撃がヒットしたか
@@ -175,9 +181,7 @@ private:
     void UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision);
 
     std::vector<int> m_shieldEffectHandles; // シールドエフェクトハンドル(複数管理用)
-    float m_shieldHp = 0.0f;       // シールド耐久値
     float m_maxShieldHp = 0.0f;    // シールド最大耐久値
-    bool m_isShieldBroken = false; // シールド破壊フラグ
     float m_shieldRotation = 0.0f; // シールドの回転角度
     float m_shieldEffectTimer = 0.0f; // シールドエフェクトの再生タイマー
 };

@@ -109,6 +109,12 @@ public:
     static float GetElapsedTime() { return s_elapsedTime; }
 
     /// <summary>
+    /// エフェクト管理クラスを取得
+    /// </summary>
+    /// <returns>エフェクト管理クラスのポインタ</returns>
+    Effect* GetEffect() const { return m_pEffect.get(); }
+
+    /// <summary>
     /// すべてのエフェクトを停止する
     /// </summary>
     void StopAllEffects();

@@ -39,6 +39,8 @@ Effect::Effect()
     , m_concentrationLineEffectHandle(-1)
     , m_closeRangeAttackEffectHandle(-1)
     , m_bossShieldEffectHandle(-1)
+    , m_shieldHitEffectHandle(-1)
+    , m_shieldBreakEffectHandle(-1)
     , m_muzzleFlashEffectHandles{ -1, -1, -1, -1, -1 }
 {
     // 乱数のシードを設定
@@ -91,6 +93,10 @@ Effect::Effect()
     // シールドヒットエフェクトハンドルの読み込み
     m_shieldHitEffectHandle = LoadEffekseerEffect("data/Effekseer/HitBurst.efkefc", 10.0f);
     assert(m_shieldHitEffectHandle != -1);
+
+    // シールド破壊可能エフェクトハンドルの読み込み
+    m_shieldBreakEffectHandle = LoadEffekseerEffect("data/Effekseer/ShieldBreak.efkefc", 50.0f); 
+    assert(m_shieldBreakEffectHandle != -1);
 }
 
 Effect::~Effect()
@@ -369,6 +375,26 @@ int Effect::PlayShieldHitEffect(const VECTOR& pos, const VECTOR& normal)
 
             // HitBurstは少し大きめにしたり調整が必要ならここで
             SetScalePlayingEffekseer3DEffect(handle, 2.0f, 2.0f, 2.0f);
+            m_playingEffectHandles.push_back(handle);
+        }
+        return handle;
+    }
+    return -1;
+}
+
+// シールド破壊可能エフェクトを再生する
+int Effect::PlayShieldBreakEffect(const VECTOR& pos)
+{
+    if (!ShouldPlayEffect(pos.x, pos.y, pos.z)) return -1;
+
+    if (m_shieldBreakEffectHandle != -1)
+    {
+        int handle = PlayEffekseer3DEffect(m_shieldBreakEffectHandle);
+        if (handle != -1)
+        {
+            SetPosPlayingEffekseer3DEffect(handle, pos.x, pos.y, pos.z);
+            // 必要に応じてスケール調整
+            // SetScalePlayingEffekseer3DEffect(handle, 10.0f, 10.0f, 10.0f);
             m_playingEffectHandles.push_back(handle);
         }
         return handle;
