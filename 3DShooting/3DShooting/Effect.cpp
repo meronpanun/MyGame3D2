@@ -60,40 +60,32 @@ Effect::Effect()
     }
 
     // 出血エフェクトハンドルの読み込み
-    m_lossOfBloodEffectHandle = LoadEffekseerEffect(
-        "data/Effekseer/LossOfBlood.efkefc", kLossOfBloodEffectScale);
+    m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", kLossOfBloodEffectScale);
     assert(m_lossOfBloodEffectHandle != -1);
     // 集中線エフェクトハンドルの読み込み
-    m_concentrationLineEffectHandle = LoadEffekseerEffect(
-        "data/Effekseer/ConcentrationLine.efkefc", kConcentrationLineEffectScale);
+    m_concentrationLineEffectHandle = LoadEffekseerEffect("data/Effekseer/ConcentrationLine.efkefc", kConcentrationLineEffectScale);
     assert(m_concentrationLineEffectHandle != -1);
 
     // ガードエフェクトハンドルの読み込み
-    m_guardEffectHandle =
-        LoadEffekseerEffect("data/Effekseer/Circle.efkefc", kGuardEffectScale);
+    m_guardEffectHandle = LoadEffekseerEffect("data/Effekseer/Circle.efkefc", kGuardEffectScale);
     assert(m_guardEffectHandle != -1);
 
     // スパークエフェクトハンドルの読み込み
-    m_sparkEffectHandle =
-        LoadEffekseerEffect("data/Effekseer/Spark.efkefc", kSparkEffectScale);
+    m_sparkEffectHandle = LoadEffekseerEffect("data/Effekseer/Spark.efkefc", kSparkEffectScale);
     assert(m_sparkEffectHandle != -1);
-    m_sparkEffectHandle2 = LoadEffekseerEffect(
-        "data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale4);
+    m_sparkEffectHandle2 = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale4);
     assert(m_sparkEffectHandle2 != -1);
 
     // 酸エフェクトハンドルの読み込み
-    m_acidEffectHandle =
-        LoadEffekseerEffect("data/Effekseer/ParryBullet.efkefc", 15.0f);
+    m_acidEffectHandle = LoadEffekseerEffect("data/Effekseer/ParryBullet.efkefc", 15.0f);
     assert(m_acidEffectHandle != -1);
 
     // 通常弾エフェクトハンドルの読み込み
-    m_normalBulletEffectHandle =
-        LoadEffekseerEffect("data/Effekseer/NormalBullet.efkefc", 15.0f);
+    m_normalBulletEffectHandle = LoadEffekseerEffect("data/Effekseer/NormalBullet.efkefc", 15.0f);
     assert(m_normalBulletEffectHandle != -1);
 
     // 近接範囲攻撃エフェクトハンドルの読み込み
-    m_closeRangeAttackEffectHandle =
-        LoadEffekseerEffect("data/Effekseer/CloseRangeAttack.efkefc", 30.0f);
+    m_closeRangeAttackEffectHandle = LoadEffekseerEffect("data/Effekseer/CloseRangeAttack.efkefc", 50.0f);
     assert(m_closeRangeAttackEffectHandle != -1);
 
     // ボスシールドエフェクトハンドルの読み込み

@@ -111,6 +111,9 @@ public:
     void ApplyKnockback(const VECTOR& velocity);
 
     static constexpr float kGroundY = 0.0f;
+    
+    // 強制的に垂直速度をリセット（ボスのシールドに乗った時など）
+    void ResetVerticalVelocity() { m_jumpVelocity = 0.0f; }
 
 private:
     void UpdateCollider();

@@ -83,7 +83,11 @@ public:
     /// プレイヤーの位置を設定する
     /// </summary>
     /// <param name="pos">設定する位置</param>
-    void SetPos(const VECTOR& pos) { m_pos = pos; }
+    void SetPos(const VECTOR& pos) { 
+        m_pos = pos; 
+        m_modelPos = pos;
+        m_movement.SetPos(pos);
+    }
 
     /// <summary>
     /// 弾の取得
@@ -133,7 +137,14 @@ public:
     /// 現在の体力を取得する
     /// </summary>
     /// <returns>現在の体力</returns>
+    /// <summary>
+    /// 現在の体力を取得する
+    /// </summary>
+    /// <returns>現在の体力</returns>
     float GetHealth() const { return m_health; }
+
+    // 垂直速度リセット (ボスシールド対策)
+    void ResetVerticalVelocity() { m_movement.ResetVerticalVelocity(); }
 
     /// <summary>
     /// 最大体力を取得する

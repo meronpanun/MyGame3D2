@@ -37,7 +37,7 @@ namespace EnemyBossConstants
     constexpr float kBodyColliderRadius = 40.0f;
     constexpr float kBodyColliderHeight = 350.0f;
     constexpr float kHeadRadius = 25.0f;
-    constexpr float kAttackRangeRadius = 150.0f; // 指定された近接範囲
+    constexpr float kAttackRangeRadius = 450.0f; // 指定された近接範囲 (シールド接触(350f) + 余裕で確実に当てる)
     constexpr float kAttackHitRadius = 60.0f;    // 攻撃自体の当たり判定
 
     constexpr int kAttackCooldownMax = 60;
@@ -437,7 +437,11 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
         // デバッグ用ヒット表示も更新 (ボスの位置に追従させる)
         // 常に更新しないと、攻撃アニメーション中に移動した場合に表示が置いていかれる
-        m_pAttackHitCollider->SetSegment(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetCenter());
+        // 球から縦長のカプセルに変更し、高さズレによる空振りを防ぐ
+        VECTOR hitBasePos = m_pos;
+        VECTOR hitTopPos = m_pos;
+        hitTopPos.y += EnemyBossConstants::kBodyColliderHeight;
+        m_pAttackHitCollider->SetSegment(hitBasePos, hitTopPos);
         m_pAttackHitCollider->SetRadius(m_pAttackRangeCollider->GetRadius());
 
         // 攻撃ヒット判定
@@ -647,26 +651,42 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 m_hasShotLongRange = false;
                 ChangeAnimation(AnimState::LongRangeAttack, false);
             }
-            else
-            {
-                // 範囲外なら近づく
-                if (disToPlayer >= EnemyBossConstants::kLongRangeAttackMaxDist)
-                {
-                    VECTOR dir = VNorm(toPlayer);
-                    m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
-                }
-                // 範囲内過ぎるなら離れる 
-                else if (disToPlayer < EnemyBossConstants::kLongRangeAttackMinDist)
-                {
-                    VECTOR dir = VNorm(toPlayer);
-                    m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
-                }
                 else
                 {
-                    // 範囲内で移動不要ならIdleへ
-                    ChangeAnimation(AnimState::Idle, true);
+                    // 範囲内なら攻撃へ
+                    if (CanAttackPlayer(player))
+                    {
+                        ChangeAnimation(AnimState::Attack, false);
+                    }
+                    // 範囲外なら近づく
+                    else if (disToPlayer >= EnemyBossConstants::kLongRangeAttackMaxDist)
+                    {
+                        VECTOR dir = VNorm(toPlayer);
+                        m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
+                    }
+                    // 近すぎる場合 (シールド接触距離より内側に入り込んだ場合など)
+                    else if (disToPlayer < EnemyBossConstants::kAttackRangeRadius)
+                    {
+                         // 攻撃できるなら攻撃（優先）、そうでなければ少し離れるか、そのまま
+                         if (CanAttackPlayer(player))
+                         {
+                             ChangeAnimation(AnimState::Attack, false);
+                         }
+                         else
+                         {
+                             // 攻撃できないけど近い -> 少し離れて位置調整
+                             // ただしシールドで押されるので、無理に下がる必要はないかもしれないが
+                             // 念のため
+                             // VECTOR dir = VNorm(toPlayer); // 逆方向へ
+                             // m_pos = VSub(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale() * 0.5f));
+                         }
+                    }
+                    else
+                    {
+                        // 中間距離 (Idleへ)
+                        ChangeAnimation(AnimState::Idle, true);
+                    }
                 }
-            }
         }
     }
 
@@ -755,43 +775,84 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
     ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
 
+
+
     // シールドとの押し出し処理
     if (!m_isShieldBroken && m_pShieldCollider)
     {
+        // 衝突判定用に現在のシールド位置を計算 (コライダー更新は描画同期のため後で行う)
+        VECTOR shieldPos = m_pos;
+        shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
+        
         float shieldRadius = m_pShieldCollider->GetRadius();
-        float playerRadius = playerBodyCollider->GetRadius();
-        VECTOR shieldCenter = m_pShieldCollider->GetCenter();
         
-        // プレイヤーカプセルとシールド球の最短距離計算
-        VECTOR playerSegA = playerBodyCollider->GetSegmentA();
-        VECTOR playerSegB = playerBodyCollider->GetSegmentB();
-        VECTOR playerCenter = VAdd(playerSegA, VScale(VSub(playerSegB, playerSegA), 0.5f)); // 簡易的に中心を使用
-
-        // 厳密なカプセルvs球の判定 (カプセル線分上の最近点を探す)
-        VECTOR segVec = VSub(playerSegB, playerSegA);
-        float segLenSq = VSquareSize(segVec);
-        float t = 0.0f;
-        if (segLenSq > 0.0f) {
-            t = VDot(VSub(shieldCenter, playerSegA), segVec) / segLenSq;
-            t = (t < 0.0f) ? 0.0f : ((t > 1.0f) ? 1.0f : t);
-        }
-        VECTOR closestPointOnSeg = VAdd(playerSegA, VScale(segVec, t));
-        
-        VECTOR toPlayer = VSub(closestPointOnSeg, shieldCenter);
-        float distSq = VSquareSize(toPlayer);
-        float minShieldDist = shieldRadius + playerRadius;
-
-        if (distSq < minShieldDist * minShieldDist && distSq > 0.0001f)
+        // プレイヤーの位置を取得 (確実に現在の位置を使うためGameクラスから取得)
+        if (Game::m_pPlayer)
         {
-            float dist = sqrtf(distSq);
-            float pushLen = minShieldDist - dist;
-            VECTOR pushDir = VScale(toPlayer, 1.0f / dist);
-            
-            if (Game::m_pPlayer)
+            VECTOR playerPos = Game::m_pPlayer->GetPos();
+            VECTOR playerCapA, playerCapB;
+            float playerRadius;
+            Game::m_pPlayer->GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
+
+            // カプセル(Player)と球(Shield)の最近接点を求める
+            VECTOR segVec = VSub(playerCapB, playerCapA);
+            VECTOR ptToA = VSub(shieldPos, playerCapA);
+            float segLenSq = VSquareSize(segVec);
+            float t = 0.0f;
+            if (segLenSq > 0.0001f)
             {
-                VECTOR currentPlayerPos = Game::m_pPlayer->GetPos();
-                VECTOR newPos = VAdd(currentPlayerPos, VScale(pushDir, pushLen));
+                t = VDot(ptToA, segVec) / segLenSq;
+                t = (std::max)(0.0f, (std::min)(1.0f, t));
+            }
+            VECTOR closestPointOnPlayer = VAdd(playerCapA, VScale(segVec, t));
+
+            // シールド中心からプレイヤーの最近接点へのベクトル
+            VECTOR pushDir = VSub(closestPointOnPlayer, shieldPos);
+            float distSq = VSquareSize(pushDir);
+            float minDist = shieldRadius + playerRadius;
+
+            // 完全重なり対策
+            if (distSq <= 0.0001f)
+            {
+                // 重なっている場合は、XZ平面で外へ押し出す (上方向など変な方向へ行くのを防ぐためデフォルトは水平)
+                pushDir = VSub(playerPos, m_pos);
+                pushDir.y = 0.0f;
+                if (VSquareSize(pushDir) > 0.0001f)
+                {
+                    pushDir = VNorm(pushDir);
+                }
+                else
+                {
+                    pushDir = VGet(0.0f, 0.0f, -1.0f); // 適当な方向
+                }
+                distSq = 0.0f;
+            }
+
+            if (distSq < minDist * minDist)
+            {
+                float dist = sqrtf(distSq);
+                float pushLen = minDist - dist;
+                
+                // 押し出しベクトル正規化
+                if (dist > 0.0001f)
+                {
+                    pushDir = VScale(pushDir, 1.0f / dist);
+                }
+
+                // 押し出し
+                pushLen += 1.0f; // マージン
+                VECTOR newPos = VAdd(playerPos, VScale(pushDir, pushLen));
                 Game::m_pPlayer->SetPos(newPos);
+
+                // 上方向に押し出された場合(シールドに乗った場合)、重力による振動を防ぐために垂直速度をリセット
+                if (pushDir.y > 0.5f)
+                {
+                    // Playerクラスに追加した垂直速度リセット関数を呼ぶ
+                    // Game::m_pPlayerはconstポインタではないのでそのまま呼べるはずだが、
+                    // constアクセッサしかない場合はキャストが必要。
+                    // ここではGame::m_pPlayerはPlayer*なのでOK
+                    Game::m_pPlayer->ResetVerticalVelocity();
+                }
             }
         }
     }
@@ -821,6 +882,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
 
     // シールドコライダーの位置更新
+    // 描画・エフェクトと同期させるため、フレーム末尾で更新
     if (m_pShieldCollider)
     {
         m_pShieldCollider->SetCenter(shieldPos);
