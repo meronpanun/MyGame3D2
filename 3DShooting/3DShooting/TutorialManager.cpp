@@ -40,6 +40,7 @@ namespace
     constexpr float kCheckMarkDrawSize = 1.0f; // チャックマーク画像の大きさ
 
     // UIボックス関連
+    constexpr int kUIOffsetY = 200;              // UIのY座標オフセット
     constexpr int kBoxPaddingX = 30;             // ボックスの左右パディング
     constexpr int kBoxPaddingY = 15;             // ボックスの上下パディング
     constexpr int kBoxAlpha = 180;               // ボックスのアルファ値
@@ -341,7 +342,7 @@ void TutorialManager::Draw(int screenW, int screenH)
         int boxHeight = scaledKeyImageSize + scaledBoxPaddingY * 2;
 
         int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(20 * scale);
+        int boxY = static_cast<int>(kUIOffsetY * scale);
 
         // 半透明の背景ボックスを描画
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -402,7 +403,7 @@ void TutorialManager::Draw(int screenW, int screenH)
         int boxWidth = imagesWidth + remainingTextWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
         int boxHeight = scaledKeyImageSize + scaledBoxPaddingY * 2;
         int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(20 * scale);
+        int boxY = static_cast<int>(kUIOffsetY * scale);
 
         // 半透明の背景ボックスを描画
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -456,7 +457,7 @@ void TutorialManager::Draw(int screenW, int screenH)
         int boxHeight = scaledKeyImageHeight + scaledBoxPaddingY * 2;
 
         int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(20 * scale);
+        int boxY = static_cast<int>(kUIOffsetY * scale);
 
         // 半透明の背景ボックスを描画
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -511,7 +512,7 @@ void TutorialManager::Draw(int screenW, int screenH)
         int boxHeight = static_cast<int>(kShiftImageWidth * 0.5f * scale) + scaledBoxPaddingY * 2;
 
         int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(20 * scale);
+        int boxY = static_cast<int>(kUIOffsetY * scale);
 
         // 半透明の背景ボックスを描画
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -565,7 +566,7 @@ void TutorialManager::Draw(int screenW, int screenH)
             int boxWidth = textWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
             int boxHeight = scaledCheckMarkBaseSize + scaledBoxPaddingY * 2;
             int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-            int boxY = static_cast<int>(20 * scale);
+            int boxY = static_cast<int>(kUIOffsetY * scale);
 
             // 半透明の背景ボックスを描画
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);

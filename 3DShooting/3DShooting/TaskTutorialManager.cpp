@@ -15,7 +15,7 @@ namespace
 
     // UI関連
     constexpr int kTaskTextX = 60;
-    constexpr int kTaskTextY = 60;
+    constexpr int kTaskTextY = 200;
     constexpr int kTaskFontSize = 36;
     constexpr int kTaskFontThickness = 3;
     constexpr unsigned int kTaskTextColor = 0xFFFFFF;
@@ -70,16 +70,16 @@ TaskTutorialManager::TaskTutorialManager()
     , m_mouseRightGuardImg("data/image/MouseRight.png")
     , m_designerImg("data/image/Designer.png")
     , m_titlePosX(0.0f)
-    , m_titleAnimSpeed(5.0f)
+    , m_titleAnimSpeed(15.0f) // 5.0f -> 15.0f (3倍)
     , m_isTitleAnimFinished(false)
     , m_taskAlpha(0)
-    , m_taskFadeSpeed(5.0f)
+    , m_taskFadeSpeed(15.0f) // 5.0f -> 15.0f (3倍)
     , m_animationWaitTimer(0)
     , m_displayedShootProgress(0.0f)
     , m_displayedTackleProgress(0.0f)
     , m_displayedShieldThrowProgress(0.0f)
     , m_displayedParryProgress(0.0f)
-    , m_progressAnimSpeed(0.02f)
+    , m_progressAnimSpeed(0.05f) // 0.02f -> 0.05f (2.5倍)
     , m_transitionDelayTimer(0)
     , m_hasShownParryTutorial(false)
     , m_isParryTutorialPaused(false)
@@ -330,7 +330,7 @@ void TaskTutorialManager::Update()
         {
             m_titlePosX = kTaskTextX;
             m_isTitleAnimFinished = true;
-            m_animationWaitTimer = 60; // 60フレーム待機
+            m_animationWaitTimer = 30; // 60 -> 30フレーム待機へ短縮
         }
     }
     else
@@ -358,7 +358,7 @@ void TaskTutorialManager::Update()
         if (m_shootKills >= kShootKillGoal)
         {
             m_step = TaskStep::ShootCompleteDelay;
-            m_transitionDelayTimer = 120; // 120フレーム待機
+            m_transitionDelayTimer = 60; // 120 -> 60フレーム待機へ短縮
         }
         break;
     case TaskStep::ShootCompleteDelay:
@@ -382,7 +382,7 @@ void TaskTutorialManager::Update()
         if (m_tackleKills >= kTackleKillGoal)
         {
             m_step = TaskStep::TackleCompleteDelay;
-            m_transitionDelayTimer = 120; // 120フレーム待機
+            m_transitionDelayTimer = 60; // 120 -> 60フレーム待機へ短縮
         }
         break;
     case TaskStep::TackleCompleteDelay:
@@ -405,7 +405,7 @@ void TaskTutorialManager::Update()
         if (m_shieldThrowKills >= kShieldThrowKillGoal)
         {
             m_step = TaskStep::ShieldThrowCompleteDelay;
-            m_transitionDelayTimer = 120;
+            m_transitionDelayTimer = 60; // 120 -> 60フレームへ短縮
         }
         break;
     case TaskStep::ShieldThrowCompleteDelay:
@@ -428,7 +428,7 @@ void TaskTutorialManager::Update()
         if (m_parryCount >= kParryGoal)
         {
             m_step = TaskStep::ParryCompleteDelay;
-            m_transitionDelayTimer = 120;
+            m_transitionDelayTimer = 60; // 120 -> 60フレームへ短縮
         }
         break;
     case TaskStep::ParryCompleteDelay:
