@@ -351,4 +351,7 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="data\model\MeshFence.mv1" />
+  </ItemGroup>
 </Project>

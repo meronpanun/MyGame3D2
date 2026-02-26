@@ -48,37 +48,37 @@ void Stage::LoadStage(bool isTutorial)
 			{
 				modelPath = "Data/Model/UNIConcrete.mv1";
 			}
-			else if (data.name == "Road_floor")
+			else if (data.name == "RoadFloor")
 			{
-				modelPath = "Data/Model/Road_floor.mv1";
+				modelPath = "Data/Model/RoadFloor.mv1";
 			}
-			else if (data.name == "Hangar_v3_basic")
+			else if (data.name == "HangarV3")
 			{
-				modelPath = "Data/Model/Hangar_v3.mv1";
+				modelPath = "Data/Model/HangarV3.mv1";
 			}	
-			else if (data.name == "Hangar_v1_full")
+			else if (data.name == "HangarV1")
 			{
 				modelPath = "Data/Model/Hangar.mv1";
 			}	
-			else if (data.name == "Cargo_container_v1_LD1close")
+			else if (data.name == "CargoContainer")
 			{
-				modelPath = "Data/Model/container.mv1";
+				modelPath = "Data/Model/Container.mv1";
 			}
 		}
 		else
 		{
 			// 新モデルの処理
-			if (data.name == "Barrier_Group_1A")
+			if (data.name == "BarrierGroup1A")
 			{
-				modelPath = "Data/Model/Barrier_Group_1A.mv1";
+				modelPath = "Data/Model/BarrierGroup1A.mv1";
 			}
-			else if (data.name == "Basic_Stairs_1B")
+			else if (data.name == "BasicStairs1B")
 			{
-				modelPath = "Data/Model/Basic_Stairs_1B.mv1";
+				modelPath = "Data/Model/BasicStairs1B.mv1";
 			}
-			else if (data.name == "Block_Platform_1B")
+			else if (data.name == "BlockPlatform1B")
 			{
-				modelPath = "Data/Model/Block_Platform_1B.mv1";
+				modelPath = "Data/Model/BlockPlatform1B.mv1";
 			}
 			else if (data.name == "Block_Platform_Corner_1B(Mirrored)")
 			{
@@ -92,21 +92,21 @@ void Stage::LoadStage(bool isTutorial)
 			{
 				modelPath = "Data/Model/Chain.mv1";
 			}
-			else if (data.name == "Floor_A")
+			else if (data.name == "FloorA")
 			{
-				modelPath = "Data/Model/Floor_A.mv1";
+				modelPath = "Data/Model/FloorA.mv1";
 			}
-			else if (data.name == "Floor_B")
+			else if (data.name == "FloorB")
 			{
-				modelPath = "Data/Model/Floor_B.mv1";
+				modelPath = "Data/Model/FloorB.mv1";
 			}
-			else if (data.name == "rock_3_br")
+			else if (data.name == "Rock3")
 			{
-				modelPath = "Data/Model/rock_3_br.mv1";
+				modelPath = "Data/Model/Rock3.mv1";
 			}
-			else if (data.name == "rock_6_br")
+			else if (data.name == "Rock6")
 			{
-				modelPath = "Data/Model/rock_6_br.mv1";
+				modelPath = "Data/Model/Rock6.mv1";
 			}
 		}
 

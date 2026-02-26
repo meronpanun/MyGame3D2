@@ -3,6 +3,21 @@
 #include "ManagedFont.h"
 #include "ManagedGraph.h"
 #include "ManagedSound.h"
+#include "SafeHandle.h"
+#include <vector>
+
+/// <summary>
+/// ゾンビの描画用データ
+/// </summary>
+struct ZombieData
+{
+    VECTOR pos;          // 位置
+    float angleY;        // Y軸回転
+    float animTime;      // 現在のアニメーション再生時間
+    float animSpeed;     // アニメーション再生速度
+    int animIndex;       // 再生するアニメーションのインデックス（IDLEかATK_HEADなど）
+    float totalAnimTime; // アニメーションの総再生時間
+};
 
 /// <summary>
 /// タイトルシーンクラス
@@ -40,5 +55,19 @@ private:
     // ゲームスタートテキスト演出関連
     int m_gameStartTextAlpha;     // ゲームスタートテキストのアルファ値
     int m_gameStartTextAlphaDir;  // ゲームスタートテキストのアルファ値の増減方向
+
+    // 3D背景演出パラメータ
+    SafeHandle<ModelDeleter> m_skyDome;    // スカイドームモデル
+    SafeHandle<ModelDeleter> m_floorModel; // 床モデル
+    SafeHandle<ModelDeleter> m_fenceModel; // フェンスモデル
+    SafeHandle<ModelDeleter> m_armoryBillboardModel; // Armory看板モデル
+    SafeHandle<ModelDeleter> m_hangarV3Model; // HangarV3モデル
+    SafeHandle<ModelDeleter> m_hangarModel; // Hangarモデル
+    SafeHandle<ModelDeleter> m_containerModel; // コンテナモデル
+    SafeHandle<ModelDeleter> m_zombieModel; // ゾンビモデル
+    std::vector<ZombieData> m_zombies;     // 背景に配置するゾンビのリスト
+
+    int m_animIndexIdle;    // IDLEアニメーションのインデックス
+    int m_animIndexAtkHead; // ATK_HEADアニメーションのインデックス
 };
 

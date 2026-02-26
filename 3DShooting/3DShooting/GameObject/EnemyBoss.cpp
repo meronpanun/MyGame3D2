@@ -538,7 +538,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
             // 放物線攻撃判定
             std::string groundedObj = player.GetGroundedObjectName();
-            if ((groundedObj == "rock_3_br" || groundedObj == "rock_6_br") &&
+            if ((groundedObj == "Rock3" || groundedObj == "Rock6") &&
                 !EnemyBase::IsTargetVisible(spawnPos, player.GetPos(), collisionData))
             {
                 bullet.isParabolic = true;

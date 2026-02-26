@@ -65,7 +65,7 @@ public:
     void SetOnEnemyHitCallback(std::function<void(EnemyBase::HitPart, float)> cb);
 
     /// <summary>
-    /// Road_floorオブジェクトの範囲を設定
+    /// RoadFloorオブジェクトの範囲を設定
     /// </summary>
     void SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos);
 
@@ -215,7 +215,7 @@ private:
     std::function<void(const VECTOR&)> m_onEnemyDeathCallback;
     std::function<void(EnemyBase::HitPart, float)> m_onEnemyHitCallback;
 
-    // Road_floor範囲
+    // RoadFloor範囲
     VECTOR m_roadFloorMin;
     VECTOR m_roadFloorMax;
 

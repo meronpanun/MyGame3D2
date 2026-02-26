@@ -276,7 +276,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 
         // プレイヤーが岩の上にいる場合は、プレイヤーの周囲をうろうろする
         std::string groundObj = player.GetGroundedObjectName();
-        if (groundObj == "rock_3_br" || groundObj == "rock_6_br")
+        if (groundObj == "Rock3" || groundObj == "Rock6")
         {
             m_wanderTimer--;
             if (m_wanderTimer <= 0)

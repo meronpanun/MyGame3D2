@@ -87,7 +87,7 @@ namespace SceneMainConstants
     // レティクル表示位置補正値
     constexpr int kReticleOffset = 64;
 
-    // Road_floorオブジェトの範囲
+    // RoadFloorオブジェトの範囲
     constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // 床の最小座標
     constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
 }
@@ -228,7 +228,7 @@ void SceneMain::Init()
     // ボスUIの作成
     m_pBossUI = std::make_unique<BossUI>();
 
-    // Road_floorオブジェクトの範囲を設定（マップ全体の範囲）
+    // RoadFloorオブジェクトの範囲を設定（マップ全体の範囲）
     m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
 
     // カメラの初期化

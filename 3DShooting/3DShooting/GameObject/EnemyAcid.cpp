@@ -228,7 +228,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
     VECTOR viewStartPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
 
-    if ((groundedObj == "rock_3_br" || groundedObj == "rock_6_br") &&
+    if ((groundedObj == "Rock3" || groundedObj == "Rock6") &&
         !EnemyBase::IsTargetVisible(viewStartPos, player.GetPos(), stageCollision))
     {
         ball.isParabolic = true;

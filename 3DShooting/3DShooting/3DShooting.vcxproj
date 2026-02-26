@@ -259,6 +259,9 @@
     <ClInclude Include="WaveManager.h" />
     <ClInclude Include="WaveUI.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="data\model\MeshFence.mv1" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
