@@ -610,6 +610,18 @@ bool TutorialManager::IsCompleted() const
     return m_step == Step::Completed;
 }
 
+// チュートリアルをスキップして完了済みにする
+void TutorialManager::Skip()
+{
+    m_step = Step::Completed;
+    m_uiState = UIState::Hidden;
+    m_isCompletedDisplay = false;
+    m_isMoveDone = true;
+    m_isViewDone = true;
+    m_isJumpDone = true;
+    m_isRunDone = true;
+}
+
 void TutorialManager::AddMessage(const std::string& title,
     const std::string& detail)
 {

@@ -15,6 +15,7 @@
 #include "GameObject/EnemyRunner.h"
 #include "GameObject/EnemyBoss.h"
 #include "GameObject/EnemyAcid.h"
+#include "TaskTutorialManager.h"
 #include <cassert>
 
 
@@ -347,6 +348,13 @@ DebugMenu::MenuItem DebugMenu::CreateSceneMenu()
          {},
          []() { SceneMain::s_isSkipTutorial = !SceneMain::s_isSkipTutorial; },
          []() { return SceneMain::s_isSkipTutorial ? "[ON]" : "[OFF]"; }},
+        {"Skip to Parry Tutorial",
+         {},
+         []() {
+             if (TaskTutorialManager::GetInstance()) {
+                 TaskTutorialManager::GetInstance()->SkipToParry();
+             }
+         }},
         {"TitleScene",
          {},
          []() {

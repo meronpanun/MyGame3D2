@@ -58,7 +58,12 @@ public:
     void Draw(int screenW, int screenH);
 
     /// <summary>
-    /// チュートリアルがアクティブかどうか
+    /// チュートリアルをスキップして完了済みにする
+    /// </summary>
+    void Skip();
+
+    /// <summary>
+    /// チュートリアルがアクティブかどうかの判断
     /// </summary>
     /// <returns>アクティブならtrue</returns>
     bool IsActive() const;

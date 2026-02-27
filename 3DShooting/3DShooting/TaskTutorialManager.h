@@ -43,6 +43,9 @@ public:
     // チュートリアルをスキップする
     void Skip(WaveManager* pWaveManager);
 
+    // パリィタスクまでチュートリアルをスキップする
+    void SkipToParry();
+
     // 制限されたアクションが行われたことを通知する
     void NotifyRestrictedAction(AttackType attemptedType);
 

@@ -103,6 +103,18 @@ public:
     WaveManager* GetWaveManager() const { return m_pWaveManager.get(); }
 
     /// <summary>
+    /// TutorialManagerを取得
+    /// </summary>
+    /// <returns>TutorialManagerのポインタ</returns>
+    TutorialManager* GetTutorialManager() const { return m_pTutorialManager.get(); }
+
+    /// <summary>
+    /// Playerのポインタを取得
+    /// </summary>
+    /// <returns>Playerのポインタ</returns>
+    Player* GetPlayerPtr() const { return m_pPlayer.get(); }
+
+    /// <summary>
     /// ゲーム経過時間（秒）を取得
     /// </summary>
     /// <returns>経過時間（秒）</returns>
@@ -118,6 +130,12 @@ public:
     /// すべてのエフェクトを停止する
     /// </summary>
     void StopAllEffects();
+
+    /// <summary>
+    /// TaskTutorialInitフラグを設定する
+    /// </summary>
+    /// <param name="isInit">初期化済みか</param>
+    void SetTaskTutorialInit(bool isInit) { m_isTaskTutorialInit = isInit; }
 
 private:
     void DrawPauseMenu();

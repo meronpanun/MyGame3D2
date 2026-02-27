@@ -3,6 +3,8 @@
 #include "Game.h"
 #include "Player.h"
 #include "WaveManager.h"
+#include "Scene/SceneMain.h"
+#include "TutorialManager.h"
 #include <string>
 
 namespace
@@ -225,6 +227,60 @@ void TaskTutorialManager::Skip(WaveManager* pWaveManager)
     m_pWaveManager = pWaveManager;
     m_hasShownParryTutorial = false;
     m_isParryTutorialPaused = false;
+    Game::SetPaused(false);
+}
+
+void TaskTutorialManager::SkipToParry()
+{
+    // 必要なポインタがセットされていない場合はSceneMainから取得を試みる
+    if (!m_pWaveManager || !m_pPlayer)
+    {
+        if (SceneMain::Instance())
+        {
+            m_pWaveManager = SceneMain::Instance()->GetWaveManager();
+            m_pPlayer = SceneMain::Instance()->GetPlayerPtr();
+        }
+    }
+
+    // それでも取得できなければ無視
+    if (!m_pWaveManager || !m_pPlayer) return;
+
+    // 前半の基本チュートリアル(TutorialManager)が終わっていない状態で呼ばれた場合、
+    // SceneMain側にTaskTutorialInitフラグを立てさせるか、強制的に切り替えるために
+    // 基本操作チュートリアルを終わらせる必要がある。
+    if (SceneMain::Instance() && SceneMain::Instance()->GetTutorialManager())
+    {
+        SceneMain::Instance()->GetTutorialManager()->Skip();
+        SceneMain::Instance()->SetTaskTutorialInit(true); // SceneMain側でInit()の二重呼び出しを防ぐ
+    }
+
+    // パリィタスクから再開するように状態を上書き
+    m_step = TaskStep::Parry;
+
+    // 既に倒した敵がいた場合などのリセット
+    m_parryCount = 0;
+    m_displayedParryProgress = 0.0f;
+
+    // アニメーションを最初から再生するように各種フラグ・座標をリセット
+    m_titlePosX = -450.0f;
+    m_isTitleAnimFinished = false;
+    m_taskAlpha = 0;
+    m_animationWaitTimer = 0;
+    m_transitionDelayTimer = 0;
+
+    m_hasShownParryTutorial = false;
+    m_isParryTutorialPaused = false;
+    
+    m_restrictedActionTimer = 0;
+    m_restrictedActionType = AttackType::None;
+    m_restrictedActionAlpha = 0;
+
+    // 現在の敵やウェーブ情報をクリアし、パリィウェーブ(Wave4)を再スポーン
+    m_pWaveManager->SpawnTutorialWave(4);
+
+    // プレイヤーの攻撃制限をパリィのみに変更
+    m_pPlayer->SetAttackRestrictions(AttackType::Parry);
+
     Game::SetPaused(false);
 }
 

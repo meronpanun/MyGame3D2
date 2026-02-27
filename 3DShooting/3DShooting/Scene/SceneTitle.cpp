@@ -256,24 +256,20 @@ SceneBase* SceneTitle::Update()
         for (auto& zombie : m_zombies)
         {
             float oldAnimTime = zombie.animTime;
-            zombie.animTime += zombie.animSpeed;
-            if (zombie.animTime >= zombie.totalAnimTime)
-            {
-                zombie.animTime = fmodf(zombie.animTime, zombie.totalAnimTime);
-            }
-
+            float newAnimTime = zombie.animTime + zombie.animSpeed;
+            
             // ATK_HEAD アニメーションでフェンスを叩くタイミングを検知して揺れを加算
             if (zombie.animIndex == m_animIndexAtkHead)
             {
-                // アニメーションの総再生時間の特定の割合（例: 0.4付近が頭突き/腕振りのヒットタイミングと仮定）を通過したかチェック
+                // アニメーションの総再生時間の特定の割合を通過したかチェック
                 float hitTiming = zombie.totalAnimTime * 0.4f; 
-                // もしくは簡易的にアニメーションループの終端付近でヒットしたと仮定するなど
-                // ここでは、oldAnimTimeがhitTiming未満で、今回のanimTimeがhitTimingを超えた瞬間に揺れを発生させる
-                if (oldAnimTime < hitTiming && zombie.animTime >= hitTiming)
+                
+                // 今回のフレームでヒットタイミングを跨いだか判定（ループ時のリセット前の純粋な加算値で比較）
+                if (oldAnimTime < hitTiming && newAnimTime >= hitTiming)
                 {
-                    // ゾンビのX座標から一番近い画面内のフェンス(インデックス i = -15〜15)を特定する
-                    // X = i * 157.8f + 298.68f より、 i = (X - 298.68f) / 157.8f
-                    float exactIdx = (zombie.pos.x - kXOffset) / kFenceInterval;
+                    // ゾンビのX座標から一番近い画面内のフェンス(インデックス i = -1, 0, 1)を特定する
+                    // フェンスは視覚的に i * kFenceInterval の位置に配置されているため、オフセットは不要
+                    float exactIdx = zombie.pos.x / kFenceInterval;
                     int nearest_i = static_cast<int>(roundf(exactIdx));
 
                     // 画面に映るフェンス（i = -1, 0, 1）のみ揺らし計算を行う
@@ -297,6 +293,13 @@ SceneBase* SceneTitle::Update()
                         }
                     }
                 }
+            }
+
+            // 最後にアニメーション時間をループ考慮して更新
+            zombie.animTime = newAnimTime;
+            if (zombie.animTime >= zombie.totalAnimTime)
+            {
+                zombie.animTime = fmodf(zombie.animTime, zombie.totalAnimTime);
             }
         }
 
