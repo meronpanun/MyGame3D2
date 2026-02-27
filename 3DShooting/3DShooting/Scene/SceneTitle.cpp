@@ -465,19 +465,21 @@ void SceneTitle::Draw()
             }
         }
 
+
+
         // Armory看板描画（フェンスの中央に張り付ける）
         if (m_armoryBillboardModel.IsValid())
         {
-            float billboardScale = 0.5f;
+            float billboardScale = 0.7f; // 0.5fから約1.4倍に拡大
             MV1SetScale(m_armoryBillboardModel, VGet(billboardScale, billboardScale, billboardScale));
 
             // Unity画像(Xが正面、Zが横幅)に基づき、正面をカメラ側(-Z方向)に向けるためY軸で90度回転させる
             // ユーザーの要望により、さらに180度回転させて裏側を向ける（90度 + 180度 = 270度 = -90度）
             MV1SetRotationXYZ(m_armoryBillboardModel, VGet(0.0f, -3.14159f / 2.0f, 0.0f));
 
-            // 中央のフェンス(X=0付近)の高さ60くらい、少しだけ手前(Z=105.0)に配置
+            // 中央のフェンス(X=0付近)の高さ80くらい、少しだけ手前(Z=90.0)に配置
             // 揺れ演出のオフセット（XとY）を加算する
-            VECTOR billboardPos = VGet(m_billboardShakeOffsetX, 60.0f + m_billboardShakeOffsetY, 105.0f);
+            VECTOR billboardPos = VGet(m_billboardShakeOffsetX, 80.0f + m_billboardShakeOffsetY, 90.0f);
             MV1SetPosition(m_armoryBillboardModel, billboardPos);
             MV1DrawModel(m_armoryBillboardModel);
 
@@ -485,12 +487,11 @@ void SceneTitle::Draw()
             if (m_banner.IsValid())
             {
                 // Zバッファを有効にしたまま、3D空間内に2D画像（ビルボード）として描画
-                // 看板より少し手前に配置（Z=104.0fなど）
+                // 看板より少し手前に配置（Z=88.0fなど）
                 VECTOR bannerPos = VGet(billboardPos.x, billboardPos.y, billboardPos.z - 2.0f);
                 
-                // 画像サイズをそのまま描画すると巨大すぎるため、看板の枠に収まるサイズを指定する
-                // TitleBannerは1920x1080 (16:9)。元の幅70.0fから、看板に合うように160.0f程度に拡大します。
-                float bannerWidth = 160.0f;
+                // TitleBannerは1920x1080 (16:9)。元の幅160.0fから、看板の拡大に合わせて224.0f程度に拡大します。
+                float bannerWidth = 224.0f;
                 float bannerHeight = bannerWidth * (1080.0f / 1920.0f); 
 
                 // カメラ固定を前提とし、看板の表面に平行な板ポリゴン（XY平面に平行）として画像を描画する
@@ -530,20 +531,23 @@ void SceneTitle::Draw()
                 vertex[5].dif = GetColorU8(255, 255, 255, 255); vertex[5].spc = GetColorU8(0, 0, 0, 0);
                 vertex[5].u = 0.0f; vertex[5].v = 1.0f; vertex[5].su = 0.0f; vertex[5].sv = 0.0f;
 
-                // カリング(裏面判定)とライティングにより黒つぶれや非表示になるのを防ぐため、一時的に無効化
+                // 設定を一時的に変更
                 SetLightEnable(FALSE);
                 SetUseLighting(FALSE);
                 SetUseBackCulling(FALSE);
 
-                // Zバッファのテストを無効にして、看板モデルに埋もれないように最前面に描画する
-                SetUseZBuffer3D(FALSE);
+                // バナー画像の透明部分がZバッファを上書きして背景をくり抜くのを防ぐため、
+                // バナー描画時のみZバッファへの書き込みを無効化する（テストは有効なままなので看板には埋もれない、あるいは両方無効化する）
                 SetWriteZBuffer3D(FALSE);
+
+                // アルファブレンドを有効化
+                SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 
                 // 透明度付きの板ポリゴンとして描画
                 DrawPolygon3D(vertex, 2, m_banner.Get(), TRUE);
 
                 // 設定を元に戻す
-                SetUseZBuffer3D(TRUE);
+                SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
                 SetWriteZBuffer3D(TRUE);
                 SetUseBackCulling(TRUE);
                 SetUseLighting(TRUE);
@@ -633,6 +637,9 @@ void SceneTitle::Draw()
 
         SetLightEnable(TRUE);
         SetUseLighting(TRUE);
+        
+
+
 
         // Zバッファの影響を受けないようにする（2D描画用）
         SetUseZBuffer3D(FALSE);
