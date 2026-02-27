@@ -63,8 +63,8 @@ private:
     int m_shakeTimer;              // 揺れ計算用タイマー（サイン波用またはランダム更新用）
 
     // フェンスの揺れ演出関連
-    // 画面外も含め全フェンス(31枚)の揺れパワーを個別に管理する
-    float m_fenceShakePower[31]; 
+    // 画面に映っているフェンス(左:0, 中央:1, 右:2)の3枚のみ揺れパワーを管理する
+    float m_fenceShakePower[3]; 
 
     // 3D背景演出パラメータ
     SafeHandle<ModelDeleter> m_skyDome;    // スカイドームモデル

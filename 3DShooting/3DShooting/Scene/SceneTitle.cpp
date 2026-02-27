@@ -276,10 +276,11 @@ SceneBase* SceneTitle::Update()
                     float exactIdx = (zombie.pos.x - kXOffset) / kFenceInterval;
                     int nearest_i = static_cast<int>(roundf(exactIdx));
 
-                    if (nearest_i >= -15 && nearest_i <= 15)
+                    // 画面に映るフェンス（i = -1, 0, 1）のみ揺らし計算を行う
+                    if (nearest_i >= -1 && nearest_i <= 1)
                     {
-                        // 配列のインデックス(0〜30)に変換
-                        int arrIdx = nearest_i + 15;
+                        // 配列のインデックス(0,1,2)に変換
+                        int arrIdx = nearest_i + 1;
 
                         // 攻撃されたフェンスに強い揺れを加算
                         m_fenceShakePower[arrIdx] += 5.0f;
@@ -290,7 +291,7 @@ SceneBase* SceneTitle::Update()
                             m_fenceShakePower[arrIdx - 1] += 2.0f;
                             if (m_fenceShakePower[arrIdx - 1] > 10.0f) m_fenceShakePower[arrIdx - 1] = 10.0f;
                         }
-                        if (arrIdx + 1 <= 30) {
+                        if (arrIdx + 1 <= 2) {
                             m_fenceShakePower[arrIdx + 1] += 2.0f;
                             if (m_fenceShakePower[arrIdx + 1] > 10.0f) m_fenceShakePower[arrIdx + 1] = 10.0f;
                         }
@@ -301,8 +302,8 @@ SceneBase* SceneTitle::Update()
 
         m_shakeTimer += 1;
 
-        // フェンスの揺れパワーの減衰
-        for (int i = 0; i < 31; ++i)
+        // フェンスの揺れパワーの減衰 (3枚分)
+        for (int i = 0; i < 3; ++i)
         {
             if (m_fenceShakePower[i] > 0.1f)
             {
@@ -314,8 +315,8 @@ SceneBase* SceneTitle::Update()
             }
         }
 
-        // 看板の揺れは、画面中央のフェンス（i=-2 が X=-16.92 で最も中央に近い -> インデックス13）の揺れパワーに連動させる
-        m_billboardShakePower = m_fenceShakePower[13] * 1.2f; // 看板は少し大げさに揺らす
+        // 看板の揺れは、画面中央のフェンス（インデックス1）に連動させる
+        m_billboardShakePower = m_fenceShakePower[1] * 1.2f;
         
         // 看板の揺れ計算
         if (m_billboardShakePower > 0.1f)
@@ -440,14 +441,15 @@ void SceneTitle::Draw()
             float kFenceInterval = 157.8f;
             float kXOffset = 995.6f * scale;
 
-            // 画面の端から端まで横一列に敷き詰める（手前側 Z=110 に配置）
-            for (int i = -15; i <= 15; ++i)
+            // 画面に映るフェンス3枚のみを描画して不要な負荷を削減（手前側 Z=110 に配置）
+            // -1 が左, 0 が中央, 1 が右
+            for (int i = -1; i <= 1; ++i)
             {
                 float offsetX = 0.0f;
                 float offsetY = 0.0f;
 
-                // 配列のインデックス(0〜30)に変換して、個別の揺れパワーを取得
-                int arrIdx = i + 15;
+                // 配列のインデックス(0, 1, 2)に変換して、個別の揺れパワーを取得
+                int arrIdx = i + 1;
                 float power = m_fenceShakePower[arrIdx];
 
                 if (power > 0.1f)
