@@ -41,11 +41,18 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     , m_isFadeOut(false)
     , m_isSceneFadeIn(false)
     , m_isBGMStarted(false)
-    , m_gameStartTextAlpha(0)
     , m_gameStartTextAlphaDir(1)
+    , m_billboardShakeOffsetX(0.0f)
+    , m_billboardShakeOffsetY(0.0f)
+    , m_billboardShakePower(0.0f)
+    , m_shakeTimer(0)
     , m_animIndexIdle(-1)
     , m_animIndexAtkHead(-1)
 {
+    for (int i = 0; i < 31; ++i) {
+        m_fenceShakePower[i] = 0.0f;
+    }
+
     // ロード確認
     assert(m_titleLogo.IsValid());
     assert(m_banner.IsValid());
@@ -78,7 +85,8 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
         // ゾンビの初期配置を生成
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<float> distPosX(-400.0f, 400.0f); // 横方向の配置幅を広げる
+        // 画面の端から端までゾンビが湧くように、見えている範囲に合わせて生成範囲を調整（-280.0f 〜 280.0f）
+        std::uniform_real_distribution<float> distPosX(-280.0f, 280.0f); 
         // ATK_HEADで前傾姿勢になった時にフェンスを貫通せず、かつ触れているように見える距離に微調整
         std::uniform_real_distribution<float> distPosZ(200.0f, 450.0f);  // 手前を少しフェンス寄りに戻す
         std::uniform_real_distribution<float> distAngleY(DX_PI_F * -0.2f, DX_PI_F * 0.2f); // 手前（カメラ側）を向く角度
@@ -89,7 +97,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
         int timeoutCounter = 0;
         constexpr float kMinDistance = 25.0f; // ゾンビ同士の最小距離を縮めて密集できるようにする
         
-        while (i < 40 && timeoutCounter < 2000)
+        while (i < 30 && timeoutCounter < 2000)
         {
             timeoutCounter++;
             
@@ -241,13 +249,90 @@ SceneBase* SceneTitle::Update()
     // ゾンビのアニメーション時間を進める (フェードイン完了後のみ)
     if (m_isFadeComplete)
     {
+        float scale = 0.3f;
+        float kFenceInterval = 157.8f;
+        float kXOffset = 995.6f * scale; // = 298.68f
+
         for (auto& zombie : m_zombies)
         {
+            float oldAnimTime = zombie.animTime;
             zombie.animTime += zombie.animSpeed;
             if (zombie.animTime >= zombie.totalAnimTime)
             {
                 zombie.animTime = fmodf(zombie.animTime, zombie.totalAnimTime);
             }
+
+            // ATK_HEAD アニメーションでフェンスを叩くタイミングを検知して揺れを加算
+            if (zombie.animIndex == m_animIndexAtkHead)
+            {
+                // アニメーションの総再生時間の特定の割合（例: 0.4付近が頭突き/腕振りのヒットタイミングと仮定）を通過したかチェック
+                float hitTiming = zombie.totalAnimTime * 0.4f; 
+                // もしくは簡易的にアニメーションループの終端付近でヒットしたと仮定するなど
+                // ここでは、oldAnimTimeがhitTiming未満で、今回のanimTimeがhitTimingを超えた瞬間に揺れを発生させる
+                if (oldAnimTime < hitTiming && zombie.animTime >= hitTiming)
+                {
+                    // ゾンビのX座標から一番近い画面内のフェンス(インデックス i = -15〜15)を特定する
+                    // X = i * 157.8f + 298.68f より、 i = (X - 298.68f) / 157.8f
+                    float exactIdx = (zombie.pos.x - kXOffset) / kFenceInterval;
+                    int nearest_i = static_cast<int>(roundf(exactIdx));
+
+                    if (nearest_i >= -15 && nearest_i <= 15)
+                    {
+                        // 配列のインデックス(0〜30)に変換
+                        int arrIdx = nearest_i + 15;
+
+                        // 攻撃されたフェンスに強い揺れを加算
+                        m_fenceShakePower[arrIdx] += 5.0f;
+                        if (m_fenceShakePower[arrIdx] > 18.0f) m_fenceShakePower[arrIdx] = 18.0f;
+                        
+                        // 隣接するフェンスに余波（少し弱い揺れ）を加算
+                        if (arrIdx - 1 >= 0) {
+                            m_fenceShakePower[arrIdx - 1] += 2.0f;
+                            if (m_fenceShakePower[arrIdx - 1] > 10.0f) m_fenceShakePower[arrIdx - 1] = 10.0f;
+                        }
+                        if (arrIdx + 1 <= 30) {
+                            m_fenceShakePower[arrIdx + 1] += 2.0f;
+                            if (m_fenceShakePower[arrIdx + 1] > 10.0f) m_fenceShakePower[arrIdx + 1] = 10.0f;
+                        }
+                    }
+                }
+            }
+        }
+
+        m_shakeTimer += 1;
+
+        // フェンスの揺れパワーの減衰
+        for (int i = 0; i < 31; ++i)
+        {
+            if (m_fenceShakePower[i] > 0.1f)
+            {
+                m_fenceShakePower[i] *= 0.7f;
+            }
+            else
+            {
+                m_fenceShakePower[i] = 0.0f;
+            }
+        }
+
+        // 看板の揺れは、画面中央のフェンス（i=-2 が X=-16.92 で最も中央に近い -> インデックス13）の揺れパワーに連動させる
+        m_billboardShakePower = m_fenceShakePower[13] * 1.2f; // 看板は少し大げさに揺らす
+        
+        // 看板の揺れ計算
+        if (m_billboardShakePower > 0.1f)
+        {
+            // 規則的なサイン波ではなく、ランダム値を使って細かくガタガタ揺れるようにする
+            // フレームごとに+と-をランダムに振る
+            float randX = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 〜 1.0
+            float randY = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 〜 1.0
+
+            m_billboardShakeOffsetX = randX * m_billboardShakePower;
+            m_billboardShakeOffsetY = randY * m_billboardShakePower;
+        }
+        else
+        {
+            m_billboardShakeOffsetX = 0.0f;
+            m_billboardShakeOffsetY = 0.0f;
+            m_billboardShakePower = 0.0f;
         }
 
         // スカイドームの回転
@@ -291,8 +376,8 @@ void SceneTitle::Draw()
     else // m_fadeAlpha == 0 の場合（フェードアウトが完全に終わった状態）
     {
         // カメラの設定（少し見下ろす位置に修正）
-        VECTOR camPos = VGet(0.0f, 100.0f, -150.0f);
-        VECTOR camTarget = VGet(0.0f, 40.0f, 100.0f); // ゾンビの群れの中心やや上を向く
+        VECTOR camPos = VGet(0.0f, 120.0f, -80.0f);
+        VECTOR camTarget = VGet(0.0f, 50.0f, 100.0f); // ゾンビの群れの中心やや上を向く
         SetCameraPositionAndTarget_UpVecY(camPos, camTarget);
         SetCameraNearFar(5.0f, 15000.0f); // スカイドームなどの遠景用
 
@@ -358,7 +443,22 @@ void SceneTitle::Draw()
             // 画面の端から端まで横一列に敷き詰める（手前側 Z=110 に配置）
             for (int i = -15; i <= 15; ++i)
             {
-                MV1SetPosition(m_fenceModel, VGet(i * kFenceInterval + kXOffset, 0.0f, 110.0f));
+                float offsetX = 0.0f;
+                float offsetY = 0.0f;
+
+                // 配列のインデックス(0〜30)に変換して、個別の揺れパワーを取得
+                int arrIdx = i + 15;
+                float power = m_fenceShakePower[arrIdx];
+
+                if (power > 0.1f)
+                {
+                    float randX = (GetRand(100) / 100.0f) * 2.0f - 1.0f;
+                    float randY = (GetRand(100) / 100.0f) * 2.0f - 1.0f;
+                    offsetX = randX * power;
+                    offsetY = randY * power;
+                }
+
+                MV1SetPosition(m_fenceModel, VGet(i * kFenceInterval + kXOffset + offsetX, offsetY, 110.0f));
                 MV1DrawModel(m_fenceModel);
             }
         }
@@ -370,10 +470,12 @@ void SceneTitle::Draw()
             MV1SetScale(m_armoryBillboardModel, VGet(billboardScale, billboardScale, billboardScale));
 
             // Unity画像(Xが正面、Zが横幅)に基づき、正面をカメラ側(-Z方向)に向けるためY軸で90度回転させる
-            MV1SetRotationXYZ(m_armoryBillboardModel, VGet(0.0f, 3.14159f / 2.0f, 0.0f));
+            // ユーザーの要望により、さらに180度回転させて裏側を向ける（90度 + 180度 = 270度 = -90度）
+            MV1SetRotationXYZ(m_armoryBillboardModel, VGet(0.0f, -3.14159f / 2.0f, 0.0f));
 
             // 中央のフェンス(X=0付近)の高さ60くらい、少しだけ手前(Z=105.0)に配置
-            VECTOR billboardPos = VGet(0.0f, 60.0f, 105.0f);
+            // 揺れ演出のオフセット（XとY）を加算する
+            VECTOR billboardPos = VGet(m_billboardShakeOffsetX, 60.0f + m_billboardShakeOffsetY, 105.0f);
             MV1SetPosition(m_armoryBillboardModel, billboardPos);
             MV1DrawModel(m_armoryBillboardModel);
 
@@ -385,12 +487,65 @@ void SceneTitle::Draw()
                 VECTOR bannerPos = VGet(billboardPos.x, billboardPos.y, billboardPos.z - 2.0f);
                 
                 // 画像サイズをそのまま描画すると巨大すぎるため、看板の枠に収まるサイズを指定する
-                // TitleBannerは1920x1080 (16:9)。幅70.0f、高さ39.375f 程度で調整。
-                float bannerWidth = 70.0f;
+                // TitleBannerは1920x1080 (16:9)。元の幅70.0fから、看板に合うように160.0f程度に拡大します。
+                float bannerWidth = 160.0f;
                 float bannerHeight = bannerWidth * (1080.0f / 1920.0f); 
-                
-                // ビルボード描画（常にカメラの方向を向く板ポリゴンとして画像を描画）
-                DrawBillboard3D(bannerPos, 0.5f, 0.5f, bannerWidth, 0.0f, m_banner.Get(), TRUE);
+
+                // カメラ固定を前提とし、看板の表面に平行な板ポリゴン（XY平面に平行）として画像を描画する
+                VERTEX3D vertex[6];
+                float halfW = bannerWidth * 0.5f;
+                float halfH = bannerHeight * 0.5f;
+
+                // 各頂点の座標を計算（Zは一定、看板より少し手前）
+                VECTOR topLeft = VGet(bannerPos.x - halfW, bannerPos.y + halfH, bannerPos.z);
+                VECTOR topRight = VGet(bannerPos.x + halfW, bannerPos.y + halfH, bannerPos.z);
+                VECTOR bottomLeft = VGet(bannerPos.x - halfW, bannerPos.y - halfH, bannerPos.z);
+                VECTOR bottomRight = VGet(bannerPos.x + halfW, bannerPos.y - halfH, bannerPos.z);
+
+                // ポリゴン1 (左上、右上、左下)
+                vertex[0].pos = topLeft; vertex[0].norm = VGet(0.0f, 0.0f, -1.0f);
+                vertex[0].dif = GetColorU8(255, 255, 255, 255); vertex[0].spc = GetColorU8(0, 0, 0, 0);
+                vertex[0].u = 0.0f; vertex[0].v = 0.0f; vertex[0].su = 0.0f; vertex[0].sv = 0.0f;
+
+                vertex[1].pos = topRight; vertex[1].norm = VGet(0.0f, 0.0f, -1.0f);
+                vertex[1].dif = GetColorU8(255, 255, 255, 255); vertex[1].spc = GetColorU8(0, 0, 0, 0);
+                vertex[1].u = 1.0f; vertex[1].v = 0.0f; vertex[1].su = 0.0f; vertex[1].sv = 0.0f;
+
+                vertex[2].pos = bottomLeft; vertex[2].norm = VGet(0.0f, 0.0f, -1.0f);
+                vertex[2].dif = GetColorU8(255, 255, 255, 255); vertex[2].spc = GetColorU8(0, 0, 0, 0);
+                vertex[2].u = 0.0f; vertex[2].v = 1.0f; vertex[2].su = 0.0f; vertex[2].sv = 0.0f;
+
+                // ポリゴン2 (右上、右下、左下)
+                vertex[3].pos = topRight; vertex[3].norm = VGet(0.0f, 0.0f, -1.0f);
+                vertex[3].dif = GetColorU8(255, 255, 255, 255); vertex[3].spc = GetColorU8(0, 0, 0, 0);
+                vertex[3].u = 1.0f; vertex[3].v = 0.0f; vertex[3].su = 0.0f; vertex[3].sv = 0.0f;
+
+                vertex[4].pos = bottomRight; vertex[4].norm = VGet(0.0f, 0.0f, -1.0f);
+                vertex[4].dif = GetColorU8(255, 255, 255, 255); vertex[4].spc = GetColorU8(0, 0, 0, 0);
+                vertex[4].u = 1.0f; vertex[4].v = 1.0f; vertex[4].su = 0.0f; vertex[4].sv = 0.0f;
+
+                vertex[5].pos = bottomLeft; vertex[5].norm = VGet(0.0f, 0.0f, -1.0f);
+                vertex[5].dif = GetColorU8(255, 255, 255, 255); vertex[5].spc = GetColorU8(0, 0, 0, 0);
+                vertex[5].u = 0.0f; vertex[5].v = 1.0f; vertex[5].su = 0.0f; vertex[5].sv = 0.0f;
+
+                // カリング(裏面判定)とライティングにより黒つぶれや非表示になるのを防ぐため、一時的に無効化
+                SetLightEnable(FALSE);
+                SetUseLighting(FALSE);
+                SetUseBackCulling(FALSE);
+
+                // Zバッファのテストを無効にして、看板モデルに埋もれないように最前面に描画する
+                SetUseZBuffer3D(FALSE);
+                SetWriteZBuffer3D(FALSE);
+
+                // 透明度付きの板ポリゴンとして描画
+                DrawPolygon3D(vertex, 2, m_banner.Get(), TRUE);
+
+                // 設定を元に戻す
+                SetUseZBuffer3D(TRUE);
+                SetWriteZBuffer3D(TRUE);
+                SetUseBackCulling(TRUE);
+                SetUseLighting(TRUE);
+                SetLightEnable(TRUE);
             }
         }
 

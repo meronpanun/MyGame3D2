@@ -56,6 +56,16 @@ private:
     int m_gameStartTextAlpha;     // ゲームスタートテキストのアルファ値
     int m_gameStartTextAlphaDir;  // ゲームスタートテキストのアルファ値の増減方向
 
+    // 看板の揺れ演出関連
+    float m_billboardShakeOffsetX; // 現在の看板のX軸揺れオフセット
+    float m_billboardShakeOffsetY; // 現在の看板のY軸揺れオフセット
+    float m_billboardShakePower;   // 看板の揺れの強さ（減衰していく）
+    int m_shakeTimer;              // 揺れ計算用タイマー（サイン波用またはランダム更新用）
+
+    // フェンスの揺れ演出関連
+    // 画面外も含め全フェンス(31枚)の揺れパワーを個別に管理する
+    float m_fenceShakePower[31]; 
+
     // 3D背景演出パラメータ
     SafeHandle<ModelDeleter> m_skyDome;    // スカイドームモデル
     SafeHandle<ModelDeleter> m_floorModel; // 床モデル
