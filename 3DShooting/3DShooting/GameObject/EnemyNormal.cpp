@@ -853,12 +853,24 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
 
     EnemyBase::TakeDamage(damage, type);
 
-    // ショットガンによる怯み処理
-    if (type == AttackType::Shotgun && m_hp > 0.0f)
+    // 怯み処理
+    if (m_hp > 0.0f)
     {
-        // 既に怯み中でなければ、あるいは上書きありなら
-        ChangeAnimation(AnimState::Damage, false);             // ダメージモーションへ
-        m_damageTimer = EnemyNormalConstants::kDamageDuration; // 30フレーム
+        if (type == AttackType::Shotgun)
+        {
+            // ショットガンは上書きしてでも大きく怯む
+            ChangeAnimation(AnimState::Damage, false);
+            m_damageTimer = EnemyNormalConstants::kDamageDuration; // 30フレーム
+        }
+        else if (type == AttackType::Shoot)
+        {
+            // アサルトライフルは短い怯み（連射によるスタンロック防止のため、既に怯み中なら上書きしない）
+            if (m_currentAnimState != AnimState::Damage)
+            {
+                ChangeAnimation(AnimState::Damage, false);
+                m_damageTimer = 15; // ショットガンの半分の時間（15フレーム）
+            }
+        }
     }
 
     // HP減算・死亡判定は基底クラスで行う
