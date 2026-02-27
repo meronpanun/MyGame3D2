@@ -49,7 +49,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     , m_animIndexIdle(-1)
     , m_animIndexAtkHead(-1)
 {
-    for (int i = 0; i < 31; ++i) {
+    for (int i = 0; i < 3; ++i) {
         m_fenceShakePower[i] = 0.0f;
     }
 

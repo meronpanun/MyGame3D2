@@ -91,7 +91,7 @@ Effect::Effect()
     assert(m_bossShieldEffectHandle != -1);
 
     // シールドヒットエフェクトハンドルの読み込み
-    m_shieldHitEffectHandle = LoadEffekseerEffect("data/Effekseer/HitBurst.efkefc", 10.0f);
+    m_shieldHitEffectHandle = LoadEffekseerEffect("data/Effekseer/HitBurst.efkefc", 5.0f);
     assert(m_shieldHitEffectHandle != -1);
 
     // シールド破壊可能エフェクトハンドルの読み込み

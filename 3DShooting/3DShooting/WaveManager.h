@@ -29,6 +29,7 @@ struct EnemySpawnInfo
     float spawnTime = 0;       // 出現時間
     bool isSpawned = false;    // 出現済みフラグ
 	int spawnLocationType = 0; // スポーン位置タイプ (0:ランダム, 1:下段, 2:中段, 3:上段)
+    bool hasShield = false;    // シールドを持っているかどうか
 };
 
 /// <summary>
@@ -169,7 +170,7 @@ private:
     /// <summary>
     /// 敵を生成
     /// </summary>
-    std::shared_ptr<EnemyBase> CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos);
+    std::shared_ptr<EnemyBase> CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos, bool hasShield = false);
 
     /// <summary>
     /// 次のウェーブに進む

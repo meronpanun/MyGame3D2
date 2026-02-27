@@ -235,7 +235,7 @@ void WaveManager::Update()
                         }
                         spawnInfo.spawnPos = GenerateSpawnPos(m_isTutorialMode ? 1 : 0, spawnInfo.enemyType, currentPlayerPos, spawnInfo.spawnLocationType);
 
-                        std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos);
+                        std::shared_ptr<EnemyBase> pEnemy = CreateEnemy(spawnInfo.enemyType, spawnInfo.spawnPos, spawnInfo.hasShield);
                         if (pEnemy)
                         {
                             m_enemyList.push_back(pEnemy);
@@ -505,7 +505,7 @@ VECTOR WaveManager::CalculateRandomSpawnPos(const SpawnAreaInfo& area)
     return VAdd(area.center, offset);
 }
 
-std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos)
+std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType, const VECTOR& spawnPos, bool hasShield)
 {
     std::shared_ptr<EnemyBase> pEnemy = nullptr;
     pEnemy = GetPooledEnemy(enemyType);
@@ -525,6 +525,16 @@ std::shared_ptr<EnemyBase> WaveManager::CreateEnemy(const std::string& enemyType
             if (data.name == enemyType)
             {
                 break;
+            }
+        }
+
+        // EnemyNormalの場合、シールドシステムの設定を行う
+        if (enemyType == "NormalEnemy")
+        {
+            auto pNormalEnemy = std::dynamic_pointer_cast<EnemyNormal>(pEnemy);
+            if (pNormalEnemy)
+            {
+                pNormalEnemy->SetHasShield(hasShield);
             }
         }
     }
@@ -612,6 +622,7 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
                 info.spawnTime = startTime + i * interval;
                 info.isSpawned = false;
                 info.spawnLocationType = waveData.spawnLocationType;
+                info.hasShield = waveData.hasShield;
                 m_spawnInfoList.push_back(info);
             }
         }

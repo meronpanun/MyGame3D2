@@ -7,6 +7,7 @@ class Player;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
+#include "Effect.h"
 
 /// <summary>
 /// 通常の敵クラス
@@ -39,8 +40,12 @@ public:
     static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
     static bool IsDrawCollision() { return s_drawCollision; }
 
+    static void SetDrawShieldCollision(bool draw) { s_drawShieldCollision = draw; }
+    static bool IsDrawShieldCollision() { return s_drawShieldCollision; }
+
 private:
     static bool s_drawCollision;
+    static bool s_drawShieldCollision;
 
     /// <summary>
     /// どこに当たったかを判定する
@@ -79,6 +84,25 @@ private:
     /// </summary>
     /// <returns>ボディコライダー</returns>
     std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
+
+public:
+
+    /// <summary>
+    /// シールドを所持するかどうかを設定し、初期化する
+    /// </summary>
+    void SetHasShield(bool hasShield);
+
+    /// <summary>
+    /// シールド状態取得
+    /// </summary>
+    bool IsShieldBroken() const { return m_isShieldBroken; }
+    std::shared_ptr<SphereCollider> GetShieldCollider() const { return m_pShieldCollider; }
+
+protected:
+    // ダメージ計算と適用
+    void CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect) override;
+    float CalcDamage(float bulletDamage, HitPart part) const override;
+    void ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect) override;
 
 private:
     /// <summary>
@@ -129,6 +153,17 @@ private:
     bool m_isBlownAway;          // 吹き飛ばされて死亡したか
     VECTOR m_deathKnockbackDir;  // 吹き飛び方向
     float m_deathKnockbackSpeed; // 吹き飛び速度
+
+    // シールド関連メンバ
+    bool m_hasShieldConfigured;    // シールドを持っているか
+    bool m_isShieldBroken;         // シールドが破壊されたか
+    float m_shieldHp;              // シールドHP
+    float m_maxShieldHp;           // シールド最大耐久値
+    std::shared_ptr<SphereCollider> m_pShieldCollider; // シールドコライダー
+    std::vector<int> m_shieldEffectHandles;            // シールドエフェクトハンドル
+    float m_shieldRotation;        // シールドの回転角度
+    float m_shieldEffectTimer;     // シールドエフェクトの再生タイマー
+    bool m_hasPlayedShieldBreakableEffect; // シールド破壊可能エフェクト再生済みフラグ
 
     static int s_modelHandle; // 共有モデルハンドル
 };

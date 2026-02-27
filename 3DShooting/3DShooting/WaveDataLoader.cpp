@@ -63,13 +63,23 @@ std::vector<WaveData> WaveDataLoader::LoadWaveData(const std::string& path)
             waveData.spawnLocationType = 0;
         }
 
+        // HasShield (0 または 1)
+        if (std::getline(ss, token, ','))
+        {
+            waveData.hasShield = (std::stoi(token) == 1);
+        }
+        else
+        {
+            waveData.hasShield = false;
+        }
+
         waveDataList.push_back(waveData);
 
         // デバッグ出力
-        printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f, Loc %d\n",
+        printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f, Loc %d, Shield %d\n",
                waveData.wave, waveData.enemyType.c_str(), waveData.count,
                waveData.spawnInterval, waveData.startTime,
-               waveData.spawnLocationType);
+               waveData.spawnLocationType, waveData.hasShield ? 1 : 0);
     }
     return waveDataList;
 }

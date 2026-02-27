@@ -57,6 +57,7 @@ namespace EnemyNormalConstants
 
 int EnemyNormal::s_modelHandle = -1;
 bool EnemyNormal::s_drawCollision = false;
+bool EnemyNormal::s_drawShieldCollision = false;
 
 EnemyNormal::EnemyNormal()
     : m_headPosOffset(EnemyNormalConstants::kHeadShotPositionOffset)
@@ -127,6 +128,35 @@ void EnemyNormal::Init()
     // 徘徊用パラメータ初期化
     m_wanderTimer = 0;
     m_wanderOffset = VGet(0.0f, 0.0f, 0.0f);
+
+    // シールド関連の初期化フラグ
+    m_hasShieldConfigured = false;
+    m_isShieldBroken = false;
+    m_shieldHp = 0.0f;
+    m_maxShieldHp = 0.0f;
+    m_shieldRotation = 0.0f;
+    m_shieldEffectTimer = 0.0f;
+    m_pShieldCollider = nullptr;
+    m_shieldEffectHandles.clear();
+}
+
+void EnemyNormal::SetHasShield(bool hasShield)
+{
+    m_hasShieldConfigured = hasShield;
+    if (m_hasShieldConfigured)
+    {
+        m_maxShieldHp = 50.0f; // ノーマルゾンビ用シールド耐久値
+        m_shieldHp = m_maxShieldHp;
+        m_isShieldBroken = false;
+        
+        // シールドコライダーの生成と初期化 (ノーマルゾンビのサイズに合わせて調整)
+        m_pShieldCollider = std::make_shared<SphereCollider>();
+        m_pShieldCollider->SetRadius(80.0f); // ボディ(20)+α 程度の大きさ
+        m_shieldRotation = 0.0f;
+        m_shieldEffectTimer = 0.0f;
+        m_shieldEffectHandles.clear();
+        m_hasPlayedShieldBreakableEffect = false;
+    }
 }
 
 // アニメーションを変更する
@@ -260,8 +290,95 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
     m_pAttackRangeCollider->SetRadius(EnemyNormalConstants::kAttackRangeRadius);
 
+    // シールドの更新処理
+    if (m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
+    {
+        // 衝突判定用に現在のシールド位置を計算
+        VECTOR shieldPos = m_pos;
+        shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * 0.5f; // 胸のあたり
+
+        m_pShieldCollider->SetCenter(shieldPos);
+
+        // シールドエフェクト表示処理 (生存時のみ)
+        if (m_hp > 0.0f)
+        {
+            // エフェクト生成ロジック
+            // フェードイン30F, 総再生240F を想定 -> 210Fで次を生成して重ねる
+            const float kEffectDuration = 240.0f;
+            const float kFadeInDuration = 30.0f; 
+            const float kOverlapSpawnTime = kEffectDuration - kFadeInDuration;
+
+            // タイマー更新
+            m_shieldEffectTimer += 1.0f * Game::GetTimeScale();
+
+            // エフェクトがない、または再生時間が重なり開始時間を超えたら新規生成
+            if (m_shieldEffectHandles.empty() || m_shieldEffectTimer >= kOverlapSpawnTime)
+            {
+                if (pEffect)
+                {
+                    // バリアエフェクト再生
+                    int handle = pEffect->PlayBossShieldEffect(shieldPos.x, shieldPos.y, shieldPos.z);
+                    if (handle != -1)
+                    {
+                        m_shieldEffectHandles.push_back(handle);
+                        m_shieldEffectTimer = 0.0f; // 次の生成までの時間をリセット
+                    }
+                }
+            }
+
+            // 回転と位置の更新
+            m_shieldRotation += 0.3f * Game::GetTimeScale();
+            while (m_shieldRotation >= 360.0f) m_shieldRotation -= 360.0f;
+
+            auto it = m_shieldEffectHandles.begin();
+            while (it != m_shieldEffectHandles.end())
+            {
+                int handle = *it;
+                if (IsEffekseer3DEffectPlaying(handle) == -1)
+                {
+                    // 再生終了していたら削除
+                    it = m_shieldEffectHandles.erase(it);
+                    continue;
+                }
+
+                SetPosPlayingEffekseer3DEffect(handle, shieldPos.x, shieldPos.y, shieldPos.z);
+                SetRotationPlayingEffekseer3DEffect(handle, 0.0f, (m_shieldRotation * DX_PI_F / 180.0f), 0.0f);
+                
+                // ノーマルゾンビ用なのでボスのシールドより小さめにする (ベーススケールを当たり判定に合うように0.3程度に設定・HPで縮小しない)
+                SetScalePlayingEffekseer3DEffect(handle, 0.3f, 0.3f, 0.3f);
+
+                // シールドの色変更 (青 -> 赤)
+                if (m_maxShieldHp > 0.0f)
+                {
+                    float ratio = m_shieldHp / m_maxShieldHp;
+                    if (ratio < 0.0f) ratio = 0.0f;
+                    if (ratio > 1.0f) ratio = 1.0f;
+
+                    int r = static_cast<int>(255.0f * (1.0f - ratio)); // hp減少(ratioが0に近づく)で赤くなる
+                    int g = 0;
+                    int b = static_cast<int>(255.0f * ratio);          // hp最大(ratioが1)で青くなる
+                    
+                    SetColorPlayingEffekseer3DEffect(handle, r, g, b, 255);
+                }
+
+                ++it;
+            }
+        }
+    }
+
     if (m_hp <= 0.0f)
     {
+        // 死亡時にシールドエフェクトが残っていれば消す
+        if (!m_shieldEffectHandles.empty())
+        {
+            for (int handle : m_shieldEffectHandles)
+            {
+                StopEffekseer3DEffect(handle);
+            }
+            m_shieldEffectHandles.clear();
+            m_pShieldCollider = nullptr;
+        }
+
         UpdateDeath(collisionData);
         return;
     }
@@ -413,6 +530,42 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
     float minDist = EnemyNormalConstants::kBodyColliderRadius + playerBodyCollider->GetRadius(); // 最小距離は両方の半径の和
     ResolvePlayerCollision(playerBodyCollider, minDist, EnemyNormalConstants::kPushBackEpsilon);
 
+    // シールドとの押し出し処理
+    if (m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
+    {
+        float shieldRadius = m_pShieldCollider->GetRadius();
+        
+        // プレイヤーの位置を取得
+        if (Game::m_pPlayer)
+        {
+            VECTOR playerPos = Game::m_pPlayer->GetPos();
+            VECTOR playerCapA, playerCapB;
+            float playerRadius;
+            Game::m_pPlayer->GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
+
+            CapsuleCollider playerCol(playerCapA, playerCapB, playerRadius);
+
+            // 球(シールド) と カプセル(プレイヤー) の交差判定
+            if (m_pShieldCollider->IsIntersects(&playerCol))
+            {
+                // ここでは単純に押し出し（ボスと同じ実装を利用）
+                VECTOR diff = VSub(playerPos, m_pShieldCollider->GetCenter());
+                diff.y = 0.0f; 
+                float distSq = VSquareSize(diff);
+                float minDistWithShield = shieldRadius + playerRadius;
+
+                if (distSq < minDistWithShield * minDistWithShield && distSq > EnemyNormalConstants::kPushBackEpsilon)
+                {
+                    float dist = sqrtf(distSq);
+                    VECTOR pushDir = VScale(diff, 1.0f / dist);
+                    float pushDist = minDistWithShield - dist;
+
+                    Game::m_pPlayer->SetPos(VAdd(playerPos, VScale(pushDir, pushDist)));
+                }
+            }
+        }
+    }
+
     // 敵同士の押し出し処理
     std::vector<EnemyBase*> neighbors;
     if (context.collisionGrid)
@@ -523,7 +676,7 @@ void EnemyNormal::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    if (s_drawCollision)
+    if (s_drawCollision || s_drawShieldCollision)
     {
         DrawCollisionDebug();
     }
@@ -553,6 +706,11 @@ void EnemyNormal::Draw()
 // デバック用の当たり判定を描画する
 void EnemyNormal::DrawCollisionDebug() const
 {
+    if (s_drawShieldCollision && m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
+    {
+        DebugUtil::DrawSphere(m_pShieldCollider->GetCenter(), m_pShieldCollider->GetRadius(), 16, 0x00ffff);
+    }
+
     if (!s_drawCollision) return;
 
     // 体のコライダーデバッグ描画
@@ -581,6 +739,19 @@ void EnemyNormal::DrawCollisionDebug() const
 EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
     if (m_isDeadAnimPlaying) return HitPart::None;
+
+    // シールドヒット判定
+    if (m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
+    {
+        VECTOR hitPosShield;
+        float hitDistSqShield;
+        if (m_pShieldCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosShield, hitDistSqShield))
+        {
+            outHtPos = hitPosShield;
+            outHtDistSq = hitDistSqShield;
+            return HitPart::Shield;
+        }
+    }
 
     // ヘッドとボディのコライダーをそれぞれチェック
     VECTOR hitPosHead, hitPosBody;
@@ -636,6 +807,49 @@ void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 void EnemyNormal::TakeDamage(float damage, AttackType type)
 {
     if (m_isDeadAnimPlaying) return;
+
+    // シールド処理
+    if (m_hasShieldConfigured && !m_isShieldBroken)
+    {
+        // シールドHPが0以下の状態で盾投げを食らったら破壊
+        if (m_shieldHp <= 0.0f && type == AttackType::ShieldThrow)
+        {
+            m_isShieldBroken = true;
+            m_pShieldCollider = nullptr;
+
+            // 再生中のエフェクト停止
+            for (int handle : m_shieldEffectHandles)
+            {
+                StopEffekseer3DEffect(handle);
+            }
+            m_shieldEffectHandles.clear();
+            
+            // 破壊音などをここで追加可能
+            // 例: Game::PlaySound("ShieldBreak");
+        }
+        else if (type != AttackType::ShieldThrow) // 盾投げ以外はシールドHPを減らす
+        {
+            m_shieldHp -= damage;
+            if (m_shieldHp < 0.0f)
+            {
+                m_shieldHp = 0.0f;
+            }
+
+            // シールドHPが0になった瞬間に、破壊可能エフェクトを再生
+            if (m_shieldHp <= 0.0f && !m_hasPlayedShieldBreakableEffect)
+            {
+                if (m_pShieldCollider)
+                {
+                    // シールドの位置で再生
+                    SceneMain::Instance()->GetEffect()->PlayShieldBreakEffect(m_pShieldCollider->GetCenter());
+                }
+                m_hasPlayedShieldBreakableEffect = true;
+            }
+        }
+        
+        // シールドがある間は本体にダメージを与えない
+        return;
+    }
 
     EnemyBase::TakeDamage(damage, type);
 
@@ -707,6 +921,116 @@ void EnemyNormal::TakeTackleDamage(float damage)
 std::shared_ptr<CapsuleCollider> EnemyNormal::GetBodyCollider() const
 {
     return m_pBodyCollider;
+}
+
+// 弾との当たり判定とダメージ処理 (複数弾ヒットや貫通対策用)
+void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
+{
+    // ショットガン等の散弾や複数弾が同時に当たるケースを想定し、
+    // シールドで防いだ場合は、同一フレーム内の他の弾の「本体への貫通」を無効化する
+    bool shieldHitInThisFrame = false;
+
+    // --- ① まず全ての弾についてシールドヒットがないかを判定・処理する ---
+    if (m_hasShieldConfigured && !m_isShieldBroken)
+    {
+        for (auto& bullet : bullets)
+        {
+            if (!bullet.IsActive()) continue;
+
+            VECTOR rayStart = bullet.GetPrevPos();
+            VECTOR rayEnd = bullet.GetPos();
+
+            VECTOR hitPosShield;
+            float hitDistSqShield;
+            if (m_pShieldCollider && m_pShieldCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosShield, hitDistSqShield))
+            {
+                shieldHitInThisFrame = true;
+                // シールドへダメージ適用 (ApplyBulletDamage内で Deactivate される)
+                ApplyBulletDamage(bullet, HitPart::Shield, hitDistSqShield, pEffect);
+            }
+        }
+    }
+
+    // --- ② 次に、シールドで防がれていなければ本体側のヒット判定を行う ---
+    if (!shieldHitInThisFrame)
+    {
+        // ①でシールドが壊れた場合、あるいは元々シールドがない/壊れている場合
+        if (!m_hasShieldConfigured || m_isShieldBroken)
+        {
+            // ボスではなくノーマルゾンビなので、複数の弾が本体に当たるのは許容し通常の基底クラス処理を呼ぶ
+            EnemyBase::CheckHitAndDamage(bullets, pEffect);
+        }
+    }
+}
+
+// ダメージ計算
+float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
+{
+    if (m_isDeadAnimPlaying) return 0.0f;
+
+    // シールドヒット時
+    if (part == HitPart::Shield && m_hasShieldConfigured && !m_isShieldBroken)
+    {
+        return bulletDamage; // 等倍ダメージとする
+    }
+
+    // ヘッドショット時
+    if (part == HitPart::Head)
+    {
+        return bulletDamage * 2.0f; // 2倍ダメージ
+    }
+
+    // それ以外（Bodyなど）
+    return bulletDamage * 1.0f;
+}
+
+// ダメージ適用（シールドヒット時はエフェクトを変えるためオーバーライド）
+void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect)
+{
+    // シールドヒット時
+    if (part == HitPart::Shield && m_hasShieldConfigured && !m_isShieldBroken)
+    {
+        // シールド専用エフェクト (HitBurst)
+        if (pEffect)
+        {
+            VECTOR hitPos = bullet.GetPos();
+            VECTOR normal = VGet(0.0f, 0.0f, -1.0f); // デフォルト
+
+            if (m_pShieldCollider)
+            {
+                VECTOR center = m_pShieldCollider->GetCenter();
+                VECTOR diff = VSub(hitPos, center);
+                if (VSquareSize(diff) > 0.0001f)
+                {
+                    normal = VNorm(diff);
+                    // 弾の現在位置(内側にめり込んでいる可能性がある)ではなく、シールドの表面でエフェクトを発生させる
+                    hitPos = VAdd(center, VScale(normal, m_pShieldCollider->GetRadius()));
+                }
+            }
+
+            pEffect->PlayShieldHitEffect(hitPos, normal);
+        }
+
+        // ダメージ計算と適用 (シールドHP減少)
+        float damage = CalcDamage(bullet.GetDamage(), part);
+        TakeDamage(damage, bullet.GetAttackType()); // TakeDamage側で減算処理を行う
+
+        // デバッグ表示用
+        if (s_showDamage)
+        {
+            s_debugLastDamage = damage;
+            s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;
+            s_debugHitInfo = "(Shield)";
+        }
+
+        // 弾を消す
+        bullet.Deactivate();
+    }
+    else
+    {
+        // それ以外は基底クラス（出血エフェクトあり）
+        EnemyBase::ApplyBulletDamage(bullet, part, distSq, pEffect);
+    }
 }
 
 // 死亡時の更新処理

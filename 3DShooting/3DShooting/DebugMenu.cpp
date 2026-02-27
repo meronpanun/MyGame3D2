@@ -278,12 +278,21 @@ DebugMenu::MenuItem DebugMenu::CreateEnemyMenu()
         
         {"Collision",
          {{"Normal Enemy",
-           {},
-           []() {
-             bool isDraw = !EnemyNormal::IsDrawCollision();
-             EnemyNormal::SetDrawCollision(isDraw);
-           },
-           []() { return EnemyNormal::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+           {{"Show Collision",
+             {},
+             []() {
+               bool isDraw = !EnemyNormal::IsDrawCollision();
+               EnemyNormal::SetDrawCollision(isDraw);
+             },
+             []() { return EnemyNormal::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+            {"Shield Collision",
+             {},
+             []() {
+               bool isDraw = !EnemyNormal::IsDrawShieldCollision();
+               EnemyNormal::SetDrawShieldCollision(isDraw);
+             },
+             []() { return EnemyNormal::IsDrawShieldCollision() ? "[ON]" : "[OFF]"; }}},
+           nullptr},
           {"Runner Enemy",
            {},
            []() {
