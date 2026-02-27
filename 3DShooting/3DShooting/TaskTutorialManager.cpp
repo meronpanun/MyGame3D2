@@ -154,10 +154,9 @@ void TaskTutorialManager::NotifyEnemyKilled(AttackType attackType)
         }
         break;
     case TaskStep::ShieldThrow:
-        if (attackType == AttackType::ShieldThrow)
-        {
-            m_shieldThrowKills++;
-        }
+        // 盾投げタスク中は、シールドが破壊されていれば射撃でも倒せるようになるため、
+        // どのキルでも（Wave3はシールド持ちのみ）カウントを進める
+        m_shieldThrowKills++;
         break;
     default:
         break;
@@ -665,7 +664,7 @@ void TaskTutorialManager::Draw()
             DrawExtendGraph(currentX, taskY, currentX + scaledMouseImgSize, taskY + scaledMouseImgSize, m_rKeyImg, true);
             currentX += scaledMouseImgSize + scaledSpacing;
 
-            DrawStringToHandle(currentX, taskY, "でゾンビを倒す", kTaskTextColor, m_taskFont);
+            DrawStringToHandle(currentX, taskY, "でシールドを破壊し敵を倒す", kTaskTextColor, m_taskFont);
 
             // 進捗バー
             int barY = taskY + scaledTaskFontSize + static_cast<int>(10 * scale);

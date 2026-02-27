@@ -263,7 +263,18 @@ protected:
     /// </summary>
     void ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, float radius, float pushBackEpsilon);
 
+    /// <summary>
+    /// 当たったエフェクトの位置を更新する
+    /// </summary>
+    void UpdateAttachedEffects();
+
 protected:
+    struct AttachedEffect {
+        int handle;
+        VECTOR localOffset;
+    };
+    std::vector<AttachedEffect> m_attachedEffects;
+
     /// <summary>
     /// 弾のダメージを計算する
     /// </summary>

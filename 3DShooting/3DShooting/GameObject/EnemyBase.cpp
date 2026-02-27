@@ -156,7 +156,14 @@ void EnemyBase::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
     if (pEffect)
     {
         VECTOR hitPos = bullet.GetPos(); // 弾の現在位置を衝突位置として使用
-        pEffect->PlayLossOfBlood(hitPos.x, hitPos.y, hitPos.z, 0.0f, 0.0f, 0.0f);
+        int handle = pEffect->PlayLossOfBlood(hitPos.x, hitPos.y, hitPos.z, 0.0f, 0.0f, 0.0f);
+        if (handle != -1)
+        {
+            AttachedEffect effect;
+            effect.handle = handle;
+            effect.localOffset = VSub(hitPos, m_pos);
+            m_attachedEffects.push_back(effect);
+        }
     }
 
     bullet.Deactivate(); // 敵に当たった弾は非アクティブにする
@@ -252,6 +259,26 @@ void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData
     if (m_isGrounded && m_verticalVelocity < 0.0f)
     {
         m_verticalVelocity = 0.0f;
+    }
+
+    // エフェクトの追従更新
+    UpdateAttachedEffects();
+}
+
+void EnemyBase::UpdateAttachedEffects()
+{
+    for (auto it = m_attachedEffects.begin(); it != m_attachedEffects.end(); )
+    {
+        if (IsEffekseer3DEffectPlaying(it->handle))
+        {
+            VECTOR newPos = VAdd(m_pos, it->localOffset);
+            SetPosPlayingEffekseer3DEffect(it->handle, newPos.x, newPos.y, newPos.z);
+            ++it;
+        }
+        else
+        {
+            it = m_attachedEffects.erase(it);
+        }
     }
 }
 

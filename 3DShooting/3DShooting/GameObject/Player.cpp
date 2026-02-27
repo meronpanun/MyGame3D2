@@ -771,11 +771,7 @@ void Player::UpdateWeaponSwitching(const unsigned char* keyState)
 
     if (keyState[KEY_INPUT_1] && !m_prevKeyState[KEY_INPUT_1])
     {
-        //if (m_isTutorial && m_allowedAttackType != AttackType::None) // チュートリアル中で制限がある場合
-        //{
-        //     // 武器切り替え自体は制限していないが、射撃タイプとしてのアクションとみなすか
-        //     // 現状は切り替えは許可されていることが多いが、もし制限するならここで通知
-        //}
+        // 武器切り替え自体は制限していない
         m_weaponManager.SwitchWeapon(WeaponType::AssaultRifle);
     }
     else if (keyState[KEY_INPUT_2] && !m_prevKeyState[KEY_INPUT_2])
@@ -797,9 +793,13 @@ void Player::UpdateWeaponSwitching(const unsigned char* keyState)
 
 void Player::UpdateShooting()
 {
+    // シールド投げチュートリアル中は射撃を許可するため、制限条件からShieldThrowを除外する
+    bool isShootRestricted = m_allowedAttackType != AttackType::None &&
+                             m_allowedAttackType != AttackType::Shoot &&
+                             m_allowedAttackType != AttackType::ShieldThrow;
+
     if (m_isDead ||
-        (m_allowedAttackType != AttackType::None &&
-            m_allowedAttackType != AttackType::Shoot) || // Fix: Added missing '&&'
+        isShootRestricted || 
         m_isTackling || m_shieldSystem.IsGuarding() || m_isLockingOn || m_weaponManager.IsSwitchingWeapon())
     {
         // チュートリアル中の射撃制限通知
@@ -807,8 +807,9 @@ void Player::UpdateShooting()
         {
              if (InputManager::GetInstance()->IsPressMouseLeft())
              {
-                 // 許可されていないのに撃とうとした
-                 if (m_allowedAttackType != AttackType::Shoot && m_allowedAttackType != AttackType::Shotgun && m_allowedAttackType != AttackType::None)
+                 // 許可されていないのに撃とうとした（シールド投げタスク中は射撃を許可するため通知を除外）
+                 if (m_allowedAttackType != AttackType::Shoot && m_allowedAttackType != AttackType::Shotgun && 
+                     m_allowedAttackType != AttackType::ShieldThrow && m_allowedAttackType != AttackType::None)
                  {
                       TaskTutorialManager::GetInstance()->NotifyRestrictedAction(AttackType::Shoot);
                  }
