@@ -784,7 +784,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     // シールドとの押し出し処理
     if (!m_isShieldBroken && m_pShieldCollider)
     {
-        // 衝突判定用に現在のシールド位置を計算 (コライダー更新は描画同期のため後で行う)
+        // 衝突判定用に現在のシールド位置を算出 (コライダーの更新は描画処理と同期して実施)
         VECTOR shieldPos = m_pos;
         shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
         
@@ -1216,7 +1216,7 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
             s_debugHitInfo = "(Shield)";
         }
 
-        // 弾を消す（これを忘れると貫通して再度衝突判定が発生する）
+        // 弾を非アクティブ状態へ移行し、貫通による多重判定を防止する
         bullet.Deactivate();
     }
     else

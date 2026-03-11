@@ -368,7 +368,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 
     if (m_hp <= 0.0f)
     {
-        // 死亡時にシールドエフェクトが残っていれば消す
+        // 死亡時にシールドエフェクトが残存している場合は破棄する
         if (!m_shieldEffectHandles.empty())
         {
             for (int handle : m_shieldEffectHandles)
@@ -1035,7 +1035,7 @@ void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, 
             s_debugHitInfo = "(Shield)";
         }
 
-        // 弾を消す
+        // 弾を非アクティブ化する
         bullet.Deactivate();
     }
     else

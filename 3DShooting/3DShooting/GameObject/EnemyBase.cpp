@@ -205,7 +205,7 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
         switch (type)
         {
         case AttackType::Shoot:
-            s_debugHitInfo = "(Shot)"; // 後で詳細(Head/Body)で上書きされる可能性あり
+            s_debugHitInfo = "(Shot)"; // 以降の処理で詳細なヒット部位(Head/Body)情報により上書きされる場合あり
             break;
         case AttackType::Tackle:
             s_debugHitInfo = "(Tackle)";
@@ -375,7 +375,7 @@ void EnemyBase::DrawDebugDamage()
         char text[256];
         sprintf_s(text, "Last Damage: %.1f %s", s_debugLastDamage, s_debugHitInfo.c_str());
 
-        // テキストサイズ計算 (簡易的に文字数 * 幅と仮定、または等幅フォントなら正確)
+        // テキスト幅の近似計算 (等幅フォントを前提とする)
         // DxLibのデフォルトフォント前提
         int strLen = static_cast<int>(strlen(text));
         

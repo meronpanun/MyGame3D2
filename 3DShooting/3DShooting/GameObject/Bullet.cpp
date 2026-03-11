@@ -28,60 +28,58 @@ Bullet::~Bullet() {}
 
 void Bullet::Init() {}
 
-void Bullet::Update(
-    const VECTOR &playerPos,
-    const std::vector<Stage::StageCollisionData> &collisionData)
+void Bullet::Update(const VECTOR &playerPos, const std::vector<Stage::StageCollisionData> &collisionData)
 {
-  if (!m_isActive) return;
+    if (!m_isActive) return;
 
-  m_prevPos = m_pos; // 現在の位置を前フレームの位置として保存
-  m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // 新しい位置を計算
+    m_prevPos = m_pos; // 現在の位置を前フレームの位置として保存
+    m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // 新しい位置を計算
 
-  // ステージとの衝突判定
-  // 前フレームの位置と現在の位置を結ぶ線分で判定を行う
-  float minT = 1.0f;
-  bool hit = false;
-  VECTOR hitPos = m_pos;
+    // ステージとの衝突判定
+    // 前フレームの位置と現在の位置を結ぶ線分で判定を行う
+    float minT = 1.0f;
+    bool hit = false;
+    VECTOR hitPos = m_pos;
 
-  for (const auto &col : collisionData) 
-  {
-    // HitCheck_Line_Triangle はDXライブラリの関数
-    HITRESULT_LINE result = HitCheck_Line_Triangle(m_prevPos, m_pos, col.v1, col.v2, col.v3);
-    if (result.HitFlag) 
+    for (const auto &col : collisionData) 
     {
-      // 最も手前で当たったものを採用するため、距離比較を行う
-      float distSq = VSquareSize(VSub(result.Position, m_prevPos));
-      float totalDistSq = VSquareSize(VSub(m_pos, m_prevPos));
-
-      if (totalDistSq > 0.0001f) 
-      {
-        float t = distSq / totalDistSq;
-        if (t >= 0.0f && t < minT) 
+        // HitCheck_Line_Triangle はDXライブラリの関数
+        HITRESULT_LINE result = HitCheck_Line_Triangle(m_prevPos, m_pos, col.v1, col.v2, col.v3);
+        if (result.HitFlag) 
         {
-          minT = t;
-          hit = true;
-          hitPos = result.Position;
+            // 最も手前で当たったものを採用するため、距離比較を行う
+            float distSq = VSquareSize(VSub(result.Position, m_prevPos));
+            float totalDistSq = VSquareSize(VSub(m_pos, m_prevPos));
+
+            if (totalDistSq > 0.0001f) 
+            {
+                float t = distSq / totalDistSq;
+                if (t >= 0.0f && t < minT) 
+                {
+                    minT = t;
+                    hit = true;
+                    hitPos = result.Position;
+                }
+            }
         }
-      }
     }
-  }
 
-  if (hit)
-  {
-    // 衝突した場合は位置を修正し、非アクティブ化 (壁に埋まらないようにする)
-    m_pos = hitPos;
-    m_isActive = false;
-  }
+    if (hit)
+    {
+        // 衝突した場合は位置を修正し、非アクティブ化 (壁に埋まらないようにする)
+        m_pos = hitPos;
+        m_isActive = false;
+    }
 
-  // プレイヤーからの距離を計算
-  VECTOR toPlayer = VSub(m_pos, playerPos);
-  float distanceToPlayer =sqrtf(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
+    // プレイヤーからの距離を計算
+    VECTOR toPlayer = VSub(m_pos, playerPos);
+    float distanceToPlayer =sqrtf(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
 
-  // プレイヤーから一定距離以上離れたら非アクティブにする
-  if (distanceToPlayer > kPlayerBoundaryDistance) 
-  {
-    m_isActive = false;
-  }
+    // プレイヤーから一定距離以上離れたら非アクティブにする
+    if (distanceToPlayer > kPlayerBoundaryDistance) 
+    {
+        m_isActive = false;
+    }
 }
 
 void Bullet::Draw() const 
@@ -91,7 +89,7 @@ void Bullet::Draw() const
 
   // Rayのデバッグ描画
   DrawLine3D(m_prevPos, m_pos, 0xffff00);                   // 黄色の線
-  DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, false); // 仮の弾の描画
+  DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, false); // 弾のデバッグ用の描画処理
 #endif
 }
 

@@ -72,28 +72,27 @@ TaskTutorialManager::TaskTutorialManager()
     , m_mouseRightGuardImg("data/image/MouseRight.png")
     , m_designerImg("data/image/Designer.png")
     , m_titlePosX(0.0f)
-    , m_titleAnimSpeed(15.0f) // 5.0f -> 15.0f (3倍)
+    , m_titleAnimSpeed(15.0f)
     , m_isTitleAnimFinished(false)
     , m_taskAlpha(0)
-    , m_taskFadeSpeed(15.0f) // 5.0f -> 15.0f (3倍)
+    , m_taskFadeSpeed(15.0f) 
     , m_animationWaitTimer(0)
     , m_displayedShootProgress(0.0f)
     , m_displayedTackleProgress(0.0f)
     , m_displayedShieldThrowProgress(0.0f)
     , m_displayedParryProgress(0.0f)
-    , m_progressAnimSpeed(0.05f) // 0.02f -> 0.05f (2.5倍)
+    , m_progressAnimSpeed(0.05f)
     , m_transitionDelayTimer(0)
     , m_hasShownParryTutorial(false)
     , m_isParryTutorialPaused(false)
     , m_prevScale(1.0f)
 {
-    // フォントの作成 (初期化リストで行われるが、念のため)
+    // フォントの作成
     ReloadFonts(1.0f);
 }
 
 TaskTutorialManager::~TaskTutorialManager()
 {
-    // 自動解放されるため処理不要
 }
 
 void TaskTutorialManager::ReloadFonts(float scale)
@@ -180,7 +179,7 @@ void TaskTutorialManager::NotifyRestrictedAction(AttackType attemptedType)
     if (m_restrictedActionTimer > 0 && m_restrictedActionType == attemptedType)
     {
         // タイマー延長
-        m_restrictedActionTimer = 120; // 2秒表示
+        m_restrictedActionTimer = 120; 
     }
     else
     {
@@ -889,7 +888,7 @@ void TaskTutorialManager::Draw()
             iconImg = static_cast<int>(m_mouseLeftImg);
             break;
         case AttackType::Tackle:
-            // タックルは右クリック+ロックオン+左などの組み合わせだが、とりあえず右クリックか左クリックを表示
+            // タックル操作は複合入力だが、ここでは代表して左右クリックのいずれかを表示する
             iconImg = static_cast<int>(m_mouseRightImg); 
             break;
         case AttackType::ShieldThrow:

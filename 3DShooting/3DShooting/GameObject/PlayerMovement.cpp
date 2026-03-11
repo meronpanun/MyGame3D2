@@ -89,7 +89,7 @@ void PlayerMovement::Update(
         m_coyoteTimeTimer -= deltaTime;
     if (isTackling)
     {
-        // タックル中は速度計算を一応更新（単純移動と仮定）
+        // タックル中の速度計算を更新（等速直線運動として処理）
         float dist = VSize(VSub(m_modelPos, prevPos));
         m_currentSpeed = (deltaTime > 0.0001f) ? dist / deltaTime : 0.0f;
         return;
