@@ -1,4 +1,4 @@
-﻿#include "PlayerMovement.h"
+#include "PlayerMovement.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -85,8 +85,8 @@ void PlayerMovement::Update(
 
     UpdateCollider();
 
-    if (m_coyoteTimeTimer > 0.0f)
-        m_coyoteTimeTimer -= deltaTime;
+    if (m_coyoteTimeTimer > 0.0f) m_coyoteTimeTimer -= deltaTime;
+
     if (isTackling)
     {
         // タックル中の速度計算を更新（等速直線運動として処理）
@@ -228,10 +228,8 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
                     float dotRight = VDot(moveDir, camRight);
 
                     VECTOR targetSideVelocity = VScale(camRight, dotRight * currentSpeed * PlayerMovementConstants::kAirControlFactor);
-                    m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) *
-                        PlayerMovementConstants::kAirAccelFactor * timeScale;
-                    m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) *
-                        PlayerMovementConstants::kAirAccelFactor * timeScale;
+                    m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) * PlayerMovementConstants::kAirAccelFactor * timeScale;
+                    m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) * PlayerMovementConstants::kAirAccelFactor * timeScale;
                     m_modelPos = VAdd(m_modelPos, m_airSideControlVelocity);
 
                     float diffYaw = yaw - m_jumpStartYaw;
@@ -242,8 +240,7 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
                     {
                         VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor * 0.1f);
                         m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
-                        if (VSize(m_jumpMoveVelocity) > 0.001f)
-                            m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
+                        if (VSize(m_jumpMoveVelocity) > 0.001f) m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
                     }
 
                     VECTOR inertiaDir = VNorm(m_jumpMoveVelocity);

@@ -1,4 +1,4 @@
-﻿#include "EnemyBase.h"
+#include "EnemyBase.h"
 #include "Bullet.h"
 #include "TransformDataLoader.h"
 #include "CapsuleCollider.h"

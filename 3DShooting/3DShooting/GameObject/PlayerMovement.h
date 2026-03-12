@@ -118,17 +118,14 @@ public:
 private:
     void UpdateCollider();
     void UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead);
-    void UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead,
-        bool isTackling,
+    void UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
         const std::vector<Stage::StageCollisionData>& collisionData);
 
     VECTOR CalculateMoveDirection(Camera* pCamera, const unsigned char* keyState);
-    void HandleJump(const unsigned char* keyState,
-        const unsigned char* prevKeyState, bool isDead,
+    void HandleJump(const unsigned char* keyState, const unsigned char* prevKeyState, bool isDead,
         bool isTackling, const VECTOR& moveDir, Camera* pCamera);
     void HandlePhysics(bool isOnGround, Camera* pCamera);
-    void ResolveCollisions(const std::vector<Stage::StageCollisionData>& collisionData,
-        Camera* pCamera, bool isMoving);
+    void ResolveCollisions(const std::vector<Stage::StageCollisionData>& collisionData, Camera* pCamera, bool isMoving);
 
 private:
     VECTOR m_modelPos;

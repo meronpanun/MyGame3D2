@@ -1,4 +1,4 @@
-﻿#include "PlayerWeaponManager.h"
+#include "PlayerWeaponManager.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -742,9 +742,7 @@ void PlayerWeaponManager::UpdateSGAnimation(AnimationManager* pAnimManager,
     }
 }
 
-float PlayerWeaponManager::CalculatePullBackOffset(
-    const VECTOR& playerPos, Camera* pCamera,
-    const std::vector<EnemyBase*>& enemyList,
+float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList,
     const std::vector<Stage::StageCollisionData>& collisionData) const
 {
     if (!pCamera) return 0.0f;

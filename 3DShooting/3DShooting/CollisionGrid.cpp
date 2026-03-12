@@ -55,8 +55,7 @@ void CollisionGrid::RegisterEnemy(EnemyBase* enemy)
     }
 }
 
-void CollisionGrid::GetNeighbors(const VECTOR& pos,
-    std::vector<EnemyBase*>& outNeighbors) const
+void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& outNeighbors) const
 {
     outNeighbors.clear();
 
