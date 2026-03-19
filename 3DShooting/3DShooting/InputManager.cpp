@@ -1,4 +1,4 @@
-﻿#include "InputManager.h"
+#include "InputManager.h"
 #include "EffekseerForDXLib.h"
 #include "Game.h"
 #include <DxLib.h>
@@ -90,6 +90,13 @@ bool InputManager::IsPressMouseRight()
 // マウスの移動量に基づいてカメラの回転角度を更新
 void InputManager::UpdateCameraRotation(float& cameraYaw, float& cameraPitch, float sensitivity)
 {
+    // ウィンドウがアクティブでないか、
+    // PrintScreenキー（SYSRQ）が押されている場合は、カメラ操作とマウスの固定を無効化する
+    if (GetWindowActiveFlag() == FALSE || CheckHitKey(KEY_INPUT_SYSRQ))
+    {
+        return;
+    }
+
     Vec2 mousePos = GetMousePos();
 
     // マウスの移動量に基づいてカメラの回転角度を更新
