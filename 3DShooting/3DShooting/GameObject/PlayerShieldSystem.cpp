@@ -27,6 +27,8 @@ namespace PlayerShieldConstants
     constexpr float kGuardEffectOffsetZ = 40.0f;
     constexpr float kGuardEffectOffsetX = 2.0f;
     constexpr float kGuardEffectOffsetY = -90.0f;
+    constexpr float kShieldThrowStartYOffset = 80.0f;
+    constexpr float kShieldThrowCatchDistance = 50.0f;
 
     // 待機時の揺れ
     constexpr float kIdleSwaySpeed = 1.5f;   // 揺れの速さ
@@ -257,10 +259,7 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
     }
 }
 
-void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos,
-    bool isTackling, bool isSwitchingWeapon,
-    float weaponSwitchTimer,
-    float weaponSwitchDuration)
+void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration)
 {
     if (!pCamera) return;
 
@@ -627,47 +626,58 @@ void PlayerShieldSystem::UpdateShieldThrow(
     // シールドの回転タイマーを更新
     m_shieldThrowRotationTimer += deltaTime * PlayerShieldConstants::kShieldThrowRotationSpeed;
 
-    if (m_shieldThrowState == ShieldThrowState::Throwing)
+    // ステートマシンによるシールドのアクション状態管理
+    switch (m_shieldThrowState)
     {
-        // カメラの前方方向（レティクルの方角）に向かって移動
+    case ShieldThrowState::Throwing:
+    {
+        // 状態：[投擲中（Throwing）] ターゲットとなるレティクル方向へ直進
         VECTOR moveDelta = VScale(m_shieldThrowDir, m_shieldThrowSpeed * deltaTime);
         m_shieldThrowPos = VAdd(m_shieldThrowPos, moveDelta);
         m_shieldThrowDistance += VSize(moveDelta);
 
-        // 最大距離に達したら戻りモードに切り替え
+        // 限界飛距離に達した場合、「戻り（Returning）ステート」へ遷移させる
         if (m_shieldThrowDistance >= m_shieldThrowMaxRange)
         {
             m_shieldThrowState = ShieldThrowState::Returning;
-            m_shieldThrowHitEnemyId = -1; // 戻り時に再度ヒットできるようにリセット
+            m_shieldThrowHitEnemyId = -1; // 戻り軌道での再ヒット判定を許可するため履歴をクリア
         }
+        break;
     }
-    else if (m_shieldThrowState == ShieldThrowState::Returning)
+    case ShieldThrowState::Returning:
     {
-        // プレイヤーの位置にYオフセットを加えた位置（投げ始めた位置と同じ高さ）に向かって移動
-        constexpr float kShieldThrowStartYOffset = 80.0f;
+        // 状態：[帰還中（Returning）] 現在のプレイヤー位置を動的に追従し戻る
         VECTOR returnTargetPos = playerPos;
-        returnTargetPos.y += kShieldThrowStartYOffset; // 投げ始めた位置と同じ高さにする
+        returnTargetPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
 
         VECTOR toReturnTarget = VSub(returnTargetPos, m_shieldThrowPos);
         float distToReturnTarget = VSize(toReturnTarget);
 
-        if (distToReturnTarget < 50.0f)
+        // プレイヤーの手元（キャッチ判定圏内）に到達したら「待機（Idle）ステート」へ遷移
+        if (distToReturnTarget < PlayerShieldConstants::kShieldThrowCatchDistance)
         {
-            // 戻り位置に到達したら待機モードに戻る
             m_shieldThrowState = ShieldThrowState::Idle;
-            m_isShieldThrown = false;
-            m_shieldThrowPos = VGet(0, 0, 0);
-            m_shieldThrowDistance = 0.0f;
-            m_shieldThrowHitEnemyId = -1;
+            m_isShieldThrown   = false;
+            m_shieldThrowPos   = VGet(0, 0, 0);
+            
+            // 次回の投擲に備え、各種パラメータとクールダウンをリセット
+            m_shieldThrowDistance      = 0.0f;
+            m_shieldThrowHitEnemyId    = -1;
             m_shieldThrowRotationTimer = 0.0f;
-            // クールタイムを開始
             m_shieldThrowCooldownTimer = PlayerShieldConstants::kShieldThrowCooldown;
-            return;
+            break;
         }
 
+        // プレイヤーへ向けての帰還移動座標を更新
         VECTOR returnDir = VNorm(toReturnTarget);
         VECTOR moveDelta = VScale(returnDir, m_shieldThrowSpeed * deltaTime);
         m_shieldThrowPos = VAdd(m_shieldThrowPos, moveDelta);
+        break;
+    }
+
+    case ShieldThrowState::Idle:
+    default:
+        break;
     }
 
     // ステージとの当たり判定
@@ -682,42 +692,39 @@ void PlayerShieldSystem::UpdateShieldThrow(
 
         for (const auto& col : collisionData)
         {
-            if (HitCheck_Sphere_Triangle(m_shieldThrowPos, PlayerShieldConstants::kShieldThrowRadius, col.v1,
-                col.v2, col.v3))
+            if (HitCheck_Sphere_Triangle(m_shieldThrowPos, PlayerShieldConstants::kShieldThrowRadius, col.v1, col.v2, col.v3))
             {
-                // 法線の計算
+                // ベクトルと内積・外積を用いた反射演算
+                // ポリゴンの外積から衝突面の法線ベクトル(N)を算出
                 VECTOR edge1 = VSub(col.v2, col.v1);
                 VECTOR edge2 = VSub(col.v3, col.v1);
                 VECTOR normal = VNorm(VCross(edge1, edge2));
 
-                // 入射ベクトルと法線の内積
+                // 入射ベクトル(I)と法線(N)の内積を計算し、入射角を判定
                 float dot = VDot(m_shieldThrowDir, normal);
 
-                // 反射回数が残っており、かつ入射角度が浅い（法線に対して30度以上）場合のみ反射
+                // 反射制御: 規定回数未満かつ入射角が浅い（壁をかすめるような軌道）場合のみ反射
                 if (m_shieldReflectCount < 1 && fabsf(dot) < PlayerShieldConstants::kShieldReflectAngleCos)
                 {
-                    // 反射ベクトルの計算: R = I - 2(I・N)N
-                    VECTOR reflectDir =
-                        VSub(m_shieldThrowDir, VScale(normal, 2.0f * dot));
+                    // 反射ベクトルの公式 [ R = I - 2(I・N)N ] を適用して新たな進行方向を決定
+                    VECTOR reflectDir = VSub(m_shieldThrowDir, VScale(normal, 2.0f * dot));
                     m_shieldThrowDir = VNorm(reflectDir);
                     m_shieldReflectCount++;
 
-                    // 反射エフェクトの再生
+                    // 衝突のスパークエフェクトを再生
                     if (pEffect)
                     {
-                        pEffect->PlaySparkEffect2(m_shieldThrowPos.x, m_shieldThrowPos.y,
-                            m_shieldThrowPos.z);
+                        pEffect->PlaySparkEffect2(m_shieldThrowPos.x, m_shieldThrowPos.y, m_shieldThrowPos.z);
                     }
 
-                    // めり込み防止（少しだけ法線方向にずらす）
+                    // 壁へのめり込み（Clipping）を防ぐため、算出した法線方向へ微小に押し出し
                     m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, 2.0f));
                 }
                 else
                 {
-                    // 反射しない、または既に反射済みの場合は戻りモードに切り替え
+                    // 反射終了後、または正面衝突時は直ちにキャッチ判定用の帰還ステートへ移行
                     m_shieldThrowState = ShieldThrowState::Returning;
-                    m_shieldThrowHitEnemyId =
-                        -1; // 戻り時に再度ヒットできるようにリセット
+                    m_shieldThrowHitEnemyId = -1;
                 }
 
                 break; // 1つでも当たればOK
@@ -821,8 +828,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
                     // エフェクトを再生
                     if (pEffect)
                     {
-                        pEffect->PlaySparkEffect(m_shieldThrowPos.x, m_shieldThrowPos.y,
-                            m_shieldThrowPos.z);
+                        pEffect->PlaySparkEffect(m_shieldThrowPos.x, m_shieldThrowPos.y, m_shieldThrowPos.z);
                     }
 
                     // 投げ中に敵に当たった場合は戻りモードに切り替え
@@ -836,8 +842,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
     }
 }
 
-void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera,
-    const VECTOR& playerPos) const
+void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPos) const
 {
     if (!m_isShieldThrown || !pCamera) return;
 

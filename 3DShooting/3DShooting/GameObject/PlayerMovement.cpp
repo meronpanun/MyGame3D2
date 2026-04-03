@@ -207,59 +207,7 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
     {
         if (m_isJumpInertiaActive)
         {
-            // 慣性移動にもScale適用
-            VECTOR scaledJumpMoveVelocity = VScale(m_jumpMoveVelocity, timeScale);
-            m_modelPos = VAdd(m_modelPos, scaledJumpMoveVelocity);
-
-            if (VSize(moveDir) > 0.0f && pCamera)
-            {
-                float currentSpeed = (m_isRunMode || m_isRunJumping) ? m_runSpeed : m_moveSpeed;
-                // currentSpeedもScale適用
-                currentSpeed *= timeScale;
-
-                float inertiaSpeed = VSize(m_jumpMoveVelocity); // 元の慣性速度（制御用）
-
-                if (inertiaSpeed > 0.1f)
-                {
-                    float yaw = pCamera->GetYaw();
-                    VECTOR camFwd = VGet(sinf(yaw), 0.0f, cosf(yaw));
-                    VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f, cosf(yaw + DX_PI_F * 0.5f));
-                    float dotFwd = VDot(moveDir, camFwd);
-                    float dotRight = VDot(moveDir, camRight);
-
-                    VECTOR targetSideVelocity = VScale(camRight, dotRight * currentSpeed * PlayerMovementConstants::kAirControlFactor);
-                    m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) * PlayerMovementConstants::kAirAccelFactor * timeScale;
-                    m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) * PlayerMovementConstants::kAirAccelFactor * timeScale;
-                    m_modelPos = VAdd(m_modelPos, m_airSideControlVelocity);
-
-                    float diffYaw = yaw - m_jumpStartYaw;
-                    while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
-                    while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
-
-                    if (fabsf(diffYaw) < DX_PI_F * 0.5f && dotFwd > 0.0f)
-                    {
-                        VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor * 0.1f);
-                        m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
-                        if (VSize(m_jumpMoveVelocity) > 0.001f) m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
-                    }
-
-                    VECTOR inertiaDir = VNorm(m_jumpMoveVelocity);
-                    float fwdProjDot = VDot(VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor), inertiaDir);
-                    if (fwdProjDot < 0.0f)
-                    {
-                        float currentInertiaSpeed = VSize(m_jumpMoveVelocity);
-                        float targetInertiaSpeed = (std::max)(0.0f, currentInertiaSpeed + fwdProjDot);
-                        float newInertiaSpeed = currentInertiaSpeed + (targetInertiaSpeed - currentInertiaSpeed) * PlayerMovementConstants::kAirBrakeFactor * timeScale;
-                        m_jumpMoveVelocity = VScale(inertiaDir, newInertiaSpeed);
-                        m_jumpSpeedScalar = newInertiaSpeed;
-                    }
-                }
-                else
-                {
-                    m_modelPos = VAdd(m_modelPos, VScale(moveDir, currentSpeed * PlayerMovementConstants::kAirControlFactor));
-                }
-            }
-            m_isMoving = true;
+            UpdateAirControl(moveDir, pCamera, timeScale);
         }
         else if (VSize(moveDir) > 0.0f)
         {
@@ -278,6 +226,68 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
     if (pCamera) pCamera->SetHeadBobbingState(m_isMoving && isOnGround, m_isRunMode);
 
     ResolveCollisions(collisionData, pCamera, m_isMoving);
+}
+
+void PlayerMovement::UpdateAirControl(const VECTOR& moveDir, Camera* pCamera, float timeScale)
+{
+    m_isMoving = true; // 慣性により空中を移動中のためフラグを立てる
+
+    m_modelPos = VAdd(m_modelPos, VScale(m_jumpMoveVelocity, timeScale)); // 慣性ベクトルにタイムスケールを適用し、プレイヤー座標を更新
+
+    // 入力がない、またはカメラが存在しない場合は以後の姿勢制御をスキップ
+    if (VSize(moveDir) <= 0.0f || !pCamera) return;
+
+    float currentSpeed = ((m_isRunMode || m_isRunJumping) ? m_runSpeed : m_moveSpeed) * timeScale;
+    float inertiaSpeed = VSize(m_jumpMoveVelocity);
+
+    // 慣性がほぼ無い場合は直接位置を加算して終了（処理の簡略化）
+    if (inertiaSpeed <= 0.1f)
+    {
+        m_modelPos = VAdd(m_modelPos, VScale(moveDir, currentSpeed * PlayerMovementConstants::kAirControlFactor));
+        return;
+    }
+
+    // 空中制御
+    float yaw = pCamera->GetYaw();
+    VECTOR camFwd   = VGet(sinf(yaw), 0.0f, cosf(yaw));
+    VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f, cosf(yaw + DX_PI_F * 0.5f));
+    float dotFwd    = VDot(moveDir, camFwd);
+    float dotRight  = VDot(moveDir, camRight);
+
+    // [ストレイフ制御] 目標の横移動速度を算出し、Lerpで滑らかに加減速
+    VECTOR targetSideVelocity = VScale(camRight, dotRight * currentSpeed * PlayerMovementConstants::kAirControlFactor);
+    m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) * PlayerMovementConstants::kAirAccelFactor * timeScale;
+    m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) * PlayerMovementConstants::kAirAccelFactor * timeScale;
+    m_modelPos = VAdd(m_modelPos, m_airSideControlVelocity);
+
+    // [旋回（舵取り）制御] ジャンプ開始時からのカメラ回転量を-π～πに正規化
+    float diffYaw = yaw - m_jumpStartYaw;
+    while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
+    while (diffYaw >   DX_PI_F) diffYaw -= DX_TWO_PI_F;
+
+    if (fabsf(diffYaw) < DX_PI_F * 0.5f && dotFwd > 0.0f)
+    {
+        VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor * 0.1f);
+        m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
+        if (VSize(m_jumpMoveVelocity) > 0.001f) 
+        {
+            m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
+        }
+    }
+
+    // [空中ブレーキ制御] 慣性と逆方向への入力がある場合はLerpで自然に減速
+    VECTOR inertiaDir = VNorm(m_jumpMoveVelocity);
+    float fwdProjDot  = VDot(VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor), inertiaDir);
+    
+    if (fwdProjDot < 0.0f)
+    {
+        float curSpeed = VSize(m_jumpMoveVelocity);
+        float targetSpeed = (std::max)(0.0f, curSpeed + fwdProjDot);
+        float newSpeed = curSpeed + (targetSpeed - curSpeed) * PlayerMovementConstants::kAirBrakeFactor * timeScale;
+        
+        m_jumpMoveVelocity = VScale(inertiaDir, newSpeed);
+        m_jumpSpeedScalar  = newSpeed;
+    }
 }
 
 void PlayerMovement::ApplyKnockback(const VECTOR& velocity)

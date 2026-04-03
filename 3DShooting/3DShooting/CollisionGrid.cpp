@@ -1,5 +1,5 @@
 #include "CollisionGrid.h"
-#include "GameObject/EnemyBase.h"
+#include "EnemyBase.h"
 #include <cmath>
 
 CollisionGrid::CollisionGrid()
@@ -59,20 +59,30 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
 {
     outNeighbors.clear();
 
+    /*空間分割による近傍オブジェクトの高速探索*/ 
+    // 指定されたワールド座標が属するセルのグリッド座標 (cx, cz) を算出
     int cx, cz;
     GetCellIndices(pos, cx, cz);
 
-    // 周囲9セル（自分含む）を検索
+    // 自身が属するセルを中心に、周囲3×3 = 9セル分のエリアを走査
     for (int z = cz - 1; z <= cz + 1; ++z)
     {
+        // 縦（Z軸）方向のフィールド範囲外アクセスを防ぐ（外側ループで早期スキップし最適化）
+        if (z < 0 || z >= m_height) continue;
+
         for (int x = cx - 1; x <= cx + 1; ++x)
         {
-            if (x >= 0 && x < m_width && z >= 0 && z < m_height)
-            {
-                int index = z * m_width + x;
-                const auto& cell = m_cells[index];
-                outNeighbors.insert(outNeighbors.end(), cell.begin(), cell.end());
-            }
+            // 横（X軸）方向のフィールド範囲外アクセスを防ぐ
+            if (x < 0 || x >= m_width) continue;
+
+            //該当セルに登録済みの敵リストを合成 
+            // 2次元グリッド座標を1次元配列用インデックスに変換
+            int cellIndex = z * m_width + x;
+            const auto& targetCell = m_cells[cellIndex];
+            
+            // ベクターの末尾に該当セルの敵リスト（ポインタ）を一括挿入
+            // これにより、O(N^2)となる全敵との総当たり判定を防ぎ、処理負荷を圧縮
+            outNeighbors.insert(outNeighbors.end(), targetCell.begin(), targetCell.end());
         }
     }
 }

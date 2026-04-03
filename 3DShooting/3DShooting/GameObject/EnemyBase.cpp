@@ -319,44 +319,49 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos, const VECTO
     return VSub(term1, term2);
 }
 
+// AI更新頻度の動的制御によるCPU負荷の最適化
 void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
 {
-    // カメラ情報の取得
-    VECTOR camPos = GetCameraPosition();
-    VECTOR camTarget = GetCameraTarget();
-    VECTOR camDir = VNorm(VSub(camTarget, camPos));
-
-    // プレイヤーとの距離チェック
+    // 自身からプレイヤーまでの距離を算出
     VECTOR toPlayer = VSub(playerPos, m_pos);
     float distSq = VSquareSize(toPlayer);
 
-    // デフォルト設定
+    // デフォルトの設定（毎フレーム実行）
     m_aiUpdateInterval = EnemyConstants::kUpdateIntervalDefault;
     m_isSimpleMode = false;
 
-    // 1. 距離による更新頻度変更
-    if (distSq > EnemyConstants::kThrottlingLongRangeSq) m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong; // 遠距離: 3フレームに1回
-    else if (distSq > EnemyConstants::kThrottlingMidRangeSq) m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid; // 中距離: 2フレームに1回
+    // 距離ベースの更新間引き処理（遠方のアクティブな敵ほどAIの計算サイクルを落とす）
+    if (distSq > EnemyConstants::kThrottlingLongRangeSq)
+    {
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong;  // 遠距離: 更新を3フレームに1回まで抑える
+    }
+    else if (distSq > EnemyConstants::kThrottlingMidRangeSq)
+    {
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid;   // 中距離: 更新を2フレームに1回まで抑える
+    }
 
-    // 2. 視界判定 (画面外停止)
-    // Bossは常にフルパワー
+    // 視界ベースの簡易モード移行処理（画面外におけるAI行動の簡略化）
+    // ボスキャラクターは常にフル演算を行うため除外
     if (!IsBoss())
     {
-        VECTOR toEnemy = VSub(m_pos, camPos);
-        float enemyDistSq = VSquareSize(toEnemy);
+        VECTOR camPos = GetCameraPosition();
+        float enemyDistSq = VSquareSize(VSub(m_pos, camPos));
 
-        // カメラからある程度離れている場合のみ判定
-        if (enemyDistSq > EnemyConstants::kThrottlingViewCheckDistSq)
+        // プレイヤーおよびカメラからそれぞれ一定距離以上離れている場合のみ視界限界の判定を実行
+        if (distSq > EnemyConstants::kThrottlingMidRangeSq && enemyDistSq > EnemyConstants::kThrottlingViewCheckDistSq)
         {
-            VECTOR dirToEnemy = VNorm(toEnemy);
-            float dot = VDot(camDir, dirToEnemy);
-
-            // 視界外 (視野角 約66度相当) かつ プレイヤーからもある程度離れている
-            if (dot < EnemyConstants::kThrottlingFOVThreshold && distSq > EnemyConstants::kThrottlingMidRangeSq) m_isSimpleMode = true;
+            VECTOR camDir = VNorm(VSub(GetCameraTarget(), camPos));
+            VECTOR dirToEnemy = VNorm(VSub(m_pos, camPos));
+            
+            // カメラ方向ベクトルとの内積を取り、完全な視界外（背後等）と判定されたら簡易モードへ移行
+            if (VDot(camDir, dirToEnemy) < EnemyConstants::kThrottlingFOVThreshold)
+            {
+                m_isSimpleMode = true;
+            }
         }
     }
 
-    // フレームカウントの更新と実行フラグの設定
+    // 算出したインターバルを用いて、今回のフレームで優先してAIを更新すべきかを設定
     m_updateFrameCount++;
     m_shouldUpdateAI = (m_updateFrameCount % m_aiUpdateInterval == 0);
 }
@@ -449,17 +454,27 @@ void EnemyBase::RotateTowards(const VECTOR& targetPos, float rotationSpeed)
 // 描画すべきかどうかを判定
 bool EnemyBase::ShouldDraw(float drawDistSq, float nearDistSq, float dotThreshold) const
 {
+    // 描画カリングによる描画負荷の最適化
     VECTOR camPos = GetCameraPosition();
     VECTOR camTarget = GetCameraTarget();
+    
+    // カメラから敵へのベクトルと、その距離の「2乗」を算出
+    // ※高コストな平方根（sqrt）計算を避けるため、距離は常に2乗（Sq）のままで比較を行う
     VECTOR toEnemy = VSub(m_pos, camPos);
     float distSq = VSquareSize(toEnemy);
 
+    // 遠距離カリング: 描画限界距離より遠ければ即座に描画をスキップ
     if (distSq > drawDistSq) return false;
+    
+    // 近距離の無条件描画: 一定距離以内なら無条件で描画（画面端での不自然な見切れを防止）
     if (distSq <= nearDistSq) return true;
 
+    // 視界カリング: カメラの正面ベクトルと敵へのベクトルの内積を利用した視野外判定
     VECTOR camDir = VNorm(VSub(camTarget, camPos));
     VECTOR dirToEnemy = VNorm(toEnemy);
     float dot = VDot(camDir, dirToEnemy);
+    
+    // 算出した内積パラメータが閾値（FOV）以上なら視界内として描画、それ以外ならスキップ
     return dot >= dotThreshold;
 }
 

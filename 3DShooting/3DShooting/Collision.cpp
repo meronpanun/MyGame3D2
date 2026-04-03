@@ -5,8 +5,7 @@
 namespace
 {
     // トライアングル上の最近接点を求める関数
-    VECTOR GetClosestPointOnTriangle(const VECTOR& p, const VECTOR& a,
-        const VECTOR& b, const VECTOR& c)
+    VECTOR GetClosestPointOnTriangle(const VECTOR& p, const VECTOR& a,const VECTOR& b, const VECTOR& c)
     {
         VECTOR ab = VSub(b, a);
         VECTOR ac = VSub(c, a);
@@ -15,15 +14,13 @@ namespace
         float d1 = VDot(ab, ap);
         float d2 = VDot(ac, ap);
 
-        if (d1 <= 0.0f && d2 <= 0.0f)
-            return a;
+        if (d1 <= 0.0f && d2 <= 0.0f) return a;
 
         VECTOR bp = VSub(p, b);
         float d3 = VDot(ab, bp);
         float d4 = VDot(ac, bp);
 
-        if (d3 >= 0.0f && d4 <= d3)
-            return b;
+        if (d3 >= 0.0f && d4 <= d3) return b;
 
         float vc = d1 * d4 - d3 * d2;
         if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f)
@@ -36,8 +33,7 @@ namespace
         float d5 = VDot(ab, cp);
         float d6 = VDot(ac, cp);
 
-        if (d6 >= 0.0f && d5 <= d6)
-            return c;
+        if (d6 >= 0.0f && d5 <= d6) return c;
 
         float vb = d5 * d2 - d1 * d6;
         if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f)
@@ -60,18 +56,14 @@ namespace
     }
 }
 
-CollisionResult Collision::CheckStageCollision(
-    VECTOR& position, float capsuleHeight, float capsuleRadius,
-    float colliderYOffset,
-    const std::vector<Stage::StageCollisionData>& collisionData)
+CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHeight, float capsuleRadius, float colliderYOffset, const std::vector<Stage::StageCollisionData>& collisionData)
 {
     CollisionResult result;
     result.isGrounded = false;
 
     const int kIterations = 4;
     const float kGroundTolerance = 0.5f;
-    const float kGroundToleranceSq =
-        (capsuleRadius + kGroundTolerance) * (capsuleRadius + kGroundTolerance);
+    const float kGroundToleranceSq = (capsuleRadius + kGroundTolerance) * (capsuleRadius + kGroundTolerance);
 
     for (int i = 0; i < kIterations; ++i)
     {
@@ -87,8 +79,7 @@ CollisionResult Collision::CheckStageCollision(
 
             for (const auto& p : points)
             {
-                VECTOR closest =
-                    GetClosestPointOnTriangle(p, data.v1, data.v2, data.v3);
+                VECTOR closest = GetClosestPointOnTriangle(p, data.v1, data.v2, data.v3);
                 VECTOR diff = VSub(p, closest);
                 float distSq = VDot(diff, diff);
 
@@ -141,10 +132,7 @@ CollisionResult Collision::CheckStageCollision(
     return result;
 }
 
-bool Collision::IntersectRayTriangle(const VECTOR& rayOrig,
-    const VECTOR& rayDir, const VECTOR& v0,
-    const VECTOR& v1, const VECTOR& v2,
-    float& outT)
+bool Collision::IntersectRayTriangle(const VECTOR& rayOrig, const VECTOR& rayDir, const VECTOR& v0, const VECTOR& v1, const VECTOR& v2, float& outT)
 {
     constexpr float kEpsilon = 1e-6f;
 

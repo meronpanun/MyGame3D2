@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <memory>
@@ -120,6 +120,8 @@ private:
     void UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead);
     void UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
         const std::vector<Stage::StageCollisionData>& collisionData);
+
+    void UpdateAirControl(const VECTOR& moveDir, Camera* pCamera, float timeScale);
 
     VECTOR CalculateMoveDirection(Camera* pCamera, const unsigned char* keyState);
     void HandleJump(const unsigned char* keyState, const unsigned char* prevKeyState, bool isDead,

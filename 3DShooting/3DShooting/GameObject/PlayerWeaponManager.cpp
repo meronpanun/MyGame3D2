@@ -742,76 +742,66 @@ void PlayerWeaponManager::UpdateSGAnimation(AnimationManager* pAnimManager,
     }
 }
 
-float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList,
-    const std::vector<Stage::StageCollisionData>& collisionData) const
+float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData) const
 {
-    if (!pCamera) return 0.0f;
+    // カメラが存在しない、または下向き（約-45度以下）の場合は引き込み処理を行わない
+    if (!pCamera || pCamera->GetPitch() < -DX_PI_F / 4.0f) return 0.0f;
 
-    // 下を向いている場合は引き込み演出を行わない (ピッチ角が約-45度以下)
-    // DXLibのカメラのピッチは、下を向くとマイナスの値になる
-    if (pCamera->GetPitch() < -DX_PI_F / 4.0f) return 0.0f;
+    // 現在装備中の武器の銃身長をレイの長さとして定義
+    float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
 
-    // 武器の種類に応じて判定距離を決定
-    float checkDistance = 0.0f;
-    switch (m_currentWeaponType)
-    {
-    case WeaponType::AssaultRifle:
-        checkDistance = 160.0f; // アサルトライフルの長さ目安
-        break;
-    case WeaponType::Shotgun:
-        checkDistance = 180.0f; // ショットガンの長さ目安
-        break;
-    }
-
-    VECTOR camPos = pCamera->GetPos();
+    VECTOR camPos     = pCamera->GetPos();
     VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), camPos));
 
-    // 少し前から Ray を飛ばす
+    // カメラの少し前方を起点としたレイを形成（自キャラの背中などへの誤判定を防ぐ）
     VECTOR rayStart = VAdd(camPos, VScale(camForward, 10.0f));
-    VECTOR rayEnd = VAdd(rayStart, VScale(camForward, checkDistance));
+    VECTOR rayEnd   = VAdd(rayStart, VScale(camForward, checkDistance));
 
-    float minT = 1.0f; // 0.0 - 1.0 の範囲で最も近い衝突点を探す
-    bool hit = false;
+    float minHitT = 1.0f; // レイの割合(0.0 ～ 1.0)における最短ヒット距離を保持
+    bool  isHit   = false;
 
-    // ステージとの判定
+    // ステージ（静的ポリゴン）とのレイキャスト判定
     for (const auto& poly : collisionData)
     {
         float t = 0.0f;
+        // Rayとステージを構成する三角形ポリゴンとの交差判定を実行
         if (Collision::IntersectRayTriangle(rayStart, VScale(camForward, checkDistance), poly.v1, poly.v2, poly.v3, t))
         {
-            if (t >= 0.0f && t < minT)
+            if (t >= 0.0f && t < minHitT)
             {
-                minT = t;
-                hit = true;
+                minHitT = t;
+                isHit = true;
             }
         }
     }
 
-    // 敵との判定
+    // 敵（動的オブジェクト）とのレイキャスト判定
     for (const auto& enemy : enemyList)
     {
         if (!enemy || !enemy->IsAlive()) continue;
 
         VECTOR hitPos;
         float hitDistSq;
-        // EnemyBase::CheckHitPart を利用して Ray 判定を行う
+        
+        // 敵の各部位に対するRayの当たり判定を実行し、ヒット部位の距離を取得
         if (enemy->CheckHitPart(rayStart, rayEnd, hitPos, hitDistSq) != EnemyBase::HitPart::None)
         {
-            float dist = sqrtf(hitDistSq);
-            float t = dist / checkDistance;
-            if (t < minT)
+            // レイの始点からの距離を0.0 ～ 1.0の割合(t)に変換し、最短かをチェック
+            float t = sqrtf(hitDistSq) / checkDistance;
+            if (t < minHitT)
             {
-                minT = t;
-                hit = true;
+                minHitT = t;
+                isHit = true;
             }
         }
     }
 
-    if (hit)
+    // 衝突結果を元に銃のダイナミックな引き込み量を計算
+    if (isHit)
     {
-        // 衝突点から逆算して、引き込み量を決める
-        // 最前面描画が有効なので、引き込み量自体は控えめに（0.5倍程度）して「ひねり」を強調する
-        return (1.0f - minT) * checkDistance * 0.5f;
+        // 障害物との距離が近い（tが小さい）ほど、手前への引き込み量を大きく設定
+        // ※最前面描画との併用のため、位置の引き下げ自体は控えめにし「銃のひねり演出」を補完する
+        return (1.0f - minHitT) * checkDistance * 0.5f;
     }
 
     return 0.0f;
