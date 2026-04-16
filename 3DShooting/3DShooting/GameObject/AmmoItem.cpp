@@ -114,7 +114,6 @@ void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionDat
 			player->AddSGAmmo(kAmmoAmount);
 			break;
 		default:
-			// どちらでもない場合は何もしない、またはデフォルトの処理
 			break;
 		}
 		m_isUsed = true;

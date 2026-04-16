@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "DxLib.h"
+#include "ManagedFont.h"
 #include <vector>
 #include <memory>
-#include "ManagedFont.h"
 
 class EnemyBase;
 
@@ -29,13 +29,28 @@ private:
 	/// <param name="maxHp">最大体力</param>
 	void DrawBossHPBar(float hp, float maxHp);
 
+	/// <summary>
+	/// フォントのリロード（スケール変更時に呼び出す）
+	/// </summary>
+	/// <param name="scale">新しいスケール</param>
+	void ReloadFonts(float scale);
+
+	/// <summary>
+	/// グラデーションボックスの描画（上部と下部で色が変わる）
+	/// </summary>
+	/// <param name="x1">x座標1</param>
+	/// <param name="y1">y座標1</param>
+	/// <param name="x2">x座標2</param>
+	/// <param name="y2">y座標2</param>
+	/// <param name="topColor">上部の色</param>
+	/// <param name="bottomColor">下部の色</param>
+	void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
+
 private:
 	float m_healthBarAnim; // HPバーアニメーション用体力値
 	ManagedFont m_font;    // フォントハンドル
 
 	// スケール管理
 	float m_prevScale;
-	void ReloadFonts(float scale);
 
-	void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
 };

@@ -205,7 +205,7 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
         switch (type)
         {
         case AttackType::Shoot:
-            s_debugHitInfo = "(Shot)"; // 以降の処理で詳細なヒット部位(Head/Body)情報により上書きされる場合あり
+            s_debugHitInfo = "(Shot)"; 
             break;
         case AttackType::Tackle:
             s_debugHitInfo = "(Tackle)";

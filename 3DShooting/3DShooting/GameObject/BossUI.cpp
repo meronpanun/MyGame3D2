@@ -6,17 +6,17 @@
 namespace 
 {
     // ボスHPバー関連
-    constexpr int kBossHpBarWidth = 900;
+    constexpr int kBossHpBarWidth  = 900;
     constexpr int kBossHpBarHeight = 24;
-    constexpr int kBossHpBarY = 225;
-    constexpr int kBossHpTextY = 170;
+    constexpr int kBossHpBarY      = 225;
+    constexpr int kBossHpTextY     = 170;
 
     // 色関連
-    constexpr unsigned int kColorWhite = 0xffffff;
-    constexpr unsigned int kColorHpBarBg = 0x303030;
-    constexpr unsigned int kColorHpBarTop = 0xff4040;   // ボスHPバー上部（明るい赤）
-    constexpr unsigned int kColorHpBarBottom = 0x800000;// ボスHPバー下部（暗い赤）
-    constexpr unsigned int kColorHpBarFill = 0xcc0000;   // ボスは真紅（バックアップ用）
+    constexpr unsigned int kColorWhite       = 0xffffff;
+    constexpr unsigned int kColorHpBarBg     = 0x303030;
+    constexpr unsigned int kColorHpBarTop    = 0xff4040; // ボスHPバー上部（明るい赤）
+    constexpr unsigned int kColorHpBarBottom = 0x800000; // ボスHPバー下部（暗い赤）
+    constexpr unsigned int kColorHpBarFill   = 0xcc0000; // ボスは真紅（バックアップ用）
     constexpr unsigned int kColorHpBarDamage = 0xaaaaaa; // 被ダメ時はグレー
     constexpr unsigned int kColorHpBarBorder = 0xffffff;
     constexpr float kAnimSpeed = 0.05f; // HPバーの追従速度
@@ -96,7 +96,7 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
     int barH = static_cast<int>(kBossHpBarHeight * scale);
     int barY = static_cast<int>(kBossHpBarY * scale);
 
-    int barX = (screenW - barW) / 2;
+    int barX = (screenW - barW) * 0.5f;
 
     // HP割合
     float hpRate = hp / maxHp;
@@ -140,7 +140,7 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
 
 void BossUI::ReloadFonts(float scale) 
 {
-    m_font.Reload(scale);
+	m_font.Reload(scale); // スケールに応じてフォントを再生成
 }
 
 void BossUI::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor)

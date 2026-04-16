@@ -1,6 +1,0 @@
-﻿Wave,EnemyType,Count,SpawnInterval,StartTime,WaveInterval,SpawnLocation,HasShield
-1,NormalEnemy,1,0,0,0,1,1
-2,NormalEnemy,1,0,0,0,1,0
-3,NormalEnemy,1,0,0,0,1,0
-4,NormalEnemy,1,0,0,0,1,0
-5,NormalEnemy,1,0,0,0,1,0

@@ -12,21 +12,28 @@ namespace
     constexpr float kPlayerBoundaryDistance = 2000.0f;
 }
 
-Bullet::Bullet(VECTOR position, VECTOR direction, AttackType attackType,
-               float damage, float attenuationStartDist,
-               float attenuationEndDist, float minDamageRatio)
-    : m_pos(position), m_prevPos(position), m_spawnPos(position)
-    , m_dir(direction), m_speed(kBulletSpeed), m_isActive(true)
-    , m_damage(damage), m_attackType(attackType)
+Bullet::Bullet(VECTOR position, VECTOR direction, AttackType attackType, float damage, float attenuationStartDist, float attenuationEndDist, float minDamageRatio)
+    : m_pos(position)
+    , m_prevPos(position)
+    , m_spawnPos(position)
+    , m_dir(direction)
+    , m_speed(kBulletSpeed)
+    , m_isActive(true)
+    , m_damage(damage)
+    , m_attackType(attackType)
     , m_attenuationStartDist(attenuationStartDist)
     , m_attenuationEndDist(attenuationEndDist)
     , m_minDamageRatio(minDamageRatio) 
 {
 }
 
-Bullet::~Bullet() {}
+Bullet::~Bullet()
+{
+}
 
-void Bullet::Init() {}
+void Bullet::Init()
+{
+}
 
 void Bullet::Update(const VECTOR &playerPos, const std::vector<Stage::StageCollisionData> &collisionData)
 {
@@ -94,18 +101,14 @@ void Bullet::Draw() const
 }
 
 // 弾の更新
-void Bullet::UpdateBullets(
-    std::vector<Bullet> &bullets, const VECTOR &playerPos,
-    const std::vector<Stage::StageCollisionData> &collisionData) 
+void Bullet::UpdateBullets(std::vector<Bullet> &bullets, const VECTOR &playerPos, const std::vector<Stage::StageCollisionData> &collisionData) 
 {
   for (auto &bullet : bullets) 
   {
     bullet.Update(playerPos, collisionData);
   }
   // 非アクティブな弾を削除
-  bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
-                               [](const Bullet &b) { return !b.IsActive(); }),
-                bullets.end());
+  bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet &b) { return !b.IsActive(); }), bullets.end());
 }
 
 // 弾の描画
@@ -118,7 +121,10 @@ void Bullet::DrawBullets(const std::vector<Bullet> &bullets)
 }
 
 // 弾を非アクティブ化
-void Bullet::Deactivate() { m_isActive = false; }
+void Bullet::Deactivate()
+{ 
+    m_isActive = false; 
+}
 
 // 弾のダメージを取得
 float Bullet::GetDamage() const 

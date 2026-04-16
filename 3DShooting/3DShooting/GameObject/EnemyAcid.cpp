@@ -20,10 +20,10 @@
 namespace EnemyAcidConstants
 {
     // アニメーション関連
-    constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
-    constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
-    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
-    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+    constexpr char kAttackAnimName[] = "Armature|ATK";  // 攻撃アニメーション
+    constexpr char kWalkAnimName[]   = "Armature|WALK"; // 歩くアニメーション
+    constexpr char kBackAnimName[]   = "Armature|BACK"; // 後退アニメーション
+    constexpr char kDeadAnimName[]   = "Armature|DEAD"; // 死亡アニメーション
 
     constexpr VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
 

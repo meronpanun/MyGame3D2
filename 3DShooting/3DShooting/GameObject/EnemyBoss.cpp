@@ -19,32 +19,33 @@
 namespace EnemyBossConstants
 {
     // アニメーション名
-    constexpr char kWalkAnimName[] = "Armature|Run";
-    constexpr char kCloseAttackAnimName[] = "Armature|CloseRangeAttack"; // 近接範囲攻撃
-    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack"; // 遠距離攻撃
-    constexpr char kDeadAnimName[] = "Armature|Death";
+    constexpr char kWalkAnimName[]            = "Armature|Run";
+    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // 近接範囲攻撃
+    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // 遠距離攻撃
+    constexpr char kDeadAnimName[]            = "Armature|Death";
 
-    constexpr float kLongRangeAttackMinDist = 400.0f; // 遠距離攻撃を行う最小距離
-    constexpr float kLongRangeAttackMaxDist = 1000.0f; // 遠距離攻撃を行う最大距離（これより遠いと攻撃せず接近する）
+    constexpr float kLongRangeAttackMinDist   = 400.0f; // 遠距離攻撃を行う最小距離
+    constexpr float kLongRangeAttackMaxDist   = 1000.0f; // 遠距離攻撃を行う最大距離（これより遠いと攻撃せず接近する）
     constexpr int kLongRangeAttackCooldownMax = 120;
-    constexpr float kHomingBulletSpeed = 6.0f;
-    constexpr float kHomingTurnRate = 0.02f;        // 旋回性能
-    constexpr float kHomingBulletMaxDist = 1800.0f; // 弾の最大飛距離
-    constexpr float kHomingBulletDamage = 20.0f;
-    constexpr float kHomingBulletRadius = 15.0f;
+    constexpr float kHomingBulletSpeed        = 6.0f;
+    constexpr float kHomingTurnRate           = 0.02f;        // 旋回性能
+    constexpr float kHomingBulletMaxDist      = 1800.0f; // 弾の最大飛距離
+    constexpr float kHomingBulletDamage       = 20.0f;
+    constexpr float kHomingBulletRadius       = 15.0f;
 
     // コライダーサイズ
     constexpr float kBodyColliderRadius = 40.0f;
     constexpr float kBodyColliderHeight = 350.0f;
-    constexpr float kHeadRadius = 25.0f;
-    constexpr float kAttackRangeRadius = 450.0f; // 指定された近接範囲 
-    constexpr float kAttackHitRadius = 60.0f;    // 攻撃自体の当たり判定
+    constexpr float kHeadRadius         = 25.0f;
+    constexpr float kAttackRangeRadius  = 450.0f; // 指定された近接範囲 
+    constexpr float kAttackHitRadius    = 60.0f;    // 攻撃自体の当たり判定
 
+	// 攻撃関連
     constexpr int kAttackCooldownMax = 60;
-    constexpr int kAttackEndDelay = 30; // 攻撃後の硬直
+    constexpr int kAttackEndDelay    = 30; // 攻撃後の硬直
 
     // 描画関連
-    constexpr float kDrawDistanceSq = 16000.0f * 16000.0f;
+    constexpr float kDrawDistanceSq     = 16000.0f * 16000.0f;
     constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
 
 	// シールド関連
@@ -78,6 +79,26 @@ EnemyBoss::EnemyBoss()
     , m_currentEffectHandle(-1)
     , m_effectTimer(0)
     , m_hasPlayedCloseRangeEffect(false)
+	, m_maxShieldHp(EnemyBossConstants::kShieldMaxHp)
+	, m_shieldHp(EnemyBossConstants::kShieldMaxHp)
+	, m_isShieldBroken(false)
+	, m_isStunned(false)
+	, m_stunTimer(0)
+	, m_isFirstUpdate(true)
+	, m_hasShotLongRange(false)
+	, m_isNextAttackNormal(false)
+	, m_hasPlayedShieldBreakableEffect(false)
+	, m_shouldDrawParryCollider(false)
+	, m_shieldRotation(0.0f)
+	, m_shieldEffectTimer(0.0f)
+	, m_headNodeIndex(-1)
+	, m_headTopEndNodeIndex(-1)
+	, m_pShieldCollider(nullptr)
+	, m_pBodyCollider(nullptr)
+	, m_pHeadCollider(nullptr)
+	, m_pAttackRangeCollider(nullptr)
+	, m_pAttackHitCollider(nullptr)
+	, m_longRangeAttackCooldown(0)
 {
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
@@ -101,7 +122,6 @@ void EnemyBoss::Init()
 
     // CSVからBossのTransform情報を取得
     bool loadResult = LoadTransformData("Boss");
-    m_isFirstUpdate = true;
 
     // 基本パラメータ初期化
     m_isAttackHit = false;
@@ -120,25 +140,13 @@ void EnemyBoss::Init()
     m_pShieldCollider = std::make_shared<SphereCollider>();
     m_pShieldCollider->SetRadius(300.0f); 
 
-    m_longRangeAttackCooldown = 0;
     m_homingBullets.clear();
-    m_hasShotLongRange = false;
-    m_isNextAttackNormal = false; // 最初はパリィ弾から
     m_hasPlayedCloseRangeEffect = false;
     m_currentEffectHandle = -1;
     m_hasPlayedCloseRangeEffect = false;
     m_currentEffectHandle = -1;
     m_effectTimer = 0;
-    m_maxShieldHp = EnemyBossConstants::kShieldMaxHp; // シールド最大耐久値設定
-    m_shieldHp = m_maxShieldHp;
-    m_isShieldBroken = false;
-    m_hasPlayedShieldBreakableEffect = false;
-    m_shieldRotation = 0.0f;
-    m_shieldEffectTimer = 0.0f;
     m_shieldEffectHandles.clear();
-
-    m_isStunned = false;
-    m_stunTimer = 0;
 
     ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
 }
