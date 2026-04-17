@@ -1,4 +1,4 @@
-﻿#include "Collision.h"
+#include "Collision.h"
 #include <algorithm>
 #include <cmath>
 
@@ -101,10 +101,35 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
                         {
                             normal = triNormal;
                         }
+                        // 進行不可能な壁や急斜面の場合
+                        else if (triNormal.y <= 0.5f)
+                        {
+                            normal = triNormal;
+                        }
                     }
                     else
                     {
                         normal = triNormal;
+                    }
+
+                    // 進行不可能な壁や急斜面にこすりつけた際、
+                    // わずかに上方向に押し出されて徐々に空中に浮き上がり、
+                    // 再び着地してまたSEが鳴るのを完全に防ぐため、
+                    // 上方向への押し出し（反発力）をゼロにして水平に滑らせる
+                    if (triNormal.y <= 0.5f && normal.y > 0.0f)
+                    {
+                        normal.y = 0.0f;
+                        float sq = normal.x * normal.x + normal.z * normal.z;
+                        if (sq > 0.0001f)
+                        {
+                            float len = std::sqrt(sq);
+                            normal.x /= len;
+                            normal.z /= len;
+                        }
+                        else
+                        {
+                            normal = VGet(0.0f, 0.0f, 0.0f);
+                        }
                     }
 
                     if (normal.y > 0.6f)

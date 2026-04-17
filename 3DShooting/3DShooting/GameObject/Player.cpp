@@ -138,7 +138,7 @@ Player::Player()
     , m_pDirectionIndicator(nullptr), m_isLockingOn(false)
     , m_lockedOnEnemy(nullptr), m_isTargetAvailable(false)
     , m_isAimingAtEnemy(false), m_shouldIgnoreGuardInput(false)
-    , m_hasPlayedTackleHitSE(false)
+    , m_tackleHitSECooldownTimer(0)
     , m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false)
     , m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f)
     , m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f)
@@ -377,18 +377,8 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
     m_weaponManager.UpdateSGAnimation(m_pAnimManager, deltaTime);
 
-    // タックルクールダウン
-    if (m_tackleCooldown > 0)
-    {
-        m_tackleCooldown--;
-        if (m_tackleCooldown == 0)
-        {
-            for (EnemyBase* enemy : enemyList)
-            {
-                if (enemy) enemy->ResetTackleHitFlag();
-            }
-        }
-    }
+    // タックルヒットSEのクールタイム更新
+    if (m_tackleHitSECooldownTimer > 0) m_tackleHitSECooldownTimer--;
 
     // 射撃
     if (!isInputDisabled)
@@ -1109,7 +1099,6 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
             m_tackleFrame = PlayerConstants::kTackleDuration;
             m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
             m_tackleId++;                           // タックルごとにIDを更新
-            m_hasPlayedTackleHitSE = false;         // ヒットSEフラグをリセット
 
             // ロックオンした敵の方向をタックル方向とする
             m_tackleDir = VNorm(VSub(m_lockedOnEnemy->GetPos(), m_modelPos));
@@ -1202,10 +1191,10 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
                         m_pCamera->Shake(20.0f, 10);
                     }
 
-                    if (!m_hasPlayedTackleHitSE)
+                    if (m_tackleHitSECooldownTimer <= 0)
                     {
                         PlaySoundMem(m_tackleHitSEHandle, DX_PLAYTYPE_BACK);
-                        m_hasPlayedTackleHitSE = true;
+                        m_tackleHitSECooldownTimer = 60; // クールタイム
                     }
 
                     // ノックバック適用

@@ -447,7 +447,7 @@ private:
     bool m_isStartAnimating;             // 開始演出アニメーション中か
     bool m_hasLandedAtStart;             // 開始時に一度でも着地したか
     bool m_isUiFadeStarted;              // UIフェードインが開始されたか
-    bool m_hasPlayedTackleHitSE;         // タックルヒットSEが再生済みか
+    int m_tackleHitSECooldownTimer;      // タックルヒットSEのクールタイムタイマー
 
     // ハンドルIDなど
     int m_arInitAmmo;                    // ARの初期弾薬数
