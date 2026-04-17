@@ -1,4 +1,4 @@
-﻿#include "EnemyAcid.h"
+#include "EnemyAcid.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
 #include "DebugUtil.h"
@@ -348,6 +348,9 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
                     // パリィ成功
                     hitDetected = true;
                     ball.isReflected = true;
+
+                    // パリィ成功SEを再生
+                    const_cast<Player&>(player).PlayParrySE();
 
                     // チュートリアルマネージャーに通知
                     TaskTutorialManager::GetInstance()->NotifyParrySuccess();

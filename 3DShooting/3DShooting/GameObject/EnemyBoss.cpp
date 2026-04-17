@@ -1,4 +1,4 @@
-﻿#include "EnemyBoss.h"
+#include "EnemyBoss.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -297,6 +297,9 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                     // パリィ成功
                     hitDetected = true;
                     bullet.isReflected = true;
+
+                    // パリィ成功SEを再生
+                    const_cast<Player&>(player).PlayParrySE();
 
                     // チュートリアルマネージャーに通知
                     TaskTutorialManager::GetInstance()->NotifyParrySuccess();

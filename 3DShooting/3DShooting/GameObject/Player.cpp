@@ -125,26 +125,60 @@ namespace PlayerConstants
 }
 
 Player::Player()
-    : m_playerHitSEHandle(-1), m_tackleSEHandle(-1), m_tackleHitSEHandle(-1), m_recoverySEHandle(-1)
-    , m_ammoItemSEHandle(-1), m_modelPos(VGet(0, 0, 0)), m_pEffect(nullptr)
-    , m_pCamera(std::make_shared<Camera>()), m_pos(VGet(0, 0, 0))
-    , m_health(100.0f), m_healthBarAnim(100.0f), m_healthBarAnimTimer(0.0f)
-    , m_hasShot(false), m_tackleFrame(0), m_tackleDir(VGet(0, 0, 0))
-    , m_isTackling(false), m_tackleCooldown(0), m_tackleId(0)
-    , m_concentrationLineEffectHandle(-1), m_isLowHealth(false)
-    , m_lowHealthBlinkTimer(0.0f), m_ammoTextFlashTimer(0.0f)
-    , m_idleSwayTimer(0.0f), m_gunSwayOffset(VGet(0, 0, 0))
-    , m_gunSwayRotOffset(VGet(0, 0, 0)), m_isDead(false), m_deathTimer(0.0f)
-    , m_pDirectionIndicator(nullptr), m_isLockingOn(false)
-    , m_lockedOnEnemy(nullptr), m_isTargetAvailable(false)
-    , m_isAimingAtEnemy(false), m_shouldIgnoreGuardInput(false)
+    : m_playerHitSEHandle(-1)
+    , m_tackleSEHandle(-1)
+    , m_tackleHitSEHandle(-1)
+    , m_recoverySEHandle(-1)
+    , m_ammoItemSEHandle(-1)
+    , m_modelPos(VGet(0, 0, 0))
+    , m_pEffect(nullptr)
+    , m_pCamera(std::make_shared<Camera>())
+    , m_pos(VGet(0, 0, 0))
+    , m_lightLandingSEHandle(-1)
+    , m_heavyLandingSEHandle(-1)
+    , m_parrySEHandle(-1)
+    , m_health(100.0f)
+    , m_healthBarAnim(100.0f)
+    , m_healthBarAnimTimer(0.0f)
+    , m_hasShot(false)
+    , m_tackleFrame(0)
+    , m_tackleDir(VGet(0, 0, 0))
+    , m_isTackling(false)
+    , m_tackleCooldown(0)
+    , m_tackleId(0)
+    , m_concentrationLineEffectHandle(-1)
+    , m_isLowHealth(false)
+    , m_lowHealthBlinkTimer(0.0f)
+    , m_ammoTextFlashTimer(0.0f)
+    , m_idleSwayTimer(0.0f)
+    , m_gunSwayOffset(VGet(0, 0, 0))
+    , m_gunSwayRotOffset(VGet(0, 0, 0))
+    , m_isDead(false)
+    , m_deathTimer(0.0f)
+    , m_pDirectionIndicator(nullptr)
+    , m_isLockingOn(false)
+    , m_lockedOnEnemy(nullptr)
+    , m_isTargetAvailable(false)
+    , m_isAimingAtEnemy(false)
+    , m_shouldIgnoreGuardInput(false)
     , m_tackleHitSECooldownTimer(0)
-    , m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false)
-    , m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f)
-    , m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f)
-    , m_pAnimManager(nullptr), m_isTutorial(false)
-    , m_startAnimTimer(0.0f), m_startAnimDuration(60.0f), m_isStartAnimating(false)
-    , m_hasLandedAtStart(false), m_uiFadeTimer(0.0f), m_uiFadeDuration(60.0f), m_isUiFadeStarted(false)
+    , m_isInvincible(false)
+    , m_isInfiniteAmmo(false)
+    , m_isFlightMode(false)
+    , m_tackleCooldownMax(0.0f)
+    , m_tackleSpeed(0.0f)
+    , m_tackleDamage(0.0f)
+    , m_maxShieldDurability(0.0f)
+    , m_shieldRegenRate(0.0f)
+    , m_pAnimManager(nullptr)
+    , m_isTutorial(false)
+    , m_startAnimTimer(0.0f)
+    , m_startAnimDuration(60.0f)
+    , m_isStartAnimating(false)
+    , m_hasLandedAtStart(false)
+    , m_uiFadeTimer(0.0f)
+    , m_uiFadeDuration(60.0f)
+    , m_isUiFadeStarted(false)
 {
     // SEの読み込み
     m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
@@ -160,6 +194,8 @@ Player::Player()
     assert(m_lightLandingSEHandle != -1);
     m_heavyLandingSEHandle = LoadSoundMem("data/sound/SE/HeavyLanding.mp3");
     assert(m_heavyLandingSEHandle != -1);
+    m_parrySEHandle = LoadSoundMem("data/sound/SE/Parry.mp3");
+    assert(m_parrySEHandle != -1);
 }
 
 Player::~Player()
@@ -172,6 +208,7 @@ Player::~Player()
     DeleteSoundMem(m_ammoItemSEHandle);
     DeleteSoundMem(m_lightLandingSEHandle);
     DeleteSoundMem(m_heavyLandingSEHandle);
+    DeleteSoundMem(m_parrySEHandle);
 }
 
 void Player::Init(bool isTutorial)
@@ -333,9 +370,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
     // シールド投擲
-    if (!isInputDisabled && (m_allowedAttackType == AttackType::None ||
-        m_allowedAttackType == AttackType::ShieldThrow) &&
-        !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
+    if (!isInputDisabled && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::ShieldThrow) && !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
         keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
     {
         if (m_shieldSystem.IsShieldThrown())
@@ -596,12 +631,6 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
 
     if (m_shieldSystem.IsGuarding() && !m_shieldSystem.IsShieldBroken()) // ガード中で盾が壊れていなければ
     {
-        // ジャストガード（パリィ）判定
-        // ダメージ計算前に行う
-        if (m_shieldSystem.IsJustGuarded() && isParryable)
-        {
-            // 特定の敵（Acid, Boss）のパリィ弾の時のみスローにするため、ここでは呼ばない
-        }
 
         // カメラシェイクを発生
         if (m_pCamera)
@@ -632,9 +661,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
             // HPバーアニメーション用タイマーをリセット
             m_healthBarAnimTimer = 0.0f;
             // ダメージエフェクトを発動
-            m_effectManager.TriggerDamageEffect(
-                PlayerConstants::kDamageEffectDuration, PlayerConstants::kDamageEffectColorR, PlayerConstants::kDamageEffectColorG,
-                PlayerConstants::kDamageEffectColorB);
+            m_effectManager.TriggerDamageEffect(PlayerConstants::kDamageEffectDuration, PlayerConstants::kDamageEffectColorR, PlayerConstants::kDamageEffectColorG, PlayerConstants::kDamageEffectColorB);
             // 被弾SEを再生
             PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 
@@ -670,9 +697,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
     // HPバーアニメーション用タイマーをリセット
     m_healthBarAnimTimer = 0.0f;
     // ダメージエフェクトを発動
-    m_effectManager.TriggerDamageEffect(PlayerConstants::kDamageEffectDuration,
-        PlayerConstants::kDamageEffectColorR, PlayerConstants::kDamageEffectColorG,
-        PlayerConstants::kDamageEffectColorB);
+    m_effectManager.TriggerDamageEffect(PlayerConstants::kDamageEffectDuration, PlayerConstants::kDamageEffectColorR, PlayerConstants::kDamageEffectColorG, PlayerConstants::kDamageEffectColorB);
     // 被弾SEを再生
     PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
 
@@ -696,8 +721,7 @@ bool Player::HasShot()
 
 void Player::Shoot(std::vector<Bullet>& bullets)
 {
-    m_weaponManager.Shoot(bullets, m_modelPos, m_pCamera.get(), m_pEffect,
-        m_pAnimManager, m_shellCasings);
+    m_weaponManager.Shoot(bullets, m_modelPos, m_pCamera.get(), m_pEffect, m_pAnimManager, m_shellCasings);
 }
 
 // 銃の位置を取得
@@ -779,16 +803,14 @@ void Player::AddHp(float value)
         m_health = 0.0f; // 体力が負にならないように制限
     }
     // 回復時にエフェクトを発動
-    m_effectManager.TriggerHealEffect(PlayerConstants::kHealEffectDuration, PlayerConstants::kHealEffectColorR,
-        PlayerConstants::kHealEffectColorG, PlayerConstants::kHealEffectColorB);
+    m_effectManager.TriggerHealEffect(PlayerConstants::kHealEffectDuration, PlayerConstants::kHealEffectColorR, PlayerConstants::kHealEffectColorG, PlayerConstants::kHealEffectColorB);
 }
 
 void Player::AddARAmmo(int value)
 {
     m_weaponManager.AddARAmmo(value);
     // 弾薬取得時にエフェクトを発動
-    m_effectManager.TriggerAmmoEffect(PlayerConstants::kAmmoEffectDuration, PlayerConstants::kAmmoEffectColorR,
-        PlayerConstants::kAmmoEffectColorG, PlayerConstants::kAmmoEffectColorB);
+    m_effectManager.TriggerAmmoEffect(PlayerConstants::kAmmoEffectDuration, PlayerConstants::kAmmoEffectColorR, PlayerConstants::kAmmoEffectColorG, PlayerConstants::kAmmoEffectColorB);
     m_ammoTextFlashTimer = 60.0f;
 }
 
@@ -796,14 +818,19 @@ void Player::AddSGAmmo(int value)
 {
     m_weaponManager.AddSGAmmo(value);
     // 弾薬取得時にエフェクトを発動
-    m_effectManager.TriggerAmmoEffect(PlayerConstants::kAmmoEffectDuration, PlayerConstants::kAmmoEffectColorR,
-        PlayerConstants::kAmmoEffectColorG, PlayerConstants::kAmmoEffectColorB);
+    m_effectManager.TriggerAmmoEffect(PlayerConstants::kAmmoEffectDuration, PlayerConstants::kAmmoEffectColorR, PlayerConstants::kAmmoEffectColorG, PlayerConstants::kAmmoEffectColorB);
     m_ammoTextFlashTimer = 60.0f;
 }
 
-int Player::GetCurrentAmmo() const { return m_weaponManager.GetCurrentAmmo(); }
+int Player::GetCurrentAmmo() const 
+{
+    return m_weaponManager.GetCurrentAmmo(); 
+}
 
-int Player::GetMaxAmmo() const { return m_weaponManager.GetMaxAmmo(); }
+int Player::GetMaxAmmo() const 
+{
+    return m_weaponManager.GetMaxAmmo(); 
+}
 
 void Player::SetAttackRestrictions(AttackType allowedAttack)
 {
@@ -815,9 +842,20 @@ void Player::ShakeGun(float power, float duration)
     m_weaponManager.ShakeGun(power, duration);
 }
 
-bool Player::IsAimingAtEnemy() const { return m_isAimingAtEnemy; }
+bool Player::IsAimingAtEnemy() const 
+{
+    return m_isAimingAtEnemy; 
+}
 
-bool Player::IsJustGuarded() const { return m_shieldSystem.IsJustGuarded(); }
+bool Player::IsJustGuarded() const 
+{
+    return m_shieldSystem.IsJustGuarded(); 
+}
+
+void Player::PlayParrySE() const 
+{
+    PlaySoundMem(m_parrySEHandle, DX_PLAYTYPE_BACK); 
+}
 
 WeaponType Player::GetCurrentWeaponType() const
 {
@@ -835,8 +873,7 @@ bool Player::CheckLineOfSight(const VECTOR& start, const VECTOR& end,
 {
     for (const auto& col : collisionData)
     {
-        HITRESULT_LINE result =
-            HitCheck_Line_Triangle(start, end, col.v1, col.v2, col.v3);
+        HITRESULT_LINE result = HitCheck_Line_Triangle(start, end, col.v1, col.v2, col.v3);
         if (result.HitFlag)
         {
             return false;
@@ -851,8 +888,7 @@ void Player::CheckEnemyProximity(const std::vector<EnemyBase*>& enemyList)
 
     for (const auto& enemy : enemyList)
     {
-        if (!enemy || !enemy->IsAlive())
-            continue;
+        if (!enemy || !enemy->IsAlive()) continue;
 
         // プレイヤーと敵の距離をチェック
         // カプセル半径の和 + マージン
@@ -887,9 +923,7 @@ void Player::UpdateWeaponSwitching(const unsigned char* keyState)
     if (wheelRot != 0)
     {
         WeaponType currentWeapon = m_weaponManager.GetCurrentWeaponType();
-        WeaponType nextWeapon = (currentWeapon == WeaponType::AssaultRifle)
-            ? WeaponType::Shotgun
-            : WeaponType::AssaultRifle;
+        WeaponType nextWeapon = (currentWeapon == WeaponType::AssaultRifle) ? WeaponType::Shotgun : WeaponType::AssaultRifle;
         m_weaponManager.SwitchWeapon(nextWeapon);
     }
 }
@@ -897,13 +931,9 @@ void Player::UpdateWeaponSwitching(const unsigned char* keyState)
 void Player::UpdateShooting()
 {
     // シールド投げチュートリアル中は射撃を許可するため、制限条件からShieldThrowを除外する
-    bool isShootRestricted = m_allowedAttackType != AttackType::None &&
-                             m_allowedAttackType != AttackType::Shoot &&
-                             m_allowedAttackType != AttackType::ShieldThrow;
+    bool isShootRestricted = m_allowedAttackType != AttackType::None && m_allowedAttackType != AttackType::Shoot && m_allowedAttackType != AttackType::ShieldThrow;
 
-    if (m_isDead ||
-        isShootRestricted || 
-        m_isTackling || m_shieldSystem.IsGuarding() || m_isLockingOn || m_weaponManager.IsSwitchingWeapon())
+    if (m_isDead || isShootRestricted || m_isTackling || m_shieldSystem.IsGuarding() || m_isLockingOn || m_weaponManager.IsSwitchingWeapon())
     {
         // チュートリアル中の射撃制限通知
         if (m_isTutorial && !m_isDead && !m_isTackling && !m_shieldSystem.IsGuarding() && !m_isLockingOn && !m_weaponManager.IsSwitchingWeapon())

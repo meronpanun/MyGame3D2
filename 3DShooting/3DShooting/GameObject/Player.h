@@ -122,6 +122,11 @@ public:
     bool IsJustGuarded() const;
 
     /// <summary>
+    /// パリィ成功時のSEを再生する
+    /// </summary>
+    void PlayParrySE() const;
+
+    /// <summary>
     /// 体力を加算する
     /// </summary>
     /// <param name="value">加算する体力値</param>
@@ -461,6 +466,7 @@ private:
     int m_ammoItemSEHandle;              // 弾薬アイテムSEのハンドル
     int m_lightLandingSEHandle;          // 通常着地SEのハンドル
     int m_heavyLandingSEHandle;          // 重量着地SEのハンドル
+    int m_parrySEHandle;                 // パリィSEのハンドル
     int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
     int m_tackleFrame;                   // タックルのフレーム数
     int m_tackleId;                      // タックルID
