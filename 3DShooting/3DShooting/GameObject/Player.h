@@ -426,6 +426,8 @@ private:
     float m_healthBarAnimTimer;          // HPバーアニメーション用タイマー
     float m_startAnimTimer;              // 開始演出アニメーションタイマー
     float m_startAnimDuration;           // 開始演出アニメーション時間
+    float m_uiFadeTimer;                 // UIフェードインタイマー
+    float m_uiFadeDuration;              // UIフェードイン時間
     
     // 入力・状態フラグ
     unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
@@ -444,6 +446,7 @@ private:
     bool m_isTutorial;                   // チュートリアル中か
     bool m_isStartAnimating;             // 開始演出アニメーション中か
     bool m_hasLandedAtStart;             // 開始時に一度でも着地したか
+    bool m_isUiFadeStarted;              // UIフェードインが開始されたか
 
     // ハンドルIDなど
     int m_arInitAmmo;                    // ARの初期弾薬数

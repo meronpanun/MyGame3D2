@@ -33,7 +33,7 @@ public:
     /// <param name="shieldSystem">盾システムへの参照</param>
     void Draw(bool isDead, bool isGuarding, EnemyBase* lockedOnEnemy, bool isTargetAvailable,
         float health, float healthBarAnim, float maxHealth, bool isLowHealth, float lowHealthBlinkTimer, float ammoTextFlashTimer,
-        const PlayerWeaponManager& weaponManager, const PlayerShieldSystem& shieldSystem);
+        const PlayerWeaponManager& weaponManager, const PlayerShieldSystem& shieldSystem, float baseAlpha);
 
 private:
     /// <summary>
@@ -42,20 +42,23 @@ private:
     /// <param name="health">現在の体力</param>
     /// <param name="healthBarAnim">HPバーアニメーション用体力値</param>
     /// <param name="maxHealth">最大体力</param>
-    void DrawHPBar(float health, float healthBarAnim, float maxHealth);
+    /// <param name="baseAlpha">ベースの透明度</param>
+    void DrawHPBar(float health, float healthBarAnim, float maxHealth, float baseAlpha);
 
     /// <summary>
     /// 武器UIの描画
     /// </summary>
     /// <param name="weaponManager">武器マネージャーへの参照</param>
     /// <param name="ammoTextFlashTimer">弾薬テキストのフラッシュタイマー</param>
-    void DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammoTextFlashTimer);
+    /// <param name="baseAlpha">ベースの透明度</param>
+    void DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammoTextFlashTimer, float baseAlpha);
 
     /// <summary>
     /// 盾UIの描画
     /// </summary>
     /// <param name="shieldSystem">盾システムへの参照</param>
-    void DrawShieldUI(const PlayerShieldSystem& shieldSystem);
+    /// <param name="baseAlpha">ベースの透明度</param>
+    void DrawShieldUI(const PlayerShieldSystem& shieldSystem, float baseAlpha);
 
     /// <summary>
     /// 警告UIの描画
@@ -63,13 +66,15 @@ private:
     /// <param name="isLowHealth">体力が低いかどうか</param>
     /// <param name="lowHealthBlinkTimer">体力低下の点滅タイマー</param>
     /// <param name="weaponManager">武器マネージャーへの参照</param>
-    void DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer, const PlayerWeaponManager& weaponManager);
+    /// <param name="baseAlpha">ベースの透明度</param>
+    void DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer, const PlayerWeaponManager& weaponManager, float baseAlpha);
 
     /// <summary>
     /// ロックオンUIの描画
     /// </summary>
     /// <param name="lockedOnEnemy">ロックオンしている敵</param>
-    void DrawLockOnUI(EnemyBase* lockedOnEnemy);
+    /// <param name="baseAlpha">ベースの透明度</param>
+    void DrawLockOnUI(EnemyBase* lockedOnEnemy, float baseAlpha);
 
     /// <summary>
     /// ガード中のテキスト表示
@@ -77,7 +82,8 @@ private:
     /// <param name="isGuarding">ガード中かどうか</param>
     /// <param name="lockedOnEnemy">ロックオンしている敵</param>
     /// <param name="isTargetAvailable">ロックオン可能な敵がいるか</param>
-    void DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy, bool isTargetAvailable);
+    /// <param name="baseAlpha">ベースの透明度</param>
+    void DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy, bool isTargetAvailable, float baseAlpha);
     
     /// フォントのリロード（スケール変更時）
     /// </summary>

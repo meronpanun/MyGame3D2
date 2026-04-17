@@ -143,7 +143,7 @@ Player::Player()
     , m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f)
     , m_pAnimManager(nullptr), m_isTutorial(false)
     , m_startAnimTimer(0.0f), m_startAnimDuration(60.0f), m_isStartAnimating(false)
-    , m_hasLandedAtStart(false)
+    , m_hasLandedAtStart(false), m_uiFadeTimer(0.0f), m_uiFadeDuration(60.0f), m_isUiFadeStarted(false)
 {
     // SEの読み込み
     m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
@@ -214,6 +214,9 @@ void Player::Init(bool isTutorial)
     m_hasLandedAtStart = false; 
     m_startAnimTimer = 0.0f;
     m_startAnimDuration = 60.0f; // 1秒間（60フレーム）
+    m_uiFadeTimer = 0.0f;
+    m_uiFadeDuration = 60.0f;
+    m_isUiFadeStarted = false;
 }
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData)
@@ -239,6 +242,18 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
             m_isStartAnimating = false;
             m_startAnimTimer = m_startAnimDuration;
         }
+    }
+
+    // UIフェードインの制御
+    if (m_hasLandedAtStart && !m_isStartAnimating)
+    {
+        m_isUiFadeStarted = true;
+    }
+
+    if (m_isUiFadeStarted && m_uiFadeTimer < m_uiFadeDuration)
+    {
+        m_uiFadeTimer += 1.0f * Game::GetTimeScale();
+        if (m_uiFadeTimer > m_uiFadeDuration) m_uiFadeTimer = m_uiFadeDuration;
     }
 
     bool isInputDisabled = m_isStartAnimating || !m_hasLandedAtStart;
@@ -521,11 +536,18 @@ void Player::DrawShield()
 
 void Player::DrawUI()
 {
+    // UIの透明度を計算 (0.0 ～ 1.0)
+    float baseAlpha = 0.0f;
+    if (m_isUiFadeStarted)
+    {
+        baseAlpha = m_uiFadeTimer / m_uiFadeDuration;
+    }
+
     // UI描画をPlayerUIクラスに委譲
     m_ui.Draw(m_isDead, m_shieldSystem.IsGuarding(), m_lockedOnEnemy,
         m_isTargetAvailable, m_health, m_healthBarAnim, m_maxHealth,
         m_isLowHealth, m_lowHealthBlinkTimer, m_ammoTextFlashTimer,
-        m_weaponManager, m_shieldSystem);
+        m_weaponManager, m_shieldSystem, baseAlpha);
 
     // エフェクトの描画
     m_effectManager.Draw();

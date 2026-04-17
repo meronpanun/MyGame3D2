@@ -100,7 +100,7 @@ void PlayerUI::Draw(bool isDead, bool isGuarding, EnemyBase* lockedOnEnemy,
     float maxHealth, bool isLowHealth,
     float lowHealthBlinkTimer, float ammoTextFlashTimer,
     const PlayerWeaponManager& weaponManager,
-    const PlayerShieldSystem& shieldSystem)
+    const PlayerShieldSystem& shieldSystem, float baseAlpha)
 {
     // スケール変更検知
     float currentScale = Game::GetUIScale();
@@ -111,28 +111,28 @@ void PlayerUI::Draw(bool isDead, bool isGuarding, EnemyBase* lockedOnEnemy,
     }
 
     // ガード中のテキスト表示
-    DrawGuardText(isGuarding, lockedOnEnemy, isTargetAvailable);
+    DrawGuardText(isGuarding, lockedOnEnemy, isTargetAvailable, baseAlpha);
 
     // ロックオンUIの描画
-    DrawLockOnUI(lockedOnEnemy);
+    DrawLockOnUI(lockedOnEnemy, baseAlpha);
 
     if (!isDead)
     {
         // 武器UIの描画
-        DrawWeaponUI(weaponManager, ammoTextFlashTimer);
+        DrawWeaponUI(weaponManager, ammoTextFlashTimer, baseAlpha);
 
         // 盾UIの描画
-        DrawShieldUI(shieldSystem);
+        DrawShieldUI(shieldSystem, baseAlpha);
 
         // 警告UIの描画
-        DrawWarningUI(isLowHealth, lowHealthBlinkTimer, weaponManager);
+        DrawWarningUI(isLowHealth, lowHealthBlinkTimer, weaponManager, baseAlpha);
 
         // HPバーの描画
-        DrawHPBar(health, healthBarAnim, maxHealth);
+        DrawHPBar(health, healthBarAnim, maxHealth, baseAlpha);
     }
 }
 
-void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
+void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth, float baseAlpha)
 {
     int screenW = Game::GetScreenWidth();
     int screenH = Game::GetScreenHeight();
@@ -151,6 +151,9 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     // HPバーのパラメータ
     const int healthUiImageX = scaledHpBarMargin;
     const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin + (scaledHpBarHeight - scaledHealthUiSize) / 2; // 中央揃え修正
+    
+    int baseAlphaInt = static_cast<int>(baseAlpha * 255);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
     DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize, m_healthUiImage, true);
     const int barX = healthUiImageX + scaledHealthUiSize + scaledBarSpacing;
 
@@ -200,15 +203,18 @@ void PlayerUI::DrawHPBar(float health, float healthBarAnim, float maxHealth)
     DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarBorder, false);
 
     // HP数値（影付き）
+    int textAlpha = static_cast<int>(baseAlpha * 255);
     int textX = barX + static_cast<int>(PlayerUIConstants::kHpTextOffsetX * scale);
     int textY = barY + static_cast<int>(PlayerUIConstants::kHpTextOffsetY * scale);
     DrawFormatStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset,
-        PlayerUIConstants::kColorShadow, m_hpFont, "%.0f", healthBarAnim);
+        (textAlpha << 24) | PlayerUIConstants::kColorShadow, m_hpFont, "%.0f", healthBarAnim);
     DrawFormatStringToHandle(textX, textY,
-        PlayerUIConstants::kColorWhite, m_hpFont, "%.0f", healthBarAnim);
+        (textAlpha << 24) | PlayerUIConstants::kColorWhite, m_hpFont, "%.0f", healthBarAnim);
+
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
-void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammoTextFlashTimer)
+void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammoTextFlashTimer, float baseAlpha)
 {
     int screenW = Game::GetScreenWidth();
     int screenH = Game::GetScreenHeight();
@@ -236,6 +242,8 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
     bool isInfiniteAmmo = weaponManager.IsInfiniteAmmo();
     int currentAmmo = weaponManager.GetCurrentAmmo();
 
+    int baseAlphaInt = static_cast<int>(baseAlpha * 255);
+
     switch (currentWeaponType)
     {
     case WeaponType::AssaultRifle:
@@ -246,18 +254,20 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         if (currentAmmo == 0 && !isInfiniteAmmo)
         {
             // 弾切れ時は点滅させずそのまま
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
             gunHandle = static_cast<int>(m_noAmmoARImage);
         }
         else if (isLowAmmo)
         {
             // 低弾薬時は点滅させる
             float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-            int alphaInt = static_cast<int>(blinkAlpha * 255);
+            int alphaInt = static_cast<int>(blinkAlpha * baseAlpha * 255);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
             gunHandle = static_cast<int>(m_noAmmoARImage);
         }
         else
         {
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
             gunHandle = static_cast<int>(m_arImage);
         }
         break;
@@ -269,18 +279,20 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         if (currentAmmo == 0 && !isInfiniteAmmo)
         {
             // 弾切れ時は点滅させずそのまま
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
             gunHandle = static_cast<int>(m_noAmmoSGImage);
         }
         else if (isLowAmmo)
         {
             // 低弾薬時は点滅させる
             float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-            int alphaInt = static_cast<int>(blinkAlpha * 255);
+            int alphaInt = static_cast<int>(blinkAlpha * baseAlpha * 255);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
             gunHandle = static_cast<int>(m_noAmmoSGImage);
         }
         else
         {
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
             gunHandle = static_cast<int>(m_sgImage);
         }
         break;
@@ -293,11 +305,8 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
 
     DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
 
-    // ブレンドモードをリセット
-    if (isLowAmmo && currentAmmo > 0)
-    {
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    }
+    // 残弾数の描画に向けたブレンドモード設定（ベースの透明度を適用）
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
 
     // 残弾数の表示
     int ammoTextWidth = GetDrawStringWidthToHandle(PlayerUIConstants::kAmmoTextMaxWidthStr, strlen(PlayerUIConstants::kAmmoTextMaxWidthStr), m_font);
@@ -324,9 +333,10 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
     // 弾薬無限モードの場合は「∞」を表示
     if (isInfiniteAmmo)
     {
+        int alpha = static_cast<int>(baseAlpha * 255);
         DrawFormatStringToHandle(ammoTextX + PlayerUIConstants::kShadowOffset, ammoTextY + PlayerUIConstants::kShadowOffset,
-            PlayerUIConstants::kColorShadow, m_font, "∞");
-        DrawFormatStringToHandle(ammoTextX, ammoTextY, PlayerUIConstants::kColorWhite, m_font, "∞");
+            (alpha << 24) | PlayerUIConstants::kColorShadow, m_font, "∞");
+        DrawFormatStringToHandle(ammoTextX, ammoTextY, (alpha << 24) | PlayerUIConstants::kColorWhite, m_font, "∞");
     }
     else
     {
@@ -380,14 +390,17 @@ void PlayerUI::DrawWeaponUI(const PlayerWeaponManager& weaponManager, float ammo
         int offsetX = (drawW - strW) / 2;
         int offsetY = (drawH - strH) / 2;
 
+        int alpha = static_cast<int>(baseAlpha * 255);
         DrawExtendStringToHandle(ammoTextX - offsetX + PlayerUIConstants::kShadowOffset, ammoTextY - offsetY + PlayerUIConstants::kShadowOffset,
-            textScale, textScale, ammoStr, PlayerUIConstants::kColorShadow, m_font);
+            textScale, textScale, ammoStr, (alpha << 24) | PlayerUIConstants::kColorShadow, m_font);
         DrawExtendStringToHandle(ammoTextX - offsetX, ammoTextY - offsetY,
-            textScale, textScale, ammoStr, textColor, m_font);
+            textScale, textScale, ammoStr, (alpha << 24) | textColor, m_font);
     }
+
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
-void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
+void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem, float baseAlpha)
 {
     int screenW = Game::GetScreenWidth();
     int screenH = Game::GetScreenHeight();
@@ -421,7 +434,7 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
     int shieldGaugeX = scaledHpBarMargin;
 
     // ゲージの背景（半透明の盾）
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(100 * baseAlpha));
     DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
         shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
         shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImage, true);
@@ -435,17 +448,19 @@ void PlayerUI::DrawShieldUI(const PlayerShieldSystem& shieldSystem)
         SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth, shieldGaugeY + shieldGaugeHeight);
 
         // 盾を満タン状態で描画
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(255 * baseAlpha));
         DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
             shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
             shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImage, true);
 
         // 描画範囲をリセット
         SetDrawArea(0, 0, screenW, screenH);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }
 
 void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
-    const PlayerWeaponManager& weaponManager)
+    const PlayerWeaponManager& weaponManager, float baseAlpha)
 {
     int screenW = Game::GetScreenWidth();
     int screenH = Game::GetScreenHeight();
@@ -475,14 +490,15 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
             drawX = (screenW * 0.5f) - scaledWarningSize - (scaledWarningSpacing * 0.5f);
         }
 
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
+        int finalAlpha = static_cast<int>(alpha * baseAlpha * 255);
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, finalAlpha);
         DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noHealthImage, true);
 
         const char* text = "体力低下";
         int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFont);
         int textX = drawX + (scaledWarningSize - textWidth) / 2;
         int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
-        unsigned int textColor = (alphaInt << 24) | PlayerUIConstants::kColorWhite;
+        unsigned int textColor = (finalAlpha << 24) | PlayerUIConstants::kColorWhite;
         DrawStringToHandle(textX, textY, text, textColor, m_warningFont);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
@@ -537,7 +553,7 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
 
         float lowAmmoBlinkTimer = weaponManager.GetLowAmmoBlinkTimer();
         float blinkAlpha = (sinf(lowAmmoBlinkTimer * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-        int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * 255);
+        int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * baseAlpha * 255);
 
         int drawX = (screenW - scaledWarningSize) * 0.5f;
         int drawY = (screenH - scaledWarningSize) * 0.5f + scaledWarningYOffset;
@@ -560,7 +576,7 @@ void PlayerUI::DrawWarningUI(bool isLowHealth, float lowHealthBlinkTimer,
     }
 }
 
-void PlayerUI::DrawLockOnUI(EnemyBase* lockedOnEnemy)
+void PlayerUI::DrawLockOnUI(EnemyBase* lockedOnEnemy, float baseAlpha)
 {
     if (lockedOnEnemy)
     {
@@ -576,26 +592,32 @@ void PlayerUI::DrawLockOnUI(EnemyBase* lockedOnEnemy)
         if (screenPos.z > 0) // 画面内にあるか
         {
             float halfSize = scaledSize / 2.0f;
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(baseAlpha * 255));
             DrawExtendGraph(screenPos.x - halfSize, screenPos.y - halfSize, screenPos.x + halfSize, screenPos.y + halfSize, m_lockOnUI, true);
+            SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
         }
     }
 }
 
 void PlayerUI::DrawGuardText(bool isGuarding, EnemyBase* lockedOnEnemy,
-    bool isTargetAvailable)
+    bool isTargetAvailable, float baseAlpha)
 {
     if (isGuarding && !lockedOnEnemy)
     {
         int screenW = Game::GetScreenWidth();
         int screenH = Game::GetScreenHeight();
+        int alpha = static_cast<int>(baseAlpha * 255);
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
         const char* text = "ターゲットなし";
         int textWidth = GetDrawStringWidthToHandle(text, strlen(text), m_warningFont);
         int textX = (screenW - textWidth) / 2;
         int textY = screenH / 2 + 60; // レティクルの下あたりに表示
 
-        DrawStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset, text, PlayerUIConstants::kColorShadow, m_warningFont);
-        DrawStringToHandle(textX, textY, text, PlayerUIConstants::kColorWhite, m_warningFont);
+        DrawStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset, text, (alpha << 24) | PlayerUIConstants::kColorShadow, m_warningFont);
+        DrawStringToHandle(textX, textY, text, (alpha << 24) | PlayerUIConstants::kColorWhite, m_warningFont);
+        
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }
 
