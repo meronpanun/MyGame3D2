@@ -1,4 +1,4 @@
-﻿#include "SceneMain.h"
+#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -90,6 +90,10 @@ namespace SceneMainConstants
     // RoadFloorオブジェトの範囲
     constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // 床の最小座標
     constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
+
+	// サウンド関連の定数(0〜255の音量範囲)
+    constexpr int kGameSceneBgmVolume = 100; // ゲームシーンBGMの音量 
+    constexpr int kHeadShotSEVolume   = 255; // ヘッドショット時のSE音量
 }
 
 using namespace SceneMainConstants;
@@ -116,6 +120,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_isReturningFromOtherScene(isReturningFromOtherScene)
     , m_clearSceneDelayTimer(-1)
     , m_scoreFont("Abadi MT", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_headShotSEHandle(-1)
+    , m_hasPlayedHeadShotSEThisFrame(false)
     , m_isPlayerInit(false)
     , m_isTaskTutorialInit(false)
     , m_pEffect(std::make_unique<Effect>())
@@ -142,6 +148,8 @@ SceneMain::~SceneMain()
     FirstAidKitItem::DeleteModel();
     AmmoItem::DeleteModel();
     ShellCasing::DeleteModel();
+
+    DeleteSoundMem(m_headShotSEHandle);
 
     // インジケーター画像の解放
     DirectionIndicator::DeleteResources();
@@ -187,6 +195,8 @@ void SceneMain::Init()
     m_sgDefaultReticle.Load("data/image/SGDefaultReticl.png");
     m_sgOnTargetReticle.Load("data/image/SGOnTargetReticle.png");
     m_bgm.Load("data/sound/BGM/GameSceneBGM.mp3");
+    m_headShotSEHandle = LoadSoundMem("data/sound/SE/HeadShot.mp3");
+    ChangeVolumeSoundMem(kHeadShotSEVolume, m_headShotSEHandle);
 
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->SetEffect(m_pEffect.get());
@@ -483,7 +493,7 @@ SceneBase* SceneMain::Update()
     {
         if (!m_bgm.IsPlaying())
         {
-            ChangeVolumeSoundMem(200, m_bgm);
+            ChangeVolumeSoundMem(kGameSceneBgmVolume, m_bgm);
             m_bgm.Play(DX_PLAYTYPE_LOOP);
         }
         m_isBGMStarted = true;
@@ -491,6 +501,8 @@ SceneBase* SceneMain::Update()
 
     // タイムスケールの更新
     Game::UpdateTimeScale();
+
+    m_hasPlayedHeadShotSEThisFrame = false; // 同時再生防止のためのフラグリセット
 
     // 経過時間を加算
     long long now = GetNowHiPerformanceCount();
@@ -1195,7 +1207,16 @@ void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
     // ヒット距離を保存
     m_hitDistance = distance;
 
-    // ヒット部位によって処理を分ける（例：ヘッドショット時のSEなど）
+    // ヒットの部位によって処理を分ける（例：ヘッドショット時のSEなど）
+    if (part == EnemyBase::HitPart::Head)
+    {
+        if (!m_hasPlayedHeadShotSEThisFrame)
+        {
+            PlaySoundMem(m_headShotSEHandle, DX_PLAYTYPE_BACK);
+            m_hasPlayedHeadShotSEThisFrame = true;
+        }
+    }
+
     m_hitMarkTimer = kHitMarkDuration;
     m_hitMarkType = part;
 }

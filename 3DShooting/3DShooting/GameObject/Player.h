@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -448,6 +448,7 @@ private:
     int m_sgMaxAmmo;                     // SGの最大弾薬数
     int m_playerHitSEHandle;             // 被弾SEのハンドル
     int m_tackleSEHandle;                // タックルSEのハンドル
+    int m_tackleHitSEHandle;             // タックルヒットSEのハンドル
     int m_recoverySEHandle;              // 回復アイテムSEのハンドル
     int m_ammoItemSEHandle;              // 弾薬アイテムSEのハンドル
     int m_landingSEHandle;               // 着地SEのハンドル

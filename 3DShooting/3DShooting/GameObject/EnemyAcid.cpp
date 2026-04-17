@@ -116,7 +116,7 @@ void EnemyAcid::Init()
     // CSVからAcidEnemyのTransform情報を取得
     LoadTransformData("AcidEnemy");
 
-     // ここで一度「絶対にRunでない値」にリセット
+    // ここで一度「絶対にRunでない値」にリセット
     // 初期アニメーションを強制的に再生させるため
     m_currentAnimState = AnimState::Dead;
 

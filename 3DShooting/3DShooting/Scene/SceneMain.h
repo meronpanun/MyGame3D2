@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "EnemyBase.h"
 #include "SceneBase.h"
@@ -181,7 +181,9 @@ private:
     ManagedGraph m_sgOnTargetReticle;
     ManagedFont m_scoreFont;       // スコアポップアップ用フォントハンドル
     ManagedSound m_bgm;            // BGMハンドル
+    int m_headShotSEHandle;        // ヘッドショットSEハンドル
     bool m_isBGMStarted;           // BGM再生済みフラグ
+    bool m_hasPlayedHeadShotSEThisFrame; // このフレームでヘッドショットSEを再生したか
 
     // スコアポップアップ管理
     struct ScorePopup

@@ -1,4 +1,4 @@
-﻿#include "Player.h"
+#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -119,10 +119,13 @@ namespace PlayerConstants
     constexpr unsigned int kColorHpBarDamage = 0xFFD700;
     constexpr unsigned int kColorHpBarFill = 0xff4040;
     constexpr unsigned int kColorHpBarBorder = 0x000000;
+
+    // タックルヒット時のSE音量 (DxLibの設定上0〜255が範囲、255で最大音量)
+    constexpr int kTackleHitVolume = 255;
 }
 
 Player::Player()
-    : m_playerHitSEHandle(-1), m_tackleSEHandle(-1), m_recoverySEHandle(-1)
+    : m_playerHitSEHandle(-1), m_tackleSEHandle(-1), m_tackleHitSEHandle(-1), m_recoverySEHandle(-1)
     , m_ammoItemSEHandle(-1), m_modelPos(VGet(0, 0, 0)), m_pEffect(nullptr)
     , m_pCamera(std::make_shared<Camera>()), m_pos(VGet(0, 0, 0))
     , m_health(100.0f), m_healthBarAnim(100.0f), m_healthBarAnimTimer(0.0f)
@@ -145,6 +148,9 @@ Player::Player()
     assert(m_playerHitSEHandle != -1);
     m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
     assert(m_tackleSEHandle != -1);
+    m_tackleHitSEHandle = LoadSoundMem("data/sound/SE/TackleHit.mp3");
+    assert(m_tackleHitSEHandle != -1);
+    ChangeVolumeSoundMem(PlayerConstants::kTackleHitVolume, m_tackleHitSEHandle);
     m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
     assert(m_recoverySEHandle != -1);
 }
@@ -154,6 +160,7 @@ Player::~Player()
     // SEの解放
     DeleteSoundMem(m_playerHitSEHandle);
     DeleteSoundMem(m_tackleSEHandle);
+    DeleteSoundMem(m_tackleHitSEHandle);
     DeleteSoundMem(m_recoverySEHandle);
     DeleteSoundMem(m_ammoItemSEHandle);
 }
@@ -1087,6 +1094,8 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
                     {
                         m_pCamera->Shake(20.0f, 10);
                     }
+
+                    PlaySoundMem(m_tackleHitSEHandle, DX_PLAYTYPE_BACK);
 
                     // ノックバック適用
                     // タックル方向の逆ベクトル方向に弾き飛ばす
