@@ -6,8 +6,8 @@
 #include <fstream>
 #include <sstream>
 
-bool Stage::s_isDrawCollision = false;
-bool Stage::s_isDrawTutorialCollision = false;
+bool Stage::s_shouldDrawCollision = false;
+bool Stage::s_shouldDrawTutorialCollision = false;
 
 void Stage::LoadStage(bool isTutorial)
 {
@@ -174,7 +174,7 @@ void Stage::Draw()
 	}
 
 	// 当たり判定のデバッグ描画
-	bool isDraw = m_isTutorial ? s_isDrawTutorialCollision : s_isDrawCollision;
+	bool isDraw = m_isTutorial ? s_shouldDrawTutorialCollision : s_shouldDrawCollision;
 	if (isDraw)
 	{
 		for (const auto& col : m_collisionData)

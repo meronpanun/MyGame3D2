@@ -25,10 +25,10 @@ public:
 	virtual void SetPos(const VECTOR& pos) abstract;
 
 	// デバッグ表示用
-	static void SetDrawCollision(bool isDraw) { s_isDrawCollision = isDraw; }
-	static bool IsDrawCollision() { return s_isDrawCollision; }
+	static void SetDrawCollision(bool isDraw) { s_shouldDrawCollision = isDraw; }
+	static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 
 protected:
 	virtual void DrawCollisionDebug() {}
-	static bool s_isDrawCollision;
+	static bool s_shouldDrawCollision;
 };

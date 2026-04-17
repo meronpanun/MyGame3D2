@@ -1,4 +1,4 @@
-#include "WaveDataLoader.h"
+﻿#include "WaveDataLoader.h"
 #include "DxLib.h"
 #include <fstream>
 #include <sstream>

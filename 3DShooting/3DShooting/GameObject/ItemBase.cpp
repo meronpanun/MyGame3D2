@@ -1,3 +1,3 @@
 ﻿#include "ItemBase.h"
 
-bool ItemBase::s_isDrawCollision = false;
+bool ItemBase::s_shouldDrawCollision = false;

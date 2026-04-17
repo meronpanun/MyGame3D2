@@ -128,7 +128,7 @@ void AmmoItem::Draw()
 	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, m_rotY, 0.0f));
 	MV1DrawModel(m_modelHandle);
 
-    if (s_isDrawCollision)
+    if (s_shouldDrawCollision)
     {
         DrawCollisionDebug();
     }

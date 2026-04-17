@@ -1,4 +1,4 @@
-#include "ManagedFont.h"
+﻿#include "ManagedFont.h"
 
 ManagedFont::ManagedFont(const std::string& fontName, int baseSize, int thick, int fontType, float initialScale)
     : m_fontName(fontName)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -438,7 +438,7 @@ private:
     bool m_isTargetAvailable;            // ロックオン可能な敵がいるか
     bool m_isAimingAtEnemy;              // 敵に照準が合っているか
     bool m_isLowHealth;                  // 体力が少ないかどうかのフラグ
-    bool m_ignoreGuardInput;             // ガード入力を無視するか
+    bool m_shouldIgnoreGuardInput;             // ガード入力を無視するか
     bool m_isTutorial;                   // チュートリアル中か
 
     // ハンドルIDなど

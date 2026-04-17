@@ -282,10 +282,10 @@ DebugMenu::MenuItem DebugMenu::CreateEnemyMenu()
            {{"Show Collision",
              {},
              []() {
-               bool isDraw = !EnemyNormal::IsDrawCollision();
+               bool isDraw = !EnemyNormal::ShouldDrawCollision();
                EnemyNormal::SetDrawCollision(isDraw);
              },
-             []() { return EnemyNormal::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+             []() { return EnemyNormal::ShouldDrawCollision() ? "[ON]" : "[OFF]"; }},
             {"Shield Collision",
              {},
              []() {
@@ -297,26 +297,26 @@ DebugMenu::MenuItem DebugMenu::CreateEnemyMenu()
           {"Runner Enemy",
            {},
            []() {
-             bool isDraw = !EnemyRunner::IsDrawCollision();
+             bool isDraw = !EnemyRunner::ShouldDrawCollision();
              EnemyRunner::SetDrawCollision(isDraw);
            },
-           []() { return EnemyRunner::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+           []() { return EnemyRunner::ShouldDrawCollision() ? "[ON]" : "[OFF]"; }},
           {"Acid Enemy",
            {},
            []() {
-             bool isDraw = !EnemyAcid::IsDrawCollision();
+             bool isDraw = !EnemyAcid::ShouldDrawCollision();
              EnemyAcid::SetDrawCollision(isDraw);
            },
-           []() { return EnemyAcid::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+           []() { return EnemyAcid::ShouldDrawCollision() ? "[ON]" : "[OFF]"; }},
           {"Boss Enemy",
            {{"Show Collision",
              {},
              []() {
-               bool isDraw = !EnemyBoss::IsDrawCollision();
+               bool isDraw = !EnemyBoss::ShouldDrawCollision();
                EnemyBoss::SetDrawCollision(isDraw);
              },
              []() {
-               return EnemyBoss::IsDrawCollision() ? "[ON]" : "[OFF]";
+               return EnemyBoss::ShouldDrawCollision() ? "[ON]" : "[OFF]";
              }},
             {"Attack Hit",
              {},
@@ -403,10 +403,10 @@ DebugMenu::MenuItem DebugMenu::CreateItemMenu()
         {"Show Collision",
          {},
          []() {
-           bool isDraw = !ItemBase::IsDrawCollision();
+           bool isDraw = !ItemBase::ShouldDrawCollision();
            ItemBase::SetDrawCollision(isDraw);
          },
-         []() { return ItemBase::IsDrawCollision() ? "[ON]" : "[OFF]"; }}
+         []() { return ItemBase::ShouldDrawCollision() ? "[ON]" : "[OFF]"; }}
     };
     itemMenu.action = nullptr;
     return itemMenu;
@@ -441,10 +441,10 @@ DebugMenu::MenuItem DebugMenu::CreateScreenMenu()
         {"Window Mode",
          {},
          []() {
-           bool isWindow = !Game::GetWindowMode();
+           bool isWindow = !Game::IsWindowMode();
            Game::SetWindowMode(isWindow);
          },
-         []() { return Game::GetWindowMode() ? "[Window]" : "[Fullscreen]"; }},
+         []() { return Game::IsWindowMode() ? "[Window]" : "[Fullscreen]"; }},
         {"Show Debug HUD",
          {},
          []() {
@@ -472,18 +472,18 @@ DebugMenu::MenuItem DebugMenu::CreateStageMenu()
         {"Main Stage Collision",
          {},
          []() {
-           bool isDraw = !Stage::IsDrawCollision();
+           bool isDraw = !Stage::ShouldDrawCollision();
            Stage::SetDrawCollision(isDraw);
          },
-         []() { return Stage::IsDrawCollision() ? "[ON]" : "[OFF]"; }},
+         []() { return Stage::ShouldDrawCollision() ? "[ON]" : "[OFF]"; }},
         {"Tutorial Stage Collision",
          {},
          []() {
-           bool isDraw = !Stage::IsDrawTutorialCollision();
+           bool isDraw = !Stage::ShouldDrawTutorialCollision();
            Stage::SetDrawTutorialCollision(isDraw);
          },
          []() {
-           return Stage::IsDrawTutorialCollision() ? "[ON]" : "[OFF]";
+           return Stage::ShouldDrawTutorialCollision() ? "[ON]" : "[OFF]";
          }}
     };
     stageMenu.action = nullptr;

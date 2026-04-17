@@ -1,4 +1,4 @@
-#include "PlayerMovement.h"
+﻿#include "PlayerMovement.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -51,7 +51,7 @@ PlayerMovement::PlayerMovement()
     , m_isMoving(false)
     , m_isJumping(false)
     , m_wasJumping(false)
-    , m_isWasRunning(false)
+    , m_wasRunning(false)
     , m_isGroundedOnStage(false)
     , m_isRunMode(false)
     , m_isRunJumping(false)
@@ -166,7 +166,7 @@ void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isD
         m_isMoving = false;
     }
 
-    m_isWasRunning = isAccelerating;
+    m_wasRunning = isAccelerating;
     m_wasJumping = false;
     if (pCamera) pCamera->SetHeadBobbingState(m_isMoving, isAccelerating);
 }
@@ -221,7 +221,7 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
         }
     }
 
-    m_isWasRunning = m_isRunMode;
+    m_wasRunning = m_isRunMode;
     m_wasJumping = m_isJumping;
     if (pCamera) pCamera->SetHeadBobbingState(m_isMoving && isOnGround, m_isRunMode);
 

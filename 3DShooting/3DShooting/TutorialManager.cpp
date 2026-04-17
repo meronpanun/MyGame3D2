@@ -72,25 +72,25 @@ TutorialManager::TutorialManager()
     : m_step(Step::None)
     , m_uiState(UIState::Hidden)
     , m_uiXOffset(kUIOffscreenOffsetX)
-    , m_isMoveDone(false)
-    , m_isViewDone(false)
+    , m_hasCompletedMove(false)
+    , m_hasCompletedView(false)
     , m_checkMarkHandle("data/image/CheckMark.png")
     , m_prevMousePos{ 0, 0 }
     , m_moveAccumTime(0.0f)
     , m_viewAccumTime(0.0f)
     , m_completeWaitTime(0.0f)
-    , m_isCompletedDisplay(false)
-    , m_isMoveCheckAnim(false)
+    , m_isDisplayingCompletion(false)
+    , m_isPlayingMoveCheckAnim(false)
     , m_moveCheckAnimTime(0.0f)
-    , m_isViewCheckAnim(false)
+    , m_isPlayingViewCheckAnim(false)
     , m_viewCheckAnimTime(0.0f)
-    , m_isJumpDone(false)
-    , m_isRunDone(false)
+    , m_hasCompletedJump(false)
+    , m_hasCompletedRun(false)
     , m_jumpAccumTime(0.0f)
     , m_runAccumTime(0.0f)
-    , m_isJumpCheckAnim(false)
+    , m_isPlayingJumpCheckAnim(false)
     , m_jumpCheckAnimTime(0.0f)
-    , m_isRunCheckAnim(false)
+    , m_isPlayingRunCheckAnim(false)
     , m_runCheckAnimTime(0.0f)
     , m_stepCompleteWaitTime(0.0f)
     , m_isStepCompleted(false)
@@ -162,7 +162,7 @@ void TutorialManager::UpdateUI()
             // 最後のステップだったら完了演出へ
             if (m_step == Step::Run)
             {
-                m_isCompletedDisplay = true;
+                m_isDisplayingCompletion = true;
                 m_completeWaitTime = 0.0f;
             }
 
@@ -179,22 +179,22 @@ void TutorialManager::Update()
     UpdateMessages();
 
     // チュートリアル完了後の待機演出
-    if (m_isCompletedDisplay)
+    if (m_isDisplayingCompletion)
     {
         m_completeWaitTime += kFrameTime;
         if (m_completeWaitTime >= kCompleteWaitTime)
         {
-            m_isCompletedDisplay = false;
+            m_isDisplayingCompletion = false;
             m_step = Step::Completed;
         }
         return; // 待機中は他の処理をしない
     }
 
     // アニメタイマーを進める
-    if (m_isMoveCheckAnim) m_moveCheckAnimTime += kFrameTime;
-    if (m_isViewCheckAnim) m_viewCheckAnimTime += kFrameTime;
-    if (m_isJumpCheckAnim) m_jumpCheckAnimTime += kFrameTime;
-    if (m_isRunCheckAnim)  m_runCheckAnimTime  += kFrameTime;
+    if (m_isPlayingMoveCheckAnim) m_moveCheckAnimTime += kFrameTime;
+    if (m_isPlayingViewCheckAnim) m_viewCheckAnimTime += kFrameTime;
+    if (m_isPlayingJumpCheckAnim) m_jumpCheckAnimTime += kFrameTime;
+    if (m_isPlayingRunCheckAnim)  m_runCheckAnimTime  += kFrameTime;
 
     // UIが表示されているときだけ入力チェック
     if (m_uiState != UIState::OnScreen) return;
@@ -214,7 +214,7 @@ void TutorialManager::Update()
     switch (m_step)
     {
     case Step::Move:
-        if (!m_isMoveDone)
+        if (!m_hasCompletedMove)
         {
             bool isMoving = CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_A) || CheckHitKey(KEY_INPUT_S) || CheckHitKey(KEY_INPUT_D);
 
@@ -222,8 +222,8 @@ void TutorialManager::Update()
 
             if (m_moveAccumTime >= kMoveAccumGoalTime)
             {
-                m_isMoveDone = true;
-                m_isMoveCheckAnim = true;
+                m_hasCompletedMove = true;
+                m_isPlayingMoveCheckAnim = true;
                 m_moveCheckAnimTime = 0.0f;
             }
         }
@@ -234,7 +234,7 @@ void TutorialManager::Update()
         }
         break;
     case Step::View:
-        if (!m_isViewDone)
+        if (!m_hasCompletedView)
         {
             Vec2 now = InputManager::GetInstance()->GetMousePos();
             float dx = now.x - m_prevMousePos.x;
@@ -247,8 +247,8 @@ void TutorialManager::Update()
 
             if (m_viewAccumTime >= kViewAccumGoalTime)
             {
-                m_isViewDone = true;
-                m_isViewCheckAnim = true;
+                m_hasCompletedView = true;
+                m_isPlayingViewCheckAnim = true;
                 m_viewCheckAnimTime = 0.0f;
             }
             m_prevMousePos = now;
@@ -260,14 +260,14 @@ void TutorialManager::Update()
         }
         break;
     case Step::Jump:
-        if (!m_isJumpDone)
+        if (!m_hasCompletedJump)
         {
             if (CheckHitKey(KEY_INPUT_SPACE)) m_jumpAccumTime += kFrameTime;
 
             if (m_jumpAccumTime >= kJumpAccumGoalTime)
             {
-                m_isJumpDone = true;
-                m_isJumpCheckAnim = true;
+                m_hasCompletedJump = true;
+                m_isPlayingJumpCheckAnim = true;
                 m_jumpCheckAnimTime = 0.0f;
             }
         }
@@ -278,7 +278,7 @@ void TutorialManager::Update()
         }
         break;
     case Step::Run:
-        if (!m_isRunDone)
+        if (!m_hasCompletedRun)
         {
             if (CheckHitKey(KEY_INPUT_W) && CheckHitKey(KEY_INPUT_LSHIFT))
             {
@@ -287,8 +287,8 @@ void TutorialManager::Update()
 
             if (m_runAccumTime >= kRunAccumGoalTime)
             {
-                m_isRunDone = true;
-                m_isRunCheckAnim = true;
+                m_hasCompletedRun = true;
+                m_isPlayingRunCheckAnim = true;
                 m_runCheckAnimTime = 0.0f;
             }
         }
@@ -323,13 +323,12 @@ void TutorialManager::Draw(int screenW, int screenH)
     {
     case Step::Move:
     {
-        isDone = m_isMoveDone;
-        isCheckAnim = m_isMoveCheckAnim;
+        isDone = m_hasCompletedMove;
+        isCheckAnim = m_isPlayingMoveCheckAnim;
         checkAnimTime = m_moveCheckAnimTime;
 
         const char* remainingText = "で移動しよう!";
-        int remainingTextWidth = GetDrawStringWidthToHandle(
-            remainingText, strlen(remainingText), m_japaneseFontHandle);
+        int remainingTextWidth = GetDrawStringWidthToHandle(remainingText, strlen(remainingText), m_japaneseFontHandle);
 
         int scaledKeyImageSize = static_cast<int>(kKeyImageSize * scale);
         int scaledKeyImageSpacing = static_cast<int>(kKeyImageSpacing * scale);
@@ -387,8 +386,8 @@ void TutorialManager::Draw(int screenW, int screenH)
     } break;
     case Step::View:
     {
-        isDone = m_isViewDone;
-        isCheckAnim = m_isViewCheckAnim;
+        isDone = m_hasCompletedView;
+        isCheckAnim = m_isPlayingViewCheckAnim;
         checkAnimTime = m_viewCheckAnimTime;
 
         const char* remainingText = "で視点を動かそう!";
@@ -439,8 +438,8 @@ void TutorialManager::Draw(int screenW, int screenH)
     } break;
     case Step::Jump:
     {
-        isDone = m_isJumpDone;
-        isCheckAnim = m_isJumpCheckAnim;
+        isDone = m_hasCompletedJump;
+        isCheckAnim = m_isPlayingJumpCheckAnim;
         checkAnimTime = m_jumpCheckAnimTime;
 
         const char* remainingText = "でジャンプ!";
@@ -493,8 +492,8 @@ void TutorialManager::Draw(int screenW, int screenH)
     } break;
     case Step::Run:
     {
-        isDone = m_isRunDone;
-        isCheckAnim = m_isRunCheckAnim;
+        isDone = m_hasCompletedRun;
+        isCheckAnim = m_isPlayingRunCheckAnim;
         checkAnimTime = m_runCheckAnimTime;
 
         const char* remainingText = "で走ろう!";
@@ -615,11 +614,11 @@ void TutorialManager::Skip()
 {
     m_step = Step::Completed;
     m_uiState = UIState::Hidden;
-    m_isCompletedDisplay = false;
-    m_isMoveDone = true;
-    m_isViewDone = true;
-    m_isJumpDone = true;
-    m_isRunDone = true;
+    m_isDisplayingCompletion = false;
+    m_hasCompletedMove = true;
+    m_hasCompletedView = true;
+    m_hasCompletedJump = true;
+    m_hasCompletedRun = true;
 }
 
 void TutorialManager::AddMessage(const std::string& title,

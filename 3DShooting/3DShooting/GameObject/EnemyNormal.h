@@ -37,15 +37,15 @@ public:
     /// </summary>
     static void DeleteModel();
 
-    static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
-    static bool IsDrawCollision() { return s_drawCollision; }
+    static void SetDrawCollision(bool draw) { s_shouldDrawCollision = draw; }
+    static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 
-    static void SetDrawShieldCollision(bool draw) { s_drawShieldCollision = draw; }
-    static bool IsDrawShieldCollision() { return s_drawShieldCollision; }
+    static void SetDrawShieldCollision(bool draw) { s_shouldDrawShieldCollision = draw; }
+    static bool IsDrawShieldCollision() { return s_shouldDrawShieldCollision; }
 
 private:
-    static bool s_drawCollision;
-    static bool s_drawShieldCollision;
+    static bool s_shouldDrawCollision;
+    static bool s_shouldDrawShieldCollision;
 
     /// <summary>
     /// どこに当たったかを判定する
@@ -59,7 +59,7 @@ private:
     /// <summary>
     /// タックルダメージを受ける処理
     /// </summary>
-    void ResetTackleHitFlag() { m_isTackleHit = false; }
+    void ResetTackleHitFlag() { m_hasTakenTackleDamage = false; }
 
     /// <summary>
     /// アイテムドロップ時のコールバック関数を設定する
@@ -140,10 +140,10 @@ private:
 
     float m_animTime;   // アニメーションの経過時間
 
-    bool m_isTackleHit;       // 1フレームで複数回ダメージを受けないためのフラグ
-    bool m_isAttackHit;       // 攻撃がヒットしたかどうか
+    bool m_hasTakenTackleDamage;       // 1フレームで複数回ダメージを受けないためのフラグ
+    bool m_hasAttackHit;       // 攻撃がヒットしたかどうか
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-    bool m_isItemDropped;     // アイテムドロップ済みフラグ
+    bool m_hasDroppedItem;     // アイテムドロップ済みフラグ
 
     // 徘徊挙動用
     int m_wanderTimer;     // 徘徊位置更新タイマー

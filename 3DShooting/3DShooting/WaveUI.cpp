@@ -1,4 +1,4 @@
-#include "WaveUI.h"
+﻿#include "WaveUI.h"
 #include "DebugUtil.h"
 #include <algorithm>
 #include <cstdio>

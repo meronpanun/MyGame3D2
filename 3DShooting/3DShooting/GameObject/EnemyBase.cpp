@@ -1,4 +1,4 @@
-#include "EnemyBase.h"
+﻿#include "EnemyBase.h"
 #include "Bullet.h"
 #include "TransformDataLoader.h"
 #include "CapsuleCollider.h"
@@ -44,7 +44,7 @@ namespace EnemyConstants
 }
 
 int EnemyBase::s_drawCount = 0;
-bool EnemyBase::s_showDamage = false;
+bool EnemyBase::s_shouldShowDamage = false;
 float EnemyBase::s_debugLastDamage = 0.0f;
 int EnemyBase::s_debugDamageTimer = 0;
 std::string EnemyBase::s_debugHitInfo = "";
@@ -59,7 +59,7 @@ EnemyBase::EnemyBase()
     , m_lastTackleId(-1)
     , m_hitDisplayTimer(0)
     , m_isAlive(true)
-    , m_isTackleHit(false)
+    , m_hasTakenTackleDamage(false)
     , m_attackCooldown(0)
     , m_attackCooldownMax(static_cast<int>(EnemyConstants::kDefaultCooldownMax))
     , m_attackPower(EnemyConstants::kDefaultAttackPower)
@@ -131,7 +131,7 @@ void EnemyBase::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
     TakeDamage(damage, bullet.GetAttackType());
 
     // デバッグ表示用更新
-    if (s_showDamage)
+    if (s_shouldShowDamage)
     {
         s_debugLastDamage = damage;
         s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;
@@ -198,7 +198,7 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
     }
 
     // デバッグ表示用
-    if (s_showDamage)
+    if (s_shouldShowDamage)
     {
         s_debugLastDamage = damage;
         s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;
@@ -231,7 +231,7 @@ void EnemyBase::TakeTackleDamage(float damage)
     m_hitDisplayTimer = EnemyConstants::kDefaultHitDisplayDuration;
 
     // デバッグ表示用
-    if (s_showDamage)
+    if (s_shouldShowDamage)
     {
         s_debugLastDamage = damage;
         s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;
@@ -369,7 +369,7 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
 // デバッグ用ダメージ描画
 void EnemyBase::DrawDebugDamage()
 {
-    if (s_showDamage && s_debugDamageTimer > 0)
+    if (s_shouldShowDamage && s_debugDamageTimer > 0)
     {
         s_debugDamageTimer--;
 

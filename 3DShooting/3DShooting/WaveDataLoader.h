@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SpawnAreaInfo.h"
 #include "WaveData.h"
 #include <string>

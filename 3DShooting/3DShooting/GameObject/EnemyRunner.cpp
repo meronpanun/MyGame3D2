@@ -56,18 +56,18 @@ namespace EnemyRunnerConstants
 }
 
 int EnemyRunner::s_modelHandle = -1;
-bool EnemyRunner::s_drawCollision = false;
+bool EnemyRunner::s_shouldDrawCollision = false;
 
 EnemyRunner::EnemyRunner()
     : m_headPosOffset{ EnemyRunnerConstants::kHeadShotPositionOffset }
-    , m_isTackleHit(false)
+    , m_hasTakenTackleDamage(false)
     , m_animTime(0.0f)
-    , m_isAttackHit(false)
+    , m_hasAttackHit(false)
     , m_onDropItem(nullptr)
     , m_currentAnimState(AnimState::Run)
     , m_attackEndDelayTimer(0)
     , m_isDeadAnimPlaying(false)
-    , m_isItemDropped(false)
+    , m_hasDroppedItem(false)
 {
     // モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -101,7 +101,7 @@ void EnemyRunner::Init()
     m_attackCooldownMax = EnemyRunnerConstants::kAttackCooldownMax;
     m_isAlive = true;
     m_isDeadAnimPlaying = false;
-    m_isItemDropped = false;
+    m_hasDroppedItem = false;
     m_lastHitPart = HitPart::None;
     m_hitDisplayTimer = 0;
     
@@ -397,7 +397,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
                 if (CanAttackPlayer(player, EnemyRunnerConstants::kAttackTriggerRadius))
                 {
                     // 攻撃中フラグをリセットしてから遷移
-                    m_isAttackHit = false;
+                    m_hasAttackHit = false;
                     ChangeAnimation(AnimState::Attack, false);
                 }
             }
@@ -480,12 +480,12 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
             float attackStart = currentAnimTotalTime * 0.3f;
             float attackEnd = currentAnimTotalTime * 0.6f;
 
-            if (!m_isAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+            if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
             {
                 if (CanAttackPlayer(player))
                 {
                     const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos);
-                    m_isAttackHit = true;
+                    m_hasAttackHit = true;
                 }
             }
         }
@@ -525,7 +525,7 @@ void EnemyRunner::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    if (s_drawCollision)
+    if (s_shouldDrawCollision)
     {
         DrawCollisionDebug();
     }
@@ -556,7 +556,7 @@ void EnemyRunner::Draw()
 
 void EnemyRunner::DrawCollisionDebug() const
 {
-    if (!s_drawCollision) return;
+    if (!s_shouldDrawCollision) return;
 
     // 体のコライダーデバッグ描画
     DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000);
@@ -691,11 +691,11 @@ void EnemyRunner::UpdateDeath(const std::vector<Stage::StageCollisionData>& coll
             m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
         }
         // アイテムドロップと死亡コールバックを呼び出し
-        if (!m_isItemDropped && m_onDropItem)
+        if (!m_hasDroppedItem && m_onDropItem)
         {
             m_onDropItem(m_pos);
             m_onDropItem = nullptr;
-            m_isItemDropped = true;
+            m_hasDroppedItem = true;
         }
         if (m_onDeathCallback)
         {

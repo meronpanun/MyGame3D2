@@ -1,4 +1,4 @@
-#include "PlayerWeaponManager.h"
+﻿#include "PlayerWeaponManager.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -83,7 +83,7 @@ PlayerWeaponManager::PlayerWeaponManager()
     , m_prevWeaponHadLowAmmo(false)
     , m_prevWeaponHadNoAmmo(false)
     , m_isLowAmmo(false)
-    , m_isNoAmmoWarning(false)
+    , m_isShowingNoAmmoWarning(false)
     , m_lowAmmoBlinkTimer(0.0f)
     , m_isInfiniteAmmo(false)
     , m_gunShakeOffset(VGet(0, 0, 0))
@@ -198,19 +198,19 @@ void PlayerWeaponManager::Update(const UpdateContext& context)
     {
         m_isLowAmmo = false;
         m_lowAmmoBlinkTimer += deltaTime;
-        m_isNoAmmoWarning = true;
+        m_isShowingNoAmmoWarning = true;
     }
     else if (currentAmmo <= PlayerWeaponConstants::kLowAmmoThreshold && !m_isInfiniteAmmo)
     {
         m_isLowAmmo = true;
         m_lowAmmoBlinkTimer += deltaTime;
-        m_isNoAmmoWarning = false;
+        m_isShowingNoAmmoWarning = false;
     }
     else
     {
         m_isLowAmmo = false;
         m_lowAmmoBlinkTimer = 0.0f;
-        m_isNoAmmoWarning = false;
+        m_isShowingNoAmmoWarning = false;
     }
 
     // 銃の引き込み判定

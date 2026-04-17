@@ -49,7 +49,7 @@ namespace EnemyAcidConstants
 }
 
 int EnemyAcid::s_modelHandle = -1;
-bool EnemyAcid::s_drawCollision = false;
+bool EnemyAcid::s_shouldDrawCollision = false;
 
 EnemyAcid::EnemyAcid()
     : m_headPosOffset{ EnemyAcidConstants::kHeadShotPositionOffset }
@@ -60,7 +60,7 @@ EnemyAcid::EnemyAcid()
     , m_attackEndDelayTimer(0)
     , m_acidBulletSpawnOffset({ 0.0f, 0.0f, 0.0f })
     , m_backAnimCount(0)
-    , m_isItemDropped(false)
+    , m_hasDroppedItem(false)
     , m_isStunned(false)
     , m_stunTimer(0)
 {
@@ -716,7 +716,7 @@ void EnemyAcid::Draw()
     MV1DrawModel(m_modelHandle);
 
     // デバッグ用の当たり判定描画
-    if (s_drawCollision)
+    if (s_shouldDrawCollision)
     {
         DrawCollisionDebug();
     }
@@ -729,7 +729,7 @@ void EnemyAcid::Draw()
 
 void EnemyAcid::DrawCollisionDebug() const
 {
-    if (!s_drawCollision) return;
+    if (!s_shouldDrawCollision) return;
 
     if (m_pBodyCollider)
     {
@@ -900,11 +900,11 @@ void EnemyAcid::UpdateDeath()
             m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
         }
         // アイテムドロップと死亡コールバックを呼び出し
-        if (!m_isItemDropped && m_onDropItem)
+        if (!m_hasDroppedItem && m_onDropItem)
         {
             m_onDropItem(m_pos);
             m_onDropItem = nullptr;
-            m_isItemDropped = true;
+            m_hasDroppedItem = true;
         }
         if (m_onDeathCallback)
         {

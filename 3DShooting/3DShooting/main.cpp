@@ -16,7 +16,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 #endif
 
     // フルスクリーンではなく、ウインドウモードで開くようにする
-    ChangeWindowMode(Game::GetWindowMode());
+    ChangeWindowMode(Game::IsWindowMode());
     // ウインドウのタイトルを設定する
     SetMainWindowText(Game::kWindowTitle);
     // 画面のサイズを変更する

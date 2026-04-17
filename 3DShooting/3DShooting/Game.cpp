@@ -14,7 +14,7 @@ SceneManager* Game::m_pSceneManager = nullptr;
 int Game::m_screenWidth = 1280;
 int Game::m_screenHeight = 720;
 int Game::m_colorBitNum = 32;
-bool Game::m_windowMode = true;
+bool Game::s_isWindowMode = true;
 
 // タイムスケール関連の初期化
 float Game::g_timeScale = 1.0f;         // 初期値は通常速度
@@ -28,7 +28,7 @@ void Game::SetResolution(int w, int h)
     m_screenWidth = w;
     m_screenHeight = h;
     SetGraphMode(m_screenWidth, m_screenHeight, m_colorBitNum);
-    if (m_windowMode)
+    if (s_isWindowMode)
     {
         SetWindowSize(m_screenWidth, m_screenHeight);
     }
@@ -37,8 +37,8 @@ void Game::SetResolution(int w, int h)
 
 void Game::SetWindowMode(bool windowed)
 {
-    m_windowMode = windowed;
-    ChangeWindowMode(m_windowMode);
+    s_isWindowMode = windowed;
+    ChangeWindowMode(s_isWindowMode);
     // 画面モード切替時はマウスカーソルを表示する（デバッグ操作用）
     SetMouseDispFlag(true);
 }

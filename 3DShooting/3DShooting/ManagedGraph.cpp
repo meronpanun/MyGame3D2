@@ -1,4 +1,4 @@
-#include "ManagedGraph.h"
+﻿#include "ManagedGraph.h"
 
 ManagedGraph::ManagedGraph(const std::string& path)
 {

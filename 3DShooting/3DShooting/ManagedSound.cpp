@@ -1,4 +1,4 @@
-#include "ManagedSound.h"
+﻿#include "ManagedSound.h"
 
 ManagedSound::ManagedSound(const std::string& path)
 {

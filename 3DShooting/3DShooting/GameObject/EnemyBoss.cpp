@@ -54,9 +54,9 @@ namespace EnemyBossConstants
 
 // static変数の初期化
 int EnemyBoss::s_modelHandle = -1;
-bool EnemyBoss::s_drawCollision = false;
-bool EnemyBoss::s_drawAttackHit = false;
-bool EnemyBoss::s_drawShieldCollision = false;
+bool EnemyBoss::s_shouldDrawCollision = false;
+bool EnemyBoss::s_shouldDrawAttackHit = false;
+bool EnemyBoss::s_shouldDrawShieldCollision = false;
 
 void EnemyBoss::LoadModel()
 {
@@ -75,7 +75,7 @@ EnemyBoss::EnemyBoss()
     , m_isDeadAnimPlaying(false)
     , m_animTime(0.0f)
     , m_attackEndDelayTimer(0)
-    , m_isAttackHit(false)
+    , m_hasAttackHit(false)
     , m_currentEffectHandle(-1)
     , m_effectTimer(0)
     , m_hasPlayedCloseRangeEffect(false)
@@ -124,7 +124,7 @@ void EnemyBoss::Init()
     bool loadResult = LoadTransformData("Boss");
 
     // 基本パラメータ初期化
-    m_isAttackHit = false;
+    m_hasAttackHit = false;
     m_attackEndDelayTimer = 0;
     m_attackCooldown = 0;
     m_hitDisplayTimer = 0;
@@ -460,14 +460,14 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         // 判定期間 (0.4 ~ 0.6)
         if (m_animTime >= currentAnimTotalTime * 0.4f && m_animTime <= currentAnimTotalTime * 0.6f)
         {
-            if (!m_isAttackHit)
+            if (!m_hasAttackHit)
             {
                 // 範囲攻撃判定
                 if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
                 {
                     // ダメージを与える
                     const_cast<Player&>(player).TakeDamage(static_cast<float>(m_attackPower), m_pos);
-                    m_isAttackHit = true;
+                    m_hasAttackHit = true;
                 }
             }
         }
@@ -500,7 +500,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             --m_attackEndDelayTimer;
             if (m_attackEndDelayTimer == 0)
             {
-                m_isAttackHit = false;
+                m_hasAttackHit = false;
                 // 攻撃終了後、範囲内にいれば再度攻撃、いなければ移動へ
                 if (CanAttackPlayer(player))
                 {
@@ -618,7 +618,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         // 攻撃判定
         if (CanAttackPlayer(player))
         {
-            m_isAttackHit = false;
+            m_hasAttackHit = false;
             ChangeAnimation(AnimState::Attack, false);
         }
         else if (disToPlayer > EnemyBossConstants::kLongRangeAttackMinDist && disToPlayer < EnemyBossConstants::kLongRangeAttackMaxDist && m_longRangeAttackCooldown <= 0)
@@ -654,7 +654,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             // 攻撃判定
             if (CanAttackPlayer(player))
             {
-                m_isAttackHit = false;
+                m_hasAttackHit = false;
                 ChangeAnimation(AnimState::Attack, false);
             }
             else if (disToPlayer > EnemyBossConstants::kLongRangeAttackMinDist && disToPlayer < EnemyBossConstants::kLongRangeAttackMaxDist && m_longRangeAttackCooldown <= 0)
@@ -988,7 +988,7 @@ void EnemyBoss::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    if (s_drawCollision || s_drawAttackHit || s_drawShieldCollision)
+    if (s_shouldDrawCollision || s_shouldDrawAttackHit || s_shouldDrawShieldCollision)
     {
         DrawCollisionDebug();
     }
@@ -1089,40 +1089,40 @@ float EnemyBoss::CalcDamage(float bulletDamage, HitPart part) const
 void EnemyBoss::DrawCollisionDebug() const
 {
     // どちらかが有効なら描画処理を行う
-    if (!s_drawCollision && !s_drawAttackHit && !s_drawShieldCollision) return;
+    if (!s_shouldDrawCollision && !s_shouldDrawAttackHit && !s_shouldDrawShieldCollision) return;
 
     // 体
-    if (s_drawCollision && m_pBodyCollider)
+    if (s_shouldDrawCollision && m_pBodyCollider)
     {
         DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000); // 赤
     }
 
     // 頭
-    if (s_drawCollision && m_pHeadCollider)
+    if (s_shouldDrawCollision && m_pHeadCollider)
     {
         DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0x00ff00); // 緑
     }
 
     // 攻撃範囲
-    if (s_drawAttackHit && m_pAttackRangeCollider)
+    if (s_shouldDrawAttackHit && m_pAttackRangeCollider)
     {
         DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 32, 0xffaa00);
     }
 
     // 攻撃判定
-    if (s_drawAttackHit && m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
+    if (s_shouldDrawAttackHit && m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
     {
         DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0xff00ff); // マゼンタ
     }
         
     // パリィ判定
-    if (s_drawCollision && m_shouldDrawParryCollider)
+    if (s_shouldDrawCollision && m_shouldDrawParryCollider)
     {
         DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0xffff00); // 黄色 (パリィ)
     }
 
     // 攻撃ヒット判定（ダメージ発生期間のみ表示）
-    if (s_drawAttackHit && m_currentAnimState == AnimState::Attack)
+    if (s_shouldDrawAttackHit && m_currentAnimState == AnimState::Attack)
     {
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kCloseAttackAnimName);
         // ダメージ発生期間 (0.4 ~ 0.6)
@@ -1137,7 +1137,7 @@ void EnemyBoss::DrawCollisionDebug() const
     }
 
     // シールド（デバッグ表示）
-    if (s_drawShieldCollision && !m_isShieldBroken && m_pShieldCollider)
+    if (s_shouldDrawShieldCollision && !m_isShieldBroken && m_pShieldCollider)
     {
         // シアン色で描画
         DebugUtil::DrawSphere(m_pShieldCollider->GetCenter(), m_pShieldCollider->GetRadius(), 16, 0x00ffff);
@@ -1217,7 +1217,7 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
         TakeDamage(damage, bullet.GetAttackType());
         
         // デバッグ表示用
-        if (s_showDamage)
+        if (s_shouldShowDamage)
         {
             s_debugLastDamage = damage;
             s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;

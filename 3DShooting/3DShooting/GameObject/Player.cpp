@@ -1,4 +1,4 @@
-#include "Player.h"
+﻿#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -137,7 +137,7 @@ Player::Player()
     , m_gunSwayRotOffset(VGet(0, 0, 0)), m_isDead(false), m_deathTimer(0.0f)
     , m_pDirectionIndicator(nullptr), m_isLockingOn(false)
     , m_lockedOnEnemy(nullptr), m_isTargetAvailable(false)
-    , m_isAimingAtEnemy(false), m_ignoreGuardInput(false)
+    , m_isAimingAtEnemy(false), m_shouldIgnoreGuardInput(false)
     , m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false)
     , m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f)
     , m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f)
@@ -257,7 +257,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     // ガード入力処理
     bool shouldGuard = !m_isDead && !m_isTackling &&
         InputManager::GetInstance()->IsPressMouseRight() &&
-        !m_ignoreGuardInput && !m_shieldSystem.IsShieldBroken();
+        !m_shouldIgnoreGuardInput && !m_shieldSystem.IsShieldBroken();
     m_shieldSystem.SetGuarding(shouldGuard);
     bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
@@ -326,7 +326,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     // 右クリックガード解除で入力無視解除
     if (!InputManager::GetInstance()->IsPressMouseRight())
     {
-        m_ignoreGuardInput = false;
+        m_shouldIgnoreGuardInput = false;
     }
 
     // ロックオン更新
@@ -356,7 +356,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
     if (m_pCamera)
     {
-        m_pCamera->SetHeadBobbingState(m_movement.IsMoving(), m_movement.IsWasRunning());
+        m_pCamera->SetHeadBobbingState(m_movement.IsMoving(), m_movement.WasRunning());
     }
 
     if (m_isDead)
@@ -413,7 +413,7 @@ void Player::Draw3D()
 {
     bool isTryingToGuard = !m_isDead && !m_isTackling &&
         InputManager::GetInstance()->IsPressMouseRight() &&
-        !m_ignoreGuardInput &&
+        !m_shouldIgnoreGuardInput &&
         !m_shieldSystem.IsShieldBroken();
     bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
@@ -1104,7 +1104,7 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
                 }
 
                 m_isTackling = false;
-                m_ignoreGuardInput = true;
+                m_shouldIgnoreGuardInput = true;
 
                 if (m_pCamera)
                 {

@@ -1,4 +1,4 @@
-#include "InputManager.h"
+﻿#include "InputManager.h"
 #include "EffekseerForDXLib.h"
 #include "Game.h"
 #include <DxLib.h>

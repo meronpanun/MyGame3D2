@@ -44,11 +44,11 @@ public:
     /// </summary>
     virtual void DrawCollisionDebug() const override;
 
-    static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
-    static bool IsDrawCollision() { return s_drawCollision; }
+    static void SetDrawCollision(bool draw) { s_shouldDrawCollision = draw; }
+    static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 
 private:
-    static bool s_drawCollision;
+    static bool s_shouldDrawCollision;
 
     /// <summary>
     /// どこに当たったかを判定する
@@ -61,7 +61,7 @@ private:
     /// <summary>
     /// タックルダメージを受けたかどうかのフラグをリセットする
     /// </summary>
-    void ResetTackleHitFlag() override { m_isTackleHit = false; }
+    void ResetTackleHitFlag() override { m_hasTakenTackleDamage = false; }
 
     /// <summary>
     /// アイテムドロップ時のコールバック関数を設定する
@@ -179,7 +179,7 @@ private:
 
     bool m_hasAttacked;       // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-    bool m_isItemDropped;     // アイテムドロップ済みフラグ
+    bool m_hasDroppedItem;     // アイテムドロップ済みフラグ
     bool m_isStunned;         // 怯み状態か
     int m_stunTimer;          // 怯みタイマー
 

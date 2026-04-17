@@ -23,14 +23,14 @@ public:
     static void LoadModel();
     static void DeleteModel();
 
-    static void SetDrawCollision(bool draw) { s_drawCollision = draw; }
-    static bool IsDrawCollision() { return s_drawCollision; }
+    static void SetDrawCollision(bool draw) { s_shouldDrawCollision = draw; }
+    static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 
-    static void SetDrawAttackHit(bool draw) { s_drawAttackHit = draw; }
-    static bool IsDrawAttackHit() { return s_drawAttackHit; }
+    static void SetDrawAttackHit(bool draw) { s_shouldDrawAttackHit = draw; }
+    static bool IsDrawAttackHit() { return s_shouldDrawAttackHit; }
 
-    static void SetDrawShieldCollision(bool draw) { s_drawShieldCollision = draw; }
-    static bool IsDrawShieldCollision() { return s_drawShieldCollision; }
+    static void SetDrawShieldCollision(bool draw) { s_shouldDrawShieldCollision = draw; }
+    static bool IsDrawShieldCollision() { return s_shouldDrawShieldCollision; }
 
     void Init() override;
     void Update(const EnemyUpdateContext& context) override;
@@ -50,7 +50,7 @@ public:
     std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
     // タックルヒットフラグのリセット
-    void ResetTackleHitFlag() override { m_isTackleHit = false; }
+    void ResetTackleHitFlag() override { m_hasTakenTackleDamage = false; }
 
     // 衝突判定
     HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const override;
@@ -77,9 +77,9 @@ protected:
     void DrawCollisionDebug() const override;
 
 private:
-    static bool s_drawCollision;
-    static bool s_drawAttackHit;
-    static bool s_drawShieldCollision;
+    static bool s_shouldDrawCollision;
+    static bool s_shouldDrawAttackHit;
+    static bool s_shouldDrawShieldCollision;
 
 private:
     /// <summary>
@@ -113,7 +113,7 @@ private:
     std::shared_ptr<SphereCollider> m_pWeakCollider;        // 弱点
 
     int m_attackEndDelayTimer; // 攻撃後の硬直タイマー
-    bool m_isAttackHit;        // 攻撃がヒットしたか
+    bool m_hasAttackHit;        // 攻撃がヒットしたか
 
     // 遠距離攻撃用
     struct HomingBullet

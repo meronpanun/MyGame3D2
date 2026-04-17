@@ -1,4 +1,4 @@
-#include "SceneMain.h"
+﻿#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -33,7 +33,7 @@
 // static変数の定義
 float SceneMain::s_elapsedTime = 0.0f;
 bool SceneMain::s_isSkipTutorial = false;
-bool SceneMain::s_isLowHealthTutorialShown = false;
+bool SceneMain::s_hasShownLowHealthTutorial = false;
 
 namespace SceneMainConstants
 {
@@ -110,8 +110,8 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_hitDistance(0.0f)
     , m_pCamera(std::make_unique<Camera>())
     , m_hitMarkTimer(0)
-    , m_isWave1FirstAidDropped(false)
-    , m_isWave1AmmoDropped(false)
+    , m_hasDroppedWave1FirstAid(false)
+    , m_hasDroppedWave1Ammo(false)
     , m_wave1DropCount(0)
     , m_totalScorePopupTimer(0)
     , m_lastTotalScorePopupValue(0)
@@ -261,8 +261,8 @@ void SceneMain::Init()
     m_items.clear();
 
     // wave1開始時にフラグとカウントをリセット
-    m_isWave1FirstAidDropped = false;
-    m_isWave1AmmoDropped = false;
+    m_hasDroppedWave1FirstAid = false;
+    m_hasDroppedWave1Ammo = false;
     m_wave1DropCount = 0;
 
     m_clearSceneDelayTimer = -1; // 遅延タイマーをリセット
@@ -278,7 +278,7 @@ void SceneMain::Init()
         {
             if (m_wave1DropCount >= 2) return; // 2体分だけドロップ
 
-            if (!m_isWave1FirstAidDropped && !m_isWave1AmmoDropped) 
+            if (!m_hasDroppedWave1FirstAid && !m_hasDroppedWave1Ammo) 
             {
                 int randValue = GetRand(99);
                 if (randValue < 50) 
@@ -289,7 +289,7 @@ void SceneMain::Init()
                     dropPos.y += kDropInitialHeight;
                     firstAid->SetPos(dropPos);
                     m_items.push_back(firstAid);
-                    m_isWave1FirstAidDropped = true;
+                    m_hasDroppedWave1FirstAid = true;
                 }
                 else 
                 {
@@ -299,11 +299,11 @@ void SceneMain::Init()
                     dropPos.y += kDropInitialHeight;
                     ammo->SetPos(dropPos);
                     m_items.push_back(ammo);
-                    m_isWave1AmmoDropped = true;
+                    m_hasDroppedWave1Ammo = true;
                 }
                 m_wave1DropCount++;
             } 
-            else if (!m_isWave1FirstAidDropped) 
+            else if (!m_hasDroppedWave1FirstAid) 
             {
                 auto firstAid = std::make_shared<FirstAidKitItem>();
                 firstAid->Init();
@@ -311,10 +311,10 @@ void SceneMain::Init()
                 dropPos.y += kDropInitialHeight;
                 firstAid->SetPos(dropPos);
                 m_items.push_back(firstAid);
-                m_isWave1FirstAidDropped = true;
+                m_hasDroppedWave1FirstAid = true;
                 m_wave1DropCount++;
             }
-            else if (!m_isWave1AmmoDropped) 
+            else if (!m_hasDroppedWave1Ammo) 
             {
                 auto ammo = std::make_shared<AmmoItem>();
                 ammo->Init();
@@ -322,7 +322,7 @@ void SceneMain::Init()
                 dropPos.y += kDropInitialHeight;
                 ammo->SetPos(dropPos);
                 m_items.push_back(ammo);
-                m_isWave1AmmoDropped = true;
+                m_hasDroppedWave1Ammo = true;
                 m_wave1DropCount++;
             }
             // 両方ドロップ済み or 2体分超えたら何も落とさない
@@ -580,12 +580,12 @@ SceneBase* SceneMain::Update()
         m_pTutorialManager->Update();
 
         // 低体力チュートリアルの表示
-        if (m_pPlayer && m_pPlayer->IsLowHealth() && !s_isLowHealthTutorialShown)
+        if (m_pPlayer && m_pPlayer->IsLowHealth() && !s_hasShownLowHealthTutorial)
         {
             m_pTutorialManager->AddMessage("回復アイテム",
                                            "敵を倒すと回復アイテムをドロップする。\n"
                                            "生き残りたければ積極的に行動せよ");
-            s_isLowHealthTutorialShown = true;
+            s_hasShownLowHealthTutorial = true;
         }
     }
 

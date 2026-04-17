@@ -56,19 +56,19 @@ namespace EnemyNormalConstants
 }
 
 int EnemyNormal::s_modelHandle = -1;
-bool EnemyNormal::s_drawCollision = false;
-bool EnemyNormal::s_drawShieldCollision = false;
+bool EnemyNormal::s_shouldDrawCollision = false;
+bool EnemyNormal::s_shouldDrawShieldCollision = false;
 
 EnemyNormal::EnemyNormal()
     : m_headPosOffset(EnemyNormalConstants::kHeadShotPositionOffset)
-    , m_isTackleHit(false)
+    , m_hasTakenTackleDamage(false)
     , m_animTime(0.0f)
-    , m_isAttackHit(false)
+    , m_hasAttackHit(false)
     , m_onDropItem(nullptr)
     , m_currentAnimState(AnimState::Walk)
     , m_attackEndDelayTimer(0)
     , m_isDeadAnimPlaying(false)
-    , m_isItemDropped(false)
+    , m_hasDroppedItem(false)
 {
     // モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -103,7 +103,7 @@ void EnemyNormal::Init()
 
     m_isAlive = true;
     m_isDeadAnimPlaying = false; // フラグリセット
-    m_isItemDropped = false;
+    m_hasDroppedItem = false;
     m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
     m_hitDisplayTimer = 0;         // ヒット表示タイマーもリセット
     m_damageTimer = 0;             // ダメージタイマー初期化
@@ -456,7 +456,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
                 m_attackEndDelayTimer -= m_aiUpdateInterval; // 間引き分減算
                 if (m_attackEndDelayTimer <= 0)
                 {
-                    m_isAttackHit = false; // 攻撃ヒットフラグをリセット
+                    m_hasAttackHit = false; // 攻撃ヒットフラグをリセット
                     if (isPlayerInAttackRange)
                     {
                         ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
@@ -477,7 +477,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
             // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
             if (CanAttackPlayer(player))
             {
-                m_isAttackHit = false;
+                m_hasAttackHit = false;
                 ChangeAnimation(AnimState::Attack, false);
             }
         }
@@ -589,7 +589,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
             float attackEnd = currentAnimTotalTime * 0.7f;   // 攻撃終了時間
 
             // 攻撃アニメーションの範囲内でのみ攻撃判定を行う
-            if (!m_isAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+            if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
             {
                 int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
                 int handLIndex = MV1SearchFrame(m_modelHandle, "Hand_L");
@@ -605,7 +605,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
                     if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
                     {
                         const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos); // プレイヤーにダメージ（攻撃者の位置を渡す）
-                        m_isAttackHit = true;
+                        m_hasAttackHit = true;
                     }
                 }
             }
@@ -676,7 +676,7 @@ void EnemyNormal::Draw()
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
 
-    if (s_drawCollision || s_drawShieldCollision)
+    if (s_shouldDrawCollision || s_shouldDrawShieldCollision)
     {
         DrawCollisionDebug();
     }
@@ -706,12 +706,12 @@ void EnemyNormal::Draw()
 // デバック用の当たり判定を描画する
 void EnemyNormal::DrawCollisionDebug() const
 {
-    if (s_drawShieldCollision && m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
+    if (s_shouldDrawShieldCollision && m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
     {
         DebugUtil::DrawSphere(m_pShieldCollider->GetCenter(), m_pShieldCollider->GetRadius(), 16, 0x00ffff);
     }
 
-    if (!s_drawCollision) return;
+    if (!s_shouldDrawCollision) return;
 
     // 体のコライダーデバッグ描画
     DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000);
@@ -1028,7 +1028,7 @@ void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, 
         TakeDamage(damage, bullet.GetAttackType()); // TakeDamage側で減算処理を行う
 
         // デバッグ表示用
-        if (s_showDamage)
+        if (s_shouldShowDamage)
         {
             s_debugLastDamage = damage;
             s_debugDamageTimer = EnemyConstants::kDebugDamageDisplayTimer;
@@ -1092,11 +1092,11 @@ void EnemyNormal::UpdateDeath(const std::vector<Stage::StageCollisionData>& coll
             m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
         }
         // アイテムドロップと死亡コールバックを呼び出し
-        if (!m_isItemDropped && m_onDropItem)
+        if (!m_hasDroppedItem && m_onDropItem)
         {
             m_onDropItem(m_pos);
             m_onDropItem = nullptr;
-            m_isItemDropped = true;
+            m_hasDroppedItem = true;
         }
         if (m_onDeathCallback)
         {

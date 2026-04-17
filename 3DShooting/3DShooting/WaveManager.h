@@ -96,17 +96,17 @@ public:
     /// <summary>
     /// すべてのウェーブが完了したかどうかを取得
     /// </summary>
-    bool IsAllWavesCompleted() const { return m_isAllWavesCompleted; }
+    bool IsAllWavesCompleted() const { return m_haveAllWavesCompleted; }
 
     /// <summary>
     /// ウェーブ1の敵がロードされたかどうかを取得
     /// </summary>
-    bool IsWave1Loaded() const { return m_isWave1Loaded; }
+    bool IsWave1Loaded() const { return m_hasLoadedWave1; }
 
     /// <summary>
     /// ウェーブ1の敵が実際に出現したかどうかを取得
     /// </summary>
-    bool IsWave1EnemySpawned() const { return m_isWave1EnemySpawned; }
+    bool IsWave1EnemySpawned() const { return m_hasSpawnedWave1Enemy; }
 
     /// <summary>
     /// 現在のスポーンタイマーを取得
@@ -116,12 +116,12 @@ public:
     /// <summary>
     /// ショットチュートリアルがクリアされたかどうかを取得
     /// </summary>
-    bool IsShotTutorialCleared() const { return m_isShotTutorialCleared; }
+    bool IsShotTutorialCleared() const { return m_hasClearedShotTutorial; }
 
     /// <summary>
     /// タックルチュートリアルがクリアされたかどうかを取得
     /// </summary>
-    bool IsTackleTutorialCleared() const { return m_isTackleTutorialCleared; }
+    bool IsTackleTutorialCleared() const { return m_hasClearedTackleTutorial; }
 
     /// <summary>
     /// 生存している敵の数を取得
@@ -134,14 +134,14 @@ public:
     void SpawnTutorialWave(int tutorialWaveId);
 
     // デバッグ表示切り替え用 (後方互換性のため維持)
-    static void SetDrawSpawnAreas(bool isDraw) { s_isDrawSpawnAreas = isDraw; }
-    static bool IsDrawSpawnAreas() { return s_isDrawSpawnAreas; }
+    static void SetDrawSpawnAreas(bool isDraw) { s_shouldDrawSpawnAreas = isDraw; }
+    static bool IsDrawSpawnAreas() { return s_shouldDrawSpawnAreas; }
 
-    static void SetShowActiveEnemyCount(bool isShow) { s_isShowActiveEnemyCount = isShow; }
-    static bool IsShowActiveEnemyCount() { return s_isShowActiveEnemyCount; }
+    static void SetShowActiveEnemyCount(bool isShow) { s_shouldShowActiveEnemyCount = isShow; }
+    static bool IsShowActiveEnemyCount() { return s_shouldShowActiveEnemyCount; }
 
-    static void SetShowDrawnEnemyCount(bool isShow) { s_isShowDrawnEnemyCount = isShow; }
-    static bool IsShowDrawnEnemyCount() { return s_isShowDrawnEnemyCount; }
+    static void SetShowDrawnEnemyCount(bool isShow) { s_shouldShowDrawnEnemyCount = isShow; }
+    static bool IsShowDrawnEnemyCount() { return s_shouldShowDrawnEnemyCount; }
 
     std::shared_ptr<EnemyNormal> GetPooledNormalEnemy();
     std::shared_ptr<EnemyRunner> GetPooledRunnerEnemy();
@@ -223,11 +223,11 @@ private:
     int m_totalSpawnedCount; // 累計出現数
 
     // 状態フラグ
-    bool m_isWave1Loaded;
-    bool m_isWave1EnemySpawned;
-    bool m_isShotTutorialCleared;
-    bool m_isTackleTutorialCleared;
-    bool m_isRoadFloorBoundsSet;
+    bool m_hasLoadedWave1;
+    bool m_hasSpawnedWave1Enemy;
+    bool m_hasClearedShotTutorial;
+    bool m_hasClearedTackleTutorial;
+    bool m_hasSetRoadFloorBounds;
     bool m_isTutorialMode;
 
     // ウェーブ進行管理
@@ -237,10 +237,10 @@ private:
     float m_spawnTimer;
     float m_waveIntervalTimer;
     bool m_isWaveActive;
-    bool m_isAllWavesCompleted;
+    bool m_haveAllWavesCompleted;
 
     // スタティックメンバ (デバッグフラグ)
-    static bool s_isDrawSpawnAreas;
-    static bool s_isShowActiveEnemyCount;
-    static bool s_isShowDrawnEnemyCount;
+    static bool s_shouldDrawSpawnAreas;
+    static bool s_shouldShowActiveEnemyCount;
+    static bool s_shouldShowDrawnEnemyCount;
 };

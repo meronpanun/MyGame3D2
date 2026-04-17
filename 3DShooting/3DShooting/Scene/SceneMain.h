@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EffekseerForDXLib.h"
 #include "EnemyBase.h"
 #include "SceneBase.h"
@@ -168,8 +168,8 @@ private:
     bool m_isEscapePressed;           // Escapeキー押下状態
     bool m_isReturningFromOtherScene; // 他シーンから戻ったか
     bool m_isLoading;                 // ロード中か
-    bool m_isWave1FirstAidDropped;    // Wave1救急キットドロップ済み
-    bool m_isWave1AmmoDropped;        // Wave1弾薬ドロップ済み
+    bool m_hasDroppedWave1FirstAid;    // Wave1救急キットドロップ済み
+    bool m_hasDroppedWave1Ammo;        // Wave1弾薬ドロップ済み
     int m_wave1DropCount;             // Wave1ドロップ回数
     EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
 
@@ -209,7 +209,7 @@ private:
     bool m_isPlayerInit;
     int m_gameOverDelayTimer; // ゲームオーバー遅延タイマー
     bool m_isTaskTutorialInit;
-    static bool s_isLowHealthTutorialShown; // 低体力チュートリアル表示済みフラグ
+    static bool s_hasShownLowHealthTutorial; // 低体力チュートリアル表示済みフラグ
 
     bool m_isTutorialStage;   // チュートリアルステージかどうか
     void SwitchToMainStage(); // メインステージへの切り替え

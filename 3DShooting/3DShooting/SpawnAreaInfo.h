@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "DxLib.h"
 
 // スポーンエリア情報 (SpawnAreaData.csv)

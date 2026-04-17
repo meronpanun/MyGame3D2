@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <vector>

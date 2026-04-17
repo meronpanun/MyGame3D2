@@ -78,7 +78,7 @@ public:
     /// チュートリアル完了後の待機中かどうか 
     /// </summary>
     /// <returns>完了演出表示中ならtrue</returns>
-    bool IsCompletedDisplay() const { return m_isCompletedDisplay; }
+    bool IsDisplayingCompletion() const { return m_isDisplayingCompletion; }
 
     /// <summary>
     /// 新しいチュートリアルメッセージを追加する
@@ -131,11 +131,11 @@ private:
     float m_jumpAccumTime;      // ジャンプ操作累積時間
     float m_viewAccumTime;      // 視点操作累積時間
     float m_moveAccumTime;      // WASD操作累積時間
-    bool  m_isCompletedDisplay; // 完了演出表示中フラグ
-    bool  m_isRunDone;          // 走る操作が完了したか
-    bool  m_isJumpDone;         // ジャンプ操作が完了したか
-    bool  m_isViewDone;         // 視点操作が完了したか
-    bool  m_isMoveDone;         // WASD操作が完了したか
+    bool  m_isDisplayingCompletion; // 完了演出表示中フラグ
+    bool  m_hasCompletedRun;          // 走る操作が完了したか
+    bool  m_hasCompletedJump;         // ジャンプ操作が完了したか
+    bool  m_hasCompletedView;         // 視点操作が完了したか
+    bool  m_hasCompletedMove;         // WASD操作が完了したか
 
     // ステップ完了後の待機
     float m_stepCompleteWaitTime; // ステップ完了後の待機タイマー
@@ -147,10 +147,10 @@ private:
     float m_viewCheckAnimTime; // 視点操作のアニメーションタイマー
     float m_runCheckAnimTime;  // 走る操作のアニメーションタイマー
     float m_jumpCheckAnimTime; // ジャンプ操作のアニメーションタイマー
-    bool  m_isMoveCheckAnim;   // WASD操作のアニメーションが進行中か
-    bool  m_isViewCheckAnim;   // 視点操作のアニメーションが進行中か
-    bool  m_isJumpCheckAnim;   // ジャンプ操作のアニメーションが進行中か
-    bool  m_isRunCheckAnim;    // 走る操作のアニメーションが進行中か
+    bool  m_isPlayingMoveCheckAnim;   // WASD操作のアニメーションが進行中か
+    bool  m_isPlayingViewCheckAnim;   // 視点操作のアニメーションが進行中か
+    bool  m_isPlayingJumpCheckAnim;   // ジャンプ操作のアニメーションが進行中か
+    bool  m_isPlayingRunCheckAnim;    // 走る操作のアニメーションが進行中か
 
     // メッセージ関連
     std::vector<TutorialMessage> m_messages;

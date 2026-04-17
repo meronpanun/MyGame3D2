@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <memory>
@@ -62,7 +62,7 @@ public:
     /// 前フレームで走っていたかどうか
     /// </summary>
     /// <returns>true: 走っていた, false: 走っていなかった</returns>
-    bool IsWasRunning() const { return m_isWasRunning; }
+    bool WasRunning() const { return m_wasRunning; }
 
     /// <summary>
     /// コライダーを取得
@@ -148,7 +148,7 @@ private:
     bool m_isMoving;
     bool m_isJumping;
     bool m_wasJumping;
-    bool m_isWasRunning;
+    bool m_wasRunning;
     bool m_isGroundedOnStage;
     bool m_isRunMode;
     bool m_isRunJumping;

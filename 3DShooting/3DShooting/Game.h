@@ -14,14 +14,14 @@ public:
     static int m_screenWidth;
     static int m_screenHeight;
     static int m_colorBitNum;
-    static bool m_windowMode;
+    static bool s_isWindowMode;
 
     static void SetResolution(int w, int h);
     static int GetScreenWidth() { return m_screenWidth; }
     static int GetScreenHeight() { return m_screenHeight; }
 
     static void SetWindowMode(bool windowed);
-    static bool GetWindowMode() { return m_windowMode; }
+    static bool IsWindowMode() { return s_isWindowMode; }
 
     // ウインドウのタイトル
     static constexpr const char* kWindowTitle = "WAVEBREAKER";

@@ -33,9 +33,9 @@ namespace
     constexpr VECTOR kDefaultRoadFloorMax = { 1000.0f, 0.0f, 1000.0f };   // 床の最大座標
 }
 
-bool WaveManager::s_isDrawSpawnAreas = false;
-bool WaveManager::s_isShowActiveEnemyCount = false;
-bool WaveManager::s_isShowDrawnEnemyCount = false;
+bool WaveManager::s_shouldDrawSpawnAreas = false;
+bool WaveManager::s_shouldShowActiveEnemyCount = false;
+bool WaveManager::s_shouldShowDrawnEnemyCount = false;
 
 WaveManager::WaveManager()
     : m_currentWave(1)
@@ -43,17 +43,17 @@ WaveManager::WaveManager()
     , m_spawnTimer(0.0f)
     , m_currentSpawnIndex(0)
     , m_isWaveActive(false)
-    , m_isAllWavesCompleted(false)
-    , m_isWave1Loaded(false)
-    , m_isWave1EnemySpawned(false)
+    , m_haveAllWavesCompleted(false)
+    , m_hasLoadedWave1(false)
+    , m_hasSpawnedWave1Enemy(false)
     , m_roadFloorMin(kDefaultRoadFloorMin)
     , m_roadFloorMax(kDefaultRoadFloorMax)
-    , m_isRoadFloorBoundsSet(false)
+    , m_hasSetRoadFloorBounds(false)
     , m_onEnemyDeathCallback(nullptr)
     , m_waveIntervalTimer(0.0f)
     , m_totalSpawnedCount(0)
-    , m_isShotTutorialCleared(false)
-    , m_isTackleTutorialCleared(false)
+    , m_hasClearedShotTutorial(false)
+    , m_hasClearedTackleTutorial(false)
     , m_isTutorialMode(false)
 {
 
@@ -100,8 +100,8 @@ void WaveManager::Init()
     auto deathTypeCallback = [this](const VECTOR& pos, AttackType type) {
         if (m_currentWave == 1)
         {
-            if (type == AttackType::Shoot) m_isShotTutorialCleared = true;
-            if (type == AttackType::Tackle) m_isTackleTutorialCleared = true;
+            if (type == AttackType::Shoot) m_hasClearedShotTutorial = true;
+            if (type == AttackType::Tackle) m_hasClearedTackleTutorial = true;
         }
     };
 
@@ -125,8 +125,8 @@ void WaveManager::Init()
                 // チュートリアル達成判定
                 if (m_currentWave == 1)
                 {
-                    if (enemy->GetLastAttackType() == AttackType::Shoot) m_isShotTutorialCleared = true;
-                    if (enemy->GetLastAttackType() == AttackType::Tackle) m_isTackleTutorialCleared = true;
+                    if (enemy->GetLastAttackType() == AttackType::Shoot) m_hasClearedShotTutorial = true;
+                    if (enemy->GetLastAttackType() == AttackType::Tackle) m_hasClearedTackleTutorial = true;
                 }
                 break;
             }
@@ -177,7 +177,7 @@ void WaveManager::Reset()
     m_currentSpawnIndex = 0;
     m_waveIntervalTimer = 0.0f;
     m_isWaveActive = false;
-    m_isAllWavesCompleted = false;
+    m_haveAllWavesCompleted = false;
 
     m_enemyList.clear();
     m_spawnInfoList.clear();
@@ -193,8 +193,8 @@ void WaveManager::Reset()
         m_waveDataList = WaveDataLoader::LoadWaveData("data/CSV/WaveData.csv");
     }
 
-    m_isShotTutorialCleared = false;
-    m_isTackleTutorialCleared = false;
+    m_hasClearedShotTutorial = false;
+    m_hasClearedTackleTutorial = false;
     m_isTutorialMode = false;
 }
 
@@ -203,7 +203,7 @@ void WaveManager::Update()
     // UI更新
     m_pWaveUI->Update();
 
-    if (m_isAllWavesCompleted)
+    if (m_haveAllWavesCompleted)
     {
         return;
     }
@@ -320,7 +320,7 @@ void WaveManager::DrawEnemies(bool isTutorial)
     // デバッグ表示
     // (UIクラスに移譲、フラグチェックはWaveManagerが持つか、UI側で持つか)
     // ここでは互換性のためs_isDrawSpawnAreasを使用し、UIクラスに渡す
-    if (s_isDrawSpawnAreas)
+    if (s_shouldDrawSpawnAreas)
     {
         m_pWaveUI->DrawDebugSpawnAreas(m_spawnAreaList, isTutorial || m_isTutorialMode);
     }
@@ -330,7 +330,7 @@ void WaveManager::DrawWaveUI()
 {
     if (!m_isTutorialMode)
     {
-        m_pWaveUI->DrawWaveUI(m_currentWave, m_isWaveActive, m_isAllWavesCompleted);
+        m_pWaveUI->DrawWaveUI(m_currentWave, m_isWaveActive, m_haveAllWavesCompleted);
     }
 }
 
@@ -350,12 +350,12 @@ void WaveManager::SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos)
 {
     m_roadFloorMin = minPos;
     m_roadFloorMax = maxPos;
-    m_isRoadFloorBoundsSet = true;
+    m_hasSetRoadFloorBounds = true;
 }
 
 VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)
 {
-    if (!m_isRoadFloorBoundsSet)
+    if (!m_hasSetRoadFloorBounds)
     {
         return kDefaultRoadFloorPos;
     }
@@ -664,7 +664,7 @@ void WaveManager::NextWave()
 
     if (!hasNextWave)
     {
-        m_isAllWavesCompleted = true;
+        m_haveAllWavesCompleted = true;
     }
     else
     {

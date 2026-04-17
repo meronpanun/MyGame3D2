@@ -213,7 +213,7 @@ public:
     /// 弾薬切れ警告かどうか取得
     /// </summary>
     /// <returns>弾薬切れ警告ならtrue</returns>
-    bool IsNoAmmoWarning() const { return m_isNoAmmoWarning; }
+    bool IsNoAmmoWarning() const { return m_isShowingNoAmmoWarning; }
 
     /// <summary>
     /// 弾薬警告の点滅タイマー取得
@@ -342,7 +342,7 @@ private:
 
     // 弾薬警告
     bool m_isLowAmmo;
-    bool m_isNoAmmoWarning;
+    bool m_isShowingNoAmmoWarning;
     float m_lowAmmoBlinkTimer;
 
     // 無限弾薬

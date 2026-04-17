@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SafeHandle.h"
 #include <string>
 

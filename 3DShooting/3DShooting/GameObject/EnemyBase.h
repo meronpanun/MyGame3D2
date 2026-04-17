@@ -51,8 +51,8 @@ public:
     static int GetDrawCount() { return s_drawCount; }
 
     // デバッグ用: ダメージ可視化
-    static void SetShowDamage(bool show) { s_showDamage = show; }
-    static bool IsShowDamage() { return s_showDamage; }
+    static void SetShowDamage(bool show) { s_shouldShowDamage = show; }
+    static bool ShouldShowDamage() { return s_shouldShowDamage; }
     static void DrawDebugDamage(); // ダメージ描画用関数
 
     /// <summary>
@@ -331,7 +331,7 @@ protected:
     float m_chaseSpeed;  // 追跡速度
 
     bool m_isAlive;     // 生存状態フラグ
-    bool m_isTackleHit; // タックルで既にダメージを受けたか
+    bool m_hasTakenTackleDamage; // タックルで既にダメージを受けたか
     bool m_isAttacking; // 攻撃中かどうか
     bool m_isActive;    // デフォルトはアクティブ
 
@@ -351,7 +351,7 @@ protected:
     static int s_drawCount;
 
     // デバッグ用
-    static bool s_showDamage;
+    static bool s_shouldShowDamage;
     static float s_debugLastDamage;
     static int s_debugDamageTimer;
     static std::string s_debugHitInfo; // ヒット部位情報

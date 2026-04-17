@@ -26,18 +26,18 @@ public:
 	const std::vector<StageCollisionData>& GetCollisionData() const { return m_collisionData; }
 
 	// デバッグ用
-	static void SetDrawCollision(bool isDraw) { s_isDrawCollision = isDraw; }
-	static bool IsDrawCollision() { return s_isDrawCollision; }
-	static void SetDrawTutorialCollision(bool isDraw) { s_isDrawTutorialCollision = isDraw; }
-	static bool IsDrawTutorialCollision() { return s_isDrawTutorialCollision; }
+	static void SetDrawCollision(bool isDraw) { s_shouldDrawCollision = isDraw; }
+	static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
+	static void SetDrawTutorialCollision(bool isDraw) { s_shouldDrawTutorialCollision = isDraw; }
+	static bool ShouldDrawTutorialCollision() { return s_shouldDrawTutorialCollision; }
 
 private:
 	std::vector<StageObject> m_objects;
 	std::vector<StageCollisionData> m_collisionData;
 	std::unordered_map<std::string, int> m_modelCache;
 
-	static bool s_isDrawCollision;
-	static bool s_isDrawTutorialCollision;
+	static bool s_shouldDrawCollision;
+	static bool s_shouldDrawTutorialCollision;
 	bool m_isTutorial;
 
 	void LoadCollisionData(const char* fileName);
