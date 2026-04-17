@@ -1,5 +1,6 @@
-﻿#include "Camera.h"
+#include "Camera.h"
 #include "InputManager.h"
+#include "Game.h"
 #include <cmath>
 
 namespace
@@ -91,7 +92,7 @@ void Camera::Init()
     SetCameraNearFar(kCameraNear, kCameraFar);
 }
 
-void Camera::Update()
+void Camera::Update(bool isInputDisabled)
 {
     // 死亡アニメーション再生中かどうか
     if (m_isDeathAnimationPlaying)
@@ -140,7 +141,15 @@ void Camera::Update()
     else
     {
         // マウスの移動量に基づいてカメラの回転角度を更新
-        InputManager::GetInstance()->UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
+        if (!isInputDisabled)
+        {
+            InputManager::GetInstance()->UpdateCameraRotation(m_yaw, m_pitch, m_sensitivity);
+        }
+        else
+        {
+            // 演出中もマウスを中央に固定し続け、操作復帰時の跳ね（かくつき）を防ぐ
+            SetMousePoint(static_cast<int>(Game::GetScreenWidth() * 0.5f), static_cast<int>(Game::GetScreenHeight() * 0.5f));
+        }
         m_roll = 0.0f; // 通常時はロールなし
         m_hasBounced = false; // リセット
     }

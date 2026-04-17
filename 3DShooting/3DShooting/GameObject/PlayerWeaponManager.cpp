@@ -1,4 +1,4 @@
-﻿#include "PlayerWeaponManager.h"
+#include "PlayerWeaponManager.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -239,6 +239,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
     WeaponType previousWeaponType = context.previousWeaponType;
     bool isTryingToGuard = context.isTryingToGuard;
     bool isTackling = context.isTackling;
+    float startAnimOffsetY = context.startAnimOffsetY;
 
     // モデルの位置と回転を更新
     MATRIX rotYaw = MGetRotY(pCamera->GetYaw());
@@ -283,6 +284,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 
             // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
             prevOffset.y -= yOffset;
+            prevOffset.y -= startAnimOffsetY;
 
             VECTOR rotModelOffset = VTransform(prevOffset, modelRot);
 
@@ -334,6 +336,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 
             // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
             currentOffset.y -= yOffset;
+            currentOffset.y -= startAnimOffsetY;
 
             VECTOR rotModelOffset = VTransform(currentOffset, modelRot);
 
@@ -389,6 +392,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 
             // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
             modelOffset.y += gunOffsetY;
+            modelOffset.y -= startAnimOffsetY;
 
             VECTOR rotModelOffset = VTransform(modelOffset, modelRot);
 

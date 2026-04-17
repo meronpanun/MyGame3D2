@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <vector>
@@ -31,7 +31,7 @@ public:
     /// <summary>
     /// 描画処理
     /// </summary>
-    void Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration);
+    void Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float startAnimOffsetY = 0.0f);
 
     /// <summary>
     /// ガード状態かどうか

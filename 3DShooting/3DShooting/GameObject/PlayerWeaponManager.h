@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
@@ -75,6 +75,7 @@ public:
         WeaponType previousWeaponType;
         bool isTryingToGuard;
         bool isTackling;
+        float startAnimOffsetY;
     };
 
     /// <summary>

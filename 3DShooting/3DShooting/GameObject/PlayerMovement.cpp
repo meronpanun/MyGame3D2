@@ -1,4 +1,4 @@
-﻿#include "PlayerMovement.h"
+#include "PlayerMovement.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -79,7 +79,8 @@ void PlayerMovement::Init(const VECTOR& pos, float moveSpeed, float runSpeed,
 void PlayerMovement::Update(
     float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
     bool isFlightMode,
-    const std::vector<Stage::StageCollisionData>& collisionData)
+    const std::vector<Stage::StageCollisionData>& collisionData,
+    bool isInputDisabled)
 {
     VECTOR prevPos = m_modelPos;
 
@@ -116,11 +117,11 @@ void PlayerMovement::Update(
 
     if (isFlightMode && !isDead)
     {
-        UpdateFlightMode(deltaTime, pCamera, isDead);
+        UpdateFlightMode(deltaTime, pCamera, isDead, isInputDisabled);
     }
     else
     {
-        UpdateNormalMode(deltaTime, pCamera, isDead, isTackling, collisionData);
+        UpdateNormalMode(deltaTime, pCamera, isDead, isTackling, collisionData, isInputDisabled);
     }
 
     // 速度計算
@@ -138,13 +139,20 @@ void PlayerMovement::UpdateCollider()
     m_pBodyCollider->SetRadius(PlayerMovementConstants::kCapsuleRadius);
 }
 
-void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead)
+void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead, bool isInputDisabled)
 {
     m_jumpVelocity = 0.0f;
     m_isJumping = false;
 
     unsigned char keyState[256];
-    GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+    if (isInputDisabled)
+    {
+        memset(keyState, 0, sizeof(keyState));
+    }
+    else
+    {
+        GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+    }
 
     float timeScale = Game::GetTimeScale();
 
@@ -171,13 +179,20 @@ void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isD
     if (pCamera) pCamera->SetHeadBobbingState(m_isMoving, isAccelerating);
 }
 
-void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, const std::vector<Stage::StageCollisionData>& collisionData)
+void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, const std::vector<Stage::StageCollisionData>& collisionData, bool isInputDisabled)
 {
     bool isOnGround = (m_modelPos.y <= kGroundY + PlayerMovementConstants::kGroundCheckTolerance) || m_isGroundedOnStage;
     if (isOnGround) m_coyoteTimeTimer = PlayerMovementConstants::kCoyoteTimeDuration;
 
     unsigned char keyState[256];
-    GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+    if (isInputDisabled)
+    {
+        memset(keyState, 0, sizeof(keyState));
+    }
+    else
+    {
+        GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
+    }
     static unsigned char prevKeyState[256] = {};
 
     if (keyState[KEY_INPUT_LSHIFT] && keyState[KEY_INPUT_W]) m_isRunMode = true;
@@ -451,4 +466,9 @@ void PlayerMovement::Jump(Camera* pCamera)
             pCamera->ApplyJumpSway(PlayerMovementConstants::kJumpSwayPower);
         }
     }
+}
+
+bool PlayerMovement::IsOnGround() const
+{
+    return m_isGroundedOnStage || m_modelPos.y <= kGroundY + PlayerMovementConstants::kGroundCheckTolerance;
 }

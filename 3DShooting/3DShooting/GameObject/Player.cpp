@@ -1,4 +1,4 @@
-﻿#include "Player.h"
+#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -142,6 +142,8 @@ Player::Player()
     , m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f)
     , m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f)
     , m_pAnimManager(nullptr), m_isTutorial(false)
+    , m_startAnimTimer(0.0f), m_startAnimDuration(60.0f), m_isStartAnimating(false)
+    , m_hasLandedAtStart(false)
 {
     // SEの読み込み
     m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
@@ -206,6 +208,12 @@ void Player::Init(bool isTutorial)
         }
     }
     m_pCamera->Init(); // カメラの初期化
+
+    // 開始演出のアニメーション初期化
+    m_isStartAnimating = false; // 着地するまで待機
+    m_hasLandedAtStart = false; 
+    m_startAnimTimer = 0.0f;
+    m_startAnimDuration = 60.0f; // 1秒間（60フレーム）
 }
 
 void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData)
@@ -215,12 +223,33 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
     // コンポーネントの更新
     float deltaTime = PlayerConstants::kDeltaTime * Game::GetTimeScale();
+
+    // 開始アニメーションタイマーの更新
+    if (!m_hasLandedAtStart && m_movement.IsOnGround())
+    {
+        m_hasLandedAtStart = true;
+        m_isStartAnimating = true;
+    }
+
+    if (m_isStartAnimating)
+    {
+        m_startAnimTimer += 1.0f * Game::GetTimeScale();
+        if (m_startAnimTimer >= m_startAnimDuration)
+        {
+            m_isStartAnimating = false;
+            m_startAnimTimer = m_startAnimDuration;
+        }
+    }
+
+    bool isInputDisabled = m_isStartAnimating || !m_hasLandedAtStart;
+
     VECTOR playerPos = m_movement.GetPos();
     bool isGuarding = m_shieldSystem.IsGuarding();
     bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
     // タックル中もコライダーを更新（移動処理は内部でスキップされる）
-    m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode, collisionData);
+    m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode, collisionData, isInputDisabled);
+
 
     // 敵接近時のダッシュ解除
     CheckEnemyProximity(enemyList);
@@ -241,10 +270,16 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     m_weaponManager.Update(weaponContext);
 
     // 武器切り替え
-    UpdateWeaponSwitching(keyState);
+    if (!isInputDisabled)
+    {
+        UpdateWeaponSwitching(keyState);
+    }
 
     // カメラ位置設定
     m_pCamera->SetPlayerPos(m_modelPos);
+
+    // カメラ更新
+    m_pCamera->Update(isInputDisabled);
 
     // Sway更新
     float yawDelta = m_pCamera->GetYawDelta();
@@ -255,14 +290,14 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
         m_movement.IsMoving());
 
     // ガード入力処理
-    bool shouldGuard = !m_isDead && !m_isTackling &&
+    bool shouldGuard = !isInputDisabled && !m_isDead && !m_isTackling &&
         InputManager::GetInstance()->IsPressMouseRight() &&
         !m_shouldIgnoreGuardInput && !m_shieldSystem.IsShieldBroken();
     m_shieldSystem.SetGuarding(shouldGuard);
     bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
     // シールド投擲
-    if ((m_allowedAttackType == AttackType::None ||
+    if (!isInputDisabled && (m_allowedAttackType == AttackType::None ||
         m_allowedAttackType == AttackType::ShieldThrow) &&
         !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
         keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
@@ -305,7 +340,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     if (m_pEffect) m_pEffect->Update();
 
     m_weaponManager.UpdateSGAnimation(m_pAnimManager, deltaTime);
-    m_pCamera->Update();
 
     // タックルクールダウン
     if (m_tackleCooldown > 0)
@@ -321,7 +355,10 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     }
 
     // 射撃
-    UpdateShooting();
+    if (!isInputDisabled)
+    {
+        UpdateShooting();
+    }
 
     // 右クリックガード解除で入力無視解除
     if (!InputManager::GetInstance()->IsPressMouseRight())
@@ -417,6 +454,18 @@ void Player::Draw3D()
         !m_shieldSystem.IsShieldBroken();
     bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
+    float startAnimOffsetY = 0.0f;
+    if (!m_hasLandedAtStart)
+    {
+        startAnimOffsetY = 200.0f;
+    }
+    else if (m_isStartAnimating)
+    {
+        float progress = m_startAnimTimer / m_startAnimDuration;
+        float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
+        startAnimOffsetY = (1.0f - easeOut) * 200.0f;
+    }
+
     // カメラのジャンプ・着地揺れを銃の揺れに反映
     VECTOR totalSway = m_gunSwayOffset;
 
@@ -433,7 +482,8 @@ void Player::Draw3D()
         m_weaponManager.GetWeaponSwitchDuration(),
         m_weaponManager.GetPreviousWeaponType(),
         isTryingToGuard,
-        m_isTackling
+        m_isTackling,
+        startAnimOffsetY
     };
     m_weaponManager.Draw3D(weaponDrawContext);
 
@@ -450,10 +500,23 @@ void Player::Draw3D()
 
 void Player::DrawShield()
 {
+    float startAnimOffsetY = 0.0f;
+    if (!m_hasLandedAtStart)
+    {
+        startAnimOffsetY = 200.0f;
+    }
+    else if (m_isStartAnimating)
+    {
+        float progress = m_startAnimTimer / m_startAnimDuration;
+        float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
+        startAnimOffsetY = (1.0f - easeOut) * 200.0f;
+    }
+
     m_shieldSystem.Draw(m_pCamera.get(), m_modelPos, m_isTackling,
         m_weaponManager.IsSwitchingWeapon(),
         m_weaponManager.GetWeaponSwitchTimer(),
-        m_weaponManager.GetWeaponSwitchDuration());
+        m_weaponManager.GetWeaponSwitchDuration(),
+        startAnimOffsetY);
 }
 
 void Player::DrawUI()

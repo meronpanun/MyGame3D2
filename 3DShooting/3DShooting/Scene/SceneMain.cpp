@@ -1,4 +1,4 @@
-﻿#include "SceneMain.h"
+#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -538,6 +538,9 @@ SceneBase* SceneMain::Update()
             {
                 auto now = std::chrono::steady_clock::now();
                 auto pauseDuration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_pauseStartTime).count();
+
+                // ポーズ解除時にマウスを中央にリセットし、視点のかくつきを防ぐ
+                SetMousePoint(static_cast<int>(Game::GetScreenWidth() * 0.5f), static_cast<int>(Game::GetScreenHeight() * 0.5f));
             }
         }
     }

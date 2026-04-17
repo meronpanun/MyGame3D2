@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <memory>
@@ -20,7 +20,8 @@ public:
     void Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale);
     void Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
         bool isFlightMode,
-        const std::vector<Stage::StageCollisionData>& collisionData);
+        const std::vector<Stage::StageCollisionData>& collisionData,
+        bool isInputDisabled = false);
 
     /// <summary>
     /// 位置取得
@@ -63,6 +64,12 @@ public:
     /// </summary>
     /// <returns>true: 走っていた, false: 走っていなかった</returns>
     bool WasRunning() const { return m_wasRunning; }
+
+    /// <summary>
+    /// 地面に接地しているかどうか
+    /// </summary>
+    /// <returns>接地していればtrue</returns>
+    bool IsOnGround() const;
 
     /// <summary>
     /// コライダーを取得
@@ -117,9 +124,9 @@ public:
 
 private:
     void UpdateCollider();
-    void UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead);
+    void UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead, bool isInputDisabled);
     void UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
-        const std::vector<Stage::StageCollisionData>& collisionData);
+        const std::vector<Stage::StageCollisionData>& collisionData, bool isInputDisabled);
 
     void UpdateAirControl(const VECTOR& moveDir, Camera* pCamera, float timeScale);
 

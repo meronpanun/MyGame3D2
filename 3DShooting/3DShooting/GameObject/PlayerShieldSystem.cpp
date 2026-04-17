@@ -1,4 +1,4 @@
-﻿#include "PlayerShieldSystem.h"
+#include "PlayerShieldSystem.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Effect.h"
@@ -259,7 +259,7 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
     }
 }
 
-void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration)
+void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float startAnimOffsetY)
 {
     if (!pCamera) return;
 
@@ -306,6 +306,7 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
 
     // 進行度に応じて位置を補間
     VECTOR currentPos = VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
+    currentPos.y -= startAnimOffsetY;
 
     // 待機回転とガード回転を定義
     constexpr float kShieldWaitAngleY = -0.3f; // 待機時のY軸回転角度

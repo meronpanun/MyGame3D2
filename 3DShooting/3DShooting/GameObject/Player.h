@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -424,6 +424,8 @@ private:
     float m_ammoTextFlashTimer;          // 弾薬テキストのフラッシュタイマー
     float m_healthBarAnim;               // HPバーのアニメーション用体力値
     float m_healthBarAnimTimer;          // HPバーアニメーション用タイマー
+    float m_startAnimTimer;              // 開始演出アニメーションタイマー
+    float m_startAnimDuration;           // 開始演出アニメーション時間
     
     // 入力・状態フラグ
     unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
@@ -438,8 +440,10 @@ private:
     bool m_isTargetAvailable;            // ロックオン可能な敵がいるか
     bool m_isAimingAtEnemy;              // 敵に照準が合っているか
     bool m_isLowHealth;                  // 体力が少ないかどうかのフラグ
-    bool m_shouldIgnoreGuardInput;             // ガード入力を無視するか
+    bool m_shouldIgnoreGuardInput;       // ガード入力を無視するか
     bool m_isTutorial;                   // チュートリアル中か
+    bool m_isStartAnimating;             // 開始演出アニメーション中か
+    bool m_hasLandedAtStart;             // 開始時に一度でも着地したか
 
     // ハンドルIDなど
     int m_arInitAmmo;                    // ARの初期弾薬数

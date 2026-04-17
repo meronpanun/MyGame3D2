@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 
 /// <summary>
@@ -11,7 +11,7 @@ public:
 	virtual ~Camera();
 
 	void Init();
-	void Update();
+	void Update(bool isInputDisabled = false);
 
 	/// <summary>
 	/// カメラの感度を設定 
