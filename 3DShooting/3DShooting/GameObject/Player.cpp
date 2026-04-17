@@ -138,6 +138,7 @@ Player::Player()
     , m_pDirectionIndicator(nullptr), m_isLockingOn(false)
     , m_lockedOnEnemy(nullptr), m_isTargetAvailable(false)
     , m_isAimingAtEnemy(false), m_shouldIgnoreGuardInput(false)
+    , m_hasPlayedTackleHitSE(false)
     , m_isInvincible(false), m_isInfiniteAmmo(false), m_isFlightMode(false)
     , m_tackleCooldownMax(0.0f), m_tackleSpeed(0.0f), m_tackleDamage(0.0f)
     , m_maxShieldDurability(0.0f), m_shieldRegenRate(0.0f)
@@ -155,6 +156,10 @@ Player::Player()
     ChangeVolumeSoundMem(PlayerConstants::kTackleHitVolume, m_tackleHitSEHandle);
     m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
     assert(m_recoverySEHandle != -1);
+    m_lightLandingSEHandle = LoadSoundMem("data/sound/SE/LightLanding.mp3");
+    assert(m_lightLandingSEHandle != -1);
+    m_heavyLandingSEHandle = LoadSoundMem("data/sound/SE/HeavyLanding.mp3");
+    assert(m_heavyLandingSEHandle != -1);
 }
 
 Player::~Player()
@@ -165,6 +170,8 @@ Player::~Player()
     DeleteSoundMem(m_tackleHitSEHandle);
     DeleteSoundMem(m_recoverySEHandle);
     DeleteSoundMem(m_ammoItemSEHandle);
+    DeleteSoundMem(m_lightLandingSEHandle);
+    DeleteSoundMem(m_heavyLandingSEHandle);
 }
 
 void Player::Init(bool isTutorial)
@@ -262,10 +269,24 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     bool isGuarding = m_shieldSystem.IsGuarding();
     bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
-    // タックル中もコライダーを更新（移動処理は内部でスキップされる）
+    // タックル中もコライダーを更新（移動処理は内部でスキップされる）    // 移動・物理更新
     m_movement.Update(deltaTime, m_pCamera.get(), m_isDead, m_isTackling, m_isFlightMode, collisionData, isInputDisabled);
 
+    // 着地SEの再生
+    if (m_movement.JustLanded())
+    {
+        float impactVel = fabsf(m_movement.GetImpactVelocity());
+        if (impactVel >= 10.0f)
+        {
+            PlaySoundMem(m_heavyLandingSEHandle, DX_PLAYTYPE_BACK);
+        }
+        else
+        {
+            PlaySoundMem(m_lightLandingSEHandle, DX_PLAYTYPE_BACK);
+        }
+    }
 
+    m_modelPos = m_movement.GetPos();
     // 敵接近時のダッシュ解除
     CheckEnemyProximity(enemyList);
 
@@ -1088,6 +1109,7 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
             m_tackleFrame = PlayerConstants::kTackleDuration;
             m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
             m_tackleId++;                           // タックルごとにIDを更新
+            m_hasPlayedTackleHitSE = false;         // ヒットSEフラグをリセット
 
             // ロックオンした敵の方向をタックル方向とする
             m_tackleDir = VNorm(VSub(m_lockedOnEnemy->GetPos(), m_modelPos));
@@ -1180,7 +1202,11 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
                         m_pCamera->Shake(20.0f, 10);
                     }
 
-                    PlaySoundMem(m_tackleHitSEHandle, DX_PLAYTYPE_BACK);
+                    if (!m_hasPlayedTackleHitSE)
+                    {
+                        PlaySoundMem(m_tackleHitSEHandle, DX_PLAYTYPE_BACK);
+                        m_hasPlayedTackleHitSE = true;
+                    }
 
                     // ノックバック適用
                     // タックル方向の逆ベクトル方向に弾き飛ばす

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "EnemyBase.h"
 #include "SceneBase.h"
@@ -183,7 +183,7 @@ private:
     ManagedSound m_bgm;            // BGMハンドル
     int m_headShotSEHandle;        // ヘッドショットSEハンドル
     bool m_isBGMStarted;           // BGM再生済みフラグ
-    bool m_hasPlayedHeadShotSEThisFrame; // このフレームでヘッドショットSEを再生したか
+    int m_headShotSECooldownTimer; // ヘッドショットSEのクールタイムタイマー
 
     // スコアポップアップ管理
     struct ScorePopup

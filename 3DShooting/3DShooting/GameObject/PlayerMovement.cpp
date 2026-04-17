@@ -56,6 +56,8 @@ PlayerMovement::PlayerMovement()
     , m_isRunMode(false)
     , m_isRunJumping(false)
     , m_isJumpInertiaActive(false)
+    , m_justLanded(false)
+    , m_impactVelocity(0.0f)
     , m_jumpVelocity(0.0f)
     , m_jumpStartYaw(0.0f)
     , m_jumpSpeedScalar(0.0f)
@@ -76,12 +78,10 @@ void PlayerMovement::Init(const VECTOR& pos, float moveSpeed, float runSpeed,
     m_scale = VGet(scale, scale, scale);
 }
 
-void PlayerMovement::Update(
-    float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
-    bool isFlightMode,
-    const std::vector<Stage::StageCollisionData>& collisionData,
-    bool isInputDisabled)
+void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
+    bool isFlightMode, const std::vector<Stage::StageCollisionData>& collisionData, bool isInputDisabled)
 {
+    m_justLanded = false; // フレーム毎にリセット
     VECTOR prevPos = m_modelPos;
 
     UpdateCollider();
@@ -381,6 +381,14 @@ void PlayerMovement::HandlePhysics(bool isOnGround, Camera* pCamera)
         if (m_modelPos.y <= kGroundY)
         {
             m_modelPos.y = kGroundY;
+            
+            // 跳躍中または落下中に着地した場合
+            if (m_isJumping || m_jumpVelocity < 0.0f)
+            {
+                m_justLanded = true;
+                m_impactVelocity = m_jumpVelocity;
+            }
+
             m_jumpVelocity = 0.0f;
             m_isJumping = false;
 
@@ -426,6 +434,9 @@ void PlayerMovement::ResolveCollisions(const std::vector<Stage::StageCollisionDa
 
     if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
     {
+        m_justLanded = true;
+        m_impactVelocity = m_jumpVelocity;
+
         if ((m_wasJumping || m_jumpVelocity < -5.0f) && pCamera)
         {
             float sway = (m_isRunJumping ? PlayerMovementConstants::kRunLandingSwayPower : PlayerMovementConstants::kLandingSwayPower) +

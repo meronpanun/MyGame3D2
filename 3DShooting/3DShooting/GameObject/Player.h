@@ -447,6 +447,7 @@ private:
     bool m_isStartAnimating;             // 開始演出アニメーション中か
     bool m_hasLandedAtStart;             // 開始時に一度でも着地したか
     bool m_isUiFadeStarted;              // UIフェードインが開始されたか
+    bool m_hasPlayedTackleHitSE;         // タックルヒットSEが再生済みか
 
     // ハンドルIDなど
     int m_arInitAmmo;                    // ARの初期弾薬数
@@ -458,7 +459,8 @@ private:
     int m_tackleHitSEHandle;             // タックルヒットSEのハンドル
     int m_recoverySEHandle;              // 回復アイテムSEのハンドル
     int m_ammoItemSEHandle;              // 弾薬アイテムSEのハンドル
-    int m_landingSEHandle;               // 着地SEのハンドル
+    int m_lightLandingSEHandle;          // 通常着地SEのハンドル
+    int m_heavyLandingSEHandle;          // 重量着地SEのハンドル
     int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
     int m_tackleFrame;                   // タックルのフレーム数
     int m_tackleId;                      // タックルID

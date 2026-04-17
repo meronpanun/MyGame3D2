@@ -72,6 +72,16 @@ public:
     bool IsOnGround() const;
 
     /// <summary>
+    /// 着地した瞬間かどうか
+    /// </summary>
+    bool JustLanded() const { return m_justLanded; }
+
+    /// <summary>
+    /// 着地時の垂直速度を取得
+    /// </summary>
+    float GetImpactVelocity() const { return m_impactVelocity; }
+
+    /// <summary>
     /// コライダーを取得
     /// </summary>
     /// <returns>コライダーの共有ポインタ</returns>
@@ -160,6 +170,8 @@ private:
     bool m_isRunMode;
     bool m_isRunJumping;
     bool m_isJumpInertiaActive;
+    bool m_justLanded;      // 着地した瞬間フラグ
+    float m_impactVelocity; // 着地時の衝撃速度
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider;
 

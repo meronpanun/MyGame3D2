@@ -1,4 +1,4 @@
-﻿#include "SceneMain.h"
+#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -121,7 +121,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_clearSceneDelayTimer(-1)
     , m_scoreFont("Abadi MT", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_headShotSEHandle(-1)
-    , m_hasPlayedHeadShotSEThisFrame(false)
+    , m_headShotSECooldownTimer(0)
     , m_isPlayerInit(false)
     , m_isTaskTutorialInit(false)
     , m_pEffect(std::make_unique<Effect>())
@@ -502,7 +502,8 @@ SceneBase* SceneMain::Update()
     // タイムスケールの更新
     Game::UpdateTimeScale();
 
-    m_hasPlayedHeadShotSEThisFrame = false; // 同時再生防止のためのフラグリセット
+    // ヘッドショットSEのクールタイム更新
+    if (m_headShotSECooldownTimer > 0) m_headShotSECooldownTimer--;
 
     // 経過時間を加算
     long long now = GetNowHiPerformanceCount();
@@ -1213,10 +1214,10 @@ void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
     // ヒットの部位によって処理を分ける（例：ヘッドショット時のSEなど）
     if (part == EnemyBase::HitPart::Head)
     {
-        if (!m_hasPlayedHeadShotSEThisFrame)
+        if (m_headShotSECooldownTimer <= 0)
         {
             PlaySoundMem(m_headShotSEHandle, DX_PLAYTYPE_BACK);
-            m_hasPlayedHeadShotSEThisFrame = true;
+            m_headShotSECooldownTimer = 10; // 10フレームのクールタイム（約0.16秒）
         }
     }
 
