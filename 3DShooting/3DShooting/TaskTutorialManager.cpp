@@ -214,6 +214,7 @@ void TaskTutorialManager::Reset()
     m_shootKills = 0;
     m_tackleKills = 0;
     m_pWaveManager = nullptr;
+    if (m_pPlayer) m_pPlayer->SetAttackRestrictions(AttackType::None);
     m_pPlayer = nullptr;
     m_hasShownParryTutorial = false;
     m_isParryTutorialPaused = false;
@@ -224,6 +225,7 @@ void TaskTutorialManager::Skip(WaveManager* pWaveManager)
 {
     m_step = TaskStep::Completed;
     m_pWaveManager = pWaveManager;
+    if (m_pPlayer) m_pPlayer->SetAttackRestrictions(AttackType::None);
     m_hasShownParryTutorial = false;
     m_isParryTutorialPaused = false;
     Game::SetPaused(false);

@@ -252,6 +252,9 @@ void Player::Init(bool isTutorial)
         }
     }
     m_pCamera->Init(); // カメラの初期化
+    m_allowedAttackType = AttackType::None; // 攻撃制限をリセット
+    m_tackleCooldown = 0.0f;                // クールタイムをリセット
+    m_shouldIgnoreGuardInput = false;       // 入力無視をリセット
 
     // 開始演出のアニメーション初期化
     m_isStartAnimating = false; // 着地するまで待機
@@ -414,6 +417,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
     // タックルヒットSEのクールタイム更新
     if (m_tackleHitSECooldownTimer > 0) m_tackleHitSECooldownTimer--;
+    if (m_tackleCooldown > 0) m_tackleCooldown -= 1.0f;
 
     // 射撃
     if (!isInputDisabled)
