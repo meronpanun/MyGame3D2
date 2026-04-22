@@ -366,15 +366,12 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
         m_movement.IsMoving());
 
     // ガード入力処理
-    bool shouldGuard = !isInputDisabled && !m_isDead && !m_isTackling &&
-        InputManager::GetInstance()->IsPressMouseRight() &&
-        !m_shouldIgnoreGuardInput && !m_shieldSystem.IsShieldBroken();
+    bool shouldGuard = !isInputDisabled && !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_shouldIgnoreGuardInput && !m_shieldSystem.IsShieldBroken();
     m_shieldSystem.SetGuarding(shouldGuard);
     bool currentIsGuarding = m_shieldSystem.IsGuarding();
 
     // シールド投擲
-    if (!isInputDisabled && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::ShieldThrow) && !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon &&
-        keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
+    if (!isInputDisabled && (m_allowedAttackType == AttackType::None || m_allowedAttackType == AttackType::ShieldThrow) && !m_isDead && !m_isTackling && !currentIsGuarding && !isSwitchingWeapon && keyState[KEY_INPUT_R] && !m_prevKeyState[KEY_INPUT_R])
     {
         if (m_shieldSystem.IsShieldThrown())
         {
@@ -390,9 +387,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
          TaskTutorialManager::GetInstance()->NotifyRestrictedAction(AttackType::ShieldThrow);
     }
 
-    m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos,
-        enemyList, collisionData, m_pEffect,
-        currentIsGuarding, m_prevIsGuarding);
+    m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, collisionData, m_pEffect, currentIsGuarding, m_prevIsGuarding);
     m_prevIsGuarding = currentIsGuarding; // 更新
 
     // 銃揺れ計算
@@ -405,9 +400,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     m_idleSwayTimer += deltaTime;
     if (!m_movement.IsMoving())
     {
-        VECTOR idleSway =
-            VGet(sinf(m_idleSwayTimer * PlayerConstants::kIdleSwaySpeed * 2.0f) * PlayerConstants::kIdleSwayAmount,
-                cosf(m_idleSwayTimer * PlayerConstants::kIdleSwaySpeed) * PlayerConstants::kIdleSwayAmount, 0.0f);
+        VECTOR idleSway = VGet(sinf(m_idleSwayTimer * PlayerConstants::kIdleSwaySpeed * 2.0f) * PlayerConstants::kIdleSwayAmount, cosf(m_idleSwayTimer * PlayerConstants::kIdleSwaySpeed) * PlayerConstants::kIdleSwayAmount, 0.0f);
         m_gunSwayOffset = VAdd(m_gunSwayOffset, idleSway);
     }
 
@@ -513,10 +506,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
 void Player::Draw3D()
 {
-    bool isTryingToGuard = !m_isDead && !m_isTackling &&
-        InputManager::GetInstance()->IsPressMouseRight() &&
-        !m_shouldIgnoreGuardInput &&
-        !m_shieldSystem.IsShieldBroken();
+    bool isTryingToGuard = !m_isDead && !m_isTackling && InputManager::GetInstance()->IsPressMouseRight() && !m_shouldIgnoreGuardInput && !m_shieldSystem.IsShieldBroken();
     bool isSwitchingWeapon = m_weaponManager.IsSwitchingWeapon();
 
     float startAnimOffsetY = 0.0f;
@@ -580,8 +570,7 @@ void Player::DrawShield()
     m_shieldSystem.Draw(m_pCamera.get(), m_modelPos, m_isTackling,
         m_weaponManager.IsSwitchingWeapon(),
         m_weaponManager.GetWeaponSwitchTimer(),
-        m_weaponManager.GetWeaponSwitchDuration(),
-        startAnimOffsetY);
+        m_weaponManager.GetWeaponSwitchDuration(), startAnimOffsetY);
 }
 
 void Player::DrawUI()
@@ -1160,112 +1149,107 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
 
     // タックル中の処理
     if (m_isTackling)
+    {
+    
+        m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
+
+        // m_movementの位置も同期
+        m_movement.SetPos(m_modelPos);
+
+        if (m_modelPos.y < PlayerMovement::GetGroundY())
         {
-            m_modelPos = VAdd(m_modelPos, VScale(m_tackleDir, m_tackleSpeed));
+            m_modelPos.y = PlayerMovement::GetGroundY();
+        }
 
-            // m_movementの位置も同期
-            m_movement.SetPos(m_modelPos);
+        // ステージとの衝突判定
+        CollisionResult res = Collision::CheckStageCollision(m_modelPos, PlayerConstants::kCapsuleHeight, PlayerConstants::kCapsuleRadius, PlayerConstants::kPlayerColliderYOffset, collisionData);
 
-            if (m_modelPos.y < PlayerMovement::GetGroundY())
+        // m_movementの位置も同期
+        m_movement.SetPos(m_modelPos);
+
+        // タックル判定情報を作成
+        TackleInfo tackleInfo = GetTackleInfo();
+
+        // タックル停止判定用
+        bool isBodyHit = false;
+        VECTOR bodyCapA, bodyCapB;
+        float bodyRadius;
+        GetCapsuleInfo(bodyCapA, bodyCapB, bodyRadius);
+        CapsuleCollider bodyCol(bodyCapA, bodyCapB, bodyRadius + PlayerConstants::kTackleStopMargin);
+
+        // 各敵と衝突判定
+        for (EnemyBase* enemy : enemyList)
+        {
+            if (!enemy) continue;
+
+            EnemyUpdateContext context = { m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect };
+            enemy->Update(context);
+
+            // タックル停止判定
+            if (m_isTackling && !isBodyHit && enemy->IsAlive())
             {
-                m_modelPos.y = PlayerMovement::GetGroundY();
-            }
-
-            // ステージとの衝突判定
-            CollisionResult res = Collision::CheckStageCollision(
-                m_modelPos, PlayerConstants::kCapsuleHeight, PlayerConstants::kCapsuleRadius, PlayerConstants::kPlayerColliderYOffset,
-                collisionData);
-
-            // m_movementの位置も同期
-            m_movement.SetPos(m_modelPos);
-
-            // タックル判定情報を作成
-            TackleInfo tackleInfo = GetTackleInfo();
-
-            // タックル停止判定用
-            bool isBodyHit = false;
-            VECTOR bodyCapA, bodyCapB;
-            float bodyRadius;
-            GetCapsuleInfo(bodyCapA, bodyCapB, bodyRadius);
-            CapsuleCollider bodyCol(bodyCapA, bodyCapB, bodyRadius + PlayerConstants::kTackleStopMargin);
-
-            // 各敵と衝突判定
-            for (EnemyBase* enemy : enemyList)
-            {
-                if (!enemy)
-                    continue;
-
-                EnemyUpdateContext context = { m_bullets, tackleInfo,    *this,
-                                              enemyList, collisionData, m_pEffect };
-                enemy->Update(context);
-
-                // タックル停止判定
-                if (m_isTackling && !isBodyHit && enemy->IsAlive())
+                auto enemyCollider = enemy->GetBodyCollider();
+                if (enemyCollider && bodyCol.IsIntersects(enemyCollider.get()))
                 {
-                    auto enemyCollider = enemy->GetBodyCollider();
-                    if (enemyCollider && bodyCol.IsIntersects(enemyCollider.get()))
-                    {
-                        isBodyHit = true;
-                    }
+                    isBodyHit = true;
                 }
-            }
-
-#ifdef _DEBUG
-            DebugUtil::DrawCapsule(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius,
-                16, 0x00ff00, false);
-#endif
-            m_tackleFrame--;
-            // タックル終了判定
-            if (m_tackleFrame <= 0 || isBodyHit)
-            {
-                if (isBodyHit)
-                {
-                    if (m_pCamera)
-                    {
-                        m_pCamera->Shake(20.0f, 10);
-                    }
-
-                    if (m_tackleHitSECooldownTimer <= 0)
-                    {
-                        PlaySoundMem(m_tackleHitSEHandle, DX_PLAYTYPE_BACK);
-                        m_tackleHitSECooldownTimer = 60; // クールタイム
-                    }
-
-                    // ノックバック適用
-                    // タックル方向の逆ベクトル方向に弾き飛ばす
-                    VECTOR knockbackDir = VScale(m_tackleDir, -1.0f);
-                    m_movement.ApplyKnockback(VScale(knockbackDir, 15.0f));
-                }
-
-                m_isTackling = false;
-                m_shouldIgnoreGuardInput = true;
-
-                if (m_pCamera)
-                {
-                    m_pCamera->ResetFOV();
-                    m_pCamera->ResetOffset();
-                }
-
-                if (m_concentrationLineEffectHandle != -1)
-                {
-                    StopEffekseer3DEffect(m_concentrationLineEffectHandle);
-                    m_concentrationLineEffectHandle = -1;
-                }
-            }
-
-            // 集中線エフェクト更新
-            if (m_concentrationLineEffectHandle != -1 && m_pCamera)
-            {
-                VECTOR camPos = m_pCamera->GetPos();
-                VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
-                VECTOR effectPos = VAdd(camPos, VScale(camDir, PlayerConstants::kConcentrationLineEffectZOffset));
-                SetPosPlayingEffekseer3DEffect(m_concentrationLineEffectHandle,
-                    effectPos.x, effectPos.y, effectPos.z);
-
-                float pitch = -m_pCamera->GetPitch();
-                float yaw = m_pCamera->GetYaw();
-                SetRotationPlayingEffekseer3DEffect(m_concentrationLineEffectHandle,
-                    pitch, yaw, 0.0f);
             }
         }
+
+#ifdef _DEBUG
+        DebugUtil::DrawCapsule(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius, 16, 0x00ff00, false);
+#endif
+
+        m_tackleFrame--;
+        // タックル終了判定
+        if (m_tackleFrame <= 0 || isBodyHit)
+        {
+            if (isBodyHit)
+            {
+                if (m_pCamera)
+                {
+                    m_pCamera->Shake(20.0f, 10);
+                }
+
+                if (m_tackleHitSECooldownTimer <= 0)
+                {
+                    PlaySoundMem(m_tackleHitSEHandle, DX_PLAYTYPE_BACK);
+                    m_tackleHitSECooldownTimer = 60; // クールタイム
+                }
+
+                // ノックバック適用
+                // タックル方向の逆ベクトル方向に弾き飛ばす
+                VECTOR knockbackDir = VScale(m_tackleDir, -1.0f);
+                m_movement.ApplyKnockback(VScale(knockbackDir, 15.0f));
+            }
+
+            m_isTackling = false;
+            m_shouldIgnoreGuardInput = true;
+
+            if (m_pCamera)
+            {
+                m_pCamera->ResetFOV();
+                m_pCamera->ResetOffset();
+            }
+
+            if (m_concentrationLineEffectHandle != -1)
+            {
+                StopEffekseer3DEffect(m_concentrationLineEffectHandle);
+                m_concentrationLineEffectHandle = -1;
+            }
+        }
+
+        // 集中線エフェクト更新
+        if (m_concentrationLineEffectHandle != -1 && m_pCamera)
+        {
+            VECTOR camPos = m_pCamera->GetPos();
+            VECTOR camDir = VNorm(VSub(m_pCamera->GetTarget(), camPos));
+            VECTOR effectPos = VAdd(camPos, VScale(camDir, PlayerConstants::kConcentrationLineEffectZOffset));
+            SetPosPlayingEffekseer3DEffect(m_concentrationLineEffectHandle, effectPos.x, effectPos.y, effectPos.z);
+
+            float pitch = -m_pCamera->GetPitch();
+            float yaw = m_pCamera->GetYaw();
+            SetRotationPlayingEffekseer3DEffect(m_concentrationLineEffectHandle, pitch, yaw, 0.0f);
+        }
+    }
 }
