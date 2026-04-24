@@ -1,4 +1,4 @@
-﻿#include "PlayerShieldSystem.h"
+#include "PlayerShieldSystem.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Effect.h"
@@ -111,6 +111,13 @@ PlayerShieldSystem::PlayerShieldSystem()
     , m_shieldThrowFailedAnimTimer(0.0f)
     , m_isTutorial(false)
     , m_idleSwayTimer(0.0f)
+    , m_reflectSEHandle(-1)
+    , m_boomerangSEHandle(-1)
+    , m_boomerangTotalTime(0)
+    , m_isBoomerangFading(false)
+    , m_boomerangFadeVolume(1.0f)
+    , m_shieldHitSEHandle(-1)
+    , m_shieldHitSECooldown(0.0f)
 {
     // 盾モデルの読み込み
     m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
@@ -119,12 +126,30 @@ PlayerShieldSystem::PlayerShieldSystem()
     // 盾UI画像の読み込み
     m_shieldImageHandle = LoadGraph("data/image/ShieldUI.png");
     assert(m_shieldImageHandle != -1);
+
+    // 反射SEの読み込み
+    m_reflectSEHandle = LoadSoundMem("data/sound/SE/Reflection.mp3");
+    assert(m_reflectSEHandle != -1);
+
+    // ブーメランSEの読み込み
+    m_boomerangSEHandle = LoadSoundMem("data/sound/SE/Boomerang.mp3");
+    assert(m_boomerangSEHandle != -1);
+    m_boomerangTotalTime = GetSoundTotalTime(m_boomerangSEHandle);
+    // ループ開始位置を0に設定
+    SetLoopPosSoundMem(0, m_boomerangSEHandle);
+
+    // 盾ヒットSEの読み込み
+    m_shieldHitSEHandle = LoadSoundMem("data/sound/SE/ShieldThrowHit.mp3");
+    assert(m_shieldHitSEHandle != -1);
 }
 
 PlayerShieldSystem::~PlayerShieldSystem()
 {
     MV1DeleteModel(m_shieldModelHandle);
     DeleteGraph(m_shieldImageHandle);
+    DeleteSoundMem(m_reflectSEHandle);
+    DeleteSoundMem(m_boomerangSEHandle);
+    DeleteSoundMem(m_shieldHitSEHandle);
 }
 
 void PlayerShieldSystem::Init(float maxDurability, float regenRate)
@@ -154,6 +179,30 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
         if (m_shieldThrowCooldownTimer < 0.0f)
         {
             m_shieldThrowCooldownTimer = 0.0f;
+        }
+    }
+
+    // ヒットSEのクールタイム減算
+    if (m_shieldHitSECooldown > 0.0f)
+    {
+        m_shieldHitSECooldown -= deltaTime;
+        if (m_shieldHitSECooldown < 0.0f) m_shieldHitSECooldown = 0.0f;
+    }
+
+    // ブーメランSEのフェードアウト更新
+    if (m_isBoomerangFading && m_boomerangSEHandle != -1)
+    {
+        m_boomerangFadeVolume -= deltaTime * 5.0f; // 約0.2秒でフェードアウト
+        if (m_boomerangFadeVolume <= 0.0f)
+        {
+            m_boomerangFadeVolume = 0.0f;
+            m_isBoomerangFading = false;
+            StopSoundMem(m_boomerangSEHandle);
+        }
+        else
+        {
+            // フェードアウト中の音量設定
+            ChangeVolumeSoundMem((int)(255 * m_boomerangFadeVolume), m_boomerangSEHandle);
         }
     }
 
@@ -606,6 +655,12 @@ bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
     m_shieldReflectCount = 0;          // 反射回数をリセット
     m_shieldThrowRotationTimer = 0.0f; // 回転タイマーをリセット
 
+    // ブーメランSEの再生（ループ）
+    m_isBoomerangFading = false;
+    m_boomerangFadeVolume = 1.0f;
+    PlaySoundMem(m_boomerangSEHandle, DX_PLAYTYPE_LOOP);
+    ChangeVolumeSoundMem(255, m_boomerangSEHandle); // 最初は手元なので最大音量
+
     return true;
 }
 
@@ -626,6 +681,31 @@ void PlayerShieldSystem::UpdateShieldThrow(
 
     // シールドの回転タイマーを更新
     m_shieldThrowRotationTimer += deltaTime * PlayerShieldConstants::kShieldThrowRotationSpeed;
+
+    // ブーメランSEの音量調整（距離に応じた減衰）
+    if (m_isShieldThrown && m_boomerangSEHandle != -1)
+    {
+        VECTOR currentPPos = playerPos;
+        currentPPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
+        float dist = VSize(VSub(m_shieldThrowPos, currentPPos));
+        
+        // 距離に応じて音量を0〜255で計算 (最大射程付近で最小になるように設定)
+        // 距離500以上で減衰開始、最大射程で音量20%程度にする
+        float maxRange = PlayerShieldConstants::kShieldThrowMaxRange;
+        float volRatio = 1.0f - (dist / (maxRange * 1.2f)); // 余裕を持たせて完全に0にならないように
+        if (volRatio < 0.2f) volRatio = 0.2f;
+        if (volRatio > 1.0f) volRatio = 1.0f;
+        
+        ChangeVolumeSoundMem((int)(255 * volRatio), m_boomerangSEHandle);
+
+        // 手動ループ制御：末尾の空白をスキップするために終了50ms前で先頭に戻す
+        // DX_PLAYTYPE_LOOP だけでは MP3 の仕様上、繋ぎ目に無音が入ることが多いため
+        int currentTime = GetSoundCurrentTime(m_boomerangSEHandle);
+        if (currentTime >= m_boomerangTotalTime - 350)
+        {
+            SetSoundCurrentTime(0, m_boomerangSEHandle);
+        }
+    }
 
     // ステートマシンによるシールドのアクション状態管理
     switch (m_shieldThrowState)
@@ -660,6 +740,10 @@ void PlayerShieldSystem::UpdateShieldThrow(
             m_shieldThrowState = ShieldThrowState::Idle;
             m_isShieldThrown   = false;
             m_shieldThrowPos   = VGet(0, 0, 0);
+
+            // SEをフェードアウト開始
+            m_isBoomerangFading = true;
+            m_boomerangFadeVolume = 1.0f;
             
             // 次回の投擲に備え、各種パラメータとクールダウンをリセット
             m_shieldThrowDistance      = 0.0f;
@@ -689,12 +773,17 @@ void PlayerShieldSystem::UpdateShieldThrow(
         {
             m_shieldThrowState = ShieldThrowState::Returning;
             m_shieldThrowHitEnemyId = -1;
+            // 地面ヒットSE
+            PlaySoundMem(m_reflectSEHandle, DX_PLAYTYPE_BACK);
         }
 
         for (const auto& col : collisionData)
         {
             if (HitCheck_Sphere_Triangle(m_shieldThrowPos, PlayerShieldConstants::kShieldThrowRadius, col.v1, col.v2, col.v3))
             {
+                // ヒットSEを再生
+                PlaySoundMem(m_reflectSEHandle, DX_PLAYTYPE_BACK);
+
                 // ベクトルと内積・外積を用いた反射演算
                 // ポリゴンの外積から衝突面の法線ベクトル(N)を算出
                 VECTOR edge1 = VSub(col.v2, col.v1);
@@ -773,6 +862,13 @@ void PlayerShieldSystem::UpdateShieldThrow(
                                  // シールドにダメージを与える
                                  boss->TakeDamage(m_shieldThrowDamage, AttackType::ShieldThrow);
 
+                                 // ヒットSEを再生（重なり防止のクールタイム付き）
+                                 if (m_shieldHitSECooldown <= 0.0f)
+                                 {
+                                     PlaySoundMem(m_shieldHitSEHandle, DX_PLAYTYPE_BACK);
+                                     m_shieldHitSECooldown = 0.1f;
+                                 }
+
                                  // エフェクト再生
                                  if (pEffect)
                                  {
@@ -825,6 +921,13 @@ void PlayerShieldSystem::UpdateShieldThrow(
 
                     // ダメージを与える
                     enemy->TakeDamage(m_shieldThrowDamage, AttackType::ShieldThrow);
+
+                    // ヒットSEを再生（重なり防止のクールタイム付き）
+                    if (m_shieldHitSECooldown <= 0.0f)
+                    {
+                        PlaySoundMem(m_shieldHitSEHandle, DX_PLAYTYPE_BACK);
+                        m_shieldHitSECooldown = 0.1f;
+                    }
 
                     // エフェクトを再生
                     if (pEffect)
@@ -911,6 +1014,11 @@ void PlayerShieldSystem::ImmediateReturnShield(const VECTOR& playerPos)
     m_shieldThrowDistance = 0.0f;
     m_shieldThrowHitEnemyId = -1;
     m_shieldThrowRotationTimer = 0.0f;
+
+    // SEをフェードアウト開始
+    m_isBoomerangFading = true;
+    m_boomerangFadeVolume = 1.0f;
+
     // クールタイムを開始
     m_shieldThrowCooldownTimer = PlayerShieldConstants::kShieldThrowCooldown;
 }
