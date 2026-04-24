@@ -1,4 +1,4 @@
-﻿#include "EnemyAcid.h"
+#include "EnemyAcid.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
 #include "DebugUtil.h"
@@ -58,6 +58,8 @@ namespace EnemyAcidConstants
 }
 
 int EnemyAcid::s_modelHandle = -1;
+int EnemyAcid::s_attackSEHandle = -1;
+int EnemyAcid::s_parrySEHandle = -1;
 bool EnemyAcid::s_shouldDrawCollision = false;
 
 EnemyAcid::EnemyAcid()
@@ -72,6 +74,7 @@ EnemyAcid::EnemyAcid()
     , m_hasDroppedItem(false)
     , m_isStunned(false)
     , m_stunTimer(0)
+    , m_distToPlayer(0.0f)
 
 {
     // モデルの複製
@@ -107,11 +110,19 @@ void EnemyAcid::LoadModel()
 {
     s_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
     assert(s_modelHandle != -1);
+
+    s_attackSEHandle = LoadSoundMem("data/sound/SE/LongRangeAttackZombieVoice.wav");
+    assert(s_attackSEHandle != -1);
+
+    s_parrySEHandle = LoadSoundMem("data/sound/SE/ParryHitAcidZombieVoice.wav");
+    assert(s_parrySEHandle != -1);
 }
 
 void EnemyAcid::DeleteModel()
 {
     MV1DeleteModel(s_modelHandle);
+    DeleteSoundMem(s_attackSEHandle);
+    DeleteSoundMem(s_parrySEHandle);
 }
 
 // 初期化
@@ -151,7 +162,22 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
         {
             m_animationManager.PlayAnimation(m_modelHandle, (newAnimState == AnimState::Attack) ? EnemyAcidConstants::kAttackAnimName : EnemyAcidConstants::kBackAnimName, loop);
             m_animTime = 0.0f;
-            if (newAnimState == AnimState::Attack) m_hasAttacked = false;
+            if (newAnimState == AnimState::Attack)
+            {
+                m_hasAttacked = false;
+                // 攻撃ボイスを再生
+                if (s_attackSEHandle != -1)
+                {
+                    // 距離に応じた音量計算 (2000以上で無音、最大音量を150に抑える)
+                    float maxDist = 2000.0f;
+                    float volRatio = 1.0f - (m_distToPlayer / maxDist);
+                    if (volRatio < 0.0f) volRatio = 0.0f;
+                    if (volRatio > 1.0f) volRatio = 1.0f;
+                    
+                    ChangeVolumeSoundMem((int)(150 * volRatio), s_attackSEHandle);
+                    PlaySoundMem(s_attackSEHandle, DX_PLAYTYPE_BACK);
+                }
+            }
             if (newAnimState == AnimState::Back) m_backAnimCount = 0;
         }
         return;
@@ -180,7 +206,22 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
     {
         m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
         m_animTime = 0.0f;
-        if (newAnimState == AnimState::Attack) m_hasAttacked = false;
+        if (newAnimState == AnimState::Attack)
+        {
+            m_hasAttacked = false;
+            // 攻撃ボイスを再生
+            if (s_attackSEHandle != -1)
+            {
+                // 距離に応じた音量計算
+                float maxDist = 2000.0f;
+                float volRatio = 1.0f - (m_distToPlayer / maxDist);
+                if (volRatio < 0.0f) volRatio = 0.0f;
+                if (volRatio > 1.0f) volRatio = 1.0f;
+                
+                ChangeVolumeSoundMem((int)(150 * volRatio), s_attackSEHandle);
+                PlaySoundMem(s_attackSEHandle, DX_PLAYTYPE_BACK);
+            }
+        }
         if (newAnimState == AnimState::Back) m_backAnimCount = 0;
     }
 
@@ -537,6 +578,9 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext& context)
     const Player& player = context.player;
     std::vector<Bullet>& bullets = context.bullets;
     Effect* pEffect = context.pEffect;
+    
+    // プレイヤーとの距離を更新
+    m_distToPlayer = VSize(VSub(player.GetPos(), m_pos));
 
     // 怯み状態の処理
     if (m_isStunned)
@@ -729,6 +773,18 @@ void EnemyAcid::OnParried()
     m_isStunned = true;
     m_stunTimer = EnemyAcidConstants::kStunDuration; // 怯み時間（アニメーション50F + 硬直30F）
     ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションを怯みモーションとして再生
+
+    // パリィボイスを再生
+    if (s_parrySEHandle != -1)
+    {
+        float maxDist = 2000.0f;
+        float volRatio = 1.0f - (m_distToPlayer / maxDist);
+        if (volRatio < 0.0f) volRatio = 0.0f;
+        if (volRatio > 1.0f) volRatio = 1.0f;
+        
+        ChangeVolumeSoundMem((int)(150 * volRatio), s_parrySEHandle);
+        PlaySoundMem(s_parrySEHandle, DX_PLAYTYPE_BACK);
+    }
 }
 
 // 描画処理

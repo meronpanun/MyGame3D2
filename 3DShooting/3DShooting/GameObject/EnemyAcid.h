@@ -49,6 +49,8 @@ public:
 
 private:
     static bool s_shouldDrawCollision;
+    static int s_attackSEHandle;
+    static int s_parrySEHandle;
 
     /// <summary>
     /// どこに当たったかを判定する
@@ -163,6 +165,7 @@ private:
     VECTOR m_acidBulletSpawnOffset;      // 酸を吐く場所のオフセット
     AnimationManager m_animationManager; // アニメーション管理
     AnimState m_currentAnimState;        // 現在のアニメーション状態
+    float m_distToPlayer;         // プレイヤーとの距離
     std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
     std::shared_ptr<SphereCollider> m_pHeadCollider;  // 頭のコライダー
     std::shared_ptr<SphereCollider> m_pAttackRangeCollider; // 攻撃範囲のコライダー
