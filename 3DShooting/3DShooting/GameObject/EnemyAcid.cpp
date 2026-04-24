@@ -30,18 +30,18 @@ namespace EnemyAcidConstants
     // コライダーのサイズを定義
     constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
     constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
-    constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
+    constexpr float kHeadRadius         = 18.0f; // 頭のコライダー半径
 
     // 攻撃関連（遠距離攻撃に特化）
-    constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
+    constexpr int kAttackCooldownMax   = 160;     // 攻撃クールダウン時間
     constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
-    constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
+    constexpr float kAcidBulletSpeed   = 5.0f;    // 酸弾の速度
 
     // 追跡関連（遠距離型なので、近づきすぎたら離れる）
     constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
 
     // スタン関連
-    constexpr int kStunDuration = 120; // スタンの総持続時間
+    constexpr int kStunDuration         = 120;   // スタンの総持続時間
     constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
 
     // AcidBallの画面外判定距離
@@ -63,6 +63,7 @@ EnemyAcid::EnemyAcid()
     , m_hasDroppedItem(false)
     , m_isStunned(false)
     , m_stunTimer(0)
+
 {
     // モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -228,8 +229,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
     VECTOR viewStartPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
 
-    if ((groundedObj == "Rock3" || groundedObj == "Rock6") &&
-        !EnemyBase::IsTargetVisible(viewStartPos, player.GetPos(), stageCollision))
+    if ((groundedObj == "Rock3" || groundedObj == "Rock6") && !EnemyBase::IsTargetVisible(viewStartPos, player.GetPos(), stageCollision))
     {
         ball.isParabolic = true;
         ball.gravity = 0.3f; // 重力設定

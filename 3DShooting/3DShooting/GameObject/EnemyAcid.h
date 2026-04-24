@@ -104,7 +104,6 @@ private:
     /// </summary>
     void OnDeath() override;
 
-private:
     /// <summary>
     /// 酸の弾構造体
     /// </summary>
@@ -179,7 +178,7 @@ private:
 
     bool m_hasAttacked;       // 攻撃アニメーション中に一度だけ攻撃ヒット判定を行うためのフラグ
     bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-    bool m_hasDroppedItem;     // アイテムドロップ済みフラグ
+    bool m_hasDroppedItem;    // アイテムドロップ済みフラグ
     bool m_isStunned;         // 怯み状態か
     int m_stunTimer;          // 怯みタイマー
 

@@ -13,28 +13,28 @@
 namespace EnemyConstants
 {
     constexpr int kDefaultHitDisplayDuration = 60; // 1秒間表示
-    constexpr float kDefaultInitialHP = 100.0f;    // デフォルトの初期体力
-    constexpr float kDefaultCooldownMax = 60;      // 攻撃クールダウンの最大値
+    constexpr float kDefaultInitialHP        = 100.0f;    // デフォルトの初期体力
+    constexpr float kDefaultCooldownMax      = 60;      // 攻撃クールダウンの最大値
     constexpr float kDefaultAttackPower = 10.0f;   // 攻撃力
 
 	// 物理関連定数
-    constexpr float kCapsuleHeight = 100.0f;
-    constexpr float kCapsuleRadius = 30.0f;
+    constexpr float kCapsuleHeight   = 100.0f;
+    constexpr float kCapsuleRadius   = 30.0f;
     constexpr float kColliderYOffset = 60.0f;
-    constexpr float kGravity = 0.35f;
+    constexpr float kGravity         = 0.35f;
 
 	// 描画最適化関連定数
-    constexpr float kThrottlingLongRangeSq = 800.0f * 800.0f;
-    constexpr float kThrottlingMidRangeSq = 400.0f * 400.0f;
+    constexpr float kThrottlingLongRangeSq     = 800.0f * 800.0f;
+    constexpr float kThrottlingMidRangeSq      = 400.0f * 400.0f;
     constexpr float kThrottlingViewCheckDistSq = 300.0f * 300.0f;
-    constexpr float kThrottlingFOVThreshold = 0.4f;
-    constexpr int kUpdateIntervalLong = 3;
-    constexpr int kUpdateIntervalMid = 2;
-    constexpr int kUpdateIntervalDefault = 1;
+    constexpr float kThrottlingFOVThreshold    = 0.4f;
+    constexpr int kUpdateIntervalLong          = 3;
+    constexpr int kUpdateIntervalMid           = 2;
+    constexpr int kUpdateIntervalDefault       = 1;
 
 	// 放物線運動関連定数
-    constexpr float kParabolicMinTime = 20.0f;
-    constexpr float kParabolicTimeFactor = 2.0f;
+    constexpr float kParabolicMinTime       = 20.0f;
+    constexpr float kParabolicTimeFactor    = 2.0f;
     constexpr float kParabolicGravityFactor = 0.5f;
 
 	// デバッグ表示関連定数

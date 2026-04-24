@@ -268,7 +268,6 @@ protected:
     /// </summary>
     void UpdateAttachedEffects();
 
-protected:
     struct AttachedEffect {
         int handle;
         VECTOR localOffset;
