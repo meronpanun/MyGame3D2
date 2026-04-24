@@ -1,4 +1,4 @@
-#include "EnemyRunner.h"
+﻿#include "EnemyRunner.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -47,7 +47,7 @@ namespace EnemyRunnerConstants
     constexpr float kEvasionSwitchTime = 60.0f;
 
     // 描画
-    constexpr float kDrawDistanceSq = 16000.0f * 16000.0f;
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000から5000に縮小
     constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
     constexpr float kDrawDotThreshold = 0.4f;
 
@@ -432,43 +432,46 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
         // Attackはループ制御を上でやってるので、ここでは単に更新
 
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+
+        // コライダーの更新 (間引き対象)
+        // 体のコライダーの位置を設定
+        VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderRadius, 0));
+        VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderHeight - EnemyRunnerConstants::kBodyColliderRadius, 0));
+        m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
+        m_pBodyCollider->SetRadius(EnemyRunnerConstants::kBodyColliderRadius);
+
+        // 頭のコライダーの位置を取得
+        int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+        VECTOR headModelPos = (headIndex != -1)
+            ? MV1GetFramePosition(m_modelHandle, headIndex)
+            : VGet(0, 0, 0);
+        VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
+        m_pHeadCollider->SetCenter(headCenter);
+        m_pHeadCollider->SetRadius(EnemyRunnerConstants::kHeadRadius);
+
+        // 攻撃範囲のコライダーの位置と半径を設定
+        VECTOR attackRangeCenter = m_pos;
+        attackRangeCenter.y += (EnemyRunnerConstants::kBodyColliderHeight * 0.5f);
+        m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+        m_pAttackRangeCollider->SetRadius(EnemyRunnerConstants::kAttackRangeRadius);
     }
-
-    // コライダーの更新
-    // 体のコライダーの位置を設定
-    VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderRadius, 0));
-    VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderHeight - EnemyRunnerConstants::kBodyColliderRadius, 0));
-    m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
-    m_pBodyCollider->SetRadius(EnemyRunnerConstants::kBodyColliderRadius);
-
-    // 頭のコライダーの位置を取得
-    int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
-    VECTOR headModelPos = (headIndex != -1)
-        ? MV1GetFramePosition(m_modelHandle, headIndex)
-        : VGet(0, 0, 0);
-    VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
-    m_pHeadCollider->SetCenter(headCenter);
-    m_pHeadCollider->SetRadius(EnemyRunnerConstants::kHeadRadius);
-
-    // 攻撃範囲のコライダーの位置と半径を設定
-    VECTOR attackRangeCenter = m_pos;
-    attackRangeCenter.y += (EnemyRunnerConstants::kBodyColliderHeight * 0.5f);
-    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
-    m_pAttackRangeCollider->SetRadius(EnemyRunnerConstants::kAttackRangeRadius);
 
     // 敵とプレイヤーの押し出し処理
     float minDist = EnemyRunnerConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
     ResolvePlayerCollision(playerBodyCollider, minDist, EnemyRunnerConstants::kPushBackEpsilon);
 
-    // 敵同士の押し出し処理
-    std::vector<EnemyBase*> neighbors;
-    if (context.collisionGrid)
+    // 敵同士の押し出し処理 (間引き対象)
+    if (m_shouldUpdateAI)
     {
-        context.collisionGrid->GetNeighbors(m_pos, neighbors);
-    }
-    const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : enemyList;
+        std::vector<EnemyBase*> neighbors;
+        if (context.collisionGrid)
+        {
+            context.collisionGrid->GetNeighbors(m_pos, neighbors);
+        }
+        const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : enemyList;
 
-    ResolveEnemyCollision(targets, EnemyRunnerConstants::kBodyColliderRadius, EnemyRunnerConstants::kPushBackEpsilon);
+        ResolveEnemyCollision(targets, EnemyRunnerConstants::kBodyColliderRadius, EnemyRunnerConstants::kPushBackEpsilon);
+    }
 
     // 攻撃判定 (間引き)
     if (m_currentAnimState == AnimState::Attack)

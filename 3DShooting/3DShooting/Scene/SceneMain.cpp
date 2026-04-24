@@ -136,6 +136,9 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_isShowDebugHUD(false)
     , m_lastDeltaTime(0.0f)
     , m_prevTimeCount(GetNowHiPerformanceCount())
+    , m_cachedFPS(0.0f)
+    , m_cachedDeltaTime(0.0f)
+    , m_debugDisplayTimer(0)
 {
     g_sceneMainInstance = this;
     
@@ -1152,7 +1155,15 @@ void SceneMain::DrawDebugHUD()
     // 情報収集
     VECTOR playerPos = m_pPlayer ? m_pPlayer->GetPos() : VGet(0, 0, 0);
 
-    float fps = GetFPS();
+    // 表示更新頻度を落とす
+    m_debugDisplayTimer--;
+    if (m_debugDisplayTimer <= 0)
+    {
+        m_cachedFPS = GetFPS();
+        m_cachedDeltaTime = m_lastDeltaTime;
+        m_debugDisplayTimer = 15;
+    }
+    float fps = m_cachedFPS;
     // WaveManager.hでは GetAliveEnemyCount() となっていた
     int aliveEnemyCount = m_pWaveManager ? m_pWaveManager->GetAliveEnemyCount() : 0;
     int drawnEnemyCount = EnemyBase::GetDrawCount();
@@ -1171,7 +1182,7 @@ void SceneMain::DrawDebugHUD()
 
     DrawFormatString(x, y, color, "FPS: %.1f", fps);
     y += lineHeight;
-    DrawFormatString(x, y, color, "Delta Time: %.4f", m_lastDeltaTime);
+    DrawFormatString(x, y, color, "Delta Time: %.4f", m_cachedDeltaTime);
     y += lineHeight;
     DrawFormatString(x, y, color, "Player Pos: (%.1f, %.1f, %.1f)", playerPos.x,
                      playerPos.y, playerPos.z);

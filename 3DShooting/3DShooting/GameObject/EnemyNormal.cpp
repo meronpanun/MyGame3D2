@@ -1,4 +1,4 @@
-#include "EnemyNormal.h"
+﻿#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -47,7 +47,7 @@ namespace EnemyNormalConstants
     constexpr int kDamageDuration = 30;
 
     // 描画距離
-    constexpr float kDrawDistanceSq = 16000.0f * 16000.0f;
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000から5000に縮小
     constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
     constexpr float kDrawDotThreshold = 0.4f;
 
@@ -268,27 +268,41 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
     // ステージとの当たり判定
     UpdateStageCollision(collisionData, context.collisionGrid);
 
-    // コライダーの更新 (死亡中も判定を残すため、死亡チェックの前に移動)
-    // 体のコライダー（カプセル）
-    VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyNormalConstants::kBodyColliderRadius, 0));
-    VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyNormalConstants::kBodyColliderHeight - EnemyNormalConstants::kBodyColliderRadius, 0));
-    m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
-    m_pBodyCollider->SetRadius(EnemyNormalConstants::kBodyColliderRadius);
+    // コライダーの更新 (間引き対象)
+    // 遠方の敵は毎フレームボーン位置を取得する必要がないため、AI更新に同期させる
+    if (m_shouldUpdateAI)
+    {
+        // 体のコライダー（カプセル）
+        VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyNormalConstants::kBodyColliderRadius, 0));
+        VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyNormalConstants::kBodyColliderHeight - EnemyNormalConstants::kBodyColliderRadius, 0));
+        m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
+        m_pBodyCollider->SetRadius(EnemyNormalConstants::kBodyColliderRadius);
 
-    // 頭のコライダー（球）
-    int headIndex = MV1SearchFrame(m_modelHandle, "Head");
-    VECTOR headModelPos = (headIndex != -1)
-                              ? MV1GetFramePosition(m_modelHandle, headIndex)
-                              : VGet(0, 0, 0);
-    VECTOR headCenter = VAdd(headModelPos, m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
-    m_pHeadCollider->SetCenter(headCenter);
-    m_pHeadCollider->SetRadius(EnemyNormalConstants::kHeadRadius);
+        int headIndex = MV1SearchFrame(m_modelHandle, "Head");
+        VECTOR headModelPos = (headIndex != -1)
+                                  ? MV1GetFramePosition(m_modelHandle, headIndex)
+                                  : VGet(0, 0, 0);
+        VECTOR headCenter = VAdd(headModelPos, m_headPosOffset); // モデルの頭のフレーム位置にオフセットを適用
+        m_pHeadCollider->SetCenter(headCenter);
+        m_pHeadCollider->SetRadius(EnemyNormalConstants::kHeadRadius);
 
-    // 攻撃範囲のコライダー（球）
-    VECTOR attackRangeCenter = m_pos;
-    attackRangeCenter.y += (EnemyNormalConstants::kBodyColliderHeight * 0.5f);
-    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
-    m_pAttackRangeCollider->SetRadius(EnemyNormalConstants::kAttackRangeRadius);
+        // 攻撃範囲のコライダー（球）
+        VECTOR attackRangeCenter = m_pos;
+        attackRangeCenter.y += (EnemyNormalConstants::kBodyColliderHeight * 0.5f);
+        m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+        m_pAttackRangeCollider->SetRadius(EnemyNormalConstants::kAttackRangeRadius);
+
+        // シールドの更新処理
+        if (m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
+        {
+            // 衝突判定用に現在のシールド位置を計算
+            VECTOR shieldPos = m_pos;
+            shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * 0.5f; // 胸のあたり
+
+            m_pShieldCollider->SetCenter(shieldPos);
+        }
+    }
+
 
     // シールドの更新処理
     if (m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
@@ -566,15 +580,18 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
         }
     }
 
-    // 敵同士の押し出し処理
-    std::vector<EnemyBase*> neighbors;
-    if (context.collisionGrid)
+    // 敵同士の押し出し処理 (間引き対象)
+    if (m_shouldUpdateAI)
     {
-        context.collisionGrid->GetNeighbors(m_pos, neighbors);
-    }
-    const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : enemyList;
+        std::vector<EnemyBase*> neighbors;
+        if (context.collisionGrid)
+        {
+            context.collisionGrid->GetNeighbors(m_pos, neighbors);
+        }
+        const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : enemyList;
 
-    ResolveEnemyCollision(targets, EnemyNormalConstants::kBodyColliderRadius, EnemyNormalConstants::kPushBackEpsilon);
+        ResolveEnemyCollision(targets, EnemyNormalConstants::kBodyColliderRadius, EnemyNormalConstants::kPushBackEpsilon);
+    }
 
     if (m_currentAnimState == AnimState::Attack) // 攻撃アニメーションが再生中の場合のみ攻撃判定を行う
     {
@@ -938,39 +955,42 @@ std::shared_ptr<CapsuleCollider> EnemyNormal::GetBodyCollider() const
 // 弾との当たり判定とダメージ処理 (複数弾ヒットや貫通対策用)
 void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
 {
-    // ショットガン等の散弾や複数弾が同時に当たるケースを想定し、
-    // シールドで防いだ場合は、同一フレーム内の他の弾の「本体への貫通」を無効化する
-    bool shieldHitInThisFrame = false;
+    // ショットガン等の散弾や複数弾が同時に当たるケースを想定
+    // ループを1回にまとめて効率化
 
-    // --- ① まず全ての弾についてシールドヒットがないかを判定・処理する ---
-    if (m_hasShieldConfigured && !m_isShieldBroken)
+    for (auto& bullet : bullets)
     {
-        for (auto& bullet : bullets)
+        if (!bullet.IsActive()) continue;
+
+        VECTOR rayStart = bullet.GetPrevPos();
+        VECTOR rayEnd = bullet.GetPos();
+
+        // 共通の距離チェック（ブロードフェーズ）
+        // EnemyBase::FindClosestHitBullet でも行っているが、ここでは独自に判定が必要なため
+        VECTOR enemyCenter = VAdd(m_pos, VGet(0, EnemyNormalConstants::kBodyColliderHeight * 0.5f, 0));
+        float d1 = VSquareSize(VSub(rayStart, enemyCenter));
+        float d2 = VSquareSize(VSub(rayEnd, enemyCenter));
+        if (d1 > 300.0f * 300.0f && d2 > 300.0f * 300.0f) continue;
+
+        // ① シールド判定 (シールドがある場合)
+        if (m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
         {
-            if (!bullet.IsActive()) continue;
-
-            VECTOR rayStart = bullet.GetPrevPos();
-            VECTOR rayEnd = bullet.GetPos();
-
             VECTOR hitPosShield;
             float hitDistSqShield;
-            if (m_pShieldCollider && m_pShieldCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosShield, hitDistSqShield))
+            if (m_pShieldCollider->IsIsIntersectsRay(rayStart, rayEnd, hitPosShield, hitDistSqShield))
             {
-                shieldHitInThisFrame = true;
-                // シールドへダメージ適用 (ApplyBulletDamage内で Deactivate される)
                 ApplyBulletDamage(bullet, HitPart::Shield, hitDistSqShield, pEffect);
+                continue; // シールドに当たったら本体判定は行わない
             }
         }
-    }
 
-    // --- ② 次に、シールドで防がれていなければ本体側のヒット判定を行う ---
-    if (!shieldHitInThisFrame)
-    {
-        // ①でシールドが壊れた場合、あるいは元々シールドがない/壊れている場合
-        if (!m_hasShieldConfigured || m_isShieldBroken)
+        // ② 本体判定
+        VECTOR hitPos;
+        float hitDistSq;
+        HitPart part = CheckHitPart(rayStart, rayEnd, hitPos, hitDistSq);
+        if (part != HitPart::None)
         {
-            // ボスではなくノーマルゾンビなので、複数の弾が本体に当たるのは許容し通常の基底クラス処理を呼ぶ
-            EnemyBase::CheckHitAndDamage(bullets, pEffect);
+            ApplyBulletDamage(bullet, part, hitDistSq, pEffect);
         }
     }
 }

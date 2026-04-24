@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -452,6 +452,7 @@ private:
     bool m_isStartAnimating;             // 開始演出アニメーション中か
     bool m_hasLandedAtStart;             // 開始時に一度でも着地したか
     bool m_isUiFadeStarted;              // UIフェードインが開始されたか
+    bool m_isDamageHandledInThisFrame;   // 同一フレーム内でダメージ演出（SE/振動）を処理したか
     int m_tackleHitSECooldownTimer;      // タックルヒットSEのクールタイムタイマー
 
     // ハンドルIDなど

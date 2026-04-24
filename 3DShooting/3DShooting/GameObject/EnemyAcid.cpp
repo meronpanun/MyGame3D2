@@ -1,4 +1,4 @@
-#include "EnemyAcid.h"
+﻿#include "EnemyAcid.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
 #include "DebugUtil.h"
@@ -48,6 +48,13 @@ namespace EnemyAcidConstants
 
     // AcidBallの画面外判定距離
     constexpr float kAcidBallBoundaryDistance = 1500.0f;
+    // 描画距離
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f;
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
+    constexpr float kDrawDotThreshold = 0.4f;
+
+    // 押し出し
+    constexpr float kPushBackEpsilon = 0.0001f;
 }
 
 int EnemyAcid::s_modelHandle = -1;
@@ -266,17 +273,42 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
 // 更新処理
 void EnemyAcid::Update(const EnemyUpdateContext& context)
 {
-    // ステージとの当たり判定
+    // ステージとの当たり判定 (内部で間引きされる)
     UpdateStageCollision(context.collisionData, context.collisionGrid);
 
 #ifdef _DEBUG
     m_shouldDrawParryCollider = false;
 #endif
 
+    // AI間引き処理の更新
+    UpdateThrottling(context.player.GetPos());
+
     // 各種更新処理
     UpdateAcidBalls(context);
+
     UpdateState(context);
     UpdateCollision(context);
+
+    // プレイヤーとの押し出し処理
+    std::shared_ptr<CapsuleCollider> playerBodyCollider = context.player.GetBodyCollider();
+    if (playerBodyCollider)
+    {
+        float minDist = EnemyAcidConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
+        ResolvePlayerCollision(playerBodyCollider, minDist, EnemyAcidConstants::kPushBackEpsilon);
+    }
+
+    // 敵同士の押し出し処理 (間引き対象)
+    if (m_shouldUpdateAI)
+    {
+        std::vector<EnemyBase*> neighbors;
+        if (context.collisionGrid)
+        {
+            context.collisionGrid->GetNeighbors(m_pos, neighbors);
+        }
+        const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : context.enemyList;
+
+        ResolveEnemyCollision(targets, EnemyAcidConstants::kBodyColliderRadius, EnemyAcidConstants::kPushBackEpsilon);
+    }
 }
 
 void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
@@ -472,29 +504,32 @@ void EnemyAcid::UpdateCollision(const EnemyUpdateContext& context)
         m_lastTackleId = -1;
     }
 
-    // コライダーの更新
-    int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
-    VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
+    // コライダーの更新 (間引き対象)
+    if (m_shouldUpdateAI)
+    {
+        int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
+        VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
 
-    VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, EnemyAcidConstants::kBodyColliderHeight * 0.5f, 0));
-    VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -EnemyAcidConstants::kBodyColliderHeight * 0.5f, 0));
-    m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
-    m_pBodyCollider->SetRadius(EnemyAcidConstants::kBodyColliderRadius);
+        VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, EnemyAcidConstants::kBodyColliderHeight * 0.5f, 0));
+        VECTOR bodySegmentP2 = VAdd(hipsPos, VGet(0, -EnemyAcidConstants::kBodyColliderHeight * 0.5f, 0));
+        m_pBodyCollider->SetSegment(bodySegmentP1, bodySegmentP2);
+        m_pBodyCollider->SetRadius(EnemyAcidConstants::kBodyColliderRadius);
 
-    // ヘッドの位置を取得
-    int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+        // ヘッドの位置を取得
+        int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
 
-    // 頭の位置を取得してヘッドコライダーの中心を設定
-    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
-    VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
-    m_pHeadCollider->SetCenter(headCenter);
-    m_pHeadCollider->SetRadius(EnemyAcidConstants::kHeadRadius);
+        // 頭の位置を取得してヘッドコライダーの中心を設定
+        VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
+        VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
+        m_pHeadCollider->SetCenter(headCenter);
+        m_pHeadCollider->SetRadius(EnemyAcidConstants::kHeadRadius);
 
-    // 攻撃範囲のコライダーを更新
-    VECTOR attackRangeCenter = m_pos;
-    attackRangeCenter.y += (EnemyAcidConstants::kBodyColliderHeight * 0.5f);
-    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
-    m_pAttackRangeCollider->SetRadius(EnemyAcidConstants::kAttackRangeRadius);
+        // 攻撃範囲のコライダーを更新
+        VECTOR attackRangeCenter = m_pos;
+        attackRangeCenter.y += (EnemyAcidConstants::kBodyColliderHeight * 0.5f);
+        m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+        m_pAttackRangeCollider->SetRadius(EnemyAcidConstants::kAttackRangeRadius);
+    }
 }
 
 void EnemyAcid::UpdateState(const EnemyUpdateContext& context)
@@ -714,8 +749,8 @@ void EnemyAcid::Draw()
     if (m_hp <= 0.0f && m_animationManager.IsAnimationFinished(m_modelHandle)) return;
        
     // 視錐台カリング (描画最適化)
-    // 距離チェック: 16000^2, 近距離: 300^2, 内積閾値: 0.4
-    if (!ShouldDraw(16000.0f * 16000.0f, 300.0f * 300.0f, 0.4f)) return;
+    // 距離チェック: 5000^2, 近距離: 300^2, 内積閾値: 0.4
+    if (!ShouldDraw(5000.0f * 5000.0f, 300.0f * 300.0f, 0.4f)) return;
 
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);

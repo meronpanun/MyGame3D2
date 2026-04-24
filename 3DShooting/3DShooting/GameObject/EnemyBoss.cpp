@@ -1,4 +1,4 @@
-#include "EnemyBoss.h"
+﻿#include "EnemyBoss.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -46,7 +46,7 @@ namespace EnemyBossConstants
     constexpr int kAttackEndDelay    = 30; // 攻撃後の硬直
 
     // 描画関連
-    constexpr float kDrawDistanceSq     = 16000.0f * 16000.0f;
+    constexpr float kDrawDistanceSq     = 10000.0f * 10000.0f; // 16000から10000に縮小
     constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
 
 	// シールド関連

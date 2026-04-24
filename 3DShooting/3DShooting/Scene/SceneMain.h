@@ -218,6 +218,11 @@ private:
     int m_loadingDotCount;   // ローディングアニメーションのドット数
     int m_loadingAnimTimer;  // ローディングアニメーションタイマー
 
+    // デバッグ表示用キャッシュ
+    float m_cachedFPS;
+    float m_cachedDeltaTime;
+    int m_debugDisplayTimer;
+
     // ローディング画面用
     SafeHandle<ModelDeleter> m_loadingModel; // ローディング用モデルハンドル
     VECTOR m_loadingModelPos;                // ローディング用モデル位置

@@ -45,7 +45,7 @@ public:
     /// <param name="pos">検索中心座標</param>
     /// <param name="outNeighbors">結果を格納するベクタ</param>
     void GetNeighbors(const VECTOR& pos,
-        std::vector<EnemyBase*>& outNeighbors) const;
+        std::vector<EnemyBase*>& outNeighbors, bool persist = true) const;
 
     /// <summary>
     /// 指定位置周辺のステージポリゴンを取得
@@ -79,7 +79,7 @@ private:
 private:
     std::vector<std::vector<EnemyBase*>> m_cells;
     std::vector<std::vector<const Stage::StageCollisionData*>> m_stageCells; // ステージポリゴン用
-    mutable std::vector<bool> m_accessedCells; // デバッグ用：アクセスされたセルを記録
+    mutable std::vector<int> m_accessedCells; // デバッグ用：アクセスされたセルを記録
     std::vector<float> m_cachedHeights;       // デバッグ用：地形の高さをキャッシュ
     VECTOR m_minArea;
     VECTOR m_maxArea;
@@ -91,6 +91,8 @@ private:
     mutable int m_totalQueries;
     mutable int m_totalEntitiesChecked;
     mutable LONGLONG m_totalSearchTime;
+    mutable LONGLONG m_displayedSearchTime; // 表示用にホールドする時間
+    mutable int m_displayTimer;             // 表示更新用タイマー
     int m_totalEnemies;
 
     static bool s_drawGrid;

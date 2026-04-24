@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <memory>
@@ -172,6 +172,7 @@ private:
     bool m_isJumpInertiaActive;
     bool m_justLanded;      // 着地した瞬間フラグ
     float m_impactVelocity; // 着地時の衝撃速度
+    float m_airborneTime;   // 滞空時間
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider;
 

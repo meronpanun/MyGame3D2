@@ -19,6 +19,8 @@ CollisionGrid::CollisionGrid()
     , m_totalQueries(0)
     , m_totalEntitiesChecked(0)
     , m_totalSearchTime(0)
+    , m_displayedSearchTime(0)
+    , m_displayTimer(0)
     , m_totalEnemies(0)
 {
 }
@@ -42,7 +44,7 @@ void CollisionGrid::Init(const VECTOR& minArea, const VECTOR& maxArea, float cel
 
     m_cells.assign(m_width * m_height, std::vector<EnemyBase*>());
     m_stageCells.assign(m_width * m_height, std::vector<const Stage::StageCollisionData*>());
-    m_accessedCells.assign(m_width * m_height, false);
+    m_accessedCells.assign(m_width * m_height, 0);
     m_cachedHeights.assign((m_width + 1) * (m_height + 1), minArea.y + 1.0f);
 }
 
@@ -68,7 +70,10 @@ void CollisionGrid::ClearEnemies()
 
 void CollisionGrid::ResetAccessFlags()
 {
-    std::fill(m_accessedCells.begin(), m_accessedCells.end(), false);
+    for (auto& val : m_accessedCells)
+    {
+        if (val > 0) val--;
+    }
 }
 
 void CollisionGrid::ResetStats()
@@ -152,7 +157,7 @@ void CollisionGrid::RegisterEnemy(EnemyBase* enemy)
     }
 }
 
-void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& outNeighbors) const
+void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& outNeighbors, bool persist) const
 {
     LONGLONG startTime = GetNowHiPerformanceCount();
     m_totalQueries++;
@@ -176,7 +181,7 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
     int cx, cz;
     GetCellIndices(pos, cx, cz);
     
-    // ... (以降の空間分割ロジック)
+    // 指定位置の周囲9マスをチェック
     for (int z = cz - 1; z <= cz + 1; ++z)
     {
         for (int x = cx - 1; x <= cx + 1; ++x)
@@ -184,7 +189,9 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
             if (x >= 0 && x < m_width && z >= 0 && z < m_height)
             {
                 int index = z * m_width + x;
-                const_cast<CollisionGrid*>(this)->m_accessedCells[index] = true;
+                // デバッグ用アクセスフラグ。persist=trueなら維持時間を設定、falseなら即時クリア対象
+                const_cast<CollisionGrid*>(this)->m_accessedCells[index] = persist ? 30 : 1;
+                
                 const auto& targetCell = m_cells[index];
             
                 m_totalEntitiesChecked += (int)targetCell.size();
@@ -328,7 +335,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
 
             int index = z * m_width + x;
             bool hasEnemies = !m_cells[index].empty();
-            bool isAccessed = m_accessedCells[index];
+            bool isAccessed = m_accessedCells[index] > 0;
 
             if (hasEnemies || isAccessed)
             {
@@ -404,8 +411,8 @@ void CollisionGrid::DrawUI() const
     if (!s_drawGrid) return;
 
     // 2DUI描画の際は深度テストを無効化
-    SetUseZBuffer3D(FALSE);
-    SetWriteZBuffer3D(FALSE);
+    SetUseZBuffer3D(false);
+    SetWriteZBuffer3D(false);
 
     // デバッグ用の凡例（説明）を描画
     int screenW = 1280;
@@ -420,18 +427,18 @@ void CollisionGrid::DrawUI() const
 
     // 半透明の背景
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
-    DrawBox(x, y, x + rectW, y + rectH, 0x000000, TRUE);
+    DrawBox(x, y, x + rectW, y + rectH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    DrawBox(x, y, x + rectW, y + rectH, 0xffffff, FALSE);
+    DrawBox(x, y, x + rectW, y + rectH, 0xffffff, false);
 
     // 凡例テキスト
     int textX = x + 10;
     int textY = y + 10;
-    DrawBox(textX, textY + 2, textX + 12, textY + 14, 0x00FF00, TRUE);
+    DrawBox(textX, textY + 2, textX + 12, textY + 14, 0x00FF00, true);
     DrawString(textX + 20, textY, "：敵が存在するセル", 0xffffff);
 
     textY += 25;
-    DrawBox(textX, textY + 2, textX + 12, textY + 14, 0xFFFF00, TRUE);
+    DrawBox(textX, textY + 2, textX + 12, textY + 14, 0xFFFF00, true);
     DrawString(textX + 20, textY, "：検索・アクセス範囲", 0xffffff);
 
     textY += 25;
@@ -444,9 +451,9 @@ void CollisionGrid::DrawUI() const
     int sy = screenH - statH - margin - 100;
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
-    DrawBox(sx, sy, sx + statW, sy + statH, 0x000000, TRUE);
+    DrawBox(sx, sy, sx + statW, sy + statH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    DrawBox(sx, sy, sx + statW, sy + statH, 0xffffff, FALSE);
+    DrawBox(sx, sy, sx + statW, sy + statH, 0xffffff, false);
 
     int sTextX = sx + 10;
     int sTextY = sy + 10;
@@ -461,7 +468,8 @@ void CollisionGrid::DrawUI() const
     sTextY += 20;
     int fullScanChecks = m_totalEnemies * m_totalQueries;
     float reduction = 0.0f;
-    if (fullScanChecks > 0) {
+    if (fullScanChecks > 0)
+    {
         reduction = (1.0f - (float)m_totalEntitiesChecked / fullScanChecks) * 100.0f;
     }
     
@@ -472,5 +480,13 @@ void CollisionGrid::DrawUI() const
     DrawFormatString(sTextX, sTextY, 0xffffff, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
 
     sTextY += 25;
-    DrawFormatString(sTextX, sTextY, 0xffff00, "検索処理時間: %lld us (マイクロ秒)", m_totalSearchTime);
+    
+    // 表示更新頻度を落とす
+    m_displayTimer--;
+    if (m_displayTimer <= 0)
+    {
+        m_displayedSearchTime = m_totalSearchTime;
+        m_displayTimer = 30;
+    }
+    DrawFormatString(sTextX, sTextY, 0xffff00, "検索処理時間: %lld us (マイクロ秒)", m_displayedSearchTime);
 }

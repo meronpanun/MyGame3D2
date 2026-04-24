@@ -1,4 +1,4 @@
-﻿#include "PlayerMovement.h"
+#include "PlayerMovement.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -66,6 +66,7 @@ PlayerMovement::PlayerMovement()
     , m_knockbackVelocity(VGet(0, 0, 0))
     , m_pBodyCollider(std::make_shared<CapsuleCollider>())
     , m_currentSpeed(0.0f)
+    , m_airborneTime(0.0f)
 {
 }
 
@@ -113,6 +114,16 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
     {
         m_jumpVelocity = 0.0f;
         m_isJumping = false;
+        m_airborneTime = 0.0f;
+    }
+
+    if (!IsOnGround())
+    {
+        m_airborneTime += deltaTime;
+    }
+    else
+    {
+        m_airborneTime = 0.0f;
     }
 
     if (isFlightMode && !isDead)
@@ -382,8 +393,9 @@ void PlayerMovement::HandlePhysics(bool isOnGround, Camera* pCamera)
         {
             m_modelPos.y = kGroundY;
             
-            // 跳躍中または落下中に着地した場合
-            if (m_isJumping || m_jumpVelocity < 0.0f)
+            // 跳躍中、または一定以上の時間・速度で落下中に着地した場合のみ「着地」とみなす
+            // 斜面を降りる際などの微小な浮き上がりによるSE連打を防止 (0.15s以上の滞空が必要)
+            if (m_isJumping || (m_airborneTime > 0.15f && m_jumpVelocity < -1.5f))
             {
                 m_justLanded = true;
                 m_impactVelocity = m_jumpVelocity;
@@ -432,7 +444,9 @@ void PlayerMovement::ResolveCollisions(const std::vector<Stage::StageCollisionDa
         if (pushBackSq > 1.0f && !isOnSlope) m_isRunMode = false;
     }
 
-    if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
+    // ジャンプ中、または一定以上の滞空時間・速度で落下して着地した場合のみ着地判定とする
+    // これにより、斜面を駆け下りる際などの微小な接地判定の途切れによるSE再生を抑制する
+    if (m_isGroundedOnStage && (m_isJumping || (m_airborneTime > 0.15f && m_jumpVelocity < -1.5f)))
     {
         m_justLanded = true;
         m_impactVelocity = m_jumpVelocity;

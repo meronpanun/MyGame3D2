@@ -1,4 +1,4 @@
-﻿#include "Player.h"
+#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -124,6 +124,8 @@ namespace PlayerConstants
 
     // タックルヒット時のSE音量 (DxLibの設定上0〜255が範囲、255で最大音量)
     constexpr int kTackleHitVolume = 255;
+    constexpr int kLightLandingVolume = 120; // 通常着地（小さめ）
+    constexpr int kHeavyLandingVolume = 180; // 重量着地（中くらい）
 }
 
 Player::Player()
@@ -181,6 +183,7 @@ Player::Player()
     , m_uiFadeTimer(0.0f)
     , m_uiFadeDuration(60.0f)
     , m_isUiFadeStarted(false)
+    , m_isDamageHandledInThisFrame(false)
 {
     // SEの読み込み
     m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
@@ -194,8 +197,11 @@ Player::Player()
     assert(m_recoverySEHandle != -1);
     m_lightLandingSEHandle = LoadSoundMem("data/sound/SE/LightLanding.mp3");
     assert(m_lightLandingSEHandle != -1);
+    ChangeVolumeSoundMem(PlayerConstants::kLightLandingVolume, m_lightLandingSEHandle);
+
     m_heavyLandingSEHandle = LoadSoundMem("data/sound/SE/HeavyLanding.mp3");
     assert(m_heavyLandingSEHandle != -1);
+    ChangeVolumeSoundMem(PlayerConstants::kHeavyLandingVolume, m_heavyLandingSEHandle);
     m_parrySEHandle = LoadSoundMem("data/sound/SE/Parry.mp3");
     assert(m_parrySEHandle != -1);
 }
@@ -355,6 +361,9 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
     // カメラ位置設定
     m_pCamera->SetPlayerPos(m_modelPos);
+
+    // フレームごとのダメージ演出フラグをリセット
+    m_isDamageHandledInThisFrame = false;
 
     // カメラ更新
     m_pCamera->Update(isInputDisabled);
@@ -657,13 +666,16 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
             m_healthBarAnimTimer = 0.0f;
             // ダメージエフェクトを発動
             m_effectManager.TriggerDamageEffect(PlayerConstants::kDamageEffectDuration, PlayerConstants::kDamageEffectColorR, PlayerConstants::kDamageEffectColorG, PlayerConstants::kDamageEffectColorB);
-            // 被弾SEを再生
-            PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
-
-            // カメラシェイクを発生
-            if (m_pCamera)
+            
+            // 被弾演出（SE/振動）をフレーム内で一度だけ実行
+            if (!m_isDamageHandledInThisFrame)
             {
-                m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
+                PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+                if (m_pCamera)
+                {
+                    m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
+                }
+                m_isDamageHandledInThisFrame = true;
             }
         }
 
@@ -693,13 +705,16 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
     m_healthBarAnimTimer = 0.0f;
     // ダメージエフェクトを発動
     m_effectManager.TriggerDamageEffect(PlayerConstants::kDamageEffectDuration, PlayerConstants::kDamageEffectColorR, PlayerConstants::kDamageEffectColorG, PlayerConstants::kDamageEffectColorB);
-    // 被弾SEを再生
-    PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
-
-    // カメラシェイクを発生
-    if (m_pCamera)
+    
+    // 被弾演出（SE/振動）をフレーム内で一度だけ実行
+    if (!m_isDamageHandledInThisFrame)
     {
-        m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
+        PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+        if (m_pCamera)
+        {
+            m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
+        }
+        m_isDamageHandledInThisFrame = true;
     }
 }
 
@@ -1023,9 +1038,9 @@ void Player::UpdateLockOn(const std::vector<EnemyBase*>& enemyList,
     if (Game::m_pWaveManager)
     {
 
-        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(m_modelPos, nearbyEnemies);
+        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(m_modelPos, nearbyEnemies, false);
         // レイが長いので、少し前方（例えば500ユニット先）もチェック
-        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(VAdd(m_modelPos, VScale(camDir, 500.0f)), nearbyEnemies);
+        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(VAdd(m_modelPos, VScale(camDir, 500.0f)), nearbyEnemies, false);
     }
     const std::vector<EnemyBase*>& targetEnemies = nearbyEnemies.empty() ? enemyList : nearbyEnemies;
 
@@ -1065,7 +1080,7 @@ void Player::UpdateLockOn(const std::vector<EnemyBase*>& enemyList,
         std::vector<EnemyBase*> lockOnTargets;
         if (Game::m_pWaveManager)
         {
-            Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(m_modelPos, lockOnTargets);
+            Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(m_modelPos, lockOnTargets, false);
         }
         const std::vector<EnemyBase*>& searchList = lockOnTargets.empty() ? enemyList : lockOnTargets;
 

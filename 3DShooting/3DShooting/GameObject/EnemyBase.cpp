@@ -1,4 +1,4 @@
-#include "EnemyBase.h"
+﻿#include "EnemyBase.h"
 #include "Bullet.h"
 #include "TransformDataLoader.h"
 #include "CapsuleCollider.h"
@@ -26,13 +26,16 @@ namespace EnemyConstants
     constexpr float kGravity         = 0.35f;
 
 	// 描画最適化関連定数
-    constexpr float kThrottlingLongRangeSq     = 800.0f * 800.0f;
-    constexpr float kThrottlingMidRangeSq      = 400.0f * 400.0f;
-    constexpr float kThrottlingViewCheckDistSq = 300.0f * 300.0f;
-    constexpr float kThrottlingFOVThreshold    = 0.4f;
-    constexpr int kUpdateIntervalLong          = 3;
-    constexpr int kUpdateIntervalMid           = 2;
-    constexpr int kUpdateIntervalDefault       = 1;
+    constexpr float kThrottlingSuperLongRangeSq = 1500.0f * 1500.0f;
+    constexpr float kThrottlingLongRangeSq      = 800.0f * 800.0f;
+    constexpr float kThrottlingMidRangeSq       = 400.0f * 400.0f;
+    constexpr float kThrottlingViewCheckDistSq  = 300.0f * 300.0f;
+    constexpr float kThrottlingFOVThreshold     = 0.4f;
+    constexpr int kUpdateIntervalSuperLong      = 10;
+    constexpr int kUpdateIntervalLong           = 5; // 3から5に増加
+    constexpr int kUpdateIntervalMid            = 2;
+    constexpr int kUpdateIntervalDefault        = 1;
+    constexpr float kBulletBroadPhaseDistSq     = 300.0f * 300.0f;
 
 	// 放物線運動関連定数
     constexpr float kParabolicMinTime       = 20.0f;
@@ -107,6 +110,17 @@ int EnemyBase::FindClosestHitBullet(const std::vector<Bullet>& bullets, HitPart&
         // 弾のRay情報を取得
         VECTOR rayStart = bullet.GetPrevPos();
         VECTOR rayEnd = bullet.GetPos();
+
+        // ブロードフェーズ: 敵の中心から弾丸が一定距離以上離れている場合は詳細判定をスキップ
+        // 敵の高さが約100なので、中心点として少し上の座標で距離チェックを行う
+        VECTOR enemyCenter = VAdd(m_pos, VGet(0, EnemyConstants::kCapsuleHeight * 0.5f, 0));
+        float d1 = VSquareSize(VSub(rayStart, enemyCenter));
+        float d2 = VSquareSize(VSub(rayEnd, enemyCenter));
+        
+        if (d1 > EnemyConstants::kBulletBroadPhaseDistSq && d2 > EnemyConstants::kBulletBroadPhaseDistSq)
+        {
+            continue;
+        }
 
         // どこに当たったのかをチェック
         VECTOR currentHitPos;
@@ -243,24 +257,29 @@ void EnemyBase::TakeTackleDamage(float damage)
 
 void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid)
 {
-    // 重力適用
-    m_verticalVelocity -= EnemyConstants::kGravity;
-    m_pos.y += m_verticalVelocity;
-
-    CollisionResult result = Collision::CheckStageCollision(
-        m_pos, EnemyConstants::kCapsuleHeight, EnemyConstants::kCapsuleRadius, EnemyConstants::kColliderYOffset, collisionData, pGrid);
-    m_isGrounded = result.isGrounded;
-
-    // Y=0 平面（地面）との判定
-    if (m_pos.y <= 0.0f)
+    // 地形判定の間引き（最適化）
+    // 遠方の敵は毎フレーム地形判定を行う必要性が低いため、頻度を落とす
+    if (!m_isGrounded || m_verticalVelocity != 0.0f || m_shouldUpdateAI)
     {
-        m_pos.y = 0.0f;
-        m_isGrounded = true;
-    }
+        // 重力適用
+        m_verticalVelocity -= EnemyConstants::kGravity;
+        m_pos.y += m_verticalVelocity;
 
-    if (m_isGrounded && m_verticalVelocity < 0.0f)
-    {
-        m_verticalVelocity = 0.0f;
+        CollisionResult result = Collision::CheckStageCollision(
+            m_pos, EnemyConstants::kCapsuleHeight, EnemyConstants::kCapsuleRadius, EnemyConstants::kColliderYOffset, collisionData, pGrid);
+        m_isGrounded = result.isGrounded;
+
+        // Y=0 平面（地面）との判定
+        if (m_pos.y <= 0.0f)
+        {
+            m_pos.y = 0.0f;
+            m_isGrounded = true;
+        }
+
+        if (m_isGrounded && m_verticalVelocity < 0.0f)
+        {
+            m_verticalVelocity = 0.0f;
+        }
     }
 
     // エフェクトの追従更新
@@ -357,13 +376,17 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
     m_isSimpleMode = false;
 
     // 距離ベースの更新間引き処理（遠方のアクティブな敵ほどAIの計算サイクルを落とす）
-    if (distSq > EnemyConstants::kThrottlingLongRangeSq)
+    if (distSq > EnemyConstants::kThrottlingSuperLongRangeSq)
     {
-        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong;  // 遠距離: 更新を3フレームに1回まで抑える
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalSuperLong; // 超遠距離
+    }
+    else if (distSq > EnemyConstants::kThrottlingLongRangeSq)
+    {
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong;  // 遠距離
     }
     else if (distSq > EnemyConstants::kThrottlingMidRangeSq)
     {
-        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid;   // 中距離: 更新を2フレームに1回まで抑える
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid;   // 中距離
     }
 
     // 視界ベースの簡易モード移行処理（画面外におけるAI行動の簡略化）
@@ -540,9 +563,14 @@ void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& p
 // 敵同士の衝突（押し出し）処理
 void EnemyBase::ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, float radius, float pushBackEpsilon)
 {
+    // 密集対策: 計算負荷を一定に保つため、判定対象を最大8体までに制限する
+    int count = 0;
+    constexpr int kMaxCollisionChecks = 8;
+
     for (EnemyBase* other : targets)
     {
         if (!other || other == this) continue;
+        if (++count > kMaxCollisionChecks) break;
 
         VECTOR otherPos = other->GetPos();
         VECTOR diff = VSub(m_pos, otherPos);
