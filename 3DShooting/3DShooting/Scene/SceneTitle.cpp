@@ -6,6 +6,7 @@
 #include "DebugUtil.h"
 #include <cassert>
 #include <random>
+#include <memory>
 
 namespace
 {
@@ -46,6 +47,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     , m_billboardShakeOffsetY(0.0f)
     , m_billboardShakePower(0.0f)
     , m_shakeTimer(0)
+    , m_zombieVoiceTimer(60)
     , m_animIndexIdle(-1)
     , m_animIndexAtkHead(-1)
 {
@@ -58,6 +60,18 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     assert(m_banner.IsValid());
     assert(m_bgm.IsValid());
     assert(m_confirmSE.IsValid());
+
+    // ゾンビボイスの読み込み
+    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice1.mp3"));
+    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice2.mp3"));
+    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice3.mp3"));
+    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice4.mp3"));
+
+    for (auto& voice : m_zombieVoices)
+    {
+        assert(voice->IsValid());
+        ChangeVolumeSoundMem(150, *voice);
+    }
 
     // 3Dモデルのロード
     m_skyDome.Reset(MV1LoadModel("data/model/Dome.mv1"));
@@ -343,6 +357,22 @@ SceneBase* SceneTitle::Update()
         if (m_skyDome.IsValid())
         {
             MV1SetRotationXYZ(m_skyDome, VGet(0, MV1GetRotationXYZ(m_skyDome).y + kSkyDomeRotaSpeed, 0));
+        }
+
+        // ゾンビ環境ボイスの再生
+        m_zombieVoiceTimer--;
+        if (m_zombieVoiceTimer <= 0)
+        {
+            if (!m_zombieVoices.empty())
+            {
+                int randomIndex = GetRand(static_cast<int>(m_zombieVoices.size()) - 1);
+                if (m_zombieVoices[randomIndex]->IsValid())
+                {
+                    m_zombieVoices[randomIndex]->Play(DX_PLAYTYPE_BACK);
+                }
+            }
+            // 次の再生までの時間をランダムに設定 (1秒〜3秒)
+            m_zombieVoiceTimer = 60 + GetRand(120);
         }
     }
 

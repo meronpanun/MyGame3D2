@@ -1,10 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "SceneBase.h"
 #include "ManagedFont.h"
 #include "ManagedGraph.h"
 #include "ManagedSound.h"
 #include "SafeHandle.h"
 #include <vector>
+#include <memory>
 
 /// <summary>
 /// ゾンビの描画用データ
@@ -39,6 +40,8 @@ private:
     ManagedGraph m_banner;         // バナー画像
     ManagedSound m_bgm;            // タイトルBGM
     ManagedSound m_confirmSE;      // 決定ボタンSE
+    std::vector<std::unique_ptr<ManagedSound>> m_zombieVoices; // ゾンビ環境ボイスリスト
+    int m_zombieVoiceTimer;        // ゾンビボイス再生用タイマー
 
     // フェード・シーン遷移管理
     int  m_fadeAlpha;       // フェードのアルファ値
