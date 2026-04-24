@@ -1,4 +1,4 @@
-﻿#include "EnemyBase.h"
+#include "EnemyBase.h"
 #include "Bullet.h"
 #include "TransformDataLoader.h"
 #include "CapsuleCollider.h"
@@ -7,6 +7,8 @@
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
 #include "Game.h"
+#include "CollisionGrid.h"
+#include <algorithm>
 #include "Stage.h"
 #include "TaskTutorialManager.h"
 
@@ -239,14 +241,14 @@ void EnemyBase::TakeTackleDamage(float damage)
     }
 }
 
-void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData)
+void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid)
 {
     // 重力適用
     m_verticalVelocity -= EnemyConstants::kGravity;
     m_pos.y += m_verticalVelocity;
 
     CollisionResult result = Collision::CheckStageCollision(
-        m_pos, EnemyConstants::kCapsuleHeight, EnemyConstants::kCapsuleRadius, EnemyConstants::kColliderYOffset, collisionData);
+        m_pos, EnemyConstants::kCapsuleHeight, EnemyConstants::kCapsuleRadius, EnemyConstants::kColliderYOffset, collisionData, pGrid);
     m_isGrounded = result.isGrounded;
 
     // Y=0 平面（地面）との判定
@@ -282,17 +284,41 @@ void EnemyBase::UpdateAttachedEffects()
     }
 }
 
-bool EnemyBase::IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos,const std::vector<Stage::StageCollisionData>& stageCollision)
+
+bool EnemyBase::IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos, const std::vector<Stage::StageCollisionData>& stageCollision, const CollisionGrid* pGrid)
 {
     VECTOR dir = VSub(targetPos, startPos);
     float dist = VSize(dir);
     if (dist < 0.001f) return true;
     dir = VNorm(dir);
 
+    float t;
+    if (pGrid)
+    {
+        // 始点と終点の周囲のセルからポリゴンを取得
+        std::vector<const Stage::StageCollisionData*> triangles;
+        pGrid->GetNearbyTriangles(startPos, triangles);
+        
+        std::vector<const Stage::StageCollisionData*> endTriangles;
+        pGrid->GetNearbyTriangles(targetPos, endTriangles);
+        triangles.insert(triangles.end(), endTriangles.begin(), endTriangles.end());
+        
+        std::sort(triangles.begin(), triangles.end());
+        triangles.erase(std::unique(triangles.begin(), triangles.end()), triangles.end());
+
+        for (const auto* pCol : triangles)
+        {
+            if (Collision::IntersectRayTriangle(startPos, dir, pCol->v1, pCol->v2, pCol->v3, t))
+            {
+                if (t < dist) return false;
+            }
+        }
+        return true;
+    }
+
     // レイキャスト判定
     for (const auto& col : stageCollision)
     {
-        float t;
         if (Collision::IntersectRayTriangle(startPos, dir, col.v1, col.v2, col.v3, t))
         {
             if (t < dist) return false; // 遮蔽物あり

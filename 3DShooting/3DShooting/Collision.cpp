@@ -1,5 +1,6 @@
 #include "Collision.h"
 #include <algorithm>
+#include "CollisionGrid.h"
 #include <cmath>
 
 namespace
@@ -56,7 +57,7 @@ namespace
     }
 }
 
-CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHeight, float capsuleRadius, float colliderYOffset, const std::vector<Stage::StageCollisionData>& collisionData)
+CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHeight, float capsuleRadius, float colliderYOffset, const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid)
 {
     CollisionResult result;
     result.isGrounded = false;
@@ -64,6 +65,17 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
     const int kIterations = 4;
     const float kGroundTolerance = 0.5f;
     const float kGroundToleranceSq = (capsuleRadius + kGroundTolerance) * (capsuleRadius + kGroundTolerance);
+
+    // 空間分割を利用して判定対象のポリゴンを抽出
+    std::vector<const Stage::StageCollisionData*> nearbyTriangles;
+    bool useGrid = (pGrid != nullptr);
+    if (useGrid)
+    {
+        pGrid->GetNearbyTriangles(position, nearbyTriangles);
+        // 万が一周囲にポリゴンが一つもない場合は、安全のため全件判定に切り替えるか
+        // あるいは接地判定が漏れるのを防ぐためそのまま続行
+        if (nearbyTriangles.empty()) useGrid = false;
+    }
 
     for (int i = 0; i < kIterations; ++i)
     {
@@ -73,8 +85,7 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
         VECTOR capA = VAdd(checkPos, VGet(0, -capsuleHeight * 0.5f, 0));
         VECTOR capB = VAdd(checkPos, VGet(0, capsuleHeight * 0.5f, 0));
 
-        for (const auto& data : collisionData)
-        {
+        auto processTriangle = [&](const Stage::StageCollisionData& data) {
             VECTOR points[] = { capA, checkPos, capB };
 
             for (const auto& p : points)
@@ -95,27 +106,14 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
                     if (dist > 0.0001f)
                     {
                         normal = VScale(diff, 1.0f / dist);
-                        // 進行可能なスロープ(y > 0.5)の場合は、
-                        // ポリゴンの継ぎ目で引っかからないように面の法線を使用する
-                        if (triNormal.y > 0.5f)
-                        {
-                            normal = triNormal;
-                        }
-                        // 進行不可能な壁や急斜面の場合
-                        else if (triNormal.y <= 0.5f)
-                        {
-                            normal = triNormal;
-                        }
+                        if (triNormal.y > 0.5f) normal = triNormal;
+                        else if (triNormal.y <= 0.5f) normal = triNormal;
                     }
                     else
                     {
                         normal = triNormal;
                     }
 
-                    // 進行不可能な壁や急斜面にこすりつけた際、
-                    // わずかに上方向に押し出されて徐々に空中に浮き上がり、
-                    // 再び着地してまたSEが鳴るのを完全に防ぐため、
-                    // 上方向への押し出し（反発力）をゼロにして水平に滑らせる
                     if (triNormal.y <= 0.5f && normal.y > 0.0f)
                     {
                         normal.y = 0.0f;
@@ -151,6 +149,21 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
                         }
                     }
                 }
+            }
+        };
+
+        if (useGrid)
+        {
+            for (const auto* pData : nearbyTriangles)
+            {
+                processTriangle(*pData);
+            }
+        }
+        else
+        {
+            for (const auto& data : collisionData)
+            {
+                processTriangle(data);
             }
         }
     }

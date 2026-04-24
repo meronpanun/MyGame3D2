@@ -23,9 +23,15 @@ public:
     /// グリッドのクリア
     /// </summary>
     void Clear();
+    void ClearEnemies(); // 敵のみをクリア
     void ResetAccessFlags();
     void ResetStats();
     void CalculateHeights(const std::vector<Stage::StageCollisionData>& collisionData);
+
+    /// <summary>
+    /// ステージの三角形ポリゴンを登録
+    /// </summary>
+    void RegisterStageTriangle(const Stage::StageCollisionData& triangle);
 
     /// <summary>
     /// 敵をグリッドに登録
@@ -40,6 +46,12 @@ public:
     /// <param name="outNeighbors">結果を格納するベクタ</param>
     void GetNeighbors(const VECTOR& pos,
         std::vector<EnemyBase*>& outNeighbors) const;
+
+    /// <summary>
+    /// 指定位置周辺のステージポリゴンを取得
+    /// </summary>
+    void GetNearbyTriangles(const VECTOR& pos,
+        std::vector<const Stage::StageCollisionData*>& outTriangles) const;
 
     /// <summary>
     /// グリッドのデバッグ描画
@@ -66,6 +78,7 @@ private:
 
 private:
     std::vector<std::vector<EnemyBase*>> m_cells;
+    std::vector<std::vector<const Stage::StageCollisionData*>> m_stageCells; // ステージポリゴン用
     mutable std::vector<bool> m_accessedCells; // デバッグ用：アクセスされたセルを記録
     std::vector<float> m_cachedHeights;       // デバッグ用：地形の高さをキャッシュ
     VECTOR m_minArea;

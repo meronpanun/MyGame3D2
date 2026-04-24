@@ -1,4 +1,4 @@
-#include "WaveManager.h"
+﻿#include "WaveManager.h"
 #include "Bullet.h"
 #include "CollisionGrid.h"
 #include "EffekseerForDXLib.h"
@@ -200,8 +200,8 @@ void WaveManager::Reset()
 
 void WaveManager::Update()
 {
-    // グリッドを一度クリアし、現在の生存中の敵で再構築
-    m_collisionGrid.Clear();
+    // グリッドをクリア（敵のみ、ステージデータは保持）
+    m_collisionGrid.ClearEnemies();
     m_collisionGrid.ResetAccessFlags();
     m_collisionGrid.ResetStats(); // 統計のリセット
     m_collisionGrid.SetTotalEnemies(0); // 総敵数のカウント用リセット
@@ -372,6 +372,14 @@ void WaveManager::SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos)
 
     // 範囲が変更されたのでグリッドを再初期化
     m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 100.0f);
+}
+
+void WaveManager::RegisterStageToGrid(const std::vector<Stage::StageCollisionData>& collisionData)
+{
+    for (const auto& tri : collisionData)
+    {
+        m_collisionGrid.RegisterStageTriangle(tri);
+    }
 }
 
 VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)

@@ -41,11 +41,24 @@ void CollisionGrid::Init(const VECTOR& minArea, const VECTOR& maxArea, float cel
     m_height += 2;
 
     m_cells.assign(m_width * m_height, std::vector<EnemyBase*>());
+    m_stageCells.assign(m_width * m_height, std::vector<const Stage::StageCollisionData*>());
     m_accessedCells.assign(m_width * m_height, false);
     m_cachedHeights.assign((m_width + 1) * (m_height + 1), minArea.y + 1.0f);
 }
 
 void CollisionGrid::Clear()
+{
+    for (auto& cell : m_cells)
+    {
+        cell.clear();
+    }
+    for (auto& cell : m_stageCells)
+    {
+        cell.clear();
+    }
+}
+
+void CollisionGrid::ClearEnemies()
 {
     for (auto& cell : m_cells)
     {
@@ -94,6 +107,34 @@ void CollisionGrid::CalculateHeights(const std::vector<Stage::StageCollisionData
                 }
             }
             m_cachedHeights[z * (m_width + 1) + x] = hit ? (start.y - minDist + 1.5f) : (m_minArea.y + 1.0f);
+        }
+    }
+}
+
+void CollisionGrid::RegisterStageTriangle(const Stage::StageCollisionData& triangle)
+{
+    // 三角形のバウンディングボックスを計算
+    float minX = (std::min)({ triangle.v1.x, triangle.v2.x, triangle.v3.x });
+    float maxX = (std::max)({ triangle.v1.x, triangle.v2.x, triangle.v3.x });
+    float minZ = (std::min)({ triangle.v1.z, triangle.v2.z, triangle.v3.z });
+    float maxZ = (std::max)({ triangle.v1.z, triangle.v2.z, triangle.v3.z });
+
+    // バウンディングボックスが重なる全セルを特定
+    int startX, startZ, endX, endZ;
+    GetCellIndices(VGet(minX, 0, minZ), startX, startZ);
+    GetCellIndices(VGet(maxX, 0, maxZ), endX, endZ);
+
+    // 範囲をグリッド内に収める
+    startX = (std::max)(0, startX);
+    startZ = (std::max)(0, startZ);
+    endX = (std::min)(m_width - 1, endX);
+    endZ = (std::min)(m_height - 1, endZ);
+
+    for (int z = startZ; z <= endZ; ++z)
+    {
+        for (int x = startX; x <= endX; ++x)
+        {
+            m_stageCells[z * m_width + x].push_back(&triangle);
         }
     }
 }
@@ -152,6 +193,43 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
         }
     }
     m_totalSearchTime += GetNowHiPerformanceCount() - startTime;
+}
+
+void CollisionGrid::GetNearbyTriangles(const VECTOR& pos, std::vector<const Stage::StageCollisionData*>& outTriangles) const
+{
+    if (!s_useSpatialPartitioning)
+    {
+        for (const auto& cell : m_stageCells)
+        {
+            for (const auto* tri : cell)
+            {
+                // 重複を避けるために必要だが、ここでは単純化のため全て追加し、
+                // 呼び出し側で対処するか、あるいは重複を許容する（判定回数は増えるが全件よりはマシ）
+                outTriangles.push_back(tri);
+            }
+        }
+        return;
+    }
+
+    int cx, cz;
+    GetCellIndices(pos, cx, cz);
+
+    for (int z = cz - 1; z <= cz + 1; ++z)
+    {
+        for (int x = cx - 1; x <= cx + 1; ++x)
+        {
+            if (x >= 0 && x < m_width && z >= 0 && z < m_height)
+            {
+                int index = z * m_width + x;
+                const auto& targetCell = m_stageCells[index];
+                outTriangles.insert(outTriangles.end(), targetCell.begin(), targetCell.end());
+            }
+        }
+    }
+
+    // 同一三角形が複数セルにまたがる場合の重複を削除
+    std::sort(outTriangles.begin(), outTriangles.end());
+    outTriangles.erase(std::unique(outTriangles.begin(), outTriangles.end()), outTriangles.end());
 }
 
 int CollisionGrid::GetCellIndex(const VECTOR& pos) const

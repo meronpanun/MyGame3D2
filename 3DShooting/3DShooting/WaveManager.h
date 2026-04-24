@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CollisionGrid.h"
 #include "DxLib.h"
 #include "EnemyBase.h"
@@ -74,6 +74,11 @@ public:
     /// RoadFloorオブジェクトの範囲を設定
     /// </summary>
     void SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos);
+
+    /// <summary>
+    /// ステージのポリゴンをグリッドに登録する
+    /// </summary>
+    void RegisterStageToGrid(const std::vector<Stage::StageCollisionData>& collisionData);
 
     /// <summary>
     /// 敵の一括更新

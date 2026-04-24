@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "Player.h"
 #include "Stage.h"
@@ -282,13 +282,13 @@ protected:
     /// <summary>
     /// ステージとの当たり判定を更新する
     /// </summary>
-    void UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData);
+    void UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData, const class CollisionGrid* pGrid = nullptr);
 
     /// <summary>
     /// ターゲットが視界に入っているか（射線が通るか）
     /// </summary>
     static bool IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos,
-                                const std::vector<Stage::StageCollisionData>& stageCollision);
+                                const std::vector<Stage::StageCollisionData>& stageCollision, const class CollisionGrid* pGrid = nullptr);
 
     /// <summary>
     /// 放物線軌道の初速度を計算する

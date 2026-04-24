@@ -1,4 +1,4 @@
-﻿#include "EnemyNormal.h"
+#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -258,7 +258,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
         }
 
         // ステージとの当たり判定のみ簡易に行う（重力適用など）
-        UpdateStageCollision(collisionData);
+        UpdateStageCollision(collisionData, context.collisionGrid);
         
         // モデルの位置更新
         MV1SetPosition(m_modelHandle, m_pos);
@@ -266,7 +266,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
     }
 
     // ステージとの当たり判定
-    UpdateStageCollision(collisionData);
+    UpdateStageCollision(collisionData, context.collisionGrid);
 
     // コライダーの更新 (死亡中も判定を残すため、死亡チェックの前に移動)
     // 体のコライダー（カプセル）

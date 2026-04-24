@@ -1,4 +1,4 @@
-#include "SceneMain.h"
+﻿#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -241,6 +241,7 @@ void SceneMain::Init()
 
     // RoadFloorオブジェクトの範囲を設定（マップ全体の範囲）
     m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
+    m_pWaveManager->RegisterStageToGrid(m_pStage->GetCollisionData());
     m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
 
     // カメラの初期化
@@ -416,6 +417,7 @@ void SceneMain::SwitchToMainStage()
 
   // ステージ範囲を更新
   m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
+  m_pWaveManager->RegisterStageToGrid(m_pStage->GetCollisionData());
   m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
 
   // プレイヤーの再初期化（位置などをCSVから再取得）

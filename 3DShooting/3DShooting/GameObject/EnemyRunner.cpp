@@ -1,4 +1,4 @@
-﻿#include "EnemyRunner.h"
+#include "EnemyRunner.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -232,7 +232,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
         }
 
         // ステージとの当たり判定のみ簡易に行う
-        UpdateStageCollision(collisionData);
+        UpdateStageCollision(collisionData, context.collisionGrid);
         
         // モデルの位置更新
         MV1SetPosition(m_modelHandle, m_pos);
@@ -240,7 +240,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
     }
 
     // ステージとの当たり判定
-    UpdateStageCollision(collisionData);
+    UpdateStageCollision(collisionData, context.collisionGrid);
 
     if (m_hp <= 0.0f)
     {

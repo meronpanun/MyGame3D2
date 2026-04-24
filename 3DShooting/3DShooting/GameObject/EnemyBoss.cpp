@@ -12,6 +12,7 @@
 #include "TaskTutorialManager.h"
 #include "TransformDataLoader.h"
 #include "Game.h"
+#include "CollisionGrid.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -206,7 +207,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     const std::vector<Stage::StageCollisionData>& collisionData = context.collisionData;
     Effect* pEffect = context.pEffect;
 
-    UpdateStageCollision(collisionData);
+    UpdateStageCollision(collisionData, context.collisionGrid);
 
     // 初回更新時にプレイヤーの方へ強制的に向く
     if (m_isFirstUpdate)
@@ -550,7 +551,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             // 放物線攻撃判定
             std::string groundedObj = player.GetGroundedObjectName();
             if ((groundedObj == "Rock3" || groundedObj == "Rock6") &&
-                !EnemyBase::IsTargetVisible(spawnPos, player.GetPos(), collisionData))
+                !EnemyBase::IsTargetVisible(spawnPos, playerPos, collisionData, context.collisionGrid))
             {
                 bullet.isParabolic = true;
                 bullet.gravity = 0.3f; // 重力設定

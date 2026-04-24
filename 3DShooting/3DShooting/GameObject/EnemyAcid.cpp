@@ -5,6 +5,8 @@
 #include "DxLib.h"
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
+#include "Stage.h"
+#include "CollisionGrid.h"
 #include "Game.h"
 #include "Player.h"
 #include "SceneMain.h"
@@ -193,7 +195,7 @@ bool EnemyAcid::CanAttackPlayer(const Player& player)
 }
 
 // 酸弾を発射する
-void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect, const std::vector<Stage::StageCollisionData>& stageCollision)
+void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect, const std::vector<Stage::StageCollisionData>& stageCollision, const CollisionGrid* pGrid)
 {
     // 発射位置
     int mouthIndex = MV1SearchFrame(m_modelHandle, "mixamorig:JawDowm");
@@ -229,7 +231,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
     int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
     VECTOR viewStartPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VAdd(m_pos, m_headPosOffset);
 
-    if ((groundedObj == "Rock3" || groundedObj == "Rock6") && !EnemyBase::IsTargetVisible(viewStartPos, player.GetPos(), stageCollision))
+    if ((groundedObj == "Rock3" || groundedObj == "Rock6") && !EnemyBase::IsTargetVisible(viewStartPos, player.GetPos(), stageCollision, pGrid))
     {
         ball.isParabolic = true;
         ball.gravity = 0.3f; // 重力設定
@@ -265,7 +267,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet>& bullets, const Player& play
 void EnemyAcid::Update(const EnemyUpdateContext& context)
 {
     // ステージとの当たり判定
-    UpdateStageCollision(context.collisionData);
+    UpdateStageCollision(context.collisionData, context.collisionGrid);
 
 #ifdef _DEBUG
     m_shouldDrawParryCollider = false;
@@ -615,7 +617,7 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext& context)
         float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kAttackAnimName);
         if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.3f)
         {
-            ShootAcidBullet(bullets, player, pEffect, context.collisionData);
+            ShootAcidBullet(bullets, player, pEffect, context.collisionData, context.collisionGrid);
             m_hasAttacked = true;
         }
         if (m_animTime >= totalAttackAnimTime)

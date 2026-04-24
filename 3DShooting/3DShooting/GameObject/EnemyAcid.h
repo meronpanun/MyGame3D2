@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Stage.h"
@@ -149,7 +149,7 @@ private:
     /// <param name="bullets">弾のリスト</param>
     /// <param name="player">プレイヤーオブジェクト</param>
     /// <param name="pEffect">エフェクトオブジェクト</param>
-    void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect, const std::vector<Stage::StageCollisionData>& stageCollision);
+    void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect, const std::vector<Stage::StageCollisionData>& stageCollision, const class CollisionGrid* pGrid = nullptr);
 
     // リファクタリング用メソッド
     void UpdateAcidBalls(const EnemyUpdateContext& context);
