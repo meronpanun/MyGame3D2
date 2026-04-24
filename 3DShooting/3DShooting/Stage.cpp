@@ -148,6 +148,8 @@ void Stage::LoadStage(bool isTutorial)
 			}
 		}
 	}
+
+	CalculateBounds();
 }
 
 void Stage::Clear()
@@ -237,4 +239,37 @@ void Stage::LoadCollisionData(const char* fileName)
 		}
 		m_collisionData.push_back(data);
 	}
+}
+
+void Stage::CalculateBounds()
+{
+	if (m_objects.empty())
+	{
+		m_minBounds = VGet(-1000, 0, -1000);
+		m_maxBounds = VGet(1000, 0, 1000);
+		return;
+	}
+
+	m_minBounds = VGet(FLT_MAX, FLT_MAX, FLT_MAX);
+	m_maxBounds = VGet(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	for (const auto& obj : m_objects)
+	{
+		Vec3 pos = obj.GetPos();
+		// スケールも考慮する必要があるが、簡易的に位置だけで計算するか、
+		// モデルのバウンディングボックスを取得するのが理想的。
+		// ここでは、各オブジェクトがそれなりの大きさを持つと仮定して少し余裕を持たせる
+		float margin = 200.0f; // マージンを少し抑える
+
+		if (pos.x - margin < m_minBounds.x) m_minBounds.x = pos.x - margin;
+		if (pos.y - margin < m_minBounds.y) m_minBounds.y = pos.y - margin;
+		if (pos.z - margin < m_minBounds.z) m_minBounds.z = pos.z - margin;
+		if (pos.x + margin > m_maxBounds.x) m_maxBounds.x = pos.x + margin;
+		if (pos.y + margin > m_maxBounds.y) m_maxBounds.y = pos.y + margin;
+		if (pos.z + margin > m_maxBounds.z) m_maxBounds.z = pos.z + margin;
+	}
+	
+	// Y座標のマージン調整
+	m_minBounds.y -= 100.0f;
+	m_maxBounds.y += 500.0f;
 }

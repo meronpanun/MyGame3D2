@@ -25,6 +25,9 @@ public:
 
 	const std::vector<StageCollisionData>& GetCollisionData() const { return m_collisionData; }
 
+	VECTOR GetMinBounds() const { return m_minBounds; }
+	VECTOR GetMaxBounds() const { return m_maxBounds; }
+
 	// デバッグ用
 	static void SetDrawCollision(bool isDraw) { s_shouldDrawCollision = isDraw; }
 	static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
@@ -41,5 +44,9 @@ private:
 	bool m_isTutorial;
 
 	void LoadCollisionData(const char* fileName);
+	void CalculateBounds();
+
+	VECTOR m_minBounds;
+	VECTOR m_maxBounds;
 };
 

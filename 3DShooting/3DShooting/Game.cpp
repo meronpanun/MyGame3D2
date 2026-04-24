@@ -8,6 +8,7 @@
 // グローバルなカメラ感度
 float Game::g_cameraSensitivity = 0.002f;
 Player* Game::m_pPlayer = nullptr;
+WaveManager* Game::m_pWaveManager = nullptr;
 SceneManager* Game::m_pSceneManager = nullptr;
 
 // 画面解像度とモードの初期化

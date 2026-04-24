@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "DxLib.h"
+#include "Stage.h"
 #include <vector>
 
 class EnemyBase;
@@ -22,6 +23,8 @@ public:
     /// グリッドのクリア
     /// </summary>
     void Clear();
+    void ResetAccessFlags();
+    void CalculateHeights(const std::vector<Stage::StageCollisionData>& collisionData);
 
     /// <summary>
     /// 敵をグリッドに登録
@@ -37,15 +40,27 @@ public:
     void GetNeighbors(const VECTOR& pos,
         std::vector<EnemyBase*>& outNeighbors) const;
 
+    /// <summary>
+    /// グリッドのデバッグ描画
+    /// </summary>
+    void Draw(const std::vector<Stage::StageCollisionData>& collisionData = {}) const;
+
+    static void SetDrawGrid(bool draw) { s_drawGrid = draw; }
+    static bool IsDrawGrid() { return s_drawGrid; }
+
 private:
     int GetCellIndex(const VECTOR& pos) const;
     void GetCellIndices(const VECTOR& pos, int& x, int& z) const;
 
 private:
     std::vector<std::vector<EnemyBase*>> m_cells;
+    mutable std::vector<bool> m_accessedCells; // デバッグ用：アクセスされたセルを記録
+    std::vector<float> m_cachedHeights;       // デバッグ用：地形の高さをキャッシュ
     VECTOR m_minArea;
     VECTOR m_maxArea;
     float m_cellSize;
     int m_width;
     int m_height;
+
+    static bool s_drawGrid;
 };

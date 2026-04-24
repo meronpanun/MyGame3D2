@@ -3,6 +3,7 @@
 
 class Player;
 class SceneManager;
+class WaveManager;
 
 /// <summary>
 /// ゲームの基本情報を定義するクラス
@@ -37,6 +38,7 @@ public:
 
     // プレイヤーへのポインタ
     static Player* m_pPlayer;
+    static WaveManager* m_pWaveManager;
 
     static SceneManager* m_pSceneManager;
 

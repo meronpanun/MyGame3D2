@@ -56,6 +56,11 @@ public:
     std::vector<std::shared_ptr<EnemyBase>>& GetEnemyList() { return m_enemyList; }
 
     /// <summary>
+    /// 空間分割グリッドを取得
+    /// </summary>
+    CollisionGrid& GetCollisionGrid() { return m_collisionGrid; }
+
+    /// <summary>
     /// 敵の死亡時に呼ばれるコールバックを設定
     /// </summary>
     void SetOnEnemyDeathCallback(std::function<void(const VECTOR&)> callback);
@@ -81,7 +86,7 @@ public:
     /// <summary>
     /// 敵の一括描画
     /// </summary>
-    void DrawEnemies(bool isTutorial = false);
+    void DrawEnemies(const std::vector<Stage::StageCollisionData>& collisionData, bool isTutorial = false);
 
     /// <summary>
     /// ウェーブUIの描画

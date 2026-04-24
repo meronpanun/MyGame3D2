@@ -1,9 +1,10 @@
-#include "Player.h"
+﻿#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
+#include "CollisionGrid.h"
 #include "DebugUtil.h"
 #include "DirectionIndicator.h"
 #include "Effect.h"
@@ -18,6 +19,7 @@
 #include "SceneManager.h"
 #include "ShellCasing.h"
 #include "TransformDataLoader.h"
+#include "WaveManager.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -1016,7 +1018,18 @@ void Player::UpdateLockOn(const std::vector<EnemyBase*>& enemyList,
     m_isAimingAtEnemy = false;
     VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
 
-    for (const auto& enemy : enemyList)
+    // 空間分割を使用して近くの敵のみをチェック
+    std::vector<EnemyBase*> nearbyEnemies;
+    if (Game::m_pWaveManager)
+    {
+
+        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(m_modelPos, nearbyEnemies);
+        // レイが長いので、少し前方（例えば500ユニット先）もチェック
+        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(VAdd(m_modelPos, VScale(camDir, 500.0f)), nearbyEnemies);
+    }
+    const std::vector<EnemyBase*>& targetEnemies = nearbyEnemies.empty() ? enemyList : nearbyEnemies;
+
+    for (const auto& enemy : targetEnemies)
     {
         if (!enemy || !enemy->IsAlive())
         {
@@ -1048,7 +1061,15 @@ void Player::UpdateLockOn(const std::vector<EnemyBase*>& enemyList,
         m_lockedOnEnemy = nullptr;
         float minScreenDistSq = -1.0f;
 
-        for (EnemyBase* enemy : enemyList)
+        // ロックオン範囲内の敵のみをグリッドから取得
+        std::vector<EnemyBase*> lockOnTargets;
+        if (Game::m_pWaveManager)
+        {
+            Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(m_modelPos, lockOnTargets);
+        }
+        const std::vector<EnemyBase*>& searchList = lockOnTargets.empty() ? enemyList : lockOnTargets;
+
+        for (EnemyBase* enemy : searchList)
         {
             if (!enemy || !enemy->IsAlive())
                 continue;

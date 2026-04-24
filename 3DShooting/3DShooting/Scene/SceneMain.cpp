@@ -228,6 +228,7 @@ void SceneMain::Init()
 
     m_pWaveManager = std::make_shared<WaveManager>();
     m_pWaveManager->Init();
+    Game::m_pWaveManager = m_pWaveManager.get();
 
     m_pDirectionIndicator = std::make_unique<DirectionIndicator>();
     m_pDirectionIndicator->Init(m_pPlayer.get());
@@ -239,7 +240,8 @@ void SceneMain::Init()
     m_pBossUI = std::make_unique<BossUI>();
 
     // RoadFloorオブジェクトの範囲を設定（マップ全体の範囲）
-    m_pWaveManager->SetRoadFloorBounds(kRoadFloorMin, kRoadFloorMax);
+    m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
+    m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
 
     // カメラの初期化
     if (m_pPlayer->GetCamera())
@@ -411,6 +413,10 @@ void SceneMain::SwitchToMainStage()
   // メインステージをロード
   m_pStage->LoadStage(false);
   m_isTutorialStage = false;
+
+  // ステージ範囲を更新
+  m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
+  m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
 
   // プレイヤーの再初期化（位置などをCSVから再取得）
   m_pPlayer->Init(false);
@@ -851,12 +857,12 @@ void SceneMain::Draw()
     {
         TaskTutorialManager::GetInstance()->Draw();
         // タスクチュートリアル中は敵を描画する
-        m_pWaveManager->DrawEnemies(m_isTutorialStage);
+        m_pWaveManager->DrawEnemies(m_pStage->GetCollisionData(), m_isTutorialStage);
     }
     // メインゲームループ中の敵描画 (両方のチュートリアルが完了した場合)
     else
     {
-        m_pWaveManager->DrawEnemies(m_isTutorialStage);
+        m_pWaveManager->DrawEnemies(m_pStage->GetCollisionData(), m_isTutorialStage);
     }
 
     m_pEffect->Draw();

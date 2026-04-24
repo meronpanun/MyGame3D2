@@ -1,4 +1,5 @@
 ﻿#include "DebugMenu.h"
+#include "CollisionGrid.h"
 #include "DxLib.h"
 #include "Game.h"
 #include "ItemBase.h"
@@ -484,7 +485,14 @@ DebugMenu::MenuItem DebugMenu::CreateStageMenu()
          },
          []() {
            return Stage::ShouldDrawTutorialCollision() ? "[ON]" : "[OFF]";
-         }}
+         }},
+        {"Spatial Partitioning",
+         {},
+         []() {
+           bool isDraw = !CollisionGrid::IsDrawGrid();
+           CollisionGrid::SetDrawGrid(isDraw);
+         },
+         []() { return CollisionGrid::IsDrawGrid() ? "[ON]" : "[OFF]"; }}
     };
     stageMenu.action = nullptr;
     return stageMenu;

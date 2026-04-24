@@ -90,8 +90,8 @@ void WaveManager::Init()
     // スポーンエリアデータをロード (WaveDataLoaderを使用)
     m_spawnAreaList = WaveDataLoader::LoadSpawnAreaData("data/CSV/SpawnAreaData.csv");
 
-    // グリッド初期化
-    m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 150.0f);
+    // グリッド初期化 (セルサイズを100に縮小して分割を見やすくする)
+    m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 100.0f);
 
     // 敵プール初期化
     InitEnemyPools();
@@ -200,6 +200,17 @@ void WaveManager::Reset()
 
 void WaveManager::Update()
 {
+    // グリッドを一度クリアし、現在の生存中の敵で再構築
+    m_collisionGrid.Clear();
+    m_collisionGrid.ResetAccessFlags(); // フレームの開始時に一度だけリセット
+    for (auto& pEnemy : m_enemyList)
+    {
+        if (pEnemy->IsActive() && pEnemy->IsAlive())
+        {
+            m_collisionGrid.RegisterEnemy(pEnemy.get());
+        }
+    }
+
     // UI更新
     m_pWaveUI->Update();
 
@@ -290,11 +301,7 @@ void WaveManager::UpdateEnemies(
         }
     }
 
-    m_collisionGrid.Clear();
-    for (auto* enemy : activeEnemies)
-    {
-        m_collisionGrid.RegisterEnemy(enemy);
-    }
+    // グリッドはUpdate()の時点で構築済みなのでここでは行わない
 
     EnemyUpdateContext context = { bullets, tackleInfo, player, activeEnemies, collisionData, pEffect, &m_collisionGrid };
 
@@ -307,7 +314,7 @@ void WaveManager::UpdateEnemies(
     }
 }
 
-void WaveManager::DrawEnemies(bool isTutorial)
+void WaveManager::DrawEnemies(const std::vector<Stage::StageCollisionData>& collisionData, bool isTutorial)
 {
     for (const auto& pEnemy : m_enemyList)
     {
@@ -316,6 +323,9 @@ void WaveManager::DrawEnemies(bool isTutorial)
             pEnemy->Draw();
         }
     }
+
+    // 空間分割グリッドの描画
+    m_collisionGrid.Draw(collisionData);
 
     // デバッグ表示
     // (UIクラスに移譲、フラグチェックはWaveManagerが持つか、UI側で持つか)
@@ -351,6 +361,9 @@ void WaveManager::SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos)
     m_roadFloorMin = minPos;
     m_roadFloorMax = maxPos;
     m_hasSetRoadFloorBounds = true;
+
+    // 範囲が変更されたのでグリッドを再初期化
+    m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 100.0f);
 }
 
 VECTOR WaveManager::GenerateRandomSpawnPos(const VECTOR& playerPos)

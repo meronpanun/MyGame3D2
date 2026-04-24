@@ -11,6 +11,9 @@ void StageObject::Init(int duplicateHandle, Vec3 pos, Vec3 rot, Vec3 scale)
 {
 	m_modelHandle = duplicateHandle;
 	assert(m_modelHandle >= 0);
+	m_pos = pos;
+	m_rot = rot;
+	m_scale = scale;
 
 	// Unity側で既に座標系変換が行われているため、位置はそのまま使用
 	// Unity側: pos = new Vector3(pos.x, pos.y, -pos.z) でZ軸が反転済み
