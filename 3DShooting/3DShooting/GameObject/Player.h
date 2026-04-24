@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -468,6 +468,8 @@ private:
     int m_lightLandingSEHandle;          // 通常着地SEのハンドル
     int m_heavyLandingSEHandle;          // 重量着地SEのハンドル
     int m_parrySEHandle;                 // パリィSEのハンドル
+    int m_heartbeatSEHandle;             // 低体力時SEハンドル
+    int m_guardSEHandle;                 // ガード時SEハンドル
     int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
     int m_tackleFrame;                   // タックルのフレーム数
     int m_tackleId;                      // タックルID

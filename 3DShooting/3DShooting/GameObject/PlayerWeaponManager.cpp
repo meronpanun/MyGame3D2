@@ -1,4 +1,4 @@
-﻿#include "PlayerWeaponManager.h"
+#include "PlayerWeaponManager.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -59,6 +59,10 @@ namespace PlayerWeaponConstants
 
     // 基準周波数
     constexpr int kBaseSoundFrequency = 44100;
+
+    // 薬莢SEの音量
+	constexpr int kARCartridgeSEVolume = 120;
+	constexpr int kSGCartridgeSEVolume = 120;
 }
 
 PlayerWeaponManager::PlayerWeaponManager()
@@ -93,6 +97,9 @@ PlayerWeaponManager::PlayerWeaponManager()
     , m_sgAnimTime(0.0f)
     , m_shotSEHandle(-1)
     , m_sgShotSEHandle(-1)
+    , m_sgPumpSEHandle(-1)
+    , m_sgCartridgeSEHandle(-1)
+    , m_sgPumpTimer(0.0f)
     , m_pullBackOffset(0.0f)
 {
     // アサルトライフルモデルの読み込み
@@ -111,6 +118,15 @@ PlayerWeaponManager::PlayerWeaponManager()
     assert(m_shotSEHandle != -1);
     m_sgShotSEHandle = LoadSoundMem("data/sound/SE/ShotGunSE.mp3");
     assert(m_sgShotSEHandle != -1);
+    m_sgPumpSEHandle = LoadSoundMem("data/sound/SE/ShotgunPumpAction.mp3");
+    assert(m_sgPumpSEHandle != -1);
+    m_sgCartridgeSEHandle = LoadSoundMem("data/sound/SE/ShotgunCartridge.mp3");
+    assert(m_sgCartridgeSEHandle != -1);
+    ChangeVolumeSoundMem(PlayerWeaponConstants::kSGCartridgeSEVolume, m_sgCartridgeSEHandle);
+
+    m_arCartridgeSEHandle = LoadSoundMem("data/sound/SE/AssaultRifleCartridge.mp3");
+    assert(m_arCartridgeSEHandle != -1);
+    ChangeVolumeSoundMem(PlayerWeaponConstants::kARCartridgeSEVolume, m_arCartridgeSEHandle);
 }
 
 PlayerWeaponManager::~PlayerWeaponManager()
@@ -122,6 +138,9 @@ PlayerWeaponManager::~PlayerWeaponManager()
     // SEの解放
     DeleteSoundMem(m_shotSEHandle);
     DeleteSoundMem(m_sgShotSEHandle);
+    DeleteSoundMem(m_sgPumpSEHandle);
+    DeleteSoundMem(m_sgCartridgeSEHandle);
+    DeleteSoundMem(m_arCartridgeSEHandle);
 }
 
 void PlayerWeaponManager::Init(int arInitAmmo, int sgInitAmmo, int arMaxAmmo,
@@ -166,6 +185,48 @@ void PlayerWeaponManager::Update(const UpdateContext& context)
     {
         m_shootCooldownTimer -= deltaTime;
         if (m_shootCooldownTimer < 0.0f) m_shootCooldownTimer = 0.0f;
+    }
+    
+    // ポンプアクションタイマーの更新
+    if (m_sgPumpTimer > 0.0f)
+    {
+        m_sgPumpTimer -= deltaTime;
+        if (m_sgPumpTimer <= 0.0f)
+        {
+            m_sgPumpTimer = 0.0f;
+            // ポンプアクション音を再生
+            PlaySoundMem(m_sgPumpSEHandle, DX_PLAYTYPE_BACK);
+        }
+    }
+
+    // アサルトライフル薬莢SEキューの更新
+    for (auto it = m_arCartridgeQueue.begin(); it != m_arCartridgeQueue.end(); )
+    {
+        *it -= deltaTime;
+        if (*it <= 0.0f)
+        {
+            PlaySoundMem(m_arCartridgeSEHandle, DX_PLAYTYPE_BACK);
+            it = m_arCartridgeQueue.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    // ショットガン薬莢SEキューの更新
+    for (auto it = m_sgCartridgeQueue.begin(); it != m_sgCartridgeQueue.end(); )
+    {
+        *it -= deltaTime;
+        if (*it <= 0.0f)
+        {
+            PlaySoundMem(m_sgCartridgeSEHandle, DX_PLAYTYPE_BACK);
+            it = m_sgCartridgeQueue.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
     }
 
     // 武器切り替えアニメーションの更新
@@ -504,6 +565,8 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
             pAnimManager->PlayAnimation(m_sgHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
             m_isSGAnimPlaying = true;
             m_sgAnimTime = 0.0f;
+            m_sgPumpTimer = 0.4f;      // 0.4秒後にポンプアクション音を再生
+            m_sgCartridgeQueue.push_back(1.2f); // 1.2秒後に薬莢落下音を再生
         }
         // ショットガンは複数弾をばらけさせて発射
         for (int i = 0; i < 5; ++i)
@@ -523,9 +586,12 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
         break;
     }
 
-    // 薬莢を生成 (アサルトライフルの場合のみ)
+    // 薬莢SEを予約
     if (m_currentWeaponType == WeaponType::AssaultRifle)
     {
+        m_arCartridgeQueue.push_back(0.8f); // 0.8秒後に薬莢落下音を再生
+
+        // 薬莢モデルの生成
         VECTOR ejectionPos = GetEjectionPortPos();
         VECTOR ejectionDir = VGet(sinf(pCamera->GetYaw() + DX_PI_F * 0.5f), 0.5f, cosf(pCamera->GetYaw() + DX_PI_F * 0.5f));
         shellCasings.emplace_back(ejectionPos, ejectionDir);

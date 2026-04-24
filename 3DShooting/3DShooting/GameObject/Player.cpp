@@ -184,6 +184,8 @@ Player::Player()
     , m_uiFadeDuration(60.0f)
     , m_isUiFadeStarted(false)
     , m_isDamageHandledInThisFrame(false)
+    , m_heartbeatSEHandle(-1)
+    , m_guardSEHandle(-1)
 {
     // SEの読み込み
     m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
@@ -204,6 +206,10 @@ Player::Player()
     ChangeVolumeSoundMem(PlayerConstants::kHeavyLandingVolume, m_heavyLandingSEHandle);
     m_parrySEHandle = LoadSoundMem("data/sound/SE/Parry.mp3");
     assert(m_parrySEHandle != -1);
+    m_heartbeatSEHandle = LoadSoundMem("data/sound/SE/Heart.mp3");
+    assert(m_heartbeatSEHandle != -1);
+    m_guardSEHandle = LoadSoundMem("data/sound/SE/Guard.mp3");
+    assert(m_guardSEHandle != -1);
 }
 
 Player::~Player()
@@ -217,6 +223,8 @@ Player::~Player()
     DeleteSoundMem(m_lightLandingSEHandle);
     DeleteSoundMem(m_heavyLandingSEHandle);
     DeleteSoundMem(m_parrySEHandle);
+    DeleteSoundMem(m_heartbeatSEHandle);
+    DeleteSoundMem(m_guardSEHandle);
 }
 
 void Player::Init(bool isTutorial)
@@ -364,6 +372,22 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
 
     // フレームごとのダメージ演出フラグをリセット
     m_isDamageHandledInThisFrame = false;
+
+    // 低体力警告の心音再生制御
+    if (m_isLowHealth && !m_isDead)
+    {
+        if (CheckSoundMem(m_heartbeatSEHandle) == 0)
+        {
+            PlaySoundMem(m_heartbeatSEHandle, DX_PLAYTYPE_LOOP);
+        }
+    }
+    else
+    {
+        if (CheckSoundMem(m_heartbeatSEHandle) == 1)
+        {
+            StopSoundMem(m_heartbeatSEHandle);
+        }
+    }
 
     // カメラ更新
     m_pCamera->Update(isInputDisabled);
@@ -551,11 +575,11 @@ void Player::Draw3D()
         m_isTackling,
         startAnimOffsetY
     };
-    m_weaponManager.Draw3D(weaponDrawContext);
-
-    // 弾と薬莢の描画
+    // 弾と薬莢の描画 (武器の最前面描画より前に行うことで、ステージ等に正しく隠れるようにする)
     Bullet::DrawBullets(m_bullets);
     ShellCasing::DrawShellCasings(m_shellCasings);
+
+    m_weaponManager.Draw3D(weaponDrawContext);
 
     // シールドソーの描画（投げられている場合のみ）
     if (m_shieldSystem.IsShieldThrown())
@@ -641,6 +665,9 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
         {
             m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
         }
+
+        // ガード音を再生
+        PlaySoundMem(m_guardSEHandle, DX_PLAYTYPE_BACK);
 
         // 盾の前方にスパークエフェクトを再生
         if (m_pEffect)

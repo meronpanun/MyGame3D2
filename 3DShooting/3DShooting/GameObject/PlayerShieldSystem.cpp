@@ -118,6 +118,7 @@ PlayerShieldSystem::PlayerShieldSystem()
     , m_boomerangFadeVolume(1.0f)
     , m_shieldHitSEHandle(-1)
     , m_shieldHitSECooldown(0.0f)
+    , m_shieldBreakSEHandle(-1)
 {
     // 盾モデルの読み込み
     m_shieldModelHandle = MV1LoadModel("data/model/Shield.mv1");
@@ -141,6 +142,10 @@ PlayerShieldSystem::PlayerShieldSystem()
     // 盾ヒットSEの読み込み
     m_shieldHitSEHandle = LoadSoundMem("data/sound/SE/ShieldThrowHit.mp3");
     assert(m_shieldHitSEHandle != -1);
+    
+    // 破壊SEの読み込み
+    m_shieldBreakSEHandle = LoadSoundMem("data/sound/SE/GuardDestruction.mp3");
+    assert(m_shieldBreakSEHandle != -1);
 }
 
 PlayerShieldSystem::~PlayerShieldSystem()
@@ -150,6 +155,7 @@ PlayerShieldSystem::~PlayerShieldSystem()
     DeleteSoundMem(m_reflectSEHandle);
     DeleteSoundMem(m_boomerangSEHandle);
     DeleteSoundMem(m_shieldHitSEHandle);
+    DeleteSoundMem(m_shieldBreakSEHandle);
 }
 
 void PlayerShieldSystem::Init(float maxDurability, float regenRate)
@@ -487,6 +493,9 @@ float PlayerShieldSystem::TakeDamage(float damage, Effect* pEffect,
         remainingDamage = -m_shieldDurability;
         m_shieldDurability = 0.0f;
         m_isShieldBroken = true;
+
+        // 破壊音を再生
+        PlaySoundMem(m_shieldBreakSEHandle, DX_PLAYTYPE_BACK);
 
         // 盾破壊アニメーション開始
         m_isShieldAnimating = true;

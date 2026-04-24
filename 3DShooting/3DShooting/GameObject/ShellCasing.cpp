@@ -1,21 +1,21 @@
-﻿#include "ShellCasing.h"
+#include "ShellCasing.h"
 #include "DxLib.h"
 #include "Game.h"
 
 namespace
 {
 	constexpr float kGravity       = 0.05f; // 重力の影響
-	constexpr int   kMaxLifeTime   = 300;   // 最大寿命（フレーム）
+	constexpr int   kMaxLifeTime   = 60;    // 最大寿命（フレーム）約1秒
 }
 
 int ShellCasing::s_modelHandle = -1;
 
-void ShellCasing::LoadModel()
+void ShellCasing::LoadResources()
 {
     s_modelHandle = MV1LoadModel("data/model/shell.mv1");
 }
 
-void ShellCasing::DeleteModel()
+void ShellCasing::DeleteResources()
 {
     MV1DeleteModel(s_modelHandle);
 }
@@ -39,13 +39,12 @@ void ShellCasing::Update()
     VECTOR screenPos = ConvWorldPosToScreenPos(m_pos);
 
     // 画面外に出たら削除
-    // 画面の境界に少しマージンを持たせる
     constexpr float margin = 50.0f;
     if (screenPos.x < -margin || screenPos.x > Game::GetScreenWidth() + margin ||
         screenPos.y < -margin || screenPos.y > Game::GetScreenHeight() + margin ||
-        screenPos.z < 0.0f) // Zが0未満はカメラの後ろ、または遠すぎる場合
+        screenPos.z < 0.0f) 
     {
-        m_lifeTime = 0; // 寿命を0にして削除対象にする
+        m_lifeTime = 0;
     }
 
     m_rotation.x += 0.1f;

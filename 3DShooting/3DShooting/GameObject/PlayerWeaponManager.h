@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <vector>
 #include <tuple>
+#include <deque>
 
 class Bullet;
 class Camera;
@@ -317,6 +318,9 @@ private:
     int m_currentWeaponIndex;
     int m_shotSEHandle;
     int m_sgShotSEHandle;
+    int m_sgPumpSEHandle;
+	int m_sgCartridgeSEHandle;
+    int m_arCartridgeSEHandle;
 
     // 弾薬関連
     int m_arAmmo;
@@ -357,6 +361,9 @@ private:
     // ショットガンアニメーション
     bool m_isSGAnimPlaying;
     float m_sgAnimTime;
+    float m_sgPumpTimer;
+    std::deque<float> m_arCartridgeQueue;
+    std::deque<float> m_sgCartridgeQueue;
 
     // 引き込みオフセット
     float m_pullBackOffset;

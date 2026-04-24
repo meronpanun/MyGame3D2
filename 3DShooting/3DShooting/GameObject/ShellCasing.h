@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "DxLib.h"
 #include <vector>
 
@@ -27,14 +27,14 @@ public:
 
 public:
     /// <summary>
-    /// モデルの読み込み
+    /// モデル・SEの読み込み
     /// </summary>
-    static void LoadModel();
+    static void LoadResources();
 
     /// <summary>
-	/// モデルの解放
+	/// モデル・SEの解放
     /// </summary>
-    static void DeleteModel();
+    static void DeleteResources();
 
 private:
     VECTOR m_pos;

@@ -203,6 +203,7 @@ private:
     int m_boomerangSEHandle;      // ブーメランSEハンドル
     int m_boomerangTotalTime;     // ブーメランSEの総時間
     int m_shieldHitSEHandle;      // 盾ヒットSEハンドル
+    int m_shieldBreakSEHandle;    // 盾破壊SEハンドル
     bool m_isBoomerangFading;     // フェードアウト中フラグ
     float m_boomerangFadeVolume;  // フェードアウト用音量倍率
     float m_shieldHitSECooldown;  // ヒットSE再生用クールタイム

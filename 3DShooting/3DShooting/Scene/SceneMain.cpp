@@ -11,7 +11,9 @@
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
+#include "EnemyAcid.h"
 #include "FirstAidKitItem.h"
+#include "ShellCasing.h"
 #include "Game.h"
 #include "InputManager.h"
 #include "Player.h"
@@ -150,7 +152,7 @@ SceneMain::~SceneMain()
     // アイテムモデルの解放
     FirstAidKitItem::DeleteModel();
     AmmoItem::DeleteModel();
-    ShellCasing::DeleteModel();
+    ShellCasing::DeleteResources();
 
     DeleteSoundMem(m_headShotSEHandle);
 
@@ -186,7 +188,7 @@ void SceneMain::Init()
     // アイテムモデルの読み込み
     FirstAidKitItem::LoadModel();
     AmmoItem::LoadModel();
-    ShellCasing::LoadModel();
+    ShellCasing::LoadResources();
 
     // インジケーター画像の読み込み
     DirectionIndicator::LoadResources();
