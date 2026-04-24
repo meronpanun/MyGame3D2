@@ -1,4 +1,4 @@
-﻿#include "WaveManager.h"
+#include "WaveManager.h"
 #include "Bullet.h"
 #include "CollisionGrid.h"
 #include "EffekseerForDXLib.h"
@@ -202,7 +202,10 @@ void WaveManager::Update()
 {
     // グリッドを一度クリアし、現在の生存中の敵で再構築
     m_collisionGrid.Clear();
-    m_collisionGrid.ResetAccessFlags(); // フレームの開始時に一度だけリセット
+    m_collisionGrid.ResetAccessFlags();
+    m_collisionGrid.ResetStats(); // 統計のリセット
+    m_collisionGrid.SetTotalEnemies(0); // 総敵数のカウント用リセット
+
     for (auto& pEnemy : m_enemyList)
     {
         if (pEnemy->IsActive() && pEnemy->IsAlive())
@@ -342,6 +345,11 @@ void WaveManager::DrawWaveUI()
     {
         m_pWaveUI->DrawWaveUI(m_currentWave, m_isWaveActive, m_haveAllWavesCompleted);
     }
+}
+
+void WaveManager::DrawDebugUI()
+{
+    m_collisionGrid.DrawUI();
 }
 
 

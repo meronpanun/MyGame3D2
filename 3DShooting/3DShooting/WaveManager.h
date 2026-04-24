@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "CollisionGrid.h"
 #include "DxLib.h"
 #include "EnemyBase.h"
@@ -92,6 +92,11 @@ public:
     /// ウェーブUIの描画
     /// </summary>
     void DrawWaveUI();
+
+    /// <summary>
+    /// デバッグUIの描画
+    /// </summary>
+    void DrawDebugUI();
 
     /// <summary>
     /// 現在のウェーブがアクティブかどうかを取得

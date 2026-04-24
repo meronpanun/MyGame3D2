@@ -486,13 +486,20 @@ DebugMenu::MenuItem DebugMenu::CreateStageMenu()
          []() {
            return Stage::ShouldDrawTutorialCollision() ? "[ON]" : "[OFF]";
          }},
-        {"Spatial Partitioning",
+        {"Spatial Grid Visualization",
          {},
          []() {
            bool isDraw = !CollisionGrid::IsDrawGrid();
            CollisionGrid::SetDrawGrid(isDraw);
          },
-         []() { return CollisionGrid::IsDrawGrid() ? "[ON]" : "[OFF]"; }}
+         []() { return CollisionGrid::IsDrawGrid() ? "[ON]" : "[OFF]"; }},
+        {"Spatial Optimization",
+         {},
+         []() {
+           bool use = !CollisionGrid::IsUseSpatialPartitioning();
+           CollisionGrid::SetUseSpatialPartitioning(use);
+         },
+         []() { return CollisionGrid::IsUseSpatialPartitioning() ? "[ON]" : "[OFF]"; }}
     };
     stageMenu.action = nullptr;
     return stageMenu;

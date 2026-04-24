@@ -1,4 +1,4 @@
-﻿#include "SceneMain.h"
+#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -1121,6 +1121,12 @@ void SceneMain::Draw()
     if (m_isShowDebugHUD)
     {
         DrawDebugHUD();
+    }
+
+    // 空間分割デバッグUI描画
+    if (m_pWaveManager)
+    {
+        m_pWaveManager->DrawDebugUI();
     }
 }
 

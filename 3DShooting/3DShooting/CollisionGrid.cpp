@@ -8,6 +8,7 @@
 #include <algorithm>
 
 bool CollisionGrid::s_drawGrid = false;
+bool CollisionGrid::s_useSpatialPartitioning = true;
 
 CollisionGrid::CollisionGrid()
     : m_minArea(VGet(0, 0, 0))
@@ -15,6 +16,10 @@ CollisionGrid::CollisionGrid()
     , m_cellSize(0)
     , m_width(0)
     , m_height(0)
+    , m_totalQueries(0)
+    , m_totalEntitiesChecked(0)
+    , m_totalSearchTime(0)
+    , m_totalEnemies(0)
 {
 }
 
@@ -51,6 +56,13 @@ void CollisionGrid::Clear()
 void CollisionGrid::ResetAccessFlags()
 {
     std::fill(m_accessedCells.begin(), m_accessedCells.end(), false);
+}
+
+void CollisionGrid::ResetStats()
+{
+    m_totalQueries = 0;
+    m_totalEntitiesChecked = 0;
+    m_totalSearchTime = 0;
 }
 
 void CollisionGrid::CalculateHeights(const std::vector<Stage::StageCollisionData>& collisionData)
@@ -95,15 +107,35 @@ void CollisionGrid::RegisterEnemy(EnemyBase* enemy)
     if (cellIndex != -1)
     {
         m_cells[cellIndex].push_back(enemy);
+        m_totalEnemies++;
     }
 }
 
 void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& outNeighbors) const
 {
+    LONGLONG startTime = GetNowHiPerformanceCount();
+    m_totalQueries++;
+
+    // 空間分割を使用しない場合（総当たりモード）
+    if (!s_useSpatialPartitioning)
+    {
+        for (int z = 0; z < m_height; ++z)
+        {
+            for (int x = 0; x < m_width; ++x)
+            {
+                const auto& targetCell = m_cells[z * m_width + x];
+                m_totalEntitiesChecked += (int)targetCell.size();
+                outNeighbors.insert(outNeighbors.end(), targetCell.begin(), targetCell.end());
+            }
+        }
+        m_totalSearchTime += GetNowHiPerformanceCount() - startTime;
+        return;
+    }
+
     int cx, cz;
     GetCellIndices(pos, cx, cz);
-
-    // 自身が属するセルを中心に、周囲3×3 = 9セル分のエリアを走査
+    
+    // ... (以降の空間分割ロジック)
     for (int z = cz - 1; z <= cz + 1; ++z)
     {
         for (int x = cx - 1; x <= cx + 1; ++x)
@@ -111,14 +143,15 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
             if (x >= 0 && x < m_width && z >= 0 && z < m_height)
             {
                 int index = z * m_width + x;
-                const_cast<CollisionGrid*>(this)->m_accessedCells[index] = true; // アクセス記録
+                const_cast<CollisionGrid*>(this)->m_accessedCells[index] = true;
                 const auto& targetCell = m_cells[index];
             
-                // ベクターの末尾に該当セルの敵リスト（ポインタ）を一括挿入
+                m_totalEntitiesChecked += (int)targetCell.size();
                 outNeighbors.insert(outNeighbors.end(), targetCell.begin(), targetCell.end());
             }
         }
     }
+    m_totalSearchTime += GetNowHiPerformanceCount() - startTime;
 }
 
 int CollisionGrid::GetCellIndex(const VECTOR& pos) const
@@ -286,6 +319,15 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
             }
         }
     }
+}
+
+void CollisionGrid::DrawUI() const
+{
+    if (!s_drawGrid) return;
+
+    // 2DUI描画の際は深度テストを無効化
+    SetUseZBuffer3D(FALSE);
+    SetWriteZBuffer3D(FALSE);
 
     // デバッグ用の凡例（説明）を描画
     int screenW = 1280;
@@ -294,7 +336,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
 
     int margin = 20;
     int rectW = 240;
-    int rectH = 90; // 高さを少し増やす
+    int rectH = 90; 
     int x = screenW - rectW - margin;
     int y = screenH - rectH - margin - 100;
 
@@ -316,4 +358,41 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
 
     textY += 25;
     DrawString(textX, textY, "数字：セル内の敵の数", 0xffffff);
+
+    // パフォーマンス統計
+    int statW = 320;
+    int statH = 150; 
+    int sx = margin;
+    int sy = screenH - statH - margin - 100;
+
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+    DrawBox(sx, sy, sx + statW, sy + statH, 0x000000, TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    DrawBox(sx, sy, sx + statW, sy + statH, 0xffffff, FALSE);
+
+    int sTextX = sx + 10;
+    int sTextY = sy + 10;
+    DrawString(sTextX, sTextY, "【空間分割パフォーマンス評価】", 0x00ffff);
+    
+    sTextY += 25;
+    DrawFormatString(sTextX, sTextY, 0xffffff, "現在のモード: %s", s_useSpatialPartitioning ? "空間分割 (ON)" : "総当たり (OFF)");
+    
+    sTextY += 20;
+    DrawFormatString(sTextX, sTextY, 0xffffff, "総敵数: %d / クエリ数: %d", m_totalEnemies, m_totalQueries);
+    
+    sTextY += 20;
+    int fullScanChecks = m_totalEnemies * m_totalQueries;
+    float reduction = 0.0f;
+    if (fullScanChecks > 0) {
+        reduction = (1.0f - (float)m_totalEntitiesChecked / fullScanChecks) * 100.0f;
+    }
+    
+    unsigned int statColor = s_useSpatialPartitioning ? 0x00ff00 : 0xffaa00;
+    DrawFormatString(sTextX, sTextY, statColor, "判定対象削減率: %.1f%%", s_useSpatialPartitioning ? reduction : 0.0f);
+    
+    sTextY += 20;
+    DrawFormatString(sTextX, sTextY, 0xffffff, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
+
+    sTextY += 25;
+    DrawFormatString(sTextX, sTextY, 0xffff00, "検索処理時間: %lld us (マイクロ秒)", m_totalSearchTime);
 }

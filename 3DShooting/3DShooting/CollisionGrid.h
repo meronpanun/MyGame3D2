@@ -24,6 +24,7 @@ public:
     /// </summary>
     void Clear();
     void ResetAccessFlags();
+    void ResetStats();
     void CalculateHeights(const std::vector<Stage::StageCollisionData>& collisionData);
 
     /// <summary>
@@ -44,9 +45,20 @@ public:
     /// グリッドのデバッグ描画
     /// </summary>
     void Draw(const std::vector<Stage::StageCollisionData>& collisionData = {}) const;
+    void DrawUI() const;
 
     static void SetDrawGrid(bool draw) { s_drawGrid = draw; }
     static bool IsDrawGrid() { return s_drawGrid; }
+
+    static void SetUseSpatialPartitioning(bool use) { s_useSpatialPartitioning = use; }
+    static bool IsUseSpatialPartitioning() { return s_useSpatialPartitioning; }
+
+    // パフォーマンス計測用
+    int GetTotalQueries() const { return m_totalQueries; }
+    int GetTotalEntitiesChecked() const { return m_totalEntitiesChecked; }
+    int GetTotalEnemies() const { return m_totalEnemies; }
+    void SetTotalEnemies(int count) { m_totalEnemies = count; }
+    LONGLONG GetTotalSearchTime() const { return m_totalSearchTime; }
 
 private:
     int GetCellIndex(const VECTOR& pos) const;
@@ -62,5 +74,12 @@ private:
     int m_width;
     int m_height;
 
+    // 計測用
+    mutable int m_totalQueries;
+    mutable int m_totalEntitiesChecked;
+    mutable LONGLONG m_totalSearchTime;
+    int m_totalEnemies;
+
     static bool s_drawGrid;
+    static bool s_useSpatialPartitioning;
 };
