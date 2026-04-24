@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
@@ -115,5 +115,9 @@ private:
     bool m_isEvadingRight;    // 現在右に避けているか
 
 
+    float m_distToPlayer;         // プレイヤーとの距離
+    float m_damageSECooldown;    // ダメージSE再生用クールタイム
     static int s_modelHandle; // 共有モデルハンドル
+    static int s_attackSEHandle; // 攻撃SEハンドル
+    static int s_damageSEHandle; // ダメージSEハンドル
 };

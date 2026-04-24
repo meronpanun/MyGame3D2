@@ -129,8 +129,7 @@ namespace PlayerConstants
 }
 
 Player::Player()
-    : m_playerHitSEHandle(-1)
-    , m_tackleSEHandle(-1)
+    : m_tackleSEHandle(-1)
     , m_tackleHitSEHandle(-1)
     , m_recoverySEHandle(-1)
     , m_ammoItemSEHandle(-1)
@@ -190,6 +189,11 @@ Player::Player()
     // SEの読み込み
     m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
     assert(m_playerHitSEHandle != -1);
+    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt1.wav"));
+    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt2.wav"));
+    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt3.wav"));
+    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt4.wav"));
+    for (int handle : m_hurtSEHandles) assert(handle != -1);
     m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
     assert(m_tackleSEHandle != -1);
     m_tackleHitSEHandle = LoadSoundMem("data/sound/SE/TackleHit.mp3");
@@ -216,6 +220,7 @@ Player::~Player()
 {
     // SEの解放
     DeleteSoundMem(m_playerHitSEHandle);
+    for (int handle : m_hurtSEHandles) DeleteSoundMem(handle);
     DeleteSoundMem(m_tackleSEHandle);
     DeleteSoundMem(m_tackleHitSEHandle);
     DeleteSoundMem(m_recoverySEHandle);
@@ -697,7 +702,15 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
             // 被弾演出（SE/振動）をフレーム内で一度だけ実行
             if (!m_isDamageHandledInThisFrame)
             {
+                // 衝撃音の再生
                 PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+
+                // ボイスの再生
+                if (!m_hurtSEHandles.empty())
+                {
+                    int randomIndex = GetRand(static_cast<int>(m_hurtSEHandles.size()) - 1);
+                    PlaySoundMem(m_hurtSEHandles[randomIndex], DX_PLAYTYPE_BACK);
+                }
                 if (m_pCamera)
                 {
                     m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
@@ -736,7 +749,15 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
     // 被弾演出（SE/振動）をフレーム内で一度だけ実行
     if (!m_isDamageHandledInThisFrame)
     {
+        // 衝撃音の再生
         PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+
+        // ボイスの再生
+        if (!m_hurtSEHandles.empty())
+        {
+            int randomIndex = GetRand(static_cast<int>(m_hurtSEHandles.size()) - 1);
+            PlaySoundMem(m_hurtSEHandles[randomIndex], DX_PLAYTYPE_BACK);
+        }
         if (m_pCamera)
         {
             m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);

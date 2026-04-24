@@ -1,4 +1,4 @@
-﻿#include "EnemyRunner.h"
+#include "EnemyRunner.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -56,6 +56,8 @@ namespace EnemyRunnerConstants
 }
 
 int EnemyRunner::s_modelHandle = -1;
+int EnemyRunner::s_attackSEHandle = -1;
+int EnemyRunner::s_damageSEHandle = -1;
 bool EnemyRunner::s_shouldDrawCollision = false;
 
 EnemyRunner::EnemyRunner()
@@ -68,6 +70,8 @@ EnemyRunner::EnemyRunner()
     , m_attackEndDelayTimer(0)
     , m_isDeadAnimPlaying(false)
     , m_hasDroppedItem(false)
+    , m_distToPlayer(0.0f)
+    , m_damageSECooldown(0.0f)
 {
     // モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -89,11 +93,19 @@ void EnemyRunner::LoadModel()
 {
     s_modelHandle = MV1LoadModel("data/model/RunnerZombie.mv1");
     assert(s_modelHandle != -1);
+
+    s_attackSEHandle = LoadSoundMem("data/sound/SE/RunnerZombieAttackVoice.wav");
+    assert(s_attackSEHandle != -1);
+
+    s_damageSEHandle = LoadSoundMem("data/sound/SE/RunnerZombieDamageVoice.wav");
+    assert(s_damageSEHandle != -1);
 }
 
 void EnemyRunner::DeleteModel()
 {
     MV1DeleteModel(s_modelHandle);
+    DeleteSoundMem(s_attackSEHandle);
+    DeleteSoundMem(s_damageSEHandle);
 }
 
 void EnemyRunner::Init()
@@ -171,6 +183,17 @@ void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
     {
         m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
         m_animTime = 0.0f;
+
+        // 攻撃ボイスの再生
+        if (newAnimState == AnimState::Attack && s_attackSEHandle != -1)
+        {
+            float maxDist = 2000.0f;
+            float volRatio = 1.0f - (m_distToPlayer / maxDist);
+            if (volRatio < 0.0f) volRatio = 0.0f;
+            if (volRatio > 1.0f) volRatio = 1.0f;
+            ChangeVolumeSoundMem((int)(100 * volRatio), s_attackSEHandle);
+            PlaySoundMem(s_attackSEHandle, DX_PLAYTYPE_BACK);
+        }
     }
 
     m_currentAnimState = newAnimState;
@@ -241,6 +264,15 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
 
     // ステージとの当たり判定
     UpdateStageCollision(collisionData, context.collisionGrid);
+
+    // プレイヤーとの距離を更新
+    m_distToPlayer = VSize(VSub(context.player.GetPos(), m_pos));
+
+    // ダメージSEのクールタイム更新
+    if (m_damageSECooldown > 0.0f)
+    {
+        m_damageSECooldown -= 1.0f * Game::GetTimeScale();
+    }
 
     if (m_hp <= 0.0f)
     {
@@ -634,9 +666,22 @@ void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 // ダメージ処理
 void EnemyRunner::TakeDamage(float damage, AttackType type)
 {
-    if (m_isDeadAnimPlaying) return;
-
     EnemyBase::TakeDamage(damage, type);
+
+    // ダメージSEの再生 (クールタイム中ならスキップ)
+    if (s_damageSEHandle != -1 && m_damageSECooldown <= 0.0f && m_isAlive)
+    {
+        float maxDist = 2000.0f;
+        float volRatio = 1.0f - (m_distToPlayer / maxDist);
+        if (volRatio < 0.0f) volRatio = 0.0f;
+        if (volRatio > 1.0f) volRatio = 1.0f;
+
+        ChangeVolumeSoundMem((int)(255 * volRatio), s_damageSEHandle);
+        PlaySoundMem(s_damageSEHandle, DX_PLAYTYPE_BACK);
+
+        m_damageSECooldown = 45.0f; // 約0.75秒のクールタイム
+    }
+
     // HP減算・死亡判定は基底クラスで行う
     if (m_hp <= 0.0f) // 死亡時一度だけ
     {

@@ -460,7 +460,8 @@ private:
     int m_sgInitAmmo;                    // SGの初期弾薬数
     int m_arMaxAmmo;                     // ARの最大弾薬数
     int m_sgMaxAmmo;                     // SGの最大弾薬数
-    int m_playerHitSEHandle;             // 被弾SEのハンドル
+    int m_playerHitSEHandle;             // 従来の被弾SE（衝撃音）
+    std::vector<int> m_hurtSEHandles;    // 被弾ボイスのハンドル（ランダム再生用）
     int m_tackleSEHandle;                // タックルSEのハンドル
     int m_tackleHitSEHandle;             // タックルヒットSEのハンドル
     int m_recoverySEHandle;              // 回復アイテムSEのハンドル
