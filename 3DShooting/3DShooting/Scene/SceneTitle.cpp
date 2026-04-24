@@ -386,7 +386,7 @@ void SceneTitle::Draw()
         SetCameraNearFar(5.0f, 15000.0f); // スカイドームなどの遠景用
 
         // Zバッファ設定などを有効化
-        SetUseZBuffer3D(TRUE);
+        SetUseZBuffer3D(true);
         SetWriteZBuffer3D(TRUE);
 
         // スカイドーム描画（背面の奥に映るようにするため、Zバッファのテストも書き込みも無効にして一番奥に描画する）

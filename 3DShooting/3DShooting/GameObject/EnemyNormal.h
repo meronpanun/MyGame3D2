@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 
@@ -165,5 +165,8 @@ private:
     float m_shieldEffectTimer;     // シールドエフェクトの再生タイマー
     bool m_hasPlayedShieldBreakableEffect; // シールド破壊可能エフェクト再生済みフラグ
 
+    int m_voiceTimer;               // 環境ボイス再生用タイマー
+    float m_distToPlayer;           // プレイヤーとの距離
     static int s_modelHandle; // 共有モデルハンドル
+    static std::vector<int> s_voiceSEHandles; // 環境ボイスハンドルリスト
 };

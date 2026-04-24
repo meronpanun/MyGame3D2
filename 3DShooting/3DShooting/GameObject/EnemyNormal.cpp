@@ -1,4 +1,4 @@
-﻿#include "EnemyNormal.h"
+#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -56,6 +56,7 @@ namespace EnemyNormalConstants
 }
 
 int EnemyNormal::s_modelHandle = -1;
+std::vector<int> EnemyNormal::s_voiceSEHandles;
 bool EnemyNormal::s_shouldDrawCollision = false;
 bool EnemyNormal::s_shouldDrawShieldCollision = false;
 
@@ -69,6 +70,8 @@ EnemyNormal::EnemyNormal()
     , m_attackEndDelayTimer(0)
     , m_isDeadAnimPlaying(false)
     , m_hasDroppedItem(false)
+    , m_voiceTimer(180 + GetRand(420))
+    , m_distToPlayer(0.0f)
 {
     // モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -90,11 +93,19 @@ void EnemyNormal::LoadModel()
 {
     s_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
     assert(s_modelHandle != -1);
+
+    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice1.mp3"));
+    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice2.mp3"));
+    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice3.mp3"));
+    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice4.mp3"));
+    for (int handle : s_voiceSEHandles) assert(handle != -1);
 }
 
 void EnemyNormal::DeleteModel()
 {
     MV1DeleteModel(s_modelHandle);
+    for (int handle : s_voiceSEHandles) DeleteSoundMem(handle);
+    s_voiceSEHandles.clear();
 }
 
 void EnemyNormal::Init()
@@ -104,6 +115,7 @@ void EnemyNormal::Init()
     m_isAlive = true;
     m_isDeadAnimPlaying = false; // フラグリセット
     m_hasDroppedItem = false;
+    m_voiceTimer = 180 + GetRand(420); // 3秒〜10秒
     m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
     m_hitDisplayTimer = 0;         // ヒット表示タイマーもリセット
     m_damageTimer = 0;             // ダメージタイマー初期化
@@ -377,6 +389,33 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 
                 ++it;
             }
+        }
+    }
+
+    // プレイヤーとの距離を更新
+    m_distToPlayer = VSize(VSub(context.player.GetPos(), m_pos));
+
+    // 環境ボイスの更新
+    if (m_isAlive && !m_isDeadAnimPlaying)
+    {
+        m_voiceTimer--;
+        if (m_voiceTimer <= 0)
+        {
+            if (!s_voiceSEHandles.empty())
+            {
+                int randomIndex = GetRand(static_cast<int>(s_voiceSEHandles.size()) - 1);
+                int handle = s_voiceSEHandles[randomIndex];
+
+                float maxDist = 2000.0f;
+                float volRatio = 1.0f - (m_distToPlayer / maxDist);
+                if (volRatio < 0.0f) volRatio = 0.0f;
+                if (volRatio > 1.0f) volRatio = 1.0f;
+
+                ChangeVolumeSoundMem((int)(150 * volRatio), handle);
+                PlaySoundMem(handle, DX_PLAYTYPE_BACK);
+            }
+            // 次の再生までの時間をランダムに設定 (3秒〜10秒)
+            m_voiceTimer = 180 + GetRand(420);
         }
     }
 
