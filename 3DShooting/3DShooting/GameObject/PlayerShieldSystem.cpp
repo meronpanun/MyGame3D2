@@ -142,6 +142,24 @@ void PlayerShieldSystem::Init(float maxDurability, float regenRate)
     m_maxShieldDurability = maxDurability;
     m_shieldRegenRate = regenRate;
     m_isShieldBroken = false;
+    m_isShieldThrown = false;
+    m_shieldThrowState = ShieldThrowState::Idle;
+    m_boomerangTotalTime = 0;
+
+    // ブーメランSEの情報を事前取得（初回の再生不具合対策）
+    int handle = SoundManager::GetInstance()->GetHandle("Shield", "Boomerang");
+    if (handle != -1)
+    {
+        // MP3は一度再生（またはシーク）を試みないと総時間が正しく取得できないことがあるため「空回し」を行う
+        PlaySoundMem(handle, DX_PLAYTYPE_BACK);
+        StopSoundMem(handle);
+        m_boomerangTotalTime = GetSoundTotalTime(handle);
+
+        if (m_boomerangTotalTime > 0)
+        {
+            SetLoopPosSoundMem(0, handle);
+        }
+    }
 }
 
 void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
@@ -644,6 +662,7 @@ bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
     // ブーメランSEの再生（ループ）
     m_isBoomerangFading = false;
     m_boomerangFadeVolume = 1.0f;
+    SoundManager::GetInstance()->Stop("Shield", "Boomerang"); // 念のため一度止めてから再生
     SoundManager::GetInstance()->Play("Shield", "Boomerang", 255, true);
 
     return true;
@@ -691,12 +710,22 @@ void PlayerShieldSystem::UpdateShieldThrow(
             if (m_boomerangTotalTime <= 0)
             {
                 m_boomerangTotalTime = GetSoundTotalTime(handle);
-                SetLoopPosSoundMem(0, handle);
+                if (m_boomerangTotalTime > 0)
+                {
+                    SetLoopPosSoundMem(0, handle);
+                }
             }
-            int currentTime = GetSoundCurrentTime(handle);
-            if (currentTime >= m_boomerangTotalTime - 350)
+
+            // 総時間が取得できており、かつある程度の長さがある場合のみ手動ループ処理を行う
+            // currentTime が 0 の場合は再生開始直後なのでスキップする
+            // また、currentTime が総時間を超えているような異常値の場合もスキップする
+            if (m_boomerangTotalTime > 500)
             {
-                SetSoundCurrentTime(0, handle);
+                int currentTime = GetSoundCurrentTime(handle);
+                if (currentTime > 0 && currentTime < m_boomerangTotalTime && currentTime >= m_boomerangTotalTime - 350)
+                {
+                    SetSoundCurrentTime(0, handle);
+                }
             }
         }
     }

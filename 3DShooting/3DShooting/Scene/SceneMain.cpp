@@ -970,71 +970,73 @@ void SceneMain::Draw()
     if (showScorePopup || showTotalScoreOnly)
     {
         float scale = Game::GetUIScale();
+        // 基準フォントサイズ(32)に基づいた適切なオフセット
+        int fontSize = 32;
+        int scaledPopupOffsetY = static_cast<int>(fontSize * 1.2f * scale);
+        
         int popupBaseX = Game::GetScreenWidth() * 0.5f + static_cast<int>(kScorePopupX * scale);
         int popupBaseY = Game::GetScreenHeight() * 0.5f + static_cast<int>(kScorePopupY * scale);
-        int scaledPopupOffsetY = static_cast<int>(kPopupOffsetY * scale);
+        
         int idx = 0;
-        int totalScore = ScoreManager::Instance().GetScore();
-        int combo = ScoreManager::Instance().GetCombo();
-        float comboRate = std::pow(1.1f, combo > 0 ? combo - 1 : 0);
-        int comboScore = static_cast<int>(totalScore * comboRate);
         float lastComboRate = ScoreManager::Instance().GetLastComboRate();
         int displayCombo = (ScoreManager::Instance().GetCombo() > 1) ? ScoreManager::Instance().GetCombo() : 1;
 
-        // フェードアウト用アルファ値(最も古いポップアップのtimer値を利用)
-        int fadeTimer = showScorePopup ? m_scorePopups.front().timer : m_totalScorePopupTimer;
+        // 全体のフェードアウト用アルファ値（一番長いタイマーに合わせる）
         int alpha = 255;
-        if (fadeTimer < 30)
+        if (m_totalScorePopupTimer < 20)
         {
-            alpha = 128 + (127 * fadeTimer / 30);
+            alpha = (255 * m_totalScorePopupTimer / 20);
         }
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
-        // 合計スコアのみ
-        if (showTotalScoreOnly && !showScorePopup)
+        auto DrawShadowText = [&](int x, int y, unsigned int color, const char* format, ...) {
+            va_list args;
+            va_start(args, format);
+            char buf[256];
+            vsprintf_s(buf, format, args);
+            va_end(args);
+            DrawStringToHandle(x + 2, y + 2, buf, 0x000000, m_scoreFont);
+            DrawStringToHandle(x, y, buf, color, m_scoreFont);
+        };
+
+        // 合計スコアの表示（常にスナップショット値を使用することで、表示中の変動を防ぐ）
+        if (lastComboRate > 1.0f)
         {
-            float lastComboRate = ScoreManager::Instance().GetLastComboRate();
-            if (lastComboRate > 1.0f)
-            {
-                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFont,
-                    "%d ×%.2f", m_lastTotalScorePopupValue, lastComboRate);
-            }
-            else
-            {
-                DrawFormatStringToHandle(popupBaseX, popupBaseY, 0x00ffcc, m_scoreFont,
-                    "%d", m_lastTotalScorePopupValue);
-            }
+            DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0x00ffcc, "+%d (×%.2f)", m_lastTotalScorePopupValue, lastComboRate);
         }
-        else if (showScorePopup)
+        else
         {
-            // 合計スコア
-            if (lastComboRate > 1.0f)
-            {
-                DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                    0x00ffcc, m_scoreFont, "%d ×%.2f", comboScore, lastComboRate);
-            }
-            else
-            {
-                DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                    0x00ffcc, m_scoreFont, "%d", comboScore);
-            }
-            idx++;
+            DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0x00ffcc, "+%d", m_lastTotalScorePopupValue);
+        }
+        idx++;
+
+        // 内訳（キル詳細）の表示
+        if (showScorePopup)
+        {
             int lastIsHeadShot = -1;
             for (const auto& popup : m_scorePopups)
             {
+                // 同じ種類のキルはまとめて表示
                 if (lastIsHeadShot == -1 || lastIsHeadShot != static_cast<int>(popup.isHeadShot))
                 {
+                    // 内訳自体のフェード（個別のタイマーが短い場合はさらに薄くする）
+                    if (popup.timer < 20) {
+                        int detailAlpha = (alpha * popup.timer / 20);
+                        SetDrawBlendMode(DX_BLENDMODE_ALPHA, detailAlpha);
+                    }
+
                     if (popup.isHeadShot)
                     {
-                        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                            0xffe000, m_scoreFont, "%dpt ヘッドショットキル×%d", 200, displayCombo);
+                        DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xffd700, "200pt HEADSHOT ×%d", displayCombo);
                     }
                     else
                     {
-                        DrawFormatStringToHandle(popupBaseX, popupBaseY + idx * scaledPopupOffsetY,
-                            0xffffff, m_scoreFont, "%dpt ゾンビキル×%d", 100, displayCombo);
+                        DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xeeeeee, "100pt ZOMBIE KILL ×%d", displayCombo);
                     }
                     idx++;
+                    
+                    // 次の行のためにアルファ値を戻す
+                    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
                 }
                 lastIsHeadShot = static_cast<int>(popup.isHeadShot);
             }

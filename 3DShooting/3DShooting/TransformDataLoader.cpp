@@ -1,12 +1,12 @@
-﻿#include "DxLib.h"
+#include "DxLib.h"
 #include "TransformDataLoader.h"
 #include <fstream>
 #include <sstream>
 
 namespace
 {
-	// 名前、位置、回転、スケール、攻撃力、体力、追跡速度、タックルクールタイム、タックル速度、タックルダメージの要素数
-	constexpr int kElementNum = 26; 
+	// 要素数 (Name, Pos*3, Rot*3, Scale*3, Attack, HP, ChaseSpeed, WalkSpeed, RunSpeed, ARInit, SGInit, ARPower, SGPower, TackleCD, TackleSpd, TackleDmg, MaxShield, ShieldRegen)
+	constexpr int kElementNum = 24; 
 
 	// Unityの座標系からDxLibの座標系への変換係数（位置情報には適用しない）
 	constexpr float kUnityToDxPos = 100.0f; 
@@ -66,296 +66,96 @@ std::vector<ObjectTransformData> TransformDataLoader::LoadDataCSV(const char* fi
 				data.name = element;
 				break;
 			case 1: // 位置X
-				try 
-				{
-					data.pos.x = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.pos.x = 0.0f;
-				}
+				try { data.pos.x = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element); }
+				catch (...) { data.pos.x = 0.0f; }
 				break;
 			case 2: // 位置Y
-				try 
-				{
-					data.pos.y = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.pos.y = 0.0f;
-				}
+				try { data.pos.y = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element); }
+				catch (...) { data.pos.y = 0.0f; }
 				break;
 			case 3: // 位置Z
-				try 
-				{
-					data.pos.z = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.pos.z = 0.0f;
-				}
+				try { data.pos.z = applyPositionScale ? (std::stof(element) * kUnityToDxPos) : std::stof(element); }
+				catch (...) { data.pos.z = 0.0f; }
 				break;
 			case 4: // 回転X
-				try 
-				{
-					data.rot.x = std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.rot.x = 0.0f;
-				}
+				try { data.rot.x = std::stof(element); }
+				catch (...) { data.rot.x = 0.0f; }
 				break;
 			case 5: // 回転Y
-				try 
-				{
-					data.rot.y = std::stof(element);
-				} 
-				catch (const std::exception&) 
-				{
-					data.rot.y = 0.0f;
-				}
+				try { data.rot.y = std::stof(element); }
+				catch (...) { data.rot.y = 0.0f; }
 				break;
 			case 6: // 回転Z
-				try
-				{
-					data.rot.z = std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.rot.z = 0.0f;
-				}
+				try { data.rot.z = std::stof(element); }
+				catch (...) { data.rot.z = 0.0f; }
 				break;
 			case 7: // スケールX
-				try 
-				{
-					data.scale.x = std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.scale.x = 1.0f;
-				}
+				try { data.scale.x = std::stof(element); }
+				catch (...) { data.scale.x = 1.0f; }
 				break;
 			case 8: // スケールY
-				try 
-				{
-					data.scale.y = std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.scale.y = 1.0f;
-				}
+				try { data.scale.y = std::stof(element); }
+				catch (...) { data.scale.y = 1.0f; }
 				break;
 			case 9: // スケールZ
-				try
-				{
-					data.scale.z = std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.scale.z = 1.0f;
-				}
+				try { data.scale.z = std::stof(element); }
+				catch (...) { data.scale.z = 1.0f; }
 				break;
 			case 10: // 攻撃力
-				try 
-				{
-					data.attack = std::stof(element);
-				}
-				catch (const std::exception&) 
-				{
-					data.attack = 0.0f;
-				}
+				try { data.attack = std::stof(element); }
+				catch (...) { data.attack = 0.0f; }
 				break;
 			case 11: // 体力
-				try 
-				{
-					data.hp = std::stof(element);
-				} 
-				catch (const std::exception&) 
-				{
-					data.hp = 0.0f;
-				}
+				try { data.hp = std::stof(element); }
+				catch (...) { data.hp = 0.0f; }
 				break;
-			case 12: // NormalChaseSpeed
-				try 
-				{
-					if (!element.empty()) 
-					{
-						data.chaseSpeed = std::stof(element);
-					}
-				}
-				catch (const std::exception&) 
-				{
-					data.chaseSpeed = 0.0f;
-				}
+			case 12: // ChaseSpeed (敵用)
+				try { data.chaseSpeed = std::stof(element); }
+				catch (...) { data.chaseSpeed = 0.0f; }
 				break;
-			case 13: // RunnerChaseSpeed
-				try
-				{
-					if (!element.empty()) 
-					{
-						data.chaseSpeed = std::stof(element);
-					}
-				}
-				catch (const std::exception&) 
-				{
-					// 既に設定されている場合は変更しない
-				}
+			case 13: // WalkSpeed (プレイヤー用)
+				try { data.speed = std::stof(element); }
+				catch (...) { data.speed = 0.0f; }
 				break;
-			case 14: // AcidChaseSpeed
-				try 
-				{
-					if (!element.empty()) 
-					{
-						data.chaseSpeed = std::stof(element);
-					}
-				} 
-				catch (const std::exception&) 
-				{
-					// 既に設定されている場合は変更しない
-				}
+			case 14: // RunSpeed (プレイヤー用)
+				try { data.runSpeed = std::stof(element); }
+				catch (...) { data.runSpeed = 0.0f; }
 				break;
-			case 15: // Speed（プレイヤー用）
-				try
-				{
-					if (!element.empty()) 
-					{
-						data.speed = std::stof(element);
-					}
-				}
-				catch (const std::exception&) 
-				{
-					data.speed = 0.0f;
-				}
+			case 15: // ARInitialAmmo
+				try { data.arInitAmmo = std::stoi(element); }
+				catch (...) { data.arInitAmmo = 0; }
 				break;
-			case 16: // RunSpeed（プレイヤー用）
-				try 
-				{
-					if (!element.empty()) 
-					{
-						data.runSpeed = std::stof(element);
-					}
-				} 
-				catch (const std::exception&) 
-				{
-					data.runSpeed = 0.0f;
-				}
+			case 16: // SGInitialAmmo
+				try { data.sgInitAmmo = std::stoi(element); }
+				catch (...) { data.sgInitAmmo = 0; }
 				break;
-			case 17: // ARInitialAmmo（プレイヤー用）
-				try
-				{
-					if (!element.empty()) 
-					{
-						data.arInitAmmo = std::stoi(element);
-					}
-				} 
-				catch (const std::exception&) 
-				{
-					data.arInitAmmo = 0;
-				}
+			case 17: // ARBulletPower
+				try { data.bulletPower = std::stof(element); }
+				catch (...) { data.bulletPower = 0.0f; }
 				break;
-			case 18: // SGInitialAmmo（プレイヤー用）
-				try
-				{
-					if (!element.empty())
-					{
-						data.sgInitAmmo = std::stoi(element);
-					}
-				}
-				catch (const std::exception&)
-				{
-					data.sgInitAmmo = 0;
-				}
+			case 18: // SGBulletPower
+				try { data.sgBulletPower = std::stof(element); }
+				catch (...) { data.sgBulletPower = 0.0f; }
 				break;
-			case 19: // ARBulletPower（プレイヤー用）
-				try
-				{
-					if (!element.empty()) 
-					{
-						data.bulletPower = std::stof(element);
-					}
-				} 
-				catch (const std::exception&) 
-				{
-					data.bulletPower = 0.0f;
-				}
+			case 19: // TackleCooldown
+				try { data.tackleCooldown = std::stof(element); }
+				catch (...) { data.tackleCooldown = 0.0f; }
 				break;
-			case 20: // SGBulletPower（プレイヤー用）
-				try
-				{
-					if (!element.empty())
-					{
-						data.sgBulletPower = std::stof(element);
-					}
-				}
-				catch (const std::exception&)
-				{
-					data.sgBulletPower = 0.0f;
-				}
+			case 20: // TackleSpeed
+				try { data.tackleSpeed = std::stof(element); }
+				catch (...) { data.tackleSpeed = 0.0f; }
 				break;
-			case 21: // TackleCooldown
-				try 
-				{
-					if (!element.empty()) 
-					{
-						data.tackleCooldown = std::stof(element);
-					}
-				}
-				catch (const std::exception&) 
-				{
-					data.tackleCooldown = 0.0f;
-				}
+			case 21: // TackleDamage
+				try { data.tackleDamage = std::stof(element); }
+				catch (...) { data.tackleDamage = 0.0f; }
 				break;
-			case 22: // TackleSpeed
-				try 
-				{
-					if (!element.empty()) 
-					{
-						data.tackleSpeed = std::stof(element);
-					}
-				} 
-				catch (const std::exception&) 
-				{
-					data.tackleSpeed = 0.0f;
-				}
+			case 22: // MaxShieldDurability
+				try { data.maxShieldDurability = std::stof(element); }
+				catch (...) { data.maxShieldDurability = 0.0f; }
 				break;
-			case 23: // TackleDamage
-				try 
-				{
-					if (!element.empty()) 
-					{
-						data.tackleDamage = std::stof(element);
-					}
-				} 
-				catch (const std::exception&) 
-				{
-					data.tackleDamage = 0.0f;
-				}
-				break;
-			case 24: // MaxShieldDurability
-				try
-				{
-					if (!element.empty())
-					{
-						data.maxShieldDurability = std::stof(element);
-					}
-				}
-				catch (const std::exception&)
-				{
-					data.maxShieldDurability = 0.0f;
-				}
-				break;
-			case 25: // ShieldRegenRate
-				try
-				{
-					if (!element.empty())
-					{
-						data.shieldRegenRate = std::stof(element);
-					}
-				}
-				catch (const std::exception&)
-				{
-					data.shieldRegenRate = 0.0f;
-				}
+			case 23: // ShieldRegenRate
+				try { data.shieldRegenRate = std::stof(element); }
+				catch (...) { data.shieldRegenRate = 0.0f; }
 				break;
 			default:
 				break;
