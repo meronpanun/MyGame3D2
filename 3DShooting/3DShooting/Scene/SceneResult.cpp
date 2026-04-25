@@ -5,6 +5,7 @@
 #include "SceneTitle.h"
 #include "ScoreManager.h"
 #include "Game.h"
+#include "SoundManager.h"
 #include <cassert>
 
 namespace
@@ -19,14 +20,11 @@ namespace
 SceneResult::SceneResult()
     : m_background("data/image/GameClearBackGrand.png")
     , m_gameClearImage("data/image/GameClear.png")
-    , m_returnSE("data/sound/SE/ButtonReturn.mp3")
-    , m_bgm("data/sound/BGM/GameClearBGM.mp3")
     , m_japaneseFont("HGPｺﾞｼｯｸE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_arialBlackFont("Arial Black", 48, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_arialBlackLargeFont("Arial Black", 96, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_japaneseLargeFont("HGPｺﾞｼｯｸE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_japaneseButtonFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_isBGMStarted(false)
     , m_scrollX(0.0f)
     , m_scrollY(0.0f)
     , m_score(0)
@@ -89,15 +87,8 @@ void SceneResult::Init()
         ScoreManager::Instance().GetBodyKillCount(),
         ScoreManager::Instance().GetHeadKillCount());
 
-    m_isBGMStarted = false;
-
-    // BGM再生（既に再生中でなければ）
-    if (!m_bgm.IsPlaying())
-    {
-        ChangeVolumeSoundMem(200, m_bgm);
-        m_bgm.Play(DX_PLAYTYPE_LOOP);
-        m_isBGMStarted = true;
-    }
+    // BGM再生
+    SoundManager::GetInstance()->PlayBGM("BGM", "Result");
 }
 
 SceneBase* SceneResult::Update()
@@ -121,8 +112,8 @@ SceneBase* SceneResult::Update()
             mousePos.y >= m_layout.titleBtnY1 && mousePos.y <= m_layout.titleBtnY2)
         {
             // BGMを停止
-            m_bgm.Stop();
-            m_returnSE.Play(DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->StopBGM();
+            SoundManager::GetInstance()->Play("UI", "Return");
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -133,8 +124,8 @@ SceneBase* SceneResult::Update()
             mousePos.y >= m_layout.retryBtnY1 && mousePos.y <= m_layout.retryBtnY2)
         {
             // BGMを停止
-            m_bgm.Stop();
-            m_returnSE.Play(DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->StopBGM();
+            SoundManager::GetInstance()->Play("UI", "Return");
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -231,9 +222,9 @@ void SceneResult::Draw()
     // タイトル
     int highScoreTextWidth = GetDrawStringWidthToHandle("--- High Score ---", -1, m_arialBlackFont);
     // 影
-    DrawFormatStringToHandle(screenW / 2 - highScoreTextWidth / 2 + shadowOffset, highScoreY + shadowOffset, 0x000000, m_arialBlackFont, "--- High Score ---");
+    DrawFormatStringToHandle(screenW * 0.5f - highScoreTextWidth * 0.5f + shadowOffset, highScoreY + shadowOffset, 0x000000, m_arialBlackFont, "--- High Score ---");
     // 本体 (金色のグラデーションっぽく見せるため、黄色で点滅させてもいいが、今回は固定)
-    DrawFormatStringToHandle(screenW / 2 - highScoreTextWidth / 2, highScoreY, 0xffff00, m_arialBlackFont, "--- High Score ---");
+    DrawFormatStringToHandle(screenW * 0.5f - highScoreTextWidth * 0.5f, highScoreY, 0xffff00, m_arialBlackFont, "--- High Score ---");
     highScoreY += highScoreInterval;
 
     const auto& scores = ScoreManager::Instance().GetHighScores();
@@ -243,14 +234,14 @@ void SceneResult::Draw()
         sprintf_s(highStr, sizeof(highStr), "%d位: %d", i + 1, scores[i]);
         int highStrWidth = GetDrawStringWidthToHandle(highStr, -1, m_japaneseLargeFont);
         unsigned int color = 0xffffff;
-        if (i == 0) color = 0xffd700; // Gold
-        else if (i == 1) color = 0xc0c0c0; // Silver
-        else if (i == 2) color = 0xff8c00; // Bronze
+        if (i == 0) color = 0xffd700;
+        else if (i == 1) color = 0xc0c0c0; 
+        else if (i == 2) color = 0xff8c00; 
 
         // 影
-        DrawFormatStringToHandle(screenW / 2 - highStrWidth / 2 + shadowOffset, highScoreY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", highStr);
+        DrawFormatStringToHandle(screenW * 0.5f - highStrWidth * 0.5f + shadowOffset, highScoreY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", highStr);
         // 本体
-        DrawFormatStringToHandle(screenW / 2 - highStrWidth / 2, highScoreY, color, m_japaneseLargeFont, "%s", highStr);
+        DrawFormatStringToHandle(screenW * 0.5f - highStrWidth * 0.5f, highScoreY, color, m_japaneseLargeFont, "%s", highStr);
         highScoreY += highScoreInterval;
     }
 
@@ -276,8 +267,8 @@ void SceneResult::Draw()
         // テキスト
         int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
         int textHeight = (int)(36 * Game::GetUIScale());
-        int textX = x1 + (x2 - x1 - textWidth) / 2;
-        int textY = y1 + (y2 - y1 - textHeight) / 2;
+        int textX = x1 + (x2 - x1 - textWidth) * 0.5f;
+        int textY = y1 + (y2 - y1 - textHeight) * 0.5f;
 
         // 影
         DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFont, text);
@@ -312,13 +303,13 @@ void SceneResult::UpdateLayout()
     // Draw Game Clear Image
     m_layout.imageDrawWidth = (int)(800 * scale);
     m_layout.imageDrawHeight = (int)(200 * scale);
-    m_layout.imageDrawX = (screenW - m_layout.imageDrawWidth) / 2;
+    m_layout.imageDrawX = (screenW - m_layout.imageDrawWidth) * 0.5f;
     m_layout.imageDrawY = (int)(50 * scale);
 
     // Result BG
     m_layout.resBgW = (int)(700 * scale);
     m_layout.resBgH = (int)(240 * scale);
-    m_layout.resBgX = (screenW - m_layout.resBgW) / 2;
+    m_layout.resBgX = (screenW - m_layout.resBgW) * 0.5f;
     m_layout.resBgY = (int)(280 * scale);
 
     // Text
@@ -337,18 +328,18 @@ void SceneResult::UpdateLayout()
     m_layout.btnW = (int)(270 * scale);
     m_layout.btnH = (int)(70 * scale);
     int btnSpacing = (int)(60 * scale);
-    int centerX = screenW / 2;
+    int centerX = screenW * 0.5f;
 
     // Title Button
-    m_layout.titleBtnX1 = centerX - m_layout.btnW - btnSpacing / 2;
+    m_layout.titleBtnX1 = centerX - m_layout.btnW - btnSpacing * 0.5f;
     m_layout.titleBtnY1 = btnY;
-    m_layout.titleBtnX2 = centerX - btnSpacing / 2;
+    m_layout.titleBtnX2 = centerX - btnSpacing * 0.5f;
     m_layout.titleBtnY2 = btnY + m_layout.btnH;
 
     // Retry Button
-    m_layout.retryBtnX1 = centerX + btnSpacing / 2;
+    m_layout.retryBtnX1 = centerX + btnSpacing * 0.5f;
     m_layout.retryBtnY1 = btnY;
-    m_layout.retryBtnX2 = centerX + m_layout.btnW + btnSpacing / 2;
+    m_layout.retryBtnX2 = centerX + m_layout.btnW + btnSpacing * 0.5f;
     m_layout.retryBtnY2 = btnY + m_layout.btnH;
 }
 

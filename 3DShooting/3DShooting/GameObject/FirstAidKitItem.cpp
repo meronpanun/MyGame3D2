@@ -8,6 +8,7 @@
 #include <cassert>
 #include <algorithm>
 #include <cmath>
+#include "SoundManager.h"
 
 int FirstAidKitItem::s_modelHandle = -1;
 
@@ -112,7 +113,7 @@ void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageColli
 	// プレイヤーの体力が満タンでなく、かつ当たっていれば回復
 	if (m_isHit && player->GetHealth() < player->GetMaxHealth())
 	{
-		PlaySoundMem(player->GetRecoverySEHandle(), DX_PLAYTYPE_BACK); // 回復SE再生
+		SoundManager::GetInstance()->Play("Player", "Recovery"); // 回復SE再生
 		player->AddHp(kHealAmount);
 		m_isUsed = true;
 	}

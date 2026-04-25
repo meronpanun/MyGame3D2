@@ -1,4 +1,4 @@
-#include "EnemyAcid.h"
+﻿#include "EnemyAcid.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cmath>
 #include <functional>
+#include "SoundManager.h"
 
 
 namespace EnemyAcidConstants 
@@ -60,8 +61,6 @@ namespace EnemyAcidConstants
 }
 
 int EnemyAcid::s_modelHandle = -1;
-int EnemyAcid::s_attackSEHandle = -1;
-int EnemyAcid::s_parrySEHandle = -1;
 bool EnemyAcid::s_shouldDrawCollision = false;
 
 EnemyAcid::EnemyAcid()
@@ -95,7 +94,7 @@ EnemyAcid::EnemyAcid()
     m_animationManager.SetAnimName(AnimState::Back, EnemyAcidConstants::kBackAnimName);
 }
 
-EnemyAcid::~EnemyAcid() 
+EnemyAcid::~EnemyAcid()
 {
   // モデルの解放
   MV1DeleteModel(m_modelHandle);
@@ -113,19 +112,11 @@ void EnemyAcid::LoadModel()
 {
   s_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
   assert(s_modelHandle != -1);
-
-    s_attackSEHandle = LoadSoundMem("data/sound/SE/LongRangeAttackZombieVoice.wav");
-  assert(s_attackSEHandle != -1);
-
-  s_parrySEHandle = LoadSoundMem("data/sound/SE/ParryHitAcidZombieVoice.wav");
-  assert(s_parrySEHandle != -1);
 }
 
 void EnemyAcid::DeleteModel()
 {
   MV1DeleteModel(s_modelHandle);
-  DeleteSoundMem(s_attackSEHandle);
-  DeleteSoundMem(s_parrySEHandle);
 }
 
 // 初期化
@@ -170,18 +161,13 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
                 m_hasAttacked = false;
 
                 // 攻撃ボイスを再生
-                if (s_attackSEHandle != -1)
-                {
-                    // 距離に応じた音量計算 (2000以上で無音、最大音量を150に抑える)
-                    float maxDist = 2000.0f;
-                    float volRatio = 1.0f - (m_distToPlayer / maxDist);
-                    if (volRatio < 0.0f) volRatio = 0.0f;
-                    if (volRatio > 1.0f) volRatio = 1.0f;
+                // 距離に応じた音量計算 (2000以上で無音、最大音量を150に抑える)
+                float maxDist = 2000.0f;
+                float volRatio = 1.0f - (m_distToPlayer / maxDist);
+                if (volRatio < 0.0f) volRatio = 0.0f;
+                if (volRatio > 1.0f) volRatio = 1.0f;
 
-                    ChangeVolumeSoundMem((int)(150 * volRatio), s_attackSEHandle);
-                    PlaySoundMem(s_attackSEHandle, DX_PLAYTYPE_BACK);
-        
-                }
+                SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(150 * volRatio));
             }
             if (newAnimState == AnimState::Back) m_backAnimCount = 0;
         }
@@ -216,18 +202,14 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
             m_hasAttacked = false;
 
             // 攻撃ボイスを再生
-            if (s_attackSEHandle != -1)
-            {
-                // 距離に応じた音量計算
-                float maxDist = 2000.0f;
-                float volRatio = 1.0f - (m_distToPlayer / maxDist);
-        
-                if (volRatio < 0.0f) volRatio = 0.0f;
-                if (volRatio > 1.0f) volRatio = 1.0f;
+            // 距離に応じた音量計算
+            float maxDist = 2000.0f;
+            float volRatio = 1.0f - (m_distToPlayer / maxDist);
+    
+            if (volRatio < 0.0f) volRatio = 0.0f;
+            if (volRatio > 1.0f) volRatio = 1.0f;
 
-                ChangeVolumeSoundMem((int)(150 * volRatio), s_attackSEHandle);
-                PlaySoundMem(s_attackSEHandle, DX_PLAYTYPE_BACK);
-            }
+            SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(150 * volRatio));
         }
         if (newAnimState == AnimState::Back) m_backAnimCount = 0;
     }
@@ -791,16 +773,12 @@ void EnemyAcid::OnParried()
     ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションを怯みモーションとして再生
 
     // パリィボイスを再生
-    if (s_parrySEHandle != -1) 
-    {
-        float maxDist = 2000.0f;
-        float volRatio = 1.0f - (m_distToPlayer / maxDist);
-        if (volRatio < 0.0f) volRatio = 0.0f;
-        if (volRatio > 1.0f) volRatio = 1.0f;
+    float maxDist = 2000.0f;
+    float volRatio = 1.0f - (m_distToPlayer / maxDist);
+    if (volRatio < 0.0f) volRatio = 0.0f;
+    if (volRatio > 1.0f) volRatio = 1.0f;
 
-        ChangeVolumeSoundMem((int)(150 * volRatio), s_parrySEHandle);
-        PlaySoundMem(s_parrySEHandle, DX_PLAYTYPE_BACK);
-    }
+    SoundManager::GetInstance()->Play("EnemyAcid", "ParryHit", (int)(150 * volRatio));
 }
 
 // 描画処理

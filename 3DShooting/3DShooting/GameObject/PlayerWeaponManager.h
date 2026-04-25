@@ -316,11 +316,6 @@ private:
     int m_sgHandle;
     int m_ejectionPortFrame;
     int m_currentWeaponIndex;
-    int m_shotSEHandle;
-    int m_sgShotSEHandle;
-    int m_sgPumpSEHandle;
-	int m_sgCartridgeSEHandle;
-    int m_arCartridgeSEHandle;
 
     // 弾薬関連
     int m_arAmmo;

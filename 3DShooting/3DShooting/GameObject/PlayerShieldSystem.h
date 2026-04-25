@@ -199,11 +199,7 @@ private:
     int m_sparkEffectTimer;
     int m_shieldThrowHitEnemyId;  // このフレームでヒットした敵のID（重複ヒット防止用）
     int m_shieldReflectCount;     // 反射回数
-    int m_reflectSEHandle;        // 反射SEハンドル
-    int m_boomerangSEHandle;      // ブーメランSEハンドル
     int m_boomerangTotalTime;     // ブーメランSEの総時間
-    int m_shieldHitSEHandle;      // 盾ヒットSEハンドル
-    int m_shieldBreakSEHandle;    // 盾破壊SEハンドル
     bool m_isBoomerangFading;     // フェードアウト中フラグ
     float m_boomerangFadeVolume;  // フェードアウト用音量倍率
     float m_shieldHitSECooldown;  // ヒットSE再生用クールタイム

@@ -1,7 +1,8 @@
-﻿#include "SceneManager.h"
+#include "SceneManager.h"
 #include "DebugUtil.h"
 #include "Game.h"
 #include "InputManager.h"
+#include "SoundManager.h"
 #include "SceneBase.h"
 #include "SceneGameOver.h"
 #include "SceneMain.h"
@@ -56,10 +57,16 @@ SceneManager::~SceneManager()
         delete m_pGameOver;
         m_pGameOver = nullptr;
     }
+    
+    // サウンドリソースの解放
+    SoundManager::GetInstance()->Release();
 }
 
 void SceneManager::Init()
 {
+    // サウンドリストのロード
+    SoundManager::GetInstance()->Load("data/CSV/SoundList.csv");
+
     // 初期シーンをタイトルシーンに設定
     m_pTitle = new SceneTitle();
     m_pTitle->Init();
@@ -70,6 +77,9 @@ void SceneManager::Init()
 
 void SceneManager::Update()
 {
+    // サウンドの更新（フェード処理など）
+    SoundManager::GetInstance()->Update(1.0f / 60.0f);
+
     // マウスの入力状態を更新
     InputManager::GetInstance()->Update();
 
@@ -106,6 +116,9 @@ void SceneManager::Update()
                 if (m_pCurrentScene == m_pResult) m_pResult = nullptr;
                 if (m_pCurrentScene == m_pOption) m_pOption = nullptr;
                 if (m_pCurrentScene == m_pGameOver) m_pGameOver = nullptr;
+
+                // シーン遷移時にすべてのサウンドを確実に停止させる
+                SoundManager::GetInstance()->StopAllSE();
 
                 delete m_pCurrentScene;
                 m_pCurrentScene = nullptr;

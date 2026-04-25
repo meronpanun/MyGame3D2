@@ -27,6 +27,7 @@
 #include "TaskTutorialManager.h"
 #include "TutorialManager.h"
 #include "WaveManager.h"
+#include "SoundManager.h"
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
@@ -108,6 +109,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     : m_isPaused(false)
     , m_isEscapePressed(false)
     , m_isReturningFromOption(false)
+    , m_isReturningFromOtherScene(isReturningFromOtherScene)
     , m_cameraSensitivity(Game::g_cameraSensitivity)
     , m_hitDistance(0.0f)
     , m_pCamera(std::make_unique<Camera>())
@@ -117,12 +119,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_wave1DropCount(0)
     , m_totalScorePopupTimer(0)
     , m_lastTotalScorePopupValue(0)
-    , m_isBGMStarted(false)
     , m_isLoading(true)
-    , m_isReturningFromOtherScene(isReturningFromOtherScene)
-    , m_clearSceneDelayTimer(-1)
-    , m_scoreFont("Abadi MT", 24, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_headShotSEHandle(-1)
     , m_headShotSECooldownTimer(0)
     , m_isPlayerInit(false)
     , m_isTaskTutorialInit(false)
@@ -149,12 +146,15 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
 
 SceneMain::~SceneMain()
 {
+    // 全てのSEを停止
+    SoundManager::GetInstance()->StopAllSE();
+
     // アイテムモデルの解放
     FirstAidKitItem::DeleteModel();
     AmmoItem::DeleteModel();
     ShellCasing::DeleteResources();
 
-    DeleteSoundMem(m_headShotSEHandle);
+    // 自動解放されるため処理不要
 
     // インジケーター画像の解放
     DirectionIndicator::DeleteResources();
@@ -199,9 +199,7 @@ void SceneMain::Init()
     m_dotOnTarget.Load("data/image/DotOnTarget.png");
     m_sgDefaultReticle.Load("data/image/SGDefaultReticl.png");
     m_sgOnTargetReticle.Load("data/image/SGOnTargetReticle.png");
-    m_bgm.Load("data/sound/BGM/GameSceneBGM.mp3");
-    m_headShotSEHandle = LoadSoundMem("data/sound/SE/HeadShot.mp3");
-    ChangeVolumeSoundMem(kHeadShotSEVolume, m_headShotSEHandle);
+    m_scoreFont.Load("メイリオ", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
 
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->SetEffect(m_pEffect.get());
@@ -284,7 +282,7 @@ void SceneMain::Init()
         lastDropPos = pos;
         if (m_pWaveManager->GetCurrentWave() == 1)
         {
-            if (m_wave1DropCount >= 2) return; // 2体分だけドロップ
+            if (m_wave1DropCount >= 2) return; // 0.5f体分だけドロップ
 
             if (!m_hasDroppedWave1FirstAid && !m_hasDroppedWave1Ammo) 
             {
@@ -373,8 +371,6 @@ void SceneMain::Init()
     // 環境光の設定
     SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
 
-    // BGM再生フラグをリセット
-    m_isBGMStarted = false;
 
     // チュートリアルマネージャーをリセットまたはスキップ
     if (m_isReturningFromOtherScene) 
@@ -502,14 +498,9 @@ SceneBase* SceneMain::Update()
     }
 
     // BGM再生
-    if (!m_isBGMStarted && !m_isLoading) // ロード完了後に再生開始
+    if (!m_isLoading) // ロード完了後に再生開始
     {
-        if (!m_bgm.IsPlaying())
-        {
-            ChangeVolumeSoundMem(kGameSceneBgmVolume, m_bgm);
-            m_bgm.Play(DX_PLAYTYPE_LOOP);
-        }
-        m_isBGMStarted = true;
+        SoundManager::GetInstance()->PlayBGM("BGM", "Main");
     }
 
     // タイムスケールの更新
@@ -575,7 +566,7 @@ SceneBase* SceneMain::Update()
                 mousePos.y <= kReturnButtonY + kButtonHeight)
             {
                 // BGMを停止
-                m_bgm.Stop();
+                SoundManager::GetInstance()->StopBGM();
                 return new SceneTitle(true);
             }
 
@@ -686,7 +677,7 @@ SceneBase* SceneMain::Update()
                 int wave = m_pWaveManager->GetCurrentWave();
                 int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
                 int score = ScoreManager::Instance().GetTotalScore();
-                m_bgm.Stop();
+                SoundManager::GetInstance()->StopBGM();
                 return new SceneGameOver(wave, killCount, score);
             }
         }
@@ -728,7 +719,7 @@ SceneBase* SceneMain::Update()
             int wave = m_pWaveManager->GetCurrentWave();
             int killCount = ScoreManager::Instance().GetBodyKillCount() + ScoreManager::Instance().GetHeadKillCount();
             int score = ScoreManager::Instance().GetTotalScore();
-            m_bgm.Stop();
+            SoundManager::GetInstance()->StopBGM();
             return new SceneGameOver(wave, killCount, score);
         }
     }
@@ -739,7 +730,7 @@ SceneBase* SceneMain::Update()
         if (m_clearSceneDelayTimer == -1) // 遅延がまだ開始されていない場合
         {
             m_clearSceneDelayTimer = kClearSceneDelayFrames; // 遅延タイマーを開始
-            m_bgm.Stop();                       // BGMを停止
+            SoundManager::GetInstance()->StopBGM();                       // BGMを停止
         }
         else if (m_clearSceneDelayTimer > 0) // 遅延中の場合
         {
@@ -782,6 +773,8 @@ SceneBase* SceneMain::Update()
     }
 
     // 合計スコアポップアップタイマー更新
+    if (m_totalScorePopupTimer > 0) m_totalScorePopupTimer--;
+
     m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
     ScoreManager::Instance().Update();
     return this;
@@ -820,9 +813,9 @@ void SceneMain::Draw()
         }
 
         int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
-        int textX = (screenW - textWidth) / 2;
+        int textX = (screenW - textWidth) * 0.5f;
         float scale = Game::GetUIScale();
-        int textY = (screenH - static_cast<int>(48 * scale)) / 2 - static_cast<int>(50 * scale); // テキストを少し上にずらす
+        int textY = (screenH - static_cast<int>(48 * scale)) * 0.5f - static_cast<int>(50 * scale); // テキストを少し上にずらす
         DrawString(textX, textY, loadingText.c_str(), 0xffffff);
         SetFontSize(16);
 
@@ -902,8 +895,8 @@ void SceneMain::Draw()
 
         // レティクルの描画
         // 中心座標を動的に計算
-        int centerX = screenW / 2;
-        int centerY = screenH / 2;
+        int centerX = screenW * 0.5f;
+        int centerY = screenH * 0.5f;
         float scale = Game::GetUIScale();
 
         // 拡大描画時のジャギー対策としてバイリニア補間を有効にする
@@ -931,8 +924,8 @@ void SceneMain::Draw()
                 SetDrawBright(255, 100, 100); // 赤みを帯びさせる
             }
 
-            DrawExtendGraph(centerX - scaledReticleW / 2, centerY - scaledReticleH / 2,
-                centerX + scaledReticleW / 2, centerY + scaledReticleH / 2, currentReticleHandle, true);
+            DrawExtendGraph(centerX - scaledReticleW * 0.5f, centerY - scaledReticleH * 0.5f,
+                centerX + scaledReticleW * 0.5f, centerY + scaledReticleH * 0.5f, currentReticleHandle, true);
 
             if (isAiming)
             {
@@ -952,8 +945,8 @@ void SceneMain::Draw()
             int scaledDotW = static_cast<int>(dotReticleWidth * scale);
             int scaledDotH = static_cast<int>(dotReticleHeight * scale);
 
-            DrawExtendGraph(centerX - scaledDotW / 2, centerY - scaledDotH / 2,
-                centerX + scaledDotW / 2, centerY + scaledDotH / 2, dotReticleHandle, true);
+            DrawExtendGraph(centerX - scaledDotW * 0.5f, centerY - scaledDotH * 0.5f,
+                centerX + scaledDotW * 0.5f, centerY + scaledDotH * 0.5f, dotReticleHandle, true);
         }
 
         // 描画モードをデフォルト(Nearest)に戻す
@@ -977,8 +970,8 @@ void SceneMain::Draw()
     if (showScorePopup || showTotalScoreOnly)
     {
         float scale = Game::GetUIScale();
-        int popupBaseX = Game::GetScreenWidth() / 2 + static_cast<int>(kScorePopupX * scale);
-        int popupBaseY = Game::GetScreenHeight() / 2 + static_cast<int>(kScorePopupY * scale);
+        int popupBaseX = Game::GetScreenWidth() * 0.5f + static_cast<int>(kScorePopupX * scale);
+        int popupBaseY = Game::GetScreenHeight() * 0.5f + static_cast<int>(kScorePopupY * scale);
         int scaledPopupOffsetY = static_cast<int>(kPopupOffsetY * scale);
         int idx = 0;
         int totalScore = ScoreManager::Instance().GetScore();
@@ -1080,8 +1073,8 @@ void SceneMain::Draw()
         int scaledLineLength = static_cast<int>(kHitMarkLineLength * scale);
         int scaledCenterSpacing = static_cast<int>(kHitMarkCenterSpacing * scale);
         int scaledThickness = (std::max)(1, static_cast<int>(kHitMarkLineThickness * scale));
-        int centerX = Game::GetScreenWidth() / 2;
-        int centerY = Game::GetScreenHeight() / 2;
+        int centerX = Game::GetScreenWidth() * 0.5f;
+        int centerY = Game::GetScreenHeight() * 0.5f;
         
         DrawLine(centerX - scaledLineLength, centerY - scaledLineLength,
             centerX - scaledCenterSpacing, centerY - scaledCenterSpacing, color, scaledThickness);
@@ -1243,7 +1236,7 @@ void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
     {
         if (m_headShotSECooldownTimer <= 0)
         {
-            PlaySoundMem(m_headShotSEHandle, DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->Play("UI", "HeadShot");
             m_headShotSECooldownTimer = 10; // 10フレームのクールタイム（約0.16秒）
         }
     }

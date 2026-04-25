@@ -86,6 +86,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
   
     }
 
+    delete pScene;
+
     // Effekseerを終了する
     Effkseer_End();
 

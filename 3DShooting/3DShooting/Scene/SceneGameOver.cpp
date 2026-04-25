@@ -4,6 +4,7 @@
 #include "InputManager.h"
 #include "SceneMain.h"
 #include "SceneTitle.h"
+#include "SoundManager.h"
 #include <cassert>
 
 namespace SceneGameOverConstants
@@ -25,8 +26,6 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score)
     : m_wave(wave)
     , m_killCount(killCount)
     , m_score(score)
-    , m_bgm("data/sound/BGM/GameOverBGM.mp3")
-    , m_returnSE("data/sound/SE/ButtonReturn.mp3")
     , m_background("data/image/BackGrand.png")
     , m_gameOverImage("data/image/GameOverZombie.png")
     , m_gameOverImage2("data/image/GameOverZombie2.png")
@@ -36,7 +35,6 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score)
     , m_arialBlackLargeFont("Arial Black", 64, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_japaneseLargeFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_japaneseButtonFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_isBGMStarted(false)
     , m_scrollX(0.0f)
     , m_scrollY(0.0f)
     , m_currentImageIndex(0)
@@ -70,15 +68,8 @@ void SceneGameOver::Init()
     ScoreManager::Instance().ResetDisplayScore();
     ScoreManager::Instance().SetTargetDisplayScore(ScoreManager::Instance().GetTotalScore());
 
-    m_isBGMStarted = false;
-
-    // BGM再生（既に再生中でなければ）
-    if (!m_bgm.IsPlaying())
-    {
-        ChangeVolumeSoundMem(200, m_bgm);
-        m_bgm.Play(DX_PLAYTYPE_LOOP);
-        m_isBGMStarted = true;
-    }
+    // BGM再生
+    SoundManager::GetInstance()->PlayBGM("BGM", "GameOver");
 }
 
 SceneBase* SceneGameOver::Update()
@@ -116,8 +107,8 @@ SceneBase* SceneGameOver::Update()
             mousePos.y <= m_layout.titleBtnY2)
         {
             // BGMを停止
-            m_bgm.Stop();
-            m_returnSE.Play(DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->StopBGM();
+            SoundManager::GetInstance()->Play("UI", "Return");
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -130,8 +121,8 @@ SceneBase* SceneGameOver::Update()
             mousePos.y <= m_layout.retryBtnY2)
         {
             // BGMを停止
-            m_bgm.Stop();
-            m_returnSE.Play(DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->StopBGM();
+            SoundManager::GetInstance()->Play("UI", "Return");
 
             // スコアをリセット
             ScoreManager::Instance().ResetAll();
@@ -223,10 +214,10 @@ void SceneGameOver::Draw()
     int waveStrW = GetDrawStringWidthToHandle(waveStr, strlen(waveStr), m_japaneseLargeFont);
 
     // 影
-    DrawFormatStringToHandle((screenW - waveStrW) / 2 + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", waveStr);
+    DrawFormatStringToHandle((screenW - waveStrW) * 0.5f + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", waveStr);
 
     // 本体
-    DrawFormatStringToHandle((screenW - waveStrW) / 2, textY, 0xffffff, m_japaneseLargeFont, "%s", waveStr);
+    DrawFormatStringToHandle((screenW - waveStrW) * 0.5f, textY, 0xffffff, m_japaneseLargeFont, "%s", waveStr);
     textY += textInterval;
 
     char killStr[64];
@@ -274,8 +265,8 @@ void SceneGameOver::Draw()
         // テキスト
         int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
         int textHeight = (int)(36 * Game::GetUIScale()); // フォントサイズに合わせて調整
-        int textX = x1 + (x2 - x1 - textWidth) / 2;
-        int textY = y1 + (y2 - y1 - textHeight) / 2;
+        int textX = x1 + (x2 - x1 - textWidth) * 0.5f;
+        int textY = y1 + (y2 - y1 - textHeight) * 0.5f;
 
         // 影
         DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFont, text);
@@ -370,13 +361,13 @@ void SceneGameOver::UpdateLayout()
 
     // 画面上部に配置
     const int kTopMargin = (int)(screenH * 0.04f);
-    m_layout.imageDrawX = (screenW - m_layout.imageDrawWidth) / 2;
+    m_layout.imageDrawX = (screenW - m_layout.imageDrawWidth) * 0.5f;
     m_layout.imageDrawY = kTopMargin;
 
     // リザルト表示エリア
     m_layout.resBgW = (int)(700 * scale);
     m_layout.resBgH = (int)(260 * scale);
-    m_layout.resBgX = (screenW - m_layout.resBgW) / 2;
+    m_layout.resBgX = (screenW - m_layout.resBgW) * 0.5f;
     m_layout.resBgY = m_layout.imageDrawY + m_layout.imageDrawHeight + (int)(20 * scale);
 
     // テキスト配置
@@ -388,18 +379,18 @@ void SceneGameOver::UpdateLayout()
     m_layout.btnW = (int)(270 * scale);
     m_layout.btnH = (int)(70 * scale);
     int btnSpacing = (int)(60 * scale);
-    int centerX = screenW / 2;
+    int centerX = screenW * 0.5f;
     int btnBaseY = m_layout.resBgY + m_layout.resBgH + (int)(40 * scale);
 
     // タイトルに戻るボタン
-    m_layout.titleBtnX1 = centerX - m_layout.btnW - btnSpacing / 2;
+    m_layout.titleBtnX1 = centerX - m_layout.btnW - btnSpacing * 0.5f;
     m_layout.titleBtnY1 = btnBaseY;
-    m_layout.titleBtnX2 = centerX - btnSpacing / 2;
+    m_layout.titleBtnX2 = centerX - btnSpacing * 0.5f;
     m_layout.titleBtnY2 = btnBaseY + m_layout.btnH;
 
     // リトライボタン
-    m_layout.retryBtnX1 = centerX + btnSpacing / 2;
+    m_layout.retryBtnX1 = centerX + btnSpacing * 0.5f;
     m_layout.retryBtnY1 = btnBaseY;
-    m_layout.retryBtnX2 = centerX + m_layout.btnW + btnSpacing / 2;
+    m_layout.retryBtnX2 = centerX + m_layout.btnW + btnSpacing * 0.5f;
     m_layout.retryBtnY2 = btnBaseY + m_layout.btnH;
 }

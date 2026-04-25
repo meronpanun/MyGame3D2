@@ -1,4 +1,4 @@
-#include "EnemyRunner.h"
+﻿#include "EnemyRunner.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "SoundManager.h"
 
 namespace EnemyRunnerConstants
 {
@@ -56,8 +57,6 @@ namespace EnemyRunnerConstants
 }
 
 int EnemyRunner::s_modelHandle = -1;
-int EnemyRunner::s_attackSEHandle = -1;
-int EnemyRunner::s_damageSEHandle = -1;
 bool EnemyRunner::s_shouldDrawCollision = false;
 
 EnemyRunner::EnemyRunner()
@@ -93,19 +92,11 @@ void EnemyRunner::LoadModel()
 {
     s_modelHandle = MV1LoadModel("data/model/RunnerZombie.mv1");
     assert(s_modelHandle != -1);
-
-    s_attackSEHandle = LoadSoundMem("data/sound/SE/RunnerZombieAttackVoice.wav");
-    assert(s_attackSEHandle != -1);
-
-    s_damageSEHandle = LoadSoundMem("data/sound/SE/RunnerZombieDamageVoice.wav");
-    assert(s_damageSEHandle != -1);
 }
 
 void EnemyRunner::DeleteModel()
 {
     MV1DeleteModel(s_modelHandle);
-    DeleteSoundMem(s_attackSEHandle);
-    DeleteSoundMem(s_damageSEHandle);
 }
 
 void EnemyRunner::Init()
@@ -185,14 +176,13 @@ void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
         m_animTime = 0.0f;
 
         // 攻撃ボイスの再生
-        if (newAnimState == AnimState::Attack && s_attackSEHandle != -1)
+        if (newAnimState == AnimState::Attack)
         {
             float maxDist = 2000.0f;
             float volRatio = 1.0f - (m_distToPlayer / maxDist);
             if (volRatio < 0.0f) volRatio = 0.0f;
             if (volRatio > 1.0f) volRatio = 1.0f;
-            ChangeVolumeSoundMem((int)(100 * volRatio), s_attackSEHandle);
-            PlaySoundMem(s_attackSEHandle, DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->Play("EnemyRunner", "Attack", (int)(100 * volRatio));
         }
     }
 
@@ -669,15 +659,14 @@ void EnemyRunner::TakeDamage(float damage, AttackType type)
     EnemyBase::TakeDamage(damage, type);
 
     // ダメージSEの再生 (クールタイム中ならスキップ)
-    if (s_damageSEHandle != -1 && m_damageSECooldown <= 0.0f && m_isAlive)
+    if (m_damageSECooldown <= 0.0f && m_isAlive)
     {
         float maxDist = 2000.0f;
         float volRatio = 1.0f - (m_distToPlayer / maxDist);
         if (volRatio < 0.0f) volRatio = 0.0f;
         if (volRatio > 1.0f) volRatio = 1.0f;
 
-        ChangeVolumeSoundMem((int)(255 * volRatio), s_damageSEHandle);
-        PlaySoundMem(s_damageSEHandle, DX_PLAYTYPE_BACK);
+        SoundManager::GetInstance()->Play("EnemyRunner", "Damage", (int)(255 * volRatio));
 
         m_damageSECooldown = 45.0f; // 約0.75秒のクールタイム
     }

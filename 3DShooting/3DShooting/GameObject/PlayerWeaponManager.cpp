@@ -6,7 +6,9 @@
 #include "Effect.h"
 #include "EnemyBase.h"
 #include "Game.h"
+#include "PlayerMovement.h"
 #include "ShellCasing.h"
+#include "SoundManager.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -95,10 +97,6 @@ PlayerWeaponManager::PlayerWeaponManager()
     , m_gunShakePower(0.0f)
     , m_isSGAnimPlaying(false)
     , m_sgAnimTime(0.0f)
-    , m_shotSEHandle(-1)
-    , m_sgShotSEHandle(-1)
-    , m_sgPumpSEHandle(-1)
-    , m_sgCartridgeSEHandle(-1)
     , m_sgPumpTimer(0.0f)
     , m_pullBackOffset(0.0f)
 {
@@ -112,21 +110,6 @@ PlayerWeaponManager::PlayerWeaponManager()
 
     // 薬莢排出口フレームのインデックスを検索
     m_ejectionPortFrame = MV1SearchFrame(m_arHandle, "AR_M_Ejection_Port");
-
-    // SEの読み込み
-    m_shotSEHandle = LoadSoundMem("data/sound/SE/GunShot.mp3");
-    assert(m_shotSEHandle != -1);
-    m_sgShotSEHandle = LoadSoundMem("data/sound/SE/ShotGunSE.mp3");
-    assert(m_sgShotSEHandle != -1);
-    m_sgPumpSEHandle = LoadSoundMem("data/sound/SE/ShotgunPumpAction.mp3");
-    assert(m_sgPumpSEHandle != -1);
-    m_sgCartridgeSEHandle = LoadSoundMem("data/sound/SE/ShotgunCartridge.mp3");
-    assert(m_sgCartridgeSEHandle != -1);
-    ChangeVolumeSoundMem(PlayerWeaponConstants::kSGCartridgeSEVolume, m_sgCartridgeSEHandle);
-
-    m_arCartridgeSEHandle = LoadSoundMem("data/sound/SE/AssaultRifleCartridge.mp3");
-    assert(m_arCartridgeSEHandle != -1);
-    ChangeVolumeSoundMem(PlayerWeaponConstants::kARCartridgeSEVolume, m_arCartridgeSEHandle);
 }
 
 PlayerWeaponManager::~PlayerWeaponManager()
@@ -134,13 +117,6 @@ PlayerWeaponManager::~PlayerWeaponManager()
     // モデルの解放
     MV1DeleteModel(m_arHandle);
     MV1DeleteModel(m_sgHandle);
-
-    // SEの解放
-    DeleteSoundMem(m_shotSEHandle);
-    DeleteSoundMem(m_sgShotSEHandle);
-    DeleteSoundMem(m_sgPumpSEHandle);
-    DeleteSoundMem(m_sgCartridgeSEHandle);
-    DeleteSoundMem(m_arCartridgeSEHandle);
 }
 
 void PlayerWeaponManager::Init(int arInitAmmo, int sgInitAmmo, int arMaxAmmo,
@@ -195,7 +171,7 @@ void PlayerWeaponManager::Update(const UpdateContext& context)
         {
             m_sgPumpTimer = 0.0f;
             // ポンプアクション音を再生
-            PlaySoundMem(m_sgPumpSEHandle, DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->Play("Weapon", "SGPump");
         }
     }
 
@@ -205,7 +181,7 @@ void PlayerWeaponManager::Update(const UpdateContext& context)
         *it -= deltaTime;
         if (*it <= 0.0f)
         {
-            PlaySoundMem(m_arCartridgeSEHandle, DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->Play("Weapon", "ARCartridge");
             it = m_arCartridgeQueue.erase(it);
         }
         else
@@ -220,7 +196,7 @@ void PlayerWeaponManager::Update(const UpdateContext& context)
         *it -= deltaTime;
         if (*it <= 0.0f)
         {
-            PlaySoundMem(m_sgCartridgeSEHandle, DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->Play("Weapon", "SGCartridge");
             it = m_sgCartridgeQueue.erase(it);
         }
         else
@@ -540,7 +516,8 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
     // 画面中央から出ているように見せるため、カメラ前方に小さくオフセット
     VECTOR spawnPos = VAdd(cameraPos, VScale(cameraForward, 0.0f));
 
-    int currentShotSEHandle = -1;
+    std::string currentShotSECategory = "Weapon";
+    std::string currentShotSEName = "";
     int currentModelHandle = -1;
     VECTOR currentMuzzleFlashOffset = VGet(0, 0, 0);
 
@@ -550,13 +527,13 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
     case WeaponType::AssaultRifle:
         bullets.emplace_back(spawnPos, cameraForward, AttackType::Shoot,
             m_bulletPower);
-        currentShotSEHandle = m_shotSEHandle;
+        currentShotSEName = "GunShot";
         currentModelHandle = m_arHandle;
         currentMuzzleFlashOffset = VGet(PlayerWeaponConstants::kARMuzzleFlashEffectOffsetX, PlayerWeaponConstants::kARMuzzleFlashEffectOffsetY, PlayerWeaponConstants::kARMuzzleFlashEffectOffsetZ);
         shakePower = PlayerWeaponConstants::kARShootShakePower;
         break;
     case WeaponType::Shotgun:
-        currentShotSEHandle = m_sgShotSEHandle;
+        currentShotSEName = "SGShot";
         currentModelHandle = m_sgHandle;
         currentMuzzleFlashOffset = VGet(PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetX, PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetY, PlayerWeaponConstants::kSGMuzzleFlashEffectOffsetZ);
         shakePower = PlayerWeaponConstants::kSGShootShakePower;
@@ -600,8 +577,13 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
     // SEを再生
     int freq = static_cast<int>(PlayerWeaponConstants::kBaseSoundFrequency * Game::GetTimeScale());
     if (freq < 100) freq = 100;
-    SetFrequencySoundMem(freq, currentShotSEHandle);
-    PlaySoundMem(currentShotSEHandle, DX_PLAYTYPE_BACK);
+    
+    int handle = SoundManager::GetInstance()->GetHandle(currentShotSECategory, currentShotSEName);
+    if (handle != -1)
+    {
+        SetFrequencySoundMem(freq, handle);
+        SoundManager::GetInstance()->Play(currentShotSECategory, currentShotSEName);
+    }
 
     float rotX = -pCamera->GetPitch();
     float rotY = pCamera->GetYaw();

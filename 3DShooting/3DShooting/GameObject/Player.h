@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -209,18 +209,6 @@ public:
     /// </summary>
     /// <returns>接地しているオブジェクト名</returns>
     std::string GetGroundedObjectName() const;
-
-    /// <summary>
-    /// 回復SEハンドルを取得する
-    /// </summary>
-    /// <returns>回復SEハンドル</returns>
-    int GetRecoverySEHandle() const { return m_recoverySEHandle; }
-
-    /// <summary>
-    /// 弾薬アイテムSEハンドルを取得する
-    /// </summary>
-    /// <returns>弾薬アイテムSEハンドル</returns>
-    int GetAmmoItemSEHandle() const { return m_ammoItemSEHandle; }
 
     /// <summary>
     /// 無敵モードを設定する
@@ -460,17 +448,6 @@ private:
     int m_sgInitAmmo;                    // SGの初期弾薬数
     int m_arMaxAmmo;                     // ARの最大弾薬数
     int m_sgMaxAmmo;                     // SGの最大弾薬数
-    int m_playerHitSEHandle;             // 従来の被弾SE（衝撃音）
-    std::vector<int> m_hurtSEHandles;    // 被弾ボイスのハンドル（ランダム再生用）
-    int m_tackleSEHandle;                // タックルSEのハンドル
-    int m_tackleHitSEHandle;             // タックルヒットSEのハンドル
-    int m_recoverySEHandle;              // 回復アイテムSEのハンドル
-    int m_ammoItemSEHandle;              // 弾薬アイテムSEのハンドル
-    int m_lightLandingSEHandle;          // 通常着地SEのハンドル
-    int m_heavyLandingSEHandle;          // 重量着地SEのハンドル
-    int m_parrySEHandle;                 // パリィSEのハンドル
-    int m_heartbeatSEHandle;             // 低体力時SEハンドル
-    int m_guardSEHandle;                 // ガード時SEハンドル
     int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
     int m_tackleFrame;                   // タックルのフレーム数
     int m_tackleId;                      // タックルID

@@ -4,6 +4,7 @@
 #include "SceneMain.h"
 #include "InputManager.h"
 #include "DebugUtil.h"
+#include "SoundManager.h"
 #include <cassert>
 #include <random>
 #include <memory>
@@ -32,8 +33,6 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     : m_font("Arial Black", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_titleLogo("data/image/TitleLogo.png")
     , m_banner("data/image/TitleBanner.png")
-    , m_bgm("data/sound/BGM/TitleBGM.wav")
-    , m_confirmSE("data/sound/SE/ConfirmButton.mp3")
     , m_fadeAlpha(0)
     , m_fadeFrame(0)
     , m_sceneFadeAlpha(0)
@@ -41,7 +40,6 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     , m_isFadeComplete(false)
     , m_isFadeOut(false)
     , m_isSceneFadeIn(false)
-    , m_isBGMStarted(false)
     , m_gameStartTextAlphaDir(1)
     , m_billboardShakeOffsetX(0.0f)
     , m_billboardShakeOffsetY(0.0f)
@@ -58,20 +56,6 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     // ロード確認
     assert(m_titleLogo.IsValid());
     assert(m_banner.IsValid());
-    assert(m_bgm.IsValid());
-    assert(m_confirmSE.IsValid());
-
-    // ゾンビボイスの読み込み
-    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice1.mp3"));
-    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice2.mp3"));
-    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice3.mp3"));
-    m_zombieVoices.push_back(std::make_unique<ManagedSound>("data/sound/SE/ZombieVoice4.mp3"));
-
-    for (auto& voice : m_zombieVoices)
-    {
-        assert(voice->IsValid());
-        ChangeVolumeSoundMem(150, *voice);
-    }
 
     // 3Dモデルのロード
     m_skyDome.Reset(MV1LoadModel("data/model/Dome.mv1"));
@@ -155,7 +139,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
             }
 
             // アタッチして総時間を取得し、そこからランダムな開始位置を決める
-            int attachIndex = MV1AttachAnim(m_zombieModel, data.animIndex, -1, FALSE);
+            int attachIndex = MV1AttachAnim(m_zombieModel, data.animIndex, -1, false);
             data.totalAnimTime = MV1GetAttachAnimTotalTime(m_zombieModel, attachIndex);
             MV1DetachAnim(m_zombieModel, attachIndex); // 時間取得のための一時アタッチ
 
@@ -227,15 +211,8 @@ SceneBase* SceneTitle::Update()
         return this; // フェードアウト中（完全に消え切るまで）はゾンビの更新や描画への移行を保留するなら return this; を付けるか、Alphaが0かチェックする。
     }
 
-    // BGM再生（ロゴ演出が終わった直後に一度だけ）
-    if (!m_isBGMStarted)
-    {
-        if (!m_bgm.IsPlaying())
-        {
-            m_bgm.Play(DX_PLAYTYPE_LOOP);
-        }
-        m_isBGMStarted = true;
-    }
+    // BGM再生
+    SoundManager::GetInstance()->PlayBGM("BGM", "Title");
 
     // 「ゲームスタート」文字の点滅処理
     m_gameStartTextAlpha += m_gameStartTextAlphaDir * kGameStartTextBlinkSpeed;
@@ -255,8 +232,8 @@ SceneBase* SceneTitle::Update()
     if (!DebugUtil::IsDebugWindowVisible() && InputManager::GetInstance()->IsTriggerMouseLeft())
     {
         // BGMを停止
-        m_bgm.Stop();
-        m_confirmSE.Play(DX_PLAYTYPE_BACK);
+        SoundManager::GetInstance()->StopBGM();
+        SoundManager::GetInstance()->Play("UI", "Confirm");
         return new SceneMain();
     }
 
@@ -363,14 +340,9 @@ SceneBase* SceneTitle::Update()
         m_zombieVoiceTimer--;
         if (m_zombieVoiceTimer <= 0)
         {
-            if (!m_zombieVoices.empty())
-            {
-                int randomIndex = GetRand(static_cast<int>(m_zombieVoices.size()) - 1);
-                if (m_zombieVoices[randomIndex]->IsValid())
-                {
-                    m_zombieVoices[randomIndex]->Play(DX_PLAYTYPE_BACK);
-                }
-            }
+            int randomIndex = 1 + GetRand(3); // 1〜4
+            SoundManager::GetInstance()->Play("EnemyNormal", "Voice" + std::to_string(randomIndex));
+            
             // 次の再生までの時間をランダムに設定 (1秒〜3秒)
             m_zombieVoiceTimer = 60 + GetRand(120);
         }
@@ -390,8 +362,8 @@ void SceneTitle::Draw()
     // ----------------------------------------
     if (m_fadeAlpha > 0)
     {
-        SetUseZBuffer3D(FALSE);
-        SetWriteZBuffer3D(FALSE);
+        SetUseZBuffer3D(false);
+        SetWriteZBuffer3D(false);
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
         DrawRectExtendGraph(
@@ -417,25 +389,25 @@ void SceneTitle::Draw()
 
         // Zバッファ設定などを有効化
         SetUseZBuffer3D(true);
-        SetWriteZBuffer3D(TRUE);
+        SetWriteZBuffer3D(true);
 
         // スカイドーム描画（背面の奥に映るようにするため、Zバッファのテストも書き込みも無効にして一番奥に描画する）
         if (m_skyDome.IsValid())
         {
-            SetUseZBuffer3D(FALSE);
-            SetWriteZBuffer3D(FALSE);
+            SetUseZBuffer3D(false);
+            SetWriteZBuffer3D(false);
             MV1DrawModel(m_skyDome);
             
             // 描画後、他の3DモデルのためにZバッファを有効に戻す
-            SetUseZBuffer3D(TRUE);
-            SetWriteZBuffer3D(TRUE);
+            SetUseZBuffer3D(true);
+            SetWriteZBuffer3D(true);
         }
 
         // 床描画
         if (m_floorModel.IsValid())
         {
-            SetLightEnable(FALSE);
-            SetUseLighting(FALSE);
+            SetLightEnable(false);
+            SetUseLighting(false);
 
             // 床モデル(RoadFloor)は画像データから幅2000(X:-1000〜1000)、奥行2000(Z:-1000〜1000)
             // したがってScale 1.0f で使用する
@@ -456,8 +428,8 @@ void SceneTitle::Draw()
                 }
             }
 
-            SetLightEnable(TRUE);
-            SetUseLighting(TRUE);
+            SetLightEnable(true);
+            SetUseLighting(true);
         }
 
         // フェンス描画
@@ -565,26 +537,26 @@ void SceneTitle::Draw()
                 vertex[5].u = 0.0f; vertex[5].v = 1.0f; vertex[5].su = 0.0f; vertex[5].sv = 0.0f;
 
                 // 設定を一時的に変更
-                SetLightEnable(FALSE);
-                SetUseLighting(FALSE);
-                SetUseBackCulling(FALSE);
+                SetLightEnable(false);
+                SetUseLighting(false);
+                SetUseBackCulling(false);
 
                 // バナー画像の透明部分がZバッファを上書きして背景をくり抜くのを防ぐため、
                 // バナー描画時のみZバッファへの書き込みを無効化する（テストは有効なままなので看板には埋もれない、あるいは両方無効化する）
-                SetWriteZBuffer3D(FALSE);
+                SetWriteZBuffer3D(false);
 
                 // アルファブレンドを有効化
                 SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 
                 // 透明度付きの板ポリゴンとして描画
-                DrawPolygon3D(vertex, 2, m_banner.Get(), TRUE);
+                DrawPolygon3D(vertex, 2, m_banner.Get(), true);
 
                 // 設定を元に戻す
                 SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-                SetWriteZBuffer3D(TRUE);
-                SetUseBackCulling(TRUE);
-                SetUseLighting(TRUE);
-                SetLightEnable(TRUE);
+                SetWriteZBuffer3D(true);
+                SetUseBackCulling(true);
+                SetUseLighting(true);
+                SetLightEnable(true);
             }
         }
 
@@ -598,7 +570,7 @@ void SceneTitle::Draw()
                 MV1SetScale(m_zombieModel, VGet(1.0f, 1.0f, 1.0f));
 
                 // アニメーションをアタッチして時間を設定し、描画後にデタッチする
-                int attachIndex = MV1AttachAnim(m_zombieModel, zombie.animIndex, -1, FALSE);
+                int attachIndex = MV1AttachAnim(m_zombieModel, zombie.animIndex, -1, false);
                 MV1SetAttachAnimTime(m_zombieModel, attachIndex, zombie.animTime);
 
                 MV1DrawModel(m_zombieModel);
@@ -608,8 +580,8 @@ void SceneTitle::Draw()
         }
 
         // チュートリアル用背景モデルの描画（ゾンビよりも奥の遠景として配置）
-        SetLightEnable(FALSE);
-        SetUseLighting(FALSE);
+        SetLightEnable(false);
+        SetUseLighting(false);
 
         float bgScale = 1.0f;
         float baseZ = 2000.0f; // 奥に配置する基準Z座標
@@ -668,15 +640,15 @@ void SceneTitle::Draw()
             }
         }
 
-        SetLightEnable(TRUE);
-        SetUseLighting(TRUE);
+        SetLightEnable(true);
+        SetUseLighting(true);
         
 
 
 
         // Zバッファの影響を受けないようにする（2D描画用）
-        SetUseZBuffer3D(FALSE);
-        SetWriteZBuffer3D(FALSE);
+        SetUseZBuffer3D(false);
+        SetWriteZBuffer3D(false);
 
         const char* gameStartText = "Press Left Click to Start Game";
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_font);

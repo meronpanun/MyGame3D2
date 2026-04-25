@@ -1,4 +1,4 @@
-#include "EnemyNormal.h"
+﻿#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -17,6 +17,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include "SoundManager.h"
 
 namespace EnemyNormalConstants
 {
@@ -56,7 +57,6 @@ namespace EnemyNormalConstants
 }
 
 int EnemyNormal::s_modelHandle = -1;
-std::vector<int> EnemyNormal::s_voiceSEHandles;
 bool EnemyNormal::s_shouldDrawCollision = false;
 bool EnemyNormal::s_shouldDrawShieldCollision = false;
 
@@ -93,19 +93,11 @@ void EnemyNormal::LoadModel()
 {
     s_modelHandle = MV1LoadModel("data/model/NormalZombie.mv1");
     assert(s_modelHandle != -1);
-
-    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice1.mp3"));
-    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice2.mp3"));
-    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice3.mp3"));
-    s_voiceSEHandles.push_back(LoadSoundMem("data/sound/SE/ZombieVoice4.mp3"));
-    for (int handle : s_voiceSEHandles) assert(handle != -1);
 }
 
 void EnemyNormal::DeleteModel()
 {
     MV1DeleteModel(s_modelHandle);
-    for (int handle : s_voiceSEHandles) DeleteSoundMem(handle);
-    s_voiceSEHandles.clear();
 }
 
 void EnemyNormal::Init()
@@ -401,19 +393,15 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
         m_voiceTimer--;
         if (m_voiceTimer <= 0)
         {
-            if (!s_voiceSEHandles.empty())
-            {
-                int randomIndex = GetRand(static_cast<int>(s_voiceSEHandles.size()) - 1);
-                int handle = s_voiceSEHandles[randomIndex];
+            int randomIndex = 1 + GetRand(3); // 1〜4
+            
+            float maxDist = 2000.0f;
+            float volRatio = 1.0f - (m_distToPlayer / maxDist);
+            if (volRatio < 0.0f) volRatio = 0.0f;
+            if (volRatio > 1.0f) volRatio = 1.0f;
 
-                float maxDist = 2000.0f;
-                float volRatio = 1.0f - (m_distToPlayer / maxDist);
-                if (volRatio < 0.0f) volRatio = 0.0f;
-                if (volRatio > 1.0f) volRatio = 1.0f;
+            SoundManager::GetInstance()->Play("EnemyNormal", "Voice" + std::to_string(randomIndex), (int)(150 * volRatio));
 
-                ChangeVolumeSoundMem((int)(150 * volRatio), handle);
-                PlaySoundMem(handle, DX_PLAYTYPE_BACK);
-            }
             // 次の再生までの時間をランダムに設定 (3秒〜10秒)
             m_voiceTimer = 180 + GetRand(420);
         }

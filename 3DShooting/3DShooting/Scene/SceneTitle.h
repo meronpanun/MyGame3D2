@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SceneBase.h"
 #include "ManagedFont.h"
 #include "ManagedGraph.h"
@@ -38,9 +38,6 @@ private:
     ManagedFont m_font;            // フォント
     ManagedGraph m_titleLogo;      // タイトルロゴ
     ManagedGraph m_banner;         // バナー画像
-    ManagedSound m_bgm;            // タイトルBGM
-    ManagedSound m_confirmSE;      // 決定ボタンSE
-    std::vector<std::unique_ptr<ManagedSound>> m_zombieVoices; // ゾンビ環境ボイスリスト
     int m_zombieVoiceTimer;        // ゾンビボイス再生用タイマー
 
     // フェード・シーン遷移管理
@@ -53,7 +50,6 @@ private:
 
     // 演出管理
     int  m_waitFrame;       // 待機フレーム
-    bool m_isBGMStarted;    // BGM再生済みフラグ
 
     // ゲームスタートテキスト演出関連
     int m_gameStartTextAlpha;     // ゲームスタートテキストのアルファ値

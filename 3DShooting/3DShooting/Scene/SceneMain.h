@@ -180,9 +180,6 @@ private:
     ManagedGraph m_sgDefaultReticle;
     ManagedGraph m_sgOnTargetReticle;
     ManagedFont m_scoreFont;       // スコアポップアップ用フォントハンドル
-    ManagedSound m_bgm;            // BGMハンドル
-    int m_headShotSEHandle;        // ヘッドショットSEハンドル
-    bool m_isBGMStarted;           // BGM再生済みフラグ
     int m_headShotSECooldownTimer; // ヘッドショットSEのクールタイムタイマー
 
     // スコアポップアップ管理

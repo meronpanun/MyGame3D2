@@ -36,9 +36,6 @@ private:
     ManagedGraph m_gameOverImage;        // ゲームオーバー画像のハンドル
     ManagedGraph m_gameOverImage2;       // ゲームオーバー画像2（乱れた画像）
     ManagedGraph m_gameOverImage3;       // ゲームオーバー画像3（乱れた画像）
-    ManagedSound m_bgm;                  // ゲームオーバーBGMのハンドル
-    ManagedSound m_returnSE;             // 戻るボタンSEのハンドル
-
     ManagedFont m_japaneseFont;          // 日本語フォントハンドル
     ManagedFont m_arialBlackFont;        // Arial Blackフォントハンドル
     ManagedFont m_arialBlackLargeFont;   // Arial Blackラージフォントハンドル
@@ -53,9 +50,6 @@ private:
     // 背景スクロール管理
     float m_scrollX; // 背景のスクロールX座標
     float m_scrollY; // 背景のスクロールY座標
-
-    // BGM管理
-    bool m_isBGMStarted; // BGM再生済みフラグ
 
     // 演出管理
     int m_currentImageIndex; // 現在表示中の画像インデックス

@@ -9,6 +9,11 @@ class ManagedFont
 {
 public:
     /// <summary>
+    /// 既定のコンストラクタ
+    /// </summary>
+    ManagedFont() : m_baseSize(0), m_thick(0), m_fontType(0) {}
+
+    /// <summary>
     /// コンストラクタ
     /// </summary>
     /// <param name="fontName">フォント名</param>
@@ -18,6 +23,11 @@ public:
     /// <param name="initialScale">初期スケール (デフォルト: 1.0f)</param>
     ManagedFont(const std::string& fontName, int baseSize, int thick, int fontType, float initialScale = 1.0f);
     ~ManagedFont() = default;
+
+    /// <summary>
+    /// フォントをロードする
+    /// </summary>
+    void Load(const std::string& fontName, int baseSize, int thick, int fontType, float initialScale = 1.0f);
 
     /// <summary>
     /// 指定されたスケールでフォントを再作成する

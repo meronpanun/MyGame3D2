@@ -18,8 +18,6 @@ public:
 private:
     ManagedGraph m_background;
     ManagedGraph m_gameClearImage;
-    ManagedSound m_returnSE;
-    ManagedSound m_bgm;
 
     ManagedFont m_japaneseFont;
     ManagedFont m_arialBlackFont;
@@ -92,6 +90,5 @@ private:
 
     float m_scrollX;
     float m_scrollY;
-    bool m_isBGMStarted;
 };
 

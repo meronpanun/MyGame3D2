@@ -8,6 +8,7 @@
 #include <cassert>
 #include <algorithm>
 #include <cmath>
+#include "SoundManager.h"
 
 int AmmoItem::s_modelHandle = -1;
 
@@ -103,7 +104,7 @@ void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionDat
 	// 当たれば弾薬加算
 	if (m_isHit)
 	{
-		PlaySoundMem(player->GetAmmoItemSEHandle(), DX_PLAYTYPE_BACK); // 弾薬アイテムSE再生
+		SoundManager::GetInstance()->Play("Player", "AmmoItem"); // 弾薬アイテムSE再生
 		// 現在の武器に応じて弾薬を加算
 		switch (player->GetCurrentWeaponType())
 		{

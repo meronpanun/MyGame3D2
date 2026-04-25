@@ -190,6 +190,7 @@
     <ClCompile Include="Scene\SceneResult.cpp" />
     <ClCompile Include="Scene\SceneTitle.cpp" />
     <ClCompile Include="ScoreManager.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="SphereCollider.cpp" />
     <ClCompile Include="Stage.cpp" />
     <ClCompile Include="StageObject.cpp" />
@@ -245,6 +246,7 @@
     <ClInclude Include="Scene\SceneResult.h" />
     <ClInclude Include="Scene\SceneTitle.h" />
     <ClInclude Include="ScoreManager.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="SpawnAreaInfo.h" />
     <ClInclude Include="SphereCollider.h" />
     <ClInclude Include="Stage.h" />

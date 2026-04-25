@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Stage.h"
@@ -48,9 +48,6 @@ public:
     static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 
 private:
-    static bool s_shouldDrawCollision;
-    static int s_attackSEHandle;
-    static int s_parrySEHandle;
 
     /// <summary>
     /// どこに当たったかを判定する
@@ -186,6 +183,7 @@ private:
     int m_stunTimer;          // 怯みタイマー
 
     static int s_modelHandle; // 共有モデルハンドル
+    static bool s_shouldDrawCollision;   // 当たり判定を描画するか
 
     bool m_shouldDrawParryCollider = false; // パリィコライダーを描画するか
     VECTOR m_debugParryCapA = { 0,0,0 };    // デバッグ用パリィカプセルのA点

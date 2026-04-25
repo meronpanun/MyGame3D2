@@ -18,6 +18,7 @@
 #include "SceneMain.h"
 #include "SceneManager.h"
 #include "ShellCasing.h"
+#include "SoundManager.h"
 #include "TransformDataLoader.h"
 #include "WaveManager.h"
 #include <algorithm>
@@ -129,17 +130,10 @@ namespace PlayerConstants
 }
 
 Player::Player()
-    : m_tackleSEHandle(-1)
-    , m_tackleHitSEHandle(-1)
-    , m_recoverySEHandle(-1)
-    , m_ammoItemSEHandle(-1)
-    , m_modelPos(VGet(0, 0, 0))
+    : m_modelPos(VGet(0, 0, 0))
     , m_pEffect(nullptr)
     , m_pCamera(std::make_shared<Camera>())
     , m_pos(VGet(0, 0, 0))
-    , m_lightLandingSEHandle(-1)
-    , m_heavyLandingSEHandle(-1)
-    , m_parrySEHandle(-1)
     , m_health(100.0f)
     , m_healthBarAnim(100.0f)
     , m_healthBarAnimTimer(0.0f)
@@ -149,87 +143,14 @@ Player::Player()
     , m_isTackling(false)
     , m_tackleCooldown(0)
     , m_tackleId(0)
-    , m_concentrationLineEffectHandle(-1)
-    , m_isLowHealth(false)
-    , m_lowHealthBlinkTimer(0.0f)
-    , m_ammoTextFlashTimer(0.0f)
-    , m_idleSwayTimer(0.0f)
-    , m_gunSwayOffset(VGet(0, 0, 0))
-    , m_gunSwayRotOffset(VGet(0, 0, 0))
-    , m_isDead(false)
-    , m_deathTimer(0.0f)
-    , m_pDirectionIndicator(nullptr)
-    , m_isLockingOn(false)
-    , m_lockedOnEnemy(nullptr)
-    , m_isTargetAvailable(false)
-    , m_isAimingAtEnemy(false)
-    , m_shouldIgnoreGuardInput(false)
-    , m_tackleHitSECooldownTimer(0)
-    , m_isInvincible(false)
-    , m_isInfiniteAmmo(false)
-    , m_isFlightMode(false)
-    , m_tackleCooldownMax(0.0f)
-    , m_tackleSpeed(0.0f)
-    , m_tackleDamage(0.0f)
-    , m_maxShieldDurability(0.0f)
-    , m_shieldRegenRate(0.0f)
-    , m_pAnimManager(nullptr)
-    , m_isTutorial(false)
-    , m_startAnimTimer(0.0f)
-    , m_startAnimDuration(60.0f)
-    , m_isStartAnimating(false)
-    , m_hasLandedAtStart(false)
-    , m_uiFadeTimer(0.0f)
-    , m_uiFadeDuration(60.0f)
-    , m_isUiFadeStarted(false)
     , m_isDamageHandledInThisFrame(false)
-    , m_heartbeatSEHandle(-1)
-    , m_guardSEHandle(-1)
 {
-    // SEの読み込み
-    m_playerHitSEHandle = LoadSoundMem("data/sound/SE/PlayerHit.mp3");
-    assert(m_playerHitSEHandle != -1);
-    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt1.wav"));
-    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt2.wav"));
-    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt3.wav"));
-    m_hurtSEHandles.push_back(LoadSoundMem("data/sound/SE/HumanHurt4.wav"));
-    for (int handle : m_hurtSEHandles) assert(handle != -1);
-    m_tackleSEHandle = LoadSoundMem("data/sound/SE/Tackle.mp3");
-    assert(m_tackleSEHandle != -1);
-    m_tackleHitSEHandle = LoadSoundMem("data/sound/SE/TackleHit.mp3");
-    assert(m_tackleHitSEHandle != -1);
-    ChangeVolumeSoundMem(PlayerConstants::kTackleHitVolume, m_tackleHitSEHandle);
-    m_recoverySEHandle = LoadSoundMem("data/sound/SE/RecoveryItem.mp3");
-    assert(m_recoverySEHandle != -1);
-    m_lightLandingSEHandle = LoadSoundMem("data/sound/SE/LightLanding.mp3");
-    assert(m_lightLandingSEHandle != -1);
-    ChangeVolumeSoundMem(PlayerConstants::kLightLandingVolume, m_lightLandingSEHandle);
-
-    m_heavyLandingSEHandle = LoadSoundMem("data/sound/SE/HeavyLanding.mp3");
-    assert(m_heavyLandingSEHandle != -1);
-    ChangeVolumeSoundMem(PlayerConstants::kHeavyLandingVolume, m_heavyLandingSEHandle);
-    m_parrySEHandle = LoadSoundMem("data/sound/SE/Parry.mp3");
-    assert(m_parrySEHandle != -1);
-    m_heartbeatSEHandle = LoadSoundMem("data/sound/SE/Heart.mp3");
-    assert(m_heartbeatSEHandle != -1);
-    m_guardSEHandle = LoadSoundMem("data/sound/SE/Guard.mp3");
-    assert(m_guardSEHandle != -1);
 }
 
 Player::~Player()
 {
-    // SEの解放
-    DeleteSoundMem(m_playerHitSEHandle);
-    for (int handle : m_hurtSEHandles) DeleteSoundMem(handle);
-    DeleteSoundMem(m_tackleSEHandle);
-    DeleteSoundMem(m_tackleHitSEHandle);
-    DeleteSoundMem(m_recoverySEHandle);
-    DeleteSoundMem(m_ammoItemSEHandle);
-    DeleteSoundMem(m_lightLandingSEHandle);
-    DeleteSoundMem(m_heavyLandingSEHandle);
-    DeleteSoundMem(m_parrySEHandle);
-    DeleteSoundMem(m_heartbeatSEHandle);
-    DeleteSoundMem(m_guardSEHandle);
+    // 心音SEが再生中なら停止
+    SoundManager::GetInstance()->Stop("Player", "Heartbeat");
 }
 
 void Player::Init(bool isTutorial)
@@ -337,13 +258,18 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     if (m_movement.JustLanded())
     {
         float impactVel = fabsf(m_movement.GetImpactVelocity());
-        if (impactVel >= 10.0f)
+        if (!m_hasLandedAtStart)
         {
-            PlaySoundMem(m_heavyLandingSEHandle, DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->Play("Player", "HeavyLanding");
+            m_hasLandedAtStart = true;
+        }
+        else if (impactVel >= 10.0f)
+        {
+            SoundManager::GetInstance()->Play("Player", "HeavyLanding");
         }
         else
         {
-            PlaySoundMem(m_lightLandingSEHandle, DX_PLAYTYPE_BACK);
+            SoundManager::GetInstance()->Play("Player", "LightLanding");
         }
     }
 
@@ -379,18 +305,19 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     m_isDamageHandledInThisFrame = false;
 
     // 低体力警告の心音再生制御
+    int heartbeatHandle = SoundManager::GetInstance()->GetHandle("Player", "Heartbeat");
     if (m_isLowHealth && !m_isDead)
     {
-        if (CheckSoundMem(m_heartbeatSEHandle) == 0)
+        if (CheckSoundMem(heartbeatHandle) == 0)
         {
-            PlaySoundMem(m_heartbeatSEHandle, DX_PLAYTYPE_LOOP);
+            SoundManager::GetInstance()->Play("Player", "Heartbeat", true);
         }
     }
     else
     {
-        if (CheckSoundMem(m_heartbeatSEHandle) == 1)
+        if (CheckSoundMem(heartbeatHandle) == 1)
         {
-            StopSoundMem(m_heartbeatSEHandle);
+            SoundManager::GetInstance()->Stop("Player", "Heartbeat");
         }
     }
 
@@ -672,7 +599,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
         }
 
         // ガード音を再生
-        PlaySoundMem(m_guardSEHandle, DX_PLAYTYPE_BACK);
+        SoundManager::GetInstance()->Play("Player", "Guard");
 
         // 盾の前方にスパークエフェクトを再生
         if (m_pEffect)
@@ -703,14 +630,11 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
             if (!m_isDamageHandledInThisFrame)
             {
                 // 衝撃音の再生
-                PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+                SoundManager::GetInstance()->Play("Player", "Hit");
 
                 // ボイスの再生
-                if (!m_hurtSEHandles.empty())
-                {
-                    int randomIndex = GetRand(static_cast<int>(m_hurtSEHandles.size()) - 1);
-                    PlaySoundMem(m_hurtSEHandles[randomIndex], DX_PLAYTYPE_BACK);
-                }
+                int randomIndex = 1 + GetRand(3);
+                SoundManager::GetInstance()->Play("Player", "Hurt" + std::to_string(randomIndex));
                 if (m_pCamera)
                 {
                     m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
@@ -750,14 +674,11 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
     if (!m_isDamageHandledInThisFrame)
     {
         // 衝撃音の再生
-        PlaySoundMem(m_playerHitSEHandle, DX_PLAYTYPE_BACK);
+        SoundManager::GetInstance()->Play("Player", "Hit");
 
         // ボイスの再生
-        if (!m_hurtSEHandles.empty())
-        {
-            int randomIndex = GetRand(static_cast<int>(m_hurtSEHandles.size()) - 1);
-            PlaySoundMem(m_hurtSEHandles[randomIndex], DX_PLAYTYPE_BACK);
-        }
+        int randomIndex = 1 + GetRand(3);
+        SoundManager::GetInstance()->Play("Player", "Hurt" + std::to_string(randomIndex));
         if (m_pCamera)
         {
             m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
@@ -912,7 +833,7 @@ bool Player::IsJustGuarded() const
 
 void Player::PlayParrySE() const 
 {
-    PlaySoundMem(m_parrySEHandle, DX_PLAYTYPE_BACK); 
+    SoundManager::GetInstance()->Play("Player", "Parry"); 
 }
 
 WeaponType Player::GetCurrentWeaponType() const
@@ -1202,7 +1123,7 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
         {
             m_isTackling = true;
 
-            PlaySoundMem(m_tackleSEHandle, DX_PLAYTYPE_BACK); // タックルSE再生
+            SoundManager::GetInstance()->Play("Player", "Tackle"); // タックルSE再生
             m_tackleFrame = PlayerConstants::kTackleDuration;
             m_tackleCooldown = m_tackleCooldownMax; // クールタイム開始
             m_tackleId++;                           // タックルごとにIDを更新
@@ -1297,7 +1218,7 @@ void Player::UpdateTackle(const std::vector<EnemyBase*>& enemyList,
 
                 if (m_tackleHitSECooldownTimer <= 0)
                 {
-                    PlaySoundMem(m_tackleHitSEHandle, DX_PLAYTYPE_BACK);
+                    SoundManager::GetInstance()->Play("Player", "TackleHit");
                     m_tackleHitSECooldownTimer = 60; // クールタイム
                 }
 
