@@ -1,4 +1,4 @@
-﻿#include "EnemyAcid.h"
+#include "EnemyAcid.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -922,19 +922,30 @@ void EnemyAcid::TakeDamage(float damage, AttackType type)
 
     EnemyBase::TakeDamage(damage, type);
   
-    // HP減算・死亡判定は基底クラスで行う
-    if (m_hp <= 0.0f) // 死亡時一度だけ
+}
+  
+void EnemyAcid::OnDeath()
+{
+    // スコア加算
+    if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
+    bool isHeadShot = (m_lastHitPart == HitPart::Head);
+    int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+
+    if (SceneMain::Instance()) 
     {
-        if (m_lastHitPart == HitPart::None) m_lastHitPart = HitPart::Body;
+        SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
+    }
 
-        bool isHeadShot = (m_lastHitPart == HitPart::Head);
-        int addScore = ScoreManager::Instance().AddScore(isHeadShot);
-
-        if (SceneMain::Instance()) 
+    // 死亡時に残っているAcidBallを全て停止
+    for (auto& ball : m_acidBalls)
+    {
+        if (ball.effectHandle != -1)
         {
-            SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
+            StopEffekseer3DEffect(ball.effectHandle);
+            ball.effectHandle = -1;
         }
     }
+    m_acidBalls.clear(); // 全てのAcidBallをクリア
 }
 
 // タックル攻撃のダメージ処理
@@ -948,20 +959,6 @@ void EnemyAcid::TakeTackleDamage(float damage)
 std::shared_ptr<CapsuleCollider> EnemyAcid::GetBodyCollider() const 
 {
     return m_pBodyCollider;
-}
-
-void EnemyAcid::OnDeath() 
-{
-    // 死亡時に残っているAcidBallを全て停止
-    for (auto &ball : m_acidBalls) 
-    {
-        if (ball.effectHandle != -1) 
-        {
-            StopEffekseer3DEffect(ball.effectHandle);
-            ball.effectHandle = -1;
-        }
-    }
-    m_acidBalls.clear(); // 全てのAcidBallをクリア
 }
 
 void EnemyAcid::AcidBall::Update(float timeScale)

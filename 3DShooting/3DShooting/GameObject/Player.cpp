@@ -1,4 +1,4 @@
-﻿#include "Player.h"
+#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -386,7 +386,23 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     m_shieldSystem.UpdateSparkEffect(m_pEffect, m_modelPos, m_pCamera.get());
 
     // タックル更新 (開始判定と実行中の処理含む)
-    m_tackleSystem.Update(deltaTime, m_lockOnSystem.IsLockingOn(), m_lockOnSystem.GetLockedOnEnemy(), m_modelPos, m_movement, m_pCamera.get(), m_pEffect, enemyList, collisionData, this);
+    bool isTackleRestricted = (m_allowedAttackType != AttackType::None && m_allowedAttackType != AttackType::Tackle);
+    
+    // タックル制限の通知 (もしロックオン中に左クリックされたら)
+    if (m_isTutorial && isTackleRestricted && m_lockOnSystem.IsLockingOn() && InputManager::GetInstance()->IsTriggerMouseLeft() && !m_tackleSystem.IsTackling())
+    {
+        TaskTutorialManager::GetInstance()->NotifyRestrictedAction(AttackType::Tackle);
+    }
+
+    if (!isTackleRestricted || m_tackleSystem.IsTackling())
+    {
+        m_tackleSystem.Update(deltaTime, m_lockOnSystem.IsLockingOn(), m_lockOnSystem.GetLockedOnEnemy(), m_modelPos, m_movement, m_pCamera.get(), m_pEffect, enemyList, collisionData, this);
+    }
+    else
+    {
+        // 制限中もタイマーだけは更新する
+        m_tackleSystem.UpdateCooldownOnly(deltaTime);
+    }
 
     // タックルが実行されていない場合のみ、通常の敵更新を行う
     if (!m_tackleSystem.IsTackling())
@@ -556,6 +572,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
             if (m_isTutorial && m_status.GetHealth() <= 0.0f)
             {
                 m_status.SetHealth(1.0f);
+                m_status.SetDead(false);
             }
 
             // ダメージエフェクトを発動
@@ -587,6 +604,7 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
     if (m_isTutorial && m_status.GetHealth() <= 0.0f)
     {
         m_status.SetHealth(1.0f);
+        m_status.SetDead(false);
     }
 
     // ダメージエフェクトを発動

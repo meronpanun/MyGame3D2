@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 
@@ -29,6 +29,11 @@ public:
     /// デバッグ用の当たり判定を描画する
     /// </summary>
     virtual void DrawCollisionDebug() const override;
+
+    /// <summary>
+    /// 死亡時に呼ばれる処理
+    /// </summary>
+    void OnDeath() override;
 
     /// <summary>
     /// モデルの読み込み(共有)

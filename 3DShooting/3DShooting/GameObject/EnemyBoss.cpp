@@ -1,4 +1,4 @@
-﻿#include "EnemyBoss.h"
+#include "EnemyBoss.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -1065,15 +1065,15 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
 
     EnemyBase::TakeDamage(damage, type);
 
-    // UIへのスコア加算などの演出
-    if (m_hp <= 0.0f)
+}
+
+void EnemyBoss::OnDeath()
+{
+    bool isHeadShot = (m_lastHitPart == HitPart::Head);
+    int addScore = ScoreManager::Instance().AddScore(isHeadShot) * 10; // ボスなのでスコア高め
+    if (SceneMain::Instance())
     {
-        bool isHeadShot = (m_lastHitPart == HitPart::Head);
-        int addScore = ScoreManager::Instance().AddScore(isHeadShot) * 10; // ボスなのでスコア高め
-        if (SceneMain::Instance())
-        {
-            SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
-        }
+        SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
     }
 }
 

@@ -257,6 +257,12 @@ void SceneMain::Init()
     m_pUIManager->AddUI(scoreUI);
     m_pUIManager->AddUI(hitMarkUI);
     m_pUIManager->AddUI(playerEffectUI);
+    
+    // チュートリアルステージの場合はWaveUIを非表示にする
+    if (m_isTutorialStage)
+    {
+        waveUI->SetVisible(false);
+    }
 
     m_pUIManager->Init();
 
@@ -438,6 +444,13 @@ void SceneMain::SwitchToMainStage()
 
   // プレイヤーの再初期化（位置などをCSVから再取得）
   m_pPlayer->Init(false);
+
+  // WaveUIを表示する
+  auto waveUI = m_pUIManager->GetUI<WaveUI>();
+  if (waveUI)
+  {
+      waveUI->SetVisible(true);
+  }
 }
 
 SceneBase* SceneMain::Update()

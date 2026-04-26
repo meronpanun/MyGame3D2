@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
@@ -23,6 +23,8 @@ public:
     void Init() override;
     void Update(const EnemyUpdateContext& context) override;
     void Draw() override;
+
+    void OnDeath() override;
 
     /// <summary>
     /// デバッグ用の当たり判定を描画する

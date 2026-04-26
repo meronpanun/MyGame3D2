@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -285,6 +285,12 @@ public:
     /// </summary>
     /// <param name="allowedAttack">許可する攻撃タイプ</param>
     void SetAttackRestrictions(AttackType allowedAttack);
+
+    /// <summary>
+    /// 現在許可されている攻撃タイプを取得する
+    /// </summary>
+    /// <returns>許可されている攻撃タイプ</returns>
+    AttackType GetAllowedAttackType() const { return m_allowedAttackType; }
 
     /// <summary>
     /// プレイヤーが死亡しているかどうか

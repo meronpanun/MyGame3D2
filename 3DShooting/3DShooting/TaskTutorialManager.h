@@ -2,9 +2,11 @@
 #include "AttackType.h"
 #include "ManagedFont.h"
 #include "ManagedGraph.h"
+#include <memory>
 
 class WaveManager;
 class Player;
+class ITutorialTask;
 
 /// <summary>
 /// タスク型チュートリアルマネージャークラス
@@ -52,6 +54,17 @@ public:
     // スケール変更時のフォントリロード
     void ReloadFonts(float scale);
 
+    // タスクから利用するゲッター
+    int GetDiamondImg() const { return m_diamondImg; }
+    int GetMouseLeftImg() const { return m_mouseLeftImg; }
+    int GetMouseRightImg() const { return m_mouseRightImg; }
+    int GetAlpha1Img() const { return m_alpha1Img; }
+    int GetAlpha2Img() const { return m_alpha2Img; }
+    int GetMouseWheelImg() const { return m_mouseWheelImg; }
+    int GetRKeyImg() const { return m_rKeyImg; }
+    int GetLockOnUIImg() const { return m_lockOnUIImg; }
+    int GetTaskFont() const { return m_taskFont; }
+
 private:
     // チュートリアルの進行ステップ
     enum class TaskStep
@@ -76,10 +89,11 @@ private:
     Player* m_pPlayer;           // Playerへのポインタ
 
     TaskStep m_step;
-    int m_shootKills;
-    int m_tackleKills;
-    int m_shieldThrowKills; // 盾投げキル数
-    int m_parryCount;       // パリィ成功回数
+    std::unique_ptr<ITutorialTask> m_currentTask; // 現在実行中のタスク
+    
+    // 進捗表示用のアニメーション変数
+    float m_displayedProgress;
+    float m_progressAnimSpeed;            // 進捗バーのアニメーション速度
 
     ManagedFont m_titleFont; // タイトル用のフォントハンドル
     ManagedFont m_taskFont;  // タスク内容用のフォントハンドル
@@ -110,13 +124,6 @@ private:
 
     // アニメーション後の待機タイマー
     int m_animationWaitTimer;
-
-    // プログレスバーアニメーション用
-    float m_displayedShootProgress;       // 射撃タスクの表示用進捗
-    float m_displayedTackleProgress;      // タックルタスクの表示用進捗
-    float m_displayedShieldThrowProgress; // 盾投げタスクの表示用進捗
-    float m_displayedParryProgress;       // パリィタスクの表示用進捗
-    float m_progressAnimSpeed;            // 進捗バーのアニメーション速度
 
     // ステップ移行の遅延タイマー
     int m_transitionDelayTimer;

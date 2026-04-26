@@ -1,4 +1,4 @@
-﻿#include "PlayerTackleSystem.h"
+#include "PlayerTackleSystem.h"
 #include "Player.h"
 #include "EnemyBase.h"
 #include "Camera.h"
@@ -34,14 +34,19 @@ void PlayerTackleSystem::Init(float cooldownMax, float speed, float damage)
     m_concentrationLineEffectHandle = -1;
 }
 
+void PlayerTackleSystem::UpdateCooldownOnly(float deltaTime)
+{
+    if (m_hitSECooldownTimer > 0) m_hitSECooldownTimer--;
+    if (m_cooldownTimer > 0) m_cooldownTimer -= 1.0f * Game::GetTimeScale();
+}
+
 void PlayerTackleSystem::Update(float deltaTime, bool isLockingOn, EnemyBase* lockedOnEnemy, 
                                 VECTOR& playerPos, PlayerMovement& movement, Camera* pCamera, 
                                 Effect* pEffect, const std::vector<EnemyBase*>& enemyList, 
                                 const std::vector<Stage::StageCollisionData>& collisionData,
                                 Player* pPlayer)
 {
-    if (m_hitSECooldownTimer > 0) m_hitSECooldownTimer--;
-    if (m_cooldownTimer > 0) m_cooldownTimer -= 1.0f * Game::GetTimeScale();
+    UpdateCooldownOnly(deltaTime);
 
     // タックル開始判定
     if (isLockingOn && lockedOnEnemy && InputManager::GetInstance()->IsTriggerMouseLeft())
@@ -143,3 +148,4 @@ void PlayerTackleSystem::Update(float deltaTime, bool isLockingOn, EnemyBase* lo
         }
     }
 }
+

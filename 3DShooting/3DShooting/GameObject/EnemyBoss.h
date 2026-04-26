@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
@@ -36,6 +36,8 @@ public:
     void Init() override;
     void Update(const EnemyUpdateContext& context) override;
     void Draw() override;
+
+    void OnDeath() override;
     bool IsBoss() const override { return true; }
 
     // ダメージ処理

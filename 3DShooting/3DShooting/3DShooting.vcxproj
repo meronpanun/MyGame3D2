@@ -204,6 +204,7 @@
     <ClCompile Include="TaskTutorialManager.cpp" />
     <ClCompile Include="TransformDataLoader.cpp" />
     <ClCompile Include="TutorialManager.cpp" />
+    <ClCompile Include="TutorialTasks.cpp" />
     <ClCompile Include="UI\HitMarkUI.cpp" />
     <ClCompile Include="UI\PlayerEffectUI.cpp" />
     <ClCompile Include="UI\ReticleUI.cpp" />
@@ -274,6 +275,8 @@
     <ClInclude Include="TaskTutorialManager.h" />
     <ClInclude Include="TransformDataLoader.h" />
     <ClInclude Include="TutorialManager.h" />
+    <ClInclude Include="TutorialTask.h" />
+    <ClInclude Include="TutorialTasks.h" />
     <ClInclude Include="UI\HitMarkUI.h" />
     <ClInclude Include="UI\PlayerEffectUI.h" />
     <ClInclude Include="UI\ReticleUI.h" />

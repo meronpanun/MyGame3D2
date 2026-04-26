@@ -866,53 +866,52 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
             }
         }
     }
+}
 
-    // HP減算・死亡判定は基底クラスで行う
-    if (m_hp <= 0.0f) // 死亡時一度だけ
+void EnemyNormal::OnDeath()
+{
+    if (m_lastAttackType == AttackType::Shotgun)
     {
-        if (type == AttackType::Shotgun)
-        {
-            m_isBlownAway = true;
-            // プレイヤーと逆方向に吹き飛ぶ
-            if (SceneMain::Instance())
-            {
-                VECTOR playerPos = SceneMain::Instance()->GetPlayer().GetPos();
-                VECTOR toEnemy = VSub(m_pos, playerPos);
-                toEnemy.y = 0.0f; // 水平方向のみ
-                if (VSquareSize(toEnemy) > EnemyNormalConstants::kPushBackEpsilon)
-                {
-                    m_deathKnockbackDir = VNorm(toEnemy);
-                    m_deathKnockbackSpeed = 15.0f; // 初速を強化
-                }
-            }
-
-            // フォールバック: もし速度が設定されなかった場合（プレイヤー位置取得失敗 or 重なり）
-            if (m_deathKnockbackSpeed <= 0.0f)
-            {
-                // 敵の向いている方向の逆（後ろ）へ飛ばす
-                MATRIX worldMat = MV1GetLocalWorldMatrix(m_modelHandle);
-                VECTOR forward = VGet(worldMat.m[2][0], worldMat.m[2][1], worldMat.m[2][2]);
-                forward.y = 0.0f;
-                if (VSquareSize(forward) > EnemyNormalConstants::kPushBackEpsilon)
-                {
-                    m_deathKnockbackDir = VScale(VNorm(forward), -1.0f);
-                }
-                else
-                {
-                    m_deathKnockbackDir = VGet(0, 0, 1); // 完全なフォールバック
-                }
-                m_deathKnockbackSpeed = 15.0f;
-            }
-        }
-
-        if (m_lastHitPart == HitPart::None)
-            m_lastHitPart = HitPart::Body;
-        bool isHeadShot = (m_lastHitPart == HitPart::Head);
-        int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+        m_isBlownAway = true;
+        // プレイヤーと逆方向に吹き飛ぶ
         if (SceneMain::Instance())
         {
-            SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
+            VECTOR playerPos = SceneMain::Instance()->GetPlayer().GetPos();
+            VECTOR toEnemy = VSub(m_pos, playerPos);
+            toEnemy.y = 0.0f; // 水平方向のみ
+            if (VSquareSize(toEnemy) > EnemyNormalConstants::kPushBackEpsilon)
+            {
+                m_deathKnockbackDir = VNorm(toEnemy);
+                m_deathKnockbackSpeed = 15.0f; // 初速を強化
+            }
         }
+
+        // フォールバック: もし速度が設定されなかった場合（プレイヤー位置取得失敗 or 重なり）
+        if (m_deathKnockbackSpeed <= 0.0f)
+        {
+            // 敵の向いている方向の逆（後ろ）へ飛ばす
+            MATRIX worldMat = MV1GetLocalWorldMatrix(m_modelHandle);
+            VECTOR forward = VGet(worldMat.m[2][0], worldMat.m[2][1], worldMat.m[2][2]);
+            forward.y = 0.0f;
+            if (VSquareSize(forward) > EnemyNormalConstants::kPushBackEpsilon)
+            {
+                m_deathKnockbackDir = VScale(VNorm(forward), -1.0f);
+            }
+            else
+            {
+                m_deathKnockbackDir = VGet(0, 0, 1); // 完全なフォールバック
+            }
+            m_deathKnockbackSpeed = 15.0f;
+        }
+    }
+
+    if (m_lastHitPart == HitPart::None)
+        m_lastHitPart = HitPart::Body;
+    bool isHeadShot = (m_lastHitPart == HitPart::Head);
+    int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+    if (SceneMain::Instance())
+    {
+        SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
     }
 }
 

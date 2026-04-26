@@ -1,4 +1,4 @@
-﻿#include "EnemyRunner.h"
+#include "EnemyRunner.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -654,17 +654,17 @@ void EnemyRunner::TakeDamage(float damage, AttackType type)
         m_damageSECooldown = 45.0f; // 約0.75秒のクールタイム
     }
 
-    // HP減算・死亡判定は基底クラスで行う
-    if (m_hp <= 0.0f) // 死亡時一度だけ
+}
+
+void EnemyRunner::OnDeath()
+{
+    if (m_lastHitPart == HitPart::None)
+        m_lastHitPart = HitPart::Body;
+    bool isHeadShot = (m_lastHitPart == HitPart::Head);
+    int addScore = ScoreManager::Instance().AddScore(isHeadShot);
+    if (SceneMain::Instance())
     {
-        if (m_lastHitPart == HitPart::None)
-            m_lastHitPart = HitPart::Body;
-        bool isHeadShot = (m_lastHitPart == HitPart::Head);
-        int addScore = ScoreManager::Instance().AddScore(isHeadShot);
-        if (SceneMain::Instance())
-        {
-            SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
-        }
+        SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
     }
 }
 

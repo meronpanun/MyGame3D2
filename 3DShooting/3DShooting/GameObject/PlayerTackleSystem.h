@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "DxLib.h"
 #include <vector>
 #include "Stage.h"
@@ -24,6 +24,11 @@ public:
                 Effect* pEffect, const std::vector<EnemyBase*>& enemyList, 
                 const std::vector<Stage::StageCollisionData>& collisionData,
                 Player* pPlayer);
+
+    /// <summary>
+    /// クールダウンのみ更新（制限中用）
+    /// </summary>
+    void UpdateCooldownOnly(float deltaTime);
 
     // Getters
     bool IsTackling() const { return m_isTackling; }
