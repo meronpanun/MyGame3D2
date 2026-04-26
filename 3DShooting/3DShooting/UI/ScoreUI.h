@@ -42,4 +42,9 @@ private:
     static constexpr float kScorePopupDuration = 60.0f;
     static constexpr int kScorePopupX = 100;
     static constexpr int kScorePopupY = -50;
+
+    // コンボアニメーション用
+    int m_prevCombo = 0;
+    float m_comboPulseScale = 1.0f;
+    float m_comboAnimTimer = 0.0f;
 };

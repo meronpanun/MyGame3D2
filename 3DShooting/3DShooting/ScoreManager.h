@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <vector>
 
 /// <summary>
@@ -143,6 +143,14 @@ public:
     int GetMaxCombo() const { return m_maxCombo; }
 
     void ResetAll(); // スコア・キル数・コンボなど全リセット
+    
+    // 猶予時間定数
+    static constexpr int kComboGraceFrame = 240; // 4.0秒 (90 -> 240)
+
+    /// <summary>
+    /// コンボタイマーの現在値を取得
+    /// </summary>
+    int GetComboTimer() const { return m_comboTimer; }
 
 private:
 	std::vector<int> m_highScores; // ハイスコアリスト

@@ -1,4 +1,4 @@
-﻿#include "ScoreManager.h"
+#include "ScoreManager.h"
 #include <cmath>
 #include "TaskTutorialManager.h"
 #include <fstream>
@@ -8,7 +8,6 @@ namespace
 {
     constexpr int   kBaseHeadShotScore  = 200;  // ヘッドショットの基本スコア
     constexpr int   kBaseBodyShotScore  = 100;  // ボディショットの基本スコア
-    constexpr int   kComboGraceFrame    = 90;   // 1.5秒
     constexpr float kInitialComboRate   = 1.1f; // コンボ倍率の初期値
     constexpr int   kMaxHighScores      = 10;
     const char* kScoreFileName = "highscores.txt"; // スコア保存ファイル名
