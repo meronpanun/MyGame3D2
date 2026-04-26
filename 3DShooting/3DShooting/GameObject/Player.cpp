@@ -1,4 +1,4 @@
-﻿#include "Player.h"
+#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -966,8 +966,8 @@ void Player::UpdateLockOn(const std::vector<EnemyBase*>& enemyList,
             // 画面内にいるか、かつ垂直方向の範囲内か
             if (screenPos.z > 0)
             {
-                float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
-                float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
+                float dx = screenPos.x - (Game::GetScreenWidth() * 0.5f);
+                float dy = screenPos.y - (Game::GetScreenHeight() * 0.5f);
 
                 // 垂直方向の範囲チェック
                 if (fabs(dy) < PlayerConstants::kLockOnMaxScreenOffsetY)
@@ -1061,8 +1061,8 @@ void Player::UpdateLockOn(const std::vector<EnemyBase*>& enemyList,
 
                 if (screenPos.z > 0)
                 {
-                    float dx = screenPos.x - (Game::GetScreenWidth() / 2.0f);
-                    float dy = screenPos.y - (Game::GetScreenHeight() / 2.0f);
+                    float dx = screenPos.x - (Game::GetScreenWidth() * 0.5f);
+                    float dy = screenPos.y - (Game::GetScreenHeight() * 0.5f);
 
                     if (fabs(dy) < PlayerConstants::kLockOnMaxScreenOffsetY)
                     {

@@ -1,4 +1,4 @@
-﻿#include "EnemyBase.h"
+#include "EnemyBase.h"
 #include "Bullet.h"
 #include "TransformDataLoader.h"
 #include "CapsuleCollider.h"
@@ -442,7 +442,7 @@ void EnemyBase::DrawDebugDamage()
         int boxW = strWidth + EnemyConstants::kDebugBoxPaddingX * 2;
         int boxH = fontSize + EnemyConstants::kDebugBoxPaddingY * 2;
 
-        int boxX = (screenW - boxW) / 2;     // 横中央
+        int boxX = static_cast<int>((screenW - boxW) * 0.5f);     // 横中央
         int boxY = static_cast<int>(screenH * EnemyConstants::kDebugBoxValidYRatio); // 画面上部から15%の位置
 
         // 半透明背景描画 (黒, alpha=128)

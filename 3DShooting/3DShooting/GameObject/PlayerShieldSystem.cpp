@@ -377,7 +377,7 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
     // 武器切り替え中の盾アニメーション
     if (isSwitchingWeapon && weaponSwitchDuration > 0.0f)
     {
-        float halfDuration = weaponSwitchDuration / 2.0f;
+        float halfDuration = weaponSwitchDuration * 0.5f;
 
         // 前半：盾を下に隠す
         if (weaponSwitchTimer < halfDuration)

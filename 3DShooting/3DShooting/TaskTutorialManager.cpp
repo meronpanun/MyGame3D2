@@ -811,8 +811,8 @@ void TaskTutorialManager::Draw()
             DrawBox(0, 0, Game::GetScreenWidth(), Game::GetScreenHeight(), 0x000000, true);
             SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-            int centerX = Game::GetScreenWidth() / 2;
-            int centerY = Game::GetScreenHeight() / 2;
+            int centerX = static_cast<int>(Game::GetScreenWidth() * 0.5f);
+            int centerY = static_cast<int>(Game::GetScreenHeight() * 0.5f);
 
             // テキスト表示
             // 「緑色の攻撃はタイミングよくシールドブロック（MouseRight.png）を行うことでパリィできる」
@@ -825,7 +825,7 @@ void TaskTutorialManager::Draw()
             int text2Width = GetDrawStringWidthToHandle(text2.c_str(), -1, m_titleFont);
 
             int totalWidth = text1Width + iconWidth + text2Width;
-            int startX = centerX - totalWidth / 2;
+            int startX = centerX - static_cast<int>(totalWidth * 0.5f);
 
             int currentX = startX;
             int currentY = centerY - static_cast<int>(50 * scale);
@@ -844,7 +844,7 @@ void TaskTutorialManager::Draw()
             // 続行案内
             std::string resumeText = "右クリックを押して再開";
             int resumeTextWidth = GetDrawStringWidthToHandle(resumeText.c_str(), -1, m_taskFont);
-            DrawStringToHandle(centerX - resumeTextWidth / 2, centerY + static_cast<int>(50 * scale), resumeText.c_str(), 0xAAAAAA, m_taskFont);
+            DrawStringToHandle(centerX - static_cast<int>(resumeTextWidth * 0.5f), centerY + static_cast<int>(50 * scale), resumeText.c_str(), 0xAAAAAA, m_taskFont);
         }
 
     }
@@ -871,12 +871,12 @@ void TaskTutorialManager::Draw()
         int targetW = static_cast<int>(designerW * feedbackScale);
         int targetH = static_cast<int>(designerH * feedbackScale); 
         
-        int centerX = screenW / 2;
+        int centerX = static_cast<int>(screenW * 0.5f);
         // 画面中央やや下（クロスヘアと警告UIの間）に表示
         int centerY = static_cast<int>(screenH * 0.6f);
         
-        int drawX = centerX - targetW / 2;
-        int drawY = centerY - targetH / 2;
+        int drawX = centerX - static_cast<int>(targetW * 0.5f);
+        int drawY = centerY - static_cast<int>(targetH * 0.5f);
         
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_restrictedActionAlpha);
         DrawExtendGraph(drawX, drawY, drawX + targetW, drawY + targetH, m_designerImg, true);
@@ -909,7 +909,7 @@ void TaskTutorialManager::Draw()
             int iconH = static_cast<int>(kMouseImgSize * scale * 1.5f);
             
             // Designer.pngの中央あたりに表示（微調整必要）
-             DrawExtendGraph(centerX - iconW / 2, drawY + targetH / 2 - iconH / 2, centerX + iconW / 2, drawY + targetH / 2 + iconH / 2, iconImg, true);
+             DrawExtendGraph(centerX - static_cast<int>(iconW * 0.5f), drawY + static_cast<int>(targetH * 0.5f) - static_cast<int>(iconH * 0.5f), centerX + static_cast<int>(iconW * 0.5f), drawY + static_cast<int>(targetH * 0.5f) + static_cast<int>(iconH * 0.5f), iconImg, true);
         }
         
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);

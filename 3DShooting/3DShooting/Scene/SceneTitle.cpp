@@ -1,4 +1,4 @@
-﻿#include "SceneTitle.h"
+#include "SceneTitle.h"
 #include "EffekseerForDXLib.h"
 #include "Game.h"
 #include "SceneMain.h"
@@ -441,7 +441,7 @@ void SceneTitle::Draw()
             MV1SetScale(m_fenceModel, VGet(scale, scale, scale));
 
             // モデルの面がZ方向（奥）を向いているため、Y軸で90度回転してX方向（横幅）に沿わせます
-            MV1SetRotationXYZ(m_fenceModel, VGet(0.0f, 3.141592654f / 2.0f, 0.0f));
+            MV1SetRotationXYZ(m_fenceModel, VGet(0.0f, 3.141592654f * 0.5f, 0.0f));
 
             float kFenceInterval = 157.8f;
             float kXOffset = 995.6f * scale;
@@ -480,7 +480,7 @@ void SceneTitle::Draw()
 
             // Unity画像(Xが正面、Zが横幅)に基づき、正面をカメラ側(-Z方向)に向けるためY軸で90度回転させる
             // ユーザーの要望により、さらに180度回転させて裏側を向ける（90度 + 180度 = 270度 = -90度）
-            MV1SetRotationXYZ(m_armoryBillboardModel, VGet(0.0f, -3.14159f / 2.0f, 0.0f));
+            MV1SetRotationXYZ(m_armoryBillboardModel, VGet(0.0f, -3.14159f * 0.5f, 0.0f));
 
             // 中央のフェンス(X=0付近)の高さ80くらい、少しだけ手前(Z=90.0)に配置
             // 揺れ演出のオフセット（XとY）を加算する
@@ -609,7 +609,7 @@ void SceneTitle::Draw()
         {
             MV1SetScale(m_hangarModel, VGet(bgScale, bgScale, bgScale));
             // Unity画像では側面（奥行がある方）が見えているため90度回転させる
-            MV1SetRotationXYZ(m_hangarModel, VGet(0.0f, 3.14159f / 2.0f, 0.0f));
+            MV1SetRotationXYZ(m_hangarModel, VGet(0.0f, 3.14159f * 0.5f, 0.0f));
             
             // 左側の白い建物の左端（X = -1350）のさらに左に配置する
             // 90度回転させたためX方向の幅は967になる。その半分(483.5)を足す。

@@ -315,7 +315,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
         auto [prevHandle, prevOffset] = GetWeaponTransform(previousWeaponType);
         if (prevHandle != -1)
         {
-            float progress = (std::min)(m_weaponSwitchTimer / (m_weaponSwitchDuration / 2.0f), 1.0f);
+            float progress = (std::min)(m_weaponSwitchTimer / (m_weaponSwitchDuration * 0.5f), 1.0f);
             float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
             float yOffset = easeOut * 300.0f;
 
@@ -367,7 +367,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
         auto [currentHandle, currentOffset] = GetWeaponTransform(m_currentWeaponType);
         if (currentHandle != -1)
         {
-            float progress = (std::max)(0.0f, (m_weaponSwitchTimer - (m_weaponSwitchDuration / 2.0f)) / (m_weaponSwitchDuration / 2.0f));
+            float progress = (std::max)(0.0f, (m_weaponSwitchTimer - (m_weaponSwitchDuration * 0.5f)) / (m_weaponSwitchDuration * 0.5f));
             float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
             float yOffset = (1.0f - easeOut) * 300.0f;
 
@@ -797,7 +797,7 @@ void PlayerWeaponManager::UpdateSGAnimation(AnimationManager* pAnimManager,
 float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData) const
 {
     // カメラが存在しない、または下向き（約-45度以下）の場合は引き込み処理を行わない
-    if (!pCamera || pCamera->GetPitch() < -DX_PI_F / 4.0f) return 0.0f;
+    if (!pCamera || pCamera->GetPitch() < -DX_PI_F * 0.25f) return 0.0f;
 
     // 現在装備中の武器の銃身長をレイの長さとして定義
     float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
