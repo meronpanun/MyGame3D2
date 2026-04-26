@@ -67,7 +67,7 @@ void ScoreUI::Update(float deltaTime)
     if (currentCombo > m_prevCombo && currentCombo > 0)
     {
         // コンボが増えた瞬間の演出
-        m_comboPulseScale = 1.6f; 
+        m_comboPulseScale = 1.3f; 
         m_comboAnimTimer = 20.0f;
     }
     m_prevCombo = currentCombo;
@@ -176,8 +176,8 @@ void ScoreUI::Draw()
     int comboCount = ScoreManager::Instance().GetCombo();
     if (comboCount >= 2) // 2コンボ以上で表示
     {
-        int comboX = Game::GetScreenWidth() * 0.5f - static_cast<int>(250 * scale);
-        int comboY = Game::GetScreenHeight() * 0.5f - static_cast<int>(50 * scale);
+        int comboX = Game::GetScreenWidth() * 0.5f + static_cast<int>(kScorePopupX * scale);
+        int comboY = Game::GetScreenHeight() * 0.5f + static_cast<int>((kScorePopupY - 80) * scale);
 
         // 1. タイマーとアニメーションの計算
         int timer = ScoreManager::Instance().GetComboTimer();

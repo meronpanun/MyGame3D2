@@ -39,7 +39,7 @@ private:
     float m_totalScorePopupTimer;
     int m_scoreFont;
 
-    static constexpr float kScorePopupDuration = 60.0f;
+    static constexpr float kScorePopupDuration = 120.0f;
     static constexpr int kScorePopupX = 100;
     static constexpr int kScorePopupY = -50;
 
