@@ -179,6 +179,9 @@
     <ClCompile Include="GameObject\PlayerShieldSystem.cpp" />
     <ClCompile Include="GameObject\PlayerUI.cpp" />
     <ClCompile Include="GameObject\PlayerWeaponManager.cpp" />
+    <ClCompile Include="GameObject\PlayerStatus.cpp" />
+    <ClCompile Include="GameObject\PlayerTackleSystem.cpp" />
+    <ClCompile Include="GameObject\PlayerLockOnSystem.cpp" />
     <ClCompile Include="GameObject\ShellCasing.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
@@ -245,6 +248,9 @@
     <ClInclude Include="GameObject\PlayerShieldSystem.h" />
     <ClInclude Include="GameObject\PlayerUI.h" />
     <ClInclude Include="GameObject\PlayerWeaponManager.h" />
+    <ClInclude Include="GameObject\PlayerStatus.h" />
+    <ClInclude Include="GameObject\PlayerTackleSystem.h" />
+    <ClInclude Include="GameObject\PlayerLockOnSystem.h" />
     <ClInclude Include="GameObject\ShellCasing.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="GameObject\Player.h" />

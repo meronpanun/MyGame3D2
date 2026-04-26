@@ -8,6 +8,9 @@
 #include "PlayerUI.h"
 #include "PlayerWeaponManager.h"
 #include "Stage.h"
+#include "PlayerStatus.h"
+#include "PlayerTackleSystem.h"
+#include "PlayerLockOnSystem.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -146,21 +149,17 @@ public:
     /// 現在の体力を取得する
     /// </summary>
     /// <returns>現在の体力</returns>
-    /// <summary>
-    /// 現在の体力を取得する
-    /// </summary>
-    /// <returns>現在の体力</returns>
-    float GetHealth() const { return m_health; }
+    float GetHealth() const { return m_status.GetHealth(); }
 
     /// <summary>
     /// HPバーアニメーション用体力値を取得
     /// </summary>
-    float GetHealthBarAnim() const { return m_healthBarAnim; }
+    float GetHealthBarAnim() const { return m_status.GetHealthBarAnim(); }
 
     /// <summary>
     /// 体力低下の点滅タイマーを取得
     /// </summary>
-    float GetLowHealthBlinkTimer() const { return m_lowHealthBlinkTimer; }
+    float GetLowHealthBlinkTimer() const { return m_status.GetLowHealthBlinkTimer(); }
 
     /// <summary>
     /// 弾薬テキストのフラッシュタイマーを取得
@@ -170,7 +169,7 @@ public:
     /// <summary>
     /// ロックオンしている敵を取得
     /// </summary>
-    EnemyBase* GetLockedOnEnemy() const { return m_lockedOnEnemy; }
+    EnemyBase* GetLockedOnEnemy() const { return m_lockOnSystem.GetLockedOnEnemy(); }
 
     /// <summary>
     /// 盾システムを取得
@@ -184,7 +183,7 @@ public:
     /// 最大体力を取得する
     /// </summary>
     /// <returns>最大体力</returns>
-    float GetMaxHealth() const { return m_maxHealth; }
+    float GetMaxHealth() const { return m_status.GetMaxHealth(); }
 
     /// <summary>
     /// AR弾薬回復用関数
@@ -243,13 +242,13 @@ public:
     /// 無敵モードを設定する
     /// </summary>
     /// <param name="isInvincible">無敵にするかどうか</param>
-    void SetInvincible(bool isInvincible) { m_isInvincible = isInvincible; }
+    void SetInvincible(bool isInvincible) { m_status.SetInvincible(isInvincible); }
 
     /// <summary>
     /// 無敵モードかどうかを取得する
     /// </summary>
     /// <returns>無敵モードならtrue</returns>
-    bool IsInvincible() const { return m_isInvincible; }
+    bool IsInvincible() const { return m_status.IsInvincible(); }
 
     /// <summary>
     /// 飛行モードを設定する
@@ -267,19 +266,19 @@ public:
     /// ロックオン可能な敵がいるかどうかを取得する
     /// </summary>
     /// <returns>ロックオン可能な敵がいるならtrue</returns>
-    bool IsTargetAvailable() const { return m_isTargetAvailable; }
+    bool IsTargetAvailable() const { return m_lockOnSystem.IsTargetAvailable(); }
 
     /// <summary>
     /// 敵に照準が合っているかどうかを取得する
     /// </summary>
     /// <returns>照準が合っているならtrue</returns>
-    bool IsAimingAtEnemy() const;
+    bool IsAimingAtEnemy() const { return m_lockOnSystem.IsAimingAtEnemy(); }
 
     /// <summary>
     /// 体力が低下しているかどうかを取得する
     /// </summary>
     /// <returns>体力が低下しているならtrue</returns>
-    bool IsLowHealth() const { return m_isLowHealth; }
+    bool IsLowHealth() const { return m_status.IsLowHealth(); }
 
     /// <summary>
     /// 攻撃制限を設定する
@@ -291,7 +290,7 @@ public:
     /// プレイヤーが死亡しているかどうか
     /// </summary>
     /// <returns>死亡しているならtrue</returns>
-    bool IsDead() const { return m_isDead; }
+    bool IsDead() const { return m_status.IsDead(); }
 
     /// <summary>
     /// 方向インジケーターを設定する
@@ -361,22 +360,6 @@ private:
     void SwitchWeapon(WeaponType weaponType);
 
     /// <summary>
-    /// ロックオン処理の更新
-    /// </summary>
-    /// <param name="enemyList">敵リスト</param>
-    /// <param name="collisionData">衝突データ</param>
-    void UpdateLockOn(const std::vector<EnemyBase*>& enemyList,
-        const std::vector<Stage::StageCollisionData>& collisionData);
-
-    /// <summary>
-    /// タックル処理の更新
-    /// </summary>
-    /// <param name="enemyList">敵リスト</param>
-    /// <param name="collisionData">衝突データ</param>
-    void UpdateTackle(const std::vector<EnemyBase*>& enemyList,
-        const std::vector<Stage::StageCollisionData>& collisionData);
-
-    /// <summary>
     /// 射撃処理の更新
     /// </summary>
     void UpdateShooting();
@@ -409,6 +392,9 @@ private:
     PlayerMovement m_movement;
     PlayerShieldSystem m_shieldSystem;
     PlayerEffectManager m_effectManager;
+    PlayerStatus m_status;
+    PlayerTackleSystem m_tackleSystem;
+    PlayerLockOnSystem m_lockOnSystem;
 
     std::vector<ShellCasing> m_shellCasings;
     std::shared_ptr<Camera> m_pCamera; // カメラのポインタ
@@ -416,60 +402,34 @@ private:
     Effect* m_pEffect;                 // エフェクトのポインタ
     AnimationManager* m_pAnimManager;  // アニメーションマネージャーのポインタ
     DirectionIndicator* m_pDirectionIndicator; // 方向インジケーター
-    EnemyBase* m_lockedOnEnemy; // ロックオンした敵
 
     // 位置・姿勢
     VECTOR m_pos;
     VECTOR m_modelPos;
-    VECTOR m_tackleDir;
     VECTOR m_scale;
     VECTOR m_gunSwayOffset;    // 銃の揺れオフセット
     VECTOR m_gunSwayRotOffset; // 銃の回転揺れオフセット
 
-    // ステータス
-    float m_health;                      // 現在の体力
-    float m_maxHealth;                   // 最大体力
-    float m_bulletPower;                 // 弾の威力
-    float m_sgBulletPower;               // SG弾の威力
-    float m_maxShieldDurability;         // 盾の最大耐久値
-    float m_tackleCooldownMax;           // タックルクールタイム
-    float m_tackleSpeed;                 // タックル時の速度
-    float m_tackleDamage;                // タックルダメージ
-    float m_moveSpeed;                   // 移動速度
-    float m_runSpeed;                    // 走る速度
-    float m_shieldRegenRate;             // 盾の回復速度
-    float m_tackleCooldown;              // タックルのクールダウンタイマー
-    float m_deathTimer;                  // 死亡アニメーションタイマー
+    // タイマー類
     float m_idleSwayTimer;               // 待機時の揺れタイマー
-    float m_lowHealthBlinkTimer;         // 体力低下UIの点滅タイマー
     float m_ammoTextFlashTimer;          // 弾薬テキストのフラッシュタイマー
-    float m_healthBarAnim;               // HPバーのアニメーション用体力値
-    float m_healthBarAnimTimer;          // HPバーアニメーション用タイマー
     float m_startAnimTimer;              // 開始演出アニメーションタイマー
     float m_startAnimDuration;           // 開始演出アニメーション時間
     float m_uiFadeTimer;                 // UIフェードインタイマー
     float m_uiFadeDuration;              // UIフェードイン時間
-    
+
     // 入力・状態フラグ
     unsigned char m_prevKeyState[256]{}; // 前回のキー入力状態
     bool m_prevIsGuarding = false;       // 前フレームのガード状態
     bool m_hasShot;                      // プレイヤーがショット可能かどうか
-    bool m_isTackling;                   // タックル中かどうか
-    bool m_isInvincible;                 // 無敵モードかどうか
     bool m_isInfiniteAmmo;               // 弾薬無限モードかどうか
     bool m_isFlightMode;                 // 飛行モードかどうか
-    bool m_isDead;                       // 死亡フラグ
-    bool m_isLockingOn;                  // ロックオン中か
-    bool m_isTargetAvailable;            // ロックオン可能な敵がいるか
-    bool m_isAimingAtEnemy;              // 敵に照準が合っているか
-    bool m_isLowHealth;                  // 体力が少ないかどうかのフラグ
     bool m_shouldIgnoreGuardInput;       // ガード入力を無視するか
     bool m_isTutorial;                   // チュートリアル中か
     bool m_isStartAnimating;             // 開始演出アニメーション中か
     bool m_hasLandedAtStart;             // 開始時に一度でも着地したか
     bool m_isUiFadeStarted;              // UIフェードインが開始されたか
     bool m_isDamageHandledInThisFrame;   // 同一フレーム内でダメージ演出（SE/振動）を処理したか
-    int m_tackleHitSECooldownTimer;      // タックルヒットSEのクールタイムタイマー
 
     // ハンドルIDなど
     int m_arInitAmmo;                    // ARの初期弾薬数
@@ -477,8 +437,6 @@ private:
     int m_arMaxAmmo;                     // ARの最大弾薬数
     int m_sgMaxAmmo;                     // SGの最大弾薬数
     int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
-    int m_tackleFrame;                   // タックルのフレーム数
-    int m_tackleId;                      // タックルID
 
     AttackType m_allowedAttackType = AttackType::None;
 };
