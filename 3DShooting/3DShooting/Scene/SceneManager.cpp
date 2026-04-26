@@ -6,7 +6,6 @@
 #include "SceneBase.h"
 #include "SceneGameOver.h"
 #include "SceneMain.h"
-#include "SceneOption.h"
 #include "SceneResult.h"
 #include "SceneTitle.h"
 #include <DxLib.h>
@@ -14,7 +13,6 @@
 
 SceneManager::SceneManager()
     : m_pTitle(nullptr)
-    , m_pOption(nullptr)
     , m_pSceneMain(nullptr)
     , m_pResult(nullptr)
     , m_pGameOver(nullptr)
@@ -36,11 +34,6 @@ SceneManager::~SceneManager()
     {
         delete m_pTitle;
         m_pTitle = nullptr;
-    }
-    if (m_pOption != nullptr)
-    {
-        delete m_pOption;
-        m_pOption = nullptr;
     }
     if (m_pSceneMain != nullptr)
     {
@@ -114,7 +107,6 @@ void SceneManager::Update()
                 if (m_pCurrentScene == m_pTitle) m_pTitle = nullptr;
                 if (m_pCurrentScene == m_pSceneMain) m_pSceneMain = nullptr;
                 if (m_pCurrentScene == m_pResult) m_pResult = nullptr;
-                if (m_pCurrentScene == m_pOption) m_pOption = nullptr;
                 if (m_pCurrentScene == m_pGameOver) m_pGameOver = nullptr;
 
                 // シーン遷移時にすべてのサウンドを確実に停止させる

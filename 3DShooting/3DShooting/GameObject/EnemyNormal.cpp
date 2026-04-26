@@ -20,6 +20,7 @@
 #include "SoundManager.h"
 #include "EnemyState.h"
 #include "EnemyNormalState.h"
+
 namespace EnemyNormalConstants
 {
     // アニメーション関連

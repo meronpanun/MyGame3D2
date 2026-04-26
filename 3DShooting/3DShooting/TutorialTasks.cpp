@@ -3,7 +3,7 @@
 #include "Player.h"
 #include "TaskTutorialManager.h"
 
-// --- ShootTutorialTask ---
+
 void ShootTutorialTask::Start(WaveManager* pWaveManager, Player* pPlayer)
 {
     if (pWaveManager) pWaveManager->SpawnTutorialWave(1);

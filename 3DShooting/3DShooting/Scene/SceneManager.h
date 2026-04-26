@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 class SceneTitle;
 class SceneMain;
 class SceneResult;
-class SceneOption;
+class SceneResult;
 class SceneGameOver;
 class SceneBase;
 
@@ -49,7 +49,6 @@ private:
     SceneTitle* m_pTitle;
     SceneMain* m_pSceneMain;
     SceneResult* m_pResult;
-    SceneOption* m_pOption;
     SceneGameOver* m_pGameOver;
 
     int m_loadingDotCount;  // ロード中のドットの数

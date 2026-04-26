@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "EnemyBase.h"
 #include "SceneBase.h"
@@ -164,7 +164,6 @@ private:
 
     // 状態管理
     bool m_isPaused;                  // 一時停止中か
-    bool m_isReturningFromOption;     // オプションから戻ったか
     bool m_isEscapePressed;           // Escapeキー押下状態
     bool m_isReturningFromOtherScene; // 他シーンから戻ったか
     bool m_isLoading;                 // ロード中か

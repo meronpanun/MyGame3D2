@@ -1,16 +1,15 @@
 #pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
+#include "Effect.h"
+#include <memory>
+#include "EnemyState.h"
 
 class Bullet;
 class Player;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
-#include "Effect.h"
-#include <memory>
-#include "EnemyState.h"
-
 
 /// <summary>
 /// 通常の敵クラス

@@ -1,4 +1,4 @@
-﻿#include "SceneMain.h"
+#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -26,7 +26,6 @@
 #include "Player.h"
 #include "SceneManager.h"
 #include "SceneGameOver.h"
-#include "SceneOption.h"
 #include "SceneResult.h"
 #include "SceneTitle.h"
 #include "ScoreManager.h"
@@ -116,7 +115,6 @@ SceneMain* SceneMain::Instance() { return g_sceneMainInstance; }
 SceneMain::SceneMain(bool isReturningFromOtherScene)
     : m_isPaused(false)
     , m_isEscapePressed(false)
-    , m_isReturningFromOption(false)
     , m_isReturningFromOtherScene(isReturningFromOtherScene)
     , m_cameraSensitivity(Game::g_cameraSensitivity)
     , m_hitDistance(0.0f)
@@ -286,7 +284,6 @@ void SceneMain::Init()
     // スカイドームのスケールを設定
     MV1SetScale(m_skyDome, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
 
-    m_isReturningFromOption = false;
 
     m_items.clear();
 
@@ -380,7 +377,7 @@ void SceneMain::Init()
 
     // チュートリアルマネージャ生成・初期化
     m_pTutorialManager = std::make_unique<TutorialManager>();
-    if (!m_isReturningFromOption && !m_isReturningFromOtherScene && !s_isSkipTutorial) 
+    if (!m_isReturningFromOtherScene && !s_isSkipTutorial) 
     {
         m_pTutorialManager->Init();
     }
@@ -604,14 +601,6 @@ SceneBase* SceneMain::Update()
                 return new SceneTitle(true);
             }
 
-            if (mousePos.x >= kOptionButtonX &&
-                mousePos.x <= kOptionButtonX + kButtonWidth &&
-                mousePos.y >= kOptionButtonY &&
-                mousePos.y <= kOptionButtonY + kButtonHeight)
-            {
-                m_isReturningFromOption = true;
-                return new SceneOption(this);
-            }
         }
         return this;
     }

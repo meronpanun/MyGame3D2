@@ -7,15 +7,14 @@
 #include "SceneGameOver.h"
 #include "SceneMain.h"
 #include "SceneManager.h"
-#include "SceneOption.h"
 #include "SceneResult.h"
 #include "SceneTitle.h"
 #include "Stage.h"
 #include "WaveManager.h"
-#include "GameObject/EnemyNormal.h"
-#include "GameObject/EnemyRunner.h"
-#include "GameObject/EnemyBoss.h"
-#include "GameObject/EnemyAcid.h"
+#include "EnemyNormal.h"
+#include "EnemyRunner.h"
+#include "EnemyBoss.h"
+#include "EnemyAcid.h"
 #include "TaskTutorialManager.h"
 #include <cassert>
 
@@ -375,13 +374,6 @@ DebugMenu::MenuItem DebugMenu::CreateSceneMenu()
          []() {
            if (Game::m_pSceneManager) {
              Game::m_pSceneManager->RequestChangeScene(new SceneResult());
-           }
-         }},
-        {"OptionScene",
-         {},
-         []() {
-           if (Game::m_pSceneManager) {
-             Game::m_pSceneManager->RequestChangeScene(new SceneOption(nullptr));
            }
          }},
         {"GameOverScene",
