@@ -50,7 +50,11 @@ public:
         const std::vector<Stage::StageCollisionData>& collisionData);
     void Draw3D();
     void DrawShield();
-    void DrawUI();
+
+    /// <summary>
+    /// エフェクトマネージャーを取得
+    /// </summary>
+    PlayerEffectManager& GetEffectManager() { return m_effectManager; }
 
     /// <summary>
     /// カメラを取得する
@@ -147,6 +151,31 @@ public:
     /// </summary>
     /// <returns>現在の体力</returns>
     float GetHealth() const { return m_health; }
+
+    /// <summary>
+    /// HPバーアニメーション用体力値を取得
+    /// </summary>
+    float GetHealthBarAnim() const { return m_healthBarAnim; }
+
+    /// <summary>
+    /// 体力低下の点滅タイマーを取得
+    /// </summary>
+    float GetLowHealthBlinkTimer() const { return m_lowHealthBlinkTimer; }
+
+    /// <summary>
+    /// 弾薬テキストのフラッシュタイマーを取得
+    /// </summary>
+    float GetAmmoTextFlashTimer() const { return m_ammoTextFlashTimer; }
+
+    /// <summary>
+    /// ロックオンしている敵を取得
+    /// </summary>
+    EnemyBase* GetLockedOnEnemy() const { return m_lockedOnEnemy; }
+
+    /// <summary>
+    /// 盾システムを取得
+    /// </summary>
+    const PlayerShieldSystem& GetShieldSystem() const { return m_shieldSystem; }
 
     // 垂直速度リセット (ボスシールド対策)
     void ResetVerticalVelocity() { m_movement.ResetVerticalVelocity(); }
@@ -379,7 +408,6 @@ private:
     PlayerWeaponManager m_weaponManager;
     PlayerMovement m_movement;
     PlayerShieldSystem m_shieldSystem;
-    PlayerUI m_ui;
     PlayerEffectManager m_effectManager;
 
     std::vector<ShellCasing> m_shellCasings;

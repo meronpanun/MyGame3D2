@@ -38,7 +38,8 @@ bool WaveManager::s_shouldShowActiveEnemyCount = false;
 bool WaveManager::s_shouldShowDrawnEnemyCount = false;
 
 WaveManager::WaveManager()
-    : m_currentWave(1)
+    : m_state(WaveState::Interval)
+    , m_currentWave(1)
     , m_waveTimer(0.0f)
     , m_spawnTimer(0.0f)
     , m_currentSpawnIndex(0)
@@ -56,10 +57,6 @@ WaveManager::WaveManager()
     , m_hasClearedTackleTutorial(false)
     , m_isTutorialMode(false)
 {
-
-    // UI管理クラスの生成
-    m_pWaveUI = std::make_unique<WaveUI>();
-
     // 敵のモデルをロード
     EnemyNormal::LoadModel();
     EnemyRunner::LoadModel();
@@ -81,9 +78,6 @@ void WaveManager::Init()
     m_enemyData = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
     m_enemyList.clear();
     m_spawnInfoList.clear();
-
-    // UI初期化
-    m_pWaveUI->Init();
 
     // ウェーブデータをロード (WaveDataLoaderを使用)
     m_waveDataList = WaveDataLoader::LoadWaveData("data/CSV/WaveData.csv");
@@ -214,8 +208,19 @@ void WaveManager::Update()
         }
     }
 
-    // UI更新
-    m_pWaveUI->Update();
+    // ウェーブ状態による更新
+    if (m_state == WaveState::Starting)
+    {
+        // 演出タイマーの更新 (105フレーム = 約1.75秒)
+        // 本来はメンバ変数でタイマーを持つべきだが、簡易化のため既存のタイマーを流用するか新規追加が必要
+        // 今回はWaveManagerにタイマーが不足しているため、m_waveTimerを流用
+        m_waveTimer += 1.0f * Game::GetTimeScale();
+        if (m_waveTimer >= 105.0f)
+        {
+            m_state = WaveState::Active;
+            m_waveTimer = 0.0f;
+        }
+    }
 
     if (m_haveAllWavesCompleted)
     {
@@ -233,8 +238,8 @@ void WaveManager::Update()
         }
         else
         {
-            // アニメーション中はスポーンしない
-            if (m_currentSpawnIndex < m_spawnInfoList.size() && !m_pWaveUI->IsAnimating())
+            // Starting状態（演出中）はスポーンしない
+            if (m_currentSpawnIndex < m_spawnInfoList.size() && m_state == WaveState::Active)
             {
                 m_spawnTimer += (1.0f / 60.0f) * Game::GetTimeScale();
                 while (m_currentSpawnIndex < m_spawnInfoList.size())
@@ -335,15 +340,8 @@ void WaveManager::DrawEnemies(const std::vector<Stage::StageCollisionData>& coll
     // ここでは互換性のためs_isDrawSpawnAreasを使用し、UIクラスに渡す
     if (s_shouldDrawSpawnAreas)
     {
-        m_pWaveUI->DrawDebugSpawnAreas(m_spawnAreaList, isTutorial || m_isTutorialMode);
-    }
-}
-
-void WaveManager::DrawWaveUI()
-{
-    if (!m_isTutorialMode)
-    {
-        m_pWaveUI->DrawWaveUI(m_currentWave, m_isWaveActive, m_haveAllWavesCompleted);
+        // デバッグ描画はSceneMainなどで適切に行うか、
+        // 必要ならUIManager経由でWaveUIに指示する
     }
 }
 
@@ -662,10 +660,15 @@ void WaveManager::StartCurrentWave(const VECTOR& playerPos)
         return a.spawnTime < b.spawnTime;
     });
 
-    // アニメーション開始
+    // 状態をStartingに移行（演出開始）
     if (!m_isTutorialMode)
     {
-        m_pWaveUI->StartWaveAnimation();
+        m_state = WaveState::Starting;
+        m_waveTimer = 0.0f;
+    }
+    else
+    {
+        m_state = WaveState::Active;
     }
 }
 

@@ -26,7 +26,7 @@ class WaveManager;
 class Effect;
 class DirectionIndicator;
 class AnimationManager;
-class BossUI;
+class UIManager;
 
 /// <summary>
 /// メインシーンクラス
@@ -160,7 +160,7 @@ private:
     std::vector<std::shared_ptr<ItemBase>> m_items;
 
     std::unique_ptr<DirectionIndicator> m_pDirectionIndicator;
-    std::unique_ptr<BossUI> m_pBossUI;
+    std::unique_ptr<UIManager> m_pUIManager;
 
     // 状態管理
     bool m_isPaused;                  // 一時停止中か
@@ -175,29 +175,15 @@ private:
 
     // リソース管理
     SafeHandle<ModelDeleter> m_skyDome; // スカイドーム画像ハンドル
-    ManagedGraph m_dotDefault;
-    ManagedGraph m_dotOnTarget;
+    // レティクル画像
     ManagedGraph m_sgDefaultReticle;
     ManagedGraph m_sgOnTargetReticle;
-    ManagedFont m_scoreFont;       // スコアポップアップ用フォントハンドル
     int m_headShotSECooldownTimer; // ヘッドショットSEのクールタイムタイマー
-
-    // スコアポップアップ管理
-    struct ScorePopup
-    {
-        int value;
-        int combo;
-        int timer;
-        bool isHeadShot;
-    };
-    std::deque<ScorePopup> m_scorePopups;
-    int m_totalScorePopupTimer;     // 合計スコア表示用タイマー
-    int m_lastTotalScorePopupValue; // 合計スコアポップアップ用一時保存値
     std::unique_ptr<TutorialManager> m_pTutorialManager;
 
     // 経過時間管理
     std::chrono::steady_clock::time_point m_pauseStartTime;
-    int m_hitMarkTimer;         // ヒットマーク表示タイマー
+
     float m_hitDistance;        // ヒットした距離
     int m_clearSceneDelayTimer; // ゲームクリア遷移遅延タイマー
     float m_cameraSensitivity;  // カメラ感度

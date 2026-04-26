@@ -1,5 +1,7 @@
 ﻿#include "WaveUI.h"
 #include "DebugUtil.h"
+#include "WaveManager.h"
+#include "Game.h"
 #include <algorithm>
 #include <cstdio>
 
@@ -15,8 +17,9 @@ namespace
     constexpr int kFontSize = 16;          // フォントサイズ
 }
 
-WaveUI::WaveUI()
-    : m_waveImageAnimTimer(0)
+WaveUI::WaveUI(WaveManager* waveManager)
+    : m_pWaveManager(waveManager)
+    , m_waveImageAnimTimer(0)
     , m_waveImageAnimDuration(45)
     , m_waveImageAnimHoldDuration(30)
     , m_waveImageAnimInitialHoldDuration(30)
@@ -50,12 +53,21 @@ void WaveUI::Init()
     m_waveImages[4] = LoadGraph("data/image/wave5.png");
 }
 
-void WaveUI::Update()
+void WaveUI::Update(float deltaTime)
 {
+    // ウェーブマネージャーの状態を監視して演出を開始
+    if (m_pWaveManager && m_pWaveManager->GetState() == WaveManager::WaveState::Starting && !m_isWaveImageAnimating)
+    {
+        StartWaveAnimation();
+    }
+
     // ウェーブ画像アニメーションの更新
     if (m_isWaveImageAnimating)
     {
-        m_waveImageAnimTimer++;
+        // タイムスケールを考慮した更新
+        float increment = 1.0f * Game::GetTimeScale();
+        m_waveImageAnimTimer += static_cast<int>(increment);
+        
         if (m_waveImageAnimTimer >= m_waveImageAnimInitialHoldDuration + m_waveImageAnimDuration + m_waveImageAnimHoldDuration)
         {
             m_isWaveImageAnimating = false;
@@ -69,8 +81,14 @@ void WaveUI::StartWaveAnimation()
     m_waveImageAnimTimer = 0;
 }
 
-void WaveUI::DrawWaveUI(int currentWave, bool isWaveActive, bool isAllWavesCompleted)
+void WaveUI::Draw()
 {
+    if (!m_pWaveManager) return;
+
+    int currentWave = m_pWaveManager->GetCurrentWave();
+    bool isWaveActive = m_pWaveManager->IsWaveActive();
+    bool isAllWavesCompleted = m_pWaveManager->IsAllWavesCompleted();
+
     // ウェーブ中は常に画像を表示
     if (!isAllWavesCompleted && currentWave >= 1 && currentWave <= 5 && (m_isWaveImageAnimating || isWaveActive))
     {

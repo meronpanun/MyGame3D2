@@ -2,6 +2,13 @@
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
+#include "PlayerUI.h"
+#include "WaveUI.h"
+#include "ReticleUI.h"
+#include "ScoreUI.h"
+#include "HitMarkUI.h"
+#include "PlayerEffectUI.h"
+#include "UIManager.h"
 #include "Camera.h"
 #include "DebugUtil.h"
 #include "DirectionIndicator.h"
@@ -17,6 +24,7 @@
 #include "Game.h"
 #include "InputManager.h"
 #include "Player.h"
+#include "SceneManager.h"
 #include "SceneGameOver.h"
 #include "SceneOption.h"
 #include "SceneResult.h"
@@ -113,12 +121,9 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_cameraSensitivity(Game::g_cameraSensitivity)
     , m_hitDistance(0.0f)
     , m_pCamera(std::make_unique<Camera>())
-    , m_hitMarkTimer(0)
     , m_hasDroppedWave1FirstAid(false)
     , m_hasDroppedWave1Ammo(false)
     , m_wave1DropCount(0)
-    , m_totalScorePopupTimer(0)
-    , m_lastTotalScorePopupValue(0)
     , m_isLoading(true)
     , m_headShotSECooldownTimer(0)
     , m_isPlayerInit(false)
@@ -195,11 +200,8 @@ void SceneMain::Init()
 
     // 重いリソースの非同期読み込みを開始
     m_skyDome.Reset(MV1LoadModel("data/model/Dome.mv1"));
-    m_dotDefault.Load("data/image/DotDefault.png");
-    m_dotOnTarget.Load("data/image/DotOnTarget.png");
-    m_sgDefaultReticle.Load("data/image/SGDefaultReticl.png");
-    m_sgOnTargetReticle.Load("data/image/SGOnTargetReticle.png");
-    m_scoreFont.Load("メイリオ", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8);
+    // UI管理クラスの初期化
+    m_pUIManager = std::make_unique<UIManager>();
 
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->SetEffect(m_pEffect.get());
@@ -233,14 +235,28 @@ void SceneMain::Init()
     m_pWaveManager->Init();
     Game::m_pWaveManager = m_pWaveManager.get();
 
+    // 方向インジケーターの初期化
     m_pDirectionIndicator = std::make_unique<DirectionIndicator>();
     m_pDirectionIndicator->Init(m_pPlayer.get());
 
-    // プレイヤーに方向インジケーターを設定
-    m_pPlayer->SetDirectionIndicator(m_pDirectionIndicator.get());
+    // UIコンポーネントの登録
+    auto playerUI = std::make_shared<PlayerUI>(m_pPlayer.get());
+    auto waveUI = std::make_shared<WaveUI>(m_pWaveManager.get());
+    auto bossUI = std::make_shared<BossUI>(m_pWaveManager.get());
+    auto reticleUI = std::make_shared<ReticleUI>(m_pPlayer.get());
+    auto scoreUI = std::make_shared<ScoreUI>();
+    auto hitMarkUI = std::make_shared<HitMarkUI>();
+    auto playerEffectUI = std::make_shared<PlayerEffectUI>(m_pPlayer.get());
 
-    // ボスUIの作成
-    m_pBossUI = std::make_unique<BossUI>();
+    m_pUIManager->AddUI(playerUI);
+    m_pUIManager->AddUI(waveUI);
+    m_pUIManager->AddUI(bossUI);
+    m_pUIManager->AddUI(reticleUI);
+    m_pUIManager->AddUI(scoreUI);
+    m_pUIManager->AddUI(hitMarkUI);
+    m_pUIManager->AddUI(playerEffectUI);
+
+    m_pUIManager->Init();
 
     // RoadFloorオブジェクトの範囲を設定（マップ全体の範囲）
     m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
@@ -386,17 +402,14 @@ void SceneMain::Init()
 // スコアポップアップを追加する
 void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo) 
 {
-  m_scorePopups.push_back(
-      {score, combo, kPopupDuration, static_cast<bool>(isHeadShot)});
-
-  if (m_scorePopups.size() > 5) m_scorePopups.pop_front(); // 最大5件まで
-
-  m_totalScorePopupTimer = kTotalScoreDuration; // 合計スコアタイマーリセット
-
-  // 直近の倍率適用済みスコアを保存
-  int totalScore = ScoreManager::Instance().GetScore();
-  float lastComboRate = ScoreManager::Instance().GetLastComboRate();
-  m_lastTotalScorePopupValue = static_cast<int>(totalScore * lastComboRate);
+    if (m_pUIManager)
+    {
+        auto scoreUI = m_pUIManager->GetUI<ScoreUI>();
+        if (scoreUI)
+        {
+            scoreUI->AddScorePopup(score, isHeadShot);
+        }
+    }
 }
 
 void SceneMain::SwitchToMainStage()
@@ -516,6 +529,12 @@ SceneBase* SceneMain::Update()
 
     float dt = (1.0f / 60.0f) * Game::GetTimeScale();
     s_elapsedTime += dt;
+
+    // UIの更新 (ポーズ中やチュートリアル中もタイマーを進める、またはスケールを更新するためにここで呼ぶ)
+    if (m_pUIManager)
+    {
+        m_pUIManager->Update(m_lastDeltaTime);
+    }
 
     // デバックウィンドウが表示されている場合は、更新をスキップ
     if (DebugUtil::IsDebugWindowVisible())
@@ -643,22 +662,6 @@ SceneBase* SceneMain::Update()
         m_items.erase(std::remove_if(m_items.begin(), m_items.end(),
             [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }), m_items.end());
 
-        if (m_hitMarkTimer > 0)
-        {
-            --m_hitMarkTimer;
-        }
-        for (auto& popup : m_scorePopups)
-        {
-            popup.timer--;
-        }
-        while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0)
-        {
-            m_scorePopups.pop_front();
-        }
-        if (m_totalScorePopupTimer > 0)
-        {
-            m_totalScorePopupTimer--;
-        }
         ScoreManager::Instance().Update();
 
         // ゲームオーバーチェックもここで実行
@@ -754,29 +757,9 @@ SceneBase* SceneMain::Update()
     m_items.erase(std::remove_if(m_items.begin(), m_items.end(),
         [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }), m_items.end());
 
-    // ヒットマークタイマー更新
-    if (m_hitMarkTimer > 0)
-    {
-        --m_hitMarkTimer;
-    }
-
-    // スコアポップアップタイマー更新
-    for (auto& popup : m_scorePopups)
-    {
-        popup.timer--;
-    }
-
-    // タイマー切れのポップアップ削除
-    while (!m_scorePopups.empty() && m_scorePopups.front().timer <= 0)
-    {
-        m_scorePopups.pop_front();
-    }
-
-    // 合計スコアポップアップタイマー更新
-    if (m_totalScorePopupTimer > 0) m_totalScorePopupTimer--;
-
     m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
     ScoreManager::Instance().Update();
+
     return this;
 }
 
@@ -841,30 +824,10 @@ void SceneMain::Draw()
         return; // ローディング中はこれ以降描画しない
     }
 
-    // 古いチュートリアルUI描画
-    if (m_pTutorialManager)
-    {
-        m_pTutorialManager->Draw(screenW, screenH);
-    }
+    // 敵の描画
+    m_pWaveManager->DrawEnemies(m_pStage->GetCollisionData(), m_isTutorialStage);
 
-    // 基本操作チュートリアル中は敵などを描画しない
-    if (m_pTutorialManager && m_pTutorialManager->IsActive())
-    {
-        // 何もしない（プレイヤー描画は下で行う）
-    }
-    // タスクチュートリアルUI描画
-    else if (!TaskTutorialManager::GetInstance()->IsCompleted())
-    {
-        TaskTutorialManager::GetInstance()->Draw();
-        // タスクチュートリアル中は敵を描画する
-        m_pWaveManager->DrawEnemies(m_pStage->GetCollisionData(), m_isTutorialStage);
-    }
-    // メインゲームループ中の敵描画 (両方のチュートリアルが完了した場合)
-    else
-    {
-        m_pWaveManager->DrawEnemies(m_pStage->GetCollisionData(), m_isTutorialStage);
-    }
-
+    // エフェクトの描画
     m_pEffect->Draw();
 
     m_pPlayer->Draw3D();
@@ -872,252 +835,29 @@ void SceneMain::Draw()
     // ここからUI描画
     m_pPlayer->DrawShield();
 
-    if (!m_pPlayer->IsDead())
+    // チュートリアルUI（最前面に表示）
+    if (m_pTutorialManager)
     {
-        int defaultHandle = -1;
-        int onTargetHandle = -1;
-
-        // 武器の種類に応じてハンドルを切り替える
-        switch (m_pPlayer->GetCurrentWeaponType())
-        {
-        case WeaponType::AssaultRifle:
-            defaultHandle = static_cast<int>(m_dotDefault);
-            onTargetHandle = static_cast<int>(m_dotOnTarget);
-            break;
-        case WeaponType::Shotgun:
-            defaultHandle = static_cast<int>(m_sgDefaultReticle);
-            onTargetHandle = static_cast<int>(m_sgOnTargetReticle);
-            break;
-        }
-
-        // ターゲットに照準が合っているかに応じてハンドルを決定（色はブレンドモードで付ける）
-        int currentReticleHandle = m_pPlayer->IsAimingAtEnemy() ? onTargetHandle : defaultHandle;
-
-        // レティクルの描画
-        // 中心座標を動的に計算
-        int centerX = screenW * 0.5f;
-        int centerY = screenH * 0.5f;
-        float scale = Game::GetUIScale();
-
-        // 拡大描画時のジャギー対策としてバイリニア補間を有効にする
-        SetDrawMode(DX_DRAWMODE_BILINEAR);
-
-        // 反動によるスケール計算
-        // GetRecoilScaleは0.0~1.0を返す。これを1.0~1.5倍程度の拡大率に変換
-        float recoil = m_pPlayer->GetWeaponManager().GetRecoilScale();
-        float recoilScale = 1.0f + (recoil * 0.5f); // 最大1.5倍
-
-        if (currentReticleHandle != -1)
-        {
-            int reticleWidth = 0;
-            int reticleHeight = 0;
-            GetGraphSize(currentReticleHandle, &reticleWidth, &reticleHeight);
-
-            int scaledReticleW = static_cast<int>(reticleWidth * scale * recoilScale);
-            int scaledReticleH = static_cast<int>(reticleHeight * scale * recoilScale);
-
-            // 敵に照準が合っている場合は赤くする
-            bool isAiming = m_pPlayer->IsAimingAtEnemy();
-            if (isAiming)
-            {
-                SetDrawBlendMode(DX_BLENDMODE_ADD, 255); // 加算ブレンドで光らせる
-                SetDrawBright(255, 100, 100); // 赤みを帯びさせる
-            }
-
-            DrawExtendGraph(centerX - scaledReticleW * 0.5f, centerY - scaledReticleH * 0.5f,
-                centerX + scaledReticleW * 0.5f, centerY + scaledReticleH * 0.5f, currentReticleHandle, true);
-
-            if (isAiming)
-            {
-                SetDrawBright(255, 255, 255);
-                SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-            }
-        }
-
-        // ドットレティクルを常に描画（こちらは反動の影響を受けず、常に中心）
-        int dotReticleHandle = m_pPlayer->IsAimingAtEnemy() ? static_cast<int>(m_dotOnTarget) : static_cast<int>(m_dotDefault);
-        if (dotReticleHandle != -1)
-        {
-            int dotReticleWidth = 0;
-            int dotReticleHeight = 0;
-            GetGraphSize(dotReticleHandle, &dotReticleWidth, &dotReticleHeight);
-
-            int scaledDotW = static_cast<int>(dotReticleWidth * scale);
-            int scaledDotH = static_cast<int>(dotReticleHeight * scale);
-
-            DrawExtendGraph(centerX - scaledDotW * 0.5f, centerY - scaledDotH * 0.5f,
-                centerX + scaledDotW * 0.5f, centerY + scaledDotH * 0.5f, dotReticleHandle, true);
-        }
-
-        // 描画モードをデフォルト(Nearest)に戻す
-        SetDrawMode(DX_DRAWMODE_NEAREST);
+        m_pTutorialManager->Draw(screenW, screenH);
     }
 
-    // ウェーブUIの描画
-    m_pWaveManager->DrawWaveUI();
-
-    m_pPlayer->DrawUI();
-
-    // 方向インジケーターUIの描画
-    if (!m_pPlayer->IsDead())
+    if (m_pTutorialManager && m_pTutorialManager->IsActive())
     {
-        m_pDirectionIndicator->Draw();
+        // ...
+    }
+    else if (!TaskTutorialManager::GetInstance()->IsCompleted())
+    {
+        TaskTutorialManager::GetInstance()->Draw();
     }
 
-    // スコアポップアップ描画
-    bool showScorePopup = !m_scorePopups.empty();
-    bool showTotalScoreOnly = (m_totalScorePopupTimer > 0);
-    if (showScorePopup || showTotalScoreOnly)
-    {
-        float scale = Game::GetUIScale();
-        // 基準フォントサイズ(32)に基づいた適切なオフセット
-        int fontSize = 32;
-        int scaledPopupOffsetY = static_cast<int>(fontSize * 1.2f * scale);
-        
-        int popupBaseX = Game::GetScreenWidth() * 0.5f + static_cast<int>(kScorePopupX * scale);
-        int popupBaseY = Game::GetScreenHeight() * 0.5f + static_cast<int>(kScorePopupY * scale);
-        
-        int idx = 0;
-        float lastComboRate = ScoreManager::Instance().GetLastComboRate();
-        int displayCombo = (ScoreManager::Instance().GetCombo() > 1) ? ScoreManager::Instance().GetCombo() : 1;
+    // UIの一括描画
+    m_pUIManager->Draw();
 
-        // 全体のフェードアウト用アルファ値（一番長いタイマーに合わせる）
-        int alpha = 255;
-        if (m_totalScorePopupTimer < 20)
-        {
-            alpha = (255 * m_totalScorePopupTimer / 20);
-        }
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-
-        auto DrawShadowText = [&](int x, int y, unsigned int color, const char* format, ...) {
-            va_list args;
-            va_start(args, format);
-            char buf[256];
-            vsprintf_s(buf, format, args);
-            va_end(args);
-            DrawStringToHandle(x + 2, y + 2, buf, 0x000000, m_scoreFont);
-            DrawStringToHandle(x, y, buf, color, m_scoreFont);
-        };
-
-        // 合計スコアの表示（常にスナップショット値を使用することで、表示中の変動を防ぐ）
-        if (lastComboRate > 1.0f)
-        {
-            DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0x00ffcc, "+%d (×%.2f)", m_lastTotalScorePopupValue, lastComboRate);
-        }
-        else
-        {
-            DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0x00ffcc, "+%d", m_lastTotalScorePopupValue);
-        }
-        idx++;
-
-        // 内訳（キル詳細）の表示
-        if (showScorePopup)
-        {
-            int lastIsHeadShot = -1;
-            for (const auto& popup : m_scorePopups)
-            {
-                // 同じ種類のキルはまとめて表示
-                if (lastIsHeadShot == -1 || lastIsHeadShot != static_cast<int>(popup.isHeadShot))
-                {
-                    // 内訳自体のフェード（個別のタイマーが短い場合はさらに薄くする）
-                    if (popup.timer < 20) {
-                        int detailAlpha = (alpha * popup.timer / 20);
-                        SetDrawBlendMode(DX_BLENDMODE_ALPHA, detailAlpha);
-                    }
-
-                    if (popup.isHeadShot)
-                    {
-                        DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xffd700, "200pt HEADSHOT ×%d", displayCombo);
-                    }
-                    else
-                    {
-                        DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xeeeeee, "100pt ZOMBIE KILL ×%d", displayCombo);
-                    }
-                    idx++;
-                    
-                    // 次の行のためにアルファ値を戻す
-                    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-                }
-                lastIsHeadShot = static_cast<int>(popup.isHeadShot);
-            }
-        }
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    }
-
-    // ヒットマーク描画
-    if (m_hitMarkTimer > 0)
-    {
-        // 距離減衰の計算
-        // 基準距離(3m)以内は減衰なし、消失距離(20m)以上は最小アルファ
-        constexpr float kMinDistance = 300.0f;
-        constexpr float kMaxDistance = 2000.0f;
-        constexpr float kMaxRatio = 1.0f;
-        constexpr float kMinRatio = 0.2f;
-
-        float ratio = 1.0f;
-        if (m_hitDistance > kMinDistance)
-        {
-            float t = (m_hitDistance - kMinDistance) / (kMaxDistance - kMinDistance);
-            t = (std::min)(t, 1.0f); // Clamp 0~1
-            ratio = kMaxRatio * (1.0f - t) + kMinRatio * t;
-        }
-
-        // アルファ値を計算
-        int alpha = static_cast<int>((255 * m_hitMarkTimer * ratio) / kHitMarkDuration);
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
-
-        // 赤 or 黄色
-        unsigned int color = (m_hitMarkType == EnemyBase::HitPart::Head) ? 0xffd700 : 0xff4500;
-
-        // 通常のヒットマーク描画
-        // 左上→右下
-        float scale = Game::GetUIScale();
-        int scaledLineLength = static_cast<int>(kHitMarkLineLength * scale);
-        int scaledCenterSpacing = static_cast<int>(kHitMarkCenterSpacing * scale);
-        int scaledThickness = (std::max)(1, static_cast<int>(kHitMarkLineThickness * scale));
-        int centerX = Game::GetScreenWidth() * 0.5f;
-        int centerY = Game::GetScreenHeight() * 0.5f;
-        
-        DrawLine(centerX - scaledLineLength, centerY - scaledLineLength,
-            centerX - scaledCenterSpacing, centerY - scaledCenterSpacing, color, scaledThickness);
-        DrawLine(centerX + scaledCenterSpacing, centerY + scaledCenterSpacing,
-            centerX + scaledLineLength, centerY + scaledLineLength, color, scaledThickness);
-        // 左下→右上
-        DrawLine(centerX - scaledLineLength, centerY + scaledLineLength,
-            centerX - scaledCenterSpacing, centerY + scaledCenterSpacing, color, scaledThickness);
-        DrawLine(centerX + scaledCenterSpacing, centerY - scaledCenterSpacing,
-            centerX + scaledLineLength, centerY - scaledLineLength, color, scaledThickness);
-
-        // ヘッドショットの場合は二重線を描画
-        if (m_hitMarkType == EnemyBase::HitPart::Head)
-        {
-            int offset = static_cast<int>(kHitMarkDoubleLineOffset * scale);
-            DrawLine(centerX - scaledLineLength - offset, centerY - scaledLineLength + offset,
-                centerX - scaledCenterSpacing - offset, centerY - scaledCenterSpacing + offset, color, scaledThickness);
-            DrawLine(centerX + scaledCenterSpacing + offset, centerY + scaledCenterSpacing - offset,
-                centerX + scaledLineLength + offset, centerY + scaledLineLength - offset, color, scaledThickness);
-            DrawLine(centerX - scaledLineLength - offset, centerY + scaledLineLength - offset,
-                centerX - scaledCenterSpacing - offset, centerY + scaledCenterSpacing - offset, color, scaledThickness);
-            DrawLine(centerX + scaledCenterSpacing + offset, centerY - scaledCenterSpacing + offset,
-                centerX + scaledLineLength + offset, centerY - scaledLineLength + offset, color, scaledThickness);
-        }
-
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    }
-
-    // ボスUIの描画
-    if (m_pBossUI)
-    {
-        m_pBossUI->Draw(m_pWaveManager->GetEnemyList());
-    }
-
+    // ポーズメニューの描画
     if (m_isPaused)
     {
         DrawPauseMenu();
     }
-
-    // タスクチュートリアルUI描画
-    TaskTutorialManager::GetInstance()->Draw();
 
     // デバッグHUD描画
     if (m_isShowDebugHUD)
@@ -1230,21 +970,21 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
 /// </summary>
 void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
 {
-    // ヒット距離を保存
-    m_hitDistance = distance;
-
-    // ヒットの部位によって処理を分ける（例：ヘッドショット時のSEなど）
+    // ヒットの部位によってSE再生
     if (part == EnemyBase::HitPart::Head)
     {
         if (m_headShotSECooldownTimer <= 0)
         {
             SoundManager::GetInstance()->Play("UI", "HeadShot");
-            m_headShotSECooldownTimer = 10; // 10フレームのクールタイム（約0.16秒）
+            m_headShotSECooldownTimer = 10;
         }
     }
 
-    m_hitMarkTimer = kHitMarkDuration;
-    m_hitMarkType = part;
+    auto hitMarkUI = m_pUIManager->GetUI<HitMarkUI>();
+    if (hitMarkUI)
+    {
+        hitMarkUI->Trigger(part, distance);
+    }
 }
 
 void SceneMain::StopAllEffects()

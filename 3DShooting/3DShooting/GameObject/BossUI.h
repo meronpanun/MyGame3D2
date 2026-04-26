@@ -1,25 +1,25 @@
-﻿#pragma once
+#pragma once
+#include "UIBase.h"
 #include "DxLib.h"
 #include "ManagedFont.h"
 #include <vector>
 #include <memory>
 
 class EnemyBase;
+class WaveManager;
 
 /// <summary>
 /// ボスUI描画クラス
 /// </summary>
-class BossUI
+class BossUI : public UIBase
 {
 public:
-	BossUI();
-	~BossUI();
+	BossUI(WaveManager* waveManager);
+	virtual ~BossUI();
 
-	/// <summary>
-	/// 描画
-	/// </summary>
-	/// <param name="enemyList">敵のリスト</param>
-	void Draw(const std::vector<std::shared_ptr<EnemyBase>>& enemyList);
+	void Init() override;
+	void Update(float deltaTime) override;
+	void Draw() override;
 
 private:
 	/// <summary>
@@ -38,15 +38,10 @@ private:
 	/// <summary>
 	/// グラデーションボックスの描画（上部と下部で色が変わる）
 	/// </summary>
-	/// <param name="x1">x座標1</param>
-	/// <param name="y1">y座標1</param>
-	/// <param name="x2">x座標2</param>
-	/// <param name="y2">y座標2</param>
-	/// <param name="topColor">上部の色</param>
-	/// <param name="bottomColor">下部の色</param>
 	void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
 
 private:
+	WaveManager* m_pWaveManager;
 	float m_healthBarAnim; // HPバーアニメーション用体力値
 	ManagedFont m_font;    // フォントハンドル
 
@@ -54,3 +49,4 @@ private:
 	float m_prevScale;
 
 };
+

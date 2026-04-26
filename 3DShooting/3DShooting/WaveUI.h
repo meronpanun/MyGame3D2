@@ -1,29 +1,25 @@
-﻿#pragma once
+#pragma once
+#include "UIBase.h"
 #include "DxLib.h"
 #include "SpawnAreaInfo.h"
 #include <string>
 #include <vector>
 
+class WaveManager;
+
 /// <summary>
 /// WaveUIクラス
 /// ウェーブ関連のUI描画およびデバッグ表示を担当
 /// </summary>
-class WaveUI
+class WaveUI : public UIBase
 {
 public:
-    WaveUI();
-    ~WaveUI();
+    WaveUI(WaveManager* waveManager);
+    virtual ~WaveUI();
 
-    void Init();
-    void Update();
-
-    /// <summary>
-    /// ウェーブUIを描画
-    /// </summary>
-    /// <param name="currentWave">現在のウェーブ</param>
-    /// <param name="isWaveActive">ウェーブが進行中か</param>
-    /// <param name="isAllWavesCompleted">全ウェーブ完了したか</param>
-    void DrawWaveUI(int currentWave, bool isWaveActive, bool isAllWavesCompleted);
+    void Init() override;
+    void Update(float deltaTime) override;
+    void Draw() override;
 
     /// <summary>
     /// スポーンエリアのデバッグ表示
@@ -43,11 +39,14 @@ public:
     bool IsAnimating() const { return m_isWaveImageAnimating; }
 
 private:
+    WaveManager* m_pWaveManager;
+
     // ウェーブ画像アニメーション関連
     int m_waveImages[5];                    // 1-5ウェーブ用画像ハンドル
     int m_waveImageAnimTimer;               // ウェーブ画像アニメーションタイマー
     int m_waveImageAnimDuration;            // ウェーブ画像アニメーションの総時間
-    int m_waveImageAnimHoldDuration;        // ウェーブ画像アニメーションのホールド時間
+    int m_waveImageAnimHoldDuration;            // ウェーブ画像アニメーションのホールド時間
     int m_waveImageAnimInitialHoldDuration; // ウェーブ画像アニメーションの初期ホールド時間
     bool m_isWaveImageAnimating;            // ウェーブ画像アニメーション中フラグ
 };
+

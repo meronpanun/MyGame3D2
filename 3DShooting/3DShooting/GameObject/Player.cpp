@@ -1,4 +1,4 @@
-#include "Player.h"
+﻿#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -540,24 +540,9 @@ void Player::DrawShield()
         m_weaponManager.GetWeaponSwitchDuration(), startAnimOffsetY);
 }
 
-void Player::DrawUI()
-{
-    // UIの透明度を計算 (0.0 ～ 1.0)
-    float baseAlpha = 0.0f;
-    if (m_isUiFadeStarted)
-    {
-        baseAlpha = m_uiFadeTimer / m_uiFadeDuration;
-    }
 
-    // UI描画をPlayerUIクラスに委譲
-    m_ui.Draw(m_isDead, m_shieldSystem.IsGuarding(), m_lockedOnEnemy,
-        m_isTargetAvailable, m_health, m_healthBarAnim, m_maxHealth,
-        m_isLowHealth, m_lowHealthBlinkTimer, m_ammoTextFlashTimer,
-        m_weaponManager, m_shieldSystem, baseAlpha);
+// DrawUI()は削除されました（UIManagerで管理されます）
 
-    // エフェクトの描画
-    m_effectManager.Draw();
-}
 
 void Player::DeathUpdate()
 {

@@ -5,7 +5,7 @@
 #include "SpawnAreaInfo.h"
 #include "TransformDataLoader.h"
 #include "WaveData.h"
-#include "WaveUI.h"
+#include "SpawnAreaInfo.h"
 #include <functional>
 #include <memory>
 #include <string>
@@ -38,6 +38,14 @@ struct EnemySpawnInfo
 class WaveManager
 {
 public:
+    enum class WaveState
+    {
+        Interval,   // ウェーブ間の待機中
+        Starting,   // 開始演出中
+        Active,     // 敵が出現・戦闘中
+        Completed   // 全ウェーブ完了
+    };
+
     WaveManager();
     ~WaveManager();
 
@@ -93,10 +101,12 @@ public:
     /// </summary>
     void DrawEnemies(const std::vector<Stage::StageCollisionData>& collisionData, bool isTutorial = false);
 
+    // WaveUIの描画はUIManagerで行われます
+
     /// <summary>
-    /// ウェーブUIの描画
+    /// 現在のウェーブ状態を取得
     /// </summary>
-    void DrawWaveUI();
+    WaveState GetState() const { return m_state; }
 
     /// <summary>
     /// デバッグUIの描画
@@ -208,7 +218,7 @@ private:
     void OnEnemyDeath(const VECTOR& pos);
 
 private:
-    std::unique_ptr<WaveUI> m_pWaveUI; // UI管理クラス
+    // WaveUIはUIManagerで管理されます
 
     // データリスト
     std::vector<WaveData> m_waveDataList;
@@ -246,6 +256,7 @@ private:
     bool m_isTutorialMode;
 
     // ウェーブ進行管理
+    WaveState m_state;
     int m_currentWave;
     int m_currentSpawnIndex;
     float m_waveTimer;

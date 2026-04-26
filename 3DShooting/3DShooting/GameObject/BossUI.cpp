@@ -1,10 +1,12 @@
-﻿#include "BossUI.h"
+#include "BossUI.h"
 #include "EnemyBase.h"
+#include "WaveManager.h"
 #include "Game.h"
 #include <algorithm>
 
 namespace 
 {
+    // ... (定数はそのまま)
     // ボスHPバー関連
     constexpr int kBossHpBarWidth  = 900;
     constexpr int kBossHpBarHeight = 24;
@@ -24,22 +26,40 @@ namespace
     constexpr int kShadowOffset = 2; // 文字の影オフセット
 } 
 
-BossUI::BossUI()
-    : m_healthBarAnim(0.0f)
+BossUI::BossUI(WaveManager* waveManager)
+    : m_pWaveManager(waveManager)
+    , m_healthBarAnim(0.0f)
     , m_font("ＭＳ ゴシック", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_prevScale(1.0f)
 {
-    ReloadFonts(1.0f);
 }
 
 BossUI::~BossUI() 
 {
-    // 自動解放されるため処理不要
 }
 
-void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList) 
+void BossUI::Init()
 {
+    ReloadFonts(1.0f);
+}
+
+void BossUI::Update(float deltaTime)
+{
+    // スケール変更検知
+    float currentScale = Game::GetUIScale();
+    if (fabsf(currentScale - m_prevScale) > 0.001f) 
+    {
+        ReloadFonts(currentScale);
+        m_prevScale = currentScale;
+    }
+}
+
+void BossUI::Draw() 
+{
+    if (!m_pWaveManager) return;
+
     // 生存しているボスを探す
+    const auto& enemyList = m_pWaveManager->GetEnemyList();
     EnemyBase *pBoss = nullptr;
     for (auto &enemy : enemyList) 
     {
@@ -66,9 +86,11 @@ void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList)
     }
 
     // アニメーション更新
+    // タイムスケールを考慮
+    float speed = kAnimSpeed * Game::GetTimeScale();
     if (m_healthBarAnim > hp) 
     {
-        m_healthBarAnim -= (m_healthBarAnim - hp) * kAnimSpeed;
+        m_healthBarAnim -= (m_healthBarAnim - hp) * speed;
         if (m_healthBarAnim < hp) m_healthBarAnim = hp;
     } 
     else if (m_healthBarAnim < hp) 
@@ -78,6 +100,7 @@ void BossUI::Draw(const std::vector<std::shared_ptr<EnemyBase>> &enemyList)
 
     DrawBossHPBar(hp, maxHp);
 }
+
 
 void BossUI::DrawBossHPBar(float hp, float maxHp) 
 {
@@ -131,7 +154,7 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
     // ボス名テキスト（影付き）
     const char *bossName = "BOSS";
     int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_font);
-    int textX = (screenW - textW) / 2;
+    int textX = static_cast<int>((screenW - textW) * 0.5f);
     int textY = static_cast<int>(kBossHpTextY * scale);
     
     DrawStringToHandle(textX + kShadowOffset, textY + kShadowOffset, bossName, 0x000000, m_font);
