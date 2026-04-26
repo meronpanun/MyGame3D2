@@ -265,8 +265,7 @@ void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData
         m_verticalVelocity -= EnemyConstants::kGravity;
         m_pos.y += m_verticalVelocity;
 
-        CollisionResult result = Collision::CheckStageCollision(
-            m_pos, EnemyConstants::kCapsuleHeight, EnemyConstants::kCapsuleRadius, EnemyConstants::kColliderYOffset, collisionData, pGrid);
+        CollisionResult result = Collision::CheckStageCollision(m_pos, EnemyConstants::kCapsuleHeight, EnemyConstants::kCapsuleRadius, EnemyConstants::kColliderYOffset, collisionData, pGrid);
         m_isGrounded = result.isGrounded;
 
         // Y=0 平面（地面）との判定
