@@ -67,18 +67,6 @@ public:
     };
 
     /// <summary>
-    /// 敵の状態管理
-    /// </summary>
-    enum class EnemyState
-    {
-        Idle,      // 待機状態
-        Moving,    // 移動状態
-        Attacking, // 攻撃状態
-        Damaged,   // ダメージを受けた状態
-        Dead       // 死亡状態
-    };
-
-    /// <summary>
     /// アニメーション状態
     /// </summary>
     enum class AnimState

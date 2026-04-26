@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 
@@ -8,6 +8,10 @@ class Collider;
 class SphereCollider;
 class CapsuleCollider;
 #include "Effect.h"
+#include <memory>
+
+class EnemyState;
+
 
 /// <summary>
 /// 通常の敵クラス
@@ -113,6 +117,12 @@ private:
     void ChangeAnimation(AnimState newAnimState, bool loop);
 
     /// <summary>
+    /// ステートを変更する
+    /// </summary>
+    /// <param name="newState">新しいステートオブジェクト</param>
+    void ChangeState(std::shared_ptr<EnemyState> newState);
+
+    /// <summary>
     /// プレイヤーに攻撃可能かどうかを判定する
     /// </summary>
     /// <param name="player">プレイヤーオブジェクト</param>
@@ -133,6 +143,8 @@ private:
     std::function<void(const VECTOR&)> m_onDropItem;
 
     AnimState m_currentAnimState; // 現在のアニメーション状態
+    std::shared_ptr<EnemyState> m_pCurrentState; // 現在のAIステート
+
     AnimationManager m_animationManager; // EnemyNormalがアニメーションマネージャーを所有
 
     int m_attackEndDelayTimer; // 攻撃終了までの遅延タイマー
@@ -168,4 +180,10 @@ private:
     int m_voiceTimer;               // 環境ボイス再生用タイマー
     float m_distToPlayer;           // プレイヤーとの距離
     static int s_modelHandle; // 共有モデルハンドル
+
+    // ステートクラスからのアクセスを許可
+    friend class EnemyNormalStateWalk;
+    friend class EnemyNormalStateAttack;
+    friend class EnemyNormalStateDamage;
+    friend class EnemyNormalStateDead;
 };

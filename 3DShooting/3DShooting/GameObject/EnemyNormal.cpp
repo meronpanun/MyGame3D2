@@ -1,4 +1,4 @@
-﻿#include "EnemyNormal.h"
+#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -18,7 +18,8 @@
 #include <string>
 #include <vector>
 #include "SoundManager.h"
-
+#include "EnemyState.h"
+#include "EnemyNormalState.h"
 namespace EnemyNormalConstants
 {
     // アニメーション関連
@@ -121,8 +122,8 @@ void EnemyNormal::Init()
     // 初期アニメーションを強制的に再生させるため
     m_currentAnimState = AnimState::Dead;
 
-    // 初期化時に歩行アニメーションを開始
-    ChangeAnimation(AnimState::Walk, true);
+    // 初期ステートの設定
+    ChangeState(std::make_shared<EnemyNormalStateWalk>());
 
     // ターゲットオフセットの初期化 (±100.0f)
     float offsetX = static_cast<float>(GetRand(200) - 100);
@@ -202,6 +203,19 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
     }
 
     m_currentAnimState = newAnimState;
+}
+
+void EnemyNormal::ChangeState(std::shared_ptr<EnemyState> newState)
+{
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Exit(this);
+    }
+    m_pCurrentState = newState;
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Enter(this);
+    }
 }
 
 // プレイヤーに攻撃可能かどうかを判定
@@ -480,48 +494,10 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
     bool isPlayerInAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
-    // アニメーションの状態管理 (AI間引き対象)
-    if (m_shouldUpdateAI)
+    // AIステートの更新
+    if (m_pCurrentState)
     {
-        if (m_currentAnimState == AnimState::Attack)
-        {
-            // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
-            float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyNormalConstants::kAttackAnimName);
-            if (m_animTime > currentAnimTotalTime)
-            {
-                if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = EnemyNormalConstants::kAttackEndDelay; // ディレイ開始
-            }
-            // ディレイタイマーが動作中ならカウントダウン
-            if (m_attackEndDelayTimer > 0)
-            {
-                m_attackEndDelayTimer -= m_aiUpdateInterval; // 間引き分減算
-                if (m_attackEndDelayTimer <= 0)
-                {
-                    m_hasAttackHit = false; // 攻撃ヒットフラグをリセット
-                    if (isPlayerInAttackRange)
-                    {
-                        ChangeAnimation(AnimState::Attack, false); // 攻撃範囲内なら再度攻撃
-                    }
-                    else
-                    {
-                        ChangeAnimation(AnimState::Walk, true); // 範囲外なら歩行
-                    }
-                }
-            }
-        }
-        else if (m_currentAnimState == AnimState::Dead)
-        {
-            // 死亡アニメーション中は移動や攻撃を行わない
-        }
-        else // Walk 状態(常に歩行アニメーションが基本)
-        {
-            // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
-            if (CanAttackPlayer(player))
-            {
-                m_hasAttackHit = false;
-                ChangeAnimation(AnimState::Attack, false);
-            }
-        }
+        m_pCurrentState->Update(this, context);
     }
 
     // アニメーションがアタッチされている場合のみ時間を更新 (AI間引き対象)
@@ -652,32 +628,6 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
                         m_hasAttackHit = true;
                     }
                 }
-            }
-        }
-    }
-    else if (m_currentAnimState == AnimState::Damage)
-    {
-        // ダメージ（怯み）状態の更新
-        if (m_damageTimer > 0)
-        {
-            m_damageTimer--;
-            if (m_damageTimer <= 0)
-            {
-                ChangeAnimation(AnimState::Walk, true); // 復帰
-            }
-        }
-        // ノックバック処理（少し後ろに下がる）
-        // プレイヤーと逆方向に少し移動
-        VECTOR toPlayer = VSub(player.GetPos(), m_pos);
-        toPlayer.y = 0.0f;
-        if (VSquareSize(toPlayer) > EnemyNormalConstants::kPushBackEpsilon)
-        {
-            VECTOR knockbackDir = VNorm(VScale(toPlayer, -1.0f));
-            // 減衰させつつ移動
-            if (m_damageTimer > 10) // 最初だけ下がる
-            {
-                float knockbackSpeed = 2.0f * Game::GetTimeScale();
-                m_pos = VAdd(m_pos, VScale(knockbackDir, knockbackSpeed));
             }
         }
     }
@@ -903,7 +853,7 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
         if (type == AttackType::Shotgun)
         {
             // ショットガンは上書きしてでも大きく怯む
-            ChangeAnimation(AnimState::Damage, false);
+            ChangeState(std::make_shared<EnemyNormalStateDamage>());
             m_damageTimer = EnemyNormalConstants::kDamageDuration; // 30フレーム
         }
         else if (type == AttackType::Shoot)
@@ -911,7 +861,7 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
             // アサルトライフルは短い怯み（連射によるスタンロック防止のため、既に怯み中なら上書きしない）
             if (m_currentAnimState != AnimState::Damage)
             {
-                ChangeAnimation(AnimState::Damage, false);
+                ChangeState(std::make_shared<EnemyNormalStateDamage>());
                 m_damageTimer = 15; // ショットガンの半分の時間（15フレーム）
             }
         }
@@ -1098,7 +1048,7 @@ void EnemyNormal::UpdateDeath(const std::vector<Stage::StageCollisionData>& coll
     if (!m_isDeadAnimPlaying)
     {
         // スコア加算処理はTakeDamageで行うのでここでは不要
-        ChangeAnimation(AnimState::Dead, false);
+        ChangeState(std::make_shared<EnemyNormalStateDead>());
         m_isDeadAnimPlaying = true;
         m_animTime = 0.0f; // アニメーション時間をリセット
         m_isAlive = true;  // 死亡アニメーション中はtrueのまま

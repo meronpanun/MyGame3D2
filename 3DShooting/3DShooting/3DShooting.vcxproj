@@ -167,6 +167,7 @@
     <ClCompile Include="GameObject\EnemyBase.cpp" />
     <ClCompile Include="GameObject\EnemyBoss.cpp" />
     <ClCompile Include="GameObject\EnemyNormal.cpp" />
+    <ClCompile Include="GameObject\EnemyNormalState.cpp" />
     <ClCompile Include="GameObject\EnemyRunner.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject\ItemBase.cpp" />
@@ -228,6 +229,8 @@
     <ClInclude Include="GameObject\EnemyBase.h" />
     <ClInclude Include="GameObject\EnemyBoss.h" />
     <ClInclude Include="GameObject\EnemyNormal.h" />
+    <ClInclude Include="GameObject\EnemyNormalState.h" />
+    <ClInclude Include="GameObject\EnemyState.h" />
     <ClInclude Include="GameObject\EnemyRunner.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject\ItemBase.h" />
