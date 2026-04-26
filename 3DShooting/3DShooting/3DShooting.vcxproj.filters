@@ -69,6 +69,9 @@
     <ClCompile Include="GameObject\EnemyRunner.cpp">
       <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
+    <ClCompile Include="GameObject\EnemyRunnerState.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
+    </ClCompile>
     <ClCompile Include="GameObject\EnemyNormal.cpp">
       <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
@@ -82,6 +85,12 @@
       <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
     <ClCompile Include="GameObject\EnemyAcid.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject\EnemyAcidState.cpp">
+      <Filter>ソース ファイル\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject\EnemyBossState.cpp">
       <Filter>ソース ファイル\GameObject</Filter>
     </ClCompile>
     <ClCompile Include="GameObject\Bullet.cpp">
@@ -245,6 +254,9 @@
     <ClInclude Include="GameObject\EnemyRunner.h">
       <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject\EnemyRunnerState.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClInclude>
     <ClInclude Include="GameObject\EnemyNormal.h">
       <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
@@ -261,6 +273,12 @@
       <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
     <ClInclude Include="GameObject\EnemyAcid.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject\EnemyAcidState.h">
+      <Filter>ヘッダー ファイル\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject\EnemyBossState.h">
       <Filter>ヘッダー ファイル\GameObject</Filter>
     </ClInclude>
     <ClInclude Include="GameObject\Player.h">

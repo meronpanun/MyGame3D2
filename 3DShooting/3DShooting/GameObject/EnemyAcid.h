@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include "EnemyState.h"
 
 class Player;
 class Bullet;
@@ -136,6 +137,12 @@ private:
     void ChangeAnimation(AnimState newAnimState, bool loop);
 
     /// <summary>
+    /// ステートを変更する
+    /// </summary>
+    /// <param name="newState">新しいステートオブジェクト</param>
+    void ChangeState(std::shared_ptr<EnemyState<EnemyAcid>> newState);
+
+    /// <summary>
     /// プレイヤーに攻撃可能かどうかを判定する
     /// </summary>
     /// <param name="player">プレイヤーオブジェクト</param>
@@ -162,6 +169,7 @@ private:
     VECTOR m_acidBulletSpawnOffset;      // 酸を吐く場所のオフセット
     AnimationManager m_animationManager; // アニメーション管理
     AnimState m_currentAnimState;        // 現在のアニメーション状態
+    std::shared_ptr<EnemyState<EnemyAcid>> m_pCurrentState; // 現在のAIステート
     float m_distToPlayer;         // プレイヤーとの距離
     std::shared_ptr<CapsuleCollider> m_pBodyCollider; // 体のコライダー
     std::shared_ptr<SphereCollider> m_pHeadCollider;  // 頭のコライダー
@@ -189,4 +197,11 @@ private:
     VECTOR m_debugParryCapA = { 0,0,0 };    // デバッグ用パリィカプセルのA点
     VECTOR m_debugParryCapB = { 0,0,0 };    // デバッグ用パリィカプセルのB点
     float m_debugParryRadius = 0.0f;        // デバッグ用パリィカプセルの半径
+
+    // ステートクラスからのアクセスを許可
+    friend class EnemyAcidStateWalk;
+    friend class EnemyAcidStateBack;
+    friend class EnemyAcidStateAttack;
+    friend class EnemyAcidStateStunned;
+    friend class EnemyAcidStateDead;
 };

@@ -1,4 +1,4 @@
-#include "EnemyNormal.h"
+﻿#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -205,7 +205,7 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
     m_currentAnimState = newAnimState;
 }
 
-void EnemyNormal::ChangeState(std::shared_ptr<EnemyState> newState)
+void EnemyNormal::ChangeState(std::shared_ptr<EnemyState<EnemyNormal>> newState)
 {
     if (m_pCurrentState)
     {

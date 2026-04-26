@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include "EnemyBossState.h"
 
 namespace EnemyBossConstants
 {
@@ -149,7 +150,8 @@ void EnemyBoss::Init()
     m_effectTimer = 0;
     m_shieldEffectHandles.clear();
 
-    ChangeAnimation(AnimState::Walk, true); // 最初は歩いて近づく
+    // 初期ステートの設定
+    ChangeState(std::make_shared<EnemyBossStateWalk>());
 }
 
 void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
@@ -192,9 +194,18 @@ void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
         m_animTime = 0.0f;
     }
     m_currentAnimState = newAnimState;
-    if (m_currentAnimState == AnimState::Attack)
+}
+
+void EnemyBoss::ChangeState(std::shared_ptr<EnemyState<EnemyBoss>> newState)
+{
+    if (m_pCurrentState)
     {
-        m_hasPlayedCloseRangeEffect = false;
+        m_pCurrentState->Exit(this);
+    }
+    m_pCurrentState = newState;
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Enter(this);
     }
 }
 
@@ -431,6 +442,12 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     VECTOR playerPos = player.GetPos();
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
 
+    // AIステートの更新
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Update(this, context);
+    }
+
     // 攻撃範囲コライダー更新
     VECTOR attackRangeCenter = m_pos;
     attackRangeCenter.y += (EnemyBossConstants::kBodyColliderHeight * 0.5f);
@@ -508,11 +525,11 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 // 攻撃終了後、範囲内にいれば再度攻撃、いなければ移動へ
                 if (CanAttackPlayer(player))
                 {
-                    ChangeAnimation(AnimState::Attack, false);
+                    ChangeState(std::make_shared<EnemyBossStateAttack>());
                 }
                 else
                 {
-                    ChangeAnimation(AnimState::Walk, true);
+                    ChangeState(std::make_shared<EnemyBossStateWalk>());
                 }
             }
         }
@@ -601,7 +618,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             m_attackEndDelayTimer--;
             if (m_attackEndDelayTimer == 0)
             {
-                ChangeAnimation(AnimState::Walk, true);
+                ChangeState(std::make_shared<EnemyBossStateWalk>());
                 m_longRangeAttackCooldown = EnemyBossConstants::kLongRangeAttackCooldownMax;
             }
         }
@@ -635,7 +652,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             // 移動が必要かチェック
             if (disToPlayer >= EnemyBossConstants::kLongRangeAttackMaxDist || disToPlayer < EnemyBossConstants::kLongRangeAttackMinDist)
             {
-                ChangeAnimation(AnimState::Walk, true);
+                ChangeState(std::make_shared<EnemyBossStateWalk>());
             }
         }
     }
@@ -665,7 +682,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             {
                 // 遠距離攻撃へ遷移（プレイヤーが遠距離攻撃の有効範囲内にいる場合のみ）
                 m_hasShotLongRange = false;
-                ChangeAnimation(AnimState::LongRangeAttack, false);
+                ChangeState(std::make_shared<EnemyBossStateLongRange>());
             }
                 else
                 {
@@ -686,7 +703,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                          // 攻撃できるなら攻撃（優先）、そうでなければ少し離れるか、そのまま
                          if (CanAttackPlayer(player))
                          {
-                             ChangeAnimation(AnimState::Attack, false);
+                             ChangeState(std::make_shared<EnemyBossStateAttack>());
                          }
                          else
                          {
@@ -697,11 +714,11 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                              // m_pos = VSub(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale() * 0.5f));
                          }
                     }
-                    else
-                    {
-                        // 中間距離 (Idleへ)
-                        ChangeAnimation(AnimState::Idle, true);
-                    }
+                        else
+                        {
+                            // 中間距離 (Idleへ)
+                            ChangeAnimation(AnimState::Idle, true);
+                        }
                 }
         }
     }
@@ -860,12 +877,12 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 VECTOR newPos = VAdd(playerPos, VScale(pushDir, pushLen));
                 Game::m_pPlayer->SetPos(newPos);
 
-                // 上方向に押し出された場合(シールドに乗った場合)、重力による振動を防ぐために垂直速度をリセット
+                // 上方向に押し出された場合(シールドに乗った場合), 重力による振動を防ぐために垂直速度をリセット
                 if (pushDir.y > 0.5f)
                 {
                     // Playerクラスに追加した垂直速度リセット関数を呼ぶ
-                    // Game::m_pPlayerはconstポインタではないのでそのまま呼べるはずだが、
-                    // constアクセッサしかない場合はキャストが必要。
+                    // Game::m_pPlayerはconstポインタではないのでそのまま呼べるはずだが,
+                    // constアクセッサしかない場合はキャストが必要.
                     // ここではGame::m_pPlayerはPlayer*なのでOK
                     Game::m_pPlayer->ResetVerticalVelocity();
                 }
@@ -898,7 +915,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
 
     // シールドコライダーの位置更新
-    // 描画・エフェクトと同期させるため、フレーム末尾で更新
+    // 描画・エフェクトと同期させるため, フレーム末尾で更新
     if (m_pShieldCollider)
     {
         m_pShieldCollider->SetCenter(shieldPos);
@@ -916,7 +933,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         // タイマー更新
         m_shieldEffectTimer += 1.0f * Game::GetTimeScale();
 
-        // エフェクトがない、または再生時間が重なり開始時間を超えたら新規生成
+        // エフェクトがない, または再生時間が重なり開始時間を超えたら新規生成
         if (m_shieldEffectHandles.empty() || m_shieldEffectTimer >= kOverlapSpawnTime)
         {
             if (pEffect)
@@ -950,7 +967,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             // 位置・回転更新
             SetPosPlayingEffekseer3DEffect(handle, shieldPos.x, shieldPos.y, shieldPos.z);
             
-            // シールドの回転はボスの向きに依存せず、独自に回転させる
+            // シールドの回転はボスの向きに依存せず, 独自に回転させる
             // X, Z回転は0固定 (垂直に保つ)
             SetRotationPlayingEffekseer3DEffect(handle, 0.0f, (m_shieldRotation * DX_PI_F / 180.0f), 0.0f);
 
@@ -1025,7 +1042,7 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
                 m_shieldHp = 0.0f;
             }
 
-            // シールドHPが0になった瞬間に、破壊可能エフェクトを再生
+            // シールドHPが0になった瞬間に, 破壊可能エフェクトを再生
             if (m_shieldHp <= 0.0f && !m_hasPlayedShieldBreakableEffect)
             {
                 if (m_pShieldCollider)
@@ -1069,10 +1086,9 @@ void EnemyBoss::TakeTackleDamage(float damage)
 
 void EnemyBoss::OnParried()
 {
-    // 怯み処理
     m_isStunned = true;
-    m_stunTimer = 60; // 1秒間怯む
-    ChangeAnimation(AnimState::Damage, false); // ダメージモーションがあれば再生（なければWalkなどで代用されるかも）
+    m_stunTimer = 120; // 怯み時間
+    ChangeState(std::make_shared<EnemyBossStateStunned>());
 }
 
 std::shared_ptr<CapsuleCollider> EnemyBoss::GetBodyCollider() const
@@ -1082,7 +1098,7 @@ std::shared_ptr<CapsuleCollider> EnemyBoss::GetBodyCollider() const
 
 float EnemyBoss::CalcDamage(float bulletDamage, HitPart part) const
 {
-    // ボスは硬い、あるいは弱点だけ効くなどの調整が可能
+    // ボスは硬い, あるいは弱点だけ効くなどの調整が可能
     if (part == HitPart::Head)
     {
         return bulletDamage * 1.5f;
@@ -1153,7 +1169,8 @@ void EnemyBoss::UpdateDeath(const std::vector<Stage::StageCollisionData>& stageC
 {
     if (!m_isDeadAnimPlaying)
     {
-        ChangeAnimation(AnimState::Dead, false);
+        // スコア加算処理はTakeDamageで行うのでここでは不要
+        ChangeState(std::make_shared<EnemyBossStateDead>());
         m_isDeadAnimPlaying = true;
         m_animTime = 0.0f; // アニメーション時間をリセット
         m_isAlive = true;  // 死亡アニメーション中はtrueのまま

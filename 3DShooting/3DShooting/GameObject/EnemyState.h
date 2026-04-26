@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
-class EnemyNormal;
 struct EnemyUpdateContext;
 
 /// <summary>
-/// EnemyNormalの状態を管理するステートパターンの基底クラス
+/// 敵の状態を管理するステートパターンの基底クラス（テンプレート版）
 /// </summary>
+template <typename T>
 class EnemyState
 {
 public:
@@ -14,15 +14,15 @@ public:
     /// <summary>
     /// 状態に遷移した時に一度だけ呼ばれる処理
     /// </summary>
-    virtual void Enter(EnemyNormal* enemy) {}
+    virtual void Enter(T* enemy) {}
 
     /// <summary>
     /// 毎フレーム呼ばれる更新処理
     /// </summary>
-    virtual void Update(EnemyNormal* enemy, const EnemyUpdateContext& context) = 0;
+    virtual void Update(T* enemy, const EnemyUpdateContext& context) = 0;
 
     /// <summary>
     /// 他の状態へ遷移する直前に呼ばれる処理
     /// </summary>
-    virtual void Exit(EnemyNormal* enemy) {}
+    virtual void Exit(T* enemy) {}
 };

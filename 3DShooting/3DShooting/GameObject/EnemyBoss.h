@@ -4,6 +4,7 @@
 #include "DxLib.h"
 #include <memory>
 #include <vector>
+#include "EnemyState.h"
 
 class Bullet;
 class Player;
@@ -90,6 +91,12 @@ private:
     void ChangeAnimation(AnimState newAnimState, bool loop);
 
     /// <summary>
+    /// ステートを変更する
+    /// </summary>
+    /// <param name="newState">新しいステートオブジェクト</param>
+    void ChangeState(std::shared_ptr<EnemyState<EnemyBoss>> newState);
+
+    /// <summary>
     /// 攻撃可能か判定
     /// </summary>
     bool CanAttackPlayer(const Player& player);
@@ -99,6 +106,7 @@ private:
 
     AnimationManager m_animationManager; // アニメーション管理
     AnimState m_currentAnimState;        // 現在のアニメーション状態
+    std::shared_ptr<EnemyState<EnemyBoss>> m_pCurrentState; // 現在のAIステート
     bool m_isDeadAnimPlaying;            // 死亡アニメーション再生中フラグ
     float m_animTime;                    // アニメーションの経過時間
 
@@ -184,4 +192,11 @@ private:
     float m_maxShieldHp = 0.0f;    // シールド最大耐久値
     float m_shieldRotation = 0.0f; // シールドの回転角度
     float m_shieldEffectTimer = 0.0f; // シールドエフェクトの再生タイマー
+
+    // ステートクラスからのアクセスを許可
+    friend class EnemyBossStateWalk;
+    friend class EnemyBossStateAttack;
+    friend class EnemyBossStateLongRange;
+    friend class EnemyBossStateStunned;
+    friend class EnemyBossStateDead;
 };

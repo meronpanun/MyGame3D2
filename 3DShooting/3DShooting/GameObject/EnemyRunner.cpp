@@ -19,6 +19,7 @@
 #include <vector>
 #include <memory>
 #include "SoundManager.h"
+#include "EnemyRunnerState.h"
 
 namespace EnemyRunnerConstants
 {
@@ -115,8 +116,8 @@ void EnemyRunner::Init()
     // 初期アニメーションを強制的に再生させるため
     m_currentAnimState = AnimState::Dead;
 
-    // 初期化時に走行アニメーションを開始
-    ChangeAnimation(AnimState::Run, true);
+    // 初期ステートの設定
+    ChangeState(std::make_shared<EnemyRunnerStateRun>());
 
     // ターゲットオフセットの初期化 (±40.0f)
     float offsetX = static_cast<float>(GetRand(80) - 40);
@@ -187,6 +188,19 @@ void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
     }
 
     m_currentAnimState = newAnimState;
+}
+
+void EnemyRunner::ChangeState(std::shared_ptr<EnemyState<EnemyRunner>> newState)
+{
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Exit(this);
+    }
+    m_pCurrentState = newState;
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Enter(this);
+    }
 }
 
 bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
@@ -389,41 +403,10 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
     bool isPlayerInAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
-    // アニメーションの状態管理 (AI間引き対象)
-    if (m_shouldUpdateAI)
+    // AIステートの更新
+    if (m_pCurrentState)
     {
-        if (m_currentAnimState == AnimState::Attack)
-        {
-            // 攻撃アニメーションの終了判定
-            float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyRunnerConstants::kAttackAnimName);
-            if (m_animTime > currentAnimTotalTime)
-            {
-                ChangeAnimation(AnimState::Run, true); // 走り直す
-                m_attackEndDelayTimer = EnemyRunnerConstants::kAttackEndDelay;
-            }
-        }
-        else if (m_currentAnimState == AnimState::Dead)
-        {
-            // 何もしない
-        }
-        else // Run
-        {
-            if (m_attackEndDelayTimer > 0)
-            {
-                m_attackEndDelayTimer -= m_aiUpdateInterval;
-            }
-            else
-            {
-                // 攻撃トリガー範囲内なら攻撃開始
-                // 少し狭めの判定を用いる
-                if (CanAttackPlayer(player, EnemyRunnerConstants::kAttackTriggerRadius))
-                {
-                    // 攻撃中フラグをリセットしてから遷移
-                    m_hasAttackHit = false;
-                    ChangeAnimation(AnimState::Attack, false);
-                }
-            }
-        }
+        m_pCurrentState->Update(this, context);
     }
 
     // アニメーション更新 (間引き)
@@ -703,7 +686,7 @@ void EnemyRunner::UpdateDeath(const std::vector<Stage::StageCollisionData>& coll
     if (!m_isDeadAnimPlaying)
     {
         // スコア加算処理はTakeDamageで行うのでここでは不要
-        ChangeAnimation(AnimState::Dead, false);
+        ChangeState(std::make_shared<EnemyRunnerStateDead>());
         m_isDeadAnimPlaying = true;
         m_animTime = 0.0f; // アニメーション時間をリセット
         m_isAlive = true;  // 死亡アニメーション中はtrueのまま

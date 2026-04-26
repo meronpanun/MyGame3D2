@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 
@@ -9,8 +9,7 @@ class SphereCollider;
 class CapsuleCollider;
 #include "Effect.h"
 #include <memory>
-
-class EnemyState;
+#include "EnemyState.h"
 
 
 /// <summary>
@@ -120,7 +119,7 @@ private:
     /// ステートを変更する
     /// </summary>
     /// <param name="newState">新しいステートオブジェクト</param>
-    void ChangeState(std::shared_ptr<EnemyState> newState);
+    void ChangeState(std::shared_ptr<EnemyState<EnemyNormal>> newState);
 
     /// <summary>
     /// プレイヤーに攻撃可能かどうかを判定する
@@ -143,7 +142,7 @@ private:
     std::function<void(const VECTOR&)> m_onDropItem;
 
     AnimState m_currentAnimState; // 現在のアニメーション状態
-    std::shared_ptr<EnemyState> m_pCurrentState; // 現在のAIステート
+    std::shared_ptr<EnemyState<EnemyNormal>> m_pCurrentState; // 現在のAIステート
 
     AnimationManager m_animationManager; // EnemyNormalがアニメーションマネージャーを所有
 

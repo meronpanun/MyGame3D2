@@ -1,10 +1,12 @@
-﻿#pragma once
+#pragma once
 #include "EnemyState.h"
+
+class EnemyNormal;
 
 // ---------------------------------------------------------
 // 通常状態（プレイヤーを追跡・徘徊）
 // ---------------------------------------------------------
-class EnemyNormalStateWalk : public EnemyState
+class EnemyNormalStateWalk : public EnemyState<EnemyNormal>
 {
 public:
     void Enter(EnemyNormal* enemy) override;
@@ -14,7 +16,7 @@ public:
 // ---------------------------------------------------------
 // 攻撃状態
 // ---------------------------------------------------------
-class EnemyNormalStateAttack : public EnemyState
+class EnemyNormalStateAttack : public EnemyState<EnemyNormal>
 {
 public:
     void Enter(EnemyNormal* enemy) override;
@@ -24,7 +26,7 @@ public:
 // ---------------------------------------------------------
 // ダメージ（怯み）状態
 // ---------------------------------------------------------
-class EnemyNormalStateDamage : public EnemyState
+class EnemyNormalStateDamage : public EnemyState<EnemyNormal>
 {
 public:
     void Enter(EnemyNormal* enemy) override;
@@ -34,7 +36,7 @@ public:
 // ---------------------------------------------------------
 // 死亡状態
 // ---------------------------------------------------------
-class EnemyNormalStateDead : public EnemyState
+class EnemyNormalStateDead : public EnemyState<EnemyNormal>
 {
 public:
     void Enter(EnemyNormal* enemy) override;

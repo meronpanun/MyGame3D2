@@ -2,6 +2,8 @@
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
+#include <memory>
+#include "EnemyState.h"
 
 class Bullet;
 class Player;
@@ -74,6 +76,12 @@ private:
     void ChangeAnimation(AnimState newAnimState, bool loop);
 
     /// <summary>
+    /// ステートを変更する
+    /// </summary>
+    /// <param name="newState">新しいステートオブジェクト</param>
+    void ChangeState(std::shared_ptr<EnemyState<EnemyRunner>> newState);
+
+    /// <summary>
     /// プレイヤーに攻撃可能かどうかを判定
     /// </summary>
     /// <param name="player">プレイヤーオブジェクト</param>
@@ -95,6 +103,8 @@ private:
     std::function<void(const VECTOR&)> m_onDropItem;
 
     AnimState m_currentAnimState;        // 現在のアニメーション状態
+    std::shared_ptr<EnemyState<EnemyRunner>> m_pCurrentState; // 現在のAIステート
+
     AnimationManager m_animationManager; // EnemyRunnerがアニメーションマネージャーを所有
 
     int m_attackEndDelayTimer; // 攻撃終了までの遅延タイマー
@@ -118,4 +128,9 @@ private:
     float m_distToPlayer;         // プレイヤーとの距離
     float m_damageSECooldown;    // ダメージSE再生用クールタイム
     static int s_modelHandle; // 共有モデルハンドル
+
+    // ステートクラスからのアクセスを許可
+    friend class EnemyRunnerStateRun;
+    friend class EnemyRunnerStateAttack;
+    friend class EnemyRunnerStateDead;
 };

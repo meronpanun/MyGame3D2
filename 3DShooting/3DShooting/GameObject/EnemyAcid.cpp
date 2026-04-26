@@ -19,6 +19,7 @@
 #include <cmath>
 #include <functional>
 #include "SoundManager.h"
+#include "EnemyAcidState.h"
 
 
 namespace EnemyAcidConstants 
@@ -135,8 +136,8 @@ void EnemyAcid::Init()
   // 初期アニメーションを強制的に再生させるため
   m_currentAnimState = AnimState::Dead;
 
-  // 初期化時に歩行アニメーションを開始
-  ChangeAnimation(AnimState::Walk, true);
+  // 初期ステートの設定
+  ChangeState(std::make_shared<EnemyAcidStateWalk>());
 
   m_isNextAttackNormal = false; // 最初はパリィ弾から
 
@@ -215,6 +216,19 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
     }
 
   m_currentAnimState = newAnimState;
+}
+
+void EnemyAcid::ChangeState(std::shared_ptr<EnemyState<EnemyAcid>> newState)
+{
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Exit(this);
+    }
+    m_pCurrentState = newState;
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Enter(this);
+    }
 }
 
 // プレイヤーに攻撃可能かどうかを判定する
@@ -574,23 +588,28 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext &context)
     // プレイヤーとの距離を更新
     m_distToPlayer = VSize(VSub(player.GetPos(), m_pos));
 
-    // 怯み状態の処理
+    // AIステートの更新
+    if (m_pCurrentState)
+    {
+        m_pCurrentState->Update(this, context);
+    }
+
+    // 怯み状態の処理（後方互換性のためのフラグチェックは維持）
     if (m_isStunned) 
     {
+        if (m_stunTimer <= 0) 
+        {
+            // スタン終了判定はステート側で処理されるか、タイマーをここで更新
+        }
         m_stunTimer--;
         if (m_stunTimer <= 0) 
         {
             m_isStunned = false;
-            // スタンからの復帰時の行動を決定
-            if (CanAttackPlayer(player)) 
+            // ステート側で遷移させるが、念のためフォールバック
+            if (m_currentAnimState == AnimState::Dead && m_hp > 0.0f)
             {
-                ChangeAnimation(AnimState::Attack, false);
-                m_hasAttacked = false;
-                m_attackCooldown = m_attackCooldownMax;
-            }
-            else 
-            {
-                ChangeAnimation(AnimState::Walk, true); // 歩行状態に戻す
+                if (CanAttackPlayer(player)) ChangeState(std::make_shared<EnemyAcidStateAttack>());
+                else ChangeState(std::make_shared<EnemyAcidStateWalk>());
             }
         }
         else 
@@ -648,7 +667,7 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext &context)
             // 最小攻撃距離未満なら後退
             if (m_currentAnimState != AnimState::Back) 
             {
-                ChangeAnimation(AnimState::Back, true);
+                ChangeState(std::make_shared<EnemyAcidStateBack>());
             }
             VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
             // タイムスケール適用
@@ -661,9 +680,7 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext &context)
             // 攻撃可能距離なら攻撃
             if (m_attackCooldown == 0) 
             {
-                ChangeAnimation(AnimState::Attack, false);
-                m_hasAttacked = false;
-                m_attackCooldown = m_attackCooldownMax;
+                ChangeState(std::make_shared<EnemyAcidStateAttack>());
             }
         }
     }
@@ -672,7 +689,7 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext &context)
         // 攻撃範囲外なら追跡
         if (m_currentAnimState != AnimState::Walk) 
         {
-            ChangeAnimation(AnimState::Walk, true);
+            ChangeState(std::make_shared<EnemyAcidStateWalk>());
         }
     
         // ターゲット座標にオフセットを加算
@@ -757,7 +774,7 @@ void EnemyAcid::UpdateState(const EnemyUpdateContext &context)
     
         if (m_attackEndDelayTimer == 0 && m_currentAnimState != AnimState::Walk) 
         {
-            ChangeAnimation(AnimState::Walk, true);
+            ChangeState(std::make_shared<EnemyAcidStateWalk>());
         }
     }
 }
@@ -770,7 +787,7 @@ void EnemyAcid::OnParried()
 
     m_isStunned = true;
     m_stunTimer = EnemyAcidConstants::kStunDuration; // 怯み時間
-    ChangeAnimation(AnimState::Dead, false); // 死亡アニメーションを怯みモーションとして再生
+    ChangeState(std::make_shared<EnemyAcidStateStunned>());
 
     // パリィボイスを再生
     float maxDist = 2000.0f;
