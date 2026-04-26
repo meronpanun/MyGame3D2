@@ -1,4 +1,4 @@
-﻿#include "SceneMain.h"
+#include "SceneMain.h"
 #include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
@@ -169,6 +169,8 @@ void SceneMain::Init()
 {
     // 経過時間リセット
     s_elapsedTime = 0.0f;
+    m_isPlayerInit = false; // プレイヤー初期化フラグをリセット
+    m_prevTimeCount = GetNowHiPerformanceCount(); // 時間計測を現在時刻から再開
 
     // ローディング用モデルの読み込み（非同期ロードの前に同期で読み込む）
     m_loadingModel.Reset(MV1LoadModel("data/model/NormalZombie.mv1"));

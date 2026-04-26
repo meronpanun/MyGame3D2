@@ -144,6 +144,13 @@ Player::Player()
     , m_tackleCooldown(0)
     , m_tackleId(0)
     , m_isDamageHandledInThisFrame(false)
+    , m_isStartAnimating(false)
+    , m_hasLandedAtStart(false)
+    , m_startAnimTimer(0.0f)
+    , m_startAnimDuration(60.0f)
+    , m_uiFadeTimer(0.0f)
+    , m_uiFadeDuration(60.0f)
+    , m_isUiFadeStarted(false)
 {
 }
 
@@ -262,6 +269,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
         {
             SoundManager::GetInstance()->Play("Player", "HeavyLanding");
             m_hasLandedAtStart = true;
+            m_isStartAnimating = true; // 着地したのでアニメーション開始
         }
         else if (impactVel >= 10.0f)
         {
@@ -479,13 +487,13 @@ void Player::Draw3D()
     float startAnimOffsetY = 0.0f;
     if (!m_hasLandedAtStart)
     {
-        startAnimOffsetY = 200.0f;
+        startAnimOffsetY = 500.0f;
     }
     else if (m_isStartAnimating)
     {
         float progress = m_startAnimTimer / m_startAnimDuration;
         float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-        startAnimOffsetY = (1.0f - easeOut) * 200.0f;
+        startAnimOffsetY = (1.0f - easeOut) * 500.0f;
     }
 
     // カメラのジャンプ・着地揺れを銃の揺れに反映
@@ -525,13 +533,13 @@ void Player::DrawShield()
     float startAnimOffsetY = 0.0f;
     if (!m_hasLandedAtStart)
     {
-        startAnimOffsetY = 200.0f;
+        startAnimOffsetY = 500.0f;
     }
     else if (m_isStartAnimating)
     {
         float progress = m_startAnimTimer / m_startAnimDuration;
         float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-        startAnimOffsetY = (1.0f - easeOut) * 200.0f;
+        startAnimOffsetY = (1.0f - easeOut) * 500.0f;
     }
 
     m_shieldSystem.Draw(m_pCamera.get(), m_modelPos, m_isTackling,
