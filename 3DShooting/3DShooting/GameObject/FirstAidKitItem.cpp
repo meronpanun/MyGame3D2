@@ -1,4 +1,4 @@
-﻿#include "EffekseerForDXLib.h"
+#include "EffekseerForDXLib.h"
 #include "FirstAidKitItem.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -27,6 +27,8 @@ namespace
 	constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
 
 	const float kRotateSpeed = 0.05f; // 回転速度
+	constexpr int   kLifeTime = 1200;              // アイテムの寿命 (20秒)
+	constexpr int   kFlashTime = 300;              // 点滅開始時間 (5秒)
 }
 
 FirstAidKitItem::FirstAidKitItem():
@@ -38,7 +40,8 @@ FirstAidKitItem::FirstAidKitItem():
 	m_isUsed(false),
 	m_isDropping(true),
 	m_velocityY(0.0f),
-	m_rotY(0.0f)
+	m_rotY(0.0f),
+	m_lifeTimer(kLifeTime)
 {
 	// モデルの複製
 	m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -66,6 +69,7 @@ void FirstAidKitItem::Init()
 {
 	m_collider.SetCenter(m_pos);
 	m_collider.SetRadius(m_radius);
+	m_lifeTimer = kLifeTime;
 
 	// モデルのスケール調整
 	MV1SetScale(m_modelHandle, VGet(0.5f, 0.5f, 0.5f));
@@ -73,7 +77,10 @@ void FirstAidKitItem::Init()
 
 void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData)
 {
-	if (IsUsed()) return;
+	if (IsUsed() || IsExpired()) return;
+
+	// 寿命の更新
+	if (m_lifeTimer > 0) m_lifeTimer--;
 
 	// ドロップ演出（落下処理）
     // 重力適用
@@ -121,7 +128,13 @@ void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageColli
 
 void FirstAidKitItem::Draw()
 {
-	if (IsUsed()) return; 
+	if (IsUsed() || IsExpired()) return;
+
+	// 寿命が近い場合は点滅させる
+	if (m_lifeTimer < kFlashTime)
+	{
+		if ((m_lifeTimer / 5) % 2 == 0) return;
+	}
 
 	// モデルを描画
 	MV1SetPosition(m_modelHandle, m_pos);

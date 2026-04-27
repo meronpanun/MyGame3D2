@@ -664,7 +664,7 @@ SceneBase* SceneMain::Update()
             item->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
         }
         m_items.erase(std::remove_if(m_items.begin(), m_items.end(),
-            [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }), m_items.end());
+            [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed() || item->IsExpired(); }), m_items.end());
 
         ScoreManager::Instance().Update();
 
@@ -759,7 +759,7 @@ SceneBase* SceneMain::Update()
         item->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
     }
     m_items.erase(std::remove_if(m_items.begin(), m_items.end(),
-        [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed(); }), m_items.end());
+        [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed() || item->IsExpired(); }), m_items.end());
 
     m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
     ScoreManager::Instance().Update();

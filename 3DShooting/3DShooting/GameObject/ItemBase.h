@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include <vector>
 #include "Stage.h"
@@ -19,6 +19,7 @@ public:
 	virtual void Draw()   abstract;
 
 	virtual bool IsUsed() const abstract;
+	virtual bool IsExpired() const { return false; }
 
 	// 位置設定用
 	// 位置設定用

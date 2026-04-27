@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "ItemBase.h"
 #include "EffekseerForDXLib.h"
 #include "SphereCollider.h"
@@ -23,6 +23,7 @@ public:
 
 	void SetPos(const VECTOR& pos) override { m_pos = pos; }
 	bool IsUsed() const override { return m_isUsed; }
+	bool IsExpired() const override { return m_lifeTimer <= 0; }
 
 	static void LoadModel();
 	static void DeleteModel();
@@ -41,7 +42,7 @@ private:
 	bool m_isHit;      // プレイヤーと接触したかどうか
 	bool m_isUsed;     // アイテムが使用されたかどうか
 	bool m_isDropping; // 落下中かどうか
+	int m_lifeTimer;
 
 	static int s_modelHandle;
 };
-

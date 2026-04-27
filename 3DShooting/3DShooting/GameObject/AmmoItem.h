@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "SphereCollider.h"
 #include "ItemBase.h"
@@ -30,6 +30,7 @@ public:
 	/// </summary>
 	/// <returns>true: 使用済み, false: 未使用</returns>
 	bool IsUsed() const override { return m_isUsed; }
+	bool IsExpired() const override { return m_lifeTimer <= 0; }
 
 	static void LoadModel();
 	static void DeleteModel();
@@ -47,6 +48,7 @@ private:
 	bool m_isHit;
 	bool m_isUsed;
 	bool m_isDropping;
+	int m_lifeTimer;
 
 	static int s_modelHandle;
 };

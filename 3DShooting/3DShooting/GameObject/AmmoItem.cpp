@@ -1,4 +1,4 @@
-﻿#include "EffekseerForDXLib.h"
+#include "EffekseerForDXLib.h"
 #include "AmmoItem.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -24,6 +24,8 @@ namespace
 	constexpr float kItemCollisionHeight = 10.0f;
 	constexpr float kItemCollisionRadius = 60.0f; // 半径を大きくして埋まりを防ぐ
 	constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
+	constexpr int   kLifeTime = 1200;              // アイテムの寿命 (20秒)
+	constexpr int   kFlashTime = 300;              // 点滅開始時間 (5秒)
 }
 
 AmmoItem::AmmoItem()
@@ -36,6 +38,7 @@ AmmoItem::AmmoItem()
 	, m_isDropping(true)
 	, m_velocityY(0.0f)
 	, m_rotY(0.0f)
+	, m_lifeTimer(kLifeTime)
 {
 	// モデルの複製
 	m_modelHandle = MV1DuplicateModel(s_modelHandle);
@@ -63,6 +66,7 @@ void AmmoItem::Init()
 {
 	m_isDropping = true;
 	m_velocityY = 0.0f;
+	m_lifeTimer = kLifeTime;
 	m_collider.SetCenter(m_pos);
 	m_collider.SetRadius(m_radius);
 	MV1SetScale(m_modelHandle, VGet(3.0f, 3.0f, 3.0f));
@@ -70,7 +74,10 @@ void AmmoItem::Init()
 
 void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData)
 {
-	if (IsUsed()) return;
+	if (IsUsed() || IsExpired()) return;
+
+	// 寿命の更新
+	if (m_lifeTimer > 0) m_lifeTimer--;
 
     // 重力適用
     m_velocityY -= kDropGravity;
@@ -123,7 +130,13 @@ void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionDat
 
 void AmmoItem::Draw()
 {
-	if (IsUsed()) return;
+	if (IsUsed() || IsExpired()) return;
+
+	// 寿命が近い場合は点滅させる
+	if (m_lifeTimer < kFlashTime)
+	{
+		if ((m_lifeTimer / 5) % 2 == 0) return;
+	}
 
 	MV1SetPosition(m_modelHandle, m_pos);
 	MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, m_rotY, 0.0f));

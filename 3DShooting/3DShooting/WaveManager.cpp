@@ -1,4 +1,4 @@
-﻿#include "WaveManager.h"
+#include "WaveManager.h"
 #include "Bullet.h"
 #include "CollisionGrid.h"
 #include "EffekseerForDXLib.h"
@@ -242,7 +242,7 @@ void WaveManager::Update()
             if (m_currentSpawnIndex < m_spawnInfoList.size() && m_state == WaveState::Active)
             {
                 m_spawnTimer += (1.0f / 60.0f) * Game::GetTimeScale();
-                while (m_currentSpawnIndex < m_spawnInfoList.size())
+                while (m_currentSpawnIndex < m_spawnInfoList.size() && GetAliveEnemyCount() < 40)
                 {
                     EnemySpawnInfo& spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
                     if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned)
