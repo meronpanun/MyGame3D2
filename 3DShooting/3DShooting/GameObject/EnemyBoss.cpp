@@ -623,103 +623,45 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
         }
     }
-    else if (m_currentAnimState == AnimState::Idle)
+    else if (m_currentAnimState == AnimState::Idle || m_currentAnimState == AnimState::Walk)
     {
-        // 待機状態 (Idle)
+        // クールダウン減少
         if (m_longRangeAttackCooldown > 0) m_longRangeAttackCooldown--;
 
         VECTOR toPlayer = VSub(playerPos, m_pos);
         toPlayer.y = 0.0f;
         float disToPlayer = VSize(toPlayer);
 
-        // 向き変更(共通関数使用)
+        // 向き変更
         float rotSpeed = 0.05f * Game::GetTimeScale();
         RotateTowards(playerPos, rotSpeed);
 
-        // 攻撃判定
+        // 1. 近接攻撃判定
         if (CanAttackPlayer(player))
         {
             m_hasAttackHit = false;
-            ChangeAnimation(AnimState::Attack, false);
+            ChangeState(std::make_shared<EnemyBossStateAttack>());
         }
-        else if (disToPlayer > EnemyBossConstants::kLongRangeAttackMinDist && disToPlayer < EnemyBossConstants::kLongRangeAttackMaxDist && m_longRangeAttackCooldown <= 0)
+        // 2. 遠距離攻撃判定 (クールダウン中でなく、適切な距離にいる場合)
+        else if (disToPlayer > EnemyBossConstants::kLongRangeAttackMinDist && 
+                 disToPlayer < EnemyBossConstants::kLongRangeAttackMaxDist && 
+                 m_longRangeAttackCooldown <= 0)
         {
             m_hasShotLongRange = false;
-            ChangeAnimation(AnimState::LongRangeAttack, false);
+            ChangeState(std::make_shared<EnemyBossStateLongRange>());
         }
+        // 3. 移動 (どちらの攻撃もできない、または移動が必要な距離にいる場合)
         else
         {
-            // 移動が必要かチェック
-            if (disToPlayer >= EnemyBossConstants::kLongRangeAttackMaxDist || disToPlayer < EnemyBossConstants::kLongRangeAttackMinDist)
-            {
-                ChangeState(std::make_shared<EnemyBossStateWalk>());
-            }
-        }
-    }
-    else // Walk
-    {
-        // 移動処理 (Walk)
-        if (m_currentAnimState == AnimState::Walk)
-        {
-            // クールダウン減少
-            if (m_longRangeAttackCooldown > 0) m_longRangeAttackCooldown--;
+            // プレイヤーに近づく
+            VECTOR dir = VNorm(toPlayer);
+            m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
 
-            VECTOR toPlayer = VSub(playerPos, m_pos);
-            toPlayer.y = 0.0f;
-            float disToPlayer = VSize(toPlayer);
-
-            // 向き変更(共通関数使用)
-            float rotSpeed = 0.05f * Game::GetTimeScale();
-            RotateTowards(playerPos, rotSpeed);
-
-            // 攻撃判定
-            if (CanAttackPlayer(player))
+            // アニメーションをWalkに
+            if (m_currentAnimState != AnimState::Walk)
             {
-                m_hasAttackHit = false;
-                ChangeAnimation(AnimState::Attack, false);
+                ChangeAnimation(AnimState::Walk, true);
             }
-            else if (disToPlayer > EnemyBossConstants::kLongRangeAttackMinDist && disToPlayer < EnemyBossConstants::kLongRangeAttackMaxDist && m_longRangeAttackCooldown <= 0)
-            {
-                // 遠距離攻撃へ遷移（プレイヤーが遠距離攻撃の有効範囲内にいる場合のみ）
-                m_hasShotLongRange = false;
-                ChangeState(std::make_shared<EnemyBossStateLongRange>());
-            }
-                else
-                {
-                    // 範囲内なら攻撃へ
-                    if (CanAttackPlayer(player))
-                    {
-                        ChangeAnimation(AnimState::Attack, false);
-                    }
-                    // 範囲外なら近づく
-                    else if (disToPlayer >= EnemyBossConstants::kLongRangeAttackMaxDist)
-                    {
-                        VECTOR dir = VNorm(toPlayer);
-                        m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
-                    }
-                    // 近すぎる場合 (シールド接触距離より内側に入り込んだ場合など)
-                    else if (disToPlayer < EnemyBossConstants::kAttackRangeRadius)
-                    {
-                         // 攻撃できるなら攻撃（優先）、そうでなければ少し離れるか、そのまま
-                         if (CanAttackPlayer(player))
-                         {
-                             ChangeState(std::make_shared<EnemyBossStateAttack>());
-                         }
-                         else
-                         {
-                             // 攻撃できないけど近い -> 少し離れて位置調整
-                             // ただしシールドで押されるので、無理に下がる必要はないかもしれないが
-                             // 念のため
-                             // VECTOR dir = VNorm(toPlayer); // 逆方向へ
-                             // m_pos = VSub(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale() * 0.5f));
-                         }
-                    }
-                        else
-                        {
-                            // 中間距離 (Idleへ)
-                            ChangeAnimation(AnimState::Idle, true);
-                        }
-                }
         }
     }
 
@@ -732,7 +674,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         if (m_currentAnimState == AnimState::Walk)
         {
             animName = EnemyBossConstants::kWalkAnimName;
-            animSpeed = 0.6f; // 走りが速すぎるので調整
+            animSpeed = 0.9f; // 移動速度に合わせて調整 (0.6 -> 0.9)
         }
         else if (m_currentAnimState == AnimState::Idle)
         {
