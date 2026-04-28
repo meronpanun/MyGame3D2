@@ -1072,6 +1072,21 @@ void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
             VECTOR shieldPos = m_pos;
             shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * 0.5f;
             SceneMain::Instance()->GetEffect()->PlayShieldBreakEffect(shieldPos);
+
+            // 画面揺れ演出の追加
+            if (Game::m_pPlayer && Game::m_pPlayer->GetCamera())
+            {
+                // プレイヤーとの距離に応じて揺れの強さを変える
+                float dist = VSize(VSub(m_pos, Game::m_pPlayer->GetPos()));
+                float maxDist = 1000.0f;
+                float intensityBase = 20.0f; // 基本の揺れ強度
+                
+                float ratio = 1.0f - (dist / maxDist);
+                if (ratio < 0.2f) ratio = 0.2f; // 遠くても最低限は揺らす
+                if (ratio > 1.0f) ratio = 1.0f;
+
+                Game::m_pPlayer->GetCamera()->Shake(intensityBase * ratio, 10);
+            }
         }
     }
 
