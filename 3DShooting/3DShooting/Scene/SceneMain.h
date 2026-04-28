@@ -203,6 +203,9 @@ private:
     // デバッグ表示用キャッシュ
     float m_cachedFPS;
     float m_cachedDeltaTime;
+    int m_cachedTotalEnemies;
+    int m_cachedUpdatedEnemies;
+    int m_cachedDrawnEnemies;
     int m_debugDisplayTimer;
 
     // ローディング画面用

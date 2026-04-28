@@ -140,6 +140,9 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_prevTimeCount(GetNowHiPerformanceCount())
     , m_cachedFPS(0.0f)
     , m_cachedDeltaTime(0.0f)
+    , m_cachedTotalEnemies(0)
+    , m_cachedUpdatedEnemies(0)
+    , m_cachedDrawnEnemies(0)
     , m_debugDisplayTimer(0)
 {
     g_sceneMainInstance = this;
@@ -751,6 +754,10 @@ SceneBase* SceneMain::Update()
 
     // 遅延中は他の処理をスキップ
     if (m_clearSceneDelayTimer != -1) return this;
+    // AI更新カウンタのリセット
+    EnemyBase::ResetAIUpdateCount();
+    EnemyBase::ResetTotalCount();
+
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(),
         *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get());
 
@@ -902,12 +909,14 @@ void SceneMain::DrawDebugHUD()
     {
         m_cachedFPS = GetFPS();
         m_cachedDeltaTime = m_lastDeltaTime;
+        m_cachedTotalEnemies = EnemyBase::GetTotalCount();
+        m_cachedUpdatedEnemies = EnemyBase::GetAIUpdateCount();
+        m_cachedDrawnEnemies = EnemyBase::GetDrawCount();
         m_debugDisplayTimer = 15;
     }
     float fps = m_cachedFPS;
-    // WaveManager.hでは GetAliveEnemyCount() となっていた
     int aliveEnemyCount = m_pWaveManager ? m_pWaveManager->GetAliveEnemyCount() : 0;
-    int drawnEnemyCount = EnemyBase::GetDrawCount();
+    int drawnEnemyCount = m_cachedDrawnEnemies;
 
     // Last Damage
     float lastDamage = EnemyBase::GetDebugLastDamage();
@@ -938,6 +947,19 @@ void SceneMain::DrawDebugHUD()
     y += lineHeight;
     DrawFormatString(x, y, color, "Drawn Enemy Count: %d", drawnEnemyCount);
     y += lineHeight;
+
+    // AI間引き(Throttling)の評価
+    int totalCount = m_cachedTotalEnemies;
+    int aiUpdatedCount = m_cachedUpdatedEnemies;
+    float throttlingRate = totalCount > 0 ? (1.0f - (float)aiUpdatedCount / totalCount) * 100.0f : 0.0f;
+    DrawFormatString(x, y, color, "AI Update: %d/%d (Throttled: %.1f%%)", aiUpdatedCount, totalCount, throttlingRate);
+    y += lineHeight;
+
+    // 描画カリングの評価
+    float cullingRate = totalCount > 0 ? (1.0f - (float)drawnEnemyCount / totalCount) * 100.0f : 0.0f;
+    DrawFormatString(x, y, color, "Draw Culling: %.1f%%", cullingRate);
+    y += lineHeight;
+
     DrawFormatString(x, y, color, "Total Defeated: %d", ScoreManager::Instance().GetTotalDefeatedCount());
     y += lineHeight;
     DrawFormatString(x, y, color, "Last Damage: %s", damageStr.c_str());

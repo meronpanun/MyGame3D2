@@ -50,6 +50,14 @@ public:
     static void IncrementDrawCount() { s_drawCount++; }
     static int GetDrawCount() { return s_drawCount; }
 
+    static void ResetAIUpdateCount() { s_aiUpdateCount = 0; }
+    static void IncrementAIUpdateCount() { s_aiUpdateCount++; }
+    static int GetAIUpdateCount() { return s_aiUpdateCount; }
+
+    static void ResetTotalCount() { s_totalCount = 0; }
+    static void IncrementTotalCount() { s_totalCount++; }
+    static int GetTotalCount() { return s_totalCount; }
+
     // デバッグ用: ダメージ可視化
     static void SetShowDamage(bool show) { s_shouldShowDamage = show; }
     static bool ShouldShowDamage() { return s_shouldShowDamage; }
@@ -336,6 +344,8 @@ protected:
 
 protected:
     static int s_drawCount;
+    static int s_aiUpdateCount;
+    static int s_totalCount;
 
     // デバッグ用
     static bool s_shouldShowDamage;

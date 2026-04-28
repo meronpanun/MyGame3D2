@@ -49,6 +49,8 @@ namespace EnemyConstants
 }
 
 int EnemyBase::s_drawCount = 0;
+int EnemyBase::s_aiUpdateCount = 0;
+int EnemyBase::s_totalCount = 0;
 bool EnemyBase::s_shouldShowDamage = false;
 float EnemyBase::s_debugLastDamage = 0.0f;
 int EnemyBase::s_debugDamageTimer = 0;
@@ -366,6 +368,9 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos, const VECTO
 // AI更新頻度の動的制御によるCPU負荷の最適化
 void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
 {
+    // 総数をカウント
+    IncrementTotalCount();
+
     // 自身からプレイヤーまでの距離を算出
     VECTOR toPlayer = VSub(playerPos, m_pos);
     float distSq = VSquareSize(toPlayer);
@@ -412,6 +417,12 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
     // 算出したインターバルを用いて、今回のフレームで優先してAIを更新すべきかを設定
     m_updateFrameCount++;
     m_shouldUpdateAI = (m_updateFrameCount % m_aiUpdateInterval == 0);
+
+    // デバッグ用: AI更新が行われる場合はカウント
+    if (m_shouldUpdateAI)
+    {
+        IncrementAIUpdateCount();
+    }
 }
 
 // デバッグ用ダメージ描画
