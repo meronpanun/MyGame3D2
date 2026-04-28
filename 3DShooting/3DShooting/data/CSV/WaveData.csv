@@ -4,7 +4,7 @@ Wave,EnemyType,Count,SpawnInterval,StartTime,WaveInterval,SpawnLocation,HasShiel
 2,NormalEnemy,20,0.4,0,0,1,0
 2,NormalEnemy,10,0.5,2,0,2,0
 2,RunnerEnemy,8,0.6,4,0,1,0
-2,AcidEnemy,4,1.0,6,5,2,0
+2,AcidEnemy,4,1,6,5,2,0
 3,NormalEnemy,25,0.3,0,0,1,0
 3,NormalEnemy,12,0.4,2,0,1,1
 3,RunnerEnemy,12,0.5,4,0,2,0

@@ -1,4 +1,4 @@
-﻿#include "EnemyNormal.h"
+#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
@@ -144,6 +144,7 @@ void EnemyNormal::Init()
     m_shieldEffectTimer = 0.0f;
     m_pShieldCollider = nullptr;
     m_shieldEffectHandles.clear();
+    m_shieldChainBreakTimer = 0;
 }
 
 void EnemyNormal::SetHasShield(bool hasShield)
@@ -248,6 +249,16 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 
     // AI間引き処理の更新
     UpdateThrottling(player.GetPos());
+
+    // 連鎖破壊タイマーの更新
+    if (m_hasShieldConfigured && m_shieldChainBreakTimer > 0)
+    {
+        m_shieldChainBreakTimer--;
+        if (m_shieldChainBreakTimer <= 0)
+        {
+            BreakShield(&context);
+        }
+    }
 
     // 視界外の単純動作モード
     if (m_isSimpleMode)
@@ -809,18 +820,8 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
         // シールドHPが0以下の状態で盾投げを食らったら破壊
         if (m_shieldHp <= 0.0f && type == AttackType::ShieldThrow)
         {
-            m_isShieldBroken = true;
-            m_pShieldCollider = nullptr;
-
-            // 再生中のエフェクト停止
-            for (int handle : m_shieldEffectHandles)
-            {
-                StopEffekseer3DEffect(handle);
-            }
-            m_shieldEffectHandles.clear();
-            
-            // 破壊音などをここで追加可能
-            // 例: Game::PlaySound("ShieldBreak");
+            BreakShield(); 
+            TriggerShieldChainBreak(1); // 次のUpdateで連鎖を開始させる
         }
         else if (type != AttackType::ShieldThrow) // 盾投げ以外はシールドHPを減らす
         {
@@ -1039,6 +1040,71 @@ void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, 
     {
         // それ以外は基底クラス（出血エフェクトあり）
         EnemyBase::ApplyBulletDamage(bullet, part, distSq, pEffect);
+    }
+}
+
+void EnemyNormal::TriggerShieldChainBreak(int delayFrames)
+{
+    if (!m_hasShieldConfigured) return;
+    // 既に破壊されていても、連鎖の起点になるためにタイマー設定を許可する
+    m_shieldChainBreakTimer = delayFrames;
+}
+
+void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
+{
+    if (!m_hasShieldConfigured) return;
+
+    if (!m_isShieldBroken)
+    {
+        m_isShieldBroken = true;
+        m_pShieldCollider = nullptr;
+
+        // 再生中のエフェクト停止
+        for (int handle : m_shieldEffectHandles)
+        {
+            StopEffekseer3DEffect(handle);
+        }
+        m_shieldEffectHandles.clear();
+
+        // 破壊エフェクト再生
+        if (SceneMain::Instance() && SceneMain::Instance()->GetEffect())
+        {
+            VECTOR shieldPos = m_pos;
+            shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * 0.5f;
+            SceneMain::Instance()->GetEffect()->PlayShieldBreakEffect(shieldPos);
+        }
+    }
+
+    // 周囲の敵への連鎖 (contextがある場合のみ)
+    if (context)
+    {
+        float chainRadius = 400.0f; // 連鎖範囲 (250から拡大)
+        std::vector<EnemyBase*> neighbors;
+        if (context->collisionGrid)
+        {
+            context->collisionGrid->GetNeighbors(m_pos, neighbors);
+        }
+        else
+        {
+            neighbors = context->enemyList;
+        }
+
+        for (auto* enemyBase : neighbors)
+        {
+            auto* normalEnemy = dynamic_cast<EnemyNormal*>(enemyBase);
+            if (normalEnemy && normalEnemy != this && normalEnemy->m_hasShieldConfigured && !normalEnemy->m_isShieldBroken)
+            {
+                float distSq = VSquareSize(VSub(m_pos, normalEnemy->GetPos()));
+                if (distSq < chainRadius * chainRadius)
+                {
+                    // まだ連鎖タイマーが動いていない場合のみセット
+                    if (normalEnemy->m_shieldChainBreakTimer <= 0)
+                    {
+                        normalEnemy->TriggerShieldChainBreak(12); // 12フレーム（約0.2秒）の遅延
+                    }
+                }
+            }
+        }
     }
 }
 

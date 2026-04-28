@@ -98,6 +98,7 @@ public:
     /// シールドを所持するかどうかを設定し、初期化する
     /// </summary>
     void SetHasShield(bool hasShield);
+    void TriggerShieldChainBreak(int delayFrames);
 
     /// <summary>
     /// シールド状態取得
@@ -131,6 +132,7 @@ private:
     /// <param name="player">プレイヤーオブジェクト</param>
     /// <returns>攻撃可能ならtrue</returns>
     bool CanAttackPlayer(const Player& player);
+    void BreakShield(const EnemyUpdateContext* context = nullptr);
 
     void UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData);
 
@@ -179,6 +181,7 @@ private:
     float m_shieldRotation;        // シールドの回転角度
     float m_shieldEffectTimer;     // シールドエフェクトの再生タイマー
     bool m_hasPlayedShieldBreakableEffect; // シールド破壊可能エフェクト再生済みフラグ
+    int m_shieldChainBreakTimer;   // 連鎖破壊タイマー
 
     int m_voiceTimer;               // 環境ボイス再生用タイマー
     float m_distToPlayer;           // プレイヤーとの距離
