@@ -1,4 +1,4 @@
-#include "EffekseerForDXLib.h"
+﻿#include "EffekseerForDXLib.h"
 #include "AmmoItem.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"

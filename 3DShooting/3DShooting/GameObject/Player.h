@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"

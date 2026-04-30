@@ -155,6 +155,7 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
     const char *bossName = "BOSS";
     int textW = GetDrawStringWidthToHandle(bossName, static_cast<int>(strlen(bossName)), m_font);
     int textX = static_cast<int>((screenW - textW) * 0.5f);
+
     int textY = static_cast<int>(kBossHpTextY * scale);
     
     DrawStringToHandle(textX + kShadowOffset, textY + kShadowOffset, bossName, 0x000000, m_font);

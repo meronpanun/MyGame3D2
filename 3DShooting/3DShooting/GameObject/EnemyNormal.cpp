@@ -1,4 +1,4 @@
-﻿#include "EnemyNormal.h"
+#include "EnemyNormal.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"

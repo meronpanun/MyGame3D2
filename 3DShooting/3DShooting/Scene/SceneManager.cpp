@@ -1,4 +1,4 @@
-#include "SceneManager.h"
+﻿#include "SceneManager.h"
 #include "DebugUtil.h"
 #include "Game.h"
 #include "InputManager.h"

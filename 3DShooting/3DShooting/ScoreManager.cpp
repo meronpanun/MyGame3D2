@@ -11,6 +11,8 @@ namespace
     constexpr float kInitialComboRate   = 1.1f; // コンボ倍率の初期値
     constexpr int   kMaxHighScores      = 10;
     const char* kScoreFileName = "highscores.txt"; // スコア保存ファイル名
+    constexpr int   kMinCountUpSpeed    = 50;   // カウントアップの最低速度(フレーム毎)
+    constexpr float kCountUpRatio       = 0.05f;// 残り差分に対するカウントアップ割合
 }
 
 ScoreManager& ScoreManager::Instance()
@@ -81,16 +83,20 @@ void ScoreManager::Update()
     }
 
     // スコアカウントアップ演出
+    // 差分の一定割合（最低kMinCountUpSpeed）ずつ増やすことで、
+    // スコアが大きくても短時間でアニメーションが完了する
     if (m_displayScore < m_targetDisplayScore)
     {
         int diff = m_targetDisplayScore - m_displayScore;
-        int add = (std::min)(m_scoreCountUpSpeed, diff);
+        int add = (std::max)(kMinCountUpSpeed, static_cast<int>(diff * kCountUpRatio));
+        add = (std::min)(add, diff); // 目標値を超えないよう上限設定
         m_displayScore += add;
     }
     if (m_displayTotalScore < m_targetTotalScore)
     {
         int diff = m_targetTotalScore - m_displayTotalScore;
-        int add = (std::min)(m_scoreCountUpSpeed, diff);
+        int add = (std::max)(kMinCountUpSpeed, static_cast<int>(diff * kCountUpRatio));
+        add = (std::min)(add, diff); // 目標値を超えないよう上限設定
         m_displayTotalScore += add;
     }
 }

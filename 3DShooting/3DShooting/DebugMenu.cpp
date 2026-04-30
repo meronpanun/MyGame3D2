@@ -1,4 +1,4 @@
-﻿#include "DebugMenu.h"
+#include "DebugMenu.h"
 #include "CollisionGrid.h"
 #include "DxLib.h"
 #include "Game.h"
