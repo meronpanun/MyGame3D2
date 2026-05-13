@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "EffekseerForDXLib.h"
 #include "Stage.h"
 #include <vector>
@@ -26,7 +26,7 @@ public:
     /// <summary>
     /// 更新処理
     /// </summary>
-    void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float weaponSwitchTimer, float weaponSwitchDuration, float yawDelta, bool isMoving);
+    void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float /*weaponSwitchTimer*/, float /*weaponSwitchDuration*/, float yawDelta, bool isMoving);
 
     /// <summary>
     /// 描画処理

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AttackType.h"
 #include "Camera.h"
 #include "EffekseerForDXLib.h"
@@ -157,7 +157,7 @@ public:
     float GetHealthBarAnim() const { return m_status.GetHealthBarAnim(); }
 
     /// <summary>
-    /// 体力低下の点滅タイマーを取得
+    /// 低体力警告の点滅タイマーを取得
     /// </summary>
     float GetLowHealthBlinkTimer() const { return m_status.GetLowHealthBlinkTimer(); }
 
@@ -382,16 +382,6 @@ private:
     /// <param name="enemyList">敵リスト</param>
     void CheckEnemyProximity(const std::vector<EnemyBase*>& enemyList);
 
-    /// <summary>
-    /// 視線チェック
-    /// </summary>
-    /// <param name="start">始点</param>
-    /// <param name="end">終点</param>
-    /// <param name="collisionData">衝突データ</param>
-    /// <returns>視線が通っていればtrue</returns>
-    bool CheckLineOfSight(const VECTOR& start, const VECTOR& end,
-        const std::vector<Stage::StageCollisionData>& collisionData) const;
-
 private:
     // コンポーネント
     PlayerWeaponManager m_weaponManager;
@@ -436,13 +426,6 @@ private:
     bool m_hasLandedAtStart;             // 開始時に一度でも着地したか
     bool m_isUiFadeStarted;              // UIフェードインが開始されたか
     bool m_isDamageHandledInThisFrame;   // 同一フレーム内でダメージ演出（SE/振動）を処理したか
-
-    // ハンドルIDなど
-    int m_arInitAmmo;                    // ARの初期弾薬数
-    int m_sgInitAmmo;                    // SGの初期弾薬数
-    int m_arMaxAmmo;                     // ARの最大弾薬数
-    int m_sgMaxAmmo;                     // SGの最大弾薬数
-    int m_concentrationLineEffectHandle; // 集中線エフェクトハンドル
-
+    
     AttackType m_allowedAttackType = AttackType::None;
 };

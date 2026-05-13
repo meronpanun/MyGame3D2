@@ -1,4 +1,4 @@
-﻿#include "PlayerShieldSystem.h"
+#include "PlayerShieldSystem.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Effect.h"
@@ -165,8 +165,8 @@ void PlayerShieldSystem::Init(float maxDurability, float regenRate)
 void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
     const VECTOR& playerPos, bool isGuarding,
     bool isTackling, bool isSwitchingWeapon,
-    float weaponSwitchTimer,
-    float weaponSwitchDuration, float yawDelta,
+    float /*weaponSwitchTimer*/,
+    float /*weaponSwitchDuration*/, float yawDelta,
     bool isMoving)
 {
     // パリィ判定のために、更新前に前フレームのガード状態を保存

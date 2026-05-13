@@ -211,15 +211,6 @@ void SceneMain::Init()
     m_pPlayer->SetAnimationManager(m_pAnimManager.get());
     Game::m_pPlayer = m_pPlayer.get();
 
-    m_pEnemyNormal = std::make_shared<EnemyNormal>();
-    m_pEnemyNormal->Init();
-
-    m_pEnemyRunner = std::make_shared<EnemyRunner>();
-    m_pEnemyRunner->Init();
-
-    m_pEnemyAcid = std::make_shared<EnemyAcid>();
-    m_pEnemyAcid->Init();
-
     m_pStage = std::make_shared<Stage>();
 
     // チュートリアルスキップフラグに応じてステージをロード

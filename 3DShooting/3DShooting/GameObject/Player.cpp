@@ -1,4 +1,4 @@
-﻿#include "Player.h"
+#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -148,6 +148,15 @@ Player::Player()
     , m_isUiFadeStarted(false)
     , m_idleSwayTimer(0.0f)
     , m_ammoTextFlashTimer(0.0f)
+    , m_shouldIgnoreGuardInput(false)
+    , m_scale(VGet(1.0f, 1.0f, 1.0f))
+    , m_pDirectionIndicator(nullptr)
+    , m_pAnimManager(nullptr)
+    , m_isTutorial(false)
+    , m_isInfiniteAmmo(false)
+    , m_isFlightMode(false)
+    , m_gunSwayRotOffset(VGet(0.0f, 0.0f, 0.0f))
+    , m_gunSwayOffset(VGet(0.0f, 0.0f, 0.0f))
 {
 }
 
@@ -767,20 +776,6 @@ WeaponType Player::GetCurrentWeaponType() const
 void Player::SwitchWeapon(WeaponType weaponType)
 {
     m_weaponManager.SwitchWeapon(weaponType);
-}
-
-bool Player::CheckLineOfSight(const VECTOR& start, const VECTOR& end,
-    const std::vector<Stage::StageCollisionData>& collisionData) const
-{
-    for (const auto& col : collisionData)
-    {
-        HITRESULT_LINE result = HitCheck_Line_Triangle(start, end, col.v1, col.v2, col.v3);
-        if (result.HitFlag)
-        {
-            return false;
-        }
-    }
-    return true;
 }
 
 void Player::CheckEnemyProximity(const std::vector<EnemyBase*>& enemyList)

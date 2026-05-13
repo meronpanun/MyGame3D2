@@ -149,14 +149,10 @@ private:
     // ゲームオブジェクト管理
     std::unique_ptr<Player> m_pPlayer;
     std::shared_ptr<Camera> m_pCamera;
-    std::shared_ptr<EnemyNormal> m_pEnemyNormal;
-    std::shared_ptr<EnemyRunner> m_pEnemyRunner;
-    std::shared_ptr<EnemyAcid> m_pEnemyAcid;
     std::shared_ptr<Stage> m_pStage;
     std::shared_ptr<WaveManager> m_pWaveManager;
     std::unique_ptr<Effect> m_pEffect;
     std::unique_ptr<AnimationManager> m_pAnimManager;
-    std::vector<EnemyBase*> m_enemyList;
     std::vector<std::shared_ptr<ItemBase>> m_items;
 
     std::unique_ptr<DirectionIndicator> m_pDirectionIndicator;
@@ -170,13 +166,8 @@ private:
     bool m_hasDroppedWave1FirstAid;    // Wave1救急キットドロップ済み
     bool m_hasDroppedWave1Ammo;        // Wave1弾薬ドロップ済み
     int m_wave1DropCount;             // Wave1ドロップ回数
-    EnemyBase::HitPart m_hitMarkType = EnemyBase::HitPart::Body; // ヒット部位
-
     // リソース管理
     SafeHandle<ModelDeleter> m_skyDome; // スカイドーム画像ハンドル
-    // レティクル画像
-    ManagedGraph m_sgDefaultReticle;
-    ManagedGraph m_sgOnTargetReticle;
     int m_headShotSECooldownTimer; // ヘッドショットSEのクールタイムタイマー
     std::unique_ptr<TutorialManager> m_pTutorialManager;
 
