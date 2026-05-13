@@ -24,7 +24,7 @@ public:
     bool IsAimingAtEnemy() const { return m_isAimingAtEnemy; }
 
 private:
-    bool CheckLineOfSight(const VECTOR& start, const VECTOR& end, const std::vector<Stage::StageCollisionData>& collisionData) const;
+    bool CheckLineOfSight(const VECTOR& start, const VECTOR& end, const std::vector<const Stage::StageCollisionData*>& triangles) const;
 
 private:
     bool m_isLockingOn;

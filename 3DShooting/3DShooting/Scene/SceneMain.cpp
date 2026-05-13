@@ -912,7 +912,7 @@ void SceneMain::DrawDebugHUD()
         m_cachedTotalEnemies = EnemyBase::GetTotalCount();
         m_cachedUpdatedEnemies = EnemyBase::GetAIUpdateCount();
         m_cachedDrawnEnemies = EnemyBase::GetDrawCount();
-        m_debugDisplayTimer = 15;
+        m_debugDisplayTimer = 5;
     }
     float fps = m_cachedFPS;
     int aliveEnemyCount = m_pWaveManager ? m_pWaveManager->GetAliveEnemyCount() : 0;
@@ -930,7 +930,7 @@ void SceneMain::DrawDebugHUD()
     int lineHeight = 20;
     unsigned int color = 0xFFFFFF;
 
-    DrawFormatString(x, y, color, "FPS: %.1f", fps);
+    DrawFormatString(x, y, color, "fps: %.1f", fps);
     y += lineHeight;
     DrawFormatString(x, y, color, "Delta Time: %.4f", m_cachedDeltaTime);
     y += lineHeight;

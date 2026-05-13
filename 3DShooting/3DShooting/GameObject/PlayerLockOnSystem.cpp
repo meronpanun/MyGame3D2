@@ -54,8 +54,15 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
     {
         targetList.resize(kMaxAimTargets);
     }
-
-    // ── 照準チェック（kAimCheckInterval フレームに1回）──────────
+    // ── 近傍ステージ三角形を1回だけ取得してキャッシュ ────────────
+    // CheckLineOfSight で毎回 collisionData 全件を走査する代わりに、
+    // グリッドで絞り込んだ近傍ポリゴンのみを使う。
+    // sort+unique は GetNearbyTriangles 内で1回だけ実行される。
+    std::vector<const Stage::StageCollisionData*> nearbyTriangles;
+    if (Game::m_pWaveManager)
+    {
+        Game::m_pWaveManager->GetCollisionGrid().GetNearbyTriangles(camPos, nearbyTriangles);
+    }
     // レティクル色変更のみに影響。33ms程度の遅延は体感不可能。
     if (++m_aimCheckSkipCounter >= kAimCheckInterval)
     {
@@ -72,7 +79,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
 
             if (part == EnemyBase::HitPart::Body || part == EnemyBase::HitPart::Head)
             {
-                if (CheckLineOfSight(camPos, hitPos, collisionData))
+                if (CheckLineOfSight(camPos, hitPos, nearbyTriangles))
                 {
                     m_isAimingAtEnemy = true;
                     break;
@@ -80,7 +87,6 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
             }
         }
     }
-    // ── ────────────────────────────────────────────────────────
 
     // ── ロックオン処理（タックル判定）：毎フレーム実行 ───────────
     if (isGuarding && tackleCooldown <= 0)
@@ -110,7 +116,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
 
                     if (fabs(dy) < kLockOnMaxScreenOffsetY)
                     {
-                        if (CheckLineOfSight(camPos, enemyTargetPos, collisionData))
+                        if (CheckLineOfSight(camPos, enemyTargetPos, nearbyTriangles))
                         {
                             float distSq = dx * dx + dy * dy;
                             if (minScreenDistSq < 0 || distSq < minScreenDistSq)
@@ -134,11 +140,12 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
     m_isTargetAvailable = (m_lockedOnEnemy != nullptr);
 }
 
-bool PlayerLockOnSystem::CheckLineOfSight(const VECTOR& start, const VECTOR& end, const std::vector<Stage::StageCollisionData>& collisionData) const
+bool PlayerLockOnSystem::CheckLineOfSight(const VECTOR& start, const VECTOR& end, const std::vector<const Stage::StageCollisionData*>& triangles) const
 {
-    for (const auto& col : collisionData)
+    for (const auto* col : triangles)
     {
-        HITRESULT_LINE result = HitCheck_Line_Triangle(start, end, col.v1, col.v2, col.v3);
+        if (!col) continue;
+        HITRESULT_LINE result = HitCheck_Line_Triangle(start, end, col->v1, col->v2, col->v3);
         if (result.HitFlag)
         {
             return false;
