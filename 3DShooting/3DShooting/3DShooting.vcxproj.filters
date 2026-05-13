@@ -437,6 +437,9 @@
     <ClInclude Include="TutorialTasks.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="EffekseerWarningSuppress.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="data\model\MeshFence.mv1" />

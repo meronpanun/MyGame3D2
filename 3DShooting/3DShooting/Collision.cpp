@@ -1,4 +1,4 @@
-#include "Collision.h"
+﻿#include "Collision.h"
 #include <algorithm>
 #include "CollisionGrid.h"
 #include <cmath>
@@ -86,7 +86,10 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
         VECTOR capB = VAdd(checkPos, VGet(0, capsuleHeight * 0.5f, 0));
 
         auto processTriangle = [&](const Stage::StageCollisionData& data) {
-            VECTOR points[] = { capA, checkPos, capB };
+            VECTOR points[3];
+            points[0] = capA;
+            points[1] = checkPos;
+            points[2] = capB;
 
             for (const auto& p : points)
             {
@@ -120,7 +123,7 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
                         float sq = normal.x * normal.x + normal.z * normal.z;
                         if (sq > 0.0001f)
                         {
-                            float len = std::sqrt(sq);
+                            float len = sqrtf(sq);
                             normal.x /= len;
                             normal.z /= len;
                         }

@@ -1,4 +1,4 @@
-#include "ScoreManager.h"
+﻿#include "ScoreManager.h"
 #include <cmath>
 #include "TaskTutorialManager.h"
 #include <fstream>
@@ -48,7 +48,7 @@ int ScoreManager::AddScore(bool isHeadShot)
     m_combo++;
     if (m_combo > m_maxCombo) m_maxCombo = m_combo; // 最大コンボ更新
 
-    float comboRate = std::pow(kInitialComboRate, m_combo - 1);
+    float comboRate = static_cast<float>(std::pow(kInitialComboRate, m_combo - 1));
     m_lastComboRate = comboRate;
     int add = static_cast<int>(baseScore * comboRate);
     m_score += add;

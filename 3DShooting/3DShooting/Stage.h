@@ -15,8 +15,11 @@ public:
 		VECTOR v1;
 		VECTOR v2;
 		VECTOR v3;
+		
+		StageCollisionData() : name(""), v1(VGet(0.0f, 0.0f, 0.0f)), v2(VGet(0.0f, 0.0f, 0.0f)), v3(VGet(0.0f, 0.0f, 0.0f)) {}
 	};
 
+	Stage();
 	~Stage();
 
 	void LoadStage(bool isTutorial);

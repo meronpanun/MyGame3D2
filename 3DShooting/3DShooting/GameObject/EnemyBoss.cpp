@@ -1,11 +1,11 @@
-ï»¿#include "EnemyBoss.h"
+#include "EnemyBoss.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
 #include "DebugUtil.h"
 #include "DxLib.h"
 #include "Effect.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "SceneMain.h"
 #include "ScoreManager.h"
 #include "SphereCollider.h"
@@ -20,41 +20,41 @@
 
 namespace EnemyBossConstants
 {
-    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å
+    // ƒAƒjƒ[ƒVƒ‡ƒ“–¼
     constexpr char kWalkAnimName[]            = "Armature|Run";
-    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // è¿‘æ¥ç¯„å›²æ”»æ’ƒ
-    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // é è·é›¢æ”»æ’ƒ
+    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // ‹ßÚ”ÍˆÍUŒ‚
+    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // ‰“‹——£UŒ‚
     constexpr char kDeadAnimName[]            = "Armature|Death";
 
-    constexpr float kLongRangeAttackMinDist   = 400.0f; // é è·é›¢æ”»æ’ƒã‚’è¡Œã†æœ€å°è·é›¢
-    constexpr float kLongRangeAttackMaxDist   = 1000.0f; // é è·é›¢æ”»æ’ƒã‚’è¡Œã†æœ€å¤§è·é›¢ï¼ˆã“ã‚Œã‚ˆã‚Šé ã„ã¨æ”»æ’ƒã›ãšæ¥è¿‘ã™ã‚‹ï¼‰
+    constexpr float kLongRangeAttackMinDist   = 400.0f; // ‰“‹——£UŒ‚‚ğs‚¤Å¬‹——£
+    constexpr float kLongRangeAttackMaxDist   = 1000.0f; // ‰“‹——£UŒ‚‚ğs‚¤Å‘å‹——£i‚±‚ê‚æ‚è‰“‚¢‚ÆUŒ‚‚¹‚¸Ú‹ß‚·‚éj
     constexpr int kLongRangeAttackCooldownMax = 120;
     constexpr float kHomingBulletSpeed        = 6.0f;
-    constexpr float kHomingTurnRate           = 0.02f;        // æ—‹å›æ€§èƒ½
-    constexpr float kHomingBulletMaxDist      = 1800.0f; // å¼¾ã®æœ€å¤§é£›è·é›¢
+    constexpr float kHomingTurnRate           = 0.02f;        // ù‰ñ«”\
+    constexpr float kHomingBulletMaxDist      = 1800.0f; // ’e‚ÌÅ‘å”ò‹——£
     constexpr float kHomingBulletDamage       = 20.0f;
     constexpr float kHomingBulletRadius       = 15.0f;
 
-    // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚µã‚¤ã‚º
+    // ƒRƒ‰ƒCƒ_[ƒTƒCƒY
     constexpr float kBodyColliderRadius = 40.0f;
     constexpr float kBodyColliderHeight = 350.0f;
     constexpr float kHeadRadius         = 25.0f;
-    constexpr float kAttackRangeRadius  = 450.0f; // æŒ‡å®šã•ã‚ŒãŸè¿‘æ¥ç¯„å›² 
-    constexpr float kAttackHitRadius    = 60.0f;    // æ”»æ’ƒè‡ªä½“ã®å½“ãŸã‚Šåˆ¤å®š
+    constexpr float kAttackRangeRadius  = 450.0f; // w’è‚³‚ê‚½‹ßÚ”ÍˆÍ 
+    constexpr float kAttackHitRadius    = 60.0f;    // UŒ‚©‘Ì‚Ì“–‚½‚è”»’è
 
-	// æ”»æ’ƒé–¢é€£
+	// UŒ‚ŠÖ˜A
     constexpr int kAttackCooldownMax = 60;
-    constexpr int kAttackEndDelay    = 30; // æ”»æ’ƒå¾Œã®ç¡¬ç›´
+    constexpr int kAttackEndDelay    = 30; // UŒ‚Œã‚Ìd’¼
 
-    // æç”»é–¢é€£
-    constexpr float kDrawDistanceSq     = 10000.0f * 10000.0f; // 16000ã‹ã‚‰10000ã«ç¸®å°
+    // •`‰æŠÖ˜A
+    constexpr float kDrawDistanceSq     = 10000.0f * 10000.0f; // 16000‚©‚ç10000‚Ék¬
     constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
 
-	// ã‚·ãƒ¼ãƒ«ãƒ‰é–¢é€£
-	constexpr float kShieldMaxHp = 200.0f; // ã‚·ãƒ¼ãƒ«ãƒ‰ã®æœ€å¤§è€ä¹…å€¤
+	// ƒV[ƒ‹ƒhŠÖ˜A
+	constexpr float kShieldMaxHp = 200.0f; // ƒV[ƒ‹ƒh‚ÌÅ‘å‘Ï‹v’l
 }
 
-// staticå¤‰æ•°ã®åˆæœŸåŒ–
+// static•Ï”‚Ì‰Šú‰»
 int EnemyBoss::s_modelHandle = -1;
 bool EnemyBoss::s_shouldDrawCollision = false;
 bool EnemyBoss::s_shouldDrawAttackHit = false;
@@ -104,7 +104,7 @@ EnemyBoss::EnemyBoss()
 {
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
-    // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼åˆæœŸåŒ–
+    // ƒRƒ‰ƒCƒ_[‰Šú‰»
     m_pBodyCollider = std::make_shared<CapsuleCollider>();
     m_pHeadCollider = std::make_shared<SphereCollider>();
     m_pAttackRangeCollider = std::make_shared<SphereCollider>();
@@ -122,23 +122,23 @@ void EnemyBoss::Init()
     m_isDeadAnimPlaying = false;
     m_animTime = 0.0f;
 
-    // CSVã‹ã‚‰Bossã®Transformæƒ…å ±ã‚’å–å¾—
+    // CSV‚©‚çBoss‚ÌTransformî•ñ‚ğæ“¾
     bool loadResult = LoadTransformData("Boss");
 
-    // åŸºæœ¬ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿åˆæœŸåŒ–
+    // Šî–{ƒpƒ‰ƒ[ƒ^‰Šú‰»
     m_hasAttackHit = false;
     m_attackEndDelayTimer = 0;
     m_attackCooldown = 0;
     m_hitDisplayTimer = 0;
 
-    // ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥
+    // ƒtƒŒ[ƒ€ƒCƒ“ƒfƒbƒNƒX‚ÌƒLƒƒƒbƒVƒ…
     m_headNodeIndex = MV1SearchFrame(m_modelHandle, "Head");
     m_headTopEndNodeIndex = MV1SearchFrame(m_modelHandle, "mixamorig:HeadTop_End");
 
-    // æ”»æ’ƒç¯„å›²ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼è¨­å®š
+    // UŒ‚”ÍˆÍƒRƒ‰ƒCƒ_[İ’è
     m_pAttackRangeCollider->SetRadius(EnemyBossConstants::kAttackRangeRadius);
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼è¨­å®š (åˆæœŸåŒ–)
+    // ƒV[ƒ‹ƒhƒRƒ‰ƒCƒ_[İ’è (‰Šú‰»)
     m_pShieldCollider = std::make_shared<SphereCollider>();
     m_pShieldCollider->SetRadius(300.0f); 
 
@@ -150,18 +150,18 @@ void EnemyBoss::Init()
     m_effectTimer = 0;
     m_shieldEffectHandles.clear();
 
-    // åˆæœŸã‚¹ãƒ†ãƒ¼ãƒˆã®è¨­å®š
+    // ‰ŠúƒXƒe[ƒg‚Ìİ’è
     ChangeState(std::make_shared<EnemyBossStateWalk>());
 }
 
 void EnemyBoss::ChangeAnimation(AnimState newAnimState, bool loop)
 {
-    // é è·é›¢æ”»æ’ƒãªã©ã€åŒã˜çŠ¶æ…‹ã§ã‚‚å†åº¦å†ç”Ÿã—ãŸã„ã‚±ãƒ¼ã‚¹ãŒã‚ã‚‹å ´åˆã¯èª¿æ•´
+    // ‰“‹——£UŒ‚‚È‚ÇA“¯‚¶ó‘Ô‚Å‚àÄ“xÄ¶‚µ‚½‚¢ƒP[ƒX‚ª‚ ‚éê‡‚Í’²®
     if (m_currentAnimState == newAnimState && newAnimState != AnimState::Attack && newAnimState != AnimState::LongRangeAttack) return;
 
     const char* animName = nullptr;
 
-    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åˆ‡ã‚Šæ›¿ãˆæ™‚ã«ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒæ®‹ã£ã¦ã„ãŸã‚‰åœæ­¢
+    // ƒAƒjƒ[ƒVƒ‡ƒ“Ø‚è‘Ö‚¦‚ÉƒGƒtƒFƒNƒg‚ªc‚Á‚Ä‚¢‚½‚ç’â~
     if (m_currentEffectHandle != -1)
     {
         StopEffekseer3DEffect(m_currentEffectHandle);
@@ -211,7 +211,7 @@ void EnemyBoss::ChangeState(std::shared_ptr<EnemyState<EnemyBoss>> newState)
 
 void EnemyBoss::Update(const EnemyUpdateContext& context)
 {
-    // ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‹ã‚‰å±•é–‹
+    // ƒRƒ“ƒeƒLƒXƒg‚©‚ç“WŠJ
     std::vector<Bullet>& bullets = context.bullets;
     const Player::TackleInfo& tackleInfo = context.tackleInfo;
     const Player& player = context.player;
@@ -220,7 +220,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
     UpdateStageCollision(collisionData, context.collisionGrid);
 
-    // åˆå›æ›´æ–°æ™‚ã«ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ–¹ã¸å¼·åˆ¶çš„ã«å‘ã
+    // ‰‰ñXV‚ÉƒvƒŒƒCƒ„[‚Ì•û‚Ö‹­§“I‚ÉŒü‚­
     if (m_isFirstUpdate)
     {
         VECTOR toPlayer = VSub(player.GetPos(), m_pos);
@@ -237,24 +237,24 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     m_shouldDrawParryCollider = false;
 #endif
 
-    // ãƒ›ãƒ¼ãƒŸãƒ³ã‚°å¼¾ã®æ›´æ–°
+    // ƒz[ƒ~ƒ“ƒO’e‚ÌXV
     for (auto& bullet : m_homingBullets)
     {
         if (!bullet.active) continue;
 
-        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¸ã®æ–¹å‘
+        // ƒvƒŒƒCƒ„[‚Ö‚Ì•ûŒü
         VECTOR toPlayer = VSub(player.GetPos(), bullet.pos);
         float distToPlayer = VSize(toPlayer);
         VECTOR targetDir = VNorm(toPlayer);
 
-        // ãƒ‘ãƒ©ãƒœãƒªãƒƒã‚¯ã‹ãƒ›ãƒ¼ãƒŸãƒ³ã‚°ã‹ã§åˆ†å²
+        // ƒpƒ‰ƒ{ƒŠƒbƒN‚©ƒz[ƒ~ƒ“ƒO‚©‚Å•ªŠò
         float scale = Game::GetTimeScale();
         if (bullet.isParabolic)
         {
-            // æ”¾ç‰©ç·šé‹å‹•
+            // •ú•¨ü‰^“®
             bullet.velocity.y -= bullet.gravity * scale;
             bullet.pos = VAdd(bullet.pos, VScale(bullet.velocity, scale));
-            // é€²è¡Œæ–¹å‘ã‚’é€Ÿåº¦ãƒ™ã‚¯ãƒˆãƒ«ã«åˆã‚ã›ã‚‹ï¼ˆè¦‹ãŸç›®ã®ãŸã‚ï¼‰
+            // is•ûŒü‚ğ‘¬“xƒxƒNƒgƒ‹‚É‡‚í‚¹‚éiŒ©‚½–Ú‚Ì‚½‚ßj
             if (VSquareSize(bullet.velocity) > 0.0001f)
             {
                 bullet.dir = VNorm(bullet.velocity);
@@ -262,38 +262,38 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         }
         else
         {
-            // ãƒ›ãƒ¼ãƒŸãƒ³ã‚°å‡¦ç† (ç¾åœ¨ã®å‘ãã‹ã‚‰ã‚¿ãƒ¼ã‚²ãƒƒãƒˆå‘ãã¸å¾ã€…ã«è£œé–“)
-            // æˆ»ã£ã¦ãã‚‹å‹•ãã‚’å¿œç”¨ -> ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒå‹•ã„ã¦ã‚‚è¿½å¾“
-            // ã‚·ãƒ³ãƒ—ãƒ«ã«ã‚¿ãƒ¼ãƒ³ãƒ¬ãƒ¼ãƒˆã§è£œé–“
+            // ƒz[ƒ~ƒ“ƒOˆ— (Œ»İ‚ÌŒü‚«‚©‚çƒ^[ƒQƒbƒgŒü‚«‚Ö™X‚É•âŠÔ)
+            // –ß‚Á‚Ä‚­‚é“®‚«‚ğ‰—p -> ƒvƒŒƒCƒ„[‚ª“®‚¢‚Ä‚à’Ç]
+            // ƒVƒ“ƒvƒ‹‚Éƒ^[ƒ“ƒŒ[ƒg‚Å•âŠÔ
             bullet.dir = VAdd(bullet.dir, VScale(targetDir, EnemyBossConstants::kHomingTurnRate * scale));
             bullet.dir = VNorm(bullet.dir);
 
-            // ç§»å‹•
+            // ˆÚ“®
             VECTOR moveVec = VScale(bullet.dir, bullet.speed * scale);
             bullet.pos = VAdd(bullet.pos, moveVec);
             bullet.distTraveled += bullet.speed * scale;
         }
 
-        // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–°(ã‚ã‚Œã°)
+        // ƒGƒtƒFƒNƒgXV(‚ ‚ê‚Î)
         if (bullet.effectHandle != -1)
         {
             SetPosPlayingEffekseer3DEffect(bullet.effectHandle, bullet.pos.x, bullet.pos.y, bullet.pos.z);
         }
 
-        // ã¾ã åå°„ã•ã‚Œã¦ã„ãªã„å¼¾ã®å‡¦ç†
+        // ‚Ü‚¾”½Ë‚³‚ê‚Ä‚¢‚È‚¢’e‚Ìˆ—
         if (!bullet.isReflected)
         {
             SphereCollider bulletCol(bullet.pos, EnemyBossConstants::kHomingBulletRadius);
             bool hitDetected = false;
 
-            // ãƒ‘ãƒªã‚£åˆ¤å®š
+            // ƒpƒŠƒB”»’è
             if (bullet.isParryable && player.IsJustGuarded())
             {
                 VECTOR playerCapA, playerCapB;
                 float playerRadius;
                 player.GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
 
-                // ãƒ‘ãƒªã‚£ã—ã‚„ã™ãã™ã‚‹ãŸã‚ã«åˆ¤å®šã‚’åºƒãã™ã‚‹
+                // ƒpƒŠƒB‚µ‚â‚·‚­‚·‚é‚½‚ß‚É”»’è‚ğL‚­‚·‚é
                 float parryRadius = playerRadius * 1.5f;
                 CapsuleCollider parryCollider(playerCapA, playerCapB, parryRadius);
 
@@ -306,31 +306,31 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
                 if (bulletCol.IsIntersects(&parryCollider))
                 {
-                    // ãƒ‘ãƒªã‚£æˆåŠŸ
+                    // ƒpƒŠƒB¬Œ÷
                     hitDetected = true;
                     bullet.isReflected = true;
 
-                    // ãƒ‘ãƒªã‚£æˆåŠŸSEã‚’å†ç”Ÿ
+                    // ƒpƒŠƒB¬Œ÷SE‚ğÄ¶
                     const_cast<Player&>(player).PlayParrySE();
 
-                    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã«é€šçŸ¥
+                    // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒ}ƒl[ƒWƒƒ[‚É’Ê’m
                     TaskTutorialManager::GetInstance()->NotifyParrySuccess();
 
-                    // åå°„æ–¹å‘è¨ˆç®— (ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚«ãƒ¡ãƒ©ã®å‰æ–¹ã¸ã€ã‚ã‚‹ã„ã¯ãƒœã‚¹ã¸)
-                    // ã“ã“ã§ã¯ãƒœã‚¹ï¼ˆç™ºå°„ä¸»ï¼‰ã¸è·³ã­è¿”ã™
+                    // ”½Ë•ûŒüŒvZ (ƒvƒŒƒCƒ„[ƒJƒƒ‰‚Ì‘O•û‚ÖA‚ ‚é‚¢‚Íƒ{ƒX‚Ö)
+                    // ‚±‚±‚Å‚Íƒ{ƒXi”­Ëåj‚Ö’µ‚Ë•Ô‚·
                     if (bullet.owner)
                     {
                         VECTOR targetPos = bullet.owner->GetPos();
-                        targetPos.y += EnemyBossConstants::kBodyColliderHeight * 0.5f; // ä¸­å¿ƒä»˜è¿‘ã¸
+                        targetPos.y += EnemyBossConstants::kBodyColliderHeight * 0.5f; // ’†S•t‹ß‚Ö
                         bullet.dir = VNorm(VSub(targetPos, bullet.pos));
                     }
                     else
                     {
-                        bullet.dir = VScale(bullet.dir, -1.0f); // å˜ç´”åè»¢
+                        bullet.dir = VScale(bullet.dir, -1.0f); // ’Pƒ”½“]
                     }
 
                     bullet.speed *= 1.5f;
-                    bullet.turnRate = 0.0f; // åå°„å¾Œã¯ãƒ›ãƒ¼ãƒŸãƒ³ã‚°åˆ‡ã‚‹
+                    bullet.turnRate = 0.0f; // ”½ËŒã‚Íƒz[ƒ~ƒ“ƒOØ‚é
                     Game::SetTimeScale(0.1f, 1.0f);
                 }
             }
@@ -341,7 +341,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 if (bulletCol.IsIntersects(pCol.get()))
                 {
                     hitDetected = true;
-                    // ãƒ€ãƒ¡ãƒ¼ã‚¸å‡¦ç†
+                    // ƒ_ƒ[ƒWˆ—
                     const_cast<Player&>(player).TakeDamage(bullet.damage, m_pos, bullet.isParryable);
                     bullet.active = false;
                     if (bullet.effectHandle != -1)
@@ -352,18 +352,18 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 }
             }
         }
-        // åå°„ã•ã‚ŒãŸå¼¾ã®å‡¦ç†
+        // ”½Ë‚³‚ê‚½’e‚Ìˆ—
         else
         {
-            // å¼¾ã®æ‰€æœ‰è€…(Bossè‡ªèº«)ã¨å½“ãŸã‚Šåˆ¤å®š
+            // ’e‚ÌŠ—LÒ(Boss©g)‚Æ“–‚½‚è”»’è
             if (bullet.owner)
             {
                 SphereCollider reflectedCol(bullet.pos, EnemyBossConstants::kHomingBulletRadius);
-                // ãƒœã‚¹ã®å½“ãŸã‚Šåˆ¤å®šã‚’ä½¿ç”¨
+                // ƒ{ƒX‚Ì“–‚½‚è”»’è‚ğg—p
                 if (reflectedCol.IsIntersects(this->GetBodyCollider().get()))
                 {
                     this->TakeDamage(bullet.damage, AttackType::Parry);
-                    this->OnParried(); // æ€¯ã¿å‡¦ç†
+                    this->OnParried(); // ‹¯‚İˆ—
                     bullet.active = false;
                     if (bullet.effectHandle != -1)
                     {
@@ -374,7 +374,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
         }
 
-        // æœ€å¤§é£›è·é›¢ãƒã‚§ãƒƒã‚¯
+        // Å‘å”ò‹——£ƒ`ƒFƒbƒN
         if (bullet.distTraveled > EnemyBossConstants::kHomingBulletMaxDist)
         {
             bullet.active = false;
@@ -385,7 +385,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
         }
 
-        // åœ°é¢æ¥è§¦ã§æ¶ˆæ»…
+        // ’n–ÊÚG‚ÅÁ–Å
         if (bullet.pos.y < 0)
         {
             bullet.active = false;
@@ -397,12 +397,12 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         }
     }
 
-    // ä¸è¦ãªå¼¾ã‚’å‰Šé™¤
+    // •s—v‚È’e‚ğíœ
     m_homingBullets.erase(
         std::remove_if(m_homingBullets.begin(), m_homingBullets.end(), [](const HomingBullet& b) { return !b.active; }),
         m_homingBullets.end());
 
-    // æ€¯ã¿çŠ¶æ…‹ã®å‡¦ç†
+    // ‹¯‚İó‘Ô‚Ìˆ—
     if (m_isStunned)
     {
         m_stunTimer--;
@@ -413,8 +413,8 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         }
         else
         {
-            // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°ï¼ˆDeadãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãªã©ã‚’é€”ä¸­ã¾ã§å†ç”Ÿã™ã‚‹ãªã©ï¼‰
-            // ä¸€æ—¦ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’é€²ã‚ã‚‹
+            // ƒAƒjƒ[ƒVƒ‡ƒ“XViDeadƒ‚[ƒVƒ‡ƒ“‚È‚Ç‚ğ“r’†‚Ü‚ÅÄ¶‚·‚é‚È‚Çj
+            // ˆê’UƒAƒjƒ[ƒVƒ‡ƒ“‚ği‚ß‚é
             if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
             {
                 m_animTime += 1.0f * Game::GetTimeScale();
@@ -422,7 +422,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
         }
         MV1SetPosition(m_modelHandle, m_pos);
-        return; // ä»–ã®AIãƒ­ã‚¸ãƒƒã‚¯ã‚’ã‚¹ã‚­ãƒƒãƒ—
+        return; // ‘¼‚ÌAIƒƒWƒbƒN‚ğƒXƒLƒbƒv
     }
 
     if (m_hp <= 0.0f)
@@ -438,28 +438,28 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
     MV1SetPosition(m_modelHandle, m_pos);
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ãƒ»ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼
+    // ƒvƒŒƒCƒ„[‚ÌˆÊ’uEƒRƒ‰ƒCƒ_[
     VECTOR playerPos = player.GetPos();
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
 
-    // AIã‚¹ãƒ†ãƒ¼ãƒˆã®æ›´æ–°
+    // AIƒXƒe[ƒg‚ÌXV
     if (m_pCurrentState)
     {
         m_pCurrentState->Update(this, context);
     }
 
-    // æ”»æ’ƒç¯„å›²ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼æ›´æ–°
+    // UŒ‚”ÍˆÍƒRƒ‰ƒCƒ_[XV
     VECTOR attackRangeCenter = m_pos;
     attackRangeCenter.y += (EnemyBossConstants::kBodyColliderHeight * 0.5f);
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
 
-    // çŠ¶æ…‹é·ç§»ãƒ­ã‚¸ãƒƒã‚¯
+    // ó‘Ô‘JˆÚƒƒWƒbƒN
     if (m_currentAnimState == AnimState::Attack)
     {
-        // æ”»æ’ƒä¸­
+        // UŒ‚’†
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kCloseAttackAnimName);
 
-        // æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†åˆ¤å®š
+        // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“I—¹”»’è
         if (m_animTime > currentAnimTotalTime)
         {
             if (m_attackEndDelayTimer <= 0)
@@ -468,44 +468,44 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
         }
 
-        // ãƒ‡ãƒãƒƒã‚°ç”¨ãƒ’ãƒƒãƒˆè¡¨ç¤ºã‚‚æ›´æ–° (ãƒœã‚¹ã®ä½ç½®ã«è¿½å¾“ã•ã›ã‚‹)
-        // å¸¸ã«æ›´æ–°ã—ãªã„ã¨ã€æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ã«ç§»å‹•ã—ãŸå ´åˆã«è¡¨ç¤ºãŒç½®ã„ã¦ã„ã‹ã‚Œã‚‹
-        // çƒã‹ã‚‰ç¸¦é•·ã®ã‚«ãƒ—ã‚»ãƒ«ã«å¤‰æ›´ã—ã€é«˜ã•ã‚ºãƒ¬ã«ã‚ˆã‚‹ç©ºæŒ¯ã‚Šã‚’é˜²ã
+        // ƒfƒoƒbƒO—pƒqƒbƒg•\¦‚àXV (ƒ{ƒX‚ÌˆÊ’u‚É’Ç]‚³‚¹‚é)
+        // í‚ÉXV‚µ‚È‚¢‚ÆAUŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“’†‚ÉˆÚ“®‚µ‚½ê‡‚É•\¦‚ª’u‚¢‚Ä‚¢‚©‚ê‚é
+        // ‹…‚©‚çc’·‚ÌƒJƒvƒZƒ‹‚É•ÏX‚µA‚‚³ƒYƒŒ‚É‚æ‚é‹óU‚è‚ğ–h‚®
         VECTOR hitBasePos = m_pos;
         VECTOR hitTopPos = m_pos;
         hitTopPos.y += EnemyBossConstants::kBodyColliderHeight;
         m_pAttackHitCollider->SetSegment(hitBasePos, hitTopPos);
         m_pAttackHitCollider->SetRadius(m_pAttackRangeCollider->GetRadius());
 
-        // æ”»æ’ƒãƒ’ãƒƒãƒˆåˆ¤å®š
-        // åˆ¤å®šæœŸé–“ (0.4 ~ 0.6)
+        // UŒ‚ƒqƒbƒg”»’è
+        // ”»’èŠúŠÔ (0.4 ~ 0.6)
         if (m_animTime >= currentAnimTotalTime * 0.4f && m_animTime <= currentAnimTotalTime * 0.6f)
         {
             if (!m_hasAttackHit)
             {
-                // ç¯„å›²æ”»æ’ƒåˆ¤å®š
+                // ”ÍˆÍUŒ‚”»’è
                 if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
                 {
-                    // ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹
+                    // ƒ_ƒ[ƒW‚ğ—^‚¦‚é
                     const_cast<Player&>(player).TakeDamage(static_cast<float>(m_attackPower), m_pos);
                     m_hasAttackHit = true;
                 }
             }
         }
 
-        // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆå†ç”Ÿ (ãƒ’ãƒƒãƒˆåˆ¤å®šé–‹å§‹ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã«åˆã‚ã›ã¦å†ç”Ÿ)
+        // ƒGƒtƒFƒNƒgÄ¶ (ƒqƒbƒg”»’èŠJnƒ^ƒCƒ~ƒ“ƒO‚É‡‚í‚¹‚ÄÄ¶)
         if (!m_hasPlayedCloseRangeEffect && m_animTime > currentAnimTotalTime * 0.3f)
         {
             if (pEffect)
             {
-                // è¶³å…ƒã‚’ä¸­å¿ƒã«å†ç”Ÿ
+                // ‘«Œ³‚ğ’†S‚ÉÄ¶
                 m_currentEffectHandle = pEffect->PlayCloseRangeAttackEffect(m_pos.x, m_pos.y, m_pos.z);
-                m_effectTimer = 100; // 100ãƒ•ãƒ¬ãƒ¼ãƒ ã§å¼·åˆ¶çµ‚äº†
+                m_effectTimer = 100; // 100ƒtƒŒ[ƒ€‚Å‹­§I—¹
             }
             m_hasPlayedCloseRangeEffect = true;
         }
         
-        // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
+        // ƒGƒtƒFƒNƒgƒ^ƒCƒ}[XV
         if (m_currentEffectHandle != -1)
         {
             m_effectTimer--;
@@ -522,7 +522,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             if (m_attackEndDelayTimer == 0)
             {
                 m_hasAttackHit = false;
-                // æ”»æ’ƒçµ‚äº†å¾Œã€ç¯„å›²å†…ã«ã„ã‚Œã°å†åº¦æ”»æ’ƒã€ã„ãªã‘ã‚Œã°ç§»å‹•ã¸
+                // UŒ‚I—¹ŒãA”ÍˆÍ“à‚É‚¢‚ê‚ÎÄ“xUŒ‚A‚¢‚È‚¯‚ê‚ÎˆÚ“®‚Ö
                 if (CanAttackPlayer(player))
                 {
                     ChangeState(std::make_shared<EnemyBossStateAttack>());
@@ -538,10 +538,10 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     {
         float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kLongRangeAttackAnimName);
 
-        // å¼¾ç”Ÿæˆã‚¿ã‚¤ãƒŸãƒ³ã‚°
+        // ’e¶¬ƒ^ƒCƒ~ƒ“ƒO
         if (!m_hasShotLongRange && m_animTime > totalTime * 0.3f)
         {
-            // å¼¾ç”Ÿæˆ
+            // ’e¶¬
             VECTOR spawnPos = m_pos;
             if (m_headTopEndNodeIndex != -1)
             {
@@ -549,29 +549,29 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
             else
             {
-                // è¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯é ­ä»˜è¿‘ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+                // Œ©‚Â‚©‚ç‚È‚¢ê‡‚Í“ª•t‹ßƒIƒtƒZƒbƒg
                 spawnPos = VAdd(m_pos, VGet(0, EnemyBossConstants::kBodyColliderHeight, 0));
             }
 
             HomingBullet bullet;
             bullet.pos = spawnPos;
             bullet.active = true;
-            bullet.damage = EnemyBossConstants::kHomingBulletDamage; // ãƒ€ãƒ¡ãƒ¼ã‚¸20
+            bullet.damage = EnemyBossConstants::kHomingBulletDamage; // ƒ_ƒ[ƒW20
             bullet.distTraveled = 0.0f;
-            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼æ–¹å‘ã¸ç™ºå°„
+            // ƒvƒŒƒCƒ„[•ûŒü‚Ö”­Ë
             VECTOR toTarget = VSub(playerPos, spawnPos);
             bullet.dir = VNorm(toTarget);
             bullet.speed = EnemyBossConstants::kHomingBulletSpeed;
             bullet.owner = this;
             bullet.isReflected = false;
 
-            // æ”¾ç‰©ç·šæ”»æ’ƒåˆ¤å®š
+            // •ú•¨üUŒ‚”»’è
             std::string groundedObj = player.GetGroundedObjectName();
             if ((groundedObj == "Rock3" || groundedObj == "Rock6") &&
                 !EnemyBase::IsTargetVisible(spawnPos, playerPos, collisionData, context.collisionGrid))
             {
                 bullet.isParabolic = true;
-                bullet.gravity = 0.3f; // é‡åŠ›è¨­å®š
+                bullet.gravity = 0.3f; // d—Íİ’è
                 bullet.velocity = EnemyBase::CalculateParabolicVelocity(bullet.pos, playerPos, bullet.gravity, EnemyBossConstants::kHomingBulletSpeed);
             }
             else
@@ -579,28 +579,28 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 bullet.isParabolic = false;
             }
 
-            // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒã‚ã‚Œã°ã“ã“ã§å†ç”Ÿã—ãƒãƒ³ãƒ‰ãƒ«ä¿æŒ
+            // ƒGƒtƒFƒNƒg‚ª‚ ‚ê‚Î‚±‚±‚ÅÄ¶‚µƒnƒ“ƒhƒ‹•Û
             if (pEffect)
             {
-                // ãƒã‚ºãƒ«ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ï¼ˆå°„æ’ƒæ™‚ã®ä¸€ç¬ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆï¼‰
+                // ƒ}ƒYƒ‹ƒtƒ‰ƒbƒVƒ…iËŒ‚‚Ìˆêu‚ÌƒGƒtƒFƒNƒgj
                 pEffect->PlayMuzzleFlash(spawnPos.x, spawnPos.y, spawnPos.z, 0, 0, 0);
 
                 if (m_isNextAttackNormal)
                 {
-                    // é€šå¸¸å¼¾ (ãƒ‘ãƒªã‚£ä¸å¯)
+                    // ’Êí’e (ƒpƒŠƒB•s‰Â)
                     bullet.isParryable = false;
                     bullet.effectHandle = pEffect->PlayNormalBulletEffect(spawnPos.x, spawnPos.y, spawnPos.z);
                 }
                 else
                 {
-                    // ãƒ‘ãƒªã‚£å¼¾ (ãƒ‘ãƒªã‚£å¯èƒ½)
+                    // ƒpƒŠƒB’e (ƒpƒŠƒB‰Â”\)
                     bullet.isParryable = true;
-                    // EnemyAcidã¨åŒæ§˜ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ä½¿ç”¨ï¼ˆã¾ãŸã¯å°‚ç”¨ã‚¨ãƒ•ã‚§ã‚¯ãƒˆï¼‰
+                    // EnemyAcid‚Æ“¯—l‚ÌƒGƒtƒFƒNƒg‚ğg—pi‚Ü‚½‚Íê—pƒGƒtƒFƒNƒgj
                     bullet.effectHandle = pEffect->PlayAcidEffect(spawnPos.x, spawnPos.y, spawnPos.z);
                 }
             }
 
-            // æ¬¡å›ã®ãŸã‚ã«ãƒ•ãƒ©ã‚°åè»¢
+            // Ÿ‰ñ‚Ì‚½‚ß‚Éƒtƒ‰ƒO”½“]
             m_isNextAttackNormal = !m_isNextAttackNormal;
 
             m_homingBullets.push_back(bullet);
@@ -609,8 +609,8 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
         if (m_animTime >= totalTime)
         {
-            // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†
-            if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = 30; // ç¡¬ç›´
+            // ƒAƒjƒ[ƒVƒ‡ƒ“I—¹
+            if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = 30; // d’¼
         }
 
         if (m_attackEndDelayTimer > 0)
@@ -625,24 +625,24 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     }
     else if (m_currentAnimState == AnimState::Idle || m_currentAnimState == AnimState::Walk)
     {
-        // ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³æ¸›å°‘
+        // ƒN[ƒ‹ƒ_ƒEƒ“Œ¸­
         if (m_longRangeAttackCooldown > 0) m_longRangeAttackCooldown--;
 
         VECTOR toPlayer = VSub(playerPos, m_pos);
         toPlayer.y = 0.0f;
         float disToPlayer = VSize(toPlayer);
 
-        // å‘ãå¤‰æ›´
+        // Œü‚«•ÏX
         float rotSpeed = 0.05f * Game::GetTimeScale();
         RotateTowards(playerPos, rotSpeed);
 
-        // 1. è¿‘æ¥æ”»æ’ƒåˆ¤å®š
+        // 1. ‹ßÚUŒ‚”»’è
         if (CanAttackPlayer(player))
         {
             m_hasAttackHit = false;
             ChangeState(std::make_shared<EnemyBossStateAttack>());
         }
-        // 2. é è·é›¢æ”»æ’ƒåˆ¤å®š (ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ä¸­ã§ãªãã€é©åˆ‡ãªè·é›¢ã«ã„ã‚‹å ´åˆ)
+        // 2. ‰“‹——£UŒ‚”»’è (ƒN[ƒ‹ƒ_ƒEƒ“’†‚Å‚È‚­A“KØ‚È‹——£‚É‚¢‚éê‡)
         else if (disToPlayer > EnemyBossConstants::kLongRangeAttackMinDist && 
                  disToPlayer < EnemyBossConstants::kLongRangeAttackMaxDist && 
                  m_longRangeAttackCooldown <= 0)
@@ -650,14 +650,14 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             m_hasShotLongRange = false;
             ChangeState(std::make_shared<EnemyBossStateLongRange>());
         }
-        // 3. ç§»å‹• (ã©ã¡ã‚‰ã®æ”»æ’ƒã‚‚ã§ããªã„ã€ã¾ãŸã¯ç§»å‹•ãŒå¿…è¦ãªè·é›¢ã«ã„ã‚‹å ´åˆ)
+        // 3. ˆÚ“® (‚Ç‚¿‚ç‚ÌUŒ‚‚à‚Å‚«‚È‚¢A‚Ü‚½‚ÍˆÚ“®‚ª•K—v‚È‹——£‚É‚¢‚éê‡)
         else
         {
-            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«è¿‘ã¥ã
+            // ƒvƒŒƒCƒ„[‚É‹ß‚Ã‚­
             VECTOR dir = VNorm(toPlayer);
             m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
 
-            // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’Walkã«
+            // ƒAƒjƒ[ƒVƒ‡ƒ“‚ğWalk‚É
             if (m_currentAnimState != AnimState::Walk)
             {
                 ChangeAnimation(AnimState::Walk, true);
@@ -665,8 +665,8 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         }
     }
 
-    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
-    // ãƒãƒ³ãƒ‰ãƒ«ãŒå–å¾—ã§ããªãã¦ã‚‚æ™‚é–“ã¯é€²ã‚ã‚‹ï¼ˆãƒ•ãƒªãƒ¼ã‚ºé˜²æ­¢ï¼‰
+    // ƒAƒjƒ[ƒVƒ‡ƒ“XV
+    // ƒnƒ“ƒhƒ‹‚ªæ“¾‚Å‚«‚È‚­‚Ä‚àŠÔ‚Íi‚ß‚éiƒtƒŠ[ƒY–h~j
     {
         const char* animName = nullptr;
         float animSpeed = 1.0f;
@@ -674,12 +674,12 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         if (m_currentAnimState == AnimState::Walk)
         {
             animName = EnemyBossConstants::kWalkAnimName;
-            animSpeed = 0.9f; // ç§»å‹•é€Ÿåº¦ã«åˆã‚ã›ã¦èª¿æ•´ (0.6 -> 0.9)
+            animSpeed = 0.9f; // ˆÚ“®‘¬“x‚É‡‚í‚¹‚Ä’²® (0.6 -> 0.9)
         }
         else if (m_currentAnimState == AnimState::Idle)
         {
             animName = EnemyBossConstants::kWalkAnimName;
-            animSpeed = 0.0f; // å¾…æ©Ÿä¸­ã¯ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åœæ­¢
+            animSpeed = 0.0f; // ‘Ò‹@’†‚ÍƒAƒjƒ[ƒVƒ‡ƒ“’â~
         }
         else if (m_currentAnimState == AnimState::Attack)
         {
@@ -702,17 +702,17 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
             float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, animName);
             
-            // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç·æ™‚é–“ãŒå–å¾—ã§ããŸå ´åˆã®ã¿ãƒ«ãƒ¼ãƒ—å‡¦ç†ã‚’è¡Œã†
+            // ƒAƒjƒ[ƒVƒ‡ƒ“‘ŠÔ‚ªæ“¾‚Å‚«‚½ê‡‚Ì‚İƒ‹[ƒvˆ—‚ğs‚¤
             if (totalTime > 0.0f)
             {
-                // ãƒ«ãƒ¼ãƒ—å‡¦ç†
-                if (m_currentAnimState == AnimState::Walk /*|| m_currentAnimState == AnimState::Idle*/)
+                // ƒ‹[ƒvˆ—
+                if (m_currentAnimState == AnimState::Walk)
                 {
                     m_animTime = fmodf(m_animTime, totalTime);
                 }
             }
 
-            // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹å ´åˆã®ã¿å®Ÿéš›ã®ãƒ¢ãƒ‡ãƒ«æ™‚é–“ã‚’æ›´æ–°
+            // ƒAƒjƒ[ƒVƒ‡ƒ“‚ªƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éê‡‚Ì‚İÀÛ‚Ìƒ‚ƒfƒ‹ŠÔ‚ğXV
             if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
             {
                 m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
@@ -720,13 +720,13 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         }
     }
 
-    // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼æ›´æ–°(Body)
+    // ƒRƒ‰ƒCƒ_[XV(Body)
     VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyBossConstants::kBodyColliderRadius, 0));
     VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyBossConstants::kBodyColliderHeight - EnemyBossConstants::kBodyColliderRadius, 0));
     m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
     m_pBodyCollider->SetRadius(EnemyBossConstants::kBodyColliderRadius);
 
-    // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼æ›´æ–°(Head)
+    // ƒRƒ‰ƒCƒ_[XV(Head)
     if (m_headTopEndNodeIndex != -1)
     {
         VECTOR headPos = MV1GetFramePosition(m_modelHandle, m_headTopEndNodeIndex);
@@ -741,27 +741,27 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     }
     else
     {
-        // é ­ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã®ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼ˆä½“ã®ä¸Šã®æ–¹ï¼‰
+        // “ª‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚ÌƒtƒH[ƒ‹ƒoƒbƒNi‘Ì‚Ìã‚Ì•ûj
         m_pHeadCollider->SetCenter(VAdd(m_pos, VGet(0, EnemyBossConstants::kBodyColliderHeight, 0)));
         m_pHeadCollider->SetRadius(EnemyBossConstants::kHeadRadius);
     }
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®æŠ¼ã—å‡ºã—å‡¦ç†(å…±é€šé–¢æ•°ä½¿ç”¨)
+    // ƒvƒŒƒCƒ„[‚Æ‚Ì‰Ÿ‚µo‚µˆ—(‹¤’ÊŠÖ”g—p)
     float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
     ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
 
 
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ã¨ã®æŠ¼ã—å‡ºã—å‡¦ç†
+    // ƒV[ƒ‹ƒh‚Æ‚Ì‰Ÿ‚µo‚µˆ—
     if (!m_isShieldBroken && m_pShieldCollider)
     {
-        // è¡çªåˆ¤å®šç”¨ã«ç¾åœ¨ã®ã‚·ãƒ¼ãƒ«ãƒ‰ä½ç½®ã‚’ç®—å‡º (ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®æ›´æ–°ã¯æç”»å‡¦ç†ã¨åŒæœŸã—ã¦å®Ÿæ–½)
+        // Õ“Ë”»’è—p‚ÉŒ»İ‚ÌƒV[ƒ‹ƒhˆÊ’u‚ğZo (ƒRƒ‰ƒCƒ_[‚ÌXV‚Í•`‰æˆ—‚Æ“¯Šú‚µ‚ÄÀ{)
         VECTOR shieldPos = m_pos;
-        shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // èƒ¸ã®ã‚ãŸã‚Š
+        shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // ‹¹‚Ì‚ ‚½‚è
         
         float shieldRadius = m_pShieldCollider->GetRadius();
         
-        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’å–å¾— (ç¢ºå®Ÿã«ç¾åœ¨ã®ä½ç½®ã‚’ä½¿ã†ãŸã‚Gameã‚¯ãƒ©ã‚¹ã‹ã‚‰å–å¾—)
+        // ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğæ“¾ (ŠmÀ‚ÉŒ»İ‚ÌˆÊ’u‚ğg‚¤‚½‚ßGameƒNƒ‰ƒX‚©‚çæ“¾)
         if (Game::m_pPlayer)
         {
             VECTOR playerPos = Game::m_pPlayer->GetPos();
@@ -769,7 +769,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             float playerRadius;
             Game::m_pPlayer->GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
 
-            // ã‚«ãƒ—ã‚»ãƒ«(Player)ã¨çƒ(Shield)ã®æœ€è¿‘æ¥ç‚¹ã‚’æ±‚ã‚ã‚‹
+            // ƒJƒvƒZƒ‹(Player)‚Æ‹…(Shield)‚ÌÅ‹ßÚ“_‚ğ‹‚ß‚é
             VECTOR segVec = VSub(playerCapB, playerCapA);
             VECTOR ptToA = VSub(shieldPos, playerCapA);
             float segLenSq = VSquareSize(segVec);
@@ -781,15 +781,15 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
             }
             VECTOR closestPointOnPlayer = VAdd(playerCapA, VScale(segVec, t));
 
-            // ã‚·ãƒ¼ãƒ«ãƒ‰ä¸­å¿ƒã‹ã‚‰ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æœ€è¿‘æ¥ç‚¹ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
+            // ƒV[ƒ‹ƒh’†S‚©‚çƒvƒŒƒCƒ„[‚ÌÅ‹ßÚ“_‚Ö‚ÌƒxƒNƒgƒ‹
             VECTOR pushDir = VSub(closestPointOnPlayer, shieldPos);
             float distSq = VSquareSize(pushDir);
             float minDist = shieldRadius + playerRadius;
 
-            // å®Œå…¨é‡ãªã‚Šå¯¾ç­–
+            // Š®‘Sd‚È‚è‘Îô
             if (distSq <= 0.0001f)
             {
-                // é‡ãªã£ã¦ã„ã‚‹å ´åˆã¯ã€XZå¹³é¢ã§å¤–ã¸æŠ¼ã—å‡ºã™ (ä¸Šæ–¹å‘ãªã©å¤‰ãªæ–¹å‘ã¸è¡Œãã®ã‚’é˜²ããŸã‚ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯æ°´å¹³)
+                // d‚È‚Á‚Ä‚¢‚éê‡‚ÍAXZ•½–Ê‚ÅŠO‚Ö‰Ÿ‚µo‚· (ã•ûŒü‚È‚Ç•Ï‚È•ûŒü‚Ös‚­‚Ì‚ğ–h‚®‚½‚ßƒfƒtƒHƒ‹ƒg‚Í…•½)
                 pushDir = VSub(playerPos, m_pos);
                 pushDir.y = 0.0f;
                 if (VSquareSize(pushDir) > 0.0001f)
@@ -798,7 +798,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 }
                 else
                 {
-                    pushDir = VGet(0.0f, 0.0f, -1.0f); // é©å½“ãªæ–¹å‘
+                    pushDir = VGet(0.0f, 0.0f, -1.0f); // “K“–‚È•ûŒü
                 }
                 distSq = 0.0f;
             }
@@ -808,24 +808,24 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 float dist = sqrtf(distSq);
                 float pushLen = minDist - dist;
                 
-                // æŠ¼ã—å‡ºã—ãƒ™ã‚¯ãƒˆãƒ«æ­£è¦åŒ–
+                // ‰Ÿ‚µo‚µƒxƒNƒgƒ‹³‹K‰»
                 if (dist > 0.0001f)
                 {
                     pushDir = VScale(pushDir, 1.0f / dist);
                 }
 
-                // æŠ¼ã—å‡ºã—
-                pushLen += 1.0f; // ãƒãƒ¼ã‚¸ãƒ³
+                // ‰Ÿ‚µo‚µ
+                pushLen += 1.0f; // ƒ}[ƒWƒ“
                 VECTOR newPos = VAdd(playerPos, VScale(pushDir, pushLen));
                 Game::m_pPlayer->SetPos(newPos);
 
-                // ä¸Šæ–¹å‘ã«æŠ¼ã—å‡ºã•ã‚ŒãŸå ´åˆ(ã‚·ãƒ¼ãƒ«ãƒ‰ã«ä¹—ã£ãŸå ´åˆ), é‡åŠ›ã«ã‚ˆã‚‹æŒ¯å‹•ã‚’é˜²ããŸã‚ã«å‚ç›´é€Ÿåº¦ã‚’ãƒªã‚»ãƒƒãƒˆ
+                // ã•ûŒü‚É‰Ÿ‚µo‚³‚ê‚½ê‡(ƒV[ƒ‹ƒh‚Éæ‚Á‚½ê‡), d—Í‚É‚æ‚éU“®‚ğ–h‚®‚½‚ß‚É‚’¼‘¬“x‚ğƒŠƒZƒbƒg
                 if (pushDir.y > 0.5f)
                 {
-                    // Playerã‚¯ãƒ©ã‚¹ã«è¿½åŠ ã—ãŸå‚ç›´é€Ÿåº¦ãƒªã‚»ãƒƒãƒˆé–¢æ•°ã‚’å‘¼ã¶
-                    // Game::m_pPlayerã¯constãƒã‚¤ãƒ³ã‚¿ã§ã¯ãªã„ã®ã§ãã®ã¾ã¾å‘¼ã¹ã‚‹ã¯ãšã ãŒ,
-                    // constã‚¢ã‚¯ã‚»ãƒƒã‚µã—ã‹ãªã„å ´åˆã¯ã‚­ãƒ£ã‚¹ãƒˆãŒå¿…è¦.
-                    // ã“ã“ã§ã¯Game::m_pPlayerã¯Player*ãªã®ã§OK
+                    // PlayerƒNƒ‰ƒX‚É’Ç‰Á‚µ‚½‚’¼‘¬“xƒŠƒZƒbƒgŠÖ”‚ğŒÄ‚Ô
+                    // Game::m_pPlayer‚Íconstƒ|ƒCƒ“ƒ^‚Å‚Í‚È‚¢‚Ì‚Å‚»‚Ì‚Ü‚ÜŒÄ‚×‚é‚Í‚¸‚¾‚ª,
+                    // constƒAƒNƒZƒbƒT‚µ‚©‚È‚¢ê‡‚ÍƒLƒƒƒXƒg‚ª•K—v.
+                    // ‚±‚±‚Å‚ÍGame::m_pPlayer‚ÍPlayer*‚È‚Ì‚ÅOK
                     Game::m_pPlayer->ResetVerticalVelocity();
                 }
             }
@@ -834,7 +834,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
     CheckHitAndDamage(bullets, pEffect);
 
-    // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®š
+    // ƒ^ƒbƒNƒ‹”»’è
     if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
         CapsuleCollider tackleCol(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
@@ -849,33 +849,33 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
         m_lastTackleId = -1;
     }
 
-    // æœ€çµ‚çš„ãªä½ç½®ã‚’ãƒ¢ãƒ‡ãƒ«ã«åæ˜ 
+    // ÅI“I‚ÈˆÊ’u‚ğƒ‚ƒfƒ‹‚É”½‰f
     MV1SetPosition(m_modelHandle, m_pos);
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆæ›´æ–° (ç§»å‹•å¾Œã®æœ€çµ‚ä½ç½®ã§æ›´æ–°)
+    // ƒV[ƒ‹ƒhƒGƒtƒFƒNƒgXV (ˆÚ“®Œã‚ÌÅIˆÊ’u‚ÅXV)
     VECTOR shieldPos = m_pos;
-    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // èƒ¸ã®ã‚ãŸã‚Š
+    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // ‹¹‚Ì‚ ‚½‚è
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ä½ç½®æ›´æ–°
-    // æç”»ãƒ»ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã¨åŒæœŸã•ã›ã‚‹ãŸã‚, ãƒ•ãƒ¬ãƒ¼ãƒ æœ«å°¾ã§æ›´æ–°
+    // ƒV[ƒ‹ƒhƒRƒ‰ƒCƒ_[‚ÌˆÊ’uXV
+    // •`‰æEƒGƒtƒFƒNƒg‚Æ“¯Šú‚³‚¹‚é‚½‚ß, ƒtƒŒ[ƒ€––”ö‚ÅXV
     if (m_pShieldCollider)
     {
         m_pShieldCollider->SetCenter(shieldPos);
     }
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ã‚¨ãƒ•ã‚§ã‚¯ãƒˆåˆ¶å¾¡ (ã‚·ãƒ¼ãƒ ãƒ¬ã‚¹ãƒ«ãƒ¼ãƒ— & å›è»¢å®Ÿè£…)
+    // ƒV[ƒ‹ƒhƒGƒtƒFƒNƒg§Œä (ƒV[ƒ€ƒŒƒXƒ‹[ƒv & ‰ñ“]À‘•)
     if (!m_isShieldBroken)
     {
-        // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆç”Ÿæˆãƒ­ã‚¸ãƒƒã‚¯
-        // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³30F, ç·å†ç”Ÿ240F ã‚’æƒ³å®š -> 210Fã§æ¬¡ã‚’ç”Ÿæˆã—ã¦é‡ã­ã‚‹
+        // ƒGƒtƒFƒNƒg¶¬ƒƒWƒbƒN
+        // ƒtƒF[ƒhƒCƒ“30F, ‘Ä¶240F ‚ğ‘z’è -> 210F‚ÅŸ‚ğ¶¬‚µ‚Äd‚Ë‚é
         const float kEffectDuration = 240.0f;
         const float kFadeInDuration = 30.0f; 
         const float kOverlapSpawnTime = kEffectDuration - kFadeInDuration;
 
-        // ã‚¿ã‚¤ãƒãƒ¼æ›´æ–°
+        // ƒ^ƒCƒ}[XV
         m_shieldEffectTimer += 1.0f * Game::GetTimeScale();
 
-        // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãŒãªã„, ã¾ãŸã¯å†ç”Ÿæ™‚é–“ãŒé‡ãªã‚Šé–‹å§‹æ™‚é–“ã‚’è¶…ãˆãŸã‚‰æ–°è¦ç”Ÿæˆ
+        // ƒGƒtƒFƒNƒg‚ª‚È‚¢, ‚Ü‚½‚ÍÄ¶ŠÔ‚ªd‚È‚èŠJnŠÔ‚ğ’´‚¦‚½‚çV‹K¶¬
         if (m_shieldEffectHandles.empty() || m_shieldEffectTimer >= kOverlapSpawnTime)
         {
             if (pEffect)
@@ -884,36 +884,36 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
                 if (handle != -1)
                 {
                     m_shieldEffectHandles.push_back(handle);
-                    // æ¬¡ã®ç”Ÿæˆã¾ã§ã®æ™‚é–“ã‚’è¨ˆæ¸¬ã™ã‚‹ãŸã‚ã«ã‚¿ã‚¤ãƒãƒ¼ã‚’ãƒªã‚»ãƒƒãƒˆ
+                    // Ÿ‚Ì¶¬‚Ü‚Å‚ÌŠÔ‚ğŒv‘ª‚·‚é‚½‚ß‚Éƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
                     m_shieldEffectTimer = 0.0f;
                 }
             }
         }
 
-        // å›è»¢æ›´æ–°
-        m_shieldRotation += 0.3f * Game::GetTimeScale(); // å›è»¢é€Ÿåº¦èª¿æ•´
+        // ‰ñ“]XV
+        m_shieldRotation += 0.3f * Game::GetTimeScale(); // ‰ñ“]‘¬“x’²®
         while (m_shieldRotation >= 360.0f) m_shieldRotation -= 360.0f;
 
-        // æœ‰åŠ¹ãªã‚¨ãƒ•ã‚§ã‚¯ãƒˆå…¨ã¦ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ›´æ–°
+        // —LŒø‚ÈƒGƒtƒFƒNƒg‘S‚Ä‚Ìƒpƒ‰ƒ[ƒ^‚ğXV
         auto it = m_shieldEffectHandles.begin();
         while (it != m_shieldEffectHandles.end())
         {
             int handle = *it;
             if (IsEffekseer3DEffectPlaying(handle) == -1)
             {
-                // å†ç”Ÿçµ‚äº†ã—ã¦ã„ãŸã‚‰å‰Šé™¤
+                // Ä¶I—¹‚µ‚Ä‚¢‚½‚çíœ
                 it = m_shieldEffectHandles.erase(it);
                 continue;
             }
 
-            // ä½ç½®ãƒ»å›è»¢æ›´æ–°
+            // ˆÊ’uE‰ñ“]XV
             SetPosPlayingEffekseer3DEffect(handle, shieldPos.x, shieldPos.y, shieldPos.z);
             
-            // ã‚·ãƒ¼ãƒ«ãƒ‰ã®å›è»¢ã¯ãƒœã‚¹ã®å‘ãã«ä¾å­˜ã›ãš, ç‹¬è‡ªã«å›è»¢ã•ã›ã‚‹
-            // X, Zå›è»¢ã¯0å›ºå®š (å‚ç›´ã«ä¿ã¤)
+            // ƒV[ƒ‹ƒh‚Ì‰ñ“]‚Íƒ{ƒX‚ÌŒü‚«‚ÉˆË‘¶‚¹‚¸, “Æ©‚É‰ñ“]‚³‚¹‚é
+            // X, Z‰ñ“]‚Í0ŒÅ’è (‚’¼‚É•Û‚Â)
             SetRotationPlayingEffekseer3DEffect(handle, 0.0f, (m_shieldRotation * DX_PI_F / 180.0f), 0.0f);
 
-            // è‰²å¤‰æ›´ãƒ­ã‚¸ãƒƒã‚¯ (é’ -> èµ¤)
+            // F•ÏXƒƒWƒbƒN (Â -> Ô)
             if (m_maxShieldHp > 0.0f)
             {
                 float ratio = m_shieldHp / m_maxShieldHp;
@@ -932,7 +932,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
     }
     else
     {
-        // ç ´å£Šã•ã‚Œã¦ã„ã‚‹ãªã‚‰å…¨ã‚¨ãƒ•ã‚§ã‚¯ãƒˆåœæ­¢
+        // ”j‰ó‚³‚ê‚Ä‚¢‚é‚È‚ç‘SƒGƒtƒFƒNƒg’â~
         for (int handle : m_shieldEffectHandles)
         {
              StopEffekseer3DEffect(handle);
@@ -945,7 +945,7 @@ void EnemyBoss::Draw()
 {
     if (!m_isAlive && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return;
 
-    // è¦–éŒå°ã‚«ãƒªãƒ³ã‚° (æç”»æœ€é©åŒ–) (å…±é€šé–¢æ•°ä½¿ç”¨)
+    // ‹‘äƒJƒŠƒ“ƒO (•`‰æÅ“K‰») (‹¤’ÊŠÖ”g—p)
     if (!ShouldDraw(EnemyBossConstants::kDrawDistanceSq, EnemyBossConstants::kDrawNearDistanceSq, 0.0f)) return;
 
     EnemyBase::IncrementDrawCount();
@@ -961,10 +961,10 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
 {
     if (m_isDeadAnimPlaying) return;
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ç ´å£Šåˆ¤å®š
+    // ƒV[ƒ‹ƒh”j‰ó”»’è
     if (!m_isShieldBroken)
     {
-        // ã‚·ãƒ¼ãƒ«ãƒ‰HPãŒ0ä»¥ä¸‹ã®çŠ¶æ…‹ã§ç›¾æŠ•ã’ã‚’é£Ÿã‚‰ã£ãŸã‚‰ç ´å£Š
+        // ƒV[ƒ‹ƒhHP‚ª0ˆÈ‰º‚Ìó‘Ô‚Å‚“Š‚°‚ğH‚ç‚Á‚½‚ç”j‰ó
         if (m_shieldHp <= 0.0f && type == AttackType::ShieldThrow)
         {
             m_isShieldBroken = true;
@@ -973,10 +973,10 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
                 StopEffekseer3DEffect(handle);
             }
             m_shieldEffectHandles.clear();
-            // ç ´å£ŠéŸ³ã‚„ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãªã©ã‚’ã“ã“ã§è¿½åŠ å¯èƒ½
-            // ä¾‹: Game::PlaySound("ShieldBreak");
+            // ”j‰ó‰¹‚âƒGƒtƒFƒNƒg‚È‚Ç‚ğ‚±‚±‚Å’Ç‰Á‰Â”\
+            // —á: Game::PlaySound("ShieldBreak");
         }
-        else if (type != AttackType::ShieldThrow) // ç›¾æŠ•ã’ä»¥å¤–ã¯ã‚·ãƒ¼ãƒ«ãƒ‰HPã‚’æ¸›ã‚‰ã™
+        else if (type != AttackType::ShieldThrow) // ‚“Š‚°ˆÈŠO‚ÍƒV[ƒ‹ƒhHP‚ğŒ¸‚ç‚·
         {
             m_shieldHp -= damage;
             if (m_shieldHp < 0.0f)
@@ -984,23 +984,23 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
                 m_shieldHp = 0.0f;
             }
 
-            // ã‚·ãƒ¼ãƒ«ãƒ‰HPãŒ0ã«ãªã£ãŸç¬é–“ã«, ç ´å£Šå¯èƒ½ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’å†ç”Ÿ
+            // ƒV[ƒ‹ƒhHP‚ª0‚É‚È‚Á‚½uŠÔ‚É, ”j‰ó‰Â”\ƒGƒtƒFƒNƒg‚ğÄ¶
             if (m_shieldHp <= 0.0f && !m_hasPlayedShieldBreakableEffect)
             {
                 if (m_pShieldCollider)
                 {
-                    // ã‚·ãƒ¼ãƒ«ãƒ‰ã®ä½ç½®ã§å†ç”Ÿ
+                    // ƒV[ƒ‹ƒh‚ÌˆÊ’u‚ÅÄ¶
                     SceneMain::Instance()->GetEffect()->PlayShieldBreakEffect(m_pShieldCollider->GetCenter());
                 }
                 m_hasPlayedShieldBreakableEffect = true;
             }
-            // ãƒœã‚¹æœ¬ä½“ã«ã¯ãƒ€ãƒ¡ãƒ¼ã‚¸ãŒå…¥ã‚‰ãªã„
+            // ƒ{ƒX–{‘Ì‚É‚Íƒ_ƒ[ƒW‚ª“ü‚ç‚È‚¢
             return;
         }
         else
         {
-            // ã‚·ãƒ¼ãƒ«ãƒ‰HPãŒæ®‹ã£ã¦ã„ã‚‹çŠ¶æ…‹ã§ã®ç›¾æŠ•ã’ã¯ç„¡åŠ¹ï¼ˆã‚ã‚‹ã„ã¯å¾®å°ãƒ€ãƒ¡ãƒ¼ã‚¸ï¼Ÿï¼‰
-            // ç¾çŠ¶ã¯ç„¡åŠ¹ã¨ã™ã‚‹
+            // ƒV[ƒ‹ƒhHP‚ªc‚Á‚Ä‚¢‚éó‘Ô‚Å‚Ì‚“Š‚°‚Í–³Œøi‚ ‚é‚¢‚Í”÷¬ƒ_ƒ[ƒWHj
+            // Œ»ó‚Í–³Œø‚Æ‚·‚é
             return;
         }
     }
@@ -1012,7 +1012,7 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
 void EnemyBoss::OnDeath()
 {
     bool isHeadShot = (m_lastHitPart == HitPart::Head);
-    int addScore = ScoreManager::Instance().AddScore(isHeadShot) * 10; // ãƒœã‚¹ãªã®ã§ã‚¹ã‚³ã‚¢é«˜ã‚
+    int addScore = ScoreManager::Instance().AddScore(isHeadShot) * 10; // ƒ{ƒX‚È‚Ì‚ÅƒXƒRƒA‚‚ß
     if (SceneMain::Instance())
     {
         SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
@@ -1029,7 +1029,7 @@ void EnemyBoss::TakeTackleDamage(float damage)
 void EnemyBoss::OnParried()
 {
     m_isStunned = true;
-    m_stunTimer = 120; // æ€¯ã¿æ™‚é–“
+    m_stunTimer = 120; // ‹¯‚İŠÔ
     ChangeState(std::make_shared<EnemyBossStateStunned>());
 }
 
@@ -1040,85 +1040,85 @@ std::shared_ptr<CapsuleCollider> EnemyBoss::GetBodyCollider() const
 
 float EnemyBoss::CalcDamage(float bulletDamage, HitPart part) const
 {
-    // ãƒœã‚¹ã¯ç¡¬ã„, ã‚ã‚‹ã„ã¯å¼±ç‚¹ã ã‘åŠ¹ããªã©ã®èª¿æ•´ãŒå¯èƒ½
+    // ƒ{ƒX‚Íd‚¢, ‚ ‚é‚¢‚Íã“_‚¾‚¯Œø‚­‚È‚Ç‚Ì’²®‚ª‰Â”\
     if (part == HitPart::Head)
     {
         return bulletDamage * 1.5f;
     }
-    return bulletDamage * 0.8f; // ãƒœãƒ‡ã‚£ã¯å°‘ã—ç¡¬ã„
+    return bulletDamage * 0.8f; // ƒ{ƒfƒB‚Í­‚µd‚¢
 }
 
 void EnemyBoss::DrawCollisionDebug() const
 {
-    // ã©ã¡ã‚‰ã‹ãŒæœ‰åŠ¹ãªã‚‰æç”»å‡¦ç†ã‚’è¡Œã†
+    // ‚Ç‚¿‚ç‚©‚ª—LŒø‚È‚ç•`‰æˆ—‚ğs‚¤
     if (!s_shouldDrawCollision && !s_shouldDrawAttackHit && !s_shouldDrawShieldCollision) return;
 
-    // ä½“
+    // ‘Ì
     if (s_shouldDrawCollision && m_pBodyCollider)
     {
-        DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000); // èµ¤
+        DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000); // Ô
     }
 
-    // é ­
+    // “ª
     if (s_shouldDrawCollision && m_pHeadCollider)
     {
-        DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0x00ff00); // ç·‘
+        DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0x00ff00); // —Î
     }
 
-    // æ”»æ’ƒç¯„å›²
+    // UŒ‚”ÍˆÍ
     if (s_shouldDrawAttackHit && m_pAttackRangeCollider)
     {
         DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 32, 0xffaa00);
     }
 
-    // æ”»æ’ƒåˆ¤å®š
+    // UŒ‚”»’è
     if (s_shouldDrawAttackHit && m_currentAnimState == AnimState::Attack && m_pAttackHitCollider)
     {
-        DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0xff00ff); // ãƒã‚¼ãƒ³ã‚¿
+        DebugUtil::DrawCapsule(m_pAttackHitCollider->GetSegmentA(), m_pAttackHitCollider->GetSegmentB(), m_pAttackHitCollider->GetRadius(), 16, 0xff00ff); // ƒ}ƒ[ƒ“ƒ^
     }
         
-    // ãƒ‘ãƒªã‚£åˆ¤å®š
+    // ƒpƒŠƒB”»’è
     if (s_shouldDrawCollision && m_shouldDrawParryCollider)
     {
-        DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0xffff00); // é»„è‰² (ãƒ‘ãƒªã‚£)
+        DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0xffff00); // ‰©F (ƒpƒŠƒB)
     }
 
-    // æ”»æ’ƒãƒ’ãƒƒãƒˆåˆ¤å®šï¼ˆãƒ€ãƒ¡ãƒ¼ã‚¸ç™ºç”ŸæœŸé–“ã®ã¿è¡¨ç¤ºï¼‰
+    // UŒ‚ƒqƒbƒg”»’èiƒ_ƒ[ƒW”­¶ŠúŠÔ‚Ì‚İ•\¦j
     if (s_shouldDrawAttackHit && m_currentAnimState == AnimState::Attack)
     {
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kCloseAttackAnimName);
-        // ãƒ€ãƒ¡ãƒ¼ã‚¸ç™ºç”ŸæœŸé–“ (0.4 ~ 0.6)
+        // ƒ_ƒ[ƒW”­¶ŠúŠÔ (0.4 ~ 0.6)
         if (m_animTime >= currentAnimTotalTime * 0.4f && m_animTime <= currentAnimTotalTime * 0.6f)
         {
             if (m_pAttackRangeCollider)
             {
-                // èµ¤è‰²ã§æç”»
+                // ÔF‚Å•`‰æ
                 DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 32, 0xff0000);
             }
         }
     }
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ï¼ˆãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºï¼‰
+    // ƒV[ƒ‹ƒhiƒfƒoƒbƒO•\¦j
     if (s_shouldDrawShieldCollision && !m_isShieldBroken && m_pShieldCollider)
     {
-        // ã‚·ã‚¢ãƒ³è‰²ã§æç”»
+        // ƒVƒAƒ“F‚Å•`‰æ
         DebugUtil::DrawSphere(m_pShieldCollider->GetCenter(), m_pShieldCollider->GetRadius(), 16, 0x00ffff);
     }
 }
 
-// æ­»äº¡æ™‚ã®æ›´æ–°å‡¦ç†
+// €–S‚ÌXVˆ—
 void EnemyBoss::UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision)
 {
     if (!m_isDeadAnimPlaying)
     {
-        // ã‚¹ã‚³ã‚¢åŠ ç®—å‡¦ç†ã¯TakeDamageã§è¡Œã†ã®ã§ã“ã“ã§ã¯ä¸è¦
+        // ƒXƒRƒA‰ÁZˆ—‚ÍTakeDamage‚Ås‚¤‚Ì‚Å‚±‚±‚Å‚Í•s—v
         ChangeState(std::make_shared<EnemyBossStateDead>());
         m_isDeadAnimPlaying = true;
-        m_animTime = 0.0f; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“ã‚’ãƒªã‚»ãƒƒãƒˆ
-        m_isAlive = true;  // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ã¯trueã®ã¾ã¾
+        m_animTime = 0.0f; // ƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ‚ğƒŠƒZƒbƒg
+        m_isAlive = true;  // €–SƒAƒjƒ[ƒVƒ‡ƒ“’†‚Ítrue‚Ì‚Ü‚Ü
     }
 
-    // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ã‚‚ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“ã‚’æ›´æ–°
+    // €–SƒAƒjƒ[ƒVƒ‡ƒ“’†‚àƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ‚ğXV
     m_animTime += 1.0f * Game::GetTimeScale();
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
     {
@@ -1136,31 +1136,31 @@ void EnemyBoss::UpdateDeath(const std::vector<Stage::StageCollisionData>& stageC
         if (m_onDeathCallback)
         {
             m_onDeathCallback(m_pos);
-            m_onDeathCallback = nullptr; // ä¸€åº¦ã ã‘å‘¼ã³å‡ºã™
+            m_onDeathCallback = nullptr; // ˆê“x‚¾‚¯ŒÄ‚Ño‚·
         }
-        m_isAlive = false; // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†æ™‚ã®ã¿falseã«ã™ã‚‹
+        m_isAlive = false; // €–SƒAƒjƒ[ƒVƒ‡ƒ“I—¹‚Ì‚İfalse‚É‚·‚é
     }
 }
 
 
 bool EnemyBoss::CanAttackPlayer(const Player& player)
 {
-    // æ”»æ’ƒç¯„å›²ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼å†…ã«ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã„ã‚‹ã‹
+    // UŒ‚”ÍˆÍƒRƒ‰ƒCƒ_[“à‚ÉƒvƒŒƒCƒ„[‚ª‚¢‚é‚©
     auto playerCol = player.GetBodyCollider();
     return m_pAttackRangeCollider->IsIntersects(playerCol.get());
 }
 
-// ãƒ€ãƒ¡ãƒ¼ã‚¸é©ç”¨ï¼ˆã‚·ãƒ¼ãƒ«ãƒ‰ãƒ’ãƒƒãƒˆæ™‚ã¯ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’å¤‰ãˆã‚‹ãŸã‚ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰ï¼‰
+// ƒ_ƒ[ƒW“K—piƒV[ƒ‹ƒhƒqƒbƒg‚ÍƒGƒtƒFƒNƒg‚ğ•Ï‚¦‚é‚½‚ßƒI[ƒo[ƒ‰ƒCƒhj
 void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect)
 {
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ãƒ’ãƒƒãƒˆæ™‚
+    // ƒV[ƒ‹ƒhƒqƒbƒg
     if (part == HitPart::Shield)
     {
-        // ã‚·ãƒ¼ãƒ«ãƒ‰å°‚ç”¨ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ (HitBurst)
+        // ƒV[ƒ‹ƒhê—pƒGƒtƒFƒNƒg (HitBurst)
         if (pEffect)
         {
             VECTOR hitPos = bullet.GetPos();
-            VECTOR normal = VGet(0.0f, 0.0f, -1.0f); // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
+            VECTOR normal = VGet(0.0f, 0.0f, -1.0f); // ƒfƒtƒHƒ‹ƒg
 
             if (m_pShieldCollider)
             {
@@ -1175,11 +1175,11 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
             pEffect->PlayShieldHitEffect(hitPos, normal);
         }
 
-        // ãƒ€ãƒ¡ãƒ¼ã‚¸è¨ˆç®—ã¨é©ç”¨ (ã‚·ãƒ¼ãƒ«ãƒ‰HPæ¸›å°‘)
+        // ƒ_ƒ[ƒWŒvZ‚Æ“K—p (ƒV[ƒ‹ƒhHPŒ¸­)
         float damage = CalcDamage(bullet.GetDamage(), part);
         TakeDamage(damage, bullet.GetAttackType());
         
-        // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨
+        // ƒfƒoƒbƒO•\¦—p
         if (s_shouldShowDamage)
         {
             s_debugLastDamage = damage;
@@ -1187,18 +1187,18 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
             s_debugHitInfo = "(Shield)";
         }
 
-        // å¼¾ã‚’éã‚¢ã‚¯ãƒ†ã‚£ãƒ–çŠ¶æ…‹ã¸ç§»è¡Œã—ã€è²«é€šã«ã‚ˆã‚‹å¤šé‡åˆ¤å®šã‚’é˜²æ­¢ã™ã‚‹
+        // ’e‚ğ”ñƒAƒNƒeƒBƒuó‘Ô‚ÖˆÚs‚µAŠÑ’Ê‚É‚æ‚é‘½d”»’è‚ğ–h~‚·‚é
         bullet.Deactivate();
     }
     else
     {
-        // ãã‚Œä»¥å¤–ã¯åŸºåº•ã‚¯ãƒ©ã‚¹ï¼ˆå‡ºè¡€ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚ã‚Šï¼‰
+        // ‚»‚êˆÈŠO‚ÍŠî’êƒNƒ‰ƒXioŒŒƒGƒtƒFƒNƒg‚ ‚èj
         EnemyBase::ApplyBulletDamage(bullet, part, distSq, pEffect);
     }
 }
 
 
-// ã©ã“ã«å½“ãŸã£ãŸã®ã‹åˆ¤å®šã™ã‚‹
+// ‚Ç‚±‚É“–‚½‚Á‚½‚Ì‚©”»’è‚·‚é
 EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
     if (m_isDeadAnimPlaying) return HitPart::None;
@@ -1207,19 +1207,19 @@ EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR&
     float minDistSq = FLT_MAX;
     VECTOR hitPos = VGet(0, 0, 0);
 
-    // ã‚·ãƒ¼ãƒ«ãƒ‰ã¨ã®åˆ¤å®šï¼ˆç ´å£Šã•ã‚Œã¦ã„ãªã‘ã‚Œã°æœ€å„ªå…ˆï¼‰
+    // ƒV[ƒ‹ƒh‚Æ‚Ì”»’èi”j‰ó‚³‚ê‚Ä‚¢‚È‚¯‚ê‚ÎÅ—Dæj
     if (!m_isShieldBroken && m_pShieldCollider)
     {
-        // ã¾ãšã€Rayã®å§‹ç‚¹ãŒã‚·ãƒ¼ãƒ«ãƒ‰å†…éƒ¨ã«ã‚ã‚‹ã‹ãƒã‚§ãƒƒã‚¯ï¼ˆã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³ç­‰ã®è²«é€šå¯¾ç­–ï¼‰
-        // å§‹ç‚¹ãŒå†…éƒ¨ã«ã‚ã‚‹å ´åˆã€IsIsIntersectsRayã¯ã€Œå‡ºå£ã€ã®è·é›¢ã‚’è¿”ã—ã¦ã—ã¾ã†ãŸã‚ã€
-        // å†…éƒ¨ã«ã‚ã‚‹ä½“ï¼ˆBodyï¼‰ã®æ–¹ãŒã€Œè¿‘ã„ã€ã¨åˆ¤å®šã•ã‚Œã¦ã™ã‚ŠæŠœã‘ã¦ã—ã¾ã†ã€‚
+        // ‚Ü‚¸ARay‚Ìn“_‚ªƒV[ƒ‹ƒh“à•”‚É‚ ‚é‚©ƒ`ƒFƒbƒNiƒVƒ‡ƒbƒgƒKƒ““™‚ÌŠÑ’Ê‘Îôj
+        // n“_‚ª“à•”‚É‚ ‚éê‡AIsIsIntersectsRay‚ÍuoŒûv‚Ì‹——£‚ğ•Ô‚µ‚Ä‚µ‚Ü‚¤‚½‚ßA
+        // “à•”‚É‚ ‚é‘ÌiBodyj‚Ì•û‚ªu‹ß‚¢v‚Æ”»’è‚³‚ê‚Ä‚·‚è”²‚¯‚Ä‚µ‚Ü‚¤B
         VECTOR diff = VSub(rayStart, m_pShieldCollider->GetCenter());
         float distSqFromCenter = VSquareSize(diff);
         float radius = m_pShieldCollider->GetRadius();
         
         if (distSqFromCenter <= radius * radius)
         {
-            // å†…éƒ¨ã«ã„ã‚‹ãªã‚‰ã€å³åº§ã«ã‚·ãƒ¼ãƒ«ãƒ‰ãƒ’ãƒƒãƒˆã¨ã¿ãªã™
+            // “à•”‚É‚¢‚é‚È‚çA‘¦À‚ÉƒV[ƒ‹ƒhƒqƒbƒg‚Æ‚İ‚È‚·
             minDistSq = 0.0f;
             hitPos = rayStart;
             part = HitPart::Shield;
@@ -1240,7 +1240,7 @@ EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR&
         }
     }
 
-    // é ­ã¨ã®åˆ¤å®š
+    // “ª‚Æ‚Ì”»’è
     if (m_pHeadCollider)
     {
         VECTOR tmpHitPos;
@@ -1256,7 +1256,7 @@ EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR&
         }
     }
 
-    // ä½“ã¨ã®åˆ¤å®š
+    // ‘Ì‚Æ‚Ì”»’è
     if (m_pBodyCollider)
     {
         VECTOR tmpHitPos;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "UIBase.h"
 #include "DxLib.h"
 #include "SpawnAreaInfo.h"

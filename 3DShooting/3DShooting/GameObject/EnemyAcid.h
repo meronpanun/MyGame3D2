@@ -126,6 +126,8 @@ private:
         VECTOR velocity = { 0, 0, 0 };
         float gravity = 0.0f;
 
+        AcidBall() : pos(VGet(0,0,0)), dir(VGet(0,0,1)), active(false), radius(12.0f), damage(0.0f), speed(5.0f), effectHandle(-1), isReflected(false), isParryable(true), owner(nullptr), isParabolic(false), velocity(VGet(0,0,0)), gravity(0.0f) {}
+
         void Update(float timeScale);
     };
 

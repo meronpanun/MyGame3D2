@@ -1,5 +1,5 @@
 ﻿#include "SceneTitle.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "Game.h"
 #include "SceneMain.h"
 #include "InputManager.h"
@@ -40,6 +40,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
     , m_isFadeComplete(false)
     , m_isFadeOut(false)
     , m_isSceneFadeIn(false)
+    , m_gameStartTextAlpha(255)
     , m_gameStartTextAlphaDir(1)
     , m_billboardShakeOffsetX(0.0f)
     , m_billboardShakeOffsetY(0.0f)
@@ -83,7 +84,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
         // ゾンビの初期配置を生成
         std::random_device rd;
         std::mt19937 gen(rd());
-        // 画面の端から端までゾンビが湧くように、見えている範囲に合わせて生成範囲を調整（-280.0f 〜 280.0f）
+        // 画面の端から端までゾンビが湧くように、見えている範囲に合わせて生成範囲を調整（-280.0f ? 280.0f）
         std::uniform_real_distribution<float> distPosX(-280.0f, 280.0f); 
         // ATK_HEADで前傾姿勢になった時にフェンスを貫通せず、かつ触れているように見える距離に微調整
         std::uniform_real_distribution<float> distPosZ(200.0f, 450.0f);  // 手前を少しフェンス寄りに戻す
@@ -317,8 +318,8 @@ SceneBase* SceneTitle::Update()
         {
             // 規則的なサイン波ではなく、ランダム値を使って細かくガタガタ揺れるようにする
             // フレームごとに+と-をランダムに振る
-            float randX = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 〜 1.0
-            float randY = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 〜 1.0
+            float randX = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 ? 1.0
+            float randY = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 ? 1.0
 
             m_billboardShakeOffsetX = randX * m_billboardShakePower;
             m_billboardShakeOffsetY = randY * m_billboardShakePower;
@@ -340,10 +341,10 @@ SceneBase* SceneTitle::Update()
         m_zombieVoiceTimer--;
         if (m_zombieVoiceTimer <= 0)
         {
-            int randomIndex = 1 + GetRand(3); // 1〜4
+            int randomIndex = 1 + GetRand(3); // 1?4
             SoundManager::GetInstance()->Play("EnemyNormal", "Voice" + std::to_string(randomIndex));
             
-            // 次の再生までの時間をランダムに設定 (1秒〜3秒)
+            // 次の再生までの時間をランダムに設定 (1秒?3秒)
             m_zombieVoiceTimer = 60 + GetRand(120);
         }
     }
@@ -409,7 +410,7 @@ void SceneTitle::Draw()
             SetLightEnable(false);
             SetUseLighting(false);
 
-            // 床モデル(RoadFloor)は画像データから幅2000(X:-1000〜1000)、奥行2000(Z:-1000〜1000)
+            // 床モデル(RoadFloor)は画像データから幅2000(X:-1000?1000)、奥行2000(Z:-1000?1000)
             // したがってScale 1.0f で使用する
             MV1SetScale(m_floorModel, VGet(1.0f, 1.0f, 1.0f));
             MV1SetRotationXYZ(m_floorModel, VGet(0.0f, 0.0f, 0.0f));
@@ -643,9 +644,6 @@ void SceneTitle::Draw()
         SetLightEnable(true);
         SetUseLighting(true);
         
-
-
-
         // Zバッファの影響を受けないようにする（2D描画用）
         SetUseZBuffer3D(false);
         SetWriteZBuffer3D(false);
@@ -654,7 +652,7 @@ void SceneTitle::Draw()
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_font);
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-        DrawFormatStringToHandle((Game::GetScreenWidth() - textWidth) * 0.5f, Game::GetScreenHeight() - 180, 0xffffff, m_font, gameStartText);
+        DrawFormatStringToHandle(static_cast<int>((Game::GetScreenWidth() - textWidth) * 0.5f), Game::GetScreenHeight() - 180, 0xffffff, m_font, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }

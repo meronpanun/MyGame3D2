@@ -35,15 +35,15 @@ namespace EnemyConstants
 /// <summary>
 /// 敵の基底クラス
 /// </summary>
-class EnemyBase abstract
+class EnemyBase
 {
 public:
     EnemyBase();
     virtual ~EnemyBase() = default;
 
-    virtual void Init() abstract;
-    virtual void Update(const EnemyUpdateContext& context) abstract;
-    virtual void Draw() abstract;
+    virtual void Init() = 0;
+    virtual void Update(const EnemyUpdateContext& context) = 0;
+    virtual void Draw() = 0;
 
     // デバッグ用カウンタ
     static void ResetDrawCount() { s_drawCount = 0; }
@@ -173,7 +173,7 @@ public:
     /// <summary>
     /// タックルでダメージを受けたかどうかのフラグを取得
     /// </summary>
-    virtual void ResetTackleHitFlag() abstract;
+    virtual void ResetTackleHitFlag() = 0;
 
     /// <summary>
     /// アイテムドロップ時のコールバックを設定する

@@ -105,8 +105,8 @@ void ScoreUI::Draw()
     int fontSize = 32;
     int scaledPopupOffsetY = static_cast<int>(fontSize * 1.2f * scale);
     
-    int popupBaseX = Game::GetScreenWidth() * 0.5f + static_cast<int>(kScorePopupX * scale);
-    int popupBaseY = Game::GetScreenHeight() * 0.5f + static_cast<int>(kScorePopupY * scale);
+    int popupBaseX = static_cast<int>(Game::GetScreenWidth() * 0.5f) + static_cast<int>(kScorePopupX * scale);
+    int popupBaseY = static_cast<int>(Game::GetScreenHeight() * 0.5f) + static_cast<int>(kScorePopupY * scale);
     
     int idx = 0;
     float lastComboRate = ScoreManager::Instance().GetLastComboRate();
@@ -134,7 +134,7 @@ void ScoreUI::Draw()
     {
         if (lastComboRate > 1.0f)
         {
-            DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0x00ffcc, "+%d (×%.2f)", m_totalScorePopupValue, lastComboRate);
+            DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0x00ffcc, "+%d (x%.2f)", m_totalScorePopupValue, lastComboRate);
         }
         else
         {
@@ -158,11 +158,11 @@ void ScoreUI::Draw()
 
                 if (popup.isHeadShot)
                 {
-                    DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xffd700, "200pt HEADSHOT ×%d", displayCombo);
+                    DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xffd700, "200pt HEADSHOT x%d", displayCombo);
                 }
                 else
                 {
-                    DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xeeeeee, "100pt ZOMBIE KILL ×%d", displayCombo);
+                    DrawShadowText(popupBaseX, popupBaseY + idx * scaledPopupOffsetY, 0xeeeeee, "100pt ZOMBIE KILL x%d", displayCombo);
                 }
                 idx++;
                 SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
@@ -176,8 +176,8 @@ void ScoreUI::Draw()
     int comboCount = ScoreManager::Instance().GetCombo();
     if (comboCount >= 2) // 2コンボ以上で表示
     {
-        int comboX = Game::GetScreenWidth() * 0.5f + static_cast<int>(kScorePopupX * scale);
-        int comboY = Game::GetScreenHeight() * 0.5f + static_cast<int>((kScorePopupY - 80) * scale);
+        int comboX = static_cast<int>(Game::GetScreenWidth() * 0.5f) + static_cast<int>(kScorePopupX * scale);
+        int comboY = static_cast<int>(Game::GetScreenHeight() * 0.5f) + static_cast<int>((kScorePopupY - 80) * scale);
 
         // 1. タイマーとアニメーションの計算
         int timer = ScoreManager::Instance().GetComboTimer();
@@ -215,7 +215,7 @@ void ScoreUI::Draw()
             int b = static_cast<int>(baseB + (targetB - baseB) * blend);
             comboColor = GetColor(r, g, b);
             
-            barColor = GetColor(255, (int)(255 * (1.0f - intensity)), (int)(255 * (1.0f - intensity)));
+            barColor = GetColor(255, static_cast<int>(255 * (1.0f - intensity)), static_cast<int>(255 * (1.0f - intensity)));
         }
 
         // 2. ゲージ描画
@@ -232,7 +232,7 @@ void ScoreUI::Draw()
         sprintf_s(comboBuf, "%d COMBO", comboCount);
         int baseFontSize = 24;
         float currentScale = m_comboPulseScale + warningPulse;
-        int textWidth = GetDrawStringWidthToHandle(comboBuf, (int)strlen(comboBuf), m_scoreFont);
+        int textWidth = GetDrawStringWidthToHandle(comboBuf, static_cast<int>(strlen(comboBuf)), m_scoreFont);
         int drawX = comboX - static_cast<int>(textWidth * (currentScale - 1.0f) * 0.5f);
         int drawY = comboY - static_cast<int>(baseFontSize * (currentScale - 1.0f) * 0.5f);
 

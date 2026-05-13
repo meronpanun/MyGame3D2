@@ -1,8 +1,8 @@
-#include "PlayerShieldSystem.h"
+﻿#include "PlayerShieldSystem.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Effect.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "EnemyBase.h"
 #include "EnemyBoss.h"
 #include "Game.h"
@@ -145,6 +145,12 @@ void PlayerShieldSystem::Init(float maxDurability, float regenRate)
     m_isShieldThrown = false;
     m_shieldThrowState = ShieldThrowState::Idle;
     m_boomerangTotalTime = 0;
+    m_isShieldAnimating = false;
+    m_isShieldRecovering = false;
+    m_shieldAnimTimer = 0.0f;
+    m_guardAnimTimer = 0.0f;
+    m_isBoomerangFading = false;
+    m_boomerangFadeVolume = 1.0f;
 
     // ブーメランSEの情報を事前取得（初回の再生不具合対策）
     int handle = SoundManager::GetInstance()->GetHandle("Shield", "Boomerang");
@@ -153,7 +159,7 @@ void PlayerShieldSystem::Init(float maxDurability, float regenRate)
         // MP3は一度再生（またはシーク）を試みないと総時間が正しく取得できないことがあるため「空回し」を行う
         PlaySoundMem(handle, DX_PLAYTYPE_BACK);
         StopSoundMem(handle);
-        m_boomerangTotalTime = GetSoundTotalTime(handle);
+        m_boomerangTotalTime = static_cast<int>(GetSoundTotalTime(handle));
 
         if (m_boomerangTotalTime > 0)
         {
@@ -165,8 +171,7 @@ void PlayerShieldSystem::Init(float maxDurability, float regenRate)
 void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
     const VECTOR& playerPos, bool isGuarding,
     bool isTackling, bool isSwitchingWeapon,
-    float /*weaponSwitchTimer*/,
-    float /*weaponSwitchDuration*/, float yawDelta,
+    float yawDelta,
     bool isMoving)
 {
     // パリィ判定のために、更新前に前フレームのガード状態を保存
@@ -203,7 +208,7 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
         else
         {
             // フェードアウト中の音量設定
-            SoundManager::GetInstance()->SetVolume("Shield", "Boomerang", (int)(255 * m_boomerangFadeVolume));
+            SoundManager::GetInstance()->SetVolume("Shield", "Boomerang", static_cast<int>(255.0f * m_boomerangFadeVolume));
         }
     }
 
@@ -410,7 +415,7 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
         float animProgress = m_shieldThrowFailedAnimTimer / PlayerShieldConstants::kShieldThrowFailedAnimDuration;
         // ease-out イージング（減速しながら戻る）
         float easedProgress = 1.0f - powf(1.0f - animProgress, 3.0f);
-        // 前に突き出して戻る（0 → max → 0）
+        // 前に突き出して戻る（0 -> max -> 0）
         float thrustOffset = sinf(easedProgress * DX_PI_F) * PlayerShieldConstants::kShieldThrowFailedAnimOffset;
         currentPos.z += thrustOffset;
     }
@@ -700,7 +705,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
         if (volRatio < 0.2f) volRatio = 0.2f;
         if (volRatio > 1.0f) volRatio = 1.0f;
         
-        SoundManager::GetInstance()->SetVolume("Shield", "Boomerang", (int)(255 * volRatio));
+        SoundManager::GetInstance()->SetVolume("Shield", "Boomerang", static_cast<int>(255 * volRatio));
 
         // 手動ループ制御：末尾の空白をスキップするために終了50ms前で先頭に戻す
         // DX_PLAYTYPE_LOOP だけでは MP3 の仕様上、繋ぎ目に無音が入ることが多いため
@@ -709,7 +714,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
         {
             if (m_boomerangTotalTime <= 0)
             {
-                m_boomerangTotalTime = GetSoundTotalTime(handle);
+                m_boomerangTotalTime = static_cast<int>(GetSoundTotalTime(handle));
                 if (m_boomerangTotalTime > 0)
                 {
                     SetLoopPosSoundMem(0, handle);
@@ -721,7 +726,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
             // また、currentTime が総時間を超えているような異常値の場合もスキップする
             if (m_boomerangTotalTime > 500)
             {
-                int currentTime = GetSoundCurrentTime(handle);
+                int currentTime = static_cast<int>(GetSoundCurrentTime(handle));
                 if (currentTime > 0 && currentTime < m_boomerangTotalTime && currentTime >= m_boomerangTotalTime - 350)
                 {
                     SetSoundCurrentTime(0, handle);
@@ -877,7 +882,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
                         if (distSq < hitRadiussum * hitRadiussum)
                         {
                             // ヒット
-                             int enemyId = reinterpret_cast<intptr_t>(enemy); // IDはBoss本体と同じにする
+                             intptr_t enemyId = reinterpret_cast<intptr_t>(enemy); // IDはBoss本体と同じにする
                              if (m_shieldThrowHitEnemyId != enemyId)
                              {
                                  m_shieldThrowHitEnemyId = enemyId;
@@ -937,7 +942,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
             {
                 // 同じ敵に連続でヒットしないようにする
                 // 簡易的なIDとして敵のポインタアドレスを使用
-                int enemyId = reinterpret_cast<intptr_t>(enemy);
+                intptr_t enemyId = reinterpret_cast<intptr_t>(enemy);
                 if (m_shieldThrowHitEnemyId != enemyId)
                 {
                     m_shieldThrowHitEnemyId = enemyId;
@@ -996,7 +1001,7 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPo
     float forwardYaw = atan2f(forward.x, forward.z);
     float forwardPitch = -asinf(forward.y);
 
-    // forward方向を向く回転行列（Yaw → Pitch）
+    // forward方向を向く回転行列（Yaw -> Pitch）
     MATRIX rotYaw = MGetRotY(forwardYaw);
     MATRIX rotPitch = MGetRotX(forwardPitch);
     MATRIX rotToForward = MMult(rotPitch, rotYaw);
@@ -1006,11 +1011,11 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPo
 
     // forward方向を軸として回転させるには、forward方向をローカルZ軸として扱い、
     // そのZ軸周りに回転させる
-    // 回転の順序：forward方向を向く → 横向きにする → forward方向を軸として回転
+    // 回転の順序：forward方向を向く -> 横向きにする -> forward方向を軸として回転
     MATRIX rotAroundForward = MGetRotZ(m_shieldThrowRotationTimer); // Z軸周りの回転（横向きの状態）
 
-    // 合成：forward方向を向く回転 → 横向きにする回転 → forward方向を軸とした回転
-    // 順序：rotToForward → rotX → rotAroundForward
+    // 合成：forward方向を向く回転 -> 横向きにする回転 -> forward方向を軸とした回転
+    // 順序：rotToForward -> rotX -> rotAroundForward
     MATRIX tempMatrix = MMult(rotX, rotToForward);
     MATRIX rotMatrix = MMult(rotAroundForward, tempMatrix);
 

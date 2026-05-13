@@ -3,15 +3,15 @@
 /// <summary>
 /// シーン基底クラス
 /// </summary>
-class SceneBase abstract
+class SceneBase
 {
 public:
   SceneBase() = default;
   virtual ~SceneBase() = default;
 
-  virtual void Init() abstract;
-  virtual SceneBase *Update() abstract;
-  virtual void Draw() abstract;
+  virtual void Init() = 0;
+  virtual SceneBase *Update() = 0;
+  virtual void Draw() = 0;
 
   /// <summary>
   /// ロード中かどうかを取得する

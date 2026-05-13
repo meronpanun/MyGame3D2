@@ -35,8 +35,8 @@ void CollisionGrid::Init(const VECTOR& minArea, const VECTOR& maxArea, float cel
     m_maxArea = maxArea;
     m_cellSize = cellSize;
 
-    m_width = (int)ceilf((maxArea.x - minArea.x) / cellSize);
-    m_height = (int)ceilf((maxArea.z - minArea.z) / cellSize);
+    m_width = static_cast<int>(ceilf((maxArea.x - minArea.x) / cellSize));
+    m_height = static_cast<int>(ceilf((maxArea.z - minArea.z) / cellSize));
 
     // 境界チェックに余裕を持たせる
     m_width += 2;
@@ -170,7 +170,7 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
             for (int x = 0; x < m_width; ++x)
             {
                 const auto& targetCell = m_cells[z * m_width + x];
-                m_totalEntitiesChecked += (int)targetCell.size();
+                m_totalEntitiesChecked += static_cast<int>(targetCell.size());
                 outNeighbors.insert(outNeighbors.end(), targetCell.begin(), targetCell.end());
             }
         }
@@ -194,7 +194,7 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
                 
                 const auto& targetCell = m_cells[index];
             
-                m_totalEntitiesChecked += (int)targetCell.size();
+                m_totalEntitiesChecked += static_cast<int>(targetCell.size());
                 outNeighbors.insert(outNeighbors.end(), targetCell.begin(), targetCell.end());
             }
         }
@@ -387,7 +387,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
                     float avgH = (h00 + h10 + h11 + h01) * 0.25f;
                     VECTOR center = VGet((minX + maxX) * 0.5f, avgH + 5.0f, (minZ + maxZ) * 0.5f);
                     char buf[32];
-                    snprintf(buf, sizeof(buf), "%d", (int)m_cells[index].size());
+                    snprintf(buf, sizeof(buf), "%d", static_cast<int>(m_cells[index].size()));
 
                     // カメラの前方にある場合のみ描画
                     VECTOR camPos = GetCameraPosition();

@@ -12,6 +12,8 @@ struct ObjectTransformData
 	VECTOR pos;		     // 位置
 	VECTOR rot;		     // 回転
 	VECTOR scale;	     // スケール
+	
+	ObjectTransformData() : name(""), pos(VGet(0,0,0)), rot(VGet(0,0,0)), scale(VGet(1,1,1)) {}
 	float attack = 0.0f; // 攻撃力
 	float hp     = 0.0f; // 体力
 	float speed  = 0.0f; // プレイヤー用の移動速度

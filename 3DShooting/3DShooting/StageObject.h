@@ -7,6 +7,8 @@
 class StageObject
 {
 public:
+	StageObject() : m_modelHandle(-1), m_pos(), m_rot(), m_scale(1.0f, 1.0f, 1.0f) {}
+
 	void Init(int duplicateHandle, Vec3 pos, Vec3 rot, Vec3 scale);
 	void Draw();
 

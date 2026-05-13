@@ -1,11 +1,11 @@
-ï»¿#pragma once
-#include "EffekseerForDXLib.h"
+#pragma once
+#include "EffekseerWarningSuppress.h"
 #include "EnemyBase.h"
 #include <string>
 #include <map>
 
 /// <summary>
-/// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç®¡ç†ã‚¯ãƒ©ã‚¹
+/// ƒAƒjƒ[ƒVƒ‡ƒ“ŠÇ—ƒNƒ‰ƒX
 /// </summary>
 class AnimationManager
 {
@@ -16,86 +16,86 @@ public:
     void Update(int modelHandle, float delta);
 
     /// <summary>
-    /// ãƒ¢ãƒ‡ãƒ«ã«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ã‚¢ã‚¿ãƒƒãƒã—ã€å†ç”Ÿã‚’é–‹å§‹ã™ã‚‹
+    /// ƒ‚ƒfƒ‹‚ÉƒAƒjƒ[ƒVƒ‡ƒ“‚ðƒAƒ^ƒbƒ`‚µAÄ¶‚ðŠJŽn‚·‚é
     /// </summary>
-    /// <param name="modelHandle">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’é©ç”¨ã™ã‚‹ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
-    /// <param name="animName">å†ç”Ÿã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åå‰</param>
-    /// <param name="loop">ãƒ«ãƒ¼ãƒ—å†ç”Ÿã™ã‚‹ã‹ã©ã†ã‹</param>
-    /// <returns>ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ç·æ™‚é–“ã€‚ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯0</returns>
+    /// <param name="modelHandle">ƒAƒjƒ[ƒVƒ‡ƒ“‚ð“K—p‚·‚éƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
+    /// <param name="animName">Ä¶‚·‚éƒAƒjƒ[ƒVƒ‡ƒ“‚Ì–¼‘O</param>
+    /// <param name="loop">ƒ‹[ƒvÄ¶‚·‚é‚©‚Ç‚¤‚©</param>
+    /// <returns>ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‘ŽžŠÔBƒAƒjƒ[ƒVƒ‡ƒ“‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚Í0</returns>
     float PlayAnimation(int modelHandle, const std::string& animName, bool loop);
 
     /// <summary>
-    /// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®æ™‚é–“ã‚’æ›´æ–°ã™ã‚‹
+    /// ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌŽžŠÔ‚ðXV‚·‚é
     /// </summary>
-    /// <param name="modelHandle">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’æ›´æ–°ã™ã‚‹ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
-    /// <param name="animTime">ç¾åœ¨ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿæ™‚é–“</param>
+    /// <param name="modelHandle">ƒAƒjƒ[ƒVƒ‡ƒ“‚ðXV‚·‚éƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
+    /// <param name="animTime">Œ»Ý‚ÌƒAƒjƒ[ƒVƒ‡ƒ“Ä¶ŽžŠÔ</param>
     void UpdateAnimationTime(int modelHandle, float animTime);
 
     /// <summary>
-    /// æŒ‡å®šã—ãŸã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ç·æ™‚é–“ã‚’å–å¾—ã™ã‚‹
+    /// Žw’è‚µ‚½ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‘ŽžŠÔ‚ðŽæ“¾‚·‚é
     /// </summary>
-    /// <param name="modelHandle">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å–å¾—ã™ã‚‹ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
-    /// <param name="animName">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åå‰</param>
-    /// <returns>ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ç·æ™‚é–“ã€‚è¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯0</returns>
+    /// <param name="modelHandle">ƒAƒjƒ[ƒVƒ‡ƒ“‚ðŽæ“¾‚·‚éƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
+    /// <param name="animName">ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì–¼‘O</param>
+    /// <returns>ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‘ŽžŠÔBŒ©‚Â‚©‚ç‚È‚¢ê‡‚Í0</returns>
     float GetAnimationTotalTime(int modelHandle, const std::string& animName) const;
 
     /// <summary>
-    /// ç¾åœ¨ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒãƒ³ãƒ‰ãƒ«ã‚’å–å¾—
+    /// Œ»ÝƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚Ìƒnƒ“ƒhƒ‹‚ðŽæ“¾
     /// </summary>
-    /// <param name="modelHandle">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å–å¾—ã™ã‚‹ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
-    /// <returns>ç¾åœ¨ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒãƒ³ãƒ‰ãƒ«ã€‚è¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯-1</returns>
+    /// <param name="modelHandle">ƒAƒjƒ[ƒVƒ‡ƒ“‚ðŽæ“¾‚·‚éƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
+    /// <returns>Œ»ÝƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚Ìƒnƒ“ƒhƒ‹BŒ©‚Â‚©‚ç‚È‚¢ê‡‚Í-1</returns>
     int GetCurrentAttachedAnimHandle(int modelHandle) const;
 
     /// <summary>
-    /// ç¾åœ¨ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒãƒ³ãƒ‰ãƒ«ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹
+    /// Œ»ÝƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚Ìƒnƒ“ƒhƒ‹‚ðƒŠƒZƒbƒg‚·‚é
     /// </summary>
-    /// <param name="modelHandle">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ãƒªã‚»ãƒƒãƒˆã™ã‚‹ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
+    /// <param name="modelHandle">ƒAƒjƒ[ƒVƒ‡ƒ“‚ðƒŠƒZƒbƒg‚·‚éƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
     void ResetAttachedAnimHandle(int modelHandle);
 
     /// <summary>
-    /// æŒ‡å®šã—ãŸçŠ¶æ…‹ã«å¯¾å¿œã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åã‚’è¨­å®šã™ã‚‹
+    /// Žw’è‚µ‚½ó‘Ô‚É‘Î‰ž‚·‚éƒAƒjƒ[ƒVƒ‡ƒ“–¼‚ðÝ’è‚·‚é
     /// </summary>
-    /// <param name="state">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®çŠ¶æ…‹</param>
-    /// <param name="animName">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åå‰</param>
+    /// <param name="state">ƒAƒjƒ[ƒVƒ‡ƒ“‚Ìó‘Ô</param>
+    /// <param name="animName">ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì–¼‘O</param>
     void SetAnimName(EnemyBase::AnimState state, const std::string& animName);
 
     /// <summary>
-    /// æŒ‡å®šã—ãŸãƒ¢ãƒ‡ãƒ«ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿã™ã‚‹
+    /// Žw’è‚µ‚½ƒ‚ƒfƒ‹‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ðÄ¶‚·‚é
     /// </summary>
-    /// <param name="modelHandle">ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
-    /// <param name="state">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®çŠ¶æ…‹</param>
-    /// <param name="loop">ãƒ«ãƒ¼ãƒ—å†ç”Ÿã™ã‚‹ã‹ã©ã†ã‹</param>
-    /// <returns>>ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ç·æ™‚é–“ã€‚ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯0</returns>
+    /// <param name="modelHandle">ƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
+    /// <param name="state">ƒAƒjƒ[ƒVƒ‡ƒ“‚Ìó‘Ô</param>
+    /// <param name="loop">ƒ‹[ƒvÄ¶‚·‚é‚©‚Ç‚¤‚©</param>
+    /// <returns>>ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‘ŽžŠÔBƒAƒjƒ[ƒVƒ‡ƒ“‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚Í0</returns>
     float PlayState(int modelHandle, EnemyBase::AnimState state, bool loop);
 
     /// <summary>
-    /// æŒ‡å®šã—ãŸãƒ¢ãƒ‡ãƒ«ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒçµ‚äº†ã—ã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’åˆ¤å®šã™ã‚‹
+    /// Žw’è‚µ‚½ƒ‚ƒfƒ‹‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ªI—¹‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ð”»’è‚·‚é
     /// </summary>
-    /// <param name="modelHandle">ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
-    /// <returns>trueãªã‚‰ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãŒçµ‚äº†ã—ã¦ã„ã‚‹</returns>
+    /// <param name="modelHandle">ƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
+    /// <returns>true‚È‚çƒAƒjƒ[ƒVƒ‡ƒ“‚ªI—¹‚µ‚Ä‚¢‚é</returns>
     bool IsAnimationFinished(int modelHandle) const;
 
 private:
     /// <summary>
-    /// ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åã‹ã‚‰DxLibã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å–å¾—
+    /// ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹‚ÆƒAƒjƒ[ƒVƒ‡ƒ“–¼‚©‚çDxLib‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒCƒ“ƒfƒbƒNƒX‚ðŽæ“¾
     /// </summary>
-    /// <param name="modelHandle">ãƒ¢ãƒ‡ãƒ«ã®ãƒãƒ³ãƒ‰ãƒ«</param>
-    /// <param name="animName">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®åå‰</param>
-    /// <returns>DxLibã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã€‚è¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã¯-1</returns>
+    /// <param name="modelHandle">ƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹</param>
+    /// <param name="animName">ƒAƒjƒ[ƒVƒ‡ƒ“‚Ì–¼‘O</param>
+    /// <returns>DxLib‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ƒCƒ“ƒfƒbƒNƒXBŒ©‚Â‚©‚ç‚È‚¢ê‡‚Í-1</returns>
     int GetAnimIndexInternal(int modelHandle, const std::string& animName);
 
 private:
-    // ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åã”ã¨ã®DxLibã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’ã‚­ãƒ£ãƒƒã‚·ãƒ¥
+    // ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹‚ÆƒAƒjƒ[ƒVƒ‡ƒ“–¼‚²‚Æ‚ÌDxLibƒAƒjƒ[ƒVƒ‡ƒ“ƒCƒ“ƒfƒbƒNƒX‚ðƒLƒƒƒbƒVƒ…
     std::map<int, std::map<std::string, int>> m_animIndexesCache;
-    // ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨ç¾åœ¨ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹DxLibã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒ³ãƒ‰ãƒ«
+    // ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹‚ÆŒ»ÝƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éDxLibƒAƒjƒ[ƒVƒ‡ƒ“ƒnƒ“ƒhƒ‹
     std::map<int, int> m_attachedAnimHandles;
-    // ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨ç¾åœ¨ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ç·æ™‚é–“
+    // ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹‚ÆŒ»ÝƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚Ì‘ŽžŠÔ
     std::map<int, float> m_currentAnimTotalTimes;
 
-    // çŠ¶æ…‹â†’ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åãƒžãƒƒãƒ”ãƒ³ã‚°
+    // ó‘Ô->ƒAƒjƒ[ƒVƒ‡ƒ“–¼ƒ}ƒbƒsƒ“ƒO
     std::map<EnemyBase::AnimState, std::string> m_animStateToAnimName;
-    // ãƒ¢ãƒ‡ãƒ«ã”ã¨ã®ç¾åœ¨ã®AnimState
+    // ƒ‚ƒfƒ‹‚²‚Æ‚ÌŒ»Ý‚ÌAnimState
     std::map<int, EnemyBase::AnimState> m_modelCurrentState;
-    // ãƒ¢ãƒ‡ãƒ«ã”ã¨ã®ç¾åœ¨ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµŒéŽæ™‚é–“
+    // ƒ‚ƒfƒ‹‚²‚Æ‚ÌŒ»Ý‚ÌƒAƒjƒ[ƒVƒ‡ƒ“Œo‰ßŽžŠÔ
     std::map<int, float> m_modelAnimTime;
 };

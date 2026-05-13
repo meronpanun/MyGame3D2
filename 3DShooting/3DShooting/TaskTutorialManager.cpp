@@ -44,8 +44,8 @@ TaskTutorialManager::TaskTutorialManager()
     , m_pPlayer(nullptr)
     , m_step(TaskStep::None)
     , m_currentTask(nullptr)
-    , m_titleFont("HGPｺﾞｼｯｸE", 48, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_taskFont("HGPｺﾞｼｯｸE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_titleFont("HGPゴシックE", 48, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_taskFont("HGPゴシックE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_diamondImg("data/image/Diamond.png")
     , m_mouseLeftImg("data/image/MouseLeft.png")
     , m_mouseRightImg("data/image/MouseRight.png")
@@ -117,7 +117,7 @@ void TaskTutorialManager::Init(WaveManager* pWaveManager, Player* pPlayer)
 
 void TaskTutorialManager::NotifyEnemyKilled(AttackType attackType)
 {
-    if (m_currentTask) m_currentTask->NotifyEnemyKilled((int)attackType);
+    if (m_currentTask) m_currentTask->NotifyEnemyKilled(static_cast<int>(attackType));
 }
 
 void TaskTutorialManager::NotifyShieldThrowKill()
@@ -272,7 +272,7 @@ void TaskTutorialManager::Update()
     }
     else if (m_taskAlpha < 255)
     {
-        m_taskAlpha = (std::min)(m_taskAlpha + (int)m_taskFadeSpeed, 255);
+        m_taskAlpha = (std::min)(m_taskAlpha + static_cast<int>(m_taskFadeSpeed), 255);
     }
 
     // ステップ遷移ロジック

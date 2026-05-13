@@ -221,8 +221,8 @@ void PlayerWeaponManager::Update(const UpdateContext& context)
     {
         m_gunShakeTimer -= 1.0f * Game::GetTimeScale();
         float shake = sinf(m_gunShakeTimer) * m_gunShakePower;
-        m_gunShakeOffset.x = ((float)rand() / RAND_MAX - 0.5f) * shake;
-        m_gunShakeOffset.y = ((float)rand() / RAND_MAX - 0.5f) * shake;
+        m_gunShakeOffset.x = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * shake;
+        m_gunShakeOffset.y = (static_cast<float>(rand()) / RAND_MAX - 0.5f) * shake;
         if (m_gunShakeTimer <= 0.0f)
         {
             m_gunShakeOffset = VGet(0, 0, 0);
@@ -312,7 +312,9 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
     else if (m_isSwitchingWeapon)
     {
         // 前の武器を下に隠す
-        auto [prevHandle, prevOffset] = GetWeaponTransform(previousWeaponType);
+        auto prevTransform = GetWeaponTransform(previousWeaponType);
+        int prevHandle = std::get<0>(prevTransform);
+        VECTOR prevOffset = std::get<1>(prevTransform);
         if (prevHandle != -1)
         {
             float progress = (std::min)(m_weaponSwitchTimer / (m_weaponSwitchDuration * 0.5f), 1.0f);
@@ -364,7 +366,9 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
         }
 
         // 新しい武器を下から出す
-        auto [currentHandle, currentOffset] = GetWeaponTransform(m_currentWeaponType);
+        auto currentTransform = GetWeaponTransform(m_currentWeaponType);
+        int currentHandle = std::get<0>(currentTransform);
+        VECTOR currentOffset = std::get<1>(currentTransform);
         if (currentHandle != -1)
         {
             float progress = (std::max)(0.0f, (m_weaponSwitchTimer - (m_weaponSwitchDuration * 0.5f)) / (m_weaponSwitchDuration * 0.5f));
@@ -415,7 +419,9 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
     else
     {
         // 通常時の武器表示
-        auto [currentHandle, modelOffset] = GetWeaponTransform(m_currentWeaponType);
+        auto weaponTransform = GetWeaponTransform(m_currentWeaponType);
+        int currentHandle = std::get<0>(weaponTransform);
+        VECTOR modelOffset = std::get<1>(weaponTransform);
         int otherHandle = (m_currentWeaponType == WeaponType::AssaultRifle) ? m_sgHandle : m_arHandle;
         MV1SetVisible(otherHandle, false);
 
@@ -548,8 +554,8 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
         // ショットガンは複数弾をばらけさせて発射
         for (int i = 0; i < 5; ++i)
         {
-            float spreadX = ((float)GetRand(100) / 100.0f - 0.5f) * 0.1f;
-            float spreadY = ((float)GetRand(100) / 100.0f - 0.5f) * 0.1f;
+            float spreadX = (static_cast<float>(GetRand(100)) / 100.0f - 0.5f) * 0.1f;
+            float spreadY = (static_cast<float>(GetRand(100)) / 100.0f - 0.5f) * 0.1f;
 
             VECTOR spreadDir = VAdd(cameraForward, VGet(spreadX, spreadY, 0));
             spreadDir = VNorm(spreadDir);

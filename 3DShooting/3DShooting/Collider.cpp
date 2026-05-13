@@ -1,2 +1,2 @@
-﻿#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "Collider.h"

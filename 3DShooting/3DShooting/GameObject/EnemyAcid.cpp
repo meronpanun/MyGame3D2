@@ -6,7 +6,7 @@
 #include "DebugUtil.h"
 #include "DxLib.h"
 #include "Effect.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "Game.h"
 #include "Player.h"
 #include "SceneMain.h"
@@ -77,6 +77,12 @@ EnemyAcid::EnemyAcid()
     , m_isStunned(false)
     , m_stunTimer(0)
     , m_distToPlayer(0.0f)
+    , m_isDeadAnimPlaying(false)
+    , m_isNextAttackNormal(false)
+    , m_shouldDrawParryCollider(false)
+    , m_debugParryCapA(VGet(0,0,0))
+    , m_debugParryCapB(VGet(0,0,0))
+    , m_debugParryRadius(0.0f)
 
 {
     // モデルの複製

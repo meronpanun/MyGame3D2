@@ -1,9 +1,9 @@
-ï»¿#pragma once
-#include "EffekseerForDXLib.h"
+#pragma once
+#include "EffekseerWarningSuppress.h"
 #include <cmath>
 
 /// <summary>
-/// 3æ¬¡å…ƒãƒ™ã‚¯ãƒˆãƒ«ã‚¯ãƒ©ã‚¹
+/// 3ŸŒ³ƒxƒNƒgƒ‹ƒNƒ‰ƒX
 /// </summary>
 class Vec3
 {
@@ -13,7 +13,7 @@ public:
 	float z; 
 
 public:
-	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	// ƒfƒtƒHƒ‹ƒgƒRƒ“ƒXƒgƒ‰ƒNƒ^
 	Vec3()
 	{
 		x = 0.0f;
@@ -21,7 +21,7 @@ public:
 		z = 0.0f; 
 	}
 
-	// å¼•æ•°ä»˜ãã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	// ˆø”•t‚«ƒRƒ“ƒXƒgƒ‰ƒNƒ^
 	Vec3(float posX, float posY, float posZ)
 	{
 		x = posX;
@@ -29,7 +29,7 @@ public:
 		z = posZ;
 	}
 
-	// VECTORã‹ã‚‰å¤‰æ›ã™ã‚‹ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	// VECTOR‚©‚ç•ÏŠ·‚·‚éƒRƒ“ƒXƒgƒ‰ƒNƒ^
 	Vec3(const VECTOR& v)
 	{
 		x = v.x;
@@ -37,7 +37,7 @@ public:
 		z = v.z;
 	}
 
-	// åº§æ¨™è¨­å®šé–¢æ•°
+	// À•Wİ’èŠÖ”
 	void SetPos(float a, float b, float c)
 	{
 		x = a;
@@ -45,7 +45,7 @@ public:
 		z = c;
 	}
 
-	// åŠ ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 += Vec3))
+	// ‰ÁZ‘ã“ü‰‰Zq(Vec3 = (Vec3 += Vec3))
 	Vec3 operator+=(const Vec3& vec)
 	{
 		x += vec.x;
@@ -54,14 +54,14 @@ public:
 		return *this;
 	}
 
-	// åŠ ç®—æ¼”ç®—å­(Vec3 = Vec3 + Vec3)
+	// ‰ÁZ‰‰Zq(Vec3 = Vec3 + Vec3)
 	Vec3 operator+(const Vec3& vec) const
 	{
 		Vec3 temp{ x + vec.x, y + vec.y, z + vec.z };
 		return temp;
 	}
 
-	// æ¸›ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 -= Vec3))
+	// Œ¸Z‘ã“ü‰‰Zq(Vec3 = (Vec3 -= Vec3))
 	Vec3 operator-=(const Vec3& vec)
 	{
 		x -= vec.x;
@@ -70,14 +70,14 @@ public:
 		return *this;
 	}
 
-	// æ¸›ç®—æ¼”ç®—å­(Vec3 = Vec3 - Vec3)
+	// Œ¸Z‰‰Zq(Vec3 = Vec3 - Vec3)
 	Vec3 operator-(const Vec3& vec) const
 	{
 		Vec3 temp{ x - vec.x, y - vec.y, z - vec.z };
 		return temp;
 	}
 
-	// ã‚¹ã‚«ãƒ©ä¹—ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 *= float))
+	// ƒXƒJƒ‰æZ‘ã“ü‰‰Zq(Vec3 = (Vec3 *= float))
 	Vec3 operator*=(float scale)
 	{
 		x *= scale;
@@ -86,14 +86,14 @@ public:
 		return *this;
 	}
 
-	// ã‚¹ã‚«ãƒ©ä¹—ç®—æ¼”ç®—å­(Vec3 = Vec3 * float)
+	// ƒXƒJƒ‰æZ‰‰Zq(Vec3 = Vec3 * float)
 	Vec3 operator*(float scale) const
 	{
 		Vec3 temp{ x * scale, y * scale, z * scale };
 		return temp;
 	}
 
-	// ã‚¹ã‚«ãƒ©é™¤ç®—ä»£å…¥æ¼”ç®—å­(Vec3 = (Vec3 /= float))
+	// ƒXƒJƒ‰œZ‘ã“ü‰‰Zq(Vec3 = (Vec3 /= float))
 	Vec3 operator/=(float scale)
 	{
 		x /= scale;
@@ -102,31 +102,31 @@ public:
 		return *this;
 	}
 
-	// ã‚¹ã‚«ãƒ©é™¤ç®—æ¼”ç®—å­(Vec3 = Vec3 / float)
+	// ƒXƒJƒ‰œZ‰‰Zq(Vec3 = Vec3 / float)
 	Vec3 operator/(float scale) const
 	{
 		Vec3 temp{ x / scale, y / scale, z / scale };
 		return temp;
 	}
 
-	// é•·ã•ã®å–å¾—
+	// ’·‚³‚Ìæ“¾
 	float Length() const
 	{
 		return sqrtf(x * x + y * y + z * z);
 	}
 
-	// æ­£è¦åŒ–
+	// ³‹K‰»
 	Vec3 Normalize() const
 	{
-		float len = Length(); // é•·ã•ã‚’å–å¾—
+		float len = Length(); // ’·‚³‚ğæ“¾
 		if (len == 0)
 		{
-			return *this; // é•·ã•ãŒ0ã®å ´åˆã¯ãã®ã¾ã¾è¿”ã™
+			return *this; // ’·‚³‚ª0‚Ìê‡‚Í‚»‚Ì‚Ü‚Ü•Ô‚·
 		}
-		return (*this) / len; // è‡ªèº«ã®æˆåˆ†ã‚’é•·ã•ã§å‰²ã£ã¦æ­£è¦åŒ–
+		return (*this) / len; // ©g‚Ì¬•ª‚ğ’·‚³‚ÅŠ„‚Á‚Ä³‹K‰»
 	}
 
-    // Dxãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®VECTORã«ã‚­ãƒ£ã‚¹ãƒˆã™ã‚‹
+    // Dxƒ‰ƒCƒuƒ‰ƒŠ‚ÌVECTOR‚ÉƒLƒƒƒXƒg‚·‚é
 	VECTOR ToDxVECTOR() const 
 	{
 		VECTOR dxVec;

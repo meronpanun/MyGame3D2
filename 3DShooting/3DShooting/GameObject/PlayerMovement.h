@@ -1,5 +1,5 @@
-ï»¿#pragma once
-#include "EffekseerForDXLib.h"
+#pragma once
+#include "EffekseerWarningSuppress.h"
 #include "Stage.h"
 #include <memory>
 #include <vector>
@@ -9,7 +9,7 @@ class Camera;
 class CapsuleCollider;
 
 /// <summary>
-/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç§»å‹•ãƒ»ç‰©ç†ç®¡ç†ã‚¯ãƒ©ã‚¹
+/// ƒvƒŒƒCƒ„[‚ÌˆÚ“®E•¨—ŠÇ—ƒNƒ‰ƒX
 /// </summary>
 class PlayerMovement
 {
@@ -24,112 +24,112 @@ public:
         bool isInputDisabled = false);
 
     /// <summary>
-    /// ä½ç½®å–å¾—
+    /// ˆÊ’uæ“¾
     /// </summary>
-    /// <returns>ä½ç½®ãƒ™ã‚¯ãƒˆãƒ«</returns>
+    /// <returns>ˆÊ’uƒxƒNƒgƒ‹</returns>
     VECTOR GetPos() const { return m_modelPos; }
 
     /// <summary>
-    /// ä½ç½®è¨­å®š
+    /// ˆÊ’uİ’è
     /// </summary>
-    /// <param name="pos">ä½ç½®ãƒ™ã‚¯ãƒˆãƒ«</param>
+    /// <param name="pos">ˆÊ’uƒxƒNƒgƒ‹</param>
     void SetPos(const VECTOR& pos) { m_modelPos = pos; }
 
     /// <summary>
-    /// ç§»å‹•ä¸­ã‹ã©ã†ã‹
+    /// ˆÚ“®’†‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>ç§»å‹•ä¸­ãªã‚‰true</returns>
+    /// <returns>ˆÚ“®’†‚È‚çtrue</returns>
     bool IsMoving() const { return m_isMoving; }
 
     /// <summary>
-    /// ç¾åœ¨ã®ç§»å‹•é€Ÿåº¦ã‚’å–å¾—
+    /// Œ»İ‚ÌˆÚ“®‘¬“x‚ğæ“¾
     /// </summary>
-    /// <returns>ç§»å‹•é€Ÿåº¦</returns>
+    /// <returns>ˆÚ“®‘¬“x</returns>
     float GetCurrentSpeed() const { return m_currentSpeed; }
 
     /// <summary>
-    /// ã‚¸ãƒ£ãƒ³ãƒ—ä¸­ã‹ã©ã†ã‹
+    /// ƒWƒƒƒ“ƒv’†‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>ã‚¸ãƒ£ãƒ³ãƒ—ä¸­ãªã‚‰true</returns>
+    /// <returns>ƒWƒƒƒ“ƒv’†‚È‚çtrue</returns>
     bool IsJumping() const { return m_isJumping; }
 
     /// <summary>
-    /// å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã§ã‚¸ãƒ£ãƒ³ãƒ—ä¸­ã ã£ãŸã‹ã©ã†ã‹
+    /// ‘OƒtƒŒ[ƒ€‚ÅƒWƒƒƒ“ƒv’†‚¾‚Á‚½‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>true: ã‚¸ãƒ£ãƒ³ãƒ—ä¸­ã ã£ãŸ, false: ã‚¸ãƒ£ãƒ³ãƒ—ä¸­ã§ãªã‹ã£ãŸ</returns>
+    /// <returns>true: ƒWƒƒƒ“ƒv’†‚¾‚Á‚½, false: ƒWƒƒƒ“ƒv’†‚Å‚È‚©‚Á‚½</returns>
     bool WasJumping() const { return m_wasJumping; }
 
     /// <summary>
-    /// å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã§èµ°ã£ã¦ã„ãŸã‹ã©ã†ã‹
+    /// ‘OƒtƒŒ[ƒ€‚Å‘–‚Á‚Ä‚¢‚½‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>true: èµ°ã£ã¦ã„ãŸ, false: èµ°ã£ã¦ã„ãªã‹ã£ãŸ</returns>
+    /// <returns>true: ‘–‚Á‚Ä‚¢‚½, false: ‘–‚Á‚Ä‚¢‚È‚©‚Á‚½</returns>
     bool WasRunning() const { return m_wasRunning; }
 
     /// <summary>
-    /// åœ°é¢ã«æ¥åœ°ã—ã¦ã„ã‚‹ã‹ã©ã†ã‹
+    /// ’n–Ê‚ÉÚ’n‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>æ¥åœ°ã—ã¦ã„ã‚Œã°true</returns>
+    /// <returns>Ú’n‚µ‚Ä‚¢‚ê‚Îtrue</returns>
     bool IsOnGround() const;
 
     /// <summary>
-    /// ç€åœ°ã—ãŸç¬é–“ã‹ã©ã†ã‹
+    /// ’…’n‚µ‚½uŠÔ‚©‚Ç‚¤‚©
     /// </summary>
     bool JustLanded() const { return m_justLanded; }
 
     /// <summary>
-    /// ç€åœ°æ™‚ã®å‚ç›´é€Ÿåº¦ã‚’å–å¾—
+    /// ’…’n‚Ì‚’¼‘¬“x‚ğæ“¾
     /// </summary>
     float GetImpactVelocity() const { return m_impactVelocity; }
 
     /// <summary>
-    /// ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚’å–å¾—
+    /// ƒRƒ‰ƒCƒ_[‚ğæ“¾
     /// </summary>
-    /// <returns>ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®å…±æœ‰ãƒã‚¤ãƒ³ã‚¿</returns>
+    /// <returns>ƒRƒ‰ƒCƒ_[‚Ì‹¤—Lƒ|ƒCƒ“ƒ^</returns>
     std::shared_ptr<CapsuleCollider> GetBodyCollider() const { return m_pBodyCollider; }
 
     /// <summary>
-    /// æ¥åœ°ã—ã¦ã„ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåã‚’å–å¾—ã™ã‚‹
+    /// Ú’n‚µ‚Ä‚¢‚éƒIƒuƒWƒFƒNƒg–¼‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>æ¥åœ°ã—ã¦ã„ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå</returns>
+    /// <returns>Ú’n‚µ‚Ä‚¢‚éƒIƒuƒWƒFƒNƒg–¼</returns>
     std::string GetGroundedObjectName() const { return m_groundedObjectName; }
 
     /// <summary>
-    /// ã‚¸ãƒ£ãƒ³ãƒ—å‡¦ç†
+    /// ƒWƒƒƒ“ƒvˆ—
     /// </summary>
-    /// <param name="pCamera">ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="pCamera">ƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^</param>
     void Jump(Camera* pCamera);
 
     /// <summary>
-    /// åœ°é¢ã®Yåº§æ¨™ã‚’å–å¾—
+    /// ’n–Ê‚ÌYÀ•W‚ğæ“¾
     /// </summary>
-    /// <returns>åœ°é¢ã®Yåº§æ¨™</returns>
+    /// <returns>’n–Ê‚ÌYÀ•W</returns>
     static float GetGroundY() { return 0.0f; }
 
     /// <summary>
-    /// åœ°é¢æ¥åœ°åˆ¤å®šã®è¨±å®¹å€¤
+    /// ’n–ÊÚ’n”»’è‚Ì‹–—e’l
     /// </summary>
-    /// <returns>è¨±å®¹å€¤</returns>
+    /// <returns>‹–—e’l</returns>
     static float GetGroundCheckTolerance() { return 1.0f; }
 
     /// <summary>
-    /// ã‚¸ãƒ£ãƒ³ãƒ—ç§»å‹•é€Ÿåº¦ã‚’å–å¾—
+    /// ƒWƒƒƒ“ƒvˆÚ“®‘¬“x‚ğæ“¾
     /// </summary>
-    /// <returns>ã‚¸ãƒ£ãƒ³ãƒ—ç§»å‹•é€Ÿåº¦</returns>
+    /// <returns>ƒWƒƒƒ“ƒvˆÚ“®‘¬“x</returns>
     VECTOR GetJumpMoveVelocity() const { return m_jumpMoveVelocity; }
 
-    // ãƒ€ãƒƒã‚·ãƒ¥ãƒ¢ãƒ¼ãƒ‰ç®¡ç†
+    // ƒ_ƒbƒVƒ…ƒ‚[ƒhŠÇ—
     void CancelRunMode() { m_isRunMode = false; }
     bool IsRunMode() const { return m_isRunMode; }
 
     /// <summary>
-    /// ãƒãƒƒã‚¯ãƒãƒƒã‚¯åŠ›ã‚’é©ç”¨
+    /// ƒmƒbƒNƒoƒbƒN—Í‚ğ“K—p
     /// </summary>
-    /// <param name="velocity">ãƒãƒƒã‚¯ãƒãƒƒã‚¯é€Ÿåº¦ãƒ™ã‚¯ãƒˆãƒ«</param>
+    /// <param name="velocity">ƒmƒbƒNƒoƒbƒN‘¬“xƒxƒNƒgƒ‹</param>
     void ApplyKnockback(const VECTOR& velocity);
 
     static constexpr float kGroundY = 0.0f;
     
-    // å¼·åˆ¶çš„ã«å‚ç›´é€Ÿåº¦ã‚’ãƒªã‚»ãƒƒãƒˆï¼ˆãƒœã‚¹ã®ã‚·ãƒ¼ãƒ«ãƒ‰ã«ä¹—ã£ãŸæ™‚ãªã©ï¼‰
+    // ‹­§“I‚É‚’¼‘¬“x‚ğƒŠƒZƒbƒgiƒ{ƒX‚ÌƒV[ƒ‹ƒh‚Éæ‚Á‚½‚È‚Çj
     void ResetVerticalVelocity() { m_jumpVelocity = 0.0f; }
 
 private:
@@ -150,18 +150,18 @@ private:
     VECTOR m_modelPos;
     VECTOR m_scale;
     VECTOR m_jumpMoveVelocity;
-    VECTOR m_airSideControlVelocity; // ç©ºä¸­ã§ã®å·¦å³æ“ä½œé€Ÿåº¦
-    VECTOR m_knockbackVelocity;      // ãƒãƒƒã‚¯ãƒãƒƒã‚¯é€Ÿåº¦
+    VECTOR m_airSideControlVelocity; // ‹ó’†‚Å‚Ì¶‰E‘€ì‘¬“x
+    VECTOR m_knockbackVelocity;      // ƒmƒbƒNƒoƒbƒN‘¬“x
 
     float m_moveSpeed;
     float m_runSpeed;
     float m_jumpVelocity;
     float m_jumpStartYaw;
     float m_jumpSpeedScalar;
-    float m_coyoteTimeTimer; // ã‚³ãƒ¨ãƒ¼ãƒ†ã‚¿ã‚¤ãƒ ç”¨ã®ã‚¿ã‚¤ãƒãƒ¼
+    float m_coyoteTimeTimer; // ƒRƒˆ[ƒeƒ^ƒCƒ€—p‚Ìƒ^ƒCƒ}[
     float m_currentSpeed;
 
-    // ãƒ•ãƒ©ã‚°
+    // ƒtƒ‰ƒO
     bool m_isMoving;
     bool m_isJumping;
     bool m_wasJumping;
@@ -170,9 +170,9 @@ private:
     bool m_isRunMode;
     bool m_isRunJumping;
     bool m_isJumpInertiaActive;
-    bool m_justLanded;      // ç€åœ°ã—ãŸç¬é–“ãƒ•ãƒ©ã‚°
-    float m_impactVelocity; // ç€åœ°æ™‚ã®è¡æ’ƒé€Ÿåº¦
-    float m_airborneTime;   // æ»ç©ºæ™‚é–“
+    bool m_justLanded;      // ’…’n‚µ‚½uŠÔƒtƒ‰ƒO
+    float m_impactVelocity; // ’…’n‚ÌÕŒ‚‘¬“x
+    float m_airborneTime;   // ‘Ø‹óŠÔ
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider;
 

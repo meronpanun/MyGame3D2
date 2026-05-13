@@ -111,7 +111,7 @@ void DirectionIndicator::Draw()
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(alpha * 255));
         
         // インジケーターを描画
-        DrawRotaGraphF(indicatorX, indicatorY, 0.1, angle, s_indicatorImage, true);
+        DrawRotaGraphF(indicatorX, indicatorY, 0.1f, angle, s_indicatorImage, true);
         
         // ブレンドモードを元に戻す
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);

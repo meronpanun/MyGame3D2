@@ -1,12 +1,12 @@
-ï»¿#pragma once
-#include "EffekseerForDXLib.h"
+#pragma once
+#include "EffekseerWarningSuppress.h"
 #include "SphereCollider.h"
 #include "ItemBase.h"
 
 class Player;
 
 /// <summary>
-/// å¼¾è–¬ã‚¢ã‚¤ãƒ†ãƒ ã‚¯ãƒ©ã‚¹
+/// ’e–òƒAƒCƒeƒ€ƒNƒ‰ƒX
 /// </summary>
 class AmmoItem : public ItemBase
 {
@@ -20,15 +20,15 @@ public:
 	void DrawCollisionDebug() override;
 
 	/// <summary>
-	/// ä½ç½®è¨­å®š
+	/// ˆÊ’uİ’è
 	/// </summary>
-	/// <param name="pos">ä½ç½®</param>
+	/// <param name="pos">ˆÊ’u</param>
 	void SetPos(const VECTOR& pos) override { m_pos = pos; }
 
 	/// <summary>
-	/// ä½¿ç”¨æ¸ˆã¿ã‹ã©ã†ã‹
+	/// g—pÏ‚İ‚©‚Ç‚¤‚©
 	/// </summary>
-	/// <returns>true: ä½¿ç”¨æ¸ˆã¿, false: æœªä½¿ç”¨</returns>
+	/// <returns>true: g—pÏ‚İ, false: –¢g—p</returns>
 	bool IsUsed() const override { return m_isUsed; }
 	bool IsExpired() const override { return m_lifeTimer <= 0; }
 

@@ -103,14 +103,14 @@ void WaveUI::Draw()
         // 最終的な位置とサイズ
         int targetDrawW = kWaveImageDrawWidth;
         int targetDrawH = imgH * targetDrawW / imgW;
-        int targetX = (screenW - targetDrawW) * 0.5f;
+        int targetX = static_cast<int>((screenW - targetDrawW) * 0.5f);
         int targetY = 0; // 画面上部中央
 
         // 初期位置とサイズ (拡大して中央)
         int startDrawW = static_cast<int>(screenW * 0.4f);
         int startDrawH = imgH * startDrawW / imgW;
-        int startX = (screenW - startDrawW) * 0.5f; // 画面中央
-        int startY = (screenH - startDrawH) * 0.5f; // 画面中央
+        int startX = static_cast<int>((screenW - startDrawW) * 0.5f); // 画面中央
+        int startY = static_cast<int>((screenH - startDrawH) * 0.5f); // 画面中央
 
         int currentX, currentY, currentDrawW, currentDrawH;
 

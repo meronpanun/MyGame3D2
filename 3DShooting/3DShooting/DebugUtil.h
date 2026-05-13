@@ -1,73 +1,73 @@
-ï»¿#pragma once
+#pragma once
 #include "DebugMenu.h"
-#include "EffekseerForDXLib.h"  
+#include "EffekseerWarningSuppress.h"  
 #include <vector>
 #include <string>
 
 /// <summary>
-/// ãƒ‡ãƒãƒƒã‚°ã‚¯ãƒ©ã‚¹
+/// ƒfƒoƒbƒOƒNƒ‰ƒX
 /// </summary>
 class DebugUtil
 {
 public:
     /// <summary>
-	/// 3Dã‚«ãƒ—ã‚»ãƒ«ã‚’æç”»ã™ã‚‹
+	/// 3DƒJƒvƒZƒ‹‚ğ•`‰æ‚·‚é
     /// </summary>
-	/// <param name="a">ç«¯ç‚¹A</param>
-	/// <param name="b">ç«¯ç‚¹B</param>
-	/// <param name="radius">åŠå¾„</param>
-	/// <param name="div">åˆ†å‰²æ•°</param>
-	/// <param name="color">è‰²</param>
-	/// <param name="fill">å¡—ã‚Šã¤ã¶ã—ãƒ•ãƒ©ã‚°</param>
+	/// <param name="a">’[“_A</param>
+	/// <param name="b">’[“_B</param>
+	/// <param name="radius">”¼Œa</param>
+	/// <param name="div">•ªŠ„”</param>
+	/// <param name="color">F</param>
+	/// <param name="fill">“h‚è‚Â‚Ô‚µƒtƒ‰ƒO</param>
     static void DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill = false);
 
     /// <summary>
-	/// 3Dçƒã‚’æç”»ã™ã‚‹
+	/// 3D‹…‚ğ•`‰æ‚·‚é
     /// </summary>
-	/// <param name="center">ä¸­å¿ƒåº§æ¨™</param>
-	/// <param name="radius">åŠå¾„</param>
-	/// <param name="div">åˆ†å‰²æ•°</param>
-	/// <param name="color">è‰²</param>
-	/// <param name="fill">å¡—ã‚Šã¤ã¶ã—ãƒ•ãƒ©ã‚°</param>
+	/// <param name="center">’†SÀ•W</param>
+	/// <param name="radius">”¼Œa</param>
+	/// <param name="div">•ªŠ„”</param>
+	/// <param name="color">F</param>
+	/// <param name="fill">“h‚è‚Â‚Ô‚µƒtƒ‰ƒO</param>
     static void DrawSphere(const VECTOR& center, float radius, int div, int color, bool fill = false);
 
     /// <summary>
-	/// 2Dãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’æç”»ã™ã‚‹
+	/// 2DƒƒbƒZ[ƒW‚ğ•`‰æ‚·‚é
     /// </summary>
-	/// <param name="x">xåº§æ¨™</param>
-	/// <param name="y">yåº§æ¨™</param>
-	/// <param name="color">è‰²</param>
-	/// <param name="msg">ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸</param>
+	/// <param name="x">xÀ•W</param>
+	/// <param name="y">yÀ•W</param>
+	/// <param name="color">F</param>
+	/// <param name="msg">ƒƒbƒZ[ƒW</param>
     static void DrawMessage(int x, int y, unsigned int color, const std::string& msg);
 
     /// <summary>
-	/// 2Dãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—ã‚’æç”»ã™ã‚‹
+	/// 2DƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğ•`‰æ‚·‚é
     /// </summary>
-	/// <param name="x">xåº§æ¨™</param>
-	/// <param name="y">yåº§æ¨™</param>
-    /// <param name="color">è‰²</param>
-	/// <param name="format">ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—</param>
-	/// <param name="">å¯å¤‰å¼•æ•°</param>
+	/// <param name="x">xÀ•W</param>
+	/// <param name="y">yÀ•W</param>
+    /// <param name="color">F</param>
+	/// <param name="format">ƒtƒH[ƒ}ƒbƒg•¶š—ñ</param>
+	/// <param name="">‰Â•Ïˆø”</param>
     static void DrawFormat(int x, int y, unsigned int color, const char* format, ...);
 
     /// <summary>
-	/// ãƒ­ã‚´ã‚¹ã‚­ãƒƒãƒ—ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
+	/// ƒƒSƒXƒLƒbƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚·‚é
     /// </summary>
-	/// <returns>æŠ¼ã•ã‚ŒãŸã‚‰true</returns>
+	/// <returns>‰Ÿ‚³‚ê‚½‚çtrue</returns>
     static bool IsSkipLogoKeyPressed();
 
     /// <summary>
-	/// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤º/éè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+	/// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì•\¦/”ñ•\¦‚ğØ‚è‘Ö‚¦‚é
     /// </summary>
     static void ShowDebugWindow();
 
     /// <summary>
-	/// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’æ›´æ–°ã™ã‚‹
+	/// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ğXV‚·‚é
     /// </summary>
-	/// <returns>ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ãªã‚‰true</returns>
+	/// <returns>ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ª•\¦‚³‚ê‚Ä‚¢‚é‚È‚çtrue</returns>
     static bool IsDebugWindowVisible();
 
 private:
-    static bool s_isVisible; // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤ºçŠ¶æ…‹
+    static bool s_isVisible; // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì•\¦ó‘Ô
     static DebugMenu s_debugMenu;
 };

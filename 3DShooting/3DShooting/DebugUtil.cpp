@@ -1,44 +1,44 @@
-ï»¿#include "DebugUtil.h"
-#include "EffekseerForDXLib.h"
+#include "DebugUtil.h"
+#include "EffekseerWarningSuppress.h"
 #include "DebugMenu.h"
 #include "Game.h"
 #include "SceneManager.h"
 #include "SceneMain.h"
 #include <cstdarg>
 
-bool DebugUtil::s_isVisible = false; // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤ºçŠ¶æ…‹ã‚’ç®¡ç†ã™ã‚‹é™çš„å¤‰æ•°
+bool DebugUtil::s_isVisible = false; // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì•\¦ó‘Ô‚ğŠÇ—‚·‚éÃ“I•Ï”
 DebugMenu DebugUtil::s_debugMenu;
 
-// 3Dã‚«ãƒ—ã‚»ãƒ«ã®ãƒ‡ãƒãƒƒã‚°æç”»é–¢æ•°
+// 3DƒJƒvƒZƒ‹‚ÌƒfƒoƒbƒO•`‰æŠÖ”
 void DebugUtil::DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill)
 {
     DrawCapsule3D(a, b, radius, div, color, color, fill);
 }
 
-// 3Dçƒã®ãƒ‡ãƒãƒƒã‚°æç”»é–¢æ•°
+// 3D‹…‚ÌƒfƒoƒbƒO•`‰æŠÖ”
 void DebugUtil::DrawSphere(const VECTOR& center, float radius, int div, int color, bool fill)
 {
     DrawSphere3D(center, radius, div, color, color, fill);
 }
 
-// 2Dãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’æç”»ã™ã‚‹é–¢æ•°
+// 2DƒƒbƒZ[ƒW‚ğ•`‰æ‚·‚éŠÖ”
 void DebugUtil::DrawMessage(int x, int y, unsigned int color, const std::string& msg)
 {
     DrawString(x, y, msg.c_str(), color);
 }
 
-// 2Dãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—ã‚’æç”»ã™ã‚‹é–¢æ•°
+// 2DƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğ•`‰æ‚·‚éŠÖ”
 void DebugUtil::DrawFormat(int x, int y, unsigned int color, const char* format, ...)
 {
     char buf[256];
-    va_list args;                              // å¯å¤‰å¼•æ•°ãƒªã‚¹ãƒˆ
-    va_start(args, format);                    // å¯å¤‰å¼•æ•°ã®åˆæœŸåŒ–
-    vsnprintf(buf, sizeof(buf), format, args); // ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—ã‚’ãƒãƒƒãƒ•ã‚¡ã«æ›¸ãè¾¼ã‚€
-    va_end(args);                              // å¯å¤‰å¼•æ•°ã®çµ‚äº†
-    DrawString(x, y, buf, color); // æç”»
+    va_list args;                              // ‰Â•Ïˆø”ƒŠƒXƒg
+    va_start(args, format);                    // ‰Â•Ïˆø”‚Ì‰Šú‰»
+    vsnprintf(buf, sizeof(buf), format, args); // ƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğƒoƒbƒtƒ@‚É‘‚«‚Ş
+    va_end(args);                              // ‰Â•Ïˆø”‚ÌI—¹
+    DrawString(x, y, buf, color); // •`‰æ
 }
 
-// ãƒ­ã‚´ã‚¹ã‚­ãƒƒãƒ—ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹é–¢æ•°
+// ƒƒSƒXƒLƒbƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚·‚éŠÖ”
 bool DebugUtil::IsSkipLogoKeyPressed()
 {
     return CheckHitKey(KEY_INPUT_S) != 0;
@@ -46,7 +46,7 @@ bool DebugUtil::IsSkipLogoKeyPressed()
 
 void DebugUtil::ShowDebugWindow()
 {
-    // F1ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸç¬é–“ã«è¡¨ç¤º/éè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆ
+    // F1ƒL[‚ª‰Ÿ‚³‚ê‚½uŠÔ‚É•\¦/”ñ•\¦‚ğØ‚è‘Ö‚¦
     static int prevF1 = 0;
     int nowF1 = CheckHitKey(KEY_INPUT_F1);
     if (nowF1 && !prevF1)
@@ -55,22 +55,22 @@ void DebugUtil::ShowDebugWindow()
 
         if (s_isVisible)
         {
-            // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‹ãæ™‚ã¯å¿…ãšãƒã‚¦ã‚¹ã‚’è¡¨ç¤º
+            // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ğŠJ‚­‚Í•K‚¸ƒ}ƒEƒX‚ğ•\¦
             SetMouseDispFlag(true);
         }
         else
         {
-            // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã‚‹æ™‚ã¯ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã«å¿œã˜ã¦ãƒã‚¦ã‚¹ã®è¡¨ç¤ºã‚’æ±ºå®š
+            // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚é‚ÍŒ»İ‚ÌƒV[ƒ“‚É‰‚¶‚Äƒ}ƒEƒX‚Ì•\¦‚ğŒˆ’è
             if (Game::m_pSceneManager)
             {
                 SceneBase* currentScene = Game::m_pSceneManager->GetCurrentScene();
                 if (dynamic_cast<SceneMain*>(currentScene))
                 {
-                    SetMouseDispFlag(false); // ã‚²ãƒ¼ãƒ æœ¬ç·¨ã§ã¯éè¡¨ç¤º
+                    SetMouseDispFlag(false); // ƒQ[ƒ€–{•Ò‚Å‚Í”ñ•\¦
                 }
                 else
                 {
-                    SetMouseDispFlag(true); // ãã‚Œä»¥å¤–ã®ã‚·ãƒ¼ãƒ³ã§ã¯è¡¨ç¤º
+                    SetMouseDispFlag(true); // ‚»‚êˆÈŠO‚ÌƒV[ƒ“‚Å‚Í•\¦
                 }
             }
         }
@@ -79,7 +79,7 @@ void DebugUtil::ShowDebugWindow()
 
     if (!s_isVisible) return;
 
-    // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®èƒŒæ™¯ã‚’åŠé€æ˜ã§æç”»
+    // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì”wŒi‚ğ”¼“§–¾‚Å•`‰æ
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, NULL);
 

@@ -62,8 +62,8 @@ void ReticleUI::Draw()
                 SetDrawBright(255, 100, 100);
             }
 
-            DrawExtendGraph(centerX - scaledReticleW * 0.5f, centerY - scaledReticleH * 0.5f,
-                centerX + scaledReticleW * 0.5f, centerY + scaledReticleH * 0.5f, currentReticleHandle, true);
+            DrawExtendGraph(static_cast<int>(centerX - scaledReticleW * 0.5f), static_cast<int>(centerY - scaledReticleH * 0.5f),
+                static_cast<int>(centerX + scaledReticleW * 0.5f), static_cast<int>(centerY + scaledReticleH * 0.5f), currentReticleHandle, true);
 
             if (isAiming)
             {
@@ -82,8 +82,8 @@ void ReticleUI::Draw()
         int scaledDotW = static_cast<int>(dotW * scale);
         int scaledDotH = static_cast<int>(dotH * scale);
 
-        DrawExtendGraph(centerX - scaledDotW * 0.5f, centerY - scaledDotH * 0.5f,
-            centerX + scaledDotW * 0.5f, centerY + scaledDotH * 0.5f, dotReticleHandle, true);
+        DrawExtendGraph(static_cast<int>(centerX - scaledDotW * 0.5f), static_cast<int>(centerY - scaledDotH * 0.5f),
+            static_cast<int>(centerX + scaledDotW * 0.5f), static_cast<int>(centerY + scaledDotH * 0.5f), dotReticleHandle, true);
     }
 
     SetDrawMode(DX_DRAWMODE_NEAREST);

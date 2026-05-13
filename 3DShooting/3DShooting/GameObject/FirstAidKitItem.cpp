@@ -1,4 +1,4 @@
-﻿#include "EffekseerForDXLib.h"
+﻿#include "EffekseerWarningSuppress.h"
 #include "FirstAidKitItem.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -27,8 +27,8 @@ namespace
 	constexpr float kItemCollisionYOffset = 25.0f; // オフセット調整
 
 	const float kRotateSpeed = 0.05f; // 回転速度
-	constexpr int   kLifeTime = 1200;              // アイテムの寿命 (20秒)
-	constexpr int   kFlashTime = 300;              // 点滅開始時間 (5秒)
+	constexpr int   kLifeTime = 1200; // アイテムの寿命 (20秒)
+	constexpr int   kFlashTime = 300; // 点滅開始時間 (5秒)
 }
 
 FirstAidKitItem::FirstAidKitItem():
@@ -105,7 +105,7 @@ void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageColli
     // 常に回転させる
 
     m_rotY += kRotateSpeed;
-    if (m_rotY > DX_TWO_PI) m_rotY -= DX_TWO_PI;
+    if (m_rotY > static_cast<float>(DX_TWO_PI)) m_rotY -= static_cast<float>(DX_TWO_PI);
 
 	// コライダーの位置を更新
 	m_collider.SetCenter(m_pos);

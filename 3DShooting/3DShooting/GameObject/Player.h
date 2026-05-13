@@ -1,7 +1,7 @@
 #pragma once
 #include "AttackType.h"
 #include "Camera.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "PlayerEffectManager.h"
 #include "PlayerMovement.h"
 #include "PlayerShieldSystem.h"
@@ -26,22 +26,22 @@ class ShellCasing;
 class AnimationManager;
 
 /// <summary>
-/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¯ãƒ©ã‚¹
+/// ƒvƒŒƒCƒ„[ƒNƒ‰ƒX
 /// </summary>
 class Player
 {
 public:
     /// <summary>
-    /// ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±æ§‹é€ ä½“
+    /// ƒ^ƒbƒNƒ‹î•ñ\‘¢‘Ì
     /// </summary>
     struct TackleInfo
     {
-        VECTOR capA = { 0, 0, 0 }; // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šã‚«ãƒ—ã‚»ãƒ«ã®Aç‚¹
-        VECTOR capB = { 0, 0, 0 }; // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šã‚«ãƒ—ã‚»ãƒ«ã®Bç‚¹
-        float radius = 0.0f;     // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®šã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„
-        float damage = 0.0f;     // ã‚¿ãƒƒã‚¯ãƒ«ã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡
-        bool isTackling = false; // ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã‹ã©ã†ã‹
-        int tackleId = 0;        // ã‚¿ãƒƒã‚¯ãƒ«ID
+        VECTOR capA = { 0, 0, 0 }; // ƒ^ƒbƒNƒ‹”»’èƒJƒvƒZƒ‹‚ÌA“_
+        VECTOR capB = { 0, 0, 0 }; // ƒ^ƒbƒNƒ‹”»’èƒJƒvƒZƒ‹‚ÌB“_
+        float radius = 0.0f;     // ƒ^ƒbƒNƒ‹”»’èƒJƒvƒZƒ‹‚Ì”¼Œa
+        float damage = 0.0f;     // ƒ^ƒbƒNƒ‹‚Ìƒ_ƒ[ƒW—Ê
+        bool isTackling = false; // ƒ^ƒbƒNƒ‹’†‚©‚Ç‚¤‚©
+        int tackleId = 0;        // ƒ^ƒbƒNƒ‹ID
     };
 
 public:
@@ -55,41 +55,41 @@ public:
     void DrawShield();
 
     /// <summary>
-    /// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚’å–å¾—
+    /// ƒGƒtƒFƒNƒgƒ}ƒl[ƒWƒƒ[‚ğæ“¾
     /// </summary>
     PlayerEffectManager& GetEffectManager() { return m_effectManager; }
 
     /// <summary>
-    /// ã‚«ãƒ¡ãƒ©ã‚’å–å¾—ã™ã‚‹
+    /// ƒJƒƒ‰‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ã‚«ãƒ¡ãƒ©ã®å…±æœ‰ãƒã‚¤ãƒ³ã‚¿</returns>
+    /// <returns>ƒJƒƒ‰‚Ì‹¤—Lƒ|ƒCƒ“ƒ^</returns>
     const std::shared_ptr<Camera>& GetCamera() const { return m_pCamera; }
 
     /// <summary>
-    /// å¼¾ã‚’æ’ƒã¤
+    /// ’e‚ğŒ‚‚Â
     /// </summary>
-    /// <param name="bullets">å¼¾ã®ãƒ™ã‚¯ã‚¿ãƒ¼</param>
+    /// <param name="bullets">’e‚ÌƒxƒNƒ^[</param>
     void Shoot(std::vector<Bullet>& bullets);
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹
+    /// ƒvƒŒƒCƒ„[‚ªƒ_ƒ[ƒW‚ğó‚¯‚é
     /// </summary>
-    /// <param name="damage">å—ã‘ã‚‹ãƒ€ãƒ¡ãƒ¼ã‚¸é‡</param>
-    /// <param name="attackerPos">æ”»æ’ƒè€…ã®ä½ç½®ï¼ˆã‚ªãƒ—ã‚·ãƒ§ãƒ³ï¼‰</param>
-    /// <param name="isParryable">ãƒ‘ãƒªã‚£å¯èƒ½ã‹ã©ã†ã‹ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆtrueï¼‰</param>
+    /// <param name="damage">ó‚¯‚éƒ_ƒ[ƒW—Ê</param>
+    /// <param name="attackerPos">UŒ‚Ò‚ÌˆÊ’uiƒIƒvƒVƒ‡ƒ“j</param>
+    /// <param name="isParryable">ƒpƒŠƒB‰Â”\‚©‚Ç‚¤‚©iƒfƒtƒHƒ‹ƒgtruej</param>
     void TakeDamage(float damage, const VECTOR& attackerPos = VGet(0, 0, 0),
         bool isParryable = true);
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’å–å¾—ã™ã‚‹
+    /// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®</returns>
+    /// <returns>ƒvƒŒƒCƒ„[‚ÌˆÊ’u</returns>
     VECTOR GetPos() const { return m_modelPos; }
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’è¨­å®šã™ã‚‹
+    /// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="pos">è¨­å®šã™ã‚‹ä½ç½®</param>
+    /// <param name="pos">İ’è‚·‚éˆÊ’u</param>
     void SetPos(const VECTOR& pos) { 
         m_pos = pos; 
         m_modelPos = pos;
@@ -97,293 +97,293 @@ public:
     }
 
     /// <summary>
-    /// å¼¾ã®å–å¾—
+    /// ’e‚Ìæ“¾
     /// </summary>
-    /// <returns>å¼¾ã®ãƒ™ã‚¯ã‚¿ãƒ¼</returns>
+    /// <returns>’e‚ÌƒxƒNƒ^[</returns>
     std::vector<Bullet>& GetBullets();
 
     /// <summary>
-    ///  ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã‚·ãƒ§ãƒƒãƒˆå¯èƒ½ã‹ã©ã†ã‹
+    ///  ƒvƒŒƒCƒ„[‚ªƒVƒ‡ƒbƒg‰Â”\‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>ã‚·ãƒ§ãƒƒãƒˆå¯èƒ½ãªã‚‰true</returns>
+    /// <returns>ƒVƒ‡ƒbƒg‰Â”\‚È‚çtrue</returns>
     bool HasShot();
 
     /// <summary>
-    /// ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±ã‚’å–å¾—ã™ã‚‹
+    /// ƒ^ƒbƒNƒ‹î•ñ‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ã‚¿ãƒƒã‚¯ãƒ«æƒ…å ±</returns>
+    /// <returns>ƒ^ƒbƒNƒ‹î•ñ</returns>
     TackleInfo GetTackleInfo() const;
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼æƒ…å ±ã‚’å–å¾—ã™ã‚‹
+    /// ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[î•ñ‚ğæ“¾‚·‚é
     /// </summary>
-    /// <param name="capA">ã‚«ãƒ—ã‚»ãƒ«ã®Aç‚¹</param>
-    /// <param name="capB">ã‚«ãƒ—ã‚»ãƒ«ã®Bç‚¹</param>
-    /// <param name="radius">ã‚«ãƒ—ã‚»ãƒ«ã®åŠå¾„</param>
+    /// <param name="capA">ƒJƒvƒZƒ‹‚ÌA“_</param>
+    /// <param name="capB">ƒJƒvƒZƒ‹‚ÌB“_</param>
+    /// <param name="radius">ƒJƒvƒZƒ‹‚Ì”¼Œa</param>
     void GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const;
 
     /// <summary>
-    /// ç›´å‰ã«ã‚¬ãƒ¼ãƒ‰ãŒæˆåŠŸã—ãŸã‹ã©ã†ã‹
+    /// ’¼‘O‚ÉƒK[ƒh‚ª¬Œ÷‚µ‚½‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>ã‚¬ãƒ¼ãƒ‰æˆåŠŸãªã‚‰true</returns>
+    /// <returns>ƒK[ƒh¬Œ÷‚È‚çtrue</returns>
     bool IsJustGuarded() const;
 
     /// <summary>
-    /// ãƒ‘ãƒªã‚£æˆåŠŸæ™‚ã®SEã‚’å†ç”Ÿã™ã‚‹
+    /// ƒpƒŠƒB¬Œ÷‚ÌSE‚ğÄ¶‚·‚é
     /// </summary>
     void PlayParrySE() const;
 
     /// <summary>
-    /// ä½“åŠ›ã‚’åŠ ç®—ã™ã‚‹
+    /// ‘Ì—Í‚ğ‰ÁZ‚·‚é
     /// </summary>
-    /// <param name="value">åŠ ç®—ã™ã‚‹ä½“åŠ›å€¤</param>
+    /// <param name="value">‰ÁZ‚·‚é‘Ì—Í’l</param>
     void AddHp(float value);
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã‚¬ãƒ¼ãƒ‰ä¸­ã‹ã©ã†ã‹
+    /// ƒvƒŒƒCƒ„[‚ªƒK[ƒh’†‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>ã‚¬ãƒ¼ãƒ‰ä¸­ãªã‚‰true</returns>
+    /// <returns>ƒK[ƒh’†‚È‚çtrue</returns>
     bool IsGuarding() const { return m_shieldSystem.IsGuarding(); }
 
     /// <summary>
-    /// ç¾åœ¨ã®ä½“åŠ›ã‚’å–å¾—ã™ã‚‹
+    /// Œ»İ‚Ì‘Ì—Í‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ç¾åœ¨ã®ä½“åŠ›</returns>
+    /// <returns>Œ»İ‚Ì‘Ì—Í</returns>
     float GetHealth() const { return m_status.GetHealth(); }
 
     /// <summary>
-    /// HPãƒãƒ¼ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨ä½“åŠ›å€¤ã‚’å–å¾—
+    /// HPƒo[ƒAƒjƒ[ƒVƒ‡ƒ“—p‘Ì—Í’l‚ğæ“¾
     /// </summary>
     float GetHealthBarAnim() const { return m_status.GetHealthBarAnim(); }
 
     /// <summary>
-    /// ä½ä½“åŠ›è­¦å‘Šã®ç‚¹æ»…ã‚¿ã‚¤ãƒãƒ¼ã‚’å–å¾—
+    /// ’á‘Ì—ÍŒx‚Ì“_–Åƒ^ƒCƒ}[‚ğæ“¾
     /// </summary>
     float GetLowHealthBlinkTimer() const { return m_status.GetLowHealthBlinkTimer(); }
 
     /// <summary>
-    /// å¼¾è–¬ãƒ†ã‚­ã‚¹ãƒˆã®ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒãƒ¼ã‚’å–å¾—
+    /// ’e–òƒeƒLƒXƒg‚Ìƒtƒ‰ƒbƒVƒ…ƒ^ƒCƒ}[‚ğæ“¾
     /// </summary>
     float GetAmmoTextFlashTimer() const { return m_ammoTextFlashTimer; }
 
     /// <summary>
-    /// ãƒ­ãƒƒã‚¯ã‚ªãƒ³ã—ã¦ã„ã‚‹æ•µã‚’å–å¾—
+    /// ƒƒbƒNƒIƒ“‚µ‚Ä‚¢‚é“G‚ğæ“¾
     /// </summary>
     EnemyBase* GetLockedOnEnemy() const { return m_lockOnSystem.GetLockedOnEnemy(); }
 
     /// <summary>
-    /// ç›¾ã‚·ã‚¹ãƒ†ãƒ ã‚’å–å¾—
+    /// ‚ƒVƒXƒeƒ€‚ğæ“¾
     /// </summary>
     const PlayerShieldSystem& GetShieldSystem() const { return m_shieldSystem; }
 
-    // å‚ç›´é€Ÿåº¦ãƒªã‚»ãƒƒãƒˆ (ãƒœã‚¹ã‚·ãƒ¼ãƒ«ãƒ‰å¯¾ç­–)
+    // ‚’¼‘¬“xƒŠƒZƒbƒg (ƒ{ƒXƒV[ƒ‹ƒh‘Îô)
     void ResetVerticalVelocity() { m_movement.ResetVerticalVelocity(); }
 
     /// <summary>
-    /// æœ€å¤§ä½“åŠ›ã‚’å–å¾—ã™ã‚‹
+    /// Å‘å‘Ì—Í‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>æœ€å¤§ä½“åŠ›</returns>
+    /// <returns>Å‘å‘Ì—Í</returns>
     float GetMaxHealth() const { return m_status.GetMaxHealth(); }
 
     /// <summary>
-    /// ARå¼¾è–¬å›å¾©ç”¨é–¢æ•°
+    /// AR’e–ò‰ñ•œ—pŠÖ”
     /// </summary>
-    /// <param name="value">å¼¾è–¬æ•°</param>
+    /// <param name="value">’e–ò”</param>
     void AddARAmmo(int value);
 
     /// <summary>
-    /// ç¾åœ¨ã®ç§»å‹•é€Ÿåº¦ã‚’å–å¾—
+    /// Œ»İ‚ÌˆÚ“®‘¬“x‚ğæ“¾
     /// </summary>
-    /// <returns>ç§»å‹•é€Ÿåº¦</returns>
+    /// <returns>ˆÚ“®‘¬“x</returns>
     float GetCurrentSpeed() const { return m_movement.GetCurrentSpeed(); }
 
     /// <summary>
-    /// SGå¼¾è–¬å›å¾©ç”¨é–¢æ•°
+    /// SG’e–ò‰ñ•œ—pŠÖ”
     /// </summary>
-    /// <param name="value">å¼¾è–¬æ•°</param>
+    /// <param name="value">’e–ò”</param>
     void AddSGAmmo(int value);
 
     /// <summary>
-    /// ç¾åœ¨ã®æ­¦å™¨ã®å¼¾è–¬æ•°ã‚’å–å¾—ã™ã‚‹
+    /// Œ»İ‚Ì•Ší‚Ì’e–ò”‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ç¾åœ¨ã®å¼¾è–¬æ•°</returns>
+    /// <returns>Œ»İ‚Ì’e–ò”</returns>
     int GetCurrentAmmo() const;
 
     /// <summary>
-    /// ç¾åœ¨ã®æ­¦å™¨ã®æœ€å¤§å¼¾è–¬æ•°ã‚’å–å¾—ã™ã‚‹
+    /// Œ»İ‚Ì•Ší‚ÌÅ‘å’e–ò”‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>æœ€å¤§å¼¾è–¬æ•°</returns>
+    /// <returns>Å‘å’e–ò”</returns>
     int GetMaxAmmo() const;
 
     /// <summary>
-    /// å¼¾è–¬ç„¡é™ãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹
+    /// ’e–ò–³ŒÀƒ‚[ƒh‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="isInfinite">ç„¡é™ã«ã™ã‚‹ã‹ã©ã†ã‹</param>
+    /// <param name="isInfinite">–³ŒÀ‚É‚·‚é‚©‚Ç‚¤‚©</param>
     void SetInfiniteAmmo(bool isInfinite) { m_isInfiniteAmmo = isInfinite; }
 
     /// <summary>
-    /// å¼¾è–¬ç„¡é™ãƒ¢ãƒ¼ãƒ‰ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
+    /// ’e–ò–³ŒÀƒ‚[ƒh‚©‚Ç‚¤‚©‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>å¼¾è–¬ç„¡é™ãƒ¢ãƒ¼ãƒ‰ãªã‚‰true</returns>
+    /// <returns>’e–ò–³ŒÀƒ‚[ƒh‚È‚çtrue</returns>
     bool IsInfiniteAmmo() const { return m_isInfiniteAmmo; }
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼å–å¾—
+    /// ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[æ“¾
     /// </summary>
     std::shared_ptr<CapsuleCollider> GetBodyCollider() const;
 
     /// <summary>
-    /// æ¥åœ°ã—ã¦ã„ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåã‚’å–å¾—ã™ã‚‹
+    /// Ú’n‚µ‚Ä‚¢‚éƒIƒuƒWƒFƒNƒg–¼‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>æ¥åœ°ã—ã¦ã„ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå</returns>
+    /// <returns>Ú’n‚µ‚Ä‚¢‚éƒIƒuƒWƒFƒNƒg–¼</returns>
     std::string GetGroundedObjectName() const;
 
     /// <summary>
-    /// ç„¡æ•µãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹
+    /// –³“Gƒ‚[ƒh‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="isInvincible">ç„¡æ•µã«ã™ã‚‹ã‹ã©ã†ã‹</param>
+    /// <param name="isInvincible">–³“G‚É‚·‚é‚©‚Ç‚¤‚©</param>
     void SetInvincible(bool isInvincible) { m_status.SetInvincible(isInvincible); }
 
     /// <summary>
-    /// ç„¡æ•µãƒ¢ãƒ¼ãƒ‰ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
+    /// –³“Gƒ‚[ƒh‚©‚Ç‚¤‚©‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ç„¡æ•µãƒ¢ãƒ¼ãƒ‰ãªã‚‰true</returns>
+    /// <returns>–³“Gƒ‚[ƒh‚È‚çtrue</returns>
     bool IsInvincible() const { return m_status.IsInvincible(); }
 
     /// <summary>
-    /// é£›è¡Œãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹
+    /// ”òsƒ‚[ƒh‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="isFlightMode">é£›è¡Œãƒ¢ãƒ¼ãƒ‰ã«ã™ã‚‹ã‹ã©ã†ã‹</param>
+    /// <param name="isFlightMode">”òsƒ‚[ƒh‚É‚·‚é‚©‚Ç‚¤‚©</param>
     void SetFlightMode(bool isFlightMode) { m_isFlightMode = isFlightMode; }
 
     /// <summary>
-    /// é£›è¡Œãƒ¢ãƒ¼ãƒ‰ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
+    /// ”òsƒ‚[ƒh‚©‚Ç‚¤‚©‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>é£›è¡Œãƒ¢ãƒ¼ãƒ‰ãªã‚‰true</returns>
+    /// <returns>”òsƒ‚[ƒh‚È‚çtrue</returns>
     bool IsFlightMode() const { return m_isFlightMode; }
 
     /// <summary>
-    /// ãƒ­ãƒƒã‚¯ã‚ªãƒ³å¯èƒ½ãªæ•µãŒã„ã‚‹ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
+    /// ƒƒbƒNƒIƒ“‰Â”\‚È“G‚ª‚¢‚é‚©‚Ç‚¤‚©‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ãƒ­ãƒƒã‚¯ã‚ªãƒ³å¯èƒ½ãªæ•µãŒã„ã‚‹ãªã‚‰true</returns>
+    /// <returns>ƒƒbƒNƒIƒ“‰Â”\‚È“G‚ª‚¢‚é‚È‚çtrue</returns>
     bool IsTargetAvailable() const { return m_lockOnSystem.IsTargetAvailable(); }
 
     /// <summary>
-    /// æ•µã«ç…§æº–ãŒåˆã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
+    /// “G‚ÉÆ€‚ª‡‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ç…§æº–ãŒåˆã£ã¦ã„ã‚‹ãªã‚‰true</returns>
+    /// <returns>Æ€‚ª‡‚Á‚Ä‚¢‚é‚È‚çtrue</returns>
     bool IsAimingAtEnemy() const { return m_lockOnSystem.IsAimingAtEnemy(); }
 
     /// <summary>
-    /// ä½“åŠ›ãŒä½ä¸‹ã—ã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
+    /// ‘Ì—Í‚ª’á‰º‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ä½“åŠ›ãŒä½ä¸‹ã—ã¦ã„ã‚‹ãªã‚‰true</returns>
+    /// <returns>‘Ì—Í‚ª’á‰º‚µ‚Ä‚¢‚é‚È‚çtrue</returns>
     bool IsLowHealth() const { return m_status.IsLowHealth(); }
 
     /// <summary>
-    /// æ”»æ’ƒåˆ¶é™ã‚’è¨­å®šã™ã‚‹
+    /// UŒ‚§ŒÀ‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="allowedAttack">è¨±å¯ã™ã‚‹æ”»æ’ƒã‚¿ã‚¤ãƒ—</param>
+    /// <param name="allowedAttack">‹–‰Â‚·‚éUŒ‚ƒ^ƒCƒv</param>
     void SetAttackRestrictions(AttackType allowedAttack);
 
     /// <summary>
-    /// ç¾åœ¨è¨±å¯ã•ã‚Œã¦ã„ã‚‹æ”»æ’ƒã‚¿ã‚¤ãƒ—ã‚’å–å¾—ã™ã‚‹
+    /// Œ»İ‹–‰Â‚³‚ê‚Ä‚¢‚éUŒ‚ƒ^ƒCƒv‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>è¨±å¯ã•ã‚Œã¦ã„ã‚‹æ”»æ’ƒã‚¿ã‚¤ãƒ—</returns>
+    /// <returns>‹–‰Â‚³‚ê‚Ä‚¢‚éUŒ‚ƒ^ƒCƒv</returns>
     AttackType GetAllowedAttackType() const { return m_allowedAttackType; }
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæ­»äº¡ã—ã¦ã„ã‚‹ã‹ã©ã†ã‹
+    /// ƒvƒŒƒCƒ„[‚ª€–S‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>æ­»äº¡ã—ã¦ã„ã‚‹ãªã‚‰true</returns>
+    /// <returns>€–S‚µ‚Ä‚¢‚é‚È‚çtrue</returns>
     bool IsDead() const { return m_status.IsDead(); }
 
     /// <summary>
-    /// æ–¹å‘ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ãƒ¼ã‚’è¨­å®šã™ã‚‹
+    /// •ûŒüƒCƒ“ƒWƒP[ƒ^[‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="directionIndicator">æ–¹å‘ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ãƒ¼ã®ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="directionIndicator">•ûŒüƒCƒ“ƒWƒP[ƒ^[‚Ìƒ|ƒCƒ“ƒ^</param>
     void SetDirectionIndicator(DirectionIndicator* directionIndicator) { m_pDirectionIndicator = directionIndicator; }
 
     /// <summary>
-    /// éŠƒã‚’æºã‚‰ã™
+    /// e‚ğ—h‚ç‚·
     /// </summary>
-    /// <param name="power">æºã‚Œã®å¼·ã•</param>
-    /// <param name="duration">æºã‚Œã®æŒç¶šæ™‚é–“</param>
+    /// <param name="power">—h‚ê‚Ì‹­‚³</param>
+    /// <param name="duration">—h‚ê‚Ì‘±ŠÔ</param>
     void ShakeGun(float power, float duration);
 
     /// <summary>
-    /// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’è¨­å®šã™ã‚‹
+    /// ƒGƒtƒFƒNƒg‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="pEffect">ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="pEffect">ƒGƒtƒFƒNƒg‚Ìƒ|ƒCƒ“ƒ^</param>
     void SetEffect(Effect* pEffect) { m_pEffect = pEffect; }
 
     /// <summary>
-    /// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚’è¨­å®šã™ã‚‹
+    /// ƒAƒjƒ[ƒVƒ‡ƒ“ƒ}ƒl[ƒWƒƒ[‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="pAnimManager">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã®ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="pAnimManager">ƒAƒjƒ[ƒVƒ‡ƒ“ƒ}ƒl[ƒWƒƒ[‚Ìƒ|ƒCƒ“ƒ^</param>
     void SetAnimationManager(AnimationManager* pAnimManager) { m_pAnimManager = pAnimManager; }
 
     /// <summary>
-    /// ç¾åœ¨ã®æ­¦å™¨ã‚¿ã‚¤ãƒ—ã‚’å–å¾—ã™ã‚‹
+    /// Œ»İ‚Ì•Šíƒ^ƒCƒv‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>ç¾åœ¨ã®æ­¦å™¨ã‚¿ã‚¤ãƒ—</returns>
+    /// <returns>Œ»İ‚Ì•Šíƒ^ƒCƒv</returns>
     WeaponType GetCurrentWeaponType() const;
 
     /// <summary>
-    /// æ­¦å™¨ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚’å–å¾—ã™ã‚‹
+    /// •Šíƒ}ƒl[ƒWƒƒ[‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>æ­¦å™¨ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã®å‚ç…§</returns>
+    /// <returns>•Šíƒ}ƒl[ƒWƒƒ[‚ÌQÆ</returns>
     const PlayerWeaponManager& GetWeaponManager() const { return m_weaponManager; }
 
 private:
     /// <summary>
-    /// æ­»äº¡æ™‚ã®æ›´æ–°å‡¦ç†
+    /// €–S‚ÌXVˆ—
     /// </summary>
     void DeathUpdate();
 
     /// <summary>
-    /// éŠƒã®ä½ç½®ã‚’å–å¾—ã™ã‚‹
+    /// e‚ÌˆÊ’u‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>éŠƒã®ä½ç½®</returns>
+    /// <returns>e‚ÌˆÊ’u</returns>
     VECTOR GetGunPos() const;
 
     /// <summary>
-    /// éŠƒã®å›è»¢ã‚’å–å¾—ã™ã‚‹
+    /// e‚Ì‰ñ“]‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>éŠƒã®å›è»¢</returns>
+    /// <returns>e‚Ì‰ñ“]</returns>
     VECTOR GetGunRot() const;
 
     /// <summary>
-    /// è–¬è¢æ’å‡ºå£ã®ä½ç½®ã‚’å–å¾—ã™ã‚‹
+    /// –òä°”roŒû‚ÌˆÊ’u‚ğæ“¾‚·‚é
     /// </summary>
-    /// <returns>è–¬è¢æ’å‡ºå£ã®ä½ç½®</returns>
+    /// <returns>–òä°”roŒû‚ÌˆÊ’u</returns>
     VECTOR GetEjectionPortPos() const;
 
     /// <summary>
-    /// æ­¦å™¨ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+    /// •Ší‚ğØ‚è‘Ö‚¦‚é
     /// </summary>
-    /// <param name="weaponType">åˆ‡ã‚Šæ›¿ãˆã‚‹æ­¦å™¨ã®ç¨®é¡</param>
+    /// <param name="weaponType">Ø‚è‘Ö‚¦‚é•Ší‚Ìí—Ş</param>
     void SwitchWeapon(WeaponType weaponType);
 
     /// <summary>
-    /// å°„æ’ƒå‡¦ç†ã®æ›´æ–°
+    /// ËŒ‚ˆ—‚ÌXV
     /// </summary>
     void UpdateShooting();
 
     /// <summary>
-    /// æ­¦å™¨åˆ‡ã‚Šæ›¿ãˆå‡¦ç†ã®æ›´æ–°
+    /// •ŠíØ‚è‘Ö‚¦ˆ—‚ÌXV
     /// </summary>
-    /// <param name="keyState">ã‚­ãƒ¼çŠ¶æ…‹</param>
+    /// <param name="keyState">ƒL[ó‘Ô</param>
     void UpdateWeaponSwitching(const unsigned char* keyState);
 
     /// <summary>
-    /// æ•µæ¥è¿‘æ™‚ã®ãƒ€ãƒƒã‚·ãƒ¥è§£é™¤ãƒã‚§ãƒƒã‚¯
+    /// “GÚ‹ß‚Ìƒ_ƒbƒVƒ…‰ğœƒ`ƒFƒbƒN
     /// </summary>
-    /// <param name="enemyList">æ•µãƒªã‚¹ãƒˆ</param>
+    /// <param name="enemyList">“GƒŠƒXƒg</param>
     void CheckEnemyProximity(const std::vector<EnemyBase*>& enemyList);
 
 private:
-    // ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
+    // ƒRƒ“ƒ|[ƒlƒ“ƒg
     PlayerWeaponManager m_weaponManager;
     PlayerMovement m_movement;
     PlayerShieldSystem m_shieldSystem;
@@ -393,39 +393,39 @@ private:
     PlayerLockOnSystem m_lockOnSystem;
 
     std::vector<ShellCasing> m_shellCasings;
-    std::shared_ptr<Camera> m_pCamera; // ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿
-    std::vector<Bullet> m_bullets;     // å¼¾ã®ç®¡ç†
-    Effect* m_pEffect;                 // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ãƒã‚¤ãƒ³ã‚¿
-    AnimationManager* m_pAnimManager;  // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã®ãƒã‚¤ãƒ³ã‚¿
-    DirectionIndicator* m_pDirectionIndicator; // æ–¹å‘ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ãƒ¼
+    std::shared_ptr<Camera> m_pCamera; // ƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^
+    std::vector<Bullet> m_bullets;     // ’e‚ÌŠÇ—
+    Effect* m_pEffect;                 // ƒGƒtƒFƒNƒg‚Ìƒ|ƒCƒ“ƒ^
+    AnimationManager* m_pAnimManager;  // ƒAƒjƒ[ƒVƒ‡ƒ“ƒ}ƒl[ƒWƒƒ[‚Ìƒ|ƒCƒ“ƒ^
+    DirectionIndicator* m_pDirectionIndicator; // •ûŒüƒCƒ“ƒWƒP[ƒ^[
 
-    // ä½ç½®ãƒ»å§¿å‹¢
+    // ˆÊ’uEp¨
     VECTOR m_pos;
     VECTOR m_modelPos;
     VECTOR m_scale;
-    VECTOR m_gunSwayOffset;    // éŠƒã®æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆ
-    VECTOR m_gunSwayRotOffset; // éŠƒã®å›è»¢æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    VECTOR m_gunSwayOffset;    // e‚Ì—h‚êƒIƒtƒZƒbƒg
+    VECTOR m_gunSwayRotOffset; // e‚Ì‰ñ“]—h‚êƒIƒtƒZƒbƒg
 
-    // ã‚¿ã‚¤ãƒãƒ¼é¡
-    float m_idleSwayTimer;               // å¾…æ©Ÿæ™‚ã®æºã‚Œã‚¿ã‚¤ãƒãƒ¼
-    float m_ammoTextFlashTimer;          // å¼¾è–¬ãƒ†ã‚­ã‚¹ãƒˆã®ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒãƒ¼
-    float m_startAnimTimer;              // é–‹å§‹æ¼”å‡ºã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚¿ã‚¤ãƒãƒ¼
-    float m_startAnimDuration;           // é–‹å§‹æ¼”å‡ºã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“
-    float m_uiFadeTimer;                 // UIãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ã‚¿ã‚¤ãƒãƒ¼
-    float m_uiFadeDuration;              // UIãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³æ™‚é–“
+    // ƒ^ƒCƒ}[—Ş
+    float m_idleSwayTimer;               // ‘Ò‹@‚Ì—h‚êƒ^ƒCƒ}[
+    float m_ammoTextFlashTimer;          // ’e–òƒeƒLƒXƒg‚Ìƒtƒ‰ƒbƒVƒ…ƒ^ƒCƒ}[
+    float m_startAnimTimer;              // ŠJn‰‰oƒAƒjƒ[ƒVƒ‡ƒ“ƒ^ƒCƒ}[
+    float m_startAnimDuration;           // ŠJn‰‰oƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ
+    float m_uiFadeTimer;                 // UIƒtƒF[ƒhƒCƒ“ƒ^ƒCƒ}[
+    float m_uiFadeDuration;              // UIƒtƒF[ƒhƒCƒ“ŠÔ
 
-    // å…¥åŠ›ãƒ»çŠ¶æ…‹ãƒ•ãƒ©ã‚°
-    unsigned char m_prevKeyState[256]{}; // å‰å›ã®ã‚­ãƒ¼å…¥åŠ›çŠ¶æ…‹
-    bool m_prevIsGuarding = false;       // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®ã‚¬ãƒ¼ãƒ‰çŠ¶æ…‹
-    bool m_hasShot;                      // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã‚·ãƒ§ãƒƒãƒˆå¯èƒ½ã‹ã©ã†ã‹
-    bool m_isInfiniteAmmo;               // å¼¾è–¬ç„¡é™ãƒ¢ãƒ¼ãƒ‰ã‹ã©ã†ã‹
-    bool m_isFlightMode;                 // é£›è¡Œãƒ¢ãƒ¼ãƒ‰ã‹ã©ã†ã‹
-    bool m_shouldIgnoreGuardInput;       // ã‚¬ãƒ¼ãƒ‰å…¥åŠ›ã‚’ç„¡è¦–ã™ã‚‹ã‹
-    bool m_isTutorial;                   // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã‹
-    bool m_isStartAnimating;             // é–‹å§‹æ¼”å‡ºã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ã‹
-    bool m_hasLandedAtStart;             // é–‹å§‹æ™‚ã«ä¸€åº¦ã§ã‚‚ç€åœ°ã—ãŸã‹
-    bool m_isUiFadeStarted;              // UIãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³ãŒé–‹å§‹ã•ã‚ŒãŸã‹
-    bool m_isDamageHandledInThisFrame;   // åŒä¸€ãƒ•ãƒ¬ãƒ¼ãƒ å†…ã§ãƒ€ãƒ¡ãƒ¼ã‚¸æ¼”å‡ºï¼ˆSE/æŒ¯å‹•ï¼‰ã‚’å‡¦ç†ã—ãŸã‹
+    // “ü—ÍEó‘Ôƒtƒ‰ƒO
+    unsigned char m_prevKeyState[256]{}; // ‘O‰ñ‚ÌƒL[“ü—Íó‘Ô
+    bool m_prevIsGuarding = false;       // ‘OƒtƒŒ[ƒ€‚ÌƒK[ƒhó‘Ô
+    bool m_hasShot;                      // ƒvƒŒƒCƒ„[‚ªƒVƒ‡ƒbƒg‰Â”\‚©‚Ç‚¤‚©
+    bool m_isInfiniteAmmo;               // ’e–ò–³ŒÀƒ‚[ƒh‚©‚Ç‚¤‚©
+    bool m_isFlightMode;                 // ”òsƒ‚[ƒh‚©‚Ç‚¤‚©
+    bool m_shouldIgnoreGuardInput;       // ƒK[ƒh“ü—Í‚ğ–³‹‚·‚é‚©
+    bool m_isTutorial;                   // ƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚©
+    bool m_isStartAnimating;             // ŠJn‰‰oƒAƒjƒ[ƒVƒ‡ƒ“’†‚©
+    bool m_hasLandedAtStart;             // ŠJn‚Éˆê“x‚Å‚à’…’n‚µ‚½‚©
+    bool m_isUiFadeStarted;              // UIƒtƒF[ƒhƒCƒ“‚ªŠJn‚³‚ê‚½‚©
+    bool m_isDamageHandledInThisFrame;   // “¯ˆêƒtƒŒ[ƒ€“à‚Åƒ_ƒ[ƒW‰‰oiSE/U“®j‚ğˆ—‚µ‚½‚©
     
     AttackType m_allowedAttackType = AttackType::None;
 };

@@ -1,10 +1,10 @@
-ï»¿#include "EnemyRunner.h"
+#include "EnemyRunner.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "CollisionGrid.h"
 #include "DebugUtil.h"
 #include "DxLib.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "Player.h"
 #include "SceneMain.h"
 #include "SphereCollider.h"
@@ -23,37 +23,37 @@
 
 namespace EnemyRunnerConstants
 {
-    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–¢é€£
-    constexpr char kAttackAnimName[] = "Armature|Attack"; // æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
-    constexpr char kRunAnimName[] = "Armature|Run";       // èµ°ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
-    constexpr char kDeadAnimName[] = "Armature|Death";    // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+    // ƒAƒjƒ[ƒVƒ‡ƒ“ŠÖ˜A
+    constexpr char kAttackAnimName[] = "Armature|Attack"; // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“
+    constexpr char kRunAnimName[] = "Armature|Run";       // ‘–‚éƒAƒjƒ[ƒVƒ‡ƒ“
+    constexpr char kDeadAnimName[] = "Armature|Death";    // €–SƒAƒjƒ[ƒVƒ‡ƒ“
 
-    // ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ã‚µã‚¤ã‚ºã‚’å®šç¾©
-    constexpr float kBodyColliderRadius = 20.0f;  // ä½“ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼åŠå¾„
-    constexpr float kBodyColliderHeight = 110.0f; // ä½“ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼é«˜ã•
-    constexpr float kHeadRadius = 15.0f;          // é ­ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼åŠå¾„
+    // ƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[‚ÌƒTƒCƒY‚ğ’è‹`
+    constexpr float kBodyColliderRadius = 20.0f;  // ‘Ì‚ÌƒRƒ‰ƒCƒ_[”¼Œa
+    constexpr float kBodyColliderHeight = 110.0f; // ‘Ì‚ÌƒRƒ‰ƒCƒ_[‚‚³
+    constexpr float kHeadRadius = 15.0f;          // “ª‚ÌƒRƒ‰ƒCƒ_[”¼Œa
 
-    // æ”»æ’ƒé–¢é€£
-    constexpr int kAttackCooldownMax = 30;       // æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³æ™‚é–“
-    constexpr float kAttackHitRadius = 60.0f;    // æ”»æ’ƒã®å½“ãŸã‚Šåˆ¤å®šåŠå¾„
-    constexpr float kAttackTriggerRadius = 30.0f; // æ”»æ’ƒé–‹å§‹åˆ¤å®šåŠå¾„(é€šå¸¸ã‚ˆã‚Šå°ã•ã‚)
-    constexpr float kAttackRangeRadius = 100.0f; // æ”»æ’ƒç¯„å›²ã®åŠå¾„
+    // UŒ‚ŠÖ˜A
+    constexpr int kAttackCooldownMax = 30;       // UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“ŠÔ
+    constexpr float kAttackHitRadius = 60.0f;    // UŒ‚‚Ì“–‚½‚è”»’è”¼Œa
+    constexpr float kAttackTriggerRadius = 30.0f; // UŒ‚ŠJn”»’è”¼Œa(’Êí‚æ‚è¬‚³‚ß)
+    constexpr float kAttackRangeRadius = 100.0f; // UŒ‚”ÍˆÍ‚Ì”¼Œa
 
-    // è¿½è·¡é–¢é€£
+    // ’ÇÕŠÖ˜A
     constexpr int kAttackEndDelay = 10;
 
     const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f };
 
-    // å›é¿åˆ¤å®š
+    // ‰ñ”ğ”»’è
     constexpr float kEvasionMarginRadius = 80.0f;
     constexpr float kEvasionSwitchTime = 60.0f;
 
-    // æç”»
-    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000ã‹ã‚‰5000ã«ç¸®å°
+    // •`‰æ
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000‚©‚ç5000‚Ék¬
     constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
     constexpr float kDrawDotThreshold = 0.4f;
 
-    // æŠ¼ã—å‡ºã—
+    // ‰Ÿ‚µo‚µ
     constexpr float kPushBackEpsilon = 0.0001f;
 }
 
@@ -70,13 +70,17 @@ EnemyRunner::EnemyRunner()
     , m_attackEndDelayTimer(0)
     , m_isDeadAnimPlaying(false)
     , m_hasDroppedItem(false)
+    , m_wanderTimer(0)
+    , m_wanderOffset(VGet(0.0f, 0.0f, 0.0f))
+    , m_evadeSwitchTimer(0.0f)
+    , m_isEvadingRight(false)
     , m_distToPlayer(0.0f)
     , m_damageSECooldown(0.0f)
 {
-    // ãƒ¢ãƒ‡ãƒ«ã®è¤‡è£½
+    // ƒ‚ƒfƒ‹‚Ì•¡»
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
-    // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®åˆæœŸåŒ–
+    // ƒRƒ‰ƒCƒ_[‚Ì‰Šú‰»
     m_pBodyCollider = std::make_shared<CapsuleCollider>();
     m_pHeadCollider = std::make_shared<SphereCollider>();
     m_pAttackRangeCollider = std::make_shared<SphereCollider>();
@@ -85,7 +89,7 @@ EnemyRunner::EnemyRunner()
 
 EnemyRunner::~EnemyRunner()
 {
-    // ãƒ¢ãƒ‡ãƒ«ã®è§£æ”¾
+    // ƒ‚ƒfƒ‹‚Ì‰ğ•ú
     MV1DeleteModel(m_modelHandle);
 }
 
@@ -109,36 +113,36 @@ void EnemyRunner::Init()
     m_lastHitPart = HitPart::None;
     m_hitDisplayTimer = 0;
     
-    // CSVã‹ã‚‰RunnerEnemyã®Transformæƒ…å ±ã‚’å–å¾—
+    // CSV‚©‚çRunnerEnemy‚ÌTransformî•ñ‚ğæ“¾
     LoadTransformData("RunnerEnemy");
 
-    // ã“ã“ã§ä¸€åº¦ã€Œçµ¶å¯¾ã«Runã§ãªã„å€¤ã€ã«ãƒªã‚»ãƒƒãƒˆ
-    // åˆæœŸã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å¼·åˆ¶çš„ã«å†ç”Ÿã•ã›ã‚‹ãŸã‚
+    // ‚±‚±‚Åˆê“xuâ‘Î‚ÉRun‚Å‚È‚¢’lv‚ÉƒŠƒZƒbƒg
+    // ‰ŠúƒAƒjƒ[ƒVƒ‡ƒ“‚ğ‹­§“I‚ÉÄ¶‚³‚¹‚é‚½‚ß
     m_currentAnimState = AnimState::Dead;
 
-    // åˆæœŸã‚¹ãƒ†ãƒ¼ãƒˆã®è¨­å®š
+    // ‰ŠúƒXƒe[ƒg‚Ìİ’è
     ChangeState(std::make_shared<EnemyRunnerStateRun>());
 
-    // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚ªãƒ•ã‚»ãƒƒãƒˆã®åˆæœŸåŒ– (Â±40.0f)
+    // ƒ^[ƒQƒbƒgƒIƒtƒZƒbƒg‚Ì‰Šú‰» (}40.0f)
     float offsetX = static_cast<float>(GetRand(80) - 40);
     float offsetZ = static_cast<float>(GetRand(80) - 40);
     m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 
-    // å›é¿ç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿åˆæœŸåŒ–
+    // ‰ñ”ğ—pƒpƒ‰ƒ[ƒ^‰Šú‰»
     m_evadeSwitchTimer = 0.0f;
     m_isEvadingRight = (GetRand(1) == 0);
 
-    // å¾˜å¾Šç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿åˆæœŸåŒ–
+    // œpœj—pƒpƒ‰ƒ[ƒ^‰Šú‰»
     m_wanderTimer = 0;
     m_wanderOffset = VGet(0.0f, 0.0f, 0.0f);
 }
 
 void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
 {
-    // Attackã ã‘ã¯ãƒªã‚»ãƒƒãƒˆå†ç”Ÿ
+    // Attack‚¾‚¯‚ÍƒŠƒZƒbƒgÄ¶
     if (m_currentAnimState == newAnimState)
     {
-        // ã©ã®çŠ¶æ…‹ã§ã‚‚å¿…ãšå†ç”Ÿã—ç›´ã™
+        // ‚Ç‚Ìó‘Ô‚Å‚à•K‚¸Ä¶‚µ’¼‚·
         switch (newAnimState)
         {
         case AnimState::Attack:
@@ -176,14 +180,14 @@ void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
         m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
         m_animTime = 0.0f;
 
-        // æ”»æ’ƒãƒœã‚¤ã‚¹ã®å†ç”Ÿ
+        // UŒ‚ƒ{ƒCƒX‚ÌÄ¶
         if (newAnimState == AnimState::Attack)
         {
             float maxDist = 2000.0f;
             float volRatio = 1.0f - (m_distToPlayer / maxDist);
             if (volRatio < 0.0f) volRatio = 0.0f;
             if (volRatio > 1.0f) volRatio = 1.0f;
-            SoundManager::GetInstance()->Play("EnemyRunner", "Attack", (int)(100 * volRatio));
+            SoundManager::GetInstance()->Play("EnemyRunner", "Attack", static_cast<int>(100 * volRatio));
         }
     }
 
@@ -205,7 +209,7 @@ void EnemyRunner::ChangeState(std::shared_ptr<EnemyState<EnemyRunner>> newState)
 
 bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
 {
-    // æ‰‹ã®ä½ç½®ã‚’å–å¾—
+    // è‚ÌˆÊ’u‚ğæ“¾
     int handRIndex = MV1SearchFrame(m_modelHandle, "mixamorig:RightHand");
     int handLIndex = MV1SearchFrame(m_modelHandle, "mixamorig:LeftHand");
     if (handRIndex == -1 || handLIndex == -1) return false;
@@ -215,7 +219,7 @@ bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
 
     m_pAttackHitCollider->SetSegment(handRPos, handLPos);
 
-    // åŠå¾„ã®è¨­å®š
+    // ”¼Œa‚Ìİ’è
     float radius = (checkRadius > 0.0f) ? checkRadius : EnemyRunnerConstants::kAttackHitRadius;
     m_pAttackHitCollider->SetRadius(radius);
 
@@ -225,7 +229,7 @@ bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
 
 void EnemyRunner::Update(const EnemyUpdateContext& context)
 {
-    // ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆã‹ã‚‰å±•é–‹
+    // ƒRƒ“ƒeƒLƒXƒg‚©‚ç“WŠJ
     std::vector<Bullet>& bullets = context.bullets;
     const Player::TackleInfo& tackleInfo = context.tackleInfo;
     const Player& player = context.player;
@@ -233,13 +237,13 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
     const std::vector<Stage::StageCollisionData>& collisionData = context.collisionData;
     Effect* pEffect = context.pEffect;
 
-    // AIé–“å¼•ãå‡¦ç†ã®æ›´æ–°
+    // AIŠÔˆø‚«ˆ—‚ÌXV
     UpdateThrottling(player.GetPos());
 
-    // è¦–ç•Œå¤–ã®å˜ç´”å‹•ä½œãƒ¢ãƒ¼ãƒ‰
+    // ‹ŠEŠO‚Ì’Pƒ“®ìƒ‚[ƒh
     if (m_isSimpleMode)
     {
-        // ç”Ÿå­˜ã—ã¦ã„ã‚Œã°ç°¡æ˜“ç§»å‹•
+        // ¶‘¶‚µ‚Ä‚¢‚ê‚ÎŠÈˆÕˆÚ“®
         if (m_hp > 0.0f)
         {
             VECTOR playerPos = player.GetPos();
@@ -247,32 +251,32 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
             VECTOR toPlayer = VSub(targetPos, m_pos);
             toPlayer.y = 0.0f;
 
-            // ç°¡æ˜“ç§»å‹• (å›é¿è¡Œå‹•ãªã—ã€ç›´ç·šç§»å‹•ã®ã¿)
+            // ŠÈˆÕˆÚ“® (‰ñ”ğs“®‚È‚µA’¼üˆÚ“®‚Ì‚İ)
             VECTOR dir = VNorm(toPlayer);
             float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
             m_pos.x += dir.x * scaledSpeed;
             m_pos.z += dir.z * scaledSpeed;
 
-            // å‘ãæ›´æ–°
+            // Œü‚«XV
             float rotSpeed = 0.05f * Game::GetTimeScale();
             RotateTowards(targetPos, rotSpeed);
         }
 
-        // ã‚¹ãƒ†ãƒ¼ã‚¸ã¨ã®å½“ãŸã‚Šåˆ¤å®šã®ã¿ç°¡æ˜“ã«è¡Œã†
+        // ƒXƒe[ƒW‚Æ‚Ì“–‚½‚è”»’è‚Ì‚İŠÈˆÕ‚És‚¤
         UpdateStageCollision(collisionData, context.collisionGrid);
         
-        // ãƒ¢ãƒ‡ãƒ«ã®ä½ç½®æ›´æ–°
+        // ƒ‚ƒfƒ‹‚ÌˆÊ’uXV
         MV1SetPosition(m_modelHandle, m_pos);
         return;
     }
 
-    // ã‚¹ãƒ†ãƒ¼ã‚¸ã¨ã®å½“ãŸã‚Šåˆ¤å®š
+    // ƒXƒe[ƒW‚Æ‚Ì“–‚½‚è”»’è
     UpdateStageCollision(collisionData, context.collisionGrid);
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®è·é›¢ã‚’æ›´æ–°
+    // ƒvƒŒƒCƒ„[‚Æ‚Ì‹——£‚ğXV
     m_distToPlayer = VSize(VSub(context.player.GetPos(), m_pos));
 
-    // ãƒ€ãƒ¡ãƒ¼ã‚¸SEã®ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ æ›´æ–°
+    // ƒ_ƒ[ƒWSE‚ÌƒN[ƒ‹ƒ^ƒCƒ€XV
     if (m_damageSECooldown > 0.0f)
     {
         m_damageSECooldown -= 1.0f * Game::GetTimeScale();
@@ -284,23 +288,23 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
         return;
     }
 
-    MV1SetPosition(m_modelHandle, m_pos); // ãƒ¢ãƒ‡ãƒ«ã®ä½ç½®ã¯å¸¸ã«åæ˜ ã™ã‚‹
+    MV1SetPosition(m_modelHandle, m_pos); // ƒ‚ƒfƒ‹‚ÌˆÊ’u‚Íí‚É”½‰f‚·‚é
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ–¹å‘ã‚’å¸¸ã«å‘ãï¼ˆè¿½è·¡ä¸­ã®ã¿ï¼‰
-    // æ”»æ’ƒã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ã¯å›è»¢ã—ãªã„
+    // ƒvƒŒƒCƒ„[‚Ì•ûŒü‚ğí‚ÉŒü‚­i’ÇÕ’†‚Ì‚İj
+    // UŒ‚ƒAƒjƒ[ƒVƒ‡ƒ“’†‚Í‰ñ“]‚µ‚È‚¢
     if (m_currentAnimState == AnimState::Run)
     {
         VECTOR playerPos = player.GetPos();
         VECTOR targetPos;
 
-        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒå²©ã®ä¸Šã«ã„ã‚‹å ´åˆã¯ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘¨å›²ã‚’ã†ã‚ã†ã‚ã™ã‚‹
+        // ƒvƒŒƒCƒ„[‚ªŠâ‚Ìã‚É‚¢‚éê‡‚ÍAƒvƒŒƒCƒ„[‚ÌüˆÍ‚ğ‚¤‚ë‚¤‚ë‚·‚é
         std::string groundObj = player.GetGroundedObjectName();
         if (groundObj == "Rock3" || groundObj == "Rock6")
         {
             m_wanderTimer--;
             if (m_wanderTimer <= 0)
             {
-                // 2ç§’ã”ã¨ã«æ–°ã—ã„ç›®æ¨™ä½ç½®ã‚’è¨­å®š (è·é›¢300~700) - ç¯„å›²æ‹¡å¤§
+                // 2•b‚²‚Æ‚ÉV‚µ‚¢–Ú•WˆÊ’u‚ğİ’è (‹——£300~700) - ”ÍˆÍŠg‘å
                 m_wanderTimer = 120;
                 float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
                 float dist = static_cast<float>(300 + GetRand(400));
@@ -310,56 +314,56 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
         }
         else
         {
-            // é€šå¸¸æ™‚ã¯ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å‘ã‹ã†ï¼ˆã‚ªãƒ•ã‚»ãƒƒãƒˆä»˜ãï¼‰
+            // ’Êí‚ÍƒvƒŒƒCƒ„[‚ÉŒü‚©‚¤iƒIƒtƒZƒbƒg•t‚«j
             targetPos = VAdd(playerPos, m_targetOffset);
         }
 
         VECTOR toPlayer = VSub(targetPos, m_pos);
-        toPlayer.y = 0.0f; // Yæˆåˆ†ã‚’ç„¡è¦–ã—ã¦æ°´å¹³è·é›¢ã‚’è¨ˆç®—
+        toPlayer.y = 0.0f; // Y¬•ª‚ğ–³‹‚µ‚Ä…•½‹——£‚ğŒvZ
 
-        // è·é›¢è¨ˆç®—
+        // ‹——£ŒvZ
         float disToPlayer = VSize(toPlayer);
 
-        // è£œé–“é€Ÿåº¦(å¤§ãã„ã»ã©é€Ÿãå‘ã)
+        // •âŠÔ‘¬“x(‘å‚«‚¢‚Ù‚Ç‘¬‚­Œü‚­)
         float rotSpeed = 0.05f * Game::GetTimeScale();
         RotateTowards(targetPos, rotSpeed);
 
-        // å›é¿è¡Œå‹•
-        // ç§»å‹•è¨ˆç®—ã¯æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ–¹ãŒæ»‘ã‚‰ã‹ã ãŒã€æ±ºå®šã¯é–“å¼•ã‘ã‚‹
-        if (m_updateFrameCount % m_aiUpdateInterval == 0) // AIæ›´æ–°ãƒ•ãƒ¬ãƒ¼ãƒ ã®ã¿åˆ¤å®šæ›´æ–°
+        // ‰ñ”ğs“®
+        // ˆÚ“®ŒvZ‚Í–ˆƒtƒŒ[ƒ€‚Ì•û‚ªŠŠ‚ç‚©‚¾‚ªAŒˆ’è‚ÍŠÔˆø‚¯‚é
+        if (m_updateFrameCount % m_aiUpdateInterval == 0) // AIXVƒtƒŒ[ƒ€‚Ì‚İ”»’èXV
         {
-            // å›é¿åˆ‡ã‚Šæ›¿ãˆåˆ¤å®šãªã©ãŒã‚ã‚Œã°ã“ã“ã«è¨˜è¿°
+            // ‰ñ”ğØ‚è‘Ö‚¦”»’è‚È‚Ç‚ª‚ ‚ê‚Î‚±‚±‚É‹Lq
         }
 
-        // æ—¢å­˜ã®ç§»å‹•ãƒ­ã‚¸ãƒƒã‚¯
+        // Šù‘¶‚ÌˆÚ“®ƒƒWƒbƒN
         {
             VECTOR dir = VNorm(toPlayer);
 
-            // ç›´é€²æˆåˆ†
+            // ’¼i¬•ª
             VECTOR moveVec = VScale(dir, m_chaseSpeed * Game::GetTimeScale());
 
-            // å›é¿æˆåˆ†ï¼ˆå·¦å³ç§»å‹•ï¼‰
+            // ‰ñ”ğ¬•ªi¶‰EˆÚ“®j
             VECTOR evadeVec = VGet(0.0f, 0.0f, 0.0f);
 
-            // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ï¼ˆã‚«ãƒ¡ãƒ©ï¼‰ã®å°„ç·šãŒã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã«å½“ãŸã£ã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
+            // ƒvƒŒƒCƒ„[iƒJƒƒ‰j‚ÌËü‚ªƒRƒ‰ƒCƒ_[‚É“–‚½‚Á‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
             VECTOR camPos = GetCameraPosition();
             VECTOR camTarget = GetCameraTarget();
             VECTOR camDir = VNorm(VSub(camTarget, camPos)); // Normalize direction
 
-            // 5000.0f ã¯ Player::Update ã§ä½¿ç”¨ã•ã‚Œã¦ã„ã‚‹å°„ç¨‹è·é›¢
+            // 5000.0f ‚Í Player::Update ‚Åg—p‚³‚ê‚Ä‚¢‚éË’ö‹——£
             VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
 
             VECTOR hitPos;
             float hitDistSq;
             HitPart hitPart = CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
 
-            // å°„ç·šãŒå½“ãŸã£ã¦ã„ã‚‹å ´åˆã¯å›é¿è¡Œå‹•ï¼ˆå·¦å³ç§»å‹•ï¼‰ã‚’è¡Œã†
+            // Ëü‚ª“–‚½‚Á‚Ä‚¢‚éê‡‚Í‰ñ”ğs“®i¶‰EˆÚ“®j‚ğs‚¤
             bool shouldEvade = (hitPart != HitPart::None);
 
-            // ç›´æ¥å½“ãŸã£ã¦ã„ãªãã¦ã‚‚ã€å°‘ã—ä½™è£•ã‚’æŒãŸã›ã‚‹ï¼ˆãƒ¬ã‚¤ã¨æ•µã®ä½ç½®ã®è·é›¢ã§åˆ¤å®šï¼‰
+            // ’¼Ú“–‚½‚Á‚Ä‚¢‚È‚­‚Ä‚àA­‚µ—]—T‚ğ‚½‚¹‚éiƒŒƒC‚Æ“G‚ÌˆÊ’u‚Ì‹——£‚Å”»’èj
             if (!shouldEvade)
             {
-                // æ•µã®ä¸­å¿ƒä½ç½®ï¼ˆè¶³å…ƒ + é«˜ã•/2ï¼‰
+                // “G‚Ì’†SˆÊ’ui‘«Œ³ + ‚‚³/2j
                 VECTOR enemyCenter = VAdd(m_pos, VGet(0.0f, 55.0f, 0.0f));
 
                 VECTOR toEnemy = VSub(enemyCenter, camPos);
@@ -367,12 +371,12 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
 
                 if (t > 0.0f)
                 {
-                    // ãƒ¬ã‚¤ä¸Šã®æœ€ã‚‚è¿‘ã„ç‚¹
+                    // ƒŒƒCã‚ÌÅ‚à‹ß‚¢“_
                     VECTOR nearestPoint = VAdd(camPos, VScale(camDir, t));
                     VECTOR distVec = VSub(enemyCenter, nearestPoint);
                     float distSq = VDot(distVec, distVec);
 
-                    // åˆ¤å®šåŠå¾„
+                    // ”»’è”¼Œa
                     if (distSq < EnemyRunnerConstants::kEvasionMarginRadius * EnemyRunnerConstants::kEvasionMarginRadius)
                     {
                         shouldEvade = true;
@@ -383,7 +387,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
             if (shouldEvade)
             {
                 m_evadeSwitchTimer += Game::GetTimeScale();
-                if (m_evadeSwitchTimer > EnemyRunnerConstants::kEvasionSwitchTime) // 1ç§’ã”ã¨ã«åˆ‡ã‚Šæ›¿ãˆ
+                if (m_evadeSwitchTimer > EnemyRunnerConstants::kEvasionSwitchTime) // 1•b‚²‚Æ‚ÉØ‚è‘Ö‚¦
                 {
                     m_evadeSwitchTimer = 0.0f;
                     m_isEvadingRight = !m_isEvadingRight;
@@ -393,23 +397,23 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
                 evadeVec = VScale(right, (m_isEvadingRight ? 1.0f : -1.0f) * (m_chaseSpeed * 0.5f) * Game::GetTimeScale());
             }
 
-            // åˆæˆ
+            // ‡¬
             moveVec = VAdd(moveVec, evadeVec);
             m_pos = VAdd(m_pos, moveVec);
         }
     }
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼æƒ…å ±ã‚’å–å¾—
+    // ƒvƒŒƒCƒ„[‚ÌƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[î•ñ‚ğæ“¾
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
     bool isPlayerInAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
-    // AIã‚¹ãƒ†ãƒ¼ãƒˆã®æ›´æ–°
+    // AIƒXƒe[ƒg‚ÌXV
     if (m_pCurrentState)
     {
         m_pCurrentState->Update(this, context);
     }
 
-    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–° (é–“å¼•ã)
+    // ƒAƒjƒ[ƒVƒ‡ƒ“XV (ŠÔˆø‚«)
     if (m_shouldUpdateAI && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
     {
         m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
@@ -434,18 +438,18 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
                 m_animTime = currentAnimTotalTime;
             }
         }
-        // Attackã¯ãƒ«ãƒ¼ãƒ—åˆ¶å¾¡ã‚’ä¸Šã§ã‚„ã£ã¦ã‚‹ã®ã§ã€ã“ã“ã§ã¯å˜ã«æ›´æ–°
+        // Attack‚Íƒ‹[ƒv§Œä‚ğã‚Å‚â‚Á‚Ä‚é‚Ì‚ÅA‚±‚±‚Å‚Í’P‚ÉXV
 
         m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
 
-        // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®æ›´æ–° (é–“å¼•ãå¯¾è±¡)
-        // ä½“ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ä½ç½®ã‚’è¨­å®š
+        // ƒRƒ‰ƒCƒ_[‚ÌXV (ŠÔˆø‚«‘ÎÛ)
+        // ‘Ì‚ÌƒRƒ‰ƒCƒ_[‚ÌˆÊ’u‚ğİ’è
         VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderRadius, 0));
         VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderHeight - EnemyRunnerConstants::kBodyColliderRadius, 0));
         m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
         m_pBodyCollider->SetRadius(EnemyRunnerConstants::kBodyColliderRadius);
 
-        // é ­ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ä½ç½®ã‚’å–å¾—
+        // “ª‚ÌƒRƒ‰ƒCƒ_[‚ÌˆÊ’u‚ğæ“¾
         int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
         VECTOR headModelPos = (headIndex != -1)
             ? MV1GetFramePosition(m_modelHandle, headIndex)
@@ -454,18 +458,18 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
         m_pHeadCollider->SetCenter(headCenter);
         m_pHeadCollider->SetRadius(EnemyRunnerConstants::kHeadRadius);
 
-        // æ”»æ’ƒç¯„å›²ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ä½ç½®ã¨åŠå¾„ã‚’è¨­å®š
+        // UŒ‚”ÍˆÍ‚ÌƒRƒ‰ƒCƒ_[‚ÌˆÊ’u‚Æ”¼Œa‚ğİ’è
         VECTOR attackRangeCenter = m_pos;
         attackRangeCenter.y += (EnemyRunnerConstants::kBodyColliderHeight * 0.5f);
         m_pAttackRangeCollider->SetCenter(attackRangeCenter);
         m_pAttackRangeCollider->SetRadius(EnemyRunnerConstants::kAttackRangeRadius);
     }
 
-    // æ•µã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æŠ¼ã—å‡ºã—å‡¦ç†
+    // “G‚ÆƒvƒŒƒCƒ„[‚Ì‰Ÿ‚µo‚µˆ—
     float minDist = EnemyRunnerConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
     ResolvePlayerCollision(playerBodyCollider, minDist, EnemyRunnerConstants::kPushBackEpsilon);
 
-    // æ•µåŒå£«ã®æŠ¼ã—å‡ºã—å‡¦ç† (é–“å¼•ãå¯¾è±¡)
+    // “G“¯m‚Ì‰Ÿ‚µo‚µˆ— (ŠÔˆø‚«‘ÎÛ)
     if (m_shouldUpdateAI)
     {
         std::vector<EnemyBase*> neighbors;
@@ -478,13 +482,13 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
         ResolveEnemyCollision(targets, EnemyRunnerConstants::kBodyColliderRadius, EnemyRunnerConstants::kPushBackEpsilon);
     }
 
-    // æ”»æ’ƒåˆ¤å®š (é–“å¼•ã)
+    // UŒ‚”»’è (ŠÔˆø‚«)
     if (m_currentAnimState == AnimState::Attack)
     {
         if (m_shouldUpdateAI)
         {
             float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyRunnerConstants::kAttackAnimName);
-            // Runnerã®æ”»æ’ƒç™ºç”Ÿã‚¿ã‚¤ãƒŸãƒ³ã‚°èª¿æ•´
+            // Runner‚ÌUŒ‚”­¶ƒ^ƒCƒ~ƒ“ƒO’²®
             float attackStart = currentAnimTotalTime * 0.3f;
             float attackEnd = currentAnimTotalTime * 0.6f;
 
@@ -501,7 +505,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
 
     CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets), pEffect);
 
-    // ã‚¿ãƒƒã‚¯ãƒ«åˆ¤å®š
+    // ƒ^ƒbƒNƒ‹”»’è
     if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
         CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
@@ -527,7 +531,7 @@ void EnemyRunner::Draw()
 {
     if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return;
 
-    // è¦–éŒå°ã‚«ãƒªãƒ³ã‚° (æç”»æœ€é©åŒ–)
+    // ‹‘äƒJƒŠƒ“ƒO (•`‰æÅ“K‰»)
     if (!ShouldDraw(EnemyRunnerConstants::kDrawDistanceSq, EnemyRunnerConstants::kDrawNearDistanceSq, EnemyRunnerConstants::kDrawDotThreshold)) return;
 
     EnemyBase::IncrementDrawCount();
@@ -566,13 +570,13 @@ void EnemyRunner::DrawCollisionDebug() const
 {
     if (!s_shouldDrawCollision) return;
 
-    // ä½“ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ãƒ‡ãƒãƒƒã‚°æç”»
+    // ‘Ì‚ÌƒRƒ‰ƒCƒ_[ƒfƒoƒbƒO•`‰æ
     DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff0000);
 
-    // é ­ã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ãƒ‡ãƒãƒƒã‚°æç”»
+    // “ª‚ÌƒRƒ‰ƒCƒ_[ƒfƒoƒbƒO•`‰æ
     DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0x00ff00);
 
-    // æ”»æ’ƒç¯„å›²ã®ãƒ‡ãƒãƒƒã‚°æç”»
+    // UŒ‚”ÍˆÍ‚ÌƒfƒoƒbƒO•`‰æ
     DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 24, 0xff8000);
 
     int handRIndex = MV1SearchFrame(m_modelHandle, "mixamorig:RightHand");
@@ -583,7 +587,7 @@ void EnemyRunner::DrawCollisionDebug() const
         VECTOR handRPos = MV1GetFramePosition(m_modelHandle, handRIndex);
         VECTOR handLPos = MV1GetFramePosition(m_modelHandle, handLIndex);
 
-        // æ”»æ’ƒãƒ’ãƒƒãƒˆç”¨ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ãƒ‡ãƒãƒƒã‚°æç”»
+        // UŒ‚ƒqƒbƒg—pƒRƒ‰ƒCƒ_[‚ÌƒfƒoƒbƒO•`‰æ
         DebugUtil::DrawCapsule(handRPos, handLPos, EnemyRunnerConstants::kAttackHitRadius, 16, 0x0000ff);
     }
 }
@@ -636,12 +640,12 @@ void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
-// ãƒ€ãƒ¡ãƒ¼ã‚¸å‡¦ç†
+// ƒ_ƒ[ƒWˆ—
 void EnemyRunner::TakeDamage(float damage, AttackType type)
 {
     EnemyBase::TakeDamage(damage, type);
 
-    // ãƒ€ãƒ¡ãƒ¼ã‚¸SEã®å†ç”Ÿ (ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ä¸­ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—)
+    // ƒ_ƒ[ƒWSE‚ÌÄ¶ (ƒN[ƒ‹ƒ^ƒCƒ€’†‚È‚çƒXƒLƒbƒv)
     if (m_damageSECooldown <= 0.0f && m_isAlive)
     {
         float maxDist = 2000.0f;
@@ -649,9 +653,9 @@ void EnemyRunner::TakeDamage(float damage, AttackType type)
         if (volRatio < 0.0f) volRatio = 0.0f;
         if (volRatio > 1.0f) volRatio = 1.0f;
 
-        SoundManager::GetInstance()->Play("EnemyRunner", "Damage", (int)(255 * volRatio));
+        SoundManager::GetInstance()->Play("EnemyRunner", "Damage", static_cast<int>(255 * volRatio));
 
-        m_damageSECooldown = 45.0f; // ç´„0.75ç§’ã®ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ 
+        m_damageSECooldown = 45.0f; // –ñ0.75•b‚ÌƒN[ƒ‹ƒ^ƒCƒ€
     }
 
 }
@@ -680,19 +684,19 @@ std::shared_ptr<CapsuleCollider> EnemyRunner::GetBodyCollider() const
     return m_pBodyCollider;
 }
 
-// æ­»äº¡æ™‚ã®æ›´æ–°å‡¦ç†
+// €–S‚ÌXVˆ—
 void EnemyRunner::UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData)
 {
     if (!m_isDeadAnimPlaying)
     {
-        // ã‚¹ã‚³ã‚¢åŠ ç®—å‡¦ç†ã¯TakeDamageã§è¡Œã†ã®ã§ã“ã“ã§ã¯ä¸è¦
+        // ƒXƒRƒA‰ÁZˆ—‚ÍTakeDamage‚Ås‚¤‚Ì‚Å‚±‚±‚Å‚Í•s—v
         ChangeState(std::make_shared<EnemyRunnerStateDead>());
         m_isDeadAnimPlaying = true;
-        m_animTime = 0.0f; // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“ã‚’ãƒªã‚»ãƒƒãƒˆ
-        m_isAlive = true;  // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ã¯trueã®ã¾ã¾
+        m_animTime = 0.0f; // ƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ‚ğƒŠƒZƒbƒg
+        m_isAlive = true;  // €–SƒAƒjƒ[ƒVƒ‡ƒ“’†‚Ítrue‚Ì‚Ü‚Ü
     }
 
-    // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ã‚‚ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“ã‚’æ›´æ–°
+    // €–SƒAƒjƒ[ƒVƒ‡ƒ“’†‚àƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ‚ğXV
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
     {
         if (m_shouldUpdateAI)
@@ -710,7 +714,7 @@ void EnemyRunner::UpdateDeath(const std::vector<Stage::StageCollisionData>& coll
             MV1DetachAnim(m_modelHandle, 0);
             m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
         }
-        // ã‚¢ã‚¤ãƒ†ãƒ ãƒ‰ãƒ­ãƒƒãƒ—ã¨æ­»äº¡ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’å‘¼ã³å‡ºã—
+        // ƒAƒCƒeƒ€ƒhƒƒbƒv‚Æ€–SƒR[ƒ‹ƒoƒbƒN‚ğŒÄ‚Ño‚µ
         if (!m_hasDroppedItem && m_onDropItem)
         {
             m_onDropItem(m_pos);
@@ -720,9 +724,9 @@ void EnemyRunner::UpdateDeath(const std::vector<Stage::StageCollisionData>& coll
         if (m_onDeathCallback)
         {
             m_onDeathCallback(m_pos);
-            m_onDeathCallback = nullptr; // ä¸€åº¦ã ã‘å‘¼ã³å‡ºã™
+            m_onDeathCallback = nullptr; // ˆê“x‚¾‚¯ŒÄ‚Ño‚·
         }
-        m_isAlive = false; // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµ‚äº†æ™‚ã®ã¿falseã«ã™ã‚‹
-        SetActive(false);  // ãƒ—ãƒ¼ãƒ«ã«æˆ»ã™
+        m_isAlive = false; // €–SƒAƒjƒ[ƒVƒ‡ƒ“I—¹‚Ì‚İfalse‚É‚·‚é
+        SetActive(false);  // ƒv[ƒ‹‚É–ß‚·
     }
 }

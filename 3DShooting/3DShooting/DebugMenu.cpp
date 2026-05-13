@@ -126,15 +126,15 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
         int charHeight = GetFontSize(); // 現在のフォントの高さ
 
         // 回転の中心を文字の中心に設定
-        double rotCenterX = charWidth * 0.5f;
-        double rotCenterY = charHeight * 0.5f;
+        float rotCenterX = charWidth * 0.5f;
+        float rotCenterY = charHeight * 0.5f;
 
         // 描画位置を計算
         int indicatorDrawX = itemX + kIndicatorOffsetX;
-        int indicatorDrawY = itemY + (itemHeight * 0.5f) - (charHeight * 0.5f) + kIndicatorOffsetY;
+        int indicatorDrawY = itemY + static_cast<int>(itemHeight * 0.5f) - static_cast<int>(charHeight * 0.5f) + kIndicatorOffsetY;
 
         // DrawRotaString で回転して描画
-        DrawRotaString(indicatorDrawX, indicatorDrawY, 1.0, 1.0, rotCenterX, rotCenterY, rotationAngle, color, 0, false, indicatorChar);
+        DrawRotaString(indicatorDrawX, indicatorDrawY, 1.0f, 1.0f, static_cast<double>(rotCenterX), static_cast<double>(rotCenterY), static_cast<double>(rotationAngle), color, 0, false, indicatorChar);
     }
 
     // テキストの描画
@@ -159,7 +159,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
         childPath.push_back(0);
         for (size_t i = 0; i < item.children.size(); ++i)
         {
-            childPath.back() = i;
+            childPath.back() = static_cast<int>(i);
             DrawItem(item.children[i], x, y, depth + 1, childPath, selectedPath,
                 mouseX, mouseY, leftClicked);
         }

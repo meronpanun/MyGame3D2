@@ -1,31 +1,31 @@
-ï»¿#pragma once
-#include "EffekseerForDXLib.h"
+#pragma once
+#include "EffekseerWarningSuppress.h"
 #include <vector>
 #include "Stage.h"
 
 class Player;
 
 /// <summary>
-/// ã‚¢ã‚¤ãƒ†ãƒ åŸºåº•ã‚¯ãƒ©ã‚¹
+/// ƒAƒCƒeƒ€Šî’êƒNƒ‰ƒX
 /// </summary>
-class ItemBase abstract
+class ItemBase
 {
 public:
 	ItemBase() = default;
 	virtual ~ItemBase() = default;
 
-	virtual void Init()   abstract;
-	virtual void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) abstract;
-	virtual void Draw()   abstract;
+	virtual void Init()   = 0;
+	virtual void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) = 0;
+	virtual void Draw()   = 0;
 
-	virtual bool IsUsed() const abstract;
+	virtual bool IsUsed() const = 0;
 	virtual bool IsExpired() const { return false; }
 
-	// ä½ç½®è¨­å®šç”¨
-	// ä½ç½®è¨­å®šç”¨
-	virtual void SetPos(const VECTOR& pos) abstract;
+	// ˆÊ’uİ’è—p
+	// ˆÊ’uİ’è—p
+	virtual void SetPos(const VECTOR& pos) = 0;
 
-	// ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨
+	// ƒfƒoƒbƒO•\¦—p
 	static void SetDrawCollision(bool isDraw) { s_shouldDrawCollision = isDraw; }
 	static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 

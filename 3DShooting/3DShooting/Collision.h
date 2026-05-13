@@ -1,12 +1,12 @@
-ï»¿#pragma once
-#include "EffekseerForDXLib.h"
+#pragma once
+#include "EffekseerWarningSuppress.h"
 #include "Stage.h"
 #include <vector>
 
 struct CollisionResult
 {
     bool isGrounded = false;
-    VECTOR groundNormal = VGet(0, 1, 0); // åˆæœŸå€¤ã¯çœŸä¸Š
+    VECTOR groundNormal = VGet(0, 1, 0); // ‰Šú’l‚Í^ã
     std::string groundedObjectName;
 };
 

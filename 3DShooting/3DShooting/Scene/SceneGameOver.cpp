@@ -1,5 +1,5 @@
 ﻿#include "SceneGameOver.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "Game.h"
 #include "InputManager.h"
 #include "SceneMain.h"
@@ -30,11 +30,11 @@ SceneGameOver::SceneGameOver(int wave, int killCount, int score)
     , m_gameOverImage("data/image/GameOverZombie.png")
     , m_gameOverImage2("data/image/GameOverZombie2.png")
     , m_gameOverImage3("data/image/GameOverZombie3.png")
-    , m_japaneseFont("HGPｺﾞｼｯｸE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseFont("HGPゴシックE", 20, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_arialBlackFont("Arial Black", 32, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_arialBlackLargeFont("Arial Black", 64, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_japaneseLargeFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_japaneseButtonFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseLargeFont("HGPゴシックE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseButtonFont("HGPゴシックE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_scrollX(0.0f)
     , m_scrollY(0.0f)
     , m_currentImageIndex(0)
@@ -140,8 +140,8 @@ void SceneGameOver::Draw()
     GetScreenState(&screenW, &screenH, nullptr);
 
     // スクロール位置を画像サイズで割った余りを計算
-    int offsetX = (int)m_scrollX % kBgImageSize;
-    int offsetY = (int)m_scrollY % kBgImageSize;
+    int offsetX = static_cast<int>(m_scrollX) % kBgImageSize;
+    int offsetY = static_cast<int>(m_scrollY) % kBgImageSize;
 
     // 負の値になった場合、正の値に補正
     if (offsetX < 0) offsetX += kBgImageSize;
@@ -203,7 +203,7 @@ void SceneGameOver::Draw()
             m_layout.resBgY + m_layout.resBgH - 4, 0xaaaaaa, false);
 
     float scale = Game::GetUIScale();
-    int textInterval = (int)(kTextInterval * scale);
+    int textInterval = static_cast<int>(kTextInterval * scale);
     int textY = m_layout.textBaseY;
     int shadowOffset = 2; // 影のオフセット
 
@@ -211,16 +211,15 @@ void SceneGameOver::Draw()
     char waveStr[64];
     sprintf_s(waveStr, sizeof(waveStr), "%dウェーブ生き残った", m_wave);
     // ウェーブ数は中央寄せ
-    int waveStrW = GetDrawStringWidthToHandle(waveStr, strlen(waveStr), m_japaneseLargeFont);
+    int waveStrW = GetDrawStringWidthToHandle(waveStr, static_cast<int>(strlen(waveStr)), m_japaneseLargeFont);
 
     // 影
-    DrawFormatStringToHandle((screenW - waveStrW) * 0.5f + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", waveStr);
+    DrawFormatStringToHandle(static_cast<int>((screenW - waveStrW) * 0.5f + shadowOffset), static_cast<int>(textY + shadowOffset), 0x000000, m_japaneseLargeFont, "%s", waveStr);
 
     // 本体
-    DrawFormatStringToHandle((screenW - waveStrW) * 0.5f, textY, 0xffffff, m_japaneseLargeFont, "%s", waveStr);
+    DrawFormatStringToHandle(static_cast<int>((screenW - waveStrW) * 0.5f), textY, 0xffffff, m_japaneseLargeFont, "%s", waveStr);
     textY += textInterval;
 
-    char killStr[64];
     int killCount = m_killCount;
 
     // 影
@@ -232,7 +231,6 @@ void SceneGameOver::Draw()
     DrawFormatStringToHandle(m_layout.textValueX, textY, 0xffffff, m_japaneseLargeFont, "%d", killCount);
     textY += textInterval;
 
-    char scoreStr[64];
     // 影
     DrawFormatStringToHandle(m_layout.textLabelX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "スコア");
     DrawFormatStringToHandle(m_layout.textValueX + shadowOffset, textY + shadowOffset, 0x000000, m_japaneseLargeFont, "%d",
@@ -264,9 +262,9 @@ void SceneGameOver::Draw()
 
         // テキスト
         int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
-        int textHeight = (int)(36 * Game::GetUIScale()); // フォントサイズに合わせて調整
-        int textX = x1 + (x2 - x1 - textWidth) * 0.5f;
-        int textY = y1 + (y2 - y1 - textHeight) * 0.5f;
+        int textHeight = static_cast<int>(36 * Game::GetUIScale()); // フォントサイズに合わせて調整
+        int textX = x1 + static_cast<int>((x2 - x1 - textWidth) * 0.5f);
+        int textY = y1 + static_cast<int>((y2 - y1 - textHeight) * 0.5f);
 
         // 影
         DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFont, text);
@@ -347,50 +345,50 @@ void SceneGameOver::UpdateLayout()
     if (imageAspect > screenAspect)
     {
         drawWidth = screenW;
-        drawHeight = (int)(screenW / imageAspect);
+        drawHeight = static_cast<int>(screenW / imageAspect);
     }
     else
     {
         drawHeight = screenH;
-        drawWidth = (int)(screenH * imageAspect);
+        drawWidth = static_cast<int>(screenH * imageAspect);
     }
     // 縮小スケール
     const float kScale = 0.4f;
-    m_layout.imageDrawWidth = (int)(drawWidth * kScale);
-    m_layout.imageDrawHeight = (int)(drawHeight * kScale);
+    m_layout.imageDrawWidth = static_cast<int>(drawWidth * kScale);
+    m_layout.imageDrawHeight = static_cast<int>(drawHeight * kScale);
 
     // 画面上部に配置
-    const int kTopMargin = (int)(screenH * 0.04f);
-    m_layout.imageDrawX = (screenW - m_layout.imageDrawWidth) * 0.5f;
+    const int kTopMargin = static_cast<int>(screenH * 0.04f);
+    m_layout.imageDrawX = static_cast<int>((screenW - m_layout.imageDrawWidth) * 0.5f);
     m_layout.imageDrawY = kTopMargin;
 
     // リザルト表示エリア
-    m_layout.resBgW = (int)(700 * scale);
-    m_layout.resBgH = (int)(260 * scale);
-    m_layout.resBgX = (screenW - m_layout.resBgW) * 0.5f;
-    m_layout.resBgY = m_layout.imageDrawY + m_layout.imageDrawHeight + (int)(20 * scale);
+    m_layout.resBgW = static_cast<int>(700 * scale);
+    m_layout.resBgH = static_cast<int>(260 * scale);
+    m_layout.resBgX = static_cast<int>((screenW - m_layout.resBgW) * 0.5f);
+    m_layout.resBgY = m_layout.imageDrawY + m_layout.imageDrawHeight + static_cast<int>(20 * scale);
 
     // テキスト配置
-    m_layout.textLabelX = m_layout.resBgX + (int)(100 * scale);
-    m_layout.textValueX = m_layout.resBgX + (int)(450 * scale);
-    m_layout.textBaseY = m_layout.resBgY + (int)(40 * scale);
+    m_layout.textLabelX = m_layout.resBgX + static_cast<int>(100 * scale);
+    m_layout.textValueX = m_layout.resBgX + static_cast<int>(450 * scale);
+    m_layout.textBaseY = m_layout.resBgY + static_cast<int>(40 * scale);
 
     // ボタン
-    m_layout.btnW = (int)(270 * scale);
-    m_layout.btnH = (int)(70 * scale);
-    int btnSpacing = (int)(60 * scale);
-    int centerX = screenW * 0.5f;
-    int btnBaseY = m_layout.resBgY + m_layout.resBgH + (int)(40 * scale);
+    m_layout.btnW = static_cast<int>(270 * scale);
+    m_layout.btnH = static_cast<int>(70 * scale);
+    int btnSpacing = static_cast<int>(60 * scale);
+    int centerX = static_cast<int>(screenW * 0.5f);
+    int btnBaseY = m_layout.resBgY + m_layout.resBgH + static_cast<int>(40 * scale);
 
     // タイトルに戻るボタン
-    m_layout.titleBtnX1 = centerX - m_layout.btnW - btnSpacing * 0.5f;
+    m_layout.titleBtnX1 = static_cast<int>(centerX - m_layout.btnW - btnSpacing * 0.5f);
     m_layout.titleBtnY1 = btnBaseY;
-    m_layout.titleBtnX2 = centerX - btnSpacing * 0.5f;
+    m_layout.titleBtnX2 = static_cast<int>(centerX - btnSpacing * 0.5f);
     m_layout.titleBtnY2 = btnBaseY + m_layout.btnH;
 
     // リトライボタン
-    m_layout.retryBtnX1 = centerX + btnSpacing * 0.5f;
+    m_layout.retryBtnX1 = static_cast<int>(centerX + btnSpacing * 0.5f);
     m_layout.retryBtnY1 = btnBaseY;
-    m_layout.retryBtnX2 = centerX + m_layout.btnW + btnSpacing * 0.5f;
+    m_layout.retryBtnX2 = static_cast<int>(centerX + m_layout.btnW + btnSpacing * 0.5f);
     m_layout.retryBtnY2 = btnBaseY + m_layout.btnH;
 }

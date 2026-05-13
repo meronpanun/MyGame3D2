@@ -1,12 +1,12 @@
-ï»¿#pragma once
+#pragma once
 #include "AttackType.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "Stage.h"
 #include <vector>
 
 
 /// <summary>
-/// å¼¾ã‚¯ãƒ©ã‚¹
+/// ’eƒNƒ‰ƒX
 /// </summary>
 class Bullet
 {
@@ -18,62 +18,62 @@ public:
     void Update(const VECTOR &playerPos, const std::vector<Stage::StageCollisionData> &collisionData);
     void Draw() const;
 
-    // å¼¾ã®ç¾åœ¨ã®ä½ç½®ã‚’å–å¾—
+    // ’e‚ÌŒ»İ‚ÌˆÊ’u‚ğæ“¾
     VECTOR GetPos() const { return m_pos; }
-    // å¼¾ã®å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®ä½ç½®ã‚’å–å¾— (Rayã®å§‹ç‚¹ã¨ã—ã¦ä½¿ç”¨)
+    // ’e‚Ì‘OƒtƒŒ[ƒ€‚ÌˆÊ’u‚ğæ“¾ (Ray‚Ìn“_‚Æ‚µ‚Äg—p)
     VECTOR GetPrevPos() const { return m_prevPos; }
 
     /// <summary>
-    /// å¼¾ãŒæœ‰åŠ¹ã‹ã©ã†ã‹
+    /// ’e‚ª—LŒø‚©‚Ç‚¤‚©
     /// </summary>
-    /// <returns>æœ‰åŠ¹ãªã‚‰true</returns>
+    /// <returns>—LŒø‚È‚çtrue</returns>
     bool IsActive() const { return m_isActive; }
 
     /// <summary>
-    /// å¼¾ã®æ›´æ–°
+    /// ’e‚ÌXV
     /// </summary>
-    /// <param name="bullets">å¼¾ã®é…åˆ—</param>
-    /// <param name="playerPos">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®</param>
-    /// <param name="collisionData">ã‚¹ãƒ†ãƒ¼ã‚¸ã®ã‚ãŸã‚Šåˆ¤å®šãƒ‡ãƒ¼ã‚¿</param>
+    /// <param name="bullets">’e‚Ì”z—ñ</param>
+    /// <param name="playerPos">ƒvƒŒƒCƒ„[‚ÌˆÊ’u</param>
+    /// <param name="collisionData">ƒXƒe[ƒW‚Ì‚ ‚½‚è”»’èƒf[ƒ^</param>
     static void UpdateBullets(std::vector<Bullet> &bullets, const VECTOR &playerPos, const std::vector<Stage::StageCollisionData> &collisionData);
 
     /// <summary>
-    /// å¼¾ã®æç”»
+    /// ’e‚Ì•`‰æ
     /// </summary>
-    /// <param name="bullets">å¼¾ã®é…åˆ—</param>
+    /// <param name="bullets">’e‚Ì”z—ñ</param>
     static void DrawBullets(const std::vector<Bullet> &bullets);
 
     /// <summary>
-    /// å¼¾ã‚’éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
+    /// ’e‚ğ”ñƒAƒNƒeƒBƒu‰»
     /// </summary>
     void Deactivate();
 
     /// <summary>
-    /// å¼¾ã®ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å–å¾—
+    /// ’e‚Ìƒ_ƒ[ƒW‚ğæ“¾
     /// </summary>
-    /// <returns>ãƒ€ãƒ¡ãƒ¼ã‚¸å€¤</returns>
+    /// <returns>ƒ_ƒ[ƒW’l</returns>
     float GetDamage() const;
 
     /// <summary>
-    /// æ”»æ’ƒã®ç¨®é¡ã‚’å–å¾—
+    /// UŒ‚‚Ìí—Ş‚ğæ“¾
     /// </summary>
-    /// <returns>æ”»æ’ƒã®ç¨®é¡</returns>
+    /// <returns>UŒ‚‚Ìí—Ş</returns>
     AttackType GetAttackType() const { return m_attackType; }
 
 private:
-    VECTOR m_pos;      // ç¾åœ¨ã®ä½ç½®
-    VECTOR m_prevPos;  // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®ä½ç½® (Rayã®å§‹ç‚¹)
-    VECTOR m_spawnPos; // ç™ºå°„ä½ç½®
-    VECTOR m_dir;      // é€²è¡Œæ–¹å‘
+    VECTOR m_pos;      // Œ»İ‚ÌˆÊ’u
+    VECTOR m_prevPos;  // ‘OƒtƒŒ[ƒ€‚ÌˆÊ’u (Ray‚Ìn“_)
+    VECTOR m_spawnPos; // ”­ËˆÊ’u
+    VECTOR m_dir;      // is•ûŒü
 
-    float m_speed; // é€Ÿåº¦
+    float m_speed; // ‘¬“x
     float m_damage;
 
-    // è·é›¢æ¸›è¡°ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
-    float m_attenuationStartDist; // æ¸›è¡°é–‹å§‹è·é›¢
-    float m_attenuationEndDist;   // æ¸›è¡°çµ‚äº†è·é›¢
-    float m_minDamageRatio;       // æœ€ä½ãƒ€ãƒ¡ãƒ¼ã‚¸å€ç‡
+    // ‹——£Œ¸Šƒpƒ‰ƒ[ƒ^
+    float m_attenuationStartDist; // Œ¸ŠŠJn‹——£
+    float m_attenuationEndDist;   // Œ¸ŠI—¹‹——£
+    float m_minDamageRatio;       // Å’áƒ_ƒ[ƒW”{—¦
 
     bool m_isActive;
-    AttackType m_attackType; // æ”»æ’ƒã®ç¨®é¡
+    AttackType m_attackType; // UŒ‚‚Ìí—Ş
 };

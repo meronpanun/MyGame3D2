@@ -1,4 +1,4 @@
-#include "Player.h"
+﻿#include "Player.h"
 #include "AnimationManager.h"
 #include "Bullet.h"
 #include "Camera.h"
@@ -8,7 +8,7 @@
 #include "DebugUtil.h"
 #include "DirectionIndicator.h"
 #include "Effect.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
 #include "Game.h"
@@ -76,7 +76,7 @@ namespace PlayerConstants
     constexpr int kHpFont = 20;              // HPフォントサイズ
     constexpr int kWarningFont = 24;         // 警告フォントサイズ
     constexpr char kDefaultFontName[] = "Arial Black";
-    constexpr char kWarningFontName[] = "HGPｺﾞｼｯｸE";
+    constexpr char kWarningFontName[] = "HGPゴシックE";
     constexpr int kDefaultFontType = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
 
     // ダメージエフェクト
@@ -126,7 +126,7 @@ namespace PlayerConstants
     constexpr unsigned int kColorHpBarFill = 0xff4040;
     constexpr unsigned int kColorHpBarBorder = 0x000000;
 
-    // タックルヒット時のSE音量 (DxLibの設定上0〜255が範囲、255で最大音量)
+    // タックルヒット時のSE音量 (DxLibの設定上0?255が範囲、255で最大音量)
     constexpr int kTackleHitVolume = 255;
     constexpr int kLightLandingVolume = 120; // 通常着地（小さめ）
     constexpr int kHeavyLandingVolume = 180; // 重量着地（中くらい）
@@ -327,9 +327,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     // Sway更新
     float yawDelta = m_pCamera->GetYawDelta();
     m_shieldSystem.Update(deltaTime, m_pCamera.get(), m_modelPos, isGuarding,
-        isTackling, isSwitchingWeapon,
-        m_weaponManager.GetWeaponSwitchTimer(),
-        m_weaponManager.GetWeaponSwitchDuration(), yawDelta,
+        isTackling, isSwitchingWeapon, yawDelta,
         m_movement.IsMoving());
 
     // ガード入力処理

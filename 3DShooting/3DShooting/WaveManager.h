@@ -30,6 +30,8 @@ struct EnemySpawnInfo
     bool isSpawned = false;    // 出現済みフラグ
 	int spawnLocationType = 0; // スポーン位置タイプ (0:ランダム, 1:下段, 2:中段, 3:上段)
     bool hasShield = false;    // シールドを持っているかどうか
+
+    EnemySpawnInfo() : enemyType(""), spawnPos(VGet(0.0f, 0.0f, 0.0f)), spawnTime(0.0f), isSpawned(false), spawnLocationType(0), hasShield(false) {}
 };
 
 /// <summary>

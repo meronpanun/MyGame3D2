@@ -1,5 +1,10 @@
-ï»¿#pragma once
-#include "EffekseerForDXLib.h"
+#pragma once
+// ŠO•”ƒ‰ƒCƒuƒ‰ƒŠiEffekseerj“à•”‚Å”­¶‚·‚éŒx‚ğA‚±‚ÌƒCƒ“ƒNƒ‹[ƒh‚ÌŠÔ‚¾‚¯—}§‚·‚é
+// 4100: –¢g—pˆø”, 4244: Œ^•ÏŠ·, 4481: ”ñ•W€Šg’£(abstract“™), 26495: –¢‰Šú‰»ƒƒ“ƒo[
+#pragma warning(push)
+#pragma warning(disable: 4100 4244 4481 26495)
+#include "EffekseerWarningSuppress.h"
+#pragma warning(pop)
 #include "EnemyBase.h"
 #include "SceneBase.h"
 #include "ScoreManager.h"
@@ -29,7 +34,7 @@ class AnimationManager;
 class UIManager;
 
 /// <summary>
-/// ãƒ¡ã‚¤ãƒ³ã‚·ãƒ¼ãƒ³ã‚¯ãƒ©ã‚¹
+/// ƒƒCƒ“ƒV[ƒ“ƒNƒ‰ƒX
 /// </summary>
 class SceneMain : public SceneBase 
 {
@@ -43,110 +48,110 @@ public:
     bool IsLoading() const override;
 
     /// <summary>
-    /// ä¸€æ™‚åœæ­¢çŠ¶æ…‹ã‚’è¨­å®š
+    /// ˆê’â~ó‘Ô‚ğİ’è
     /// </summary>
-    /// <param name="paused">ä¸€æ™‚åœæ­¢çŠ¶æ…‹</param>
+    /// <param name="paused">ˆê’â~ó‘Ô</param>
     void SetPaused(bool paused);
 
     /// <summary>
-    /// ãƒ‡ãƒãƒƒã‚°HUDè¡¨ç¤ºè¨­å®š
+    /// ƒfƒoƒbƒOHUD•\¦İ’è
     /// </summary>
     void SetShowDebugHUD(bool show);
     bool IsShowDebugHUD() const { return m_isShowDebugHUD; }
 
     /// <summary>
-    /// ã‚«ãƒ¡ãƒ©ã‚’å–å¾—
+    /// ƒJƒƒ‰‚ğæ“¾
     /// </summary>
-    /// <returns>ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿</returns>
+    /// <returns>ƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^</returns>
     Camera* GetCamera() const { return m_pCamera.get(); }
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’å–å¾—
+    /// ƒvƒŒƒCƒ„[‚ğæ“¾
     /// </summary>
-    /// <returns>ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‚ç…§</returns>
+    /// <returns>ƒvƒŒƒCƒ„[‚ÌQÆ</returns>
     Player& GetPlayer() const { return *m_pPlayer; }
 
     /// <summary>
-    /// ã‚«ãƒ¡ãƒ©æ„Ÿåº¦ã‚’è¨­å®š
+    /// ƒJƒƒ‰Š´“x‚ğİ’è
     /// </summary>
-    /// <param name="sensitivity">æ„Ÿåº¦</param>
+    /// <param name="sensitivity">Š´“x</param>
     void SetCameraSensitivity(float sensitivity);
 
     /// <summary>
-    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å¼¾ãŒæ•µã«ãƒ’ãƒƒãƒˆã—ãŸéš›ã«å‘¼ã°ã‚Œã‚‹(ãƒ’ãƒƒãƒˆãƒãƒ¼ã‚¯è¡¨ç¤ºç”¨)
+    /// ƒvƒŒƒCƒ„[‚Ì’e‚ª“G‚Éƒqƒbƒg‚µ‚½Û‚ÉŒÄ‚Î‚ê‚é(ƒqƒbƒgƒ}[ƒN•\¦—p)
     /// </summary>
-    /// <param name="part">ãƒ’ãƒƒãƒˆã—ãŸéƒ¨ä½</param>
-    /// <param name="distance">ãƒ’ãƒƒãƒˆã—ãŸè·é›¢</param>
+    /// <param name="part">ƒqƒbƒg‚µ‚½•”ˆÊ</param>
+    /// <param name="distance">ƒqƒbƒg‚µ‚½‹——£</param>
     void OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance);
 
     /// <summary>
-    /// ã‚¹ã‚³ã‚¢ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã‚’è¿½åŠ 
+    /// ƒXƒRƒAƒ|ƒbƒvƒAƒbƒv‚ğ’Ç‰Á
     /// </summary>
-    /// <param name="score">åŠ ç®—ã‚¹ã‚³ã‚¢</param>
-    /// <param name="isHeadShot">ãƒ˜ãƒƒãƒ‰ã‚·ãƒ§ãƒƒãƒˆãªã‚‰true</param>
-    /// <param name="combo">ã‚³ãƒ³ãƒœæ•°</param>
+    /// <param name="score">‰ÁZƒXƒRƒA</param>
+    /// <param name="isHeadShot">ƒwƒbƒhƒVƒ‡ƒbƒg‚È‚çtrue</param>
+    /// <param name="combo">ƒRƒ“ƒ{”</param>
     void AddScorePopup(int score, bool isHeadShot, int combo);
 
 public:
-    static bool s_isSkipTutorial; // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã‚¹ã‚­ãƒƒãƒ—ãƒ•ãƒ©ã‚°
+    static bool s_isSkipTutorial; // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒXƒLƒbƒvƒtƒ‰ƒO
 
     /// <summary>
-    /// ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’å–å¾—
+    /// ƒVƒ“ƒOƒ‹ƒgƒ“ƒCƒ“ƒXƒ^ƒ“ƒX‚ğæ“¾
     /// </summary>
-    /// <returns>ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹</returns>
+    /// <returns>ƒVƒ“ƒOƒ‹ƒgƒ“ƒCƒ“ƒXƒ^ƒ“ƒX</returns>
     static SceneMain* Instance();
 
     /// <summary>
-    /// WaveManagerã‚’å–å¾—
+    /// WaveManager‚ğæ“¾
     /// </summary>
-    /// <returns>WaveManagerã®ãƒã‚¤ãƒ³ã‚¿</returns>
+    /// <returns>WaveManager‚Ìƒ|ƒCƒ“ƒ^</returns>
     WaveManager* GetWaveManager() const { return m_pWaveManager.get(); }
 
     /// <summary>
-    /// TutorialManagerã‚’å–å¾—
+    /// TutorialManager‚ğæ“¾
     /// </summary>
-    /// <returns>TutorialManagerã®ãƒã‚¤ãƒ³ã‚¿</returns>
+    /// <returns>TutorialManager‚Ìƒ|ƒCƒ“ƒ^</returns>
     TutorialManager* GetTutorialManager() const { return m_pTutorialManager.get(); }
 
     /// <summary>
-    /// Playerã®ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
+    /// Player‚Ìƒ|ƒCƒ“ƒ^‚ğæ“¾
     /// </summary>
-    /// <returns>Playerã®ãƒã‚¤ãƒ³ã‚¿</returns>
+    /// <returns>Player‚Ìƒ|ƒCƒ“ƒ^</returns>
     Player* GetPlayerPtr() const { return m_pPlayer.get(); }
 
     /// <summary>
-    /// ã‚²ãƒ¼ãƒ çµŒéæ™‚é–“ï¼ˆç§’ï¼‰ã‚’å–å¾—
+    /// ƒQ[ƒ€Œo‰ßŠÔi•bj‚ğæ“¾
     /// </summary>
-    /// <returns>çµŒéæ™‚é–“ï¼ˆç§’ï¼‰</returns>
+    /// <returns>Œo‰ßŠÔi•bj</returns>
     static float GetElapsedTime() { return s_elapsedTime; }
 
     /// <summary>
-    /// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆç®¡ç†ã‚¯ãƒ©ã‚¹ã‚’å–å¾—
+    /// ƒGƒtƒFƒNƒgŠÇ—ƒNƒ‰ƒX‚ğæ“¾
     /// </summary>
-    /// <returns>ã‚¨ãƒ•ã‚§ã‚¯ãƒˆç®¡ç†ã‚¯ãƒ©ã‚¹ã®ãƒã‚¤ãƒ³ã‚¿</returns>
+    /// <returns>ƒGƒtƒFƒNƒgŠÇ—ƒNƒ‰ƒX‚Ìƒ|ƒCƒ“ƒ^</returns>
     Effect* GetEffect() const { return m_pEffect.get(); }
 
     /// <summary>
-    /// ã™ã¹ã¦ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’åœæ­¢ã™ã‚‹
+    /// ‚·‚×‚Ä‚ÌƒGƒtƒFƒNƒg‚ğ’â~‚·‚é
     /// </summary>
     void StopAllEffects();
 
     /// <summary>
-    /// TaskTutorialInitãƒ•ãƒ©ã‚°ã‚’è¨­å®šã™ã‚‹
+    /// TaskTutorialInitƒtƒ‰ƒO‚ğİ’è‚·‚é
     /// </summary>
-    /// <param name="isInit">åˆæœŸåŒ–æ¸ˆã¿ã‹</param>
+    /// <param name="isInit">‰Šú‰»Ï‚İ‚©</param>
     void SetTaskTutorialInit(bool isInit) { m_isTaskTutorialInit = isInit; }
 
 private:
     void DrawPauseMenu();
-    void DrawDebugHUD(); // ãƒ‡ãƒãƒƒã‚°HUDæç”»
+    void DrawDebugHUD(); // ƒfƒoƒbƒOHUD•`‰æ
 
 private:
     bool m_isShowDebugHUD;
-    float m_lastDeltaTime;      // ãƒ‡ãƒãƒƒã‚°ç”¨ãƒ‡ãƒ«ã‚¿ã‚¿ã‚¤ãƒ 
-    long long m_prevTimeCount;  // ãƒ‡ãƒ«ã‚¿ã‚¿ã‚¤ãƒ è¨ˆæ¸¬ç”¨
+    float m_lastDeltaTime;      // ƒfƒoƒbƒO—pƒfƒ‹ƒ^ƒ^ƒCƒ€
+    long long m_prevTimeCount;  // ƒfƒ‹ƒ^ƒ^ƒCƒ€Œv‘ª—p
 
-    // ã‚²ãƒ¼ãƒ ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆç®¡ç†
+    // ƒQ[ƒ€ƒIƒuƒWƒFƒNƒgŠÇ—
     std::unique_ptr<Player> m_pPlayer;
     std::shared_ptr<Camera> m_pCamera;
     std::shared_ptr<Stage> m_pStage;
@@ -158,40 +163,40 @@ private:
     std::unique_ptr<DirectionIndicator> m_pDirectionIndicator;
     std::unique_ptr<UIManager> m_pUIManager;
 
-    // çŠ¶æ…‹ç®¡ç†
-    bool m_isPaused;                  // ä¸€æ™‚åœæ­¢ä¸­ã‹
-    bool m_isEscapePressed;           // Escapeã‚­ãƒ¼æŠ¼ä¸‹çŠ¶æ…‹
-    bool m_isReturningFromOtherScene; // ä»–ã‚·ãƒ¼ãƒ³ã‹ã‚‰æˆ»ã£ãŸã‹
-    bool m_isLoading;                 // ãƒ­ãƒ¼ãƒ‰ä¸­ã‹
-    bool m_hasDroppedWave1FirstAid;    // Wave1æ•‘æ€¥ã‚­ãƒƒãƒˆãƒ‰ãƒ­ãƒƒãƒ—æ¸ˆã¿
-    bool m_hasDroppedWave1Ammo;        // Wave1å¼¾è–¬ãƒ‰ãƒ­ãƒƒãƒ—æ¸ˆã¿
-    int m_wave1DropCount;             // Wave1ãƒ‰ãƒ­ãƒƒãƒ—å›æ•°
-    // ãƒªã‚½ãƒ¼ã‚¹ç®¡ç†
-    SafeHandle<ModelDeleter> m_skyDome; // ã‚¹ã‚«ã‚¤ãƒ‰ãƒ¼ãƒ ç”»åƒãƒãƒ³ãƒ‰ãƒ«
-    int m_headShotSECooldownTimer; // ãƒ˜ãƒƒãƒ‰ã‚·ãƒ§ãƒƒãƒˆSEã®ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã‚¿ã‚¤ãƒãƒ¼
+    // ó‘ÔŠÇ—
+    bool m_isPaused;                  // ˆê’â~’†‚©
+    bool m_isEscapePressed;           // EscapeƒL[‰Ÿ‰ºó‘Ô
+    bool m_isReturningFromOtherScene; // ‘¼ƒV[ƒ“‚©‚ç–ß‚Á‚½‚©
+    bool m_isLoading;                 // ƒ[ƒh’†‚©
+    bool m_hasDroppedWave1FirstAid;    // Wave1‹~‹}ƒLƒbƒgƒhƒƒbƒvÏ‚İ
+    bool m_hasDroppedWave1Ammo;        // Wave1’e–òƒhƒƒbƒvÏ‚İ
+    int m_wave1DropCount;             // Wave1ƒhƒƒbƒv‰ñ”
+    // ƒŠƒ\[ƒXŠÇ—
+    SafeHandle<ModelDeleter> m_skyDome; // ƒXƒJƒCƒh[ƒ€‰æ‘œƒnƒ“ƒhƒ‹
+    int m_headShotSECooldownTimer; // ƒwƒbƒhƒVƒ‡ƒbƒgSE‚ÌƒN[ƒ‹ƒ^ƒCƒ€ƒ^ƒCƒ}[
     std::unique_ptr<TutorialManager> m_pTutorialManager;
 
-    // çµŒéæ™‚é–“ç®¡ç†
+    // Œo‰ßŠÔŠÇ—
     std::chrono::steady_clock::time_point m_pauseStartTime;
 
-    float m_hitDistance;        // ãƒ’ãƒƒãƒˆã—ãŸè·é›¢
-    int m_clearSceneDelayTimer; // ã‚²ãƒ¼ãƒ ã‚¯ãƒªã‚¢é·ç§»é…å»¶ã‚¿ã‚¤ãƒãƒ¼
-    float m_cameraSensitivity;  // ã‚«ãƒ¡ãƒ©æ„Ÿåº¦
-    static float s_elapsedTime; // ã‚²ãƒ¼ãƒ çµŒéæ™‚é–“ï¼ˆç§’ï¼‰
+    float m_hitDistance;        // ƒqƒbƒg‚µ‚½‹——£
+    int m_clearSceneDelayTimer; // ƒQ[ƒ€ƒNƒŠƒA‘JˆÚ’x‰„ƒ^ƒCƒ}[
+    float m_cameraSensitivity;  // ƒJƒƒ‰Š´“x
+    static float s_elapsedTime; // ƒQ[ƒ€Œo‰ßŠÔi•bj
 
     bool m_isPlayerInit;
-    int m_gameOverDelayTimer; // ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼é…å»¶ã‚¿ã‚¤ãƒãƒ¼
+    int m_gameOverDelayTimer; // ƒQ[ƒ€ƒI[ƒo[’x‰„ƒ^ƒCƒ}[
     bool m_isTaskTutorialInit;
-    static bool s_hasShownLowHealthTutorial; // ä½ä½“åŠ›ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«è¡¨ç¤ºæ¸ˆã¿ãƒ•ãƒ©ã‚°
+    static bool s_hasShownLowHealthTutorial; // ’á‘Ì—Íƒ`ƒ…[ƒgƒŠƒAƒ‹•\¦Ï‚İƒtƒ‰ƒO
 
-    bool m_isTutorialStage;   // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã‚¹ãƒ†ãƒ¼ã‚¸ã‹ã©ã†ã‹
-    void SwitchToMainStage(); // ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ã‚¸ã¸ã®åˆ‡ã‚Šæ›¿ãˆ
+    bool m_isTutorialStage;   // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒXƒe[ƒW‚©‚Ç‚¤‚©
+    void SwitchToMainStage(); // ƒƒCƒ“ƒXƒe[ƒW‚Ö‚ÌØ‚è‘Ö‚¦
 
-    int m_loadingFrameCount; // ãƒ­ãƒ¼ãƒ‰å®Œäº†å¾Œã®å¾…æ©Ÿãƒ•ãƒ¬ãƒ¼ãƒ ã‚«ã‚¦ãƒ³ã‚¿
-    int m_loadingDotCount;   // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®ãƒ‰ãƒƒãƒˆæ•°
-    int m_loadingAnimTimer;  // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚¿ã‚¤ãƒãƒ¼
+    int m_loadingFrameCount; // ƒ[ƒhŠ®—¹Œã‚Ì‘Ò‹@ƒtƒŒ[ƒ€ƒJƒEƒ“ƒ^
+    int m_loadingDotCount;   // ƒ[ƒfƒBƒ“ƒOƒAƒjƒ[ƒVƒ‡ƒ“‚Ìƒhƒbƒg”
+    int m_loadingAnimTimer;  // ƒ[ƒfƒBƒ“ƒOƒAƒjƒ[ƒVƒ‡ƒ“ƒ^ƒCƒ}[
 
-    // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨ã‚­ãƒ£ãƒƒã‚·ãƒ¥
+    // ƒfƒoƒbƒO•\¦—pƒLƒƒƒbƒVƒ…
     float m_cachedFPS;
     float m_cachedDeltaTime;
     int m_cachedTotalEnemies;
@@ -199,8 +204,8 @@ private:
     int m_cachedDrawnEnemies;
     int m_debugDisplayTimer;
 
-    // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ç”»é¢ç”¨
-    SafeHandle<ModelDeleter> m_loadingModel; // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ç”¨ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«
-    VECTOR m_loadingModelPos;                // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ç”¨ãƒ¢ãƒ‡ãƒ«ä½ç½®
-    float m_loadingModelAnimTime;            // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ç”¨ãƒ¢ãƒ‡ãƒ«ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“
+    // ƒ[ƒfƒBƒ“ƒO‰æ–Ê—p
+    SafeHandle<ModelDeleter> m_loadingModel; // ƒ[ƒfƒBƒ“ƒO—pƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹
+    VECTOR m_loadingModelPos;                // ƒ[ƒfƒBƒ“ƒO—pƒ‚ƒfƒ‹ˆÊ’u
+    float m_loadingModelAnimTime;            // ƒ[ƒfƒBƒ“ƒO—pƒ‚ƒfƒ‹ƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ
 };

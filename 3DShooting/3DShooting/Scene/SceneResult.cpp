@@ -1,5 +1,5 @@
 ﻿#include "SceneResult.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "InputManager.h"
 #include "SceneMain.h"
 #include "SceneTitle.h"
@@ -20,11 +20,11 @@ namespace
 SceneResult::SceneResult()
     : m_background("data/image/GameClearBackGrand.png")
     , m_gameClearImage("data/image/GameClear.png")
-    , m_japaneseFont("HGPｺﾞｼｯｸE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseFont("HGPゴシックE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_arialBlackFont("Arial Black", 48, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_arialBlackLargeFont("Arial Black", 96, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_japaneseLargeFont("HGPｺﾞｼｯｸE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_japaneseButtonFont("HGPｺﾞｼｯｸE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseLargeFont("HGPゴシックE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseButtonFont("HGPゴシックE", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_scrollX(0.0f)
     , m_scrollY(0.0f)
     , m_score(0)
@@ -143,8 +143,8 @@ void SceneResult::Draw()
     GetScreenState(&screenW, &screenH, nullptr);
 
     // スクロール位置を画像サイズで割った余りを計算
-    int offsetX = (int)m_scrollX % kBgImageSize;
-    int offsetY = (int)m_scrollY % kBgImageSize;
+    int offsetX = static_cast<int>(m_scrollX) % kBgImageSize;
+    int offsetY = static_cast<int>(m_scrollY) % kBgImageSize;
 
     // 負の値になった場合、正の値に補正
     if (offsetX < 0) offsetX += kBgImageSize;
@@ -217,18 +217,18 @@ void SceneResult::Draw()
     // ハイスコア表示
     int highScoreY = m_layout.highScoreY;
     float scale = Game::GetUIScale();
-    int highScoreInterval = (int)(60 * scale);
+    int highScoreInterval = static_cast<int>(60 * scale);
 
     // タイトル
     int highScoreTextWidth = GetDrawStringWidthToHandle("--- High Score ---", -1, m_arialBlackFont);
     // 影
-    DrawFormatStringToHandle(screenW * 0.5f - highScoreTextWidth * 0.5f + shadowOffset, highScoreY + shadowOffset, 0x000000, m_arialBlackFont, "--- High Score ---");
-    // 本体 (金色のグラデーションっぽく見せるため、黄色で点滅させてもいいが、今回は固定)
-    DrawFormatStringToHandle(screenW * 0.5f - highScoreTextWidth * 0.5f, highScoreY, 0xffff00, m_arialBlackFont, "--- High Score ---");
+    DrawFormatStringToHandle(static_cast<int>(screenW * 0.5f - highScoreTextWidth * 0.5f + shadowOffset), static_cast<int>(highScoreY + shadowOffset), 0x000000, m_arialBlackFont, "--- High Score ---");
+    // 本体 (影のグラデーション効果を出すため、黒、点けてる、が固定)
+    DrawFormatStringToHandle(static_cast<int>(screenW * 0.5f - highScoreTextWidth * 0.5f), static_cast<int>(highScoreY), 0xffff00, m_arialBlackFont, "--- High Score ---");
     highScoreY += highScoreInterval;
 
     const auto& scores = ScoreManager::Instance().GetHighScores();
-    for (int i = 0; i < 3 && i < (int)scores.size(); ++i)
+    for (int i = 0; i < 3 && i < static_cast<int>(scores.size()); ++i)
     {
         char highStr[64];
         sprintf_s(highStr, sizeof(highStr), "%d位: %d", i + 1, scores[i]);
@@ -239,9 +239,9 @@ void SceneResult::Draw()
         else if (i == 2) color = 0xff8c00; 
 
         // 影
-        DrawFormatStringToHandle(screenW * 0.5f - highStrWidth * 0.5f + shadowOffset, highScoreY + shadowOffset, 0x000000, m_japaneseLargeFont, "%s", highStr);
+        DrawFormatStringToHandle(static_cast<int>(screenW * 0.5f - highStrWidth * 0.5f + shadowOffset), static_cast<int>(highScoreY + shadowOffset), 0x000000, m_japaneseLargeFont, "%s", highStr);
         // 本体
-        DrawFormatStringToHandle(screenW * 0.5f - highStrWidth * 0.5f, highScoreY, color, m_japaneseLargeFont, "%s", highStr);
+        DrawFormatStringToHandle(static_cast<int>(screenW * 0.5f - highStrWidth * 0.5f), static_cast<int>(highScoreY), color, m_japaneseLargeFont, "%s", highStr);
         highScoreY += highScoreInterval;
     }
 
@@ -266,9 +266,9 @@ void SceneResult::Draw()
 
         // テキスト
         int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
-        int textHeight = (int)(36 * Game::GetUIScale());
-        int textX = x1 + (x2 - x1 - textWidth) * 0.5f;
-        int textY = y1 + (y2 - y1 - textHeight) * 0.5f;
+        int textHeight = static_cast<int>(36 * Game::GetUIScale());
+        int textX = x1 + static_cast<int>((x2 - x1 - textWidth) * 0.5f);
+        int textY = y1 + static_cast<int>((y2 - y1 - textHeight) * 0.5f);
 
         // 影
         DrawFormatStringToHandle(textX + 2, textY + 2, 0x000000, m_japaneseButtonFont, text);
@@ -301,45 +301,45 @@ void SceneResult::UpdateLayout()
     }
 
     // Draw Game Clear Image
-    m_layout.imageDrawWidth = (int)(800 * scale);
-    m_layout.imageDrawHeight = (int)(200 * scale);
-    m_layout.imageDrawX = (screenW - m_layout.imageDrawWidth) * 0.5f;
-    m_layout.imageDrawY = (int)(50 * scale);
+    m_layout.imageDrawWidth = static_cast<int>(800 * scale);
+    m_layout.imageDrawHeight = static_cast<int>(200 * scale);
+    m_layout.imageDrawX = static_cast<int>((screenW - m_layout.imageDrawWidth) * 0.5f);
+    m_layout.imageDrawY = static_cast<int>(50 * scale);
 
     // Result BG
-    m_layout.resBgW = (int)(700 * scale);
-    m_layout.resBgH = (int)(240 * scale);
-    m_layout.resBgX = (screenW - m_layout.resBgW) * 0.5f;
-    m_layout.resBgY = (int)(280 * scale);
+    m_layout.resBgW = static_cast<int>(700 * scale);
+    m_layout.resBgH = static_cast<int>(240 * scale);
+    m_layout.resBgX = static_cast<int>((screenW - m_layout.resBgW) * 0.5f);
+    m_layout.resBgY = static_cast<int>(280 * scale);
 
     // Text
-    m_layout.textLabelX = m_layout.resBgX + (int)(100 * scale);
-    m_layout.textValueX = m_layout.resBgX + (int)(450 * scale);
-    m_layout.textBaseY = m_layout.resBgY + (int)(25 * scale);
-    m_layout.textIntervalHigh = (int)(65 * scale);
+    m_layout.textLabelX = m_layout.resBgX + static_cast<int>(100 * scale);
+    m_layout.textValueX = m_layout.resBgX + static_cast<int>(450 * scale);
+    m_layout.textBaseY = m_layout.resBgY + static_cast<int>(25 * scale);
+    m_layout.textIntervalHigh = static_cast<int>(65 * scale);
 
     // High Score
-    m_layout.highScoreY = m_layout.textBaseY + (int)((70 + 70 + 100 + 20) * scale);
+    m_layout.highScoreY = m_layout.textBaseY + static_cast<int>((70 + 70 + 100 + 20) * scale);
 
     // Buttons
-    int bottomMargin = (int)(150 * scale);
+    int bottomMargin = static_cast<int>(150 * scale);
     int btnY = screenH - bottomMargin;
 
-    m_layout.btnW = (int)(270 * scale);
-    m_layout.btnH = (int)(70 * scale);
-    int btnSpacing = (int)(60 * scale);
-    int centerX = screenW * 0.5f;
+    m_layout.btnW = static_cast<int>(270 * scale);
+    m_layout.btnH = static_cast<int>(70 * scale);
+    int btnSpacing = static_cast<int>(60 * scale);
+    int centerX = static_cast<int>(screenW * 0.5f);
 
     // Title Button
-    m_layout.titleBtnX1 = centerX - m_layout.btnW - btnSpacing * 0.5f;
+    m_layout.titleBtnX1 = static_cast<int>(centerX - m_layout.btnW - btnSpacing * 0.5f);
     m_layout.titleBtnY1 = btnY;
-    m_layout.titleBtnX2 = centerX - btnSpacing * 0.5f;
+    m_layout.titleBtnX2 = static_cast<int>(centerX - btnSpacing * 0.5f);
     m_layout.titleBtnY2 = btnY + m_layout.btnH;
 
     // Retry Button
-    m_layout.retryBtnX1 = centerX + btnSpacing * 0.5f;
+    m_layout.retryBtnX1 = static_cast<int>(centerX + btnSpacing * 0.5f);
     m_layout.retryBtnY1 = btnY;
-    m_layout.retryBtnX2 = centerX + m_layout.btnW + btnSpacing * 0.5f;
+    m_layout.retryBtnX2 = static_cast<int>(centerX + m_layout.btnW + btnSpacing * 0.5f);
     m_layout.retryBtnY2 = btnY + m_layout.btnH;
 }
 

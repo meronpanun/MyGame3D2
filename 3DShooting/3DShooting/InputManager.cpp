@@ -1,9 +1,9 @@
-ï»¿#include "InputManager.h"
-#include "EffekseerForDXLib.h"
+#include "InputManager.h"
+#include "EffekseerWarningSuppress.h"
 #include "Game.h"
 #include <DxLib.h>
 
-// InputManagerã®ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’å–å¾—
+// InputManager‚ÌƒVƒ“ƒOƒ‹ƒgƒ“ƒCƒ“ƒXƒ^ƒ“ƒX‚ğæ“¾
 InputManager* InputManager::GetInstance()
 {
     static InputManager instance;
@@ -22,26 +22,26 @@ InputManager::InputManager()
 
 void InputManager::Update()
 {
-    // ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ã®å…¥åŠ›ãƒ­ã‚°ã‚’æ›´æ–°
+    // ƒ}ƒEƒXƒ{ƒ^ƒ“‚Ì“ü—ÍƒƒO‚ğXV
     for (int i = kLogNum - 1; i >= 1; i--)
     {
         mouseLog[i] = mouseLog[i - 1];
         mouseRightLog[i] = mouseRightLog[i - 1];
     }
-    // æœ€æ–°ã®ãƒã‚¦ã‚¹ãƒœã‚¿ãƒ³ã®çŠ¶æ…‹ã‚’å–å¾—
+    // ÅV‚Ìƒ}ƒEƒXƒ{ƒ^ƒ“‚Ìó‘Ô‚ğæ“¾
     mouseLog[0] = (GetMouseInput() & MOUSE_INPUT_LEFT) ? 1 : 0;
     mouseRightLog[0] = (GetMouseInput() & MOUSE_INPUT_RIGHT) ? 1 : 0;
-    // ãƒã‚¦ã‚¹ãƒ›ã‚¤ãƒ¼ãƒ«ã®å›è»¢é‡ã‚’å–å¾—
+    // ƒ}ƒEƒXƒzƒC[ƒ‹‚Ì‰ñ“]—Ê‚ğæ“¾
     m_mouseWheelRot = ::GetMouseWheelRotVol();
 }
 
-// ç¾åœ¨ã®ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã®ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™ã‚’å–å¾—
+// Œ»İ‚Ìƒ}ƒEƒXƒJ[ƒ\ƒ‹‚ÌƒXƒNƒŠ[ƒ“À•W‚ğæ“¾
 Vec2 InputManager::GetMousePos()
 {
     Vec2 mousePos{ 0,0 };
     int mouseX = 0;
     int mouseY = 0;
-    // ãƒã‚¦ã‚¹ã®ã‚¹ã‚¯ãƒªãƒ¼ãƒ³åº§æ¨™ã‚’å–å¾—
+    // ƒ}ƒEƒX‚ÌƒXƒNƒŠ[ƒ“À•W‚ğæ“¾
     if (GetMousePoint(&mouseX, &mouseY) == -1)
     {
         return mousePos;
@@ -51,47 +51,47 @@ Vec2 InputManager::GetMousePos()
     return mousePos;
 }
 
-// ãƒã‚¦ã‚¹ã®å·¦ãƒœã‚¿ãƒ³ãŒç¾åœ¨æŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’åˆ¤å®š
+// ƒ}ƒEƒX‚Ì¶ƒ{ƒ^ƒ“‚ªŒ»İ‰Ÿ‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ”»’è
 bool InputManager::IsPressMouseLeft()
 {
     return (mouseLog[0]);
 }
 
-// ãƒã‚¦ã‚¹ã®å·¦ãƒœã‚¿ãƒ³ãŒæŠ¼ã•ã‚ŒãŸç¬é–“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã©ã†ã‹ã‚’åˆ¤å®š
+// ƒ}ƒEƒX‚Ì¶ƒ{ƒ^ƒ“‚ª‰Ÿ‚³‚ê‚½uŠÔ‚ÌƒtƒŒ[ƒ€‚©‚Ç‚¤‚©‚ğ”»’è
 bool InputManager::IsTriggerMouseLeft()
 {
-    bool isNow = mouseLog[0];  // ç¾åœ¨ã®çŠ¶æ…‹
-    bool isLast = mouseLog[1]; // 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®çŠ¶æ…‹
+    bool isNow = mouseLog[0];  // Œ»İ‚Ìó‘Ô
+    bool isLast = mouseLog[1]; // 1ƒtƒŒ[ƒ€‘O‚Ìó‘Ô
     return (isNow && !isLast);
 }
 
-// ãƒã‚¦ã‚¹ã®å·¦ãƒœã‚¿ãƒ³ãŒé›¢ã•ã‚ŒãŸç¬é–“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã©ã†ã‹ã‚’åˆ¤å®š
+// ƒ}ƒEƒX‚Ì¶ƒ{ƒ^ƒ“‚ª—£‚³‚ê‚½uŠÔ‚ÌƒtƒŒ[ƒ€‚©‚Ç‚¤‚©‚ğ”»’è
 bool InputManager::IsReleaseMouseLeft()
 {
-    bool isNow = mouseLog[0];  // ç¾åœ¨ã®çŠ¶æ…‹
-    bool isLast = mouseLog[1]; // 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®çŠ¶æ…‹
+    bool isNow = mouseLog[0];  // Œ»İ‚Ìó‘Ô
+    bool isLast = mouseLog[1]; // 1ƒtƒŒ[ƒ€‘O‚Ìó‘Ô
     return (!isNow && isLast);
 }
 
-// ãƒã‚¦ã‚¹ã®å³ãƒœã‚¿ãƒ³ãŒæŠ¼ã•ã‚ŒãŸç¬é–“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã©ã†ã‹ã‚’åˆ¤å®š
+// ƒ}ƒEƒX‚Ì‰Eƒ{ƒ^ƒ“‚ª‰Ÿ‚³‚ê‚½uŠÔ‚ÌƒtƒŒ[ƒ€‚©‚Ç‚¤‚©‚ğ”»’è
 bool InputManager::IsTriggerMouseRight()
 {
-    bool isNow = mouseRightLog[0];  // ç¾åœ¨ã®çŠ¶æ…‹
-    bool isLast = mouseRightLog[1]; // 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®çŠ¶æ…‹
+    bool isNow = mouseRightLog[0];  // Œ»İ‚Ìó‘Ô
+    bool isLast = mouseRightLog[1]; // 1ƒtƒŒ[ƒ€‘O‚Ìó‘Ô
     return (isNow && !isLast);
 }
 
-// ãƒã‚¦ã‚¹ã®å³ãƒœã‚¿ãƒ³ãŒç¾åœ¨æŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’åˆ¤å®š
+// ƒ}ƒEƒX‚Ì‰Eƒ{ƒ^ƒ“‚ªŒ»İ‰Ÿ‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ”»’è
 bool InputManager::IsPressMouseRight()
 {
     return (mouseRightLog[0]);
 }
 
-// ãƒã‚¦ã‚¹ã®ç§»å‹•é‡ã«åŸºã¥ã„ã¦ã‚«ãƒ¡ãƒ©ã®å›è»¢è§’åº¦ã‚’æ›´æ–°
+// ƒ}ƒEƒX‚ÌˆÚ“®—Ê‚ÉŠî‚Ã‚¢‚ÄƒJƒƒ‰‚Ì‰ñ“]Šp“x‚ğXV
 void InputManager::UpdateCameraRotation(float& cameraYaw, float& cameraPitch, float sensitivity)
 {
-    // ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã§ãªã„ã‹ã€
-    // PrintScreenã‚­ãƒ¼ï¼ˆSYSRQï¼‰ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ã€ã‚«ãƒ¡ãƒ©æ“ä½œã¨ãƒã‚¦ã‚¹ã®å›ºå®šã‚’ç„¡åŠ¹åŒ–ã™ã‚‹
+    // ƒEƒBƒ“ƒhƒE‚ªƒAƒNƒeƒBƒu‚Å‚È‚¢‚©A
+    // PrintScreenƒL[iSYSRQj‚ª‰Ÿ‚³‚ê‚Ä‚¢‚éê‡‚ÍAƒJƒƒ‰‘€ì‚Æƒ}ƒEƒX‚ÌŒÅ’è‚ğ–³Œø‰»‚·‚é
     if (GetWindowActiveFlag() == FALSE || CheckHitKey(KEY_INPUT_SYSRQ))
     {
         return;
@@ -99,20 +99,20 @@ void InputManager::UpdateCameraRotation(float& cameraYaw, float& cameraPitch, fl
 
     Vec2 mousePos = GetMousePos();
 
-    // ãƒã‚¦ã‚¹ã®ç§»å‹•é‡ã«åŸºã¥ã„ã¦ã‚«ãƒ¡ãƒ©ã®å›è»¢è§’åº¦ã‚’æ›´æ–°
+    // ƒ}ƒEƒX‚ÌˆÚ“®—Ê‚ÉŠî‚Ã‚¢‚ÄƒJƒƒ‰‚Ì‰ñ“]Šp“x‚ğXV
     cameraYaw   += (mousePos.x - Game::GetScreenWidth()  * 0.5f) * sensitivity;
     cameraPitch -= (mousePos.y - Game::GetScreenHeight() * 0.5f) * sensitivity;
 
-    // ã‚«ãƒ¡ãƒ©ã®ãƒ”ãƒƒãƒè§’åº¦ã‚’åˆ¶é™ (ã‚¸ãƒ³ãƒãƒ«ãƒ­ãƒƒã‚¯é˜²æ­¢ã®ãŸã‚89åº¦)
+    // ƒJƒƒ‰‚Ìƒsƒbƒ`Šp“x‚ğ§ŒÀ (ƒWƒ“ƒoƒ‹ƒƒbƒN–h~‚Ì‚½‚ß89“x)
     constexpr float limit = 89.0f * (DX_PI_F / 180.0f);
     if (cameraPitch >  limit) cameraPitch = limit;
     if (cameraPitch < -limit) cameraPitch = -limit;
 
-    // ãƒã‚¦ã‚¹ã®ä½ç½®ã‚’ä¸­å¤®ã«æˆ»ã™
+    // ƒ}ƒEƒX‚ÌˆÊ’u‚ğ’†‰›‚É–ß‚·
     SetMousePoint(static_cast<int>(Game::GetScreenWidth() * 0.5f), static_cast<int>(Game::GetScreenHeight() * 0.5f));
 }
 
-// ãƒã‚¦ã‚¹ãƒ›ã‚¤ãƒ¼ãƒ«ã®å›è»¢é‡ã‚’å–å¾—
+// ƒ}ƒEƒXƒzƒC[ƒ‹‚Ì‰ñ“]—Ê‚ğæ“¾
 int InputManager::GetMouseWheelRotVol()
 {
     return m_mouseWheelRot;

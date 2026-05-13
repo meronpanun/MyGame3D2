@@ -86,6 +86,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -107,6 +108,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -125,6 +127,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,6 +149,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../EffekseerForDXLib;$(ProjectDir)GameObject;$(ProjectDir)Scene;$(ProjectDir)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/IGNORE:4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -220,6 +224,7 @@
     <ClInclude Include="CollisionGrid.h" />
     <ClInclude Include="DebugMenu.h" />
     <ClInclude Include="DirectionIndicator.h" />
+    <ClInclude Include="EffekseerWarningSuppress.h" />
     <ClInclude Include="GameObject\AmmoItem.h" />
     <ClInclude Include="AnimationManager.h" />
     <ClInclude Include="CapsuleCollider.h" />

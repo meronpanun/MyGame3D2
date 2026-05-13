@@ -9,6 +9,10 @@
 bool Stage::s_shouldDrawCollision = false;
 bool Stage::s_shouldDrawTutorialCollision = false;
 
+Stage::Stage() : m_isTutorial(false), m_minBounds(VGet(0.0f, 0.0f, 0.0f)), m_maxBounds(VGet(0.0f, 0.0f, 0.0f))
+{
+}
+
 void Stage::LoadStage(bool isTutorial)
 {
 	Clear();

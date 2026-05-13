@@ -1,14 +1,14 @@
-ï»¿#include "Bullet.h"
+#include "Bullet.h"
 #include "Collision.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include <algorithm>
 
 namespace
 {
-    // å¼¾ã®é€Ÿåº¦
+    // ’e‚Ì‘¬“x
     constexpr float kBulletSpeed = 60.0f;
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰ã®ç”»é¢å¤–åˆ¤å®šè·é›¢
+    // ƒvƒŒƒCƒ„[‚©‚ç‚Ì‰æ–ÊŠO”»’è‹——£
     constexpr float kPlayerBoundaryDistance = 2000.0f;
 }
 
@@ -39,22 +39,22 @@ void Bullet::Update(const VECTOR &playerPos, const std::vector<Stage::StageColli
 {
     if (!m_isActive) return;
 
-    m_prevPos = m_pos; // ç¾åœ¨ã®ä½ç½®ã‚’å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®ä½ç½®ã¨ã—ã¦ä¿å­˜
-    m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // æ–°ã—ã„ä½ç½®ã‚’è¨ˆç®—
+    m_prevPos = m_pos; // Œ»İ‚ÌˆÊ’u‚ğ‘OƒtƒŒ[ƒ€‚ÌˆÊ’u‚Æ‚µ‚Ä•Û‘¶
+    m_pos = VAdd(m_pos, VScale(VNorm(m_dir), m_speed)); // V‚µ‚¢ˆÊ’u‚ğŒvZ
 
-    // ã‚¹ãƒ†ãƒ¼ã‚¸ã¨ã®è¡çªåˆ¤å®š
-    // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®ä½ç½®ã¨ç¾åœ¨ã®ä½ç½®ã‚’çµã¶ç·šåˆ†ã§åˆ¤å®šã‚’è¡Œã†
+    // ƒXƒe[ƒW‚Æ‚ÌÕ“Ë”»’è
+    // ‘OƒtƒŒ[ƒ€‚ÌˆÊ’u‚ÆŒ»İ‚ÌˆÊ’u‚ğŒ‹‚Ôü•ª‚Å”»’è‚ğs‚¤
     float minT = 1.0f;
     bool hit = false;
     VECTOR hitPos = m_pos;
 
     for (const auto &col : collisionData) 
     {
-        // HitCheck_Line_Triangle ã¯DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®é–¢æ•°
+        // HitCheck_Line_Triangle ‚ÍDXƒ‰ƒCƒuƒ‰ƒŠ‚ÌŠÖ”
         HITRESULT_LINE result = HitCheck_Line_Triangle(m_prevPos, m_pos, col.v1, col.v2, col.v3);
         if (result.HitFlag) 
         {
-            // æœ€ã‚‚æ‰‹å‰ã§å½“ãŸã£ãŸã‚‚ã®ã‚’æ¡ç”¨ã™ã‚‹ãŸã‚ã€è·é›¢æ¯”è¼ƒã‚’è¡Œã†
+            // Å‚àè‘O‚Å“–‚½‚Á‚½‚à‚Ì‚ğÌ—p‚·‚é‚½‚ßA‹——£”äŠr‚ğs‚¤
             float distSq = VSquareSize(VSub(result.Position, m_prevPos));
             float totalDistSq = VSquareSize(VSub(m_pos, m_prevPos));
 
@@ -73,16 +73,16 @@ void Bullet::Update(const VECTOR &playerPos, const std::vector<Stage::StageColli
 
     if (hit)
     {
-        // è¡çªã—ãŸå ´åˆã¯ä½ç½®ã‚’ä¿®æ­£ã—ã€éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ– (å£ã«åŸ‹ã¾ã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹)
+        // Õ“Ë‚µ‚½ê‡‚ÍˆÊ’u‚ğC³‚µA”ñƒAƒNƒeƒBƒu‰» (•Ç‚É–„‚Ü‚ç‚È‚¢‚æ‚¤‚É‚·‚é)
         m_pos = hitPos;
         m_isActive = false;
     }
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰ã®è·é›¢ã‚’è¨ˆç®—
+    // ƒvƒŒƒCƒ„[‚©‚ç‚Ì‹——£‚ğŒvZ
     VECTOR toPlayer = VSub(m_pos, playerPos);
     float distanceToPlayer =sqrtf(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y + toPlayer.z * toPlayer.z);
 
-    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰ä¸€å®šè·é›¢ä»¥ä¸Šé›¢ã‚ŒãŸã‚‰éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
+    // ƒvƒŒƒCƒ„[‚©‚çˆê’è‹——£ˆÈã—£‚ê‚½‚ç”ñƒAƒNƒeƒBƒu‚É‚·‚é
     if (distanceToPlayer > kPlayerBoundaryDistance) 
     {
         m_isActive = false;
@@ -94,24 +94,24 @@ void Bullet::Draw() const
 #ifdef _DEBUG
   if (!m_isActive) return;
 
-  // Rayã®ãƒ‡ãƒãƒƒã‚°æç”»
-  DrawLine3D(m_prevPos, m_pos, 0xffff00);                   // é»„è‰²ã®ç·š
-  DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, false); // å¼¾ã®ãƒ‡ãƒãƒƒã‚°ç”¨ã®æç”»å‡¦ç†
+  // Ray‚ÌƒfƒoƒbƒO•`‰æ
+  DrawLine3D(m_prevPos, m_pos, 0xffff00);                   // ‰©F‚Ìü
+  DrawSphere3D(m_pos, 2.0f, 16, 0xffff00, 0xffff00, false); // ’e‚ÌƒfƒoƒbƒO—p‚Ì•`‰æˆ—
 #endif
 }
 
-// å¼¾ã®æ›´æ–°
+// ’e‚ÌXV
 void Bullet::UpdateBullets(std::vector<Bullet> &bullets, const VECTOR &playerPos, const std::vector<Stage::StageCollisionData> &collisionData) 
 {
   for (auto &bullet : bullets) 
   {
     bullet.Update(playerPos, collisionData);
   }
-  // éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªå¼¾ã‚’å‰Šé™¤
+  // ”ñƒAƒNƒeƒBƒu‚È’e‚ğíœ
   bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet &b) { return !b.IsActive(); }), bullets.end());
 }
 
-// å¼¾ã®æç”»
+// ’e‚Ì•`‰æ
 void Bullet::DrawBullets(const std::vector<Bullet> &bullets) 
 {
   for (const auto &bullet : bullets) 
@@ -120,28 +120,28 @@ void Bullet::DrawBullets(const std::vector<Bullet> &bullets)
   }
 }
 
-// å¼¾ã‚’éã‚¢ã‚¯ãƒ†ã‚£ãƒ–åŒ–
+// ’e‚ğ”ñƒAƒNƒeƒBƒu‰»
 void Bullet::Deactivate()
 { 
     m_isActive = false; 
 }
 
-// å¼¾ã®ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å–å¾—
+// ’e‚Ìƒ_ƒ[ƒW‚ğæ“¾
 float Bullet::GetDamage() const 
 {
-  // æ¸›è¡°ãªã—ã®è¨­å®šãªã‚‰ãã®ã¾ã¾è¿”ã™
+  // Œ¸Š‚È‚µ‚Ìİ’è‚È‚ç‚»‚Ì‚Ü‚Ü•Ô‚·
   if (m_attenuationEndDist <= 0.0f || m_attenuationStartDist >= m_attenuationEndDist) return m_damage;
 
-  // ç™ºå°„ä½ç½®ã‹ã‚‰ã®è·é›¢ã‚’è¨ˆç®—
+  // ”­ËˆÊ’u‚©‚ç‚Ì‹——£‚ğŒvZ
   float distance = VSize(VSub(m_pos, m_spawnPos));
 
-  // æ¸›è¡°é–‹å§‹è·é›¢ä»¥å†…ãªã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸æ¸›è¡°ãªã—
+  // Œ¸ŠŠJn‹——£ˆÈ“à‚È‚çƒ_ƒ[ƒWŒ¸Š‚È‚µ
   if (distance <= m_attenuationStartDist) return m_damage;
 
-  // æ¸›è¡°çµ‚äº†è·é›¢ä»¥é ãªã‚‰æœ€ä½ãƒ€ãƒ¡ãƒ¼ã‚¸
+  // Œ¸ŠI—¹‹——£ˆÈ‰“‚È‚çÅ’áƒ_ƒ[ƒW
   if (distance >= m_attenuationEndDist) return m_damage * m_minDamageRatio;
 
-  // è·é›¢ã«å¿œã˜ã¦ç·šå½¢è£œé–“
+  // ‹——£‚É‰‚¶‚ÄüŒ`•âŠÔ
   float t = (distance - m_attenuationStartDist) / (m_attenuationEndDist - m_attenuationStartDist);
   float currentRatio = 1.0f - t * (1.0f - m_minDamageRatio);
 

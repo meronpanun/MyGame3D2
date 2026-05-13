@@ -1,26 +1,26 @@
-ï»¿#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #pragma once
 
 /// <summary>
-/// å½“ãŸã‚Šåˆ¤å®šé–¢æ•°
+/// “–‚½‚è”»’èŠÖ”
 /// </summary>
-class Collider abstract
+class Collider
 {
 public:
 	Collider() = default;
 	virtual ~Collider() = default;
 
-	// å½“ãŸã‚Šåˆ¤å®šé–¢æ•°
-	virtual bool IsIntersects(const Collider* other) const abstract;
+	// “–‚½‚è”»’èŠÖ”
+	virtual bool IsIntersects(const Collider* other) const = 0;
 
 	/// <summary>
-	/// Rayã¨ã®å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã†
+	/// Ray‚Æ‚Ì“–‚½‚è”»’è‚ğs‚¤
 	/// </summary>
-	/// <param name="rayStart">Rayã®å§‹ç‚¹</param>
-	/// <param name="rayEnd">Rayã®çµ‚ç‚¹</param>
-	/// <param name="outHtPos">å½“ãŸã£ãŸä½ç½®</param>
-	/// <param name="outHtDistSq">å½“ãŸã£ãŸä½ç½®ã¾ã§ã®è·é›¢ã®äºŒä¹—</param>
+	/// <param name="rayStart">Ray‚Ìn“_</param>
+	/// <param name="rayEnd">Ray‚ÌI“_</param>
+	/// <param name="outHtPos">“–‚½‚Á‚½ˆÊ’u</param>
+	/// <param name="outHtDistSq">“–‚½‚Á‚½ˆÊ’u‚Ü‚Å‚Ì‹——£‚Ì“ñæ</param>
 	/// <returns></returns>
-	virtual bool IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const abstract;
+	virtual bool IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const = 0;
 };
 

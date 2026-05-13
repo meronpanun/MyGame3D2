@@ -1,4 +1,4 @@
-#include "Camera.h"
+﻿#include "Camera.h"
 #include "InputManager.h"
 #include "Game.h"
 #include <cmath>
@@ -56,6 +56,9 @@ Camera::Camera()
     , m_defaultFov(DX_PI_F * 0.5f)
     , m_targetFov(DX_PI_F * 0.5f)
     , m_fovLerpSpeed(0.15f)
+    , m_shakeOffset(VGet(0, 0, 0))
+    , m_shakeIntensity(0.0f)
+    , m_shakeDuration(0)
     , m_headBobOffset(VGet(0, 0, 0))
     , m_headBobTimer(0.0f)
     , m_headBobIntensity(0.0f)
@@ -131,10 +134,10 @@ void Camera::Update(bool isInputDisabled)
             float decay = 5.0f; 
             float frequency = 3.0f;
 
-            float bounceY = amplitudeY * exp(-decay * bounceProgress) * cos(frequency * 2.0f * DX_PI_F * bounceProgress);
+            float bounceY = amplitudeY * expf(-decay * bounceProgress) * cosf(frequency * 2.0f * DX_PI_F * bounceProgress);
             m_offset.y += bounceY;
 
-            float bouncePitch = amplitudePitch * exp(-decay * bounceProgress) * cos(frequency * 2.0f * DX_PI_F * bounceProgress);
+            float bouncePitch = amplitudePitch * expf(-decay * bounceProgress) * cosf(frequency * 2.0f * DX_PI_F * bounceProgress);
             m_pitch += bouncePitch;
         }
     }
@@ -423,7 +426,7 @@ void Camera::SetTargetFOV(float fov)
 void Camera::Shake(float intensity, float duration)
 {
     m_shakeIntensity = intensity;
-    m_shakeDuration  = duration;
+    m_shakeDuration  = static_cast<int>(duration);
 }
 
 void Camera::PlayDeathAnimation(float timer)

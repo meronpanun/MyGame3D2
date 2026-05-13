@@ -1,5 +1,5 @@
-#pragma once
-#include "EffekseerForDXLib.h"
+﻿#pragma once
+#include "EffekseerWarningSuppress.h"
 #include "Stage.h"
 #include <vector>
 
@@ -26,7 +26,7 @@ public:
     /// <summary>
     /// 更新処理
     /// </summary>
-    void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float /*weaponSwitchTimer*/, float /*weaponSwitchDuration*/, float yawDelta, bool isMoving);
+    void Update(float deltaTime, Camera* pCamera, const VECTOR& playerPos, bool isGuarding, bool isTackling, bool isSwitchingWeapon, float yawDelta, bool isMoving);
 
     /// <summary>
     /// 描画処理
@@ -197,7 +197,7 @@ private:
     int m_guardEffectHandle;
     int m_sparkEffectHandle;
     int m_sparkEffectTimer;
-    int m_shieldThrowHitEnemyId;  // このフレームでヒットした敵のID（重複ヒット防止用）
+    intptr_t m_shieldThrowHitEnemyId;  // このフレームでヒットした敵のID（重複ヒット防止用）
     int m_shieldReflectCount;     // 反射回数
     int m_boomerangTotalTime;     // ブーメランSEの総時間
     bool m_isBoomerangFading;     // フェードアウト中フラグ

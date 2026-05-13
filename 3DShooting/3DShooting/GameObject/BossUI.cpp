@@ -1,4 +1,4 @@
-#include "BossUI.h"
+﻿#include "BossUI.h"
 #include "EnemyBase.h"
 #include "WaveManager.h"
 #include "Game.h"
@@ -6,7 +6,6 @@
 
 namespace 
 {
-    // ... (定数はそのまま)
     // ボスHPバー関連
     constexpr int kBossHpBarWidth  = 900;
     constexpr int kBossHpBarHeight = 24;
@@ -119,7 +118,7 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
     int barH = static_cast<int>(kBossHpBarHeight * scale);
     int barY = static_cast<int>(kBossHpBarY * scale);
 
-    int barX = (screenW - barW) * 0.5f;
+    int barX = static_cast<int>((screenW - barW) * 0.5f);
 
     // HP割合
     float hpRate = hp / maxHp;

@@ -1,4 +1,4 @@
-﻿#include "EffekseerForDXLib.h"
+﻿#include "EffekseerWarningSuppress.h"
 #include "AmmoItem.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -100,7 +100,7 @@ void AmmoItem::Update(Player* player, const std::vector<Stage::StageCollisionDat
     
 	// 常に回転させる
     m_rotY += kRotateSpeed;
-    if (m_rotY > DX_TWO_PI) m_rotY -= DX_TWO_PI;
+    if (m_rotY > static_cast<float>(DX_TWO_PI)) m_rotY -= static_cast<float>(DX_TWO_PI);
 
 	m_collider.SetCenter(m_pos);
 	m_collider.SetRadius(m_radius);

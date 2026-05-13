@@ -1,6 +1,6 @@
 #pragma once
 #include "ItemBase.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "SphereCollider.h"
 #include "Stage.h"
 
@@ -8,7 +8,7 @@ class Player;
 class SphereCollider;
 
 /// <summary>
-/// å›å¾©ã‚¢ã‚¤ãƒ†ãƒ ã‚¯ãƒ©ã‚¹
+/// ‰ñ•œƒAƒCƒeƒ€ƒNƒ‰ƒX
 /// </summary>
 class FirstAidKitItem : public ItemBase
 {
@@ -33,15 +33,15 @@ private:
 
 	SphereCollider m_collider;
 
-	int m_modelHandle; // ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«
+	int m_modelHandle; // ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹
 
-	float m_radius;    // åŠå¾„
-	float m_velocityY; // è½ä¸‹é€Ÿåº¦
-	float m_rotY;      // Yè»¸å›è»¢è§’åº¦
+	float m_radius;    // ”¼Œa
+	float m_velocityY; // —‰º‘¬“x
+	float m_rotY;      // Y²‰ñ“]Šp“x
 
-	bool m_isHit;      // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨æ¥è§¦ã—ãŸã‹ã©ã†ã‹
-	bool m_isUsed;     // ã‚¢ã‚¤ãƒ†ãƒ ãŒä½¿ç”¨ã•ã‚ŒãŸã‹ã©ã†ã‹
-	bool m_isDropping; // è½ä¸‹ä¸­ã‹ã©ã†ã‹
+	bool m_isHit;      // ƒvƒŒƒCƒ„[‚ÆÚG‚µ‚½‚©‚Ç‚¤‚©
+	bool m_isUsed;     // ƒAƒCƒeƒ€‚ªg—p‚³‚ê‚½‚©‚Ç‚¤‚©
+	bool m_isDropping; // —‰º’†‚©‚Ç‚¤‚©
 	int m_lifeTimer;
 
 	static int s_modelHandle;

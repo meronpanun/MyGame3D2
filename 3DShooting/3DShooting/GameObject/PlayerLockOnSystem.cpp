@@ -1,4 +1,4 @@
-#include "PlayerLockOnSystem.h"
+﻿#include "PlayerLockOnSystem.h"
 #include "EnemyBase.h"
 #include "Camera.h"
 #include "Game.h"
@@ -16,7 +16,7 @@ PlayerLockOnSystem::PlayerLockOnSystem()
 {
 }
 
-void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, bool isGuarding, float tackleCooldown)
+void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& /*collisionData*/, bool isGuarding, float tackleCooldown)
 {
     if (!pCamera) return;
 
@@ -50,7 +50,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
         float dbSq = VSquareSize(VSub(b->GetPos(), playerPos));
         return daSq < dbSq;
     });
-    if ((int)targetList.size() > kMaxAimTargets)
+    if (static_cast<int>(targetList.size()) > kMaxAimTargets)
     {
         targetList.resize(kMaxAimTargets);
     }
@@ -114,7 +114,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
                     float dx = screenPos.x - (Game::GetScreenWidth() * 0.5f);
                     float dy = screenPos.y - (Game::GetScreenHeight() * 0.5f);
 
-                    if (fabs(dy) < kLockOnMaxScreenOffsetY)
+                    if (fabsf(dy) < kLockOnMaxScreenOffsetY)
                     {
                         if (CheckLineOfSight(camPos, enemyTargetPos, nearbyTriangles))
                         {

@@ -1,11 +1,11 @@
-ï»¿#include "EnemyBase.h"
+#include "EnemyBase.h"
 #include "Bullet.h"
 #include "TransformDataLoader.h"
 #include "CapsuleCollider.h"
 #include "Collider.h"
 #include "Collision.h"
 #include "Effect.h"
-#include "EffekseerForDXLib.h"
+#include "EffekseerWarningSuppress.h"
 #include "Game.h"
 #include "CollisionGrid.h"
 #include <algorithm>
@@ -14,35 +14,35 @@
 
 namespace EnemyConstants
 {
-    constexpr int kDefaultHitDisplayDuration = 60; // 1ç§’é–“è¡¨ç¤º
-    constexpr float kDefaultInitialHP        = 100.0f;    // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®åˆæœŸä½“åŠ›
-    constexpr float kDefaultCooldownMax      = 60;      // æ”»æ’ƒã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã®æœ€å¤§å€¤
-    constexpr float kDefaultAttackPower = 10.0f;   // æ”»æ’ƒåŠ›
+    constexpr int kDefaultHitDisplayDuration = 60; // 1•bŠÔ•\¦
+    constexpr float kDefaultInitialHP        = 100.0f;    // ƒfƒtƒHƒ‹ƒg‚Ì‰Šú‘Ì—Í
+    constexpr float kDefaultCooldownMax      = 60;      // UŒ‚ƒN[ƒ‹ƒ_ƒEƒ“‚ÌÅ‘å’l
+    constexpr float kDefaultAttackPower = 10.0f;   // UŒ‚—Í
 
-	// ç‰©ç†é–¢é€£å®šæ•°
+	// •¨—ŠÖ˜A’è”
     constexpr float kCapsuleHeight   = 100.0f;
     constexpr float kCapsuleRadius   = 30.0f;
     constexpr float kColliderYOffset = 60.0f;
     constexpr float kGravity         = 0.35f;
 
-	// æç”»æœ€é©åŒ–é–¢é€£å®šæ•°
+	// •`‰æÅ“K‰»ŠÖ˜A’è”
     constexpr float kThrottlingSuperLongRangeSq = 1500.0f * 1500.0f;
     constexpr float kThrottlingLongRangeSq      = 800.0f * 800.0f;
     constexpr float kThrottlingMidRangeSq       = 400.0f * 400.0f;
     constexpr float kThrottlingViewCheckDistSq  = 300.0f * 300.0f;
     constexpr float kThrottlingFOVThreshold     = 0.4f;
     constexpr int kUpdateIntervalSuperLong      = 10;
-    constexpr int kUpdateIntervalLong           = 5; // 3ã‹ã‚‰5ã«å¢—åŠ 
+    constexpr int kUpdateIntervalLong           = 5; // 3‚©‚ç5‚É‘‰Á
     constexpr int kUpdateIntervalMid            = 2;
     constexpr int kUpdateIntervalDefault        = 1;
     constexpr float kBulletBroadPhaseDistSq     = 300.0f * 300.0f;
 
-	// æ”¾ç‰©ç·šé‹å‹•é–¢é€£å®šæ•°
+	// •ú•¨ü‰^“®ŠÖ˜A’è”
     constexpr float kParabolicMinTime       = 20.0f;
     constexpr float kParabolicTimeFactor    = 2.0f;
     constexpr float kParabolicGravityFactor = 0.5f;
 
-	// ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºé–¢é€£å®šæ•°
+	// ƒfƒoƒbƒO•\¦ŠÖ˜A’è”
     constexpr int kDebugBoxPaddingX = 20;
     constexpr int kDebugBoxPaddingY = 10;
     constexpr float kDebugBoxValidYRatio = 0.15f;
@@ -58,6 +58,7 @@ std::string EnemyBase::s_debugHitInfo = "";
 
 EnemyBase::EnemyBase() 
     : m_pos{ 0, 0, 0 }
+    , m_targetOffset(VGet(0.0f, 0.0f, 0.0f))
     , m_modelHandle(-1)
     , m_pTargetPlayer(nullptr)
     , m_hp(EnemyConstants::kDefaultInitialHP)
@@ -88,10 +89,10 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
     HitPart determinedHitPart = HitPart::None;
     float minHitDistSq = FLT_MAX;
 
-    // æœ€ã‚‚è¿‘ã„ãƒ’ãƒƒãƒˆã—ãŸå¼¾ã‚’æ¢ã™
+    // Å‚à‹ß‚¢ƒqƒbƒg‚µ‚½’e‚ğ’T‚·
     int hitBulletIndex = FindClosestHitBullet(bullets, determinedHitPart, minHitDistSq);
 
-    // ãƒ’ãƒƒãƒˆã—ãŸå ´åˆã®ãƒ€ãƒ¡ãƒ¼ã‚¸é©ç”¨å‡¦ç†
+    // ƒqƒbƒg‚µ‚½ê‡‚Ìƒ_ƒ[ƒW“K—pˆ—
     if (hitBulletIndex != -1)
     {
         ApplyBulletDamage(bullets[hitBulletIndex], determinedHitPart, minHitDistSq, pEffect);
@@ -109,12 +110,12 @@ int EnemyBase::FindClosestHitBullet(const std::vector<Bullet>& bullets, HitPart&
         const auto& bullet = bullets[i];
         if (!bullet.IsActive()) continue;
 
-        // å¼¾ã®Rayæƒ…å ±ã‚’å–å¾—
+        // ’e‚ÌRayî•ñ‚ğæ“¾
         VECTOR rayStart = bullet.GetPrevPos();
         VECTOR rayEnd = bullet.GetPos();
 
-        // ãƒ–ãƒ­ãƒ¼ãƒ‰ãƒ•ã‚§ãƒ¼ã‚º: æ•µã®ä¸­å¿ƒã‹ã‚‰å¼¾ä¸¸ãŒä¸€å®šè·é›¢ä»¥ä¸Šé›¢ã‚Œã¦ã„ã‚‹å ´åˆã¯è©³ç´°åˆ¤å®šã‚’ã‚¹ã‚­ãƒƒãƒ—
-        // æ•µã®é«˜ã•ãŒç´„100ãªã®ã§ã€ä¸­å¿ƒç‚¹ã¨ã—ã¦å°‘ã—ä¸Šã®åº§æ¨™ã§è·é›¢ãƒã‚§ãƒƒã‚¯ã‚’è¡Œã†
+        // ƒuƒ[ƒhƒtƒF[ƒY: “G‚Ì’†S‚©‚ç’eŠÛ‚ªˆê’è‹——£ˆÈã—£‚ê‚Ä‚¢‚éê‡‚ÍÚ×”»’è‚ğƒXƒLƒbƒv
+        // “G‚Ì‚‚³‚ª–ñ100‚È‚Ì‚ÅA’†S“_‚Æ‚µ‚Ä­‚µã‚ÌÀ•W‚Å‹——£ƒ`ƒFƒbƒN‚ğs‚¤
         VECTOR enemyCenter = VAdd(m_pos, VGet(0, EnemyConstants::kCapsuleHeight * 0.5f, 0));
         float d1 = VSquareSize(VSub(rayStart, enemyCenter));
         float d2 = VSquareSize(VSub(rayEnd, enemyCenter));
@@ -124,7 +125,7 @@ int EnemyBase::FindClosestHitBullet(const std::vector<Bullet>& bullets, HitPart&
             continue;
         }
 
-        // ã©ã“ã«å½“ãŸã£ãŸã®ã‹ã‚’ãƒã‚§ãƒƒã‚¯
+        // ‚Ç‚±‚É“–‚½‚Á‚½‚Ì‚©‚ğƒ`ƒFƒbƒN
         VECTOR currentHitPos;
         float currentHitDistSq;
         HitPart part = CheckHitPart(rayStart, rayEnd, currentHitPos, currentHitDistSq);
@@ -135,7 +136,7 @@ int EnemyBase::FindClosestHitBullet(const std::vector<Bullet>& bullets, HitPart&
             {
                 outDistSq = currentHitDistSq;
                 hitBulletIndex = i;
-                outPart = part; // æœ€ã‚‚è¿‘ã„ãƒ’ãƒƒãƒˆã®éƒ¨ä½ã‚’ä¿æŒ
+                outPart = part; // Å‚à‹ß‚¢ƒqƒbƒg‚Ì•”ˆÊ‚ğ•Û
             }
         }
     }
@@ -148,7 +149,7 @@ void EnemyBase::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
     float damage = CalcDamage(bullet.GetDamage(), part);
     TakeDamage(damage, bullet.GetAttackType());
 
-    // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨æ›´æ–°
+    // ƒfƒoƒbƒO•\¦—pXV
     if (s_shouldShowDamage)
     {
         s_debugLastDamage = damage;
@@ -170,10 +171,10 @@ void EnemyBase::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
     m_lastHitPart = part;
     m_hitDisplayTimer = EnemyConstants::kDefaultHitDisplayDuration;
 
-    // å¼¾ãŒå½“ãŸã£ãŸä½ç½®ã§å‡ºè¡€ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
+    // ’e‚ª“–‚½‚Á‚½ˆÊ’u‚ÅoŒŒƒGƒtƒFƒNƒg‚ğ¶¬
     if (pEffect)
     {
-        VECTOR hitPos = bullet.GetPos(); // å¼¾ã®ç¾åœ¨ä½ç½®ã‚’è¡çªä½ç½®ã¨ã—ã¦ä½¿ç”¨
+        VECTOR hitPos = bullet.GetPos(); // ’e‚ÌŒ»İˆÊ’u‚ğÕ“ËˆÊ’u‚Æ‚µ‚Äg—p
         int handle = pEffect->PlayLossOfBlood(hitPos.x, hitPos.y, hitPos.z, 0.0f, 0.0f, 0.0f);
         if (handle != -1)
         {
@@ -184,18 +185,18 @@ void EnemyBase::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
         }
     }
 
-    bullet.Deactivate(); // æ•µã«å½“ãŸã£ãŸå¼¾ã¯éã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
+    bullet.Deactivate(); // “G‚É“–‚½‚Á‚½’e‚Í”ñƒAƒNƒeƒBƒu‚É‚·‚é
 
-    // ãƒ’ãƒƒãƒˆæ™‚ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼ˆãƒ’ãƒƒãƒˆãƒãƒ¼ã‚¯ç”¨ï¼‰
+    // ƒqƒbƒgƒR[ƒ‹ƒoƒbƒNiƒqƒbƒgƒ}[ƒN—pj
     if (m_onHitCallback)
     {
-        // è·é›¢ã‚’è¨ˆç®—ã—ã¦æ¸¡ã™
+        // ‹——£‚ğŒvZ‚µ‚Ä“n‚·
         float hitDist = sqrtf(distSq);
         m_onHitCallback(part, hitDist);
     }
 }
 
-// æ•µãŒãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
+// “G‚ªƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
 void EnemyBase::TakeDamage(float damage, AttackType type)
 {
     m_lastAttackType = type;
@@ -211,11 +212,11 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
             {
                 m_onDeathWithTypeCallback(m_pos, m_lastAttackType);
             }
-            OnDeath(); // æ•µãŒæ­»äº¡ã—ãŸéš›ã«OnDeathã‚’å‘¼ã³å‡ºã™
+            OnDeath(); // “G‚ª€–S‚µ‚½Û‚ÉOnDeath‚ğŒÄ‚Ño‚·
         }
     }
 
-    // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨
+    // ƒfƒoƒbƒO•\¦—p
     if (s_shouldShowDamage)
     {
         s_debugLastDamage = damage;
@@ -241,14 +242,14 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
     }
 }
 
-// æ•µãŒã‚¿ãƒƒã‚¯ãƒ«ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹å‡¦ç†
+// “G‚ªƒ^ƒbƒNƒ‹ƒ_ƒ[ƒW‚ğó‚¯‚éˆ—
 void EnemyBase::TakeTackleDamage(float damage)
 {
     TakeDamage(damage, AttackType::Tackle);
     m_lastHitPart = HitPart::Body;
     m_hitDisplayTimer = EnemyConstants::kDefaultHitDisplayDuration;
 
-    // ãƒ‡ãƒãƒƒã‚°è¡¨ç¤ºç”¨
+    // ƒfƒoƒbƒO•\¦—p
     if (s_shouldShowDamage)
     {
         s_debugLastDamage = damage;
@@ -259,18 +260,18 @@ void EnemyBase::TakeTackleDamage(float damage)
 
 void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid)
 {
-    // åœ°å½¢åˆ¤å®šã®é–“å¼•ãï¼ˆæœ€é©åŒ–ï¼‰
-    // é æ–¹ã®æ•µã¯æ¯ãƒ•ãƒ¬ãƒ¼ãƒ åœ°å½¢åˆ¤å®šã‚’è¡Œã†å¿…è¦æ€§ãŒä½ã„ãŸã‚ã€é »åº¦ã‚’è½ã¨ã™
+    // ’nŒ`”»’è‚ÌŠÔˆø‚«iÅ“K‰»j
+    // ‰“•û‚Ì“G‚Í–ˆƒtƒŒ[ƒ€’nŒ`”»’è‚ğs‚¤•K—v«‚ª’á‚¢‚½‚ßA•p“x‚ğ—‚Æ‚·
     if (!m_isGrounded || m_verticalVelocity != 0.0f || m_shouldUpdateAI)
     {
-        // é‡åŠ›é©ç”¨
+        // d—Í“K—p
         m_verticalVelocity -= EnemyConstants::kGravity;
         m_pos.y += m_verticalVelocity;
 
         CollisionResult result = Collision::CheckStageCollision(m_pos, EnemyConstants::kCapsuleHeight, EnemyConstants::kCapsuleRadius, EnemyConstants::kColliderYOffset, collisionData, pGrid);
         m_isGrounded = result.isGrounded;
 
-        // Y=0 å¹³é¢ï¼ˆåœ°é¢ï¼‰ã¨ã®åˆ¤å®š
+        // Y=0 •½–Êi’n–Êj‚Æ‚Ì”»’è
         if (m_pos.y <= 0.0f)
         {
             m_pos.y = 0.0f;
@@ -283,7 +284,7 @@ void EnemyBase::UpdateStageCollision(const std::vector<Stage::StageCollisionData
         }
     }
 
-    // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®è¿½å¾“æ›´æ–°
+    // ƒGƒtƒFƒNƒg‚Ì’Ç]XV
     UpdateAttachedEffects();
 }
 
@@ -315,7 +316,7 @@ bool EnemyBase::IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos,
     float t;
     if (pGrid)
     {
-        // å§‹ç‚¹ã¨çµ‚ç‚¹ã®å‘¨å›²ã®ã‚»ãƒ«ã‹ã‚‰ãƒãƒªã‚´ãƒ³ã‚’å–å¾—
+        // n“_‚ÆI“_‚ÌüˆÍ‚ÌƒZƒ‹‚©‚çƒ|ƒŠƒSƒ“‚ğæ“¾
         std::vector<const Stage::StageCollisionData*> triangles;
         pGrid->GetNearbyTriangles(startPos, triangles);
         
@@ -336,12 +337,12 @@ bool EnemyBase::IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos,
         return true;
     }
 
-    // ãƒ¬ã‚¤ã‚­ãƒ£ã‚¹ãƒˆåˆ¤å®š
+    // ƒŒƒCƒLƒƒƒXƒg”»’è
     for (const auto& col : stageCollision)
     {
         if (Collision::IntersectRayTriangle(startPos, dir, col.v1, col.v2, col.v3, t))
         {
-            if (t < dist) return false; // é®è”½ç‰©ã‚ã‚Š
+            if (t < dist) return false; // Õ•Á•¨‚ ‚è
         }
     }
     return true;
@@ -351,13 +352,13 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos, const VECTO
 {
     VECTOR toTarget = VSub(targetPos, startPos);
 
-    // æ»ç©ºæ™‚é–“ã‚’è¨­å®š (è·é›¢ã«å¿œã˜ã¦èª¿æ•´)
+    // ‘Ø‹óŠÔ‚ğİ’è (‹——£‚É‰‚¶‚Ä’²®)
     float dist = VSize(toTarget);
-    // ç›´ç·šã‚ˆã‚Šé€Ÿã„é€Ÿåº¦ã‚’åŸºæº–ã«ã—ã¦æ”¾ç‰©ç·šã‚’ä½ãã™ã‚‹
+    // ’¼ü‚æ‚è‘¬‚¢‘¬“x‚ğŠî€‚É‚µ‚Ä•ú•¨ü‚ğ’á‚­‚·‚é
     float time = dist / (speed * EnemyConstants::kParabolicTimeFactor);
-    if (time < EnemyConstants::kParabolicMinTime) time = EnemyConstants::kParabolicMinTime; // æœ€ä½ä¿è¨¼
+    if (time < EnemyConstants::kParabolicMinTime) time = EnemyConstants::kParabolicMinTime; // Å’á•ÛØ
 
-    // åˆé€Ÿåº¦è¨ˆç®—
+    // ‰‘¬“xŒvZ
     VECTOR gravityVec = VGet(0.0f, -gravity, 0.0f);
     VECTOR term1 = VScale(toTarget, 1.0f / time);
     VECTOR term2 = VScale(gravityVec, EnemyConstants::kParabolicGravityFactor * time);
@@ -365,48 +366,48 @@ VECTOR EnemyBase::CalculateParabolicVelocity(const VECTOR& startPos, const VECTO
     return VSub(term1, term2);
 }
 
-// AIæ›´æ–°é »åº¦ã®å‹•çš„åˆ¶å¾¡ã«ã‚ˆã‚‹CPUè² è·ã®æœ€é©åŒ–
+// AIXV•p“x‚Ì“®“I§Œä‚É‚æ‚éCPU•‰‰×‚ÌÅ“K‰»
 void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
 {
-    // ç·æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆ
+    // ‘”‚ğƒJƒEƒ“ƒg
     IncrementTotalCount();
 
-    // è‡ªèº«ã‹ã‚‰ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¾ã§ã®è·é›¢ã‚’ç®—å‡º
+    // ©g‚©‚çƒvƒŒƒCƒ„[‚Ü‚Å‚Ì‹——£‚ğZo
     VECTOR toPlayer = VSub(playerPos, m_pos);
     float distSq = VSquareSize(toPlayer);
 
-    // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®è¨­å®šï¼ˆæ¯ãƒ•ãƒ¬ãƒ¼ãƒ å®Ÿè¡Œï¼‰
+    // ƒfƒtƒHƒ‹ƒg‚Ìİ’èi–ˆƒtƒŒ[ƒ€Àsj
     m_aiUpdateInterval = EnemyConstants::kUpdateIntervalDefault;
     m_isSimpleMode = false;
 
-    // è·é›¢ãƒ™ãƒ¼ã‚¹ã®æ›´æ–°é–“å¼•ãå‡¦ç†ï¼ˆé æ–¹ã®ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªæ•µã»ã©AIã®è¨ˆç®—ã‚µã‚¤ã‚¯ãƒ«ã‚’è½ã¨ã™ï¼‰
+    // ‹——£ƒx[ƒX‚ÌXVŠÔˆø‚«ˆ—i‰“•û‚ÌƒAƒNƒeƒBƒu‚È“G‚Ù‚ÇAI‚ÌŒvZƒTƒCƒNƒ‹‚ğ—‚Æ‚·j
     if (distSq > EnemyConstants::kThrottlingSuperLongRangeSq)
     {
-        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalSuperLong; // è¶…é è·é›¢
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalSuperLong; // ’´‰“‹——£
     }
     else if (distSq > EnemyConstants::kThrottlingLongRangeSq)
     {
-        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong;  // é è·é›¢
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong;  // ‰“‹——£
     }
     else if (distSq > EnemyConstants::kThrottlingMidRangeSq)
     {
-        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid;   // ä¸­è·é›¢
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid;   // ’†‹——£
     }
 
-    // è¦–ç•Œãƒ™ãƒ¼ã‚¹ã®ç°¡æ˜“ãƒ¢ãƒ¼ãƒ‰ç§»è¡Œå‡¦ç†ï¼ˆç”»é¢å¤–ã«ãŠã‘ã‚‹AIè¡Œå‹•ã®ç°¡ç•¥åŒ–ï¼‰
-    // ãƒœã‚¹ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã¯å¸¸ã«ãƒ•ãƒ«æ¼”ç®—ã‚’è¡Œã†ãŸã‚é™¤å¤–
+    // ‹ŠEƒx[ƒX‚ÌŠÈˆÕƒ‚[ƒhˆÚsˆ—i‰æ–ÊŠO‚É‚¨‚¯‚éAIs“®‚ÌŠÈ—ª‰»j
+    // ƒ{ƒXƒLƒƒƒ‰ƒNƒ^[‚Íí‚Éƒtƒ‹‰‰Z‚ğs‚¤‚½‚ßœŠO
     if (!IsBoss())
     {
         VECTOR camPos = GetCameraPosition();
         float enemyDistSq = VSquareSize(VSub(m_pos, camPos));
 
-        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŠã‚ˆã³ã‚«ãƒ¡ãƒ©ã‹ã‚‰ãã‚Œãã‚Œä¸€å®šè·é›¢ä»¥ä¸Šé›¢ã‚Œã¦ã„ã‚‹å ´åˆã®ã¿è¦–ç•Œé™ç•Œã®åˆ¤å®šã‚’å®Ÿè¡Œ
+        // ƒvƒŒƒCƒ„[‚¨‚æ‚ÑƒJƒƒ‰‚©‚ç‚»‚ê‚¼‚êˆê’è‹——£ˆÈã—£‚ê‚Ä‚¢‚éê‡‚Ì‚İ‹ŠEŒÀŠE‚Ì”»’è‚ğÀs
         if (distSq > EnemyConstants::kThrottlingMidRangeSq && enemyDistSq > EnemyConstants::kThrottlingViewCheckDistSq)
         {
             VECTOR camDir = VNorm(VSub(GetCameraTarget(), camPos));
             VECTOR dirToEnemy = VNorm(VSub(m_pos, camPos));
             
-            // ã‚«ãƒ¡ãƒ©æ–¹å‘ãƒ™ã‚¯ãƒˆãƒ«ã¨ã®å†…ç©ã‚’å–ã‚Šã€å®Œå…¨ãªè¦–ç•Œå¤–ï¼ˆèƒŒå¾Œç­‰ï¼‰ã¨åˆ¤å®šã•ã‚ŒãŸã‚‰ç°¡æ˜“ãƒ¢ãƒ¼ãƒ‰ã¸ç§»è¡Œ
+            // ƒJƒƒ‰•ûŒüƒxƒNƒgƒ‹‚Æ‚Ì“àÏ‚ğæ‚èAŠ®‘S‚È‹ŠEŠOi”wŒã“™j‚Æ”»’è‚³‚ê‚½‚çŠÈˆÕƒ‚[ƒh‚ÖˆÚs
             if (VDot(camDir, dirToEnemy) < EnemyConstants::kThrottlingFOVThreshold)
             {
                 m_isSimpleMode = true;
@@ -414,18 +415,18 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
         }
     }
 
-    // ç®—å‡ºã—ãŸã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«ã‚’ç”¨ã„ã¦ã€ä»Šå›ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§å„ªå…ˆã—ã¦AIã‚’æ›´æ–°ã™ã¹ãã‹ã‚’è¨­å®š
+    // Zo‚µ‚½ƒCƒ“ƒ^[ƒoƒ‹‚ğ—p‚¢‚ÄA¡‰ñ‚ÌƒtƒŒ[ƒ€‚Å—Dæ‚µ‚ÄAI‚ğXV‚·‚×‚«‚©‚ğİ’è
     m_updateFrameCount++;
     m_shouldUpdateAI = (m_updateFrameCount % m_aiUpdateInterval == 0);
 
-    // ãƒ‡ãƒãƒƒã‚°ç”¨: AIæ›´æ–°ãŒè¡Œã‚ã‚Œã‚‹å ´åˆã¯ã‚«ã‚¦ãƒ³ãƒˆ
+    // ƒfƒoƒbƒO—p: AIXV‚ªs‚í‚ê‚éê‡‚ÍƒJƒEƒ“ƒg
     if (m_shouldUpdateAI)
     {
         IncrementAIUpdateCount();
     }
 }
 
-// ãƒ‡ãƒãƒƒã‚°ç”¨ãƒ€ãƒ¡ãƒ¼ã‚¸æç”»
+// ƒfƒoƒbƒO—pƒ_ƒ[ƒW•`‰æ
 void EnemyBase::DrawDebugDamage()
 {
     if (s_shouldShowDamage && s_debugDamageTimer > 0)
@@ -435,37 +436,37 @@ void EnemyBase::DrawDebugDamage()
         int screenW = Game::GetScreenWidth();
         int screenH = Game::GetScreenHeight();
 
-        // è¡¨ç¤ºãƒ†ã‚­ã‚¹ãƒˆã®æ•´å½¢
+        // •\¦ƒeƒLƒXƒg‚Ì®Œ`
         char text[256];
         sprintf_s(text, "Last Damage: %.1f %s", s_debugLastDamage, s_debugHitInfo.c_str());
 
-        // ãƒ†ã‚­ã‚¹ãƒˆå¹…ã®è¿‘ä¼¼è¨ˆç®— (ç­‰å¹…ãƒ•ã‚©ãƒ³ãƒˆã‚’å‰æã¨ã™ã‚‹)
-        // DxLibã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ•ã‚©ãƒ³ãƒˆå‰æ
+        // ƒeƒLƒXƒg•‚Ì‹ß—ŒvZ (“™•ƒtƒHƒ“ƒg‚ğ‘O’ñ‚Æ‚·‚é)
+        // DxLib‚ÌƒfƒtƒHƒ‹ƒgƒtƒHƒ“ƒg‘O’ñ
         int strLen = static_cast<int>(strlen(text));
         
-        // å…¨è§’åŠè§’æ··ã˜ã‚Šã¯ GetDrawStringWidth ãŒç¢ºå®Ÿ
+        // ‘SŠp”¼Šp¬‚¶‚è‚Í GetDrawStringWidth ‚ªŠmÀ
         int strWidth = GetDrawStringWidth(text, strLen);
 
         int fontSize = GetFontSize();
 
-        // èƒŒæ™¯ãƒœãƒƒã‚¯ã‚¹ã®ã‚µã‚¤ã‚ºã¨ä½ç½®
+        // ”wŒiƒ{ƒbƒNƒX‚ÌƒTƒCƒY‚ÆˆÊ’u
         int boxW = strWidth + EnemyConstants::kDebugBoxPaddingX * 2;
         int boxH = fontSize + EnemyConstants::kDebugBoxPaddingY * 2;
 
-        int boxX = static_cast<int>((screenW - boxW) * 0.5f);     // æ¨ªä¸­å¤®
-        int boxY = static_cast<int>(screenH * EnemyConstants::kDebugBoxValidYRatio); // ç”»é¢ä¸Šéƒ¨ã‹ã‚‰15%ã®ä½ç½®
+        int boxX = static_cast<int>((screenW - boxW) * 0.5f);     // ‰¡’†‰›
+        int boxY = static_cast<int>(screenH * EnemyConstants::kDebugBoxValidYRatio); // ‰æ–Êã•”‚©‚ç15%‚ÌˆÊ’u
 
-        // åŠé€æ˜èƒŒæ™¯æç”» (é»’, alpha=128)
+        // ”¼“§–¾”wŒi•`‰æ (•, alpha=128)
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
         DrawBox(boxX, boxY, boxX + boxW, boxY + boxH, 0x000000, true);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-        // ãƒ†ã‚­ã‚¹ãƒˆæç”» (èµ¤)
+        // ƒeƒLƒXƒg•`‰æ (Ô)
         DrawString(boxX + EnemyConstants::kDebugBoxPaddingX, boxY + EnemyConstants::kDebugBoxPaddingY, text, 0xFF0000);
     }
 }
 
-// Transformãƒ‡ãƒ¼ã‚¿ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
+// Transformƒf[ƒ^‚ğƒ[ƒh‚·‚é
 bool EnemyBase::LoadTransformData(const std::string& enemyName)
 {
     auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -485,7 +486,7 @@ bool EnemyBase::LoadTransformData(const std::string& enemyName)
     return false;
 }
 
-// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã«å‘ã‹ã£ã¦å›è»¢ã™ã‚‹
+// ƒ^[ƒQƒbƒg‚ÉŒü‚©‚Á‚Ä‰ñ“]‚·‚é
 void EnemyBase::RotateTowards(const VECTOR& targetPos, float rotationSpeed)
 {
     VECTOR toTarget = VSub(targetPos, m_pos);
@@ -510,34 +511,34 @@ void EnemyBase::RotateTowards(const VECTOR& targetPos, float rotationSpeed)
     MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, currentYaw, 0.0f));
 }
 
-// æç”»ã™ã¹ãã‹ã©ã†ã‹ã‚’åˆ¤å®š
+// •`‰æ‚·‚×‚«‚©‚Ç‚¤‚©‚ğ”»’è
 bool EnemyBase::ShouldDraw(float drawDistSq, float nearDistSq, float dotThreshold) const
 {
-    // æç”»ã‚«ãƒªãƒ³ã‚°ã«ã‚ˆã‚‹æç”»è² è·ã®æœ€é©åŒ–
+    // •`‰æƒJƒŠƒ“ƒO‚É‚æ‚é•`‰æ•‰‰×‚ÌÅ“K‰»
     VECTOR camPos = GetCameraPosition();
     VECTOR camTarget = GetCameraTarget();
     
-    // ã‚«ãƒ¡ãƒ©ã‹ã‚‰æ•µã¸ã®ãƒ™ã‚¯ãƒˆãƒ«ã¨ã€ãã®è·é›¢ã®ã€Œ2ä¹—ã€ã‚’ç®—å‡º
-    // â€»é«˜ã‚³ã‚¹ãƒˆãªå¹³æ–¹æ ¹ï¼ˆsqrtï¼‰è¨ˆç®—ã‚’é¿ã‘ã‚‹ãŸã‚ã€è·é›¢ã¯å¸¸ã«2ä¹—ï¼ˆSqï¼‰ã®ã¾ã¾ã§æ¯”è¼ƒã‚’è¡Œã†
+    // ƒJƒƒ‰‚©‚ç“G‚Ö‚ÌƒxƒNƒgƒ‹‚ÆA‚»‚Ì‹——£‚Ìu2æv‚ğZo
+    // ¦‚ƒRƒXƒg‚È•½•ûªisqrtjŒvZ‚ğ”ğ‚¯‚é‚½‚ßA‹——£‚Íí‚É2æiSqj‚Ì‚Ü‚Ü‚Å”äŠr‚ğs‚¤
     VECTOR toEnemy = VSub(m_pos, camPos);
     float distSq = VSquareSize(toEnemy);
 
-    // é è·é›¢ã‚«ãƒªãƒ³ã‚°: æç”»é™ç•Œè·é›¢ã‚ˆã‚Šé ã‘ã‚Œã°å³åº§ã«æç”»ã‚’ã‚¹ã‚­ãƒƒãƒ—
+    // ‰“‹——£ƒJƒŠƒ“ƒO: •`‰æŒÀŠE‹——£‚æ‚è‰“‚¯‚ê‚Î‘¦À‚É•`‰æ‚ğƒXƒLƒbƒv
     if (distSq > drawDistSq) return false;
     
-    // è¿‘è·é›¢ã®ç„¡æ¡ä»¶æç”»: ä¸€å®šè·é›¢ä»¥å†…ãªã‚‰ç„¡æ¡ä»¶ã§æç”»ï¼ˆç”»é¢ç«¯ã§ã®ä¸è‡ªç„¶ãªè¦‹åˆ‡ã‚Œã‚’é˜²æ­¢ï¼‰
+    // ‹ß‹——£‚Ì–³ğŒ•`‰æ: ˆê’è‹——£ˆÈ“à‚È‚ç–³ğŒ‚Å•`‰æi‰æ–Ê’[‚Å‚Ì•s©‘R‚ÈŒ©Ø‚ê‚ğ–h~j
     if (distSq <= nearDistSq) return true;
 
-    // è¦–ç•Œã‚«ãƒªãƒ³ã‚°: ã‚«ãƒ¡ãƒ©ã®æ­£é¢ãƒ™ã‚¯ãƒˆãƒ«ã¨æ•µã¸ã®ãƒ™ã‚¯ãƒˆãƒ«ã®å†…ç©ã‚’åˆ©ç”¨ã—ãŸè¦–é‡å¤–åˆ¤å®š
+    // ‹ŠEƒJƒŠƒ“ƒO: ƒJƒƒ‰‚Ì³–ÊƒxƒNƒgƒ‹‚Æ“G‚Ö‚ÌƒxƒNƒgƒ‹‚Ì“àÏ‚ğ—˜—p‚µ‚½‹–ìŠO”»’è
     VECTOR camDir = VNorm(VSub(camTarget, camPos));
     VECTOR dirToEnemy = VNorm(toEnemy);
     float dot = VDot(camDir, dirToEnemy);
     
-    // ç®—å‡ºã—ãŸå†…ç©ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãŒé–¾å€¤ï¼ˆFOVï¼‰ä»¥ä¸Šãªã‚‰è¦–ç•Œå†…ã¨ã—ã¦æç”»ã€ãã‚Œä»¥å¤–ãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
+    // Zo‚µ‚½“àÏƒpƒ‰ƒ[ƒ^‚ªè‡’liFOVjˆÈã‚È‚ç‹ŠE“à‚Æ‚µ‚Ä•`‰æA‚»‚êˆÈŠO‚È‚çƒXƒLƒbƒv
     return dot >= dotThreshold;
 }
 
-// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®è¡çªï¼ˆæŠ¼ã—å‡ºã—ï¼‰å‡¦ç†
+// ƒvƒŒƒCƒ„[‚Æ‚ÌÕ“Ëi‰Ÿ‚µo‚µjˆ—
 void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& playerCol, float radiusSum, float pushBackEpsilon)
 {
     auto myCol = GetBodyCollider();
@@ -559,7 +560,7 @@ void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& p
             {
                 VECTOR pushDir = VSub(enemyCenter, playerCenter);
                 pushDir.y = 0.0f;
-                // æ°´å¹³æˆåˆ†ãŒã‚ã‚‹å ´åˆã®ã¿
+                // …•½¬•ª‚ª‚ ‚éê‡‚Ì‚İ
                 if (VDot(pushDir, pushDir) > pushBackEpsilon)
                 {
                     pushDir = VNorm(pushDir);
@@ -570,10 +571,10 @@ void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& p
     }
 }
 
-// æ•µåŒå£«ã®è¡çªï¼ˆæŠ¼ã—å‡ºã—ï¼‰å‡¦ç†
+// “G“¯m‚ÌÕ“Ëi‰Ÿ‚µo‚µjˆ—
 void EnemyBase::ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, float radius, float pushBackEpsilon)
 {
-    // å¯†é›†å¯¾ç­–: è¨ˆç®—è² è·ã‚’ä¸€å®šã«ä¿ã¤ãŸã‚ã€åˆ¤å®šå¯¾è±¡ã‚’æœ€å¤§8ä½“ã¾ã§ã«åˆ¶é™ã™ã‚‹
+    // –§W‘Îô: ŒvZ•‰‰×‚ğˆê’è‚É•Û‚Â‚½‚ßA”»’è‘ÎÛ‚ğÅ‘å8‘Ì‚Ü‚Å‚É§ŒÀ‚·‚é
     int count = 0;
     constexpr int kMaxCollisionChecks = 8;
 
@@ -601,7 +602,7 @@ void EnemyBase::ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, fl
     }
 }
 
-// å¼¾ã®ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’è¨ˆç®—ã™ã‚‹ï¼ˆãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå®Ÿè£…ï¼‰
+// ’e‚Ìƒ_ƒ[ƒW‚ğŒvZ‚·‚éiƒfƒtƒHƒ‹ƒgÀ‘•j
 float EnemyBase::CalcDamage(float bulletDamage, HitPart part) const
 {
     if (part == HitPart::Head) return bulletDamage * 2.0f;
