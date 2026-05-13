@@ -1,4 +1,4 @@
-#include "DebugMenu.h"
+﻿#include "DebugMenu.h"
 #include "CollisionGrid.h"
 #include "DxLib.h"
 #include "Game.h"
@@ -84,10 +84,7 @@ void DebugMenu::Draw(int x, int y)
     prevLeftClick = nowLeftClick;
 }
 
-void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth,
-    const std::vector<int>& currentPath,
-    const std::vector<int>& selectedPath, int mouseX,
-    int mouseY, bool leftClicked)
+void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::vector<int>& currentPath, const std::vector<int>& selectedPath, int mouseX, int mouseY, bool leftClicked)
 {
     bool isSelected = (currentPath == selectedPath);
 

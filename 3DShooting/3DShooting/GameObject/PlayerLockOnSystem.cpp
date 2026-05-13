@@ -1,20 +1,22 @@
-﻿#include "PlayerLockOnSystem.h"
+#include "PlayerLockOnSystem.h"
 #include "EnemyBase.h"
 #include "Camera.h"
 #include "Game.h"
 #include "WaveManager.h"
 #include "CollisionGrid.h"
 #include "Collision.h"
+#include <algorithm>
 
 PlayerLockOnSystem::PlayerLockOnSystem()
     : m_isLockingOn(false)
     , m_isTargetAvailable(false)
     , m_isAimingAtEnemy(false)
     , m_lockedOnEnemy(nullptr)
+    , m_aimCheckSkipCounter(0)
 {
 }
 
-void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,  const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, bool isGuarding, float tackleCooldown)
+void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& collisionData, bool isGuarding, float tackleCooldown)
 {
     if (!pCamera) return;
 
@@ -22,45 +24,72 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,  const
     VECTOR camDir = VNorm(VSub(pCamera->GetTarget(), camPos));
     VECTOR rayEnd = VAdd(camPos, VScale(camDir, 2000.0f));
 
-    m_isAimingAtEnemy = false;
     m_isTargetAvailable = false;
 
-    // 近傍の敵を取得（グリッド利用）
+    // ── 近傍の敵を取得（グリッド利用）────────────────────────────
     std::vector<EnemyBase*> nearbyEnemies;
     if (Game::m_pWaveManager)
     {
-        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(playerPos, nearbyEnemies, false);
+        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(playerPos,                             nearbyEnemies, false);
         Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(VAdd(playerPos, VScale(camDir, 500.0f)), nearbyEnemies, false);
     }
-    const std::vector<EnemyBase*>& targetEnemies = nearbyEnemies.empty() ? enemyList : nearbyEnemies;
 
-    // 照準チェック
-    for (const auto& enemy : targetEnemies)
+    // 重複除去（2回の GetNeighbors で同一敵が混入する場合がある）
+    std::sort(nearbyEnemies.begin(), nearbyEnemies.end());
+    nearbyEnemies.erase(std::unique(nearbyEnemies.begin(), nearbyEnemies.end()), nearbyEnemies.end());
+
+    // フォールバック：グリッド外にいる場合のみ全敵リストを使用
+    std::vector<EnemyBase*>& targetList = nearbyEnemies.empty() ?
+        const_cast<std::vector<EnemyBase*>&>(enemyList) : nearbyEnemies;
+
+    // プレイヤーからの距離でソートし、上位 kMaxAimTargets 体に絞る
+    // （密集時でもレイキャスト回数を上限に固定する）
+    std::sort(targetList.begin(), targetList.end(), [&playerPos](const EnemyBase* a, const EnemyBase* b)
     {
-        if (!enemy || !enemy->IsAlive()) continue;
+        float daSq = VSquareSize(VSub(a->GetPos(), playerPos));
+        float dbSq = VSquareSize(VSub(b->GetPos(), playerPos));
+        return daSq < dbSq;
+    });
+    if ((int)targetList.size() > kMaxAimTargets)
+    {
+        targetList.resize(kMaxAimTargets);
+    }
 
-        VECTOR hitPos;
-        float hitDistSq;
-        EnemyBase::HitPart part = enemy->CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
+    // ── 照準チェック（kAimCheckInterval フレームに1回）──────────
+    // レティクル色変更のみに影響。33ms程度の遅延は体感不可能。
+    if (++m_aimCheckSkipCounter >= kAimCheckInterval)
+    {
+        m_aimCheckSkipCounter = 0;
+        m_isAimingAtEnemy = false;
 
-        if (part == EnemyBase::HitPart::Body || part == EnemyBase::HitPart::Head)
+        for (const auto& enemy : targetList)
         {
-            if (CheckLineOfSight(camPos, hitPos, collisionData))
+            if (!enemy || !enemy->IsAlive()) continue;
+
+            VECTOR hitPos;
+            float hitDistSq;
+            EnemyBase::HitPart part = enemy->CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
+
+            if (part == EnemyBase::HitPart::Body || part == EnemyBase::HitPart::Head)
             {
-                m_isAimingAtEnemy = true;
-                break;
+                if (CheckLineOfSight(camPos, hitPos, collisionData))
+                {
+                    m_isAimingAtEnemy = true;
+                    break;
+                }
             }
         }
     }
+    // ── ────────────────────────────────────────────────────────
 
-    // ロックオン処理
+    // ── ロックオン処理（タックル判定）：毎フレーム実行 ───────────
     if (isGuarding && tackleCooldown <= 0)
     {
         m_isLockingOn = true;
         m_lockedOnEnemy = nullptr;
         float minScreenDistSq = -1.0f;
 
-        for (EnemyBase* enemy : targetEnemies)
+        for (EnemyBase* enemy : targetList)
         {
             if (!enemy || !enemy->IsAlive()) continue;
 
@@ -100,6 +129,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,  const
         m_isLockingOn = false;
         m_lockedOnEnemy = nullptr;
     }
+    // ── ────────────────────────────────────────────────────────
 
     m_isTargetAvailable = (m_lockedOnEnemy != nullptr);
 }

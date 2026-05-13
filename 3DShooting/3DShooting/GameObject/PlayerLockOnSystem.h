@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "DxLib.h"
 #include <vector>
 #include "Stage.h"
@@ -31,8 +31,11 @@ private:
     bool m_isTargetAvailable;
     bool m_isAimingAtEnemy;
     EnemyBase* m_lockedOnEnemy;
+    int  m_aimCheckSkipCounter;  // 照準チェックのフレームスキップ用カウンタ
 
     static constexpr float kLockOnAngleCos = 0.966f; // cos(15度)
     static constexpr float kLockOnMaxScreenOffsetY = 100.0f;
     static constexpr float kTackleMaxReachSq = 1800.0f * 1800.0f;
+    static constexpr int   kAimCheckInterval  = 2;   // 照準チェックを N フレームに1回だけ実行
+    static constexpr int   kMaxAimTargets     = 10;  // 照準・ロックオン判定の対象敵数上限
 };

@@ -12,8 +12,8 @@ WaveManager* Game::m_pWaveManager = nullptr;
 SceneManager* Game::m_pSceneManager = nullptr;
 
 // 画面解像度とモードの初期化
-int Game::m_screenWidth = 1920;
-int Game::m_screenHeight = 1080;
+int Game::m_screenWidth = 1280;
+int Game::m_screenHeight = 720;
 int Game::m_colorBitNum = 32;
 bool Game::s_isWindowMode = true;
 
