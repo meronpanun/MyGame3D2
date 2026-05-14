@@ -9,6 +9,7 @@
 #include "HitMarkUI.h"
 #include "PlayerEffectUI.h"
 #include "UIManager.h"
+#include "TutorialUI.h"
 #include "Camera.h"
 #include "DebugUtil.h"
 #include "DirectionIndicator.h"
@@ -40,70 +41,70 @@
 #include <cstdio>
 #include <string>
 
-// static•Ï”‚Ì’è‹`
+// staticå¤‰æ•°ã®å®šç¾©
 float SceneMain::s_elapsedTime = 0.0f;
 bool SceneMain::s_isSkipTutorial = false;
 bool SceneMain::s_hasShownLowHealthTutorial = false;
 
 namespace SceneMainConstants
 {
-    // UIŠÖ˜A‚Ì’è”
-    constexpr int kButtonWidth = 200;           // ƒ{ƒ^ƒ“‚Ì•
-    constexpr int kButtonHeight = 50;           // ƒ{ƒ^ƒ“‚Ì‚‚³
-    constexpr int kFontSize = 48;               // ƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr float kScreenCenterOffset = 0.5f; // ‰æ–Ê’†‰›‚ÌƒIƒtƒZƒbƒg
-    constexpr int kButtonYOffset = 70;          // ƒ{ƒ^ƒ“‚ÌYÀ•WƒIƒtƒZƒbƒg
-    constexpr int kButtonSpacing = 20;          // ƒ{ƒ^ƒ“ŠÔ‚ÌƒXƒy[ƒX
+    // UIé–¢é€£ã®å®šæ•°
+    constexpr int kButtonWidth = 200;           // ãƒœã‚¿ãƒ³ã®å¹…
+    constexpr int kButtonHeight = 50;           // ãƒœã‚¿ãƒ³ã®é«˜ã•
+    constexpr int kFontSize = 48;               // ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚º
+    constexpr float kScreenCenterOffset = 0.5f; // ç”»é¢ä¸­å¤®ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    constexpr int kButtonYOffset = 70;          // ãƒœã‚¿ãƒ³ã®Yåº§æ¨™ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    constexpr int kButtonSpacing = 20;          // ãƒœã‚¿ãƒ³é–“ã®ã‚¹ãƒšãƒ¼ã‚¹
 
-    // ƒQ[ƒ€ƒNƒŠƒAƒV[ƒ“‚Ö‚Ì‘JˆÚ’x‰„ƒtƒŒ[ƒ€”
+    // ã‚²ãƒ¼ãƒ ã‚¯ãƒªã‚¢ã‚·ãƒ¼ãƒ³ã¸ã®é·ç§»é…å»¶ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
     constexpr int kClearSceneDelayFrames = 60;
 
-    // –ß‚éƒ{ƒ^ƒ“‚ÆƒIƒvƒVƒ‡ƒ“ƒ{ƒ^ƒ“‚ÌÀ•W
-    constexpr int kReturnButtonX = 210; // –ß‚éƒ{ƒ^ƒ“‚ÌXÀ•W
-    constexpr int kReturnButtonY = 290; // –ß‚éƒ{ƒ^ƒ“‚ÌYÀ•W
-    constexpr int kOptionButtonX = 210; // ƒIƒvƒVƒ‡ƒ“ƒ{ƒ^ƒ“‚ÌXÀ•W
-    constexpr int kOptionButtonY = 120; // ƒIƒvƒVƒ‡ƒ“ƒ{ƒ^ƒ“‚ÌYÀ•W
+    // æˆ»ã‚‹ãƒœã‚¿ãƒ³ã¨ã‚ªãƒ—ã‚·ãƒ§ãƒ³ãƒœã‚¿ãƒ³ã®åº§æ¨™
+    constexpr int kReturnButtonX = 210; // æˆ»ã‚‹ãƒœã‚¿ãƒ³ã®Xåº§æ¨™
+    constexpr int kReturnButtonY = 290; // æˆ»ã‚‹ãƒœã‚¿ãƒ³ã®Yåº§æ¨™
+    constexpr int kOptionButtonX = 210; // ã‚ªãƒ—ã‚·ãƒ§ãƒ³ãƒœã‚¿ãƒ³ã®Xåº§æ¨™
+    constexpr int kOptionButtonY = 120; // ã‚ªãƒ—ã‚·ãƒ§ãƒ³ãƒœã‚¿ãƒ³ã®Yåº§æ¨™
 
-    // ƒJƒƒ‰‚Ì‰ñ“]‘¬“x
+    // ã‚«ãƒ¡ãƒ©ã®å›è»¢é€Ÿåº¦
     constexpr float kCameraRotaSpeed = 0.0001f;
 
-    // ƒXƒJƒCƒh[ƒ€ŠÖ˜A
-    constexpr float kSkyDomePosY = 200.0f;  // ƒXƒJƒCƒh[ƒ€‚ÌYÀ•W
-    constexpr float kSkyDomeScale = 150.0f; // ƒXƒJƒCƒh[ƒ€‚ÌƒXƒP[ƒ‹
+    // ã‚¹ã‚«ã‚¤ãƒ‰ãƒ¼ãƒ é–¢é€£
+    constexpr float kSkyDomePosY = 200.0f;  // ã‚¹ã‚«ã‚¤ãƒ‰ãƒ¼ãƒ ã®Yåº§æ¨™
+    constexpr float kSkyDomeScale = 150.0f; // ã‚¹ã‚«ã‚¤ãƒ‰ãƒ¼ãƒ ã®ã‚¹ã‚±ãƒ¼ãƒ«
 
-    // ƒAƒCƒeƒ€ƒhƒƒbƒv‚Ì‰Šúã¸—Ê
+    // ã‚¢ã‚¤ãƒ†ãƒ ãƒ‰ãƒ­ãƒƒãƒ—æ™‚ã®åˆæœŸä¸Šæ˜‡é‡
     constexpr float kDropInitialHeight = 140.0f;
 
-    // ŠÂ‹«Œõİ’è
-    constexpr float kAmbientLightR = 0.5f; // ŠÂ‹«Œõ‚ÌÔ¬•ª
-    constexpr float kAmbientLightG = 0.5f; // ŠÂ‹«Œõ‚Ì—Î¬•ª
-    constexpr float kAmbientLightB = 0.5f; // ŠÂ‹«Œõ‚ÌÂ¬•ª
-    constexpr float kAmbientLightA = 1.0f; // ŠÂ‹«Œõ‚ÌƒAƒ‹ƒtƒ@¬•ª
+    // ç’°å¢ƒå…‰è¨­å®š
+    constexpr float kAmbientLightR = 0.5f; // ç’°å¢ƒå…‰ã®èµ¤æˆåˆ†
+    constexpr float kAmbientLightG = 0.5f; // ç’°å¢ƒå…‰ã®ç·‘æˆåˆ†
+    constexpr float kAmbientLightB = 0.5f; // ç’°å¢ƒå…‰ã®é’æˆåˆ†
+    constexpr float kAmbientLightA = 1.0f; // ç’°å¢ƒå…‰ã®ã‚¢ãƒ«ãƒ•ã‚¡æˆåˆ†
 
-    // ƒqƒbƒgƒ}[ƒNŠÖ˜A
-    constexpr int kHitMarkLineLength = 8;       // ƒ‰ƒCƒ“‚Ì’·‚³
-    constexpr int kHitMarkCenterSpacing = 4;    // ’†‰›‚ÌŠÔŠu•
-    constexpr int kHitMarkLineThickness = 2;    // ƒ‰ƒCƒ“‚Ì‘¾‚³
-    constexpr int kHitMarkDuration = 25;        // •\¦ŠÔ
-    constexpr int kHitMarkDoubleLineOffset = 2; // ƒ_ƒuƒ‹ƒ‰ƒCƒ“‚ÌƒIƒtƒZƒbƒg
+    // ãƒ’ãƒƒãƒˆãƒãƒ¼ã‚¯é–¢é€£
+    constexpr int kHitMarkLineLength = 8;       // ãƒ©ã‚¤ãƒ³ã®é•·ã•
+    constexpr int kHitMarkCenterSpacing = 4;    // ä¸­å¤®ã®é–“éš”å¹…
+    constexpr int kHitMarkLineThickness = 2;    // ãƒ©ã‚¤ãƒ³ã®å¤ªã•
+    constexpr int kHitMarkDuration = 25;        // è¡¨ç¤ºæ™‚é–“
+    constexpr int kHitMarkDoubleLineOffset = 2; // ãƒ€ãƒ–ãƒ«ãƒ©ã‚¤ãƒ³ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
 
-    // ƒXƒRƒAƒ|ƒbƒvƒAƒbƒvŠÖ˜A
-    constexpr int kScorePopupX = 80;         // ƒXƒRƒAƒ|ƒbƒvƒAƒbƒv‚ÌXÀ•W
-    constexpr int kScorePopupY = 60;         // ƒXƒRƒAƒ|ƒbƒvƒAƒbƒv‚ÌYÀ•W
-    constexpr int kPopupOffsetY = 32;        // ƒ|ƒbƒvƒAƒbƒv‚ÌYƒIƒtƒZƒbƒg
-    constexpr int kPopupDuration = 60;       // •\¦ŠÔ
-    constexpr int kTotalScoreDuration = 120; // ‡ŒvƒXƒRƒA‚Ì•\¦ŠÔ
+    // ã‚¹ã‚³ã‚¢ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—é–¢é€£
+    constexpr int kScorePopupX = 80;         // ã‚¹ã‚³ã‚¢ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã®Xåº§æ¨™
+    constexpr int kScorePopupY = 60;         // ã‚¹ã‚³ã‚¢ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã®Yåº§æ¨™
+    constexpr int kPopupOffsetY = 32;        // ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã®Yã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    constexpr int kPopupDuration = 60;       // è¡¨ç¤ºæ™‚é–“
+    constexpr int kTotalScoreDuration = 120; // åˆè¨ˆã‚¹ã‚³ã‚¢ã®è¡¨ç¤ºæ™‚é–“
 
-    // ƒŒƒeƒBƒNƒ‹•\¦ˆÊ’u•â³’l
+    // ãƒ¬ãƒ†ã‚£ã‚¯ãƒ«è¡¨ç¤ºä½ç½®è£œæ­£å€¤
     constexpr int kReticleOffset = 64;
 
-    // RoadFloorƒIƒuƒWƒFƒg‚Ì”ÍˆÍ
-    constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // °‚ÌÅ¬À•W
-    constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // °‚ÌÅ‘åÀ•W
+    // RoadFloorã‚ªãƒ–ã‚¸ã‚§ãƒˆã®ç¯„å›²
+    constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // åºŠã®æœ€å°åº§æ¨™
+    constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // åºŠã®æœ€å¤§åº§æ¨™
 
-	// ƒTƒEƒ“ƒhŠÖ˜A‚Ì’è”(0?255‚Ì‰¹—Ê”ÍˆÍ)
-    constexpr int kGameSceneBgmVolume = 100; // ƒQ[ƒ€ƒV[ƒ“BGM‚Ì‰¹—Ê 
-    constexpr int kHeadShotSEVolume   = 255; // ƒwƒbƒhƒVƒ‡ƒbƒg‚ÌSE‰¹—Ê
+	// ã‚µã‚¦ãƒ³ãƒ‰é–¢é€£ã®å®šæ•°(0?255ã®éŸ³é‡ç¯„å›²)
+    constexpr int kGameSceneBgmVolume = 100; // ã‚²ãƒ¼ãƒ ã‚·ãƒ¼ãƒ³BGMã®éŸ³é‡ 
+    constexpr int kHeadShotSEVolume   = 255; // ãƒ˜ãƒƒãƒ‰ã‚·ãƒ§ãƒƒãƒˆæ™‚ã®SEéŸ³é‡
 }
 
 using namespace SceneMainConstants;
@@ -148,63 +149,63 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
 {
     g_sceneMainInstance = this;
     
-    // ManagedFont‚É‚æ‚èƒRƒ“ƒXƒgƒ‰ƒNƒ^‚Åƒ[ƒh‚³‚ê‚é‚½‚ßA‚±‚±‚Å‚Ìƒ[ƒh‚Í•s—v
+    // ManagedFontã«ã‚ˆã‚Šã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§ãƒ­ãƒ¼ãƒ‰ã•ã‚Œã‚‹ãŸã‚ã€ã“ã“ã§ã®ãƒ­ãƒ¼ãƒ‰ã¯ä¸è¦
 }
 
 SceneMain::~SceneMain()
 {
-    // ‘S‚Ä‚ÌSE‚ğ’â~
+    // å…¨ã¦ã®SEã‚’åœæ­¢
     SoundManager::GetInstance()->StopAllSE();
 
-    // ƒAƒCƒeƒ€ƒ‚ƒfƒ‹‚Ì‰ğ•ú
+    // ã‚¢ã‚¤ãƒ†ãƒ ãƒ¢ãƒ‡ãƒ«ã®è§£æ”¾
     FirstAidKitItem::DeleteModel();
     AmmoItem::DeleteModel();
     ShellCasing::DeleteResources();
 
-    // ©“®‰ğ•ú‚³‚ê‚é‚½‚ßˆ—•s—v
+    // è‡ªå‹•è§£æ”¾ã•ã‚Œã‚‹ãŸã‚å‡¦ç†ä¸è¦
 
-    // ƒCƒ“ƒWƒP[ƒ^[‰æ‘œ‚Ì‰ğ•ú
+    // ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ãƒ¼ç”»åƒã®è§£æ”¾
     DirectionIndicator::DeleteResources();
 }
 
 void SceneMain::Init()
 {
-    // Œo‰ßŠÔƒŠƒZƒbƒg
+    // çµŒéæ™‚é–“ãƒªã‚»ãƒƒãƒˆ
     s_elapsedTime = 0.0f;
-    m_isPlayerInit = false; // ƒvƒŒƒCƒ„[‰Šú‰»ƒtƒ‰ƒO‚ğƒŠƒZƒbƒg
-    m_prevTimeCount = GetNowHiPerformanceCount(); // ŠÔŒv‘ª‚ğŒ»İ‚©‚çÄŠJ
+    m_isPlayerInit = false; // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼åˆæœŸåŒ–ãƒ•ãƒ©ã‚°ã‚’ãƒªã‚»ãƒƒãƒˆ
+    m_prevTimeCount = GetNowHiPerformanceCount(); // æ™‚é–“è¨ˆæ¸¬ã‚’ç¾åœ¨æ™‚åˆ»ã‹ã‚‰å†é–‹
 
-    // ƒ[ƒfƒBƒ“ƒO—pƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İi”ñ“¯Šúƒ[ƒh‚Ì‘O‚É“¯Šú‚Å“Ç‚İ‚Şj
+    // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ç”¨ãƒ¢ãƒ‡ãƒ«ã®èª­ã¿è¾¼ã¿ï¼ˆéåŒæœŸãƒ­ãƒ¼ãƒ‰ã®å‰ã«åŒæœŸã§èª­ã¿è¾¼ã‚€ï¼‰
     m_loadingModel.Reset(MV1LoadModel("data/model/NormalZombie.mv1"));
-    // ‰Šúİ’è
-    // •àsƒAƒjƒ[ƒVƒ‡ƒ“‚ğ–¼‘O‚ÅŒŸõ
+    // åˆæœŸè¨­å®š
+    // æ­©è¡Œã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’åå‰ã§æ¤œç´¢
     int walkAnimIndex = MV1GetAnimIndex(m_loadingModel, "WALK");
-    if (walkAnimIndex == -1) walkAnimIndex = 0; // Œ©‚Â‚©‚ç‚È‚¯‚ê‚Î0”Ô
+    if (walkAnimIndex == -1) walkAnimIndex = 0; // è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°0ç•ª
 
-    // ƒAƒjƒ[ƒVƒ‡ƒ“‚ğƒAƒ^ƒbƒ` (slot 0)
+    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ã‚¢ã‚¿ãƒƒãƒ (slot 0)
     MV1AttachAnim(m_loadingModel, walkAnimIndex, -1, FALSE);
 
-    m_loadingModelPos = VGet(-200.0f, -750.0f, 600.0f); // ‰æ–Ê¶ŠO‘¤AƒJƒƒ‰ƒXƒy[ƒX‚Å‚ÌˆÊ’u (‚³‚ç‚É‰º‚°‚é)
+    m_loadingModelPos = VGet(-200.0f, -750.0f, 600.0f); // ç”»é¢å·¦å¤–å´ã€ã‚«ãƒ¡ãƒ©ã‚¹ãƒšãƒ¼ã‚¹ã§ã®ä½ç½® (ã•ã‚‰ã«ä¸‹ã’ã‚‹)
     m_loadingModelAnimTime = 0.0f;
-    // ƒXƒP[ƒ‹’²®
+    // ã‚¹ã‚±ãƒ¼ãƒ«èª¿æ•´
     MV1SetScale(m_loadingModel, VGet(1.0f, 1.0f, 1.0f));
-    // ‰ñ“] (‰EŒü‚«‚ÉC³: 90“x‚Å¶‚¾‚Á‚½‚½‚ß-90“x‚É•ÏX)
+    // å›è»¢ (å³å‘ãã«ä¿®æ­£: 90åº¦ã§å·¦ã ã£ãŸãŸã‚-90åº¦ã«å¤‰æ›´)
     MV1SetRotationXYZ(m_loadingModel, VGet(0.0f, -90.0f * DX_PI_F / 180.0f, 0.0f));
 
-    // ”ñ“¯Šú“Ç‚İ‚İ‚ğ—LŒø‰»
+    // éåŒæœŸèª­ã¿è¾¼ã¿ã‚’æœ‰åŠ¹åŒ–
     SetUseASyncLoadFlag(true);
 
-    // ƒAƒCƒeƒ€ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ
+    // ã‚¢ã‚¤ãƒ†ãƒ ãƒ¢ãƒ‡ãƒ«ã®èª­ã¿è¾¼ã¿
     FirstAidKitItem::LoadModel();
     AmmoItem::LoadModel();
     ShellCasing::LoadResources();
 
-    // ƒCƒ“ƒWƒP[ƒ^[‰æ‘œ‚Ì“Ç‚İ‚İ
+    // ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ãƒ¼ç”»åƒã®èª­ã¿è¾¼ã¿
     DirectionIndicator::LoadResources();
 
-    // d‚¢ƒŠƒ\[ƒX‚Ì”ñ“¯Šú“Ç‚İ‚İ‚ğŠJn
+    // é‡ã„ãƒªã‚½ãƒ¼ã‚¹ã®éåŒæœŸèª­ã¿è¾¼ã¿ã‚’é–‹å§‹
     m_skyDome.Reset(MV1LoadModel("data/model/Dome.mv1"));
-    // UIŠÇ—ƒNƒ‰ƒX‚Ì‰Šú‰»
+    // UIç®¡ç†ã‚¯ãƒ©ã‚¹ã®åˆæœŸåŒ–
     m_pUIManager = std::make_unique<UIManager>();
 
     m_pPlayer = std::make_unique<Player>();
@@ -214,15 +215,15 @@ void SceneMain::Init()
 
     m_pStage = std::make_shared<Stage>();
 
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒXƒLƒbƒvƒtƒ‰ƒO‚É‰‚¶‚ÄƒXƒe[ƒW‚ğƒ[ƒh
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã‚¹ã‚­ãƒƒãƒ—ãƒ•ãƒ©ã‚°ã«å¿œã˜ã¦ã‚¹ãƒ†ãƒ¼ã‚¸ã‚’ãƒ­ãƒ¼ãƒ‰
     if (s_isSkipTutorial || m_isReturningFromOtherScene)
     {
-        m_pStage->LoadStage(false); // ƒƒCƒ“ƒXƒe[ƒW
+        m_pStage->LoadStage(false); // ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ã‚¸
         m_isTutorialStage = false;
     }
     else
     {
-        m_pStage->LoadStage(true); // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒXƒe[ƒW
+        m_pStage->LoadStage(true); // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã‚¹ãƒ†ãƒ¼ã‚¸
         m_isTutorialStage = true;
     }
 
@@ -230,11 +231,11 @@ void SceneMain::Init()
     m_pWaveManager->Init();
     Game::m_pWaveManager = m_pWaveManager.get();
 
-    // •ûŒüƒCƒ“ƒWƒP[ƒ^[‚Ì‰Šú‰»
+    // æ–¹å‘ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ãƒ¼ã®åˆæœŸåŒ–
     m_pDirectionIndicator = std::make_unique<DirectionIndicator>();
     m_pDirectionIndicator->Init(m_pPlayer.get());
 
-    // UIƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì“o˜^
+    // UIã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®ç™»éŒ²
     auto playerUI = std::make_shared<PlayerUI>(m_pPlayer.get());
     auto waveUI = std::make_shared<WaveUI>(m_pWaveManager.get());
     auto bossUI = std::make_shared<BossUI>(m_pWaveManager.get());
@@ -251,7 +252,7 @@ void SceneMain::Init()
     m_pUIManager->AddUI(hitMarkUI);
     m_pUIManager->AddUI(playerEffectUI);
     
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒXƒe[ƒW‚Ìê‡‚ÍWaveUI‚ğ”ñ•\¦‚É‚·‚é
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã‚¹ãƒ†ãƒ¼ã‚¸ã®å ´åˆã¯WaveUIã‚’éè¡¨ç¤ºã«ã™ã‚‹
     if (m_isTutorialStage)
     {
         waveUI->SetVisible(false);
@@ -259,46 +260,46 @@ void SceneMain::Init()
 
     m_pUIManager->Init();
 
-    // RoadFloorƒIƒuƒWƒFƒNƒg‚Ì”ÍˆÍ‚ğİ’èiƒ}ƒbƒv‘S‘Ì‚Ì”ÍˆÍj
+    // RoadFloorã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ç¯„å›²ã‚’è¨­å®šï¼ˆãƒãƒƒãƒ—å…¨ä½“ã®ç¯„å›²ï¼‰
     m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
     m_pWaveManager->RegisterStageToGrid(m_pStage->GetCollisionData());
     m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
 
-    // ƒJƒƒ‰‚Ì‰Šú‰»
+    // ã‚«ãƒ¡ãƒ©ã®åˆæœŸåŒ–
     if (m_pPlayer->GetCamera())
     {
         m_pPlayer->GetCamera()->SetSensitivity(m_cameraSensitivity);
     }
 
-    // ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚Ì•\¦/”ñ•\¦‚ğİ’è
+    // ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã®è¡¨ç¤º/éè¡¨ç¤ºã‚’è¨­å®š
     SetMouseDispFlag(m_isPaused);
 
-    // ƒXƒJƒCƒh[ƒ€‚ÌYÀ•W‚ğİ’è
+    // ã‚¹ã‚«ã‚¤ãƒ‰ãƒ¼ãƒ ã®Yåº§æ¨™ã‚’è¨­å®š
     MV1SetPosition(m_skyDome, VGet(0, kSkyDomePosY, 0));
 
-    // ƒXƒJƒCƒh[ƒ€‚ÌƒXƒP[ƒ‹‚ğİ’è
+    // ã‚¹ã‚«ã‚¤ãƒ‰ãƒ¼ãƒ ã®ã‚¹ã‚±ãƒ¼ãƒ«ã‚’è¨­å®š
     MV1SetScale(m_skyDome, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
 
 
     m_items.clear();
 
-    // wave1ŠJn‚Éƒtƒ‰ƒO‚ÆƒJƒEƒ“ƒg‚ğƒŠƒZƒbƒg
+    // wave1é–‹å§‹æ™‚ã«ãƒ•ãƒ©ã‚°ã¨ã‚«ã‚¦ãƒ³ãƒˆã‚’ãƒªã‚»ãƒƒãƒˆ
     m_hasDroppedWave1FirstAid = false;
     m_hasDroppedWave1Ammo = false;
     m_wave1DropCount = 0;
 
-    m_clearSceneDelayTimer = -1; // ’x‰„ƒ^ƒCƒ}[‚ğƒŠƒZƒbƒg
+    m_clearSceneDelayTimer = -1; // é…å»¶ã‚¿ã‚¤ãƒãƒ¼ã‚’ãƒªã‚»ãƒƒãƒˆ
 
-    // WaveManager‚Ì“G‚Ì€–S‚ÉƒAƒCƒeƒ€‚ğƒhƒƒbƒv‚·‚éƒR[ƒ‹ƒoƒbƒN‚ğİ’è
+    // WaveManagerã®æ•µã®æ­»äº¡æ™‚ã«ã‚¢ã‚¤ãƒ†ãƒ ã‚’ãƒ‰ãƒ­ãƒƒãƒ—ã™ã‚‹ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’è¨­å®š
     m_pWaveManager->SetOnEnemyDeathCallback([this](const VECTOR &pos)
     {
         static VECTOR lastDropPos = { -99999, -99999, -99999 };
-        // ’¼‘O‚Æ“¯‚¶À•W‚È‚ç‰½‚à‚µ‚È‚¢
+        // ç›´å‰ã¨åŒã˜åº§æ¨™ãªã‚‰ä½•ã‚‚ã—ãªã„
         if (pos.x == lastDropPos.x && pos.y == lastDropPos.y && pos.z == lastDropPos.z) return;
         lastDropPos = pos;
         if (m_pWaveManager->GetCurrentWave() == 1)
         {
-            if (m_wave1DropCount >= 2) return; // 0.5f‘Ì•ª‚¾‚¯ƒhƒƒbƒv
+            if (m_wave1DropCount >= 2) return; // 0.5fä½“åˆ†ã ã‘ãƒ‰ãƒ­ãƒƒãƒ—
 
             if (!m_hasDroppedWave1FirstAid && !m_hasDroppedWave1Ammo) 
             {
@@ -347,11 +348,11 @@ void SceneMain::Init()
                 m_hasDroppedWave1Ammo = true;
                 m_wave1DropCount++;
             }
-            // —¼•ûƒhƒƒbƒvÏ‚İ or 2‘Ì•ª’´‚¦‚½‚ç‰½‚à—‚Æ‚³‚È‚¢
+            // ä¸¡æ–¹ãƒ‰ãƒ­ãƒƒãƒ—æ¸ˆã¿ or 2ä½“åˆ†è¶…ãˆãŸã‚‰ä½•ã‚‚è½ã¨ã•ãªã„
         } 
         else 
         {
-            // wave2ˆÈ~‚Í‚Ç‚¿‚ç‚©ˆê•û‚Ì‚İƒhƒƒbƒv
+            // wave2ä»¥é™ã¯ã©ã¡ã‚‰ã‹ä¸€æ–¹ã®ã¿ãƒ‰ãƒ­ãƒƒãƒ—
             int randValue = GetRand(99);
             std::shared_ptr<ItemBase> dropItem;
             if (randValue < 50) 
@@ -370,25 +371,28 @@ void SceneMain::Init()
         }
     });
 
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒ}ƒl[ƒWƒƒ¶¬E‰Šú‰»
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ãƒãƒãƒ¼ã‚¸ãƒ£ç”Ÿæˆãƒ»åˆæœŸåŒ–
     m_pTutorialManager = std::make_unique<TutorialManager>();
+    auto tutorialUI = std::make_shared<TutorialUI>(m_pTutorialManager.get());
+    m_pUIManager->AddUI(tutorialUI);
+    tutorialUI->Init();
     if (!m_isReturningFromOtherScene && !s_isSkipTutorial) 
     {
         m_pTutorialManager->Init();
     }
 
-    // ƒqƒbƒgƒ}[ƒN—pƒR[ƒ‹ƒoƒbƒN‚ğWaveManager‚É  // “Gƒqƒbƒg‚ÌƒR[ƒ‹ƒoƒbƒNİ’è
+    // ãƒ’ãƒƒãƒˆãƒãƒ¼ã‚¯ç”¨ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’WaveManagerã«  // æ•µãƒ’ãƒƒãƒˆæ™‚ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯è¨­å®š
     m_pWaveManager->SetOnEnemyHitCallback(
         [this](EnemyBase::HitPart part, float distance)
         {
             OnPlayerBulletHitEnemy(part, distance);
         });
 
-    // ŠÂ‹«Œõ‚Ìİ’è
+    // ç’°å¢ƒå…‰ã®è¨­å®š
     SetLightAmbColor(GetColorF(kAmbientLightR, kAmbientLightG, kAmbientLightB, kAmbientLightA));
 
 
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒ}ƒl[ƒWƒƒ[‚ğƒŠƒZƒbƒg‚Ü‚½‚ÍƒXƒLƒbƒv
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã‚’ãƒªã‚»ãƒƒãƒˆã¾ãŸã¯ã‚¹ã‚­ãƒƒãƒ—
     if (m_isReturningFromOtherScene) 
     {
         TaskTutorialManager::GetInstance()->Skip(m_pWaveManager.get());
@@ -399,7 +403,7 @@ void SceneMain::Init()
     }
 }
 
-// ƒXƒRƒAƒ|ƒbƒvƒAƒbƒv‚ğ’Ç‰Á‚·‚é
+// ã‚¹ã‚³ã‚¢ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã‚’è¿½åŠ ã™ã‚‹
 void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo) 
 {
     if (m_pUIManager)
@@ -414,30 +418,30 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 
 void SceneMain::SwitchToMainStage()
 {
-  // ƒ`ƒ…[ƒgƒŠƒAƒ‹‚ÌƒAƒCƒeƒ€‚ğÁ‹
+  // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã®ã‚¢ã‚¤ãƒ†ãƒ ã‚’æ¶ˆå»
   m_items.clear();
 
-  // WaveManager‚ğƒŠƒZƒbƒg (“G‚ÌÁ‹‚ÆWaveî•ñ‚Ì‰Šú‰»)
+  // WaveManagerã‚’ãƒªã‚»ãƒƒãƒˆ (æ•µã®æ¶ˆå»ã¨Waveæƒ…å ±ã®åˆæœŸåŒ–)
   m_pWaveManager->Reset();
 
-  // ƒGƒtƒFƒNƒg‚ğ‘S‚Ä’â~
+  // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’å…¨ã¦åœæ­¢
   if (m_pEffect) {
     m_pEffect->StopAllEffects();
   }
 
-  // ƒƒCƒ“ƒXƒe[ƒW‚ğƒ[ƒh
+  // ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ã‚¸ã‚’ãƒ­ãƒ¼ãƒ‰
   m_pStage->LoadStage(false);
   m_isTutorialStage = false;
 
-  // ƒXƒe[ƒW”ÍˆÍ‚ğXV
+  // ã‚¹ãƒ†ãƒ¼ã‚¸ç¯„å›²ã‚’æ›´æ–°
   m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
   m_pWaveManager->RegisterStageToGrid(m_pStage->GetCollisionData());
   m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
 
-  // ƒvƒŒƒCƒ„[‚ÌÄ‰Šú‰»iˆÊ’u‚È‚Ç‚ğCSV‚©‚çÄæ“¾j
+  // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å†åˆæœŸåŒ–ï¼ˆä½ç½®ãªã©ã‚’CSVã‹ã‚‰å†å–å¾—ï¼‰
   m_pPlayer->Init(false);
 
-  // WaveUI‚ğ•\¦‚·‚é
+  // WaveUIã‚’è¡¨ç¤ºã™ã‚‹
   auto waveUI = m_pUIManager->GetUI<WaveUI>();
   if (waveUI)
   {
@@ -447,10 +451,10 @@ void SceneMain::SwitchToMainStage()
 
 SceneBase* SceneMain::Update()
 {
-    // ƒ[ƒfƒBƒ“ƒO’†‚Í‘¼‚Ìˆ—‚ğs‚í‚È‚¢
+    // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ä¸­ã¯ä»–ã®å‡¦ç†ã‚’è¡Œã‚ãªã„
     if (m_isLoading)
     {
-        // ƒ[ƒfƒBƒ“ƒOƒAƒjƒ[ƒVƒ‡ƒ“XV
+        // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ›´æ–°
         m_loadingAnimTimer++;
         if (m_loadingAnimTimer > 30)
         {
@@ -462,11 +466,11 @@ SceneBase* SceneMain::Update()
             }
         }
 
-        // ƒ[ƒfƒBƒ“ƒOƒ‚ƒfƒ‹‚ÌXV (•àsƒAƒjƒ[ƒVƒ‡ƒ“)
+        // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ãƒ¢ãƒ‡ãƒ«ã®æ›´æ–° (æ­©è¡Œã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³)
         if (m_loadingModel.IsValid())
         {
-            // ƒAƒjƒ[ƒVƒ‡ƒ“is
-            m_loadingModelAnimTime += 1.0f; // ƒXƒs[ƒh’²®
+            // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é€²è¡Œ
+            m_loadingModelAnimTime += 1.0f; // ã‚¹ãƒ”ãƒ¼ãƒ‰èª¿æ•´
             float totalTime = MV1GetAttachAnimTotalTime(m_loadingModel, 0);
             if (m_loadingModelAnimTime >= totalTime)
             {
@@ -474,40 +478,40 @@ SceneBase* SceneMain::Update()
             }
             MV1SetAttachAnimTime(m_loadingModel, 0, m_loadingModelAnimTime);
 
-            // ˆÚ“® (¶‚©‚ç‰E‚Ö)
+            // ç§»å‹• (å·¦ã‹ã‚‰å³ã¸)
             m_loadingModelPos.x += 3.0f;
-            if (m_loadingModelPos.x > 350.0f) // ‰æ–Ê‰E’[‚ğ’´‚¦‚½‚çƒ‹[ƒv
+            if (m_loadingModelPos.x > 350.0f) // ç”»é¢å³ç«¯ã‚’è¶…ãˆãŸã‚‰ãƒ«ãƒ¼ãƒ—
             {
                 m_loadingModelPos.x = -350.0f;
             }
 
-            // ˆÊ’uİ’è (ŒÅ’èƒJƒƒ‰‚ğ‘O’ñ‚Æ‚µ‚½ŠÈˆÕ”z’u)
+            // ä½ç½®è¨­å®š (å›ºå®šã‚«ãƒ¡ãƒ©ã‚’å‰æã¨ã—ãŸç°¡æ˜“é…ç½®)
         }
 
-        // ”ñ“¯Šú“Ç‚İ‚İ‚ªŠ®—¹‚µ‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
+        // éåŒæœŸèª­ã¿è¾¼ã¿ãŒå®Œäº†ã—ã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
         if (GetASyncLoadNum() == 0)
         {
-            // Å’áŒÀ‚Ìƒ[ƒfƒBƒ“ƒOŠÔ‚ğŠm•Û
+            // æœ€ä½é™ã®ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°æ™‚é–“ã‚’ç¢ºä¿
             m_loadingFrameCount++;
             if (m_loadingFrameCount >= 80)
             {
                 m_isLoading = false;
                 m_loadingFrameCount = 0;
 
-                // ”ñ“¯Šúƒ[ƒhŠ®—¹Œã‚É1‰ñ‚¾‚¯ŒÄ‚Ô
+                // éåŒæœŸãƒ­ãƒ¼ãƒ‰å®Œäº†å¾Œã«1å›ã ã‘å‘¼ã¶
                 if (!m_isPlayerInit && m_pPlayer)
                 {
                     m_pPlayer->Init(m_isTutorialStage);
                     m_isPlayerInit = true;
 
-                    // ”ñ“¯Šú“Ç‚İ‚İ‚ğ–³Œø‰»
+                    // éåŒæœŸèª­ã¿è¾¼ã¿ã‚’ç„¡åŠ¹åŒ–
                     SetUseASyncLoadFlag(false);
                 }
             }
             else
             {
-                // ƒOƒŒ[ƒXŠúŠÔ’†‚àƒ[ƒfƒBƒ“ƒO’†‚Æ‚İ‚È‚µAˆ—‚ğ•Ô‚µ‚Ä^‚ÁˆÃ‚È‰æ–Ê‚Å‚Ìis‚ğ–h‚®
-                // Draw()‚Å‚Ìƒ[ƒfƒBƒ“ƒO•\¦‚ğ—LŒø‚É‚·‚é‚½‚ß‚É‚±‚±‚ğ’Ê‚·
+                // ã‚°ãƒ¬ãƒ¼ã‚¹æœŸé–“ä¸­ã‚‚ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ä¸­ã¨ã¿ãªã—ã€å‡¦ç†ã‚’è¿”ã—ã¦çœŸã£æš—ãªç”»é¢ã§ã®é€²è¡Œã‚’é˜²ã
+                // Draw()ã§ã®ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°è¡¨ç¤ºã‚’æœ‰åŠ¹ã«ã™ã‚‹ãŸã‚ã«ã“ã“ã‚’é€šã™
                 return this;
             }
         }
@@ -517,19 +521,19 @@ SceneBase* SceneMain::Update()
         }
     }
 
-    // BGMÄ¶
-    if (!m_isLoading) // ƒ[ƒhŠ®—¹Œã‚ÉÄ¶ŠJn
+    // BGMå†ç”Ÿ
+    if (!m_isLoading) // ãƒ­ãƒ¼ãƒ‰å®Œäº†å¾Œã«å†ç”Ÿé–‹å§‹
     {
         SoundManager::GetInstance()->PlayBGM("BGM", "Main");
     }
 
-    // ƒ^ƒCƒ€ƒXƒP[ƒ‹‚ÌXV
+    // ã‚¿ã‚¤ãƒ ã‚¹ã‚±ãƒ¼ãƒ«ã®æ›´æ–°
     Game::UpdateTimeScale();
 
-    // ƒwƒbƒhƒVƒ‡ƒbƒgSE‚ÌƒN[ƒ‹ƒ^ƒCƒ€XV
+    // ãƒ˜ãƒƒãƒ‰ã‚·ãƒ§ãƒƒãƒˆSEã®ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ æ›´æ–°
     if (m_headShotSECooldownTimer > 0) m_headShotSECooldownTimer--;
 
-    // Œo‰ßŠÔ‚ğ‰ÁZ
+    // çµŒéæ™‚é–“ã‚’åŠ ç®—
     long long now = GetNowHiPerformanceCount();
     m_lastDeltaTime = (now - m_prevTimeCount) / 1000000.0f;
     m_prevTimeCount = now;
@@ -537,22 +541,22 @@ SceneBase* SceneMain::Update()
     float dt = (1.0f / 60.0f) * Game::GetTimeScale();
     s_elapsedTime += dt;
 
-    // UI‚ÌXV (ƒ|[ƒY’†‚âƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚àƒ^ƒCƒ}[‚ği‚ß‚éA‚Ü‚½‚ÍƒXƒP[ƒ‹‚ğXV‚·‚é‚½‚ß‚É‚±‚±‚ÅŒÄ‚Ô)
+    // UIã®æ›´æ–° (ãƒãƒ¼ã‚ºä¸­ã‚„ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã‚‚ã‚¿ã‚¤ãƒãƒ¼ã‚’é€²ã‚ã‚‹ã€ã¾ãŸã¯ã‚¹ã‚±ãƒ¼ãƒ«ã‚’æ›´æ–°ã™ã‚‹ãŸã‚ã«ã“ã“ã§å‘¼ã¶)
     if (m_pUIManager)
     {
         m_pUIManager->Update(m_lastDeltaTime);
     }
 
-    // ƒfƒoƒbƒNƒEƒBƒ“ƒhƒE‚ª•\¦‚³‚ê‚Ä‚¢‚éê‡‚ÍAXV‚ğƒXƒLƒbƒv
+    // ãƒ‡ãƒãƒƒã‚¯ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ã€æ›´æ–°ã‚’ã‚¹ã‚­ãƒƒãƒ—
     if (DebugUtil::IsDebugWindowVisible())
     {
         return this;
     }
 
-    // ƒXƒJƒCƒh[ƒ€‚Ì‰ñ“]
+    // ã‚¹ã‚«ã‚¤ãƒ‰ãƒ¼ãƒ ã®å›è»¢
     MV1SetRotationXYZ(m_skyDome, VGet(0, MV1GetRotationXYZ(m_skyDome).y + kCameraRotaSpeed, 0));
 
-    // ƒGƒXƒP[ƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚©ƒ`ƒFƒbƒN
+    // ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‹ãƒã‚§ãƒƒã‚¯
     if (CheckHitKey(KEY_INPUT_ESCAPE))
     {
         if (!m_isEscapePressed)
@@ -570,7 +574,7 @@ SceneBase* SceneMain::Update()
                 auto now = std::chrono::steady_clock::now();
                 auto pauseDuration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_pauseStartTime).count();
 
-                // ƒ|[ƒY‰ğœ‚Éƒ}ƒEƒX‚ğ’†‰›‚ÉƒŠƒZƒbƒg‚µA‹“_‚Ì‚©‚­‚Â‚«‚ğ–h‚®
+                // ãƒãƒ¼ã‚ºè§£é™¤æ™‚ã«ãƒã‚¦ã‚¹ã‚’ä¸­å¤®ã«ãƒªã‚»ãƒƒãƒˆã—ã€è¦–ç‚¹ã®ã‹ãã¤ãã‚’é˜²ã
                 SetMousePoint(static_cast<int>(Game::GetScreenWidth() * 0.5f), static_cast<int>(Game::GetScreenHeight() * 0.5f));
             }
         }
@@ -591,7 +595,7 @@ SceneBase* SceneMain::Update()
                 mousePos.y >= kReturnButtonY &&
                 mousePos.y <= kReturnButtonY + kButtonHeight)
             {
-                // BGM‚ğ’â~
+                // BGMã‚’åœæ­¢
                 SoundManager::GetInstance()->StopBGM();
                 return new SceneTitle(true);
             }
@@ -600,60 +604,60 @@ SceneBase* SceneMain::Update()
         return this;
     }
 
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒ}ƒl[ƒWƒƒ‚ÌXV
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ãƒãƒãƒ¼ã‚¸ãƒ£ã®æ›´æ–°
     if (m_pTutorialManager)
     {
         m_pTutorialManager->Update();
 
-        // ’á‘Ì—Íƒ`ƒ…[ƒgƒŠƒAƒ‹‚Ì•\¦
+        // ä½ä½“åŠ›ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã®è¡¨ç¤º
         if (m_pPlayer && m_pPlayer->IsLowHealth() && !s_hasShownLowHealthTutorial)
         {
-            m_pTutorialManager->AddMessage("‰ñ•œƒAƒCƒeƒ€",
-                                           "“G‚ğ“|‚·‚Æ‰ñ•œƒAƒCƒeƒ€‚ğƒhƒƒbƒv‚·‚éB\n"
-                                           "¶‚«c‚è‚½‚¯‚ê‚ÎÏ‹É“I‚És“®‚¹‚æ");
+            m_pTutorialManager->AddMessage("å›å¾©ã‚¢ã‚¤ãƒ†ãƒ ",
+                                           "æ•µã‚’å€’ã™ã¨å›å¾©ã‚¢ã‚¤ãƒ†ãƒ ã‚’ãƒ‰ãƒ­ãƒƒãƒ—ã™ã‚‹ã€‚\n"
+                                           "ç”Ÿãæ®‹ã‚ŠãŸã‘ã‚Œã°ç©æ¥µçš„ã«è¡Œå‹•ã›ã‚ˆ");
             s_hasShownLowHealthTutorial = true;
         }
     }
 
-    // Šî–{‘€ìƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚Ìˆ—
+    // åŸºæœ¬æ“ä½œãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã®å‡¦ç†
     if (m_pTutorialManager && m_pTutorialManager->IsActive())
     {
-        m_pPlayer->Update({}, m_pStage->GetCollisionData()); // ƒvƒŒƒCƒ„[‚Íƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚àˆÚ“®‰Â”\
+        m_pPlayer->Update({}, m_pStage->GetCollisionData()); // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¯ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã‚‚ç§»å‹•å¯èƒ½
         return this;
     }
-    // Šî–{‘€ìƒ`ƒ…[ƒgƒŠƒAƒ‹‚ªŠ®—¹‚µ‚½‚çAƒ^ƒXƒNƒ`ƒ…[ƒgƒŠƒAƒ‹‚ğ‰Šú‰»
+    // åŸºæœ¬æ“ä½œãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ãŒå®Œäº†ã—ãŸã‚‰ã€ã‚¿ã‚¹ã‚¯ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã‚’åˆæœŸåŒ–
     else if (m_pTutorialManager && m_pTutorialManager->IsCompleted() && !m_isTaskTutorialInit)
     {
         TaskTutorialManager::GetInstance()->Init(m_pWaveManager.get(), m_pPlayer.get());
         m_isTaskTutorialInit = true;
     }
 
-    // ƒ^ƒXƒNƒ`ƒ…[ƒgƒŠƒAƒ‹‚ªŠ®—¹‚µ‚Ä‚¢‚È‚¢ŠÔ
+    // ã‚¿ã‚¹ã‚¯ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ãŒå®Œäº†ã—ã¦ã„ãªã„é–“
     if (!TaskTutorialManager::GetInstance()->IsCompleted())
     {
         TaskTutorialManager::GetInstance()->Update();
 
-        // ƒ^ƒXƒNƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚àWaveManager‚ÌXViƒXƒ|[ƒ“ˆ—‚Ì‚İj‚ğs‚¤
+        // ã‚¿ã‚¹ã‚¯ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã‚‚WaveManagerã®æ›´æ–°ï¼ˆã‚¹ãƒãƒ¼ãƒ³å‡¦ç†ã®ã¿ï¼‰ã‚’è¡Œã†
         m_pWaveManager->Update();
 
-        // ƒ^ƒXƒNƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚ÍWaveManager‚Ì’Êí‚ÌXV‚Ís‚í‚È‚¢
-        // ‚½‚¾‚µA“G‚ÌXV‚ÆƒvƒŒƒCƒ„[‚ÌXV‚Í•K—v
+        // ã‚¿ã‚¹ã‚¯ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã¯WaveManagerã®é€šå¸¸ã®æ›´æ–°ã¯è¡Œã‚ãªã„
+        // ãŸã ã—ã€æ•µã®æ›´æ–°ã¨ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ›´æ–°ã¯å¿…è¦
 
-        // WaveManager‚©‚çƒAƒNƒeƒBƒu‚È“G‚ÌƒŠƒXƒg‚ğæ“¾‚µ‚ÄƒvƒŒƒCƒ„[‚ğXV
+        // WaveManagerã‹ã‚‰ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªæ•µã®ãƒªã‚¹ãƒˆã‚’å–å¾—ã—ã¦ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’æ›´æ–°
         std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
         std::vector<EnemyBase*> enemyPtrList;
         for (std::shared_ptr<EnemyBase>& enemy : enemyList)
         {
             enemyPtrList.push_back(enemy.get());
         }
-        // ƒvƒŒƒCƒ„[‚Í“G‚ğŒ‚‚Á‚½‚èƒ^ƒbƒNƒ‹‚µ‚½‚è‚·‚é‚½‚ß‚É“G‚ÅXV‚·‚é•K—v‚ª‚ ‚é
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¯æ•µã‚’æ’ƒã£ãŸã‚Šã‚¿ãƒƒã‚¯ãƒ«ã—ãŸã‚Šã™ã‚‹ãŸã‚ã«æ•µã§æ›´æ–°ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
         m_pPlayer->Update(enemyPtrList, m_pStage->GetCollisionData());
         
-        // “G‚àXV‚·‚é•K—v‚ª‚ ‚é
+        // æ•µã‚‚æ›´æ–°ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
         m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer,
             m_pStage->GetCollisionData(), m_pEffect.get());
 
-        // ƒAƒCƒeƒ€AƒXƒRƒAƒ|ƒbƒvƒAƒbƒv‚È‚Ç‚ÌXV‚Íƒ^ƒXƒNƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚Å‚àÀs
+        // ã‚¢ã‚¤ãƒ†ãƒ ã€ã‚¹ã‚³ã‚¢ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ãªã©ã®æ›´æ–°ã¯ã‚¿ã‚¹ã‚¯ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã§ã‚‚å®Ÿè¡Œ
         for (std::shared_ptr<ItemBase>& item : m_items)
         {
             item->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
@@ -663,12 +667,12 @@ SceneBase* SceneMain::Update()
 
         ScoreManager::Instance().Update();
 
-        // ƒQ[ƒ€ƒI[ƒo[ƒ`ƒFƒbƒN‚à‚±‚±‚ÅÀs
+        // ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼ãƒã‚§ãƒƒã‚¯ã‚‚ã“ã“ã§å®Ÿè¡Œ
         if (m_pPlayer->IsDead())
         {
             if (m_gameOverDelayTimer == -1)
             {
-                m_gameOverDelayTimer = 180; // 3•b‚Ì’x‰„
+                m_gameOverDelayTimer = 180; // 3ç§’ã®é…å»¶
             }
             else if (m_gameOverDelayTimer > 0)
             {
@@ -684,19 +688,19 @@ SceneBase* SceneMain::Update()
             }
         }
 
-        m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // •ûŒüƒCƒ“ƒWƒP[ƒ^‚àXV
+        m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // æ–¹å‘ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ã‚‚æ›´æ–°
 
-        return this; // ƒ^ƒXƒNƒ`ƒ…[ƒgƒŠƒAƒ‹’†‚É—¯‚Ü‚é
+        return this; // ã‚¿ã‚¹ã‚¯ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ä¸­ã«ç•™ã¾ã‚‹
     }
 
-    // ‚±‚±‚©‚ç’Êíis (—¼•û‚Ìƒ`ƒ…[ƒgƒŠƒAƒ‹‚ªŠ®—¹‚µ‚½ê‡‚Ì‚İ)
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒXƒe[ƒW‚É‚¢‚éê‡‚ÍƒƒCƒ“ƒXƒe[ƒW‚ÉØ‚è‘Ö‚¦
+    // ã“ã“ã‹ã‚‰é€šå¸¸é€²è¡Œ (ä¸¡æ–¹ã®ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ãŒå®Œäº†ã—ãŸå ´åˆã®ã¿)
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã‚¹ãƒ†ãƒ¼ã‚¸ã«ã„ã‚‹å ´åˆã¯ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ã‚¸ã«åˆ‡ã‚Šæ›¿ãˆ
     if (m_isTutorialStage)
     {
         SwitchToMainStage();
     }
 
-    m_pWaveManager->Update(); // ƒƒCƒ“‚ÌƒEƒF[ƒuƒ}ƒl[ƒWƒƒ‚ğXV
+    m_pWaveManager->Update(); // ãƒ¡ã‚¤ãƒ³ã®ã‚¦ã‚§ãƒ¼ãƒ–ãƒãƒãƒ¼ã‚¸ãƒ£ã‚’æ›´æ–°
 
     std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
     std::vector<EnemyBase*> enemyPtrList;
@@ -726,27 +730,27 @@ SceneBase* SceneMain::Update()
         }
     }
 
-    // ƒEƒF[ƒu5I—¹Œã‚Ì’x‰„ˆ—
+    // ã‚¦ã‚§ãƒ¼ãƒ–5çµ‚äº†å¾Œã®é…å»¶å‡¦ç†
     if (m_pWaveManager->GetCurrentWave() > 5)
     {
-        if (m_clearSceneDelayTimer == -1) // ’x‰„‚ª‚Ü‚¾ŠJn‚³‚ê‚Ä‚¢‚È‚¢ê‡
+        if (m_clearSceneDelayTimer == -1) // é…å»¶ãŒã¾ã é–‹å§‹ã•ã‚Œã¦ã„ãªã„å ´åˆ
         {
-            m_clearSceneDelayTimer = kClearSceneDelayFrames; // ’x‰„ƒ^ƒCƒ}[‚ğŠJn
-            SoundManager::GetInstance()->StopBGM();                       // BGM‚ğ’â~
+            m_clearSceneDelayTimer = kClearSceneDelayFrames; // é…å»¶ã‚¿ã‚¤ãƒãƒ¼ã‚’é–‹å§‹
+            SoundManager::GetInstance()->StopBGM();                       // BGMã‚’åœæ­¢
         }
-        else if (m_clearSceneDelayTimer > 0) // ’x‰„’†‚Ìê‡
+        else if (m_clearSceneDelayTimer > 0) // é…å»¶ä¸­ã®å ´åˆ
         {
-            m_clearSceneDelayTimer--; // ƒ^ƒCƒ}[‚ğŒ¸‚ç‚·
+            m_clearSceneDelayTimer--; // ã‚¿ã‚¤ãƒãƒ¼ã‚’æ¸›ã‚‰ã™
         }
-        else // ’x‰„‚ªI—¹‚µ‚½ê‡
+        else // é…å»¶ãŒçµ‚äº†ã—ãŸå ´åˆ
         {
-            return new SceneResult(); // ƒV[ƒ“‘JˆÚ
+            return new SceneResult(); // ã‚·ãƒ¼ãƒ³é·ç§»
         }
     }
 
-    // ’x‰„’†‚Í‘¼‚Ìˆ—‚ğƒXƒLƒbƒv
+    // é…å»¶ä¸­ã¯ä»–ã®å‡¦ç†ã‚’ã‚¹ã‚­ãƒƒãƒ—
     if (m_clearSceneDelayTimer != -1) return this;
-    // AIXVƒJƒEƒ“ƒ^‚ÌƒŠƒZƒbƒg
+    // AIæ›´æ–°ã‚«ã‚¦ãƒ³ã‚¿ã®ãƒªã‚»ãƒƒãƒˆ
     EnemyBase::ResetAIUpdateCount();
     EnemyBase::ResetTotalCount();
 
@@ -760,7 +764,7 @@ SceneBase* SceneMain::Update()
     m_items.erase(std::remove_if(m_items.begin(), m_items.end(),
         [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed() || item->IsExpired(); }), m_items.end());
 
-    m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // •ûŒüƒCƒ“ƒWƒP[ƒ^‚àXV
+    m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // æ–¹å‘ã‚¤ãƒ³ã‚¸ã‚±ãƒ¼ã‚¿ã‚‚æ›´æ–°
     ScoreManager::Instance().Update();
 
     return this;
@@ -784,7 +788,7 @@ void SceneMain::Draw()
         item->Draw();
     }
 
-    // ƒ[ƒfƒBƒ“ƒO’†‚Ì•\¦
+    // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ä¸­ã®è¡¨ç¤º
     if (m_isLoading)
     {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
@@ -801,48 +805,46 @@ void SceneMain::Draw()
         int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
         int textX = static_cast<int>((screenW - textWidth) * 0.5f);
         float scale = Game::GetUIScale();
-        int textY = static_cast<int>((screenH - static_cast<int>(48 * scale)) * 0.5f - static_cast<int>(50 * scale)); // ƒeƒLƒXƒg‚ğ­‚µã‚É‚¸‚ç‚·
+        int textY = static_cast<int>((screenH - static_cast<int>(48 * scale)) * 0.5f - static_cast<int>(50 * scale)); // ãƒ†ã‚­ã‚¹ãƒˆã‚’å°‘ã—ä¸Šã«ãšã‚‰ã™
         DrawString(textX, textY, loadingText.c_str(), 0xffffff);
         SetFontSize(16);
 
-        // ƒ[ƒfƒBƒ“ƒOƒ‚ƒfƒ‹‚Ì•`‰æ
-        // ƒ[ƒfƒBƒ“ƒOƒ‚ƒfƒ‹‚Ì•`‰æ
+        // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ãƒ¢ãƒ‡ãƒ«ã®æç”»
+        // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ãƒ¢ãƒ‡ãƒ«ã®æç”»
         if (m_loadingModel.IsValid())
         {
-            // ƒJƒƒ‰İ’è‚ğƒ[ƒfƒBƒ“ƒOê—p‚É‚·‚é
+            // ã‚«ãƒ¡ãƒ©è¨­å®šã‚’ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°å°‚ç”¨ã«ã™ã‚‹
             VECTOR camPos = VGet(0.0f, -550.0f, 0.0f);
 
             VECTOR camTarget = VGet(0.0f, -550.0f, 1000.0f);
             SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
             SetCameraPositionAndTarget_UpVecY(camPos, camTarget);
 
-            // ƒ‚ƒfƒ‹ˆÊ’uİ’è
+            // ãƒ¢ãƒ‡ãƒ«ä½ç½®è¨­å®š
             MV1SetPosition(m_loadingModel, m_loadingModelPos);
             MV1DrawModel(m_loadingModel);
 
-            // ƒJƒƒ‰İ’è‚ğ–ß‚· (Ÿ‚ÌƒtƒŒ[ƒ€‚Ì•`‰æ‚É‰e‹¿‚µ‚È‚¢‚æ‚¤‚É„§‚³‚ê‚é‚ªA
-            // ÀÛ‚É‚ÍƒƒCƒ“ƒ‹[ƒv‚Å–ˆƒtƒŒ[ƒ€İ’è‚³‚ê‚é‚½‚ßA‚±‚±‚Å‚ÍŠÈˆÕ“I‚Å—Ç‚¢)
+            // ã‚«ãƒ¡ãƒ©è¨­å®šã‚’æˆ»ã™ (æ¬¡ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®æç”»ã«å½±éŸ¿ã—ãªã„ã‚ˆã†ã«æ¨å¥¨ã•ã‚Œã‚‹ãŒã€
+            // å®Ÿéš›ã«ã¯ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—ã§æ¯ãƒ•ãƒ¬ãƒ¼ãƒ è¨­å®šã•ã‚Œã‚‹ãŸã‚ã€ã“ã“ã§ã¯ç°¡æ˜“çš„ã§è‰¯ã„)
         }
 
-        return; // ƒ[ƒfƒBƒ“ƒO’†‚Í‚±‚êˆÈ~•`‰æ‚µ‚È‚¢
+        return; // ãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ä¸­ã¯ã“ã‚Œä»¥é™æç”»ã—ãªã„
     }
 
-    // “G‚Ì•`‰æ
+    // æ•µã®æç”»
     m_pWaveManager->DrawEnemies(m_pStage->GetCollisionData(), m_isTutorialStage);
 
-    // ƒGƒtƒFƒNƒg‚Ì•`‰æ
+    // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®æç”»
     m_pEffect->Draw();
 
     m_pPlayer->Draw3D();
-
-    // ‚±‚±‚©‚çUI•`‰æ
+        // ã“ã“ã‹ã‚‰UIæç”»
     m_pPlayer->DrawShield();
 
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹UIiÅ‘O–Ê‚É•\¦j
-    if (m_pTutorialManager)
-    {
-        m_pTutorialManager->Draw(screenW, screenH);
-    }
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«UIï¼ˆæœ€å‰é¢ã«è¡¨ç¤ºï¼‰
+    // TutorialUI is now drawn via UIManager
+    // if (m_pTutorialManager)
+    //    m_pTutorialManager->Draw(screenW, screenH);
 
     if (m_pTutorialManager && m_pTutorialManager->IsActive())
     {
@@ -853,22 +855,22 @@ void SceneMain::Draw()
         TaskTutorialManager::GetInstance()->Draw();
     }
 
-    // UI‚ÌˆêŠ‡•`‰æ
+    // UIã®ä¸€æ‹¬æç”»
     m_pUIManager->Draw();
 
-    // ƒ|[ƒYƒƒjƒ…[‚Ì•`‰æ
+    // ãƒãƒ¼ã‚ºãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®æç”»
     if (m_isPaused)
     {
         DrawPauseMenu();
     }
 
-    // ƒfƒoƒbƒOHUD•`‰æ
+    // ãƒ‡ãƒãƒƒã‚°HUDæç”»
     if (m_isShowDebugHUD)
     {
         DrawDebugHUD();
     }
 
-    // ‹óŠÔ•ªŠ„ƒfƒoƒbƒOUI•`‰æ
+    // ç©ºé–“åˆ†å‰²ãƒ‡ãƒãƒƒã‚°UIæç”»
     if (m_pWaveManager)
     {
         m_pWaveManager->DrawDebugUI();
@@ -878,7 +880,7 @@ void SceneMain::Draw()
 void SceneMain::SetShowDebugHUD(bool show)
 {
     m_isShowDebugHUD = show;
-    // EnemyBase‘¤‚Ìƒtƒ‰ƒO‚à˜A“®‚³‚¹‚é
+    // EnemyBaseå´ã®ãƒ•ãƒ©ã‚°ã‚‚é€£å‹•ã•ã›ã‚‹
     EnemyBase::SetShowDamage(show);
 }
 
@@ -887,15 +889,15 @@ void SceneMain::DrawDebugHUD()
     int screenW = Game::GetScreenWidth();
     int screenH = Game::GetScreenHeight();
 
-    // ‰æ–Ê‘S‘Ì‚ğ”¼“§–¾‚Ì•‚Å•¢‚¤
+    // ç”»é¢å…¨ä½“ã‚’åŠé€æ˜ã®é»’ã§è¦†ã†
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
     DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // î•ñûW
+    // æƒ…å ±åé›†
     VECTOR playerPos = m_pPlayer ? m_pPlayer->GetPos() : VGet(0, 0, 0);
 
-    // •\¦XV•p“x‚ğ—‚Æ‚·
+    // è¡¨ç¤ºæ›´æ–°é »åº¦ã‚’è½ã¨ã™
     m_debugDisplayTimer--;
     if (m_debugDisplayTimer <= 0)
     {
@@ -916,7 +918,7 @@ void SceneMain::DrawDebugHUD()
     int damageTimer = EnemyBase::GetDebugDamageTimer();
     std::string damageStr = (damageTimer > 0) ? std::to_string((int)lastDamage) + (hitInfo.empty() ? "" : " " + hitInfo) : "-";
 
-    // ƒeƒLƒXƒg•`‰æ (¶ã)
+    // ãƒ†ã‚­ã‚¹ãƒˆæç”» (å·¦ä¸Š)
     int x = 20;
     int y = 20;
     int lineHeight = 20;
@@ -940,14 +942,14 @@ void SceneMain::DrawDebugHUD()
     DrawFormatString(x, y, color, "Drawn Enemy Count: %d", drawnEnemyCount);
     y += lineHeight;
 
-    // AIŠÔˆø‚«(Throttling)‚Ì•]‰¿
+    // AIé–“å¼•ã(Throttling)ã®è©•ä¾¡
     int totalCount = m_cachedTotalEnemies;
     int aiUpdatedCount = m_cachedUpdatedEnemies;
     float throttlingRate = totalCount > 0 ? (1.0f - (float)aiUpdatedCount / totalCount) * 100.0f : 0.0f;
     DrawFormatString(x, y, color, "AI Update: %d/%d (Throttled: %.1f%%)", aiUpdatedCount, totalCount, throttlingRate);
     y += lineHeight;
 
-    // •`‰æƒJƒŠƒ“ƒO‚Ì•]‰¿
+    // æç”»ã‚«ãƒªãƒ³ã‚°ã®è©•ä¾¡
     float cullingRate = totalCount > 0 ? (1.0f - (float)drawnEnemyCount / totalCount) * 100.0f : 0.0f;
     DrawFormatString(x, y, color, "Draw Culling: %.1f%%", cullingRate);
     y += lineHeight;
@@ -973,7 +975,7 @@ void SceneMain::SetPaused(bool paused)
     SetMouseDispFlag(m_isPaused);
 }
 
-// ƒJƒƒ‰‚ÌŠ´“x‚ğİ’è
+// ã‚«ãƒ¡ãƒ©ã®æ„Ÿåº¦ã‚’è¨­å®š
 void SceneMain::SetCameraSensitivity(float sensitivity)
 {
     m_cameraSensitivity = sensitivity;
@@ -984,11 +986,11 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
 }
 
 /// <summary>
-/// ƒvƒŒƒCƒ„[‚Ì’e‚ª“G‚Éƒqƒbƒg‚µ‚½Û‚ÉŒÄ‚Î‚ê‚é
+/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å¼¾ãŒæ•µã«ãƒ’ãƒƒãƒˆã—ãŸéš›ã«å‘¼ã°ã‚Œã‚‹
 /// </summary>
 void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
 {
-    // ƒqƒbƒg‚Ì•”ˆÊ‚É‚æ‚Á‚ÄSEÄ¶
+    // ãƒ’ãƒƒãƒˆã®éƒ¨ä½ã«ã‚ˆã£ã¦SEå†ç”Ÿ
     if (part == EnemyBase::HitPart::Head)
     {
         if (m_headShotSECooldownTimer <= 0)

@@ -1,184 +1,55 @@
-#include "TutorialManager.h"
-#include "EffekseerWarningSuppress.h"
+ï»¿#include "TutorialManager.h"
 #include "InputManager.h"
-#include "SceneMain.h"
-#include "Game.h"
-#include "WaveManager.h"
 #include <algorithm>
-#include <cassert>
 #include <cmath>
-#include <sstream>
 
 namespace
 {
-    // ŠÔŠÖ˜A
-    constexpr float kFrameTime = 1.0f / 60.0f;    // 1ƒtƒŒ[ƒ€‚ÌŠÔ
-    constexpr float kCompleteWaitTime = 2.0f;     // ƒ`ƒ…[ƒgƒŠƒAƒ‹Š®—¹Œã‚Ì‘Ò‹@ŠÔ
-    constexpr float kStepCompleteWaitTime = 1.5f; // ƒXƒeƒbƒvŠ®—¹Œã‚Ì‘Ò‹@ŠÔ
-    constexpr float kMoveAccumGoalTime = 2.0f; // ˆÚ“®ƒ`ƒ…[ƒgƒŠƒAƒ‹‚Ì–Ú•W—İÏŠÔ
-    constexpr float kViewAccumGoalTime = 1.0f; // ‹“_ƒ`ƒ…[ƒgƒŠƒAƒ‹‚Ì–Ú•W—İÏŠÔ
-    constexpr float kJumpAccumGoalTime = 0.2f; // ƒWƒƒƒ“ƒvƒ`ƒ…[ƒgƒŠƒAƒ‹‚Ì–Ú•W—İÏŠÔ
-    constexpr float kRunAccumGoalTime = 1.0f;  // ‘–sƒ`ƒ…[ƒgƒŠƒAƒ‹‚Ì–Ú•W—İÏŠÔ
-    constexpr float kCheckAnimDuration = 0.3f; // ƒ`ƒFƒbƒNƒ}[ƒN‚ÌƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ
+    // æ™‚é–“é–¢é€£
+    constexpr float kFrameTime = 1.0f / 60.0f;    // 1ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ™‚é–“
+    constexpr float kCompleteWaitTime = 2.0f;     // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«å®Œäº†å¾Œã®å¾…æ©Ÿæ™‚é–“
+    constexpr float kStepCompleteWaitTime = 1.5f; // ã‚¹ãƒ†ãƒƒãƒ—å®Œäº†å¾Œã®å¾…æ©Ÿæ™‚é–“
+    constexpr float kMoveAccumGoalTime = 2.0f; // ç§»å‹•ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã®ç›®æ¨™ç´¯ç©æ™‚é–“
+    constexpr float kViewAccumGoalTime = 1.0f; // è¦–ç‚¹ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã®ç›®æ¨™ç´¯ç©æ™‚é–“
+    constexpr float kJumpAccumGoalTime = 0.2f; // ã‚¸ãƒ£ãƒ³ãƒ—ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã®ç›®æ¨™ç´¯ç©æ™‚é–“
+    constexpr float kRunAccumGoalTime = 1.0f;  // èµ°è¡Œãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«ã®ç›®æ¨™ç´¯ç©æ™‚é–“
 
-    // UIŠÖ˜A
-    constexpr int kFontSize = 34;        // ƒ`ƒ…[ƒgƒŠƒAƒ‹ƒƒbƒZ[ƒW‚ÌƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr int kDefaultFontSize = 24; // ƒfƒtƒHƒ‹ƒg‚ÌƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr int kMessageOffsetX = 630; // ƒƒbƒZ[ƒW‚ÌXƒIƒtƒZƒbƒg
-    constexpr int kInitialYPos = 60;     // ƒƒbƒZ[ƒW‚Ì‰ŠúYÀ•W
-    constexpr int kLineSpacing = 60;     // ƒƒbƒZ[ƒW‚ÌsŠÔ
-    constexpr int kCheckMarkBaseSize = 60;     // ƒ`ƒFƒbƒNƒ}[ƒN‚ÌŠî–{ƒTƒCƒY
-    constexpr int kCheckMarkOffsetXMove = 420; // ˆÚ“®ƒ`ƒFƒbƒNƒ}[ƒN‚ÌXƒIƒtƒZƒbƒg
-    constexpr int kCheckMarkOffsetXOthers = 510; // ‚»‚êˆÈŠO‚Ìƒ`ƒFƒbƒNƒ}[ƒN‚ÌXƒIƒtƒZƒbƒg
-    constexpr int kCheckMarkOffsetY = 30; // ƒ`ƒFƒbƒNƒ}[ƒN‚ÌYƒIƒtƒZƒbƒg
-    constexpr float kCheckMarkAnimScale = 2.0f; // ƒ`ƒFƒbƒNƒ}[ƒNƒAƒjƒ[ƒVƒ‡ƒ“‚ÌÅ‘åƒXƒP[ƒ‹
-    constexpr int kKeyImageSize = 60; // ƒL[‰æ‘œ‚ÌƒTƒCƒY
-    constexpr int kKeyImageSpacing = 8;        // ƒL[‰æ‘œ‚ÌŠÔŠu
-    constexpr int kKeyImageWidth = 120;        // ƒL[‰æ‘œ‚Ì•
-    constexpr int kKeyImageHeight = 60;        // ƒL[‰æ‘œ‚Ì‚‚³
-    constexpr int kShiftImageWidth = 120;      // ShiftƒL[‰æ‘œ‚Ì•
-    constexpr float kCheckMarkDrawSize = 1.0f; // ƒ`ƒƒƒbƒNƒ}[ƒN‰æ‘œ‚Ì‘å‚«‚³
-
-    // UIƒ{ƒbƒNƒXŠÖ˜A
-    constexpr int kUIOffsetY = 200;              // UI‚ÌYÀ•WƒIƒtƒZƒbƒg
-    constexpr int kBoxPaddingX = 30;             // ƒ{ƒbƒNƒX‚Ì¶‰EƒpƒfƒBƒ“ƒO
-    constexpr int kBoxPaddingY = 15;             // ƒ{ƒbƒNƒX‚Ìã‰ºƒpƒfƒBƒ“ƒO
-    constexpr int kBoxAlpha = 180;               // ƒ{ƒbƒNƒX‚ÌƒAƒ‹ƒtƒ@’l
-    constexpr unsigned int kBoxColor = 0x000000; // ƒ{ƒbƒNƒX‚ÌF
-
-    // ƒAƒjƒ[ƒVƒ‡ƒ“ŠÖ˜A
-    constexpr float kUIAnimationSpeed = 15.0f;    // UI‚ªƒXƒ‰ƒCƒh‚·‚é‘¬“x
-    constexpr float kUIOffscreenOffsetX = 750.0f; // UI‚Ì‰æ–ÊŠOƒIƒtƒZƒbƒg
-
-    // ƒ^ƒCƒgƒ‹ŠÖ˜A
-    constexpr int kTitleFontSize = 42;    // ƒ^ƒCƒgƒ‹‚ÌƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr int kTitleOffsetY = 15;     // ƒ^ƒCƒgƒ‹‚ÌYƒIƒtƒZƒbƒg
-    constexpr int kTitleColor = 0xFFFFFF; // ƒ^ƒCƒgƒ‹‚ÌF
-
-    // ƒ}ƒEƒX‚ÌˆÚ“®—Êè‡’l
+    // ãƒã‚¦ã‚¹ã®ç§»å‹•é‡é–¾å€¤
     constexpr float kMouseMovementThreshold = 2.0f;
-
-    // ƒƒbƒZ[ƒWŠÖ˜A
-    constexpr float kMessageDisplayTime = 5.0f; // ƒƒbƒZ[ƒW‚Ì•\¦ŠÔ
-    constexpr int kMessageTitleFontSize = 36;
-    constexpr int kMessageDetailFontSize = 28;
-    constexpr int kMessageOffsetY = 220;
-    constexpr int kMessageLineSpacing = 8;      // ƒƒbƒZ[ƒW‚ÌsŠÔ
-    constexpr int kMessageTimeBarHeight = 6;    // ƒ^ƒCƒ€ƒo[‚Ì‚‚³
-    constexpr int kMessageTimeBarPaddingY = 24; // ƒ^ƒCƒ€ƒo[‚Ìã‰º‚ÌƒpƒfƒBƒ“ƒO
 }
 
 TutorialManager::TutorialManager()
     : m_step(Step::None)
-    , m_uiState(UIState::Hidden)
-    , m_uiXOffset(kUIOffscreenOffsetX)
-    , m_hasCompletedMove(false)
-    , m_hasCompletedView(false)
-    , m_checkMarkHandle("data/image/CheckMark.png")
     , m_prevMousePos{ 0, 0 }
     , m_moveAccumTime(0.0f)
     , m_viewAccumTime(0.0f)
     , m_completeWaitTime(0.0f)
     , m_isDisplayingCompletion(false)
-    , m_isPlayingMoveCheckAnim(false)
-    , m_moveCheckAnimTime(0.0f)
-    , m_isPlayingViewCheckAnim(false)
-    , m_viewCheckAnimTime(0.0f)
     , m_hasCompletedJump(false)
     , m_hasCompletedRun(false)
     , m_jumpAccumTime(0.0f)
     , m_runAccumTime(0.0f)
-    , m_isPlayingJumpCheckAnim(false)
-    , m_jumpCheckAnimTime(0.0f)
-    , m_isPlayingRunCheckAnim(false)
-    , m_runCheckAnimTime(0.0f)
     , m_stepCompleteWaitTime(0.0f)
     , m_isStepCompleted(false)
-    , m_wKeyHandle("data/image/W.png")
-    , m_aKeyHandle("data/image/A.png")
-    , m_sKeyHandle("data/image/S.png")
-    , m_dKeyHandle("data/image/D.png")
-    , m_mouseMoveHorHandle("data/image/MouseMoveHor.png")
-    , m_spaceKeyHandle("data/image/Space.png")
-    , m_leftShiftKeyHandle("data/image/LeftShift.png")
-    , m_crossHandle("data/image/Cross.png")
-    , m_japaneseFontHandle("HGPƒSƒVƒbƒNE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_japaneseLargeFontHandle("HGPƒSƒVƒbƒNE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_messageDetailFontHandle("HGPƒSƒVƒbƒNE", kMessageDetailFontSize, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_prevScale(1.0f)
+    , m_hasCompletedMove(false)
+    , m_hasCompletedView(false)
 {
-    // ƒtƒHƒ“ƒg‚Ìì¬ (‰Šú‰»ƒŠƒXƒg‚Ås‚í‚ê‚Ä‚¢‚é‚½‚ßReloadFonts‚Í•s—v‚¾‚ªAƒXƒP[ƒ‹“K—p‚Ì‚½‚ßŒÄ‚Ô‚È‚çŒÄ‚Ô)
-    ReloadFonts(1.0f);
 }
 
 TutorialManager::~TutorialManager()
 {
-    // ©“®‰ğ•ú‚³‚ê‚é‚½‚ßˆ—•s—v
-}
-
-void TutorialManager::ReloadFonts(float scale)
-{
-    m_japaneseFontHandle.Reload(scale);
-    m_japaneseLargeFontHandle.Reload(scale);
-    m_messageDetailFontHandle.Reload(scale);
 }
 
 void TutorialManager::Init()
 {
     m_step = Step::Move;
-    m_uiState = UIState::Hidden; // Å‰‚Í‰B‚µ‚Ä‚¨‚­
-}
-
-void TutorialManager::UpdateUI()
-{
-    switch (m_uiState)
-    {
-    case UIState::Hidden:
-
-        // V‚µ‚¢ƒXƒeƒbƒv‚ªn‚Ü‚Á‚½‚çEnteringó‘Ô‚Ö
-        if (m_step != Step::None && m_step != Step::Completed)
-        {
-            m_uiState = UIState::Entering;
-        }
-        break;
-    case UIState::Entering:
-        m_uiXOffset -= kUIAnimationSpeed;
-        if (m_uiXOffset <= 0.0f)
-        {
-            m_uiXOffset = 0.0f;
-            m_uiState = UIState::OnScreen;
-        }
-        break;
-    case UIState::OnScreen:
-        // ƒXƒeƒbƒvŠ®—¹‚ğ‘Ò‚Â
-        break;
-    case UIState::Exiting:
-        m_uiXOffset += kUIAnimationSpeed;
-        if (m_uiXOffset >= kUIOffscreenOffsetX)
-        {
-            m_uiXOffset = kUIOffscreenOffsetX;
-            m_uiState = UIState::Hidden;
-
-            // ÅŒã‚ÌƒXƒeƒbƒv‚¾‚Á‚½‚çŠ®—¹‰‰o‚Ö
-            if (m_step == Step::Run)
-            {
-                m_isDisplayingCompletion = true;
-                m_completeWaitTime = 0.0f;
-            }
-
-            // Ÿ‚ÌƒXƒeƒbƒv‚Ö
-            m_step = static_cast<Step>(static_cast<int>(m_step) + 1);
-        }
-        break;
-    }
 }
 
 void TutorialManager::Update()
 {
-    UpdateUI();
     UpdateMessages();
 
-    // ƒ`ƒ…[ƒgƒŠƒAƒ‹Š®—¹Œã‚Ì‘Ò‹@‰‰o
+    // ãƒãƒ¥ãƒ¼ãƒˆãƒªã‚¢ãƒ«å®Œäº†å¾Œã®å¾…æ©Ÿæ¼”å‡º
     if (m_isDisplayingCompletion)
     {
         m_completeWaitTime += kFrameTime;
@@ -187,28 +58,30 @@ void TutorialManager::Update()
             m_isDisplayingCompletion = false;
             m_step = Step::Completed;
         }
-        return; // ‘Ò‹@’†‚Í‘¼‚Ìˆ—‚ğ‚µ‚È‚¢
+        return; 
     }
 
-    // ƒAƒjƒƒ^ƒCƒ}[‚ği‚ß‚é
-    if (m_isPlayingMoveCheckAnim) m_moveCheckAnimTime += kFrameTime;
-    if (m_isPlayingViewCheckAnim) m_viewCheckAnimTime += kFrameTime;
-    if (m_isPlayingJumpCheckAnim) m_jumpCheckAnimTime += kFrameTime;
-    if (m_isPlayingRunCheckAnim)  m_runCheckAnimTime  += kFrameTime;
-
-    // UI‚ª•\¦‚³‚ê‚Ä‚¢‚é‚Æ‚«‚¾‚¯“ü—Íƒ`ƒFƒbƒN
-    if (m_uiState != UIState::OnScreen) return;
-
-    // ƒXƒeƒbƒvŠ®—¹Œã‚Ì‘Ò‹@ˆ—
+    // ã‚¹ãƒ†ãƒƒãƒ—å®Œäº†å¾Œã®å¾…æ©Ÿå‡¦ç†
     if (m_isStepCompleted)
     {
         m_stepCompleteWaitTime += kFrameTime;
         if (m_stepCompleteWaitTime >= kStepCompleteWaitTime)
         {
             m_isStepCompleted = false;
-            m_uiState = UIState::Exiting; // ‘ŞêŠJn
+            
+            // æœ€å¾Œã®ã‚¹ãƒ†ãƒƒãƒ—ã ã£ãŸã‚‰å®Œäº†æ¼”å‡ºã¸
+            if (m_step == Step::Run)
+            {
+                m_isDisplayingCompletion = true;
+                m_completeWaitTime = 0.0f;
+            }
+            else
+            {
+                // æ¬¡ã®ã‚¹ãƒ†ãƒƒãƒ—ã¸
+                m_step = static_cast<Step>(static_cast<int>(m_step) + 1);
+            }
         }
-        return; // ‘Ò‹@’†‚Í‘¼‚Ì“ü—Í‚ğó‚¯•t‚¯‚È‚¢
+        return; 
     }
 
     switch (m_step)
@@ -217,19 +90,15 @@ void TutorialManager::Update()
         if (!m_hasCompletedMove)
         {
             bool isMoving = CheckHitKey(KEY_INPUT_W) || CheckHitKey(KEY_INPUT_A) || CheckHitKey(KEY_INPUT_S) || CheckHitKey(KEY_INPUT_D);
-
             if (isMoving) m_moveAccumTime += kFrameTime;
-
             if (m_moveAccumTime >= kMoveAccumGoalTime)
             {
                 m_hasCompletedMove = true;
-                m_isPlayingMoveCheckAnim = true;
-                m_moveCheckAnimTime = 0.0f;
             }
         }
-        else if (m_moveCheckAnimTime >= kCheckAnimDuration) // ƒ`ƒFƒbƒNƒAƒjƒŠ®—¹Œã
+        else
         {
-            m_isStepCompleted = true; // ‘Ò‹@ŠJn
+            m_isStepCompleted = true;
             m_stepCompleteWaitTime = 0.0f;
         }
         break;
@@ -248,14 +117,12 @@ void TutorialManager::Update()
             if (m_viewAccumTime >= kViewAccumGoalTime)
             {
                 m_hasCompletedView = true;
-                m_isPlayingViewCheckAnim = true;
-                m_viewCheckAnimTime = 0.0f;
             }
             m_prevMousePos = now;
         }
-        else if (m_viewCheckAnimTime >= kCheckAnimDuration)
+        else
         {
-            m_isStepCompleted = true; // ‘Ò‹@ŠJn
+            m_isStepCompleted = true;
             m_stepCompleteWaitTime = 0.0f;
         }
         break;
@@ -263,17 +130,14 @@ void TutorialManager::Update()
         if (!m_hasCompletedJump)
         {
             if (CheckHitKey(KEY_INPUT_SPACE)) m_jumpAccumTime += kFrameTime;
-
             if (m_jumpAccumTime >= kJumpAccumGoalTime)
             {
                 m_hasCompletedJump = true;
-                m_isPlayingJumpCheckAnim = true;
-                m_jumpCheckAnimTime = 0.0f;
             }
         }
-        else if (m_jumpCheckAnimTime >= kCheckAnimDuration)
+        else
         {
-            m_isStepCompleted = true; // ‘Ò‹@ŠJn
+            m_isStepCompleted = true;
             m_stepCompleteWaitTime = 0.0f;
         }
         break;
@@ -284,337 +148,42 @@ void TutorialManager::Update()
             {
                 m_runAccumTime += kFrameTime;
             }
-
             if (m_runAccumTime >= kRunAccumGoalTime)
             {
                 m_hasCompletedRun = true;
-                m_isPlayingRunCheckAnim = true;
-                m_runCheckAnimTime = 0.0f;
             }
         }
-        else if (m_runCheckAnimTime >= kCheckAnimDuration)
+        else
         {
-            m_isStepCompleted = true; // ‘Ò‹@ŠJn
+            m_isStepCompleted = true;
             m_stepCompleteWaitTime = 0.0f;
         }
         break;
     }
 }
 
-void TutorialManager::Draw(int screenW, int screenH)
+void TutorialManager::UpdateMessages()
 {
-    if (m_uiState == UIState::Hidden && m_messages.empty()) return;
-
-    float scale = Game::GetUIScale();
-    if (fabsf(scale - m_prevScale) > 0.001f)
+    for (auto it = m_messages.begin(); it != m_messages.end(); )
     {
-        ReloadFonts(scale);
-        m_prevScale = scale;
-    }
-
-    DrawMessages(screenW, screenH);
-
-    const char* text = "";
-    bool isDone = false;
-    bool isCheckAnim = false;
-    float checkAnimTime = 0.0f;
-
-    switch (m_step)
-    {
-    case Step::Move:
-    {
-        isDone = m_hasCompletedMove;
-        isCheckAnim = m_isPlayingMoveCheckAnim;
-        checkAnimTime = m_moveCheckAnimTime;
-
-        const char* remainingText = "‚ÅˆÚ“®‚µ‚æ‚¤!";
-        int remainingTextWidth = GetDrawStringWidthToHandle(remainingText, static_cast<int>(strlen(remainingText)), m_japaneseFontHandle);
-
-        int scaledKeyImageSize = static_cast<int>(kKeyImageSize * scale);
-        int scaledKeyImageSpacing = static_cast<int>(kKeyImageSpacing * scale);
-        int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
-        int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
-        int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
-
-        int imagesWidth = scaledKeyImageSize * 4 + scaledKeyImageSpacing * 3;
-        int boxWidth = imagesWidth + remainingTextWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
-        int boxHeight = scaledKeyImageSize + scaledBoxPaddingY * 2;
-
-        int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(kUIOffsetY * scale);
-
-        // ”¼“§–¾‚Ì”wŒiƒ{ƒbƒNƒX‚ğ•`‰æ
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-        DrawBox(boxX, boxY, boxX + boxWidth, boxY + boxHeight, kBoxColor, true);
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-        // ƒL[‰æ‘œ‚ğ•`‰æ
-        int imageX = boxX + scaledBoxPaddingX;
-        int imageY = boxY + scaledBoxPaddingY;
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageSize, imageY + scaledKeyImageSize, m_wKeyHandle, true);
-        imageX += scaledKeyImageSize + scaledKeyImageSpacing;
-
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageSize, imageY + scaledKeyImageSize, m_aKeyHandle, true);
-        imageX += scaledKeyImageSize + scaledKeyImageSpacing;
-
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageSize, imageY + scaledKeyImageSize, m_sKeyHandle, true);
-        imageX += scaledKeyImageSize + scaledKeyImageSpacing;
-
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageSize, imageY + scaledKeyImageSize, m_dKeyHandle, true);
-
-        // c‚è‚ÌƒeƒLƒXƒg‚ğ•`‰æ
-        int textX = imageX + scaledKeyImageSize + scaledKeyImageSpacing;
-        int textY = boxY + static_cast<int>((boxHeight - static_cast<int>(kFontSize * scale)) * 0.5f);
-        DrawStringToHandle(textX, textY, remainingText, 0xffffff, m_japaneseFontHandle);
-
-        // ƒ`ƒFƒbƒNƒ}[ƒN‚ğ•`‰æ
-        if (isDone && m_checkMarkHandle >= 0)
-        {
-            float animScale = 1.0f;
-            if (isCheckAnim && checkAnimTime < kCheckAnimDuration)
-            {
-                float t = checkAnimTime / kCheckAnimDuration;
-                animScale = kCheckMarkAnimScale - t;
-                if (animScale < 1.0f) animScale = 1.0f;
-            }
-
-            int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
-            int cx = textX + remainingTextWidth + scaledBoxPaddingX + static_cast<int>(scaledCheckMarkBaseSize * 0.5f);
-            int cy = boxY + static_cast<int>(boxHeight * 0.5f);
-            DrawExtendGraph(static_cast<int>(cx - size * 0.5f), static_cast<int>(cy - size * 0.5f), static_cast<int>(cx + size * 0.5f), static_cast<int>(cy + size * 0.5f), m_checkMarkHandle, true);
-        }
-    } break;
-    case Step::View:
-    {
-        isDone = m_hasCompletedView;
-        isCheckAnim = m_isPlayingViewCheckAnim;
-        checkAnimTime = m_viewCheckAnimTime;
-
-        const char* remainingText = "‚Å‹“_‚ğ“®‚©‚»‚¤!";
-        int remainingTextWidth = GetDrawStringWidthToHandle(remainingText, static_cast<int>(strlen(remainingText)), m_japaneseFontHandle);
-
-        int scaledKeyImageSize = static_cast<int>(kKeyImageSize * scale);
-        int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
-        int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
-        int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
-
-        int imagesWidth = scaledKeyImageSize;
-        int boxWidth = imagesWidth + remainingTextWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
-        int boxHeight = scaledKeyImageSize + scaledBoxPaddingY * 2;
-        int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(kUIOffsetY * scale);
-
-        // ”¼“§–¾‚Ì”wŒiƒ{ƒbƒNƒX‚ğ•`‰æ
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-        DrawBox(boxX, boxY, boxX + boxWidth, boxY + boxHeight, kBoxColor, true);
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-        // ƒL[‰æ‘œ‚ğ•`‰æ
-        int imageX = boxX + scaledBoxPaddingX;
-        int imageY = boxY + scaledBoxPaddingY;
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageSize, imageY + scaledKeyImageSize, m_mouseMoveHorHandle, true);
-
-        // c‚è‚ÌƒeƒLƒXƒg‚ğ•`‰æ
-        int textX = imageX + scaledKeyImageSize + 5;
-        int textY = boxY + static_cast<int>((boxHeight - static_cast<int>(kFontSize * scale)) * 0.5f);
-        DrawStringToHandle(textX, textY, remainingText, 0xffffff, m_japaneseFontHandle);
-
-        // ƒ`ƒFƒbƒNƒ}[ƒN‚ğ•`‰æ
-        if (isDone && m_checkMarkHandle >= 0)
-        {
-            float animScale = 1.0f;
-            if (isCheckAnim && checkAnimTime < kCheckAnimDuration)
-            {
-                float t = checkAnimTime / kCheckAnimDuration;
-                animScale = kCheckMarkAnimScale - t;
-                if (animScale < 1.0f) animScale = 1.0f;
-            }
-
-            int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
-            int cx = textX + remainingTextWidth + scaledBoxPaddingX + static_cast<int>(scaledCheckMarkBaseSize * 0.5f);
-            int cy = boxY + static_cast<int>(boxHeight * 0.5f);
-            DrawExtendGraph(static_cast<int>(cx - size * 0.5f), static_cast<int>(cy - size * 0.5f), static_cast<int>(cx + size * 0.5f), static_cast<int>(cy + size * 0.5f), m_checkMarkHandle, true);
-        }
-    } break;
-    case Step::Jump:
-    {
-        isDone = m_hasCompletedJump;
-        isCheckAnim = m_isPlayingJumpCheckAnim;
-        checkAnimTime = m_jumpCheckAnimTime;
-
-        const char* remainingText = "‚ÅƒWƒƒƒ“ƒv!";
-        int remainingTextWidth = GetDrawStringWidthToHandle(remainingText, static_cast<int>(strlen(remainingText)), m_japaneseFontHandle);
-
-        int scaledKeyImageWidth = static_cast<int>(kKeyImageWidth * scale);
-        int scaledKeyImageHeight = static_cast<int>(kKeyImageHeight * scale);
-        int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
-        int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
-        int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
-
-        int imagesWidth = scaledKeyImageWidth;
-        int boxWidth = imagesWidth + remainingTextWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
-        int boxHeight = scaledKeyImageHeight + scaledBoxPaddingY * 2;
-
-        int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(kUIOffsetY * scale);
-
-        // ”¼“§–¾‚Ì”wŒiƒ{ƒbƒNƒX‚ğ•`‰æ
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-        DrawBox(boxX, boxY, boxX + boxWidth, boxY + boxHeight, kBoxColor, true);
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-        // ƒL[‰æ‘œ‚ğ•`‰æ
-        int imageX = boxX + scaledBoxPaddingX;
-        int imageY = boxY + scaledBoxPaddingY;
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageWidth, imageY + scaledKeyImageHeight, m_spaceKeyHandle, true);
-
-        // c‚è‚ÌƒeƒLƒXƒg‚ğ•`‰æ
-        int textX = imageX + scaledKeyImageWidth + 5;
-        int textY = boxY + static_cast<int>((boxHeight - static_cast<int>(kFontSize * scale)) * 0.5f);
-        DrawStringToHandle(textX, textY, remainingText, 0xffffff, m_japaneseFontHandle);
-
-        // ƒ`ƒFƒbƒNƒ}[ƒN‚ğ•`‰æ
-        if (isDone && m_checkMarkHandle >= 0)
-        {
-            float animScale = 1.0f;
-            if (isCheckAnim && checkAnimTime < kCheckAnimDuration)
-            {
-                float t = checkAnimTime / kCheckAnimDuration;
-                animScale = kCheckMarkAnimScale - t;
-                if (animScale < 1.0f) animScale = 1.0f;
-            }
-
-            int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
-            int cx = textX + remainingTextWidth + scaledBoxPaddingX + static_cast<int>(scaledCheckMarkBaseSize * 0.5f);
-            int cy = boxY + static_cast<int>(boxHeight * 0.5f);
-            DrawExtendGraph(static_cast<int>(cx - size * 0.5f), static_cast<int>(cy - size * 0.5f), static_cast<int>(cx + size * 0.5f), static_cast<int>(cy + size * 0.5f), m_checkMarkHandle, true);
-        }
-    } break;
-    case Step::Run:
-    {
-        isDone = m_hasCompletedRun;
-        isCheckAnim = m_isPlayingRunCheckAnim;
-        checkAnimTime = m_runCheckAnimTime;
-
-        const char* remainingText = "‚Å‘–‚ë‚¤!";
-        int remainingTextWidth = GetDrawStringWidthToHandle(remainingText, static_cast<int>(strlen(remainingText)), m_japaneseFontHandle);
-
-        int scaledKeyImageSize = static_cast<int>(kKeyImageSize * scale);
-        int scaledKeyImageSpacing = static_cast<int>(kKeyImageSpacing * scale);
-        int scaledShiftImageWidth = static_cast<int>(kShiftImageWidth * scale);
-        int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
-        int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
-        int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
-
-        int imagesWidth = scaledShiftImageWidth + scaledKeyImageSize + scaledKeyImageSize + scaledKeyImageSpacing * 2;
-        int boxWidth = imagesWidth + remainingTextWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
-        int boxHeight = static_cast<int>(kShiftImageWidth * 0.5f * scale) + scaledBoxPaddingY * 2;
-
-        int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-        int boxY = static_cast<int>(kUIOffsetY * scale);
-
-        // ”¼“§–¾‚Ì”wŒiƒ{ƒbƒNƒX‚ğ•`‰æ
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-        DrawBox(boxX, boxY, boxX + boxWidth, boxY + boxHeight, kBoxColor, true);
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-        // ƒL[‰æ‘œ‚ğ•`‰æ
-        int imageX = boxX + scaledBoxPaddingX;
-        int imageY = boxY + scaledBoxPaddingY;
-        DrawExtendGraph(imageX, imageY, imageX + scaledShiftImageWidth, imageY + scaledKeyImageSize, m_leftShiftKeyHandle, true);
-        imageX += scaledShiftImageWidth + scaledKeyImageSpacing;
-
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageSize, imageY + scaledKeyImageSize, m_crossHandle, true);
-        imageX += scaledKeyImageSize + scaledKeyImageSpacing;
-
-        DrawExtendGraph(imageX, imageY, imageX + scaledKeyImageSize, imageY + scaledKeyImageSize, m_wKeyHandle, true);
-
-        // c‚è‚ÌƒeƒLƒXƒg‚ğ•`‰æ
-        int textX = imageX + scaledKeyImageSize + 5;
-        int textY = boxY + static_cast<int>((boxHeight - static_cast<int>(kFontSize * scale)) * 0.5f);
-        DrawStringToHandle(textX, textY, remainingText, 0xffffff, m_japaneseFontHandle);
-
-        // ƒ`ƒFƒbƒNƒ}[ƒN‚ğ•`‰æ
-        if (isDone && m_checkMarkHandle >= 0)
-        {
-            float animScale = kCheckMarkDrawSize;
-            if (isCheckAnim && checkAnimTime < kCheckAnimDuration)
-            {
-                float t = checkAnimTime / kCheckAnimDuration;
-                animScale = kCheckMarkAnimScale - t;
-                if (animScale < 1.0f) animScale = 1.0f;
-            }
-
-            int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
-            int cx = textX + remainingTextWidth + scaledBoxPaddingX + static_cast<int>(scaledCheckMarkBaseSize * 0.5f);
-            int cy = boxY + static_cast<int>(boxHeight * 0.5f);
-            DrawExtendGraph(static_cast<int>(cx - size * 0.5f), static_cast<int>(cy - size * 0.5f), static_cast<int>(cx + size * 0.5f), static_cast<int>(cy + size * 0.5f), m_checkMarkHandle, true);
-        }
-    } break;
-    default:
-        return;
-
-        if (m_step != Step::Move && m_step != Step::View && m_step != Step::Jump && m_step != Step::Run)
-        {
-            int textWidth = GetDrawStringWidthToHandle(text, static_cast<int>(strlen(text)), m_japaneseFontHandle);
-
-            int scaledCheckMarkBaseSize = static_cast<int>(kCheckMarkBaseSize * scale);
-            int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
-            int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
-
-            int boxWidth = textWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2;
-            int boxHeight = scaledCheckMarkBaseSize + scaledBoxPaddingY * 2;
-            int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
-            int boxY = static_cast<int>(kUIOffsetY * scale);
-
-            // ”¼“§–¾‚Ì”wŒiƒ{ƒbƒNƒX‚ğ•`‰æ
-            SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-            DrawBox(boxX, boxY, boxX + boxWidth, boxY + boxHeight, kBoxColor, true);
-            SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-            // ƒeƒLƒXƒg‚ğ•`‰æ
-            int textX = boxX + scaledBoxPaddingX;
-            int textY = boxY + static_cast<int>((boxHeight - static_cast<int>(kFontSize * scale)) * 0.5f);
-
-            DrawStringToHandle(textX, textY, text, 0xffffff, m_japaneseFontHandle);
-
-            // ƒ`ƒFƒbƒNƒ}[ƒN‚ğ•`‰æ
-            if (isDone && m_checkMarkHandle >= 0)
-            {
-                float animScale = 1.0f;
-                if (isCheckAnim && checkAnimTime < kCheckAnimDuration)
-                {
-                    float t = checkAnimTime / kCheckAnimDuration;
-                    animScale = kCheckMarkAnimScale - t;
-                    if (animScale < 1.0f) animScale = 1.0f;
-                }
-
-                int size = static_cast<int>(scaledCheckMarkBaseSize * animScale);
-                int cx = textX + textWidth + scaledBoxPaddingX + static_cast<int>(scaledCheckMarkBaseSize * 0.5f);
-                int cy = boxY + static_cast<int>(boxHeight * 0.5f);
-                DrawExtendGraph(static_cast<int>(cx - size * 0.5f), static_cast<int>(cy - size * 0.5f), static_cast<int>(cx + size * 0.5f), static_cast<int>(cy + size * 0.5f), m_checkMarkHandle, true);
-            }
-        }
+        it->displayTimer += kFrameTime;
+        ++it;
     }
 }
 
-// ƒ`ƒ…[ƒgƒŠƒAƒ‹‚ªƒAƒNƒeƒBƒu‚©‚Ç‚¤‚©
 bool TutorialManager::IsActive() const
 {
     return m_step != Step::None && m_step != Step::Completed;
 }
 
-// ƒ`ƒ…[ƒgƒŠƒAƒ‹‚ªŠ®—¹‚µ‚½‚©‚Ç‚¤‚©
 bool TutorialManager::IsCompleted() const
 {
     return m_step == Step::Completed;
 }
 
-// ƒ`ƒ…[ƒgƒŠƒAƒ‹‚ğƒXƒLƒbƒv‚µ‚ÄŠ®—¹Ï‚İ‚É‚·‚é
 void TutorialManager::Skip()
 {
     m_step = Step::Completed;
-    m_uiState = UIState::Hidden;
     m_isDisplayingCompletion = false;
     m_hasCompletedMove = true;
     m_hasCompletedView = true;
@@ -622,172 +191,8 @@ void TutorialManager::Skip()
     m_hasCompletedRun = true;
 }
 
-void TutorialManager::AddMessage(const std::string& title,
-    const std::string& detail)
+void TutorialManager::AddMessage(const std::string& title, const std::string& detail)
 {
-    m_messages.push_back({ title, detail, kUIOffscreenOffsetX, 0.0f, UIState::Entering });
-}
-
-void TutorialManager::UpdateMessages()
-{
-    for (auto& msg : m_messages)
-    {
-        switch (msg.state)
-        {
-        case UIState::Entering:
-            msg.xOffset -= kUIAnimationSpeed;
-            if (msg.xOffset <= 0.0f)
-            {
-                msg.xOffset = 0.0f;
-                msg.state = UIState::OnScreen;
-                msg.displayTimer = 0.0f;
-            }
-            break;
-        case UIState::OnScreen:
-            msg.displayTimer += kFrameTime;
-            if (msg.displayTimer >= kMessageDisplayTime)
-            {
-                msg.state = UIState::Exiting;
-            }
-            break;
-        case UIState::Exiting:
-            msg.xOffset += kUIAnimationSpeed;
-            if (msg.xOffset >= kUIOffscreenOffsetX)
-            {
-                msg.state = UIState::Hidden;
-            }
-            break;
-        case UIState::Hidden:
-            break;
-        }
-    }
-
-    // ‰B‚ê‚½ƒƒbƒZ[ƒW‚ğíœ
-    m_messages.erase(std::remove_if(m_messages.begin(), m_messages.end(),
-        [](const TutorialMessage& msg)
-        {
-            return msg.state == UIState::Hidden;
-        }),
-        m_messages.end());
-}
-
-void TutorialManager::DrawMessages(int screenW, int screenH)
-{
-    float scale = Game::GetUIScale();
-    int scaledBoxPaddingX = static_cast<int>(kBoxPaddingX * scale);
-    int scaledBoxPaddingY = static_cast<int>(kBoxPaddingY * scale);
-    int scaledMessageTitleFontSize = static_cast<int>(kMessageTitleFontSize * scale);
-    int scaledMessageTimeBarPaddingY = static_cast<int>(kMessageTimeBarPaddingY * scale);
-    int scaledMessageTimeBarHeight = static_cast<int>(kMessageTimeBarHeight * scale);
-    int scaledMessageDetailFontSize = static_cast<int>(kMessageDetailFontSize * scale);
-    int scaledMessageLineSpacing = static_cast<int>(kMessageLineSpacing * scale);
-
-    int yPos = static_cast<int>(kMessageOffsetY * scale);
-    for (const auto& msg : m_messages)
-    {
-        // detail•¶š—ñ‚ğ'\n'‚Å•ªŠ„
-        std::vector<std::string> detailLines;
-        std::string currentLine;
-        std::istringstream iss(msg.detail);
-        while (std::getline(iss, currentLine, '\n'))
-        {
-            detailLines.push_back(currentLine);
-        }
-
-        // •‚ÌŒvZ
-        int titleWidth = GetDrawStringWidthToHandle(msg.title.c_str(), static_cast<int>(msg.title.length()), m_japaneseLargeFontHandle);
-        int maxDetailWidth = 0;
-        for (const auto& line : detailLines)
-        {
-            int lineWidth = GetDrawStringWidthToHandle(line.c_str(), static_cast<int>(line.length()), m_messageDetailFontHandle);
-            if (lineWidth > maxDetailWidth)
-            {
-                maxDetailWidth = lineWidth;
-            }
-        }
-        int boxWidth = (std::max)(titleWidth, maxDetailWidth) + scaledBoxPaddingX * 2;
-
-        // ‚‚³‚ÌŒvZ
-        int boxHeight = scaledBoxPaddingY;
-        boxHeight += scaledMessageTitleFontSize;
-        boxHeight += scaledMessageTimeBarPaddingY;
-        boxHeight += scaledMessageTimeBarHeight;
-        boxHeight += scaledMessageTimeBarPaddingY;
-        boxHeight += static_cast<int>(scaledMessageDetailFontSize * detailLines.size());
-        if (detailLines.size() > 1)
-        {
-            boxHeight += static_cast<int>(scaledMessageLineSpacing * (detailLines.size() - 1));
-        }
-        boxHeight += scaledBoxPaddingY;
-
-        // •`‰æ
-        int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(msg.xOffset * scale);
-        int boxY = yPos;
-
-        // ”wŒiƒ{ƒbƒNƒX
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
-        DrawBox(boxX, boxY, boxX + boxWidth, boxY + boxHeight, kBoxColor, true);
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
-        // ƒeƒLƒXƒg‚Æƒ^ƒCƒ€ƒo[‚ğã‚©‚ç‡‚É•`‰æ
-        int currentY = boxY + scaledBoxPaddingY;
-        int contentX = boxX + scaledBoxPaddingX;
-        int contentWidth = boxWidth - scaledBoxPaddingX * 2;
-
-        // ƒ^ƒCƒgƒ‹
-        DrawStringToHandle(contentX, currentY, msg.title.c_str(), 0xFFFFFF, m_japaneseLargeFontHandle);
-        currentY += scaledMessageTitleFontSize + scaledMessageTimeBarPaddingY;
-
-        // ƒ^ƒCƒ€ƒo[
-        if (msg.state == UIState::OnScreen)
-        {
-            float progress = 1.0f - (msg.displayTimer / kMessageDisplayTime);
-            int barWidth = static_cast<int>(contentWidth * progress);
-            DrawBox(contentX, currentY, contentX + barWidth, currentY + scaledMessageTimeBarHeight, 0xFF0000, true);
-        }
-        currentY += scaledMessageTimeBarHeight + scaledMessageTimeBarPaddingY;
-
-        // Ú× (•¡”sAF•ª‚¯‚ ‚è)
-        for (const auto& line : detailLines)
-        {
-            int currentX = contentX;
-
-            std::string s = line;
-            std::string keyword1 = "‰ñ•œƒAƒCƒeƒ€";
-            std::string keyword2 = "Ï‹É“I‚És“®‚¹‚æ";
-            size_t pos1 = s.find(keyword1);
-            size_t pos2 = s.find(keyword2);
-
-            if (pos1 != std::string::npos)
-            {
-                std::string part1 = s.substr(0, pos1);
-                std::string part3 = s.substr(pos1 + keyword1.length());
-
-                DrawStringToHandle(currentX, currentY, part1.c_str(), 0xFFFFFF, m_messageDetailFontHandle);
-                currentX += GetDrawStringWidthToHandle(part1.c_str(), static_cast<int>(part1.length()), m_messageDetailFontHandle);
-
-                DrawStringToHandle(currentX, currentY, keyword1.c_str(), 0xFFD700, m_messageDetailFontHandle);
-                currentX += GetDrawStringWidthToHandle(keyword1.c_str(), static_cast<int>(keyword1.length()), m_messageDetailFontHandle);
-
-                DrawStringToHandle(currentX, currentY, part3.c_str(), 0xFFFFFF, m_messageDetailFontHandle);
-            }
-            else if (pos2 != std::string::npos)
-            {
-                std::string part1 = s.substr(0, pos2);
-
-                DrawStringToHandle(currentX, currentY, part1.c_str(), 0xFFFFFF, m_messageDetailFontHandle);
-                currentX += GetDrawStringWidthToHandle(part1.c_str(), static_cast<int>(part1.length()), m_messageDetailFontHandle);
-
-                DrawStringToHandle(currentX, currentY, keyword2.c_str(), 0xFFD700, m_messageDetailFontHandle);
-            }
-            else
-            {
-                DrawStringToHandle(contentX, currentY, line.c_str(), 0xFFFFFF, m_messageDetailFontHandle);
-            }
-
-            currentY += scaledMessageDetailFontSize + scaledMessageLineSpacing;
-        }
-
-        yPos += boxHeight + static_cast<int>(10 * scale);
-    }
+    // åˆæœŸå€¤è¨­å®š
+    m_messages.push_back({ title, detail, 750.0f, 0.0f, UIState::Entering });
 }

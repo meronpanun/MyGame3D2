@@ -212,6 +212,7 @@
     <ClCompile Include="UI\PlayerEffectUI.cpp" />
     <ClCompile Include="UI\ReticleUI.cpp" />
     <ClCompile Include="UI\ScoreUI.cpp" />
+    <ClCompile Include="UI\TutorialUI.cpp" />
     <ClCompile Include="UI\UIManager.cpp" />
     <ClCompile Include="Vec2.cpp" />
     <ClCompile Include="Vec3.cpp" />
@@ -284,6 +285,7 @@
     <ClInclude Include="UI\PlayerEffectUI.h" />
     <ClInclude Include="UI\ReticleUI.h" />
     <ClInclude Include="UI\ScoreUI.h" />
+    <ClInclude Include="UI\TutorialUI.h" />
     <ClInclude Include="UI\UIBase.h" />
     <ClInclude Include="UI\UIManager.h" />
     <ClInclude Include="Vec2.h" />

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Vec2.h"
 #include <memory>
 #include <string>
@@ -87,8 +87,16 @@ public:
     /// <param name="detail">メッセージの詳細</param>
     void AddMessage(const std::string& title, const std::string& detail);
 
-    // スケール変更時のフォントリロード
-    void ReloadFonts(float scale);
+    // Getters for TutorialUI
+    Step GetStep() const { return m_step; }
+    const std::vector<TutorialMessage>& GetMessages() const { return m_messages; }
+    
+    bool HasCompletedMove() const { return m_hasCompletedMove; }
+    bool HasCompletedView() const { return m_hasCompletedView; }
+    bool HasCompletedJump() const { return m_hasCompletedJump; }
+    bool HasCompletedRun() const { return m_hasCompletedRun; }
+    
+    bool IsStepCompleted() const { return m_isStepCompleted; }
 
 private:
     /// <summary>
@@ -109,21 +117,6 @@ private:
 private:
     Vec2 m_prevMousePos;
     Step m_step;
-    UIState m_uiState; // UIの状態
-
-    // リソース関連
-    ManagedGraph m_checkMarkHandle;         // チェックマーク画像のハンドル
-    ManagedFont m_japaneseFontHandle;      // 日本語フォントハンドル
-    ManagedFont m_japaneseLargeFontHandle; // 日本語ラージフォントハンドル
-    ManagedFont m_messageDetailFontHandle; // メッセージ詳細用のフォントハンドル
-    ManagedGraph m_wKeyHandle;
-    ManagedGraph m_aKeyHandle;
-    ManagedGraph m_sKeyHandle;
-    ManagedGraph m_dKeyHandle;
-    ManagedGraph m_mouseMoveHorHandle;
-    ManagedGraph m_spaceKeyHandle;
-    ManagedGraph m_leftShiftKeyHandle;
-    ManagedGraph m_crossHandle;
 
     // チュートリアル進行関連
     float m_completeWaitTime;   // チュートリアル完了後の待機タイマー
@@ -141,19 +134,6 @@ private:
     float m_stepCompleteWaitTime; // ステップ完了後の待機タイマー
     bool  m_isStepCompleted;      // ステップ完了後の待機中フラグ
 
-    // アニメーション関連
-    float m_uiXOffset;         // UIのX座標オフセット
-    float m_moveCheckAnimTime; // WASD操作のアニメーションタイマー
-    float m_viewCheckAnimTime; // 視点操作のアニメーションタイマー
-    float m_runCheckAnimTime;  // 走る操作のアニメーションタイマー
-    float m_jumpCheckAnimTime; // ジャンプ操作のアニメーションタイマー
-    bool  m_isPlayingMoveCheckAnim;   // WASD操作のアニメーションが進行中か
-    bool  m_isPlayingViewCheckAnim;   // 視点操作のアニメーションが進行中か
-    bool  m_isPlayingJumpCheckAnim;   // ジャンプ操作のアニメーションが進行中か
-    bool  m_isPlayingRunCheckAnim;    // 走る操作のアニメーションが進行中か
-
     // メッセージ関連
     std::vector<TutorialMessage> m_messages;
-
-    float m_prevScale;
 };
