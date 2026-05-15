@@ -19,18 +19,18 @@
 
 namespace
 {
-    // 繝励Ξ繧､繝､繝ｼ縺九ｉ縺ｮ譛蟆剰ｷ晞屬
+    // プレイヤーからの最小距離
     constexpr float kMinSpawnDistance = 200.0f;
 
-    // 蜃ｺ迴ｾ菴咲ｽｮ縺ｮ譛螟ｧ隧ｦ陦悟屓謨ｰ
+    // 出現位置の最大試行回数
     constexpr int kMaxSpawnAttempts = 100;
 
-    // 遽・峇縺瑚ｨｭ螳壹＆繧後※縺・↑縺・ｴ蜷医・繝・ヵ繧ｩ繝ｫ繝井ｽ咲ｽｮ
+    // 範囲が設定されていない場合のデフォルト位置
     constexpr VECTOR kDefaultRoadFloorPos = { 0.0f, -0.5f, 3.0f };
 
-    // 蝨ｰ髱｢縺ｮ譛蟆乗怙螟ｧ蛟､蠎ｧ讓・
-    constexpr VECTOR kDefaultRoadFloorMin = { -1000.0f, 0.0f, -1000.0f }; // 蠎翫・譛蟆丞ｺｧ讓・
-    constexpr VECTOR kDefaultRoadFloorMax = { 1000.0f, 0.0f, 1000.0f };   // 蠎翫・譛螟ｧ蠎ｧ讓・
+    // 地面の最小最大値座標
+    constexpr VECTOR kDefaultRoadFloorMin = { -1000.0f, 0.0f, -1000.0f }; // 床の最小座標
+    constexpr VECTOR kDefaultRoadFloorMax = { 1000.0f, 0.0f, 1000.0f };   // 床の最大座標
 }
 
 bool WaveManager::s_shouldDrawSpawnAreas = false;
@@ -57,7 +57,7 @@ WaveManager::WaveManager()
     , m_hasClearedTackleTutorial(false)
     , m_isTutorialMode(false)
 {
-    // 謨ｵ縺ｮ繝｢繝・Ν繧偵Ο繝ｼ繝・
+    // 敵のモデルをロード
     EnemyNormal::LoadModel();
     EnemyRunner::LoadModel();
     EnemyAcid::LoadModel();
@@ -66,7 +66,7 @@ WaveManager::WaveManager()
 
 WaveManager::~WaveManager()
 {
-    // 謨ｵ縺ｮ繝｢繝・Ν繧定ｧ｣謾ｾ
+    // 敵のモデルを解放
     EnemyNormal::DeleteModel();
     EnemyRunner::DeleteModel();
     EnemyAcid::DeleteModel();
@@ -79,18 +79,18 @@ void WaveManager::Init()
     m_enemyList.clear();
     m_spawnInfoList.clear();
 
-    // 繧ｦ繧ｧ繝ｼ繝悶ョ繝ｼ繧ｿ繧偵Ο繝ｼ繝・(WaveDataLoader繧剃ｽｿ逕ｨ)
+    // ウェーブデータをロード (WaveDataLoaderを使用)
     m_waveDataList = WaveDataLoader::LoadWaveData("data/CSV/WaveData.csv");
-    // 繧ｹ繝昴・繝ｳ繧ｨ繝ｪ繧｢繝・・繧ｿ繧偵Ο繝ｼ繝・(WaveDataLoader繧剃ｽｿ逕ｨ)
+    // スポーンエリアデータをロード (WaveDataLoaderを使用)
     m_spawnAreaList = WaveDataLoader::LoadSpawnAreaData("data/CSV/SpawnAreaData.csv");
 
-    // 繧ｰ繝ｪ繝・ラ蛻晄悄蛹・(繧ｻ繝ｫ繧ｵ繧､繧ｺ繧・00縺ｫ邵ｮ蟆上＠縺ｦ蛻・牡繧定ｦ九ｄ縺吶￥縺吶ｋ)
+    // グリッド初期化 (セルサイズを100に縮小して分割を見やすくする)
     m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 100.0f);
 
-    // 謨ｵ繝励・繝ｫ蛻晄悄蛹・
+    // 敵プール初期化
     InitEnemyPools();
 
-    // 繝√Η繝ｼ繝医Μ繧｢繝ｫ驕疲・蛻､螳壹さ繝ｫ繝舌ャ繧ｯ
+    // チュートリアル達成判定コルバック
     auto deathTypeCallback = [this](const VECTOR& pos, AttackType type) {
         if (m_currentWave == 1)
         {
@@ -99,7 +99,7 @@ void WaveManager::Init()
         }
     };
 
-    // 蜈ｨ謨ｵ繝励・繝ｫ縺ｫ繧ｳ繝ｼ繝ｫ繝舌ャ繧ｯ險ｭ螳・
+    // 全敵プールにコールバック設定
     auto setCallback = [&](auto& pool) {
         for (auto& enemy : pool) enemy->SetOnDeathWithTypeCallback(deathTypeCallback);
     };
@@ -108,15 +108,15 @@ void WaveManager::Init()
     setCallback(m_enemyAcidPool);
     setCallback(m_enemyBossPool);
 
-    // 謨ｵ縺ｮ豁ｻ莠｡譎ゅさ繝ｼ繝ｫ繝舌ャ繧ｯ繧定ｨｭ螳・
+    // 敵の死亡時コールバックを設定
     SetOnEnemyDeathCallback([this](const VECTOR& pos) {
-        // 豁ｻ莠｡縺励◆謨ｵ繧堤音螳・
+        // 死亡した敵を特定
         for (auto& enemy : m_enemyList)
         {
             if (enemy->GetPos().x == pos.x && enemy->GetPos().y == pos.y && enemy->GetPos().z == pos.z)
             {
                 if (!enemy) continue;
-                // 繝√Η繝ｼ繝医Μ繧｢繝ｫ驕疲・蛻､螳・
+                // チュートリアル達成判定
                 if (m_currentWave == 1)
                 {
                     if (enemy->GetLastAttackType() == AttackType::Shoot) m_hasClearedShotTutorial = true;
@@ -130,7 +130,7 @@ void WaveManager::Init()
 
 void WaveManager::InitEnemyPools()
 {
-    // 蜷・雰遞ｮ縺斐→縺ｫ蜈ｨ繧ｦ繧ｧ繝ｼ繝悶〒蜷梧凾縺ｫ蜃ｺ迴ｾ縺吶ｋ譛螟ｧ謨ｰ繧定ｨ育ｮ・
+    // 各敵種ごとに全ウェーブで同時に出現する最大数を計算
     std::map<int, int> normalPerWave, runnerPerWave, acidPerWave, bossPerWave;
     for (const auto& wave : m_waveDataList)
     {
@@ -141,7 +141,7 @@ void WaveManager::InitEnemyPools()
     }
     int maxNormal = 0, maxRunner = 0, maxAcid = 0, maxBoss = 0;
 
-    // 蜷・え繧ｧ繝ｼ繝悶〒縺ｮ譛螟ｧ蜃ｺ迴ｾ謨ｰ繧定ｨ育ｮ・
+    // 各ウェーブでの最大出現数を計算
     for (const auto& [wave, cnt] : normalPerWave) maxNormal = (std::max)(maxNormal, cnt);
     for (const auto& [wave, cnt] : runnerPerWave) maxRunner = (std::max)(maxRunner, cnt);
     for (const auto& [wave, cnt] : acidPerWave) maxAcid = (std::max)(maxAcid, cnt);
@@ -176,7 +176,7 @@ void WaveManager::Reset()
     m_enemyList.clear();
     m_spawnInfoList.clear();
 
-    // 蜈ｨ繝励・繝ｫ縺ｮ謨ｵ繧帝撼繧｢繧ｯ繝・ぅ繝門喧
+    // 全プールの敵を非アクティブ化
     for (auto& enemy : m_enemyNormalPool) enemy->SetActive(false);
     for (auto& enemy : m_enemyRunnerPool) enemy->SetActive(false);
     for (auto& enemy : m_enemyAcidPool) enemy->SetActive(false);
@@ -194,11 +194,11 @@ void WaveManager::Reset()
 
 void WaveManager::Update()
 {
-    // 繧ｰ繝ｪ繝・ラ繧偵け繝ｪ繧｢・域雰縺ｮ縺ｿ縲√せ繝・・繧ｸ繝・・繧ｿ縺ｯ菫晄戟・・
+    // グリッドをクリア（敵のみ、ステージデータは保持）
     m_collisionGrid.ClearEnemies();
     m_collisionGrid.ResetAccessFlags();
-    m_collisionGrid.ResetStats(); // 邨ｱ險医・繝ｪ繧ｻ繝・ヨ
-    m_collisionGrid.SetTotalEnemies(0); // 邱乗雰謨ｰ縺ｮ繧ｫ繧ｦ繝ｳ繝育畑繝ｪ繧ｻ繝・ヨ
+    m_collisionGrid.ResetStats(); // 統計のリセット
+    m_collisionGrid.SetTotalEnemies(0); // 総敵数のカウント用リセット
 
     for (auto& pEnemy : m_enemyList)
     {
@@ -208,12 +208,10 @@ void WaveManager::Update()
         }
     }
 
-    // 繧ｦ繧ｧ繝ｼ繝也憾諷九↓繧医ｋ譖ｴ譁ｰ
+    // ウェーブ状態による更新
     if (m_state == WaveState::Starting)
     {
-        // 貍泌・繧ｿ繧､繝槭・縺ｮ譖ｴ譁ｰ (105繝輔Ξ繝ｼ繝 = 邏・.75遘・
-        // 譛ｬ譚･縺ｯ繝｡繝ｳ繝仙､画焚縺ｧ繧ｿ繧､繝槭・繧呈戟縺､縺ｹ縺阪□縺後∫ｰ｡譏灘喧縺ｮ縺溘ａ譌｢蟄倥・繧ｿ繧､繝槭・繧呈ｵ∫畑縺吶ｋ縺区眠隕剰ｿｽ蜉縺悟ｿ・ｦ・
-        // 莉雁屓縺ｯWaveManager縺ｫ繧ｿ繧､繝槭・縺御ｸ崎ｶｳ縺励※縺・ｋ縺溘ａ縲［_waveTimer繧呈ｵ∫畑
+        // 演出タイマーの更新 (105フレーム = 約1.75秒)
         m_waveTimer += 1.0f * Game::GetTimeScale();
         if (m_waveTimer >= 105.0f)
         {
@@ -238,7 +236,7 @@ void WaveManager::Update()
         }
         else
         {
-            // Starting迥ｶ諷具ｼ域ｼ泌・荳ｭ・峨・繧ｹ繝昴・繝ｳ縺励↑縺・
+            // Starting状態（演出中）はスポーンしない
             if (m_currentSpawnIndex < m_spawnInfoList.size() && m_state == WaveState::Active)
             {
                 m_spawnTimer += (1.0f / 60.0f) * Game::GetTimeScale();
@@ -286,7 +284,7 @@ void WaveManager::Update()
         }
     }
 
-    // 髱槭い繧ｯ繝・ぅ繝悶↑謨ｵ繧偵Μ繧ｹ繝医°繧牙炎髯､
+    // 非アクティブな敵をリストから削除
     m_enemyList.erase(std::remove_if(m_enemyList.begin(), m_enemyList.end(), [](const std::shared_ptr<EnemyBase>& pEnemy) {
                           return !pEnemy->IsActive();
                       }),
@@ -309,8 +307,7 @@ void WaveManager::UpdateEnemies(
         }
     }
 
-    // 繧ｰ繝ｪ繝・ラ縺ｯUpdate()縺ｮ譎らせ縺ｧ讒狗ｯ画ｸ医∩縺ｪ縺ｮ縺ｧ縺薙％縺ｧ縺ｯ陦後ｏ縺ｪ縺・
-
+    // グリッドはUpdate()の時点で構築済みなのでここでは行わない
     EnemyUpdateContext context = { bullets, tackleInfo, player, activeEnemies, collisionData, pEffect, &m_collisionGrid };
 
     for (auto& pEnemy : m_enemyList)
@@ -332,25 +329,14 @@ void WaveManager::DrawEnemies(const std::vector<Stage::StageCollisionData>& coll
         }
     }
 
-    // 遨ｺ髢灘・蜑ｲ繧ｰ繝ｪ繝・ラ縺ｮ謠冗判
+    // 空間分割グリッドの描画
     m_collisionGrid.Draw(collisionData);
-
-    // 繝・ヰ繝・げ陦ｨ遉ｺ
-    // (UI繧ｯ繝ｩ繧ｹ縺ｫ遘ｻ隴ｲ縲√ヵ繝ｩ繧ｰ繝√ぉ繝・け縺ｯWaveManager縺梧戟縺､縺九ゞI蛛ｴ縺ｧ謖√▽縺・
-    // 縺薙％縺ｧ縺ｯ莠呈鋤諤ｧ縺ｮ縺溘ａs_isDrawSpawnAreas繧剃ｽｿ逕ｨ縺励ゞI繧ｯ繝ｩ繧ｹ縺ｫ貂｡縺・
-    if (s_shouldDrawSpawnAreas)
-    {
-        // 繝・ヰ繝・げ謠冗判縺ｯSceneMain縺ｪ縺ｩ縺ｧ驕ｩ蛻・↓陦後≧縺九・
-        // 蠢・ｦ√↑繧蔚IManager邨檎罰縺ｧWaveUI縺ｫ謖・､ｺ縺吶ｋ
-    }
 }
 
 void WaveManager::DrawDebugUI()
 {
     m_collisionGrid.DrawUI();
 }
-
-
 
 void WaveManager::SetOnEnemyDeathCallback(std::function<void(const VECTOR&)> callback)
 {
@@ -368,7 +354,7 @@ void WaveManager::SetRoadFloorBounds(const VECTOR& minPos, const VECTOR& maxPos)
     m_roadFloorMax = maxPos;
     m_hasSetRoadFloorBounds = true;
 
-    // 遽・峇縺悟､画峩縺輔ｌ縺溘・縺ｧ繧ｰ繝ｪ繝・ラ繧貞・蛻晄悄蛹・
+    // 範囲が変更されたのでグリッドを再初期化
     m_collisionGrid.Init(m_roadFloorMin, m_roadFloorMax, 100.0f);
 }
 
