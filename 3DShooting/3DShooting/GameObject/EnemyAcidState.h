@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "EnemyState.h"
 
 class EnemyAcid;
 
-// ---------------------------------------------------------
-// 徘徊・追跡状態
-// ---------------------------------------------------------
+/// <summary>
+/// 徘徊・追跡状態
+/// </summary>
 class EnemyAcidStateWalk : public EnemyState<EnemyAcid>
 {
 public:
@@ -13,9 +13,9 @@ public:
     void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 後退状態
-// ---------------------------------------------------------
+/// <summary>
+/// 後退状態
+/// </summary>
 class EnemyAcidStateBack : public EnemyState<EnemyAcid>
 {
 public:
@@ -23,9 +23,9 @@ public:
     void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 攻撃状態
-// ---------------------------------------------------------
+/// <summary>
+/// 攻撃状態
+/// </summary>
 class EnemyAcidStateAttack : public EnemyState<EnemyAcid>
 {
 public:
@@ -33,9 +33,9 @@ public:
     void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 怯み（スタン）状態
-// ---------------------------------------------------------
+/// <summary>
+/// 怯み（スタン）状態
+/// </summary>
 class EnemyAcidStateStunned : public EnemyState<EnemyAcid>
 {
 public:
@@ -43,9 +43,9 @@ public:
     void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 死亡状態
-// ---------------------------------------------------------
+/// <summary>
+/// 死亡状態
+/// </summary>
 class EnemyAcidStateDead : public EnemyState<EnemyAcid>
 {
 public:

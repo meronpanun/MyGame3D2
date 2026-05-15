@@ -10,9 +10,6 @@
 #include "EffekseerWarningSuppress.h"
 #include <memory>
 
-// =========================================================
-// Walk State - プレイヤーへの追跡・接近制御
-// =========================================================
 void EnemyAcidStateWalk::Enter(EnemyAcid* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Walk, true);
@@ -23,9 +20,6 @@ void EnemyAcidStateWalk::Update(EnemyAcid* enemy, const EnemyUpdateContext& cont
     // 移動AIは UpdateMovementAI に委譲されているため、ここでは何もしない
 }
 
-// =========================================================
-// Back State - プレイヤーから離れる
-// =========================================================
 void EnemyAcidStateBack::Enter(EnemyAcid* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Back, true);
@@ -36,9 +30,6 @@ void EnemyAcidStateBack::Update(EnemyAcid* enemy, const EnemyUpdateContext& cont
     // 移動AIは UpdateMovementAI に委譲
 }
 
-// =========================================================
-// Attack State - 酸弾発射
-// =========================================================
 void EnemyAcidStateAttack::Enter(EnemyAcid* enemy)
 {
     enemy->m_hasAttacked = false;
@@ -51,9 +42,6 @@ void EnemyAcidStateAttack::Update(EnemyAcid* enemy, const EnemyUpdateContext& co
     // 攻撃ロジックは UpdateMovementAI に委譲
 }
 
-// =========================================================
-// Stunned State - パリィ後の怯み
-// =========================================================
 void EnemyAcidStateStunned::Enter(EnemyAcid* enemy)
 {
     enemy->m_isStunned = true;
@@ -66,9 +54,6 @@ void EnemyAcidStateStunned::Update(EnemyAcid* enemy, const EnemyUpdateContext& c
     // 怯み処理はUpdateAIで優先的に処理される
 }
 
-// =========================================================
-// Dead State - 死亡アニメーション
-// =========================================================
 void EnemyAcidStateDead::Enter(EnemyAcid* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false);
@@ -81,10 +66,7 @@ void EnemyAcidStateDead::Update(EnemyAcid* enemy, const EnemyUpdateContext& cont
     // 死亡時は何もしない
 }
 
-// =========================================================
-// EnemyAcid::UpdateAcidBalls - 酸弾の更新・パリィ・ヒット判定
-// EnemyAcid.cpp の UpdateAI から分離
-// =========================================================
+// UpdateAcidBalls - EnemyAcid.cpp の UpdateAI から分離
 void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
 {
     const Player& player = context.player;
@@ -195,10 +177,7 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
         m_acidBalls.end());
 }
 
-// =========================================================
-// EnemyAcid::UpdateMovementAI - 移動・攻撃範囲判定
-// EnemyAcid.cpp の UpdateAI から分離
-// =========================================================
+// UpdateMovementAI - EnemyAcid.cpp の UpdateAI から分離
 void EnemyAcid::UpdateMovementAI(const EnemyUpdateContext& context)
 {
     const Player& player = context.player;

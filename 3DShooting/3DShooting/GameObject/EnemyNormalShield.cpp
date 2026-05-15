@@ -8,9 +8,6 @@
 #include "CollisionGrid.h"
 #include <algorithm>
 
-// ---------------------------------------------------------------------------
-// SetHasShield
-// ---------------------------------------------------------------------------
 void EnemyNormal::SetHasShield(bool hasShield)
 {
     m_hasShieldConfigured = hasShield;
@@ -30,9 +27,6 @@ void EnemyNormal::SetHasShield(bool hasShield)
     }
 }
 
-// ---------------------------------------------------------------------------
-// TriggerShieldChainBreak
-// ---------------------------------------------------------------------------
 void EnemyNormal::TriggerShieldChainBreak(int delayFrames)
 {
     if (!m_hasShieldConfigured) return;
@@ -40,9 +34,7 @@ void EnemyNormal::TriggerShieldChainBreak(int delayFrames)
     m_shieldChainBreakTimer = delayFrames;
 }
 
-// ---------------------------------------------------------------------------
-// BreakShield - シールド破壊 + 周囲への連鎖処理
-// ---------------------------------------------------------------------------
+// シールド破壊 + 周囲への連鎖処理
 void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
 {
     if (!m_hasShieldConfigured) return;
@@ -115,10 +107,7 @@ void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
     }
 }
 
-// ---------------------------------------------------------------------------
-// UpdateShield - 毎フレームのシールドエフェクト・コライダー更新
-// UpdateAI から切り出した処理
-// ---------------------------------------------------------------------------
+// UpdateShield - UpdateAI から切り出した処理
 void EnemyNormal::UpdateShield(const EnemyUpdateContext& context)
 {
     // 連鎖破壊タイマーの更新
