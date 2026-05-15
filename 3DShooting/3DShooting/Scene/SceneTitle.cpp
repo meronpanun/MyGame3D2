@@ -358,9 +358,7 @@ void SceneTitle::Draw()
     // マウスの位置を取得
     Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
 
-    // ----------------------------------------
     // タイトルロゴの描画 (完全に消え切るまで描画)
-    // ----------------------------------------
     if (m_fadeAlpha > 0)
     {
         SetUseZBuffer3D(false);
@@ -377,9 +375,7 @@ void SceneTitle::Draw()
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // ----------------------------------------
     // 3D背景 & 2Dテキストの描画 (フェードアウト完了後のみ)
-    // ----------------------------------------
     else // m_fadeAlpha == 0 の場合（フェードアウトが完全に終わった状態）
     {
         // カメラの設定（少し見下ろす位置に修正）

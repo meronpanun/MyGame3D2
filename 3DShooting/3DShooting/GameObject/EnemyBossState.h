@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 #include "EnemyState.h"
 
 class EnemyBoss;
 
-// ---------------------------------------------------------
-// 移動・追跡状態
-// ---------------------------------------------------------
+/// <summary>
+/// 移動・追跡状態
+/// </summary>
 class EnemyBossStateWalk : public EnemyState<EnemyBoss>
 {
 public:
@@ -13,9 +13,9 @@ public:
     void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 近接攻撃状態
-// ---------------------------------------------------------
+/// <summary>
+/// 近接攻撃状態
+/// </summary>
 class EnemyBossStateAttack : public EnemyState<EnemyBoss>
 {
 public:
@@ -23,9 +23,9 @@ public:
     void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 遠距離攻撃状態
-// ---------------------------------------------------------
+/// <summary>
+/// 遠距離攻撃状態
+/// </summary>
 class EnemyBossStateLongRange : public EnemyState<EnemyBoss>
 {
 public:
@@ -33,9 +33,9 @@ public:
     void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 怯み（スタン）状態
-// ---------------------------------------------------------
+/// <summary>
+/// 怯み（スタン）状態
+/// </summary>
 class EnemyBossStateStunned : public EnemyState<EnemyBoss>
 {
 public:
@@ -43,9 +43,9 @@ public:
     void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
 };
 
-// ---------------------------------------------------------
-// 死亡状態
-// ---------------------------------------------------------
+/// <summary>
+/// 死亡状態
+/// </summary>
 class EnemyBossStateDead : public EnemyState<EnemyBoss>
 {
 public:

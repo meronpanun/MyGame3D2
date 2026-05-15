@@ -6,9 +6,6 @@
 #include "SphereCollider.h"
 #include "CapsuleCollider.h"
 
-// =========================================================
-// Run State
-// =========================================================
 void EnemyRunnerStateRun::Enter(EnemyRunner* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Run, true);
@@ -33,9 +30,6 @@ void EnemyRunnerStateRun::Update(EnemyRunner* enemy, const EnemyUpdateContext& c
     }
 }
 
-// =========================================================
-// Attack State
-// =========================================================
 void EnemyRunnerStateAttack::Enter(EnemyRunner* enemy)
 {
     enemy->m_hasAttackHit = false;
@@ -55,9 +49,6 @@ void EnemyRunnerStateAttack::Update(EnemyRunner* enemy, const EnemyUpdateContext
     }
 }
 
-// =========================================================
-// Dead State
-// =========================================================
 void EnemyRunnerStateDead::Enter(EnemyRunner* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false);

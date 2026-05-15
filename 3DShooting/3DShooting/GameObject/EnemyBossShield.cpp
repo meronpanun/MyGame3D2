@@ -7,10 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-// ---------------------------------------------------------------------------
-// UpdateShieldEffect - シールドエフェクト更新
-// UpdateAnimation から切り出した処理
-// ---------------------------------------------------------------------------
+// UpdateShieldEffect - UpdateAnimation から切り出した処理
 void EnemyBoss::UpdateShieldEffect(const EnemyUpdateContext& context)
 {
     Effect* pEffect = context.pEffect;
@@ -90,10 +87,7 @@ void EnemyBoss::UpdateShieldEffect(const EnemyUpdateContext& context)
     }
 }
 
-// ---------------------------------------------------------------------------
-// UpdateShieldPushout - シールドによるプレイヤー押し出し処理
-// UpdateAnimation から切り出した処理
-// ---------------------------------------------------------------------------
+// UpdateShieldPushout - UpdateAnimation から切り出した処理
 void EnemyBoss::UpdateShieldPushout()
 {
     if (m_isShieldBroken || !m_pShieldCollider) return;

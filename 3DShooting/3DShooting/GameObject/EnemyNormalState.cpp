@@ -6,9 +6,6 @@
 #include "SphereCollider.h"
 #include "CapsuleCollider.h"
 
-// =========================================================
-// Walk State
-// =========================================================
 void EnemyNormalStateWalk::Enter(EnemyNormal* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Walk, true);
@@ -70,9 +67,6 @@ void EnemyNormalStateWalk::Update(EnemyNormal* enemy, const EnemyUpdateContext& 
     }
 }
 
-// =========================================================
-// Attack State
-// =========================================================
 void EnemyNormalStateAttack::Enter(EnemyNormal* enemy)
 {
     enemy->m_hasAttackHit = false;
@@ -135,9 +129,6 @@ void EnemyNormalStateAttack::Update(EnemyNormal* enemy, const EnemyUpdateContext
     }
 }
 
-// =========================================================
-// Damage State
-// =========================================================
 void EnemyNormalStateDamage::Enter(EnemyNormal* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Walk, true); // ダメージ中は歩行モーションを流用
@@ -170,9 +161,6 @@ void EnemyNormalStateDamage::Update(EnemyNormal* enemy, const EnemyUpdateContext
     }
 }
 
-// =========================================================
-// Dead State
-// =========================================================
 void EnemyNormalStateDead::Enter(EnemyNormal* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false);
