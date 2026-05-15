@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Stage.h"
@@ -13,6 +13,45 @@ class Effect;
 class CapsuleCollider;
 class SphereCollider;
 class Collider;
+
+namespace EnemyAcidConstants 
+{
+    // アニメーション関連
+    constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
+    constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
+    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
+    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+
+    inline const VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
+
+    // コライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
+
+    // 攻撃関連（遠距離攻撃に特化）
+    constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
+    constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
+    constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
+
+    // 追跡関連（遠距離型なので、近づきすぎたら離れる）
+    constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
+
+    // スタン関連
+    constexpr int kStunDuration = 120; // スタンの総持続時間
+    constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
+
+    // AcidBallの画面外判定距離
+    constexpr float kAcidBallBoundaryDistance = 1500.0f;
+ 
+    // 描画距離
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f;
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
+    constexpr float kDrawDotThreshold = 0.4f;
+
+    // 押し出し
+    constexpr float kPushBackEpsilon = 0.0001f;
+}
 
 /// <summary>
 /// 遠距離型ゾンビクラス
@@ -39,6 +78,8 @@ public:
     /// モデルの解放(共有)
     /// </summary>
     static void DeleteModel();
+
+    std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
     /// <summary>
     /// デバッグ用の当たり判定を描画する
@@ -88,11 +129,6 @@ private:
     /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
-    /// <summary>
-    /// ボディコライダーを取得する
-    /// </summary>
-    /// <returns>ボディコライダー</returns>
-    std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
     /// <summary>
     /// パリィされた時に呼び出される
@@ -160,11 +196,11 @@ private:
     void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect, const std::vector<Stage::StageCollisionData>& stageCollision, const class CollisionGrid* pGrid = nullptr);
 
     // リファクタリング用メソッド
-    void UpdateAcidBalls(const EnemyUpdateContext& context);
-    void UpdateState(const EnemyUpdateContext& context);
-    void UpdateCollision(const EnemyUpdateContext& context);
+    void UpdateAI(const EnemyUpdateContext& context) override;
+    void UpdateAnimation(const EnemyUpdateContext& context) override;
+    void UpdateDeath(const EnemyUpdateContext& context) override;
+    void UpdateSimpleMode(const EnemyUpdateContext& context) override;
 
-    void UpdateDeath();
 
 private:
     VECTOR m_headPosOffset;              // ヘッドショット判定用オフセット座標

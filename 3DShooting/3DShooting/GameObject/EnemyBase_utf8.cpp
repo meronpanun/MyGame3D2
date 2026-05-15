@@ -1,4 +1,4 @@
-#include "EnemyBase.h"
+﻿#include "EnemyBase.h"
 #include "Bullet.h"
 #include "TransformDataLoader.h"
 #include "CapsuleCollider.h"
@@ -97,120 +97,6 @@ void EnemyBase::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
     {
         ApplyBulletDamage(bullets[hitBulletIndex], determinedHitPart, minHitDistSq, pEffect);
     }
-}
-
-void EnemyBase::UpdateStandard(const EnemyUpdateContext& context)
-{
-    // 1. AI間引き処理の更新
-    UpdateThrottling(context.player.GetPos());
-
-    // 2. 死亡時の処理
-    if (m_hp <= 0.0f)
-    {
-        UpdateDeath(context);
-        return;
-    }
-
-    // 3. 視界外の単純動作モード
-    if (m_isSimpleMode)
-    {
-        UpdateSimpleMode(context);
-        return;
-    }
-
-    // 4. ステージとの当たり判定
-    UpdateStageCollision(context.collisionData, context.collisionGrid);
-
-    // 5. AIステート・挙動の更新
-    UpdateAI(context);
-
-    // 6. アニメーション更新 (間引き考慮)
-    if (m_shouldUpdateAI)
-    {
-        UpdateAnimation(context);
-    }
-
-    // モデルの位置更新 (UpdateStageCollisionなどで移動している可能性があるため)
-    MV1SetPosition(m_modelHandle, m_pos);
-
-    // 7. 衝突（押し出し）処理
-    std::shared_ptr<CapsuleCollider> playerBodyCollider = context.player.GetBodyCollider();
-    if (playerBodyCollider)
-    {
-        float minDist = GetBodyCollider()->GetRadius() + playerBodyCollider->GetRadius();
-        ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
-    }
-
-    if (m_shouldUpdateAI)
-    {
-        std::vector<EnemyBase*> neighbors;
-        if (context.collisionGrid) context.collisionGrid->GetNeighbors(m_pos, neighbors);
-        const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : context.enemyList;
-        ResolveEnemyCollision(targets, GetBodyCollider()->GetRadius(), 0.0001f);
-    }
-
-    // 8. 弾のヒットチェック
-    CheckHitAndDamage(context.bullets, context.pEffect);
-
-    // 9. タックル判定
-    const auto& tackleInfo = context.tackleInfo;
-    if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
-    {
-        CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
-        if (GetBodyCollider()->IsIntersects(&playerTackleCollider))
-        {
-            TakeTackleDamage(tackleInfo.damage);
-            m_lastTackleId = tackleInfo.tackleId;
-        }
-    }
-    else if (!tackleInfo.isTackling)
-    {
-        m_lastTackleId = -1;
-    }
-
-    // ヒット表示タイマー更新
-    if (m_hitDisplayTimer > 0)
-    {
-        --m_hitDisplayTimer;
-        if (m_hitDisplayTimer == 0) m_lastHitPart = HitPart::None;
-    }
-}
-
-void EnemyBase::DrawStandard(float drawDistSq, float nearDistSq, float dotThreshold)
-{
-    // 死亡アニメーション終了後（アタッチされているアニメーションがない状態）は描画しない
-    if (m_hp <= 0.0f && MV1GetAnimNum(m_modelHandle) > 0 && 
-        MV1GetAttachAnim(m_modelHandle, 0) == -1) return;
-
-    // 視錐台カリング
-    if (!ShouldDraw(drawDistSq, nearDistSq, dotThreshold)) return;
-
-    EnemyBase::IncrementDrawCount();
-    MV1DrawModel(m_modelHandle);
-
-    DrawCollisionDebug();
-}
-
-void EnemyBase::UpdateSimpleMode(const EnemyUpdateContext& context)
-{
-    // デフォルトの簡易移動: ターゲットに向かって直進
-    VECTOR playerPos = context.player.GetPos();
-    VECTOR targetPos = VAdd(playerPos, m_targetOffset);
-    VECTOR toTarget = VSub(targetPos, m_pos);
-    toTarget.y = 0.0f;
-    float distToTarget = VSize(toTarget);
-
-    if (distToTarget > 50.0f) // 50.0f は一般的な停止距離
-    {
-        VECTOR dir = VNorm(toTarget);
-        float step = (std::min)(distToTarget - 50.0f, m_chaseSpeed * Game::GetTimeScale());
-        m_pos.x += dir.x * step;
-        m_pos.z += dir.z * step;
-        RotateTowards(targetPos, 0.05f * Game::GetTimeScale());
-    }
-
-    UpdateStageCollision(context.collisionData, context.collisionGrid);
-    MV1SetPosition(m_modelHandle, m_pos);
 }
 
 int EnemyBase::FindClosestHitBullet(const std::vector<Bullet>& bullets, HitPart& outPart, float& outDistSq) const
@@ -495,21 +381,17 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
     m_isSimpleMode = false;
 
     // 距離ベースの更新間引き処理（遠方のアクティブな敵ほどAIの計算サイクルを落とす）
-    // ボスキャラクターは常にフル演算を行うため除外
-    if (!IsBoss())
+    if (distSq > EnemyConstants::kThrottlingSuperLongRangeSq)
     {
-        if (distSq > EnemyConstants::kThrottlingSuperLongRangeSq)
-        {
-            m_aiUpdateInterval = EnemyConstants::kUpdateIntervalSuperLong; // 超遠距離
-        }
-        else if (distSq > EnemyConstants::kThrottlingLongRangeSq)
-        {
-            m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong;  // 遠距離
-        }
-        else if (distSq > EnemyConstants::kThrottlingMidRangeSq)
-        {
-            m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid;   // 中距離
-        }
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalSuperLong; // 超遠距離
+    }
+    else if (distSq > EnemyConstants::kThrottlingLongRangeSq)
+    {
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalLong;  // 遠距離
+    }
+    else if (distSq > EnemyConstants::kThrottlingMidRangeSq)
+    {
+        m_aiUpdateInterval = EnemyConstants::kUpdateIntervalMid;   // 中距離
     }
 
     // 視界ベースの簡易モード移行処理（画面外におけるAI行動の簡略化）

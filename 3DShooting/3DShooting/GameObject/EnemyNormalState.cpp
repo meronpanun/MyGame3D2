@@ -1,4 +1,4 @@
-﻿#include "EnemyNormalState.h"
+#include "EnemyNormalState.h"
 #include "EnemyNormal.h"
 #include "Player.h"
 #include "Game.h"
@@ -17,6 +17,50 @@ void EnemyNormalStateWalk::Enter(EnemyNormal* enemy)
 void EnemyNormalStateWalk::Update(EnemyNormal* enemy, const EnemyUpdateContext& context)
 {
     if (!enemy->m_shouldUpdateAI) return;
+
+    // プレイヤーの位置を取得
+    VECTOR playerPos = context.player.GetPos();
+    VECTOR targetPos;
+
+    // プレイヤーが岩の上にいる場合は、プレイヤーの周囲をうろうろする
+    std::string groundObj = context.player.GetGroundedObjectName();
+    if (groundObj == "Rock3" || groundObj == "Rock6")
+    {
+        enemy->m_wanderTimer -= enemy->m_aiUpdateInterval;
+        if (enemy->m_wanderTimer <= 0)
+        {
+            // 2秒ごとに新しい目標位置を設定 (距離300~700)
+            enemy->m_wanderTimer = 120;
+            float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
+            float dist = static_cast<float>(300 + GetRand(400));
+            enemy->m_wanderOffset = VGet(cosf(angle) * dist, 0.0f, sinf(angle) * dist);
+        }
+        targetPos = VAdd(playerPos, enemy->m_wanderOffset);
+    }
+    else
+    {
+        // 通常時はプレイヤーに向かう（オフセット付き）
+        targetPos = VAdd(playerPos, enemy->m_targetOffset);
+    }
+
+    VECTOR toTarget = VSub(targetPos, enemy->m_pos);
+    toTarget.y = 0.0f;
+    float disToTarget = VSize(toTarget);
+
+    // 向き変更
+    float rotSpeed = 0.05f * Game::GetTimeScale() * enemy->m_aiUpdateInterval;
+    enemy->RotateTowards(targetPos, rotSpeed);
+
+    // 移動処理
+    if (disToTarget > EnemyNormalConstants::kChaseStopDistance)
+    {
+        VECTOR dir = VNorm(toTarget);
+        float moveDist = disToTarget - EnemyNormalConstants::kChaseStopDistance;
+        float scaledSpeed = enemy->m_chaseSpeed * Game::GetTimeScale() * enemy->m_aiUpdateInterval;
+        float step = (std::min)(moveDist, scaledSpeed);
+        enemy->m_pos.x += dir.x * step;
+        enemy->m_pos.z += dir.z * step;
+    }
 
     // 攻撃が届くまでWalkを維持し、届いたらAttackに遷移
     if (enemy->CanAttackPlayer(context.player))
@@ -41,7 +85,7 @@ void EnemyNormalStateAttack::Update(EnemyNormal* enemy, const EnemyUpdateContext
 
     // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
     float currentAnimTotalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, "ATK");
-    if (enemy->m_animTime > currentAnimTotalTime)
+    if (enemy->m_animTime >= currentAnimTotalTime)
     {
         if (enemy->m_attackEndDelayTimer <= 0) 
         {

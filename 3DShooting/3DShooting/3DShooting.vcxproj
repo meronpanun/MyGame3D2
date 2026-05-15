@@ -162,7 +162,7 @@
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
-    <ClCompile Include="GameObject\BossUI.cpp" />
+    <ClCompile Include="UI\BossUI.cpp" />
     <ClCompile Include="GameObject\FirstAidKitItem.cpp" />
     <ClCompile Include="GameObject\Bullet.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -181,7 +181,7 @@
     <ClCompile Include="GameObject\PlayerEffectManager.cpp" />
     <ClCompile Include="GameObject\PlayerMovement.cpp" />
     <ClCompile Include="GameObject\PlayerShieldSystem.cpp" />
-    <ClCompile Include="GameObject\PlayerUI.cpp" />
+    <ClCompile Include="UI\PlayerUI.cpp" />
     <ClCompile Include="GameObject\PlayerWeaponManager.cpp" />
     <ClCompile Include="GameObject\PlayerStatus.cpp" />
     <ClCompile Include="GameObject\PlayerTackleSystem.cpp" />
@@ -232,7 +232,7 @@
     <ClInclude Include="Collider.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="DebugUtil.h" />
-    <ClInclude Include="GameObject\BossUI.h" />
+    <ClInclude Include="UI\BossUI.h" />
     <ClInclude Include="GameObject\FirstAidKitItem.h" />
     <ClInclude Include="GameObject\Bullet.h" />
     <ClInclude Include="Camera.h" />
@@ -252,7 +252,7 @@
     <ClInclude Include="GameObject\PlayerEffectManager.h" />
     <ClInclude Include="GameObject\PlayerMovement.h" />
     <ClInclude Include="GameObject\PlayerShieldSystem.h" />
-    <ClInclude Include="GameObject\PlayerUI.h" />
+    <ClInclude Include="UI\PlayerUI.h" />
     <ClInclude Include="GameObject\PlayerWeaponManager.h" />
     <ClInclude Include="GameObject\PlayerStatus.h" />
     <ClInclude Include="GameObject\PlayerTackleSystem.h" />

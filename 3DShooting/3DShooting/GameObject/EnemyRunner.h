@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
@@ -9,6 +9,42 @@ class Bullet;
 class Player;
 class Collider;
 class CapsuleCollider;
+
+namespace EnemyRunnerConstants
+{
+    // アニメーション関連
+    constexpr char kAttackAnimName[] = "Armature|Attack"; // 攻撃アニメーション
+    constexpr char kRunAnimName[] = "Armature|Run";       // 走るアニメーション
+    constexpr char kDeadAnimName[] = "Armature|Death";    // 死亡アニメーション
+
+    // カプセルコライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 110.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 15.0f;          // 頭のコライダー半径
+
+    // 攻撃関連
+    constexpr int kAttackCooldownMax = 30;       // 攻撃クールダウン時間
+    constexpr float kAttackHitRadius = 60.0f;    // 攻撃の当たり判定半径
+    constexpr float kAttackTriggerRadius = 30.0f; // 攻撃開始判定半径(通常より小さめ)
+    constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径
+
+    // 追跡関連
+    constexpr int kAttackEndDelay = 10;
+
+    inline const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f };
+
+    // 回避判定
+    constexpr float kEvasionMarginRadius = 80.0f;
+    constexpr float kEvasionSwitchTime = 60.0f;
+
+    // 描画
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000から5000に縮小
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
+    constexpr float kDrawDotThreshold = 0.4f;
+
+    // 押し出し
+    constexpr float kPushBackEpsilon = 0.0001f;
+}
 class SphereCollider;
 
 /// <summary>
@@ -25,6 +61,8 @@ public:
     void Draw() override;
 
     void OnDeath() override;
+
+    std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
     /// <summary>
     /// デバッグ用の当たり判定を描画する
@@ -63,11 +101,6 @@ private:
     void TakeDamage(float damage, AttackType type) override;
     void TakeTackleDamage(float damage) override;
 
-    /// <summary>
-    /// ボディコライダーを取得する
-    /// </summary>
-    /// <returns>ボディコライダー</returns>
-    std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
 private:
     /// <summary>
@@ -91,7 +124,10 @@ private:
     /// <returns>攻撃可能ならtrue</returns>
     bool CanAttackPlayer(const Player& player, float checkRadius = -1.0f);
 
-    void UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData);
+    void UpdateAI(const EnemyUpdateContext& context) override;
+    void UpdateAnimation(const EnemyUpdateContext& context) override;
+    void UpdateDeath(const EnemyUpdateContext& context) override;
+    void UpdateSimpleMode(const EnemyUpdateContext& context) override;
 
 private:
     VECTOR m_headPosOffset; // ヘッドショット判定用座標

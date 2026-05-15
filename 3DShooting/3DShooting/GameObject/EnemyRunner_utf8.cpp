@@ -21,7 +21,41 @@
 #include "SoundManager.h"
 #include "EnemyRunnerState.h"
 
+namespace EnemyRunnerConstants
+{
+    // アニメーション関連
+    constexpr char kAttackAnimName[] = "Armature|Attack"; // 攻撃アニメーション
+    constexpr char kRunAnimName[] = "Armature|Run";       // 走るアニメーション
+    constexpr char kDeadAnimName[] = "Armature|Death";    // 死亡アニメーション
 
+    // カプセルコライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 110.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 15.0f;          // 頭のコライダー半径
+
+    // 攻撃関連
+    constexpr int kAttackCooldownMax = 30;       // 攻撃クールダウン時間
+    constexpr float kAttackHitRadius = 60.0f;    // 攻撃の当たり判定半径
+    constexpr float kAttackTriggerRadius = 30.0f; // 攻撃開始判定半径(通常より小さめ)
+    constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径
+
+    // 追跡関連
+    constexpr int kAttackEndDelay = 10;
+
+    const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f };
+
+    // 回避判定
+    constexpr float kEvasionMarginRadius = 80.0f;
+    constexpr float kEvasionSwitchTime = 60.0f;
+
+    // 描画
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000から5000に縮小
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
+    constexpr float kDrawDotThreshold = 0.4f;
+
+    // 押し出し
+    constexpr float kPushBackEpsilon = 0.0001f;
+}
 
 int EnemyRunner::s_modelHandle = -1;
 bool EnemyRunner::s_shouldDrawCollision = false;
@@ -195,33 +229,82 @@ bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
 
 void EnemyRunner::Update(const EnemyUpdateContext& context)
 {
-    UpdateStandard(context);
-}
-
-void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
-{
+    // コンテキストから展開
+    std::vector<Bullet>& bullets = context.bullets;
+    const Player::TackleInfo& tackleInfo = context.tackleInfo;
     const Player& player = context.player;
+    const std::vector<EnemyBase*>& enemyList = context.enemyList;
+    const std::vector<Stage::StageCollisionData>& collisionData = context.collisionData;
+    Effect* pEffect = context.pEffect;
+
+    // AI間引き処理の更新
+    UpdateThrottling(player.GetPos());
+
+    // 視界外の単純動作モード
+    if (m_isSimpleMode)
+    {
+        // 生存していれば簡易移動
+        if (m_hp > 0.0f)
+        {
+            VECTOR playerPos = player.GetPos();
+            VECTOR targetPos = VAdd(playerPos, m_targetOffset);
+            VECTOR toPlayer = VSub(targetPos, m_pos);
+            toPlayer.y = 0.0f;
+
+            // 簡易移動 (回避行動なし、直線移動のみ)
+            VECTOR dir = VNorm(toPlayer);
+            float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
+            m_pos.x += dir.x * scaledSpeed;
+            m_pos.z += dir.z * scaledSpeed;
+
+            // 向き更新
+            float rotSpeed = 0.05f * Game::GetTimeScale();
+            RotateTowards(targetPos, rotSpeed);
+        }
+
+        // ステージとの当たり判定のみ簡易に行う
+        UpdateStageCollision(collisionData, context.collisionGrid);
+        
+        // モデルの位置更新
+        MV1SetPosition(m_modelHandle, m_pos);
+        return;
+    }
+
+    // ステージとの当たり判定
+    UpdateStageCollision(collisionData, context.collisionGrid);
+
+    // プレイヤーとの距離を更新
+    m_distToPlayer = VSize(VSub(context.player.GetPos(), m_pos));
 
     // ダメージSEのクールタイム更新
     if (m_damageSECooldown > 0.0f)
     {
-        m_damageSECooldown -= 1.0f * Game::GetTimeScale() * m_aiUpdateInterval;
+        m_damageSECooldown -= 1.0f * Game::GetTimeScale();
     }
 
-    if (!m_shouldUpdateAI) return;
+    if (m_hp <= 0.0f)
+    {
+        UpdateDeath(context);
+        return;
+    }
 
-    // プレイヤーの方向を向く（追跡中のみ）
+    MV1SetPosition(m_modelHandle, m_pos); // モデルの位置は常に反映する
+
+    // プレイヤーの方向を常に向く（追跡中のみ）
+    // 攻撃アニメーション中は回転しない
     if (m_currentAnimState == AnimState::Run)
     {
         VECTOR playerPos = player.GetPos();
         VECTOR targetPos;
 
+        // プレイヤーが岩の上にいる場合は、プレイヤーの周囲をうろうろする
         std::string groundObj = player.GetGroundedObjectName();
         if (groundObj == "Rock3" || groundObj == "Rock6")
         {
-            m_wanderTimer -= m_aiUpdateInterval;
+            m_wanderTimer--;
             if (m_wanderTimer <= 0)
             {
+                // 2秒ごとに新しい目標位置を設定 (距離300~700) - 範囲拡大
                 m_wanderTimer = 120;
                 float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
                 float dist = static_cast<float>(300 + GetRand(400));
@@ -231,55 +314,98 @@ void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
         }
         else
         {
+            // 通常時はプレイヤーに向かう（オフセット付き）
             targetPos = VAdd(playerPos, m_targetOffset);
         }
 
-        RotateTowards(targetPos, 0.05f * Game::GetTimeScale() * m_aiUpdateInterval);
+        VECTOR toPlayer = VSub(targetPos, m_pos);
+        toPlayer.y = 0.0f; // Y成分を無視して水平距離を計算
 
-        // 移動と回避
+        // 距離計算
+        float disToPlayer = VSize(toPlayer);
+
+        // 補間速度(大きいほど速く向く)
+        float rotSpeed = 0.05f * Game::GetTimeScale();
+        RotateTowards(targetPos, rotSpeed);
+
+        // 回避行動
+        // 移動計算は毎フレームの方が滑らかだが、決定は間引ける
+        if (m_updateFrameCount % m_aiUpdateInterval == 0) // AI更新フレームのみ判定更新
         {
-            VECTOR toPlayer = VSub(targetPos, m_pos);
-            toPlayer.y = 0.0f;
-            VECTOR dir = VNorm(toPlayer);
-            VECTOR moveVec = VScale(dir, m_chaseSpeed * Game::GetTimeScale() * m_aiUpdateInterval);
+            // 回避切り替え判定などがあればここに記述
+        }
 
-            // 回避判定
+        // 既存の移動ロジック
+        {
+            VECTOR dir = VNorm(toPlayer);
+
+            // 直進成分
+            VECTOR moveVec = VScale(dir, m_chaseSpeed * Game::GetTimeScale());
+
+            // 回避成分（左右移動）
+            VECTOR evadeVec = VGet(0.0f, 0.0f, 0.0f);
+
+            // プレイヤー（カメラ）の射線がコライダーに当たっているかチェック
             VECTOR camPos = GetCameraPosition();
-            VECTOR camDir = VNorm(VSub(GetCameraTarget(), camPos));
+            VECTOR camTarget = GetCameraTarget();
+            VECTOR camDir = VNorm(VSub(camTarget, camPos)); // Normalize direction
+
+            // 5000.0f は Player::Update で使用されている射程距離
             VECTOR rayEnd = VAdd(camPos, VScale(camDir, 5000.0f));
 
             VECTOR hitPos;
             float hitDistSq;
             HitPart hitPart = CheckHitPart(camPos, rayEnd, hitPos, hitDistSq);
+
+            // 射線が当たっている場合は回避行動（左右移動）を行う
             bool shouldEvade = (hitPart != HitPart::None);
 
+            // 直接当たっていなくても、少し余裕を持たせる（レイと敵の位置の距離で判定）
             if (!shouldEvade)
             {
+                // 敵の中心位置（足元 + 高さ/2）
                 VECTOR enemyCenter = VAdd(m_pos, VGet(0.0f, 55.0f, 0.0f));
+
                 VECTOR toEnemy = VSub(enemyCenter, camPos);
                 float t = VDot(toEnemy, camDir);
+
                 if (t > 0.0f)
                 {
+                    // レイ上の最も近い点
                     VECTOR nearestPoint = VAdd(camPos, VScale(camDir, t));
-                    float distSq = VSquareSize(VSub(enemyCenter, nearestPoint));
-                    if (distSq < EnemyRunnerConstants::kEvasionMarginRadius * EnemyRunnerConstants::kEvasionMarginRadius) shouldEvade = true;
+                    VECTOR distVec = VSub(enemyCenter, nearestPoint);
+                    float distSq = VDot(distVec, distVec);
+
+                    // 判定半径
+                    if (distSq < EnemyRunnerConstants::kEvasionMarginRadius * EnemyRunnerConstants::kEvasionMarginRadius)
+                    {
+                        shouldEvade = true;
+                    }
                 }
             }
 
             if (shouldEvade)
             {
                 m_evadeSwitchTimer += Game::GetTimeScale();
-                if (m_evadeSwitchTimer > EnemyRunnerConstants::kEvasionSwitchTime)
+                if (m_evadeSwitchTimer > EnemyRunnerConstants::kEvasionSwitchTime) // 1秒ごとに切り替え
                 {
                     m_evadeSwitchTimer = 0.0f;
                     m_isEvadingRight = !m_isEvadingRight;
                 }
+
                 VECTOR right = VCross(dir, VGet(0.0f, 1.0f, 0.0f));
-                moveVec = VAdd(moveVec, VScale(right, (m_isEvadingRight ? 1.0f : -1.0f) * (m_chaseSpeed * 0.5f) * Game::GetTimeScale() * m_aiUpdateInterval));
+                evadeVec = VScale(right, (m_isEvadingRight ? 1.0f : -1.0f) * (m_chaseSpeed * 0.5f) * Game::GetTimeScale());
             }
+
+            // 合成
+            moveVec = VAdd(moveVec, evadeVec);
             m_pos = VAdd(m_pos, moveVec);
         }
     }
+
+    // プレイヤーのカプセルコライダー情報を取得
+    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
+    bool isPlayerInAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
     // AIステートの更新
     if (m_pCurrentState)
@@ -287,80 +413,157 @@ void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
         m_pCurrentState->Update(this, context);
     }
 
-    // 攻撃判定
+    // アニメーション更新 (間引き)
+    if (m_shouldUpdateAI && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+    {
+        m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
+
+        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(
+            m_modelHandle,
+            (m_currentAnimState == AnimState::Run
+                ? EnemyRunnerConstants::kRunAnimName
+                : (m_currentAnimState == AnimState::Attack ? EnemyRunnerConstants::kAttackAnimName : EnemyRunnerConstants::kDeadAnimName)));
+
+        if (m_currentAnimState == AnimState::Run)
+        {
+            if (m_animTime >= currentAnimTotalTime)
+            {
+                m_animTime = fmodf(m_animTime, currentAnimTotalTime);
+            }
+        }
+        else if (m_currentAnimState == AnimState::Dead)
+        {
+            if (m_animTime >= currentAnimTotalTime)
+            {
+                m_animTime = currentAnimTotalTime;
+            }
+        }
+        // Attackはループ制御を上でやってるので、ここでは単に更新
+
+        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+
+        // コライダーの更新 (間引き対象)
+        // 体のコライダーの位置を設定
+        VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderRadius, 0));
+        VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderHeight - EnemyRunnerConstants::kBodyColliderRadius, 0));
+        m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
+        m_pBodyCollider->SetRadius(EnemyRunnerConstants::kBodyColliderRadius);
+
+        // 頭のコライダーの位置を取得
+        int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
+        VECTOR headModelPos = (headIndex != -1)
+            ? MV1GetFramePosition(m_modelHandle, headIndex)
+            : VGet(0, 0, 0);
+        VECTOR headCenter = VAdd(headModelPos, m_headPosOffset);
+        m_pHeadCollider->SetCenter(headCenter);
+        m_pHeadCollider->SetRadius(EnemyRunnerConstants::kHeadRadius);
+
+        // 攻撃範囲のコライダーの位置と半径を設定
+        VECTOR attackRangeCenter = m_pos;
+        attackRangeCenter.y += (EnemyRunnerConstants::kBodyColliderHeight * 0.5f);
+        m_pAttackRangeCollider->SetCenter(attackRangeCenter);
+        m_pAttackRangeCollider->SetRadius(EnemyRunnerConstants::kAttackRangeRadius);
+    }
+
+    // 敵とプレイヤーの押し出し処理
+    float minDist = EnemyRunnerConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
+    ResolvePlayerCollision(playerBodyCollider, minDist, EnemyRunnerConstants::kPushBackEpsilon);
+
+    // 敵同士の押し出し処理 (間引き対象)
+    if (m_shouldUpdateAI)
+    {
+        std::vector<EnemyBase*> neighbors;
+        if (context.collisionGrid)
+        {
+            context.collisionGrid->GetNeighbors(m_pos, neighbors);
+        }
+        const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : enemyList;
+
+        ResolveEnemyCollision(targets, EnemyRunnerConstants::kBodyColliderRadius, EnemyRunnerConstants::kPushBackEpsilon);
+    }
+
+    // 攻撃判定 (間引き)
     if (m_currentAnimState == AnimState::Attack)
     {
-        float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyRunnerConstants::kAttackAnimName);
-        float attackStart = currentAnimTotalTime * 0.3f;
-        float attackEnd = currentAnimTotalTime * 0.6f;
-
-        if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+        if (m_shouldUpdateAI)
         {
-            if (CanAttackPlayer(player))
+            float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyRunnerConstants::kAttackAnimName);
+            // Runnerの攻撃発生タイミング調整
+            float attackStart = currentAnimTotalTime * 0.3f;
+            float attackEnd = currentAnimTotalTime * 0.6f;
+
+            if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
             {
-                const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos);
-                m_hasAttackHit = true;
+                if (CanAttackPlayer(player))
+                {
+                    const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos);
+                    m_hasAttackHit = true;
+                }
             }
         }
     }
-}
 
-void EnemyRunner::UpdateAnimation(const EnemyUpdateContext& context)
-{
-    // コライダーの更新
-    VECTOR bodyCapA = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderRadius, 0));
-    VECTOR bodyCapB = VAdd(m_pos, VGet(0, EnemyRunnerConstants::kBodyColliderHeight - EnemyRunnerConstants::kBodyColliderRadius, 0));
-    m_pBodyCollider->SetSegment(bodyCapA, bodyCapB);
-    m_pBodyCollider->SetRadius(EnemyRunnerConstants::kBodyColliderRadius);
+    CheckHitAndDamage(const_cast<std::vector<Bullet>&>(bullets), pEffect);
 
-    int headIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Head");
-    VECTOR headModelPos = (headIndex != -1) ? MV1GetFramePosition(m_modelHandle, headIndex) : VGet(0, 0, 0);
-    m_pHeadCollider->SetCenter(VAdd(headModelPos, m_headPosOffset));
-    m_pHeadCollider->SetRadius(EnemyRunnerConstants::kHeadRadius);
-
-    VECTOR attackRangeCenter = m_pos;
-    attackRangeCenter.y += (EnemyRunnerConstants::kBodyColliderHeight * 0.5f);
-    m_pAttackRangeCollider->SetCenter(attackRangeCenter);
-    m_pAttackRangeCollider->SetRadius(EnemyRunnerConstants::kAttackRangeRadius);
-
-    // アニメーション時間の更新
-    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+    // タックル判定
+    if (tackleInfo.isTackling && m_hp > 0.0f && tackleInfo.tackleId != m_lastTackleId)
     {
-        m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
-        const char* animName = (m_currentAnimState == AnimState::Attack) ? EnemyRunnerConstants::kAttackAnimName :
-                               ((m_currentAnimState == AnimState::Dead) ? EnemyRunnerConstants::kDeadAnimName : EnemyRunnerConstants::kRunAnimName);
-
-        float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, animName);
-        if (m_currentAnimState == AnimState::Run) { if (m_animTime >= totalTime) m_animTime = fmodf(m_animTime, totalTime); }
-        else { if (m_animTime >= totalTime) m_animTime = totalTime; }
-        
-        m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        CapsuleCollider playerTackleCollider(tackleInfo.capA, tackleInfo.capB, tackleInfo.radius);
+        if (m_pBodyCollider->IsIntersects(&playerTackleCollider))
+        {
+            TakeTackleDamage(tackleInfo.damage);
+            m_lastTackleId = tackleInfo.tackleId;
+        }
+    }
+    else if (!tackleInfo.isTackling)
+    {
+        m_lastTackleId = -1;
     }
 
-    m_distToPlayer = VSize(VSub(context.player.GetPos(), m_pos));
-}
-
-void EnemyRunner::UpdateSimpleMode(const EnemyUpdateContext& context)
-{
-    if (m_hp > 0.0f)
+    if (m_hitDisplayTimer > 0)
     {
-        VECTOR playerPos = context.player.GetPos();
-        VECTOR targetPos = VAdd(playerPos, m_targetOffset);
-        VECTOR toTarget = VSub(targetPos, m_pos);
-        toTarget.y = 0.0f;
-        float dist = VSize(toTarget);
-
-        VECTOR dir = VNorm(toTarget);
-        m_pos.x += dir.x * m_chaseSpeed * Game::GetTimeScale();
-        m_pos.z += dir.z * m_chaseSpeed * Game::GetTimeScale();
-        RotateTowards(targetPos, 0.05f * Game::GetTimeScale());
+        --m_hitDisplayTimer;
+        if (m_hitDisplayTimer == 0) m_lastHitPart = HitPart::None;
     }
-    UpdateStageCollision(context.collisionData, context.collisionGrid);
 }
 
 void EnemyRunner::Draw()
 {
-    DrawStandard(EnemyRunnerConstants::kDrawDistanceSq, EnemyRunnerConstants::kDrawNearDistanceSq, EnemyRunnerConstants::kDrawDotThreshold);
+    if (m_hp <= 0.0f && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return;
+
+    // 視錐台カリング (描画最適化)
+    if (!ShouldDraw(EnemyRunnerConstants::kDrawDistanceSq, EnemyRunnerConstants::kDrawNearDistanceSq, EnemyRunnerConstants::kDrawDotThreshold)) return;
+
+    EnemyBase::IncrementDrawCount();
+    MV1DrawModel(m_modelHandle);
+
+    if (s_shouldDrawCollision)
+    {
+        DrawCollisionDebug();
+    }
+
+#ifdef _DEBUG
+    const char* hitMsg = "";
+
+    switch (m_lastHitPart)
+    {
+    case HitPart::Head:
+        hitMsg = "HeadShot!";
+        break;
+    case HitPart::Body:
+        hitMsg = "BodyHit!";
+        break;
+    default:
+        break;
+    }
+
+    if (*hitMsg)
+    {
+        DrawFormatString(20, 100, 0xff0000, "%s", hitMsg);
+    }
+
+    DebugUtil::DrawFormat(20, 80, 0x000000, "Runner HP: %.1f", m_hp);
+#endif
 }
 
 void EnemyRunner::DrawCollisionDebug() const
@@ -486,12 +689,14 @@ void EnemyRunner::UpdateDeath(const EnemyUpdateContext& context)
 {
     if (!m_isDeadAnimPlaying)
     {
+        // スコア加算処理はTakeDamageで行うのでここでは不要
         ChangeState(std::make_shared<EnemyRunnerStateDead>());
         m_isDeadAnimPlaying = true;
-        m_animTime = 0.0f;
-        m_isAlive = true;
+        m_animTime = 0.0f; // アニメーション時間をリセット
+        m_isAlive = true;  // 死亡アニメーション中はtrueのまま
     }
 
+    // 死亡アニメーション中もアニメーション時間を更新
     if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
     {
         if (m_shouldUpdateAI)
@@ -509,7 +714,7 @@ void EnemyRunner::UpdateDeath(const EnemyUpdateContext& context)
             MV1DetachAnim(m_modelHandle, 0);
             m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
         }
-
+        // アイテムドロップと死亡コールバックを呼び出し
         if (!m_hasDroppedItem && m_onDropItem)
         {
             m_onDropItem(m_pos);
@@ -519,9 +724,9 @@ void EnemyRunner::UpdateDeath(const EnemyUpdateContext& context)
         if (m_onDeathCallback)
         {
             m_onDeathCallback(m_pos);
-            m_onDeathCallback = nullptr;
+            m_onDeathCallback = nullptr; // 一度だけ呼び出す
         }
-        m_isAlive = false;
-        SetActive(false);
+        m_isAlive = false; // 死亡アニメーション終了時のみfalseにする
+        SetActive(false);  // プールに戻す
     }
 }

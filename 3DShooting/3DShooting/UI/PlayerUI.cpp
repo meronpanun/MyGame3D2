@@ -8,7 +8,6 @@
 
 namespace PlayerUIConstants
 {
-    // ... (既存の定数はそのまま)
     // アサルトライフルUI関連
     constexpr int kARImageWidth = 300;
     constexpr int kARImageHeight = 200;

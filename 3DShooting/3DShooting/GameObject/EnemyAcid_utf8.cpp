@@ -21,6 +21,46 @@
 #include "SoundManager.h"
 #include "EnemyAcidState.h"
 
+
+namespace EnemyAcidConstants 
+{
+    // アニメーション関連
+    constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
+    constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
+    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
+    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+
+    constexpr VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
+
+    // コライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
+
+    // 攻撃関連（遠距離攻撃に特化）
+    constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
+    constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
+    constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
+
+    // 追跡関連（遠距離型なので、近づきすぎたら離れる）
+    constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
+
+    // スタン関連
+    constexpr int kStunDuration = 120; // スタンの総持続時間
+    constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
+
+    // AcidBallの画面外判定距離
+    constexpr float kAcidBallBoundaryDistance = 1500.0f;
+ 
+    // 描画距離
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f;
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
+    constexpr float kDrawDotThreshold = 0.4f;
+
+    // 押し出し
+    constexpr float kPushBackEpsilon = 0.0001f;
+}
+
 int EnemyAcid::s_modelHandle = -1;
 bool EnemyAcid::s_shouldDrawCollision = false;
 
@@ -393,12 +433,10 @@ void EnemyAcid::UpdateAI(const EnemyUpdateContext &context)
     }
     m_acidBalls.erase(std::remove_if(m_acidBalls.begin(), m_acidBalls.end(), [](const AcidBall &b) { return !b.active; }), m_acidBalls.end());
 
-    if (!m_shouldUpdateAI) return;
-
-    // 怯み状態の処理
+    // ステート更新
     if (m_isStunned) 
     {
-        m_stunTimer -= m_aiUpdateInterval;
+        m_stunTimer--;
         if (m_stunTimer <= 0) 
         {
             m_isStunned = false;
@@ -411,18 +449,15 @@ void EnemyAcid::UpdateAI(const EnemyUpdateContext &context)
         return;
     }
 
-    // AIステートの更新
     if (m_pCurrentState)
     {
         m_pCurrentState->Update(this, context);
     }
 
-    // プレイヤーの方向を向く
     VECTOR playerPos = player.GetPos();
-    RotateTowards(playerPos, 0.05f * Game::GetTimeScale() * m_aiUpdateInterval);
+    RotateTowards(playerPos, 0.05f * Game::GetTimeScale());
     float disToPlayer = VSize(VSub(playerPos, m_pos));
 
-    // プレイヤーとの衝突判定
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
     bool inAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 
@@ -433,7 +468,7 @@ void EnemyAcid::UpdateAI(const EnemyUpdateContext &context)
         {
             if (m_currentAnimState != AnimState::Back) ChangeState(std::make_shared<EnemyAcidStateBack>());
             VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
-            float scaledSpeed = m_chaseSpeed * Game::GetTimeScale() * m_aiUpdateInterval;
+            float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
             m_pos.x += dirAway.x * scaledSpeed;
             m_pos.z += dirAway.z * scaledSpeed;
         }
@@ -447,12 +482,11 @@ void EnemyAcid::UpdateAI(const EnemyUpdateContext &context)
         if (m_currentAnimState != AnimState::Walk) ChangeState(std::make_shared<EnemyAcidStateWalk>());
         VECTOR targetPos = VAdd(playerPos, m_targetOffset);
         VECTOR dirTowards = VNorm(VSub(targetPos, m_pos));
-        float scaledSpeed = m_chaseSpeed * Game::GetTimeScale() * m_aiUpdateInterval;
+        float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
         m_pos.x += dirTowards.x * scaledSpeed;
         m_pos.z += dirTowards.z * scaledSpeed;
     }
 
-    // 攻撃処理
     if (m_currentAnimState == AnimState::Attack) 
     {
         float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kAttackAnimName);
@@ -473,23 +507,17 @@ void EnemyAcid::UpdateAI(const EnemyUpdateContext &context)
         }
     }
 
-    if (m_attackCooldown > 0) m_attackCooldown -= m_aiUpdateInterval;
-    if (m_attackCooldown < 0) m_attackCooldown = 0;
-
+    if (m_attackCooldown > 0) m_attackCooldown--;
     if (m_attackEndDelayTimer > 0) 
     {
-        m_attackEndDelayTimer -= m_aiUpdateInterval;
-        if (m_attackEndDelayTimer <= 0)
-        {
-            m_attackEndDelayTimer = 0;
-            if (m_currentAnimState != AnimState::Walk) ChangeState(std::make_shared<EnemyAcidStateWalk>());
-        }
+        m_attackEndDelayTimer--;
+        if (m_attackEndDelayTimer == 0 && m_currentAnimState != AnimState::Walk) ChangeState(std::make_shared<EnemyAcidStateWalk>());
     }
 }
 
 void EnemyAcid::UpdateAnimation(const EnemyUpdateContext &context) 
 {
-    // コライダーの更新
+    // コライダー更新
     int hipsIndex = MV1SearchFrame(m_modelHandle, "mixamorig:Hips");
     VECTOR hipsPos = (hipsIndex != -1) ? MV1GetFramePosition(m_modelHandle, hipsIndex) : m_pos;
     VECTOR bodySegmentP1 = VAdd(hipsPos, VGet(0, EnemyAcidConstants::kBodyColliderHeight * 0.5f, 0));
@@ -507,10 +535,10 @@ void EnemyAcid::UpdateAnimation(const EnemyUpdateContext &context)
     m_pAttackRangeCollider->SetCenter(attackRangeCenter);
     m_pAttackRangeCollider->SetRadius(EnemyAcidConstants::kAttackRangeRadius);
 
-    // アニメーション時間の更新
+    // アニメ更新
     if (m_attackEndDelayTimer == 0 || m_isStunned) 
     {
-        m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
+        m_animTime += 1.0f * Game::GetTimeScale();
         if (m_isStunned)
         {
             if (m_animTime > EnemyAcidConstants::kStunAnimFrameLimit) m_animTime = EnemyAcidConstants::kStunAnimFrameLimit;
@@ -549,6 +577,55 @@ void EnemyAcid::UpdateSimpleMode(const EnemyUpdateContext &context)
         RotateTowards(playerPos, 0.05f * Game::GetTimeScale());
     }
     UpdateStageCollision(context.collisionData, context.collisionGrid);
+}
+
+void EnemyAcid::Draw() 
+{
+    DrawStandard(EnemyAcidConstants::kDrawDistanceSq, EnemyAcidConstants::kDrawNearDistanceSq, EnemyAcidConstants::kDrawDotThreshold);
+}
+
+void EnemyAcid::UpdateDeath(const EnemyUpdateContext &context) 
+{
+    if (!m_isDeadAnimPlaying)
+    {
+        ChangeState(std::make_shared<EnemyAcidStateDead>());
+        m_isDeadAnimPlaying = true;
+        m_animTime = 0.0f;
+        m_isAlive = true;
+    }
+
+    if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+    {
+        if (m_shouldUpdateAI)
+        {
+            m_animTime += (1.0f * m_aiUpdateInterval) * Game::GetTimeScale();
+            m_animationManager.UpdateAnimationTime(m_modelHandle, m_animTime);
+        }
+    }
+
+    float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kDeadAnimName);
+    if (m_animTime >= currentAnimTotalTime)
+    {
+        if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
+        {
+            MV1DetachAnim(m_modelHandle, 0);
+            m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
+        }
+
+        if (!m_hasDroppedItem && m_onDropItem)
+        {
+            m_onDropItem(m_pos);
+            m_onDropItem = nullptr;
+            m_hasDroppedItem = true;
+        }
+        if (m_onDeathCallback)
+        {
+            m_onDeathCallback(m_pos);
+            m_onDeathCallback = nullptr;
+        }
+        m_isAlive = false;
+        SetActive(false);
+    }
 }
 
 // パリィされた時のコールバック
@@ -754,7 +831,7 @@ void EnemyAcid::AcidBall::Update(float timeScale)
 }
 
 // 死亡時の更新処理
-void EnemyAcid::UpdateDeath(const EnemyUpdateContext& context)
+void EnemyAcid::UpdateDeath()
 {
     if (!m_isDeadAnimPlaying) 
     {

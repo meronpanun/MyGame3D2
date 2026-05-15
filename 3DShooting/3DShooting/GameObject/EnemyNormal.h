@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Effect.h"
@@ -10,6 +10,43 @@ class Player;
 class Collider;
 class SphereCollider;
 class CapsuleCollider;
+
+namespace EnemyNormalConstants
+{
+    // アニメーション関連
+    constexpr char kAttackAnimName[] = "ATK"; // 攻撃アニメーション
+    constexpr char kWalkAnimName[] = "WALK";  // 歩行アニメーション
+    constexpr char kDeadAnimName[] = "DEAD";  // 死亡アニメーション
+
+    inline const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // オフセット
+
+    // カプセルコライダーのサイズを定義
+    constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
+    constexpr float kBodyColliderHeight = 110.0f; // 体のコライダー高さ
+    constexpr float kHeadRadius = 12.0f;          // 頭のコライダー半径
+
+    // 攻撃関連
+    constexpr int kAttackCooldownMax = 45;       // 攻撃クールダウン時間
+    constexpr float kAttackHitRadius = 45.0f;    // 攻撃の当たり判定半径
+    constexpr float kAttackRangeRadius = 120.0f; // 攻撃範囲の半径
+
+    // 追跡関連
+    constexpr float kChaseStopDistance = 50.0f; // 追跡停止距離
+
+    // 攻撃後の硬直時間
+    constexpr int kAttackEndDelay = 20;
+
+    // ダメージ（怯み）時間
+    constexpr int kDamageDuration = 30;
+
+    // 描画距離
+    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000から5000に縮小
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
+    constexpr float kDrawDotThreshold = 0.4f;
+
+    // 押し出し
+    constexpr float kPushBackEpsilon = 0.0001f;
+}
 
 /// <summary>
 /// 通常の敵クラス
@@ -38,6 +75,12 @@ public:
     /// モデルの読み込み(共有)
     /// </summary>
     static void LoadModel();
+
+    /// <summary>
+    /// ボディコライダーを取得する
+    /// </summary>
+    /// <returns>ボディコライダー</returns>
+    std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
     /// <summary>
     /// モデルの解放(共有)
@@ -86,11 +129,6 @@ private:
     /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
-    /// <summary>
-    /// ボディコライダーを取得する
-    /// </summary>
-    /// <returns>ボディコライダー</returns>
-    std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
 public:
 
@@ -134,7 +172,10 @@ private:
     bool CanAttackPlayer(const Player& player);
     void BreakShield(const EnemyUpdateContext* context = nullptr);
 
-    void UpdateDeath(const std::vector<Stage::StageCollisionData>& collisionData);
+    void UpdateAI(const EnemyUpdateContext& context) override;
+    void UpdateAnimation(const EnemyUpdateContext& context) override;
+    void UpdateDeath(const EnemyUpdateContext& context) override;
+    void UpdateSimpleMode(const EnemyUpdateContext& context) override;
 
 private:
     VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標

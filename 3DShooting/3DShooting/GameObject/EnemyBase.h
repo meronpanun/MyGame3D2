@@ -223,10 +223,42 @@ public:
     virtual void OnDeath() {}
 
     /// <summary>
+    /// 標準的な更新フロー（間引き、死後処理、簡易モード、物理、AI、アニメーション、衝突判定、ダメージチェック）
+    /// </summary>
+    void UpdateStandard(const EnemyUpdateContext& context);
+
+    /// <summary>
+    /// 標準的な描画フロー（カリング、モデル描画、デバッグ描画）
+    /// </summary>
+    void DrawStandard(float drawDistSq, float nearDistSq, float dotThreshold);
+
+    /// <summary>
     /// ボディコライダーを取得する
     /// </summary>
     /// <returns>ボディコライダー</returns>
     virtual std::shared_ptr<CapsuleCollider> GetBodyCollider() const = 0;
+
+protected:
+    /// <summary>
+    /// 派生クラスで実装するAIロジック
+    /// </summary>
+    virtual void UpdateAI(const EnemyUpdateContext& context) = 0;
+
+    /// <summary>
+    /// 派生クラスで実装するアニメーション更新
+    /// </summary>
+    virtual void UpdateAnimation(const EnemyUpdateContext& context) = 0;
+
+    /// <summary>
+    /// 派生クラスで実装する死亡時の更新処理
+    /// </summary>
+    virtual void UpdateDeath(const EnemyUpdateContext& context) = 0;
+
+    /// <summary>
+    /// 画面外などでの簡易動作（必要に応じてオーバーライド）
+    /// </summary>
+    virtual void UpdateSimpleMode(const EnemyUpdateContext& context);
+
 
 protected:
     /// <summary>

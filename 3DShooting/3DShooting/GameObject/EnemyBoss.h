@@ -188,7 +188,10 @@ private:
     float m_debugParryRadius = 0.0f;        // デバッグ用パリィカプセルの半径
 
     // リファクタリング用メソッド
-    void UpdateDeath(const std::vector<Stage::StageCollisionData>& stageCollision);
+    void UpdateAI(const EnemyUpdateContext& context) override;
+    void UpdateAnimation(const EnemyUpdateContext& context) override;
+    void UpdateDeath(const EnemyUpdateContext& context) override;
+    void UpdateSimpleMode(const EnemyUpdateContext& context) override;
 
     std::vector<int> m_shieldEffectHandles; // シールドエフェクトハンドル(複数管理用)
     float m_maxShieldHp = 0.0f;    // シールド最大耐久値

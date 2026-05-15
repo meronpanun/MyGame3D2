@@ -1,4 +1,4 @@
-﻿#include "EnemyRunnerState.h"
+#include "EnemyRunnerState.h"
 #include "EnemyRunner.h"
 #include "Player.h"
 #include "Game.h"
@@ -48,7 +48,7 @@ void EnemyRunnerStateAttack::Update(EnemyRunner* enemy, const EnemyUpdateContext
 
     // 攻撃アニメーションの終了判定
     float currentAnimTotalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, "Armature|Attack");
-    if (enemy->m_animTime > currentAnimTotalTime)
+    if (enemy->m_animTime >= currentAnimTotalTime)
     {
         enemy->m_attackEndDelayTimer = 10; // EnemyRunnerConstants::kAttackEndDelay
         enemy->ChangeState(std::make_shared<EnemyRunnerStateRun>()); // 走り直す
