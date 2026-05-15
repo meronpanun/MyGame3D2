@@ -83,6 +83,23 @@ void EnemyNormalStateAttack::Update(EnemyNormal* enemy, const EnemyUpdateContext
 {
     if (!enemy->m_shouldUpdateAI) return;
 
+    // 攻撃ヒット判定（アニメーションの 50%〜70% のフレームで行う）
+    if (enemy->m_currentAnimState == EnemyBase::AnimState::Attack)
+    {
+        float totalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, EnemyNormalConstants::kAttackAnimName);
+        float attackStart = totalTime * 0.5f;
+        float attackEnd   = totalTime * 0.7f;
+
+        if (!enemy->m_hasAttackHit && enemy->m_animTime >= attackStart && enemy->m_animTime <= attackEnd)
+        {
+            if (enemy->CanAttackPlayer(context.player))
+            {
+                const_cast<Player&>(context.player).TakeDamage(enemy->m_attackPower, enemy->m_pos);
+                enemy->m_hasAttackHit = true;
+            }
+        }
+    }
+
     // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
     float currentAnimTotalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, "ATK");
     if (enemy->m_animTime >= currentAnimTotalTime)

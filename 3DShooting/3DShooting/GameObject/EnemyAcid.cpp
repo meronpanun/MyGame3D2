@@ -291,111 +291,16 @@ void EnemyAcid::Update(const EnemyUpdateContext &context)
 
 void EnemyAcid::UpdateAI(const EnemyUpdateContext &context) 
 {
-    const Player &player = context.player;
-    Effect *pEffect = context.pEffect;
-
 #ifdef _DEBUG
     m_shouldDrawParryCollider = false;
 #endif
 
-    // AcidBallの更新と当たり判定
-    for (auto &ball : m_acidBalls) 
-    {
-        if (!ball.active) continue;
-        ball.Update(Game::GetTimeScale());
-
-        if (ball.effectHandle != -1) 
-        {
-            SetPosPlayingEffekseer3DEffect(ball.effectHandle, ball.pos.x, ball.pos.y, ball.pos.z);
-        }
-
-        VECTOR toPlayer = VSub(ball.pos, player.GetPos());
-        float distanceToPlayer = VSize(toPlayer);
-
-        if (distanceToPlayer > EnemyAcidConstants::kAcidBallBoundaryDistance) 
-        {
-            ball.active = false;
-            if (ball.effectHandle != -1) { StopEffekseer3DEffect(ball.effectHandle); ball.effectHandle = -1; }
-            continue;
-        }
-
-        if (ball.isParryable && !ball.isReflected && distanceToPlayer <= 100.0f) 
-        {
-            TaskTutorialManager::GetInstance()->NotifyParryableAttack();
-        }
-
-        if (!ball.isReflected) 
-        {
-            SphereCollider acidCol(ball.pos, ball.radius);
-            bool hitDetected = false;
-
-            if (ball.isParryable && player.IsJustGuarded()) 
-            {
-                VECTOR playerCapA, playerCapB;
-                float playerRadius;
-                player.GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
-                float parryRadius = playerRadius * 1.5f;
-                CapsuleCollider parryCollider(playerCapA, playerCapB, parryRadius);
-
-#ifdef _DEBUG
-                m_shouldDrawParryCollider = true;
-                m_debugParryCapA = playerCapA;
-                m_debugParryCapB = playerCapB;
-                m_debugParryRadius = parryRadius;
-#endif
-                if (acidCol.IsIntersects(&parryCollider))
-                {
-                    hitDetected = true;
-                    ball.isReflected = true;
-                    const_cast<Player &>(player).PlayParrySE();
-                    TaskTutorialManager::GetInstance()->NotifyParrySuccess();
-                    const auto &playerCam = player.GetCamera();
-                    if (playerCam) 
-                    {
-                        VECTOR enemyBodyCenter = m_pos;
-                        enemyBodyCenter.y += 50.0f;
-                        ball.dir = VNorm(VSub(enemyBodyCenter, ball.pos));
-                        ball.speed *= 1.5f;
-                        Game::SetTimeScale(0.1f, 1.0f);
-                    }
-                }
-            }
-      
-            if (!hitDetected) 
-            {
-                std::shared_ptr<CapsuleCollider> playerCol = player.GetBodyCollider();
-                if (acidCol.IsIntersects(playerCol.get())) 
-                {
-                    hitDetected = true;
-                    const_cast<Player &>(player).TakeDamage(ball.damage, m_pos, ball.isParryable);
-                    ball.active = false;
-                    if (ball.effectHandle != -1) { StopEffekseer3DEffect(ball.effectHandle); ball.effectHandle = -1; }
-                }
-            }
-        }
-        else 
-        {
-            SphereCollider reflectedAcidCol(ball.pos, ball.radius);
-            if (reflectedAcidCol.IsIntersects(GetBodyCollider().get())) 
-            {
-                TakeDamage(ball.damage, AttackType::Parry);
-                OnParried();
-                ball.active = false;
-                if (ball.effectHandle != -1) { StopEffekseer3DEffect(ball.effectHandle); ball.effectHandle = -1; }
-            }
-        }
-
-        if (ball.pos.y < 0.0f) 
-        {
-            ball.active = false;
-            if (ball.effectHandle != -1) { StopEffekseer3DEffect(ball.effectHandle); ball.effectHandle = -1; }
-        }
-    }
-    m_acidBalls.erase(std::remove_if(m_acidBalls.begin(), m_acidBalls.end(), [](const AcidBall &b) { return !b.active; }), m_acidBalls.end());
+    // 酸弾の更新・当たり判定（EnemyAcidState.cpp で実装）
+    UpdateAcidBalls(context);
 
     if (!m_shouldUpdateAI) return;
 
-    // 怯み状態の処理
+    // 怯み状態の処理（EnemyAcidState.cpp で実装）
     if (m_isStunned) 
     {
         m_stunTimer -= m_aiUpdateInterval;
@@ -404,7 +309,7 @@ void EnemyAcid::UpdateAI(const EnemyUpdateContext &context)
             m_isStunned = false;
             if (m_hp > 0.0f)
             {
-                if (CanAttackPlayer(player)) ChangeState(std::make_shared<EnemyAcidStateAttack>());
+                if (CanAttackPlayer(context.player)) ChangeState(std::make_shared<EnemyAcidStateAttack>());
                 else ChangeState(std::make_shared<EnemyAcidStateWalk>());
             }
         }
@@ -417,75 +322,10 @@ void EnemyAcid::UpdateAI(const EnemyUpdateContext &context)
         m_pCurrentState->Update(this, context);
     }
 
-    // プレイヤーの方向を向く
-    VECTOR playerPos = player.GetPos();
-    RotateTowards(playerPos, 0.05f * Game::GetTimeScale() * m_aiUpdateInterval);
-    float disToPlayer = VSize(VSub(playerPos, m_pos));
-
-    // プレイヤーとの衝突判定
-    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
-    bool inAttackRange = m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
-
-    if (m_currentAnimState == AnimState::Attack || m_attackEndDelayTimer > 0) {}
-    else if (inAttackRange) 
-    {
-        if (disToPlayer < EnemyAcidConstants::kOptimalAttackDistanceMin) 
-        {
-            if (m_currentAnimState != AnimState::Back) ChangeState(std::make_shared<EnemyAcidStateBack>());
-            VECTOR dirAway = VNorm(VSub(m_pos, playerPos));
-            float scaledSpeed = m_chaseSpeed * Game::GetTimeScale() * m_aiUpdateInterval;
-            m_pos.x += dirAway.x * scaledSpeed;
-            m_pos.z += dirAway.z * scaledSpeed;
-        }
-        else 
-        {
-            if (m_attackCooldown == 0) ChangeState(std::make_shared<EnemyAcidStateAttack>());
-        }
-    }
-    else 
-    {
-        if (m_currentAnimState != AnimState::Walk) ChangeState(std::make_shared<EnemyAcidStateWalk>());
-        VECTOR targetPos = VAdd(playerPos, m_targetOffset);
-        VECTOR dirTowards = VNorm(VSub(targetPos, m_pos));
-        float scaledSpeed = m_chaseSpeed * Game::GetTimeScale() * m_aiUpdateInterval;
-        m_pos.x += dirTowards.x * scaledSpeed;
-        m_pos.z += dirTowards.z * scaledSpeed;
-    }
-
-    // 攻撃処理
-    if (m_currentAnimState == AnimState::Attack) 
-    {
-        float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kAttackAnimName);
-        if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.3f) 
-        {
-            ShootAcidBullet(const_cast<std::vector<Bullet>&>(context.bullets), player, pEffect, context.collisionData, context.collisionGrid);
-            m_hasAttacked = true;
-        }
-        if (m_animTime >= totalAttackAnimTime) 
-        {
-            m_attackEndDelayTimer = 20;
-            m_animTime = 0.0f;
-            if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1) 
-            {
-                MV1DetachAnim(m_modelHandle, 0);
-                m_animationManager.ResetAttachedAnimHandle(m_modelHandle);
-            }
-        }
-    }
-
-    if (m_attackCooldown > 0) m_attackCooldown -= m_aiUpdateInterval;
-    if (m_attackCooldown < 0) m_attackCooldown = 0;
-
-    if (m_attackEndDelayTimer > 0) 
-    {
-        m_attackEndDelayTimer -= m_aiUpdateInterval;
-        if (m_attackEndDelayTimer <= 0)
-        {
-            m_attackEndDelayTimer = 0;
-            if (m_currentAnimState != AnimState::Walk) ChangeState(std::make_shared<EnemyAcidStateWalk>());
-        }
-    }
+    // 移動・攻撃AI（EnemyAcidState.cpp で実装）
+    UpdateMovementAI(context);
 }
+
 
 void EnemyAcid::UpdateAnimation(const EnemyUpdateContext &context) 
 {

@@ -1,10 +1,50 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
 #include <memory>
 #include <vector>
 #include "EnemyState.h"
+
+/// <summary>
+/// EnemyBoss 専用の定数（複数の .cpp から参照できるよう .h に定義）
+/// </summary>
+namespace EnemyBossConstants
+{
+    // アニメーション名
+    constexpr char kWalkAnimName[]            = "Armature|Run";
+    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // 近接範囲攻撃
+    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // 遠距離攻撃
+    constexpr char kDeadAnimName[]            = "Armature|Death";
+
+    constexpr float kLongRangeAttackMinDist   = 400.0f;  // 遠距離攻撃を行う最小距離
+    constexpr float kLongRangeAttackMaxDist   = 1000.0f; // 遠距離攻撃を行う最大距離
+    constexpr int   kLongRangeAttackCooldownMax = 120;
+    constexpr float kHomingBulletSpeed        = 6.0f;
+    constexpr float kHomingTurnRate           = 0.02f;   // 旋回性能
+    constexpr float kHomingBulletMaxDist      = 1800.0f; // 弾の最大飛距離
+    constexpr float kHomingBulletDamage       = 20.0f;
+    constexpr float kHomingBulletRadius       = 15.0f;
+
+    // コライダーサイズ
+    constexpr float kBodyColliderRadius = 40.0f;
+    constexpr float kBodyColliderHeight = 350.0f;
+    constexpr float kHeadRadius         = 25.0f;
+    constexpr float kAttackRangeRadius  = 450.0f;
+    constexpr float kAttackHitRadius    = 60.0f;
+
+    // 攻撃関連
+    constexpr int kAttackCooldownMax = 60;
+    constexpr int kAttackEndDelay    = 30; // 攻撃後の硬直
+
+    // 描画関連
+    constexpr float kDrawDistanceSq     = 10000.0f * 10000.0f;
+    constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
+
+    // シールド関連
+    constexpr float kShieldMaxHp = 200.0f; // シールドの最大耐久値
+}
+
 
 class Bullet;
 class Player;
@@ -192,6 +232,22 @@ private:
     void UpdateAnimation(const EnemyUpdateContext& context) override;
     void UpdateDeath(const EnemyUpdateContext& context) override;
     void UpdateSimpleMode(const EnemyUpdateContext& context) override;
+
+    /// <summary>
+    /// ホーミング弾の移動・パリィ・ヒット判定（EnemyBossHomingBullet.cpp で実装）
+    /// </summary>
+    void UpdateHomingBullets(const EnemyUpdateContext& context);
+
+    /// <summary>
+    /// シールドエフェクトの生成・回転・色変化（EnemyBossShield.cpp で実装）
+    /// </summary>
+    void UpdateShieldEffect(const EnemyUpdateContext& context);
+
+    /// <summary>
+    /// シールドによるプレイヤー押し出し処理（EnemyBossShield.cpp で実装）
+    /// </summary>
+    void UpdateShieldPushout();
+
 
     std::vector<int> m_shieldEffectHandles; // シールドエフェクトハンドル(複数管理用)
     float m_maxShieldHp = 0.0f;    // シールド最大耐久値

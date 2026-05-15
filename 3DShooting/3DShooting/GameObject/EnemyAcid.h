@@ -201,6 +201,17 @@ private:
     void UpdateDeath(const EnemyUpdateContext& context) override;
     void UpdateSimpleMode(const EnemyUpdateContext& context) override;
 
+    /// <summary>
+    /// 酸弾の更新・パリィ・ヒット判定（EnemyAcidState.cpp で実装）
+    /// </summary>
+    void UpdateAcidBalls(const EnemyUpdateContext& context);
+
+    /// <summary>
+    /// 移動・攻撃範囲判定 AI（EnemyAcidState.cpp で実装）
+    /// </summary>
+    void UpdateMovementAI(const EnemyUpdateContext& context);
+
+
 
 private:
     VECTOR m_headPosOffset;              // ヘッドショット判定用オフセット座標

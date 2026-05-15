@@ -18,41 +18,7 @@
 #include <cmath>
 #include "EnemyBossState.h"
 
-namespace EnemyBossConstants
-{
-    // アニメーション名
-    constexpr char kWalkAnimName[]            = "Armature|Run";
-    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // 近接範囲攻撃
-    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // 遠距離攻撃
-    constexpr char kDeadAnimName[]            = "Armature|Death";
 
-    constexpr float kLongRangeAttackMinDist   = 400.0f; // 遠距離攻撃を行う最小距離
-    constexpr float kLongRangeAttackMaxDist   = 1000.0f; // 遠距離攻撃を行う最大距離（これより遠いと攻撃せず接近する）
-    constexpr int kLongRangeAttackCooldownMax = 120;
-    constexpr float kHomingBulletSpeed        = 6.0f;
-    constexpr float kHomingTurnRate           = 0.02f;        // 旋回性能
-    constexpr float kHomingBulletMaxDist      = 1800.0f; // 弾の最大飛距離
-    constexpr float kHomingBulletDamage       = 20.0f;
-    constexpr float kHomingBulletRadius       = 15.0f;
-
-    // コライダーサイズ
-    constexpr float kBodyColliderRadius = 40.0f;
-    constexpr float kBodyColliderHeight = 350.0f;
-    constexpr float kHeadRadius         = 25.0f;
-    constexpr float kAttackRangeRadius  = 450.0f; // 指定された近接範囲 
-    constexpr float kAttackHitRadius    = 60.0f;    // 攻撃自体の当たり判定
-
-	// 攻撃関連
-    constexpr int kAttackCooldownMax = 60;
-    constexpr int kAttackEndDelay    = 30; // 攻撃後の硬直
-
-    // 描画関連
-    constexpr float kDrawDistanceSq     = 10000.0f * 10000.0f; // 16000から10000に縮小
-    constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
-
-	// シールド関連
-	constexpr float kShieldMaxHp = 200.0f; // シールドの最大耐久値
-}
 
 // static変数の初期化
 int EnemyBoss::s_modelHandle = -1;
@@ -234,114 +200,8 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
     m_shouldDrawParryCollider = false;
 #endif
 
-    // ホーミング弾の更新
-    for (auto& bullet : m_homingBullets)
-    {
-        if (!bullet.active) continue;
-
-        VECTOR toPlayer = VSub(player.GetPos(), bullet.pos);
-        float distToPlayer = VSize(toPlayer);
-        VECTOR targetDir = VNorm(toPlayer);
-
-        float scale = Game::GetTimeScale();
-        if (bullet.isParabolic) 
-        {
-            bullet.velocity.y -= bullet.gravity * scale;
-            bullet.pos = VAdd(bullet.pos, VScale(bullet.velocity, scale));
-            if (VSquareSize(bullet.velocity) > 0.0001f) 
-            {
-                bullet.dir = VNorm(bullet.velocity);
-            }
-        }
-        else
-        {
-            bullet.dir = VAdd(bullet.dir, VScale(targetDir, EnemyBossConstants::kHomingTurnRate * scale));
-            bullet.dir = VNorm(bullet.dir);
-            bullet.pos = VAdd(bullet.pos, VScale(bullet.dir, bullet.speed * scale));
-            bullet.distTraveled += bullet.speed * scale;
-        }
-
-        if (bullet.effectHandle != -1)
-        {
-            SetPosPlayingEffekseer3DEffect(bullet.effectHandle, bullet.pos.x, bullet.pos.y, bullet.pos.z);
-        }
-
-        if (!bullet.isReflected)
-        {
-            SphereCollider bulletCol(bullet.pos, EnemyBossConstants::kHomingBulletRadius);
-            bool hitDetected = false;
-
-            if (bullet.isParryable && player.IsJustGuarded())
-            {
-                VECTOR playerCapA, playerCapB;
-                float playerRadius;
-                player.GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
-                float parryRadius = playerRadius * 1.5f;
-                CapsuleCollider parryCollider(playerCapA, playerCapB, parryRadius);
-
-#ifdef _DEBUG
-                m_shouldDrawParryCollider = true;
-                m_debugParryCapA = playerCapA;
-                m_debugParryCapB = playerCapB;
-                m_debugParryRadius = parryRadius;
-#endif
-                if (bulletCol.IsIntersects(&parryCollider))
-                {
-                    hitDetected = true;
-                    bullet.isReflected = true;
-                    const_cast<Player&>(player).PlayParrySE();
-                    TaskTutorialManager::GetInstance()->NotifyParrySuccess();
-                    if (bullet.owner)
-                    {
-                        VECTOR targetPos = bullet.owner->GetPos();
-                        targetPos.y += EnemyBossConstants::kBodyColliderHeight * 0.5f;
-                        bullet.dir = VNorm(VSub(targetPos, bullet.pos));
-                    }
-                    else
-                    {
-                        bullet.dir = VScale(bullet.dir, -1.0f);
-                    }
-                    bullet.speed *= 1.5f;
-                    bullet.turnRate = 0.0f;
-                    Game::SetTimeScale(0.1f, 1.0f);
-                }
-            }
-
-            if (!hitDetected)
-            {
-                std::shared_ptr<CapsuleCollider> pCol = player.GetBodyCollider();
-                if (bulletCol.IsIntersects(pCol.get()))
-                {
-                    hitDetected = true;
-                    const_cast<Player&>(player).TakeDamage(bullet.damage, m_pos, bullet.isParryable);
-                    bullet.active = false;
-                    if (bullet.effectHandle != -1) { StopEffekseer3DEffect(bullet.effectHandle); bullet.effectHandle = -1; }
-                }
-            }
-        }
-        else // bullet.isReflected == true
-        {
-            SphereCollider bulletCol(bullet.pos, EnemyBossConstants::kHomingBulletRadius);
-            if (m_pBodyCollider && m_pBodyCollider->IsIntersects(&bulletCol))
-            {
-                this->TakeDamage(bullet.damage * 2.0f, AttackType::Parry); // 反射弾はダメージ大きめ
-                OnParried();
-                bullet.active = false;
-                if (bullet.effectHandle != -1) { StopEffekseer3DEffect(bullet.effectHandle); bullet.effectHandle = -1; }
-            }
-        }
-
-        if (bullet.pos.y < 0.0f || bullet.distTraveled > EnemyBossConstants::kHomingBulletMaxDist)
-        {
-            bullet.active = false;
-            if (bullet.effectHandle != -1) { StopEffekseer3DEffect(bullet.effectHandle); bullet.effectHandle = -1; }
-        }
-    }
-
-    // 不要な弾を削除
-    m_homingBullets.erase(
-        std::remove_if(m_homingBullets.begin(), m_homingBullets.end(), [](const HomingBullet& b) { return !b.active; }),
-        m_homingBullets.end());
+    // ホーミング弾の更新（EnemyBossHomingBullet.cpp で実装）
+    UpdateHomingBullets(context);
 
     // 怯み状態の処理
     if (m_isStunned)
@@ -689,87 +549,11 @@ void EnemyBoss::UpdateAnimation(const EnemyUpdateContext& context)
 
 
 
-    // シールドとの押し出し処理
-    if (!m_isShieldBroken && m_pShieldCollider)
-    {
-        // 衝突判定用に現在のシールド位置を算出 (コライダーの更新は描画処理と同期して実施)
-        VECTOR shieldPos = m_pos;
-        shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
-        
-        float shieldRadius = m_pShieldCollider->GetRadius();
-        
-        // プレイヤーの位置を取得 (確実に現在の位置を使うためGameクラスから取得)
-        if (Game::m_pPlayer)
-        {
-            VECTOR playerPos = Game::m_pPlayer->GetPos();
-            VECTOR playerCapA, playerCapB;
-            float playerRadius;
-            Game::m_pPlayer->GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
-
-            // カプセル(Player)と球(Shield)の最近接点を求める
-            VECTOR segVec = VSub(playerCapB, playerCapA);
-            VECTOR ptToA = VSub(shieldPos, playerCapA);
-            float segLenSq = VSquareSize(segVec);
-            float t = 0.0f;
-            if (segLenSq > 0.0001f)
-            {
-                t = VDot(ptToA, segVec) / segLenSq;
-                t = (std::max)(0.0f, (std::min)(1.0f, t));
-            }
-            VECTOR closestPointOnPlayer = VAdd(playerCapA, VScale(segVec, t));
-
-            // シールド中心からプレイヤーの最近接点へのベクトル
-            VECTOR pushDir = VSub(closestPointOnPlayer, shieldPos);
-            float distSq = VSquareSize(pushDir);
-            float minDist = shieldRadius + playerRadius;
-
-            // 完全重なり対策
-            if (distSq <= 0.0001f)
-            {
-                // 重なっている場合は、XZ平面で外へ押し出す (上方向など変な方向へ行くのを防ぐためデフォルトは水平)
-                pushDir = VSub(playerPos, m_pos);
-                pushDir.y = 0.0f;
-                if (VSquareSize(pushDir) > 0.0001f)
-                {
-                    pushDir = VNorm(pushDir);
-                }
-                else
-                {
-                    pushDir = VGet(0.0f, 0.0f, -1.0f); // 適当な方向
-                }
-                distSq = 0.0f;
-            }
-
-            if (distSq < minDist * minDist)
-            {
-                float dist = sqrtf(distSq);
-                float pushLen = minDist - dist;
-                
-                // 押し出しベクトル正規化
-                if (dist > 0.0001f)
-                {
-                    pushDir = VScale(pushDir, 1.0f / dist);
-                }
-
-                // 押し出し
-                pushLen += 1.0f; // マージン
-                VECTOR newPos = VAdd(playerPos, VScale(pushDir, pushLen));
-                Game::m_pPlayer->SetPos(newPos);
-
-                // 上方向に押し出された場合(シールドに乗った場合), 重力による振動を防ぐために垂直速度をリセット
-                if (pushDir.y > 0.5f)
-                {
-                    // Playerクラスに追加した垂直速度リセット関数を呼ぶ
-                    // Game::m_pPlayerはconstポインタではないのでそのまま呼べるはずだが,
-                    // constアクセッサしかない場合はキャストが必要.
-                    // ここではGame::m_pPlayerはPlayer*なのでOK
-                    Game::m_pPlayer->ResetVerticalVelocity();
-                }
-            }
-        }
-    }
+    // シールド押し出し処理（EnemyBossShield.cpp で実装）
+    UpdateShieldPushout();
 
     CheckHitAndDamage(const_cast<std::vector<Bullet>&>(context.bullets), pEffect);
+
 
     // タックル判定
     const Player::TackleInfo& tackleInfo = context.tackleInfo;
@@ -787,97 +571,10 @@ void EnemyBoss::UpdateAnimation(const EnemyUpdateContext& context)
         m_lastTackleId = -1;
     }
 
-    // 最終的な位置をモデルに反映
-    MV1SetPosition(m_modelHandle, m_pos);
-
-    // シールドエフェクト更新 (移動後の最終位置で更新)
-    VECTOR shieldPos = m_pos;
-    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f; // 胸のあたり
-
-    // シールドコライダーの位置更新
-    // 描画・エフェクトと同期させるため, フレーム末尾で更新
-    if (m_pShieldCollider)
-    {
-        m_pShieldCollider->SetCenter(shieldPos);
-    }
-
-    // シールドエフェクト制御 (シームレスループ & 回転実装)
-    if (!m_isShieldBroken)
-    {
-        // エフェクト生成ロジック
-        // フェードイン30F, 総再生240F を想定 -> 210Fで次を生成して重ねる
-        const float kEffectDuration = 240.0f;
-        const float kFadeInDuration = 30.0f; 
-        const float kOverlapSpawnTime = kEffectDuration - kFadeInDuration;
-
-        // タイマー更新
-        m_shieldEffectTimer += 1.0f * Game::GetTimeScale();
-
-        // エフェクトがない, または再生時間が重なり開始時間を超えたら新規生成
-        if (m_shieldEffectHandles.empty() || m_shieldEffectTimer >= kOverlapSpawnTime)
-        {
-            if (pEffect)
-            {
-                int handle = pEffect->PlayBossShieldEffect(shieldPos.x, shieldPos.y, shieldPos.z);
-                if (handle != -1)
-                {
-                    m_shieldEffectHandles.push_back(handle);
-                    // 次の生成までの時間を計測するためにタイマーをリセット
-                    m_shieldEffectTimer = 0.0f;
-                }
-            }
-        }
-
-        // 回転更新
-        m_shieldRotation += 0.3f * Game::GetTimeScale(); // 回転速度調整
-        while (m_shieldRotation >= 360.0f) m_shieldRotation -= 360.0f;
-
-        // 有効なエフェクト全てのパラメータを更新
-        auto it = m_shieldEffectHandles.begin();
-        while (it != m_shieldEffectHandles.end())
-        {
-            int handle = *it;
-            if (IsEffekseer3DEffectPlaying(handle) == -1)
-            {
-                // 再生終了していたら削除
-                it = m_shieldEffectHandles.erase(it);
-                continue;
-            }
-
-            // 位置・回転更新
-            SetPosPlayingEffekseer3DEffect(handle, shieldPos.x, shieldPos.y, shieldPos.z);
-            
-            // シールドの回転はボスの向きに依存せず, 独自に回転させる
-            // X, Z回転は0固定 (垂直に保つ)
-            SetRotationPlayingEffekseer3DEffect(handle, 0.0f, (m_shieldRotation * DX_PI_F / 180.0f), 0.0f);
-
-            // 色変更ロジック (青 -> 赤)
-            if (m_maxShieldHp > 0.0f)
-            {
-                float ratio = m_shieldHp / m_maxShieldHp;
-                if (ratio < 0.0f) ratio = 0.0f;
-                if (ratio > 1.0f) ratio = 1.0f;
-
-                int r = static_cast<int>(255.0f * (1.0f - ratio));
-                int g = 0;
-                int b = static_cast<int>(255.0f * ratio);
-                
-                SetColorPlayingEffekseer3DEffect(handle, r, g, b, 255);
-            }
-
-            ++it;
-        }
-    }
-    else
-    {
-        // 破壊されているなら全エフェクト停止
-        for (int handle : m_shieldEffectHandles)
-        {
-             StopEffekseer3DEffect(handle);
-        }
-        m_shieldEffectHandles.clear();
-    }
+    // シールドエフェクト更新（EnemyBossShield.cpp で実装）
+    UpdateShieldEffect(context);
 }
+
 
 void EnemyBoss::UpdateSimpleMode(const EnemyUpdateContext& context)
 {

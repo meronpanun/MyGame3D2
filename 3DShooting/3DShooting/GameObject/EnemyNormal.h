@@ -177,6 +177,11 @@ private:
     void UpdateDeath(const EnemyUpdateContext& context) override;
     void UpdateSimpleMode(const EnemyUpdateContext& context) override;
 
+    /// <summary>
+    /// シールドの更新処理（EnemyNormalShield.cpp で実装）
+    /// </summary>
+    void UpdateShield(const EnemyUpdateContext& context);
+
 private:
     VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
 

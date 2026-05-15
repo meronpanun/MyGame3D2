@@ -162,6 +162,9 @@
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
+    <ClCompile Include="GameObject\EnemyBossHomingBullet.cpp" />
+    <ClCompile Include="GameObject\EnemyBossShield.cpp" />
+    <ClCompile Include="GameObject\EnemyNormalShield.cpp" />
     <ClCompile Include="UI\BossUI.cpp" />
     <ClCompile Include="GameObject\FirstAidKitItem.cpp" />
     <ClCompile Include="GameObject\Bullet.cpp" />
