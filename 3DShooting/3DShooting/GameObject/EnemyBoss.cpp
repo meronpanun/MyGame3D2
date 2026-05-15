@@ -18,8 +18,6 @@
 #include <cmath>
 #include "EnemyBossState.h"
 
-
-
 // static変数の初期化
 int EnemyBoss::s_modelHandle = -1;
 bool EnemyBoss::s_shouldDrawCollision = false;

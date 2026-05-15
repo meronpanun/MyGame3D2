@@ -124,8 +124,6 @@ void EnemyNormal::Init()
     m_shieldChainBreakTimer = 0;
 }
 
-// SetHasShield の実装は EnemyNormalShield.cpp を参照
-
 // アニメーションを変更する
 void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
 {
@@ -204,7 +202,7 @@ void EnemyNormal::Update(const EnemyUpdateContext& context)
 
 void EnemyNormal::UpdateAI(const EnemyUpdateContext& context)
 {
-    // シールドの更新（EnemyNormalShield.cpp で実装）
+    // シールドの更新
     UpdateShield(context);
 
     // 環境ボイスの更新
@@ -222,7 +220,7 @@ void EnemyNormal::UpdateAI(const EnemyUpdateContext& context)
         }
     }
 
-    // AIステートの更新（攻撃ヒット判定を含む、EnemyNormalState.cpp を参照）
+    // AIステートの更新
     if (m_pCurrentState)
     {
         m_pCurrentState->Update(this, context);
@@ -624,8 +622,6 @@ void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, 
         EnemyBase::ApplyBulletDamage(bullet, part, distSq, pEffect);
     }
 }
-
-// TriggerShieldChainBreak と BreakShield の実装は EnemyNormalShield.cpp を参照
 
 // 死亡時の更新処理
 void EnemyNormal::UpdateDeath(const EnemyUpdateContext& context)
