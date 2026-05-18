@@ -7,6 +7,13 @@
 #include "Collision.h"
 #include <algorithm>
 
+namespace
+{
+    constexpr float kRayCastLength        = 2000.0f; // レイキャストの最大長
+    constexpr float kGridLookAheadDist    = 500.0f;  // グリッド取得時の前方参照距離
+    constexpr float kEnemyTargetHeightOffset = 70.0f; // 敵ターゲット位置の高さオフセット
+}
+
 PlayerLockOnSystem::PlayerLockOnSystem()
     : m_isLockingOn(false)
     , m_isTargetAvailable(false)
@@ -16,22 +23,25 @@ PlayerLockOnSystem::PlayerLockOnSystem()
 {
 }
 
-void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const std::vector<EnemyBase*>& enemyList, const std::vector<Stage::StageCollisionData>& /*collisionData*/, bool isGuarding, float tackleCooldown)
+void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,
+    const std::vector<EnemyBase*>& enemyList,
+    const std::vector<Stage::StageCollisionData>& /*collisionData*/,
+    bool isGuarding, float tackleCooldown)
 {
     if (!pCamera) return;
 
     VECTOR camPos = pCamera->GetPos();
     VECTOR camDir = VNorm(VSub(pCamera->GetTarget(), camPos));
-    VECTOR rayEnd = VAdd(camPos, VScale(camDir, 2000.0f));
+    VECTOR rayEnd = VAdd(camPos, VScale(camDir, kRayCastLength));
 
     m_isTargetAvailable = false;
 
-    // ── 近傍の敵を取得（グリッド利用）────────────────────────────
+    // 近傍の敵を取得（グリッド利用）
     std::vector<EnemyBase*> nearbyEnemies;
     if (Game::m_pWaveManager)
     {
-        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(playerPos,                             nearbyEnemies, false);
-        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(VAdd(playerPos, VScale(camDir, 500.0f)), nearbyEnemies, false);
+        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(playerPos,                                          nearbyEnemies, false);
+        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(VAdd(playerPos, VScale(camDir, kGridLookAheadDist)), nearbyEnemies, false);
     }
 
     // 重複除去（2回の GetNeighbors で同一敵が混入する場合がある）
@@ -54,16 +64,18 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
     {
         targetList.resize(kMaxAimTargets);
     }
-    // ── 近傍ステージ三角形を1回だけ取得してキャッシュ ────────────
+
+    // 近傍ステージ三角形を1回だけ取得してキャッシュ
     // CheckLineOfSight で毎回 collisionData 全件を走査する代わりに、
     // グリッドで絞り込んだ近傍ポリゴンのみを使う。
-    // sort+unique は GetNearbyTriangles 内で1回だけ実行される。
     std::vector<const Stage::StageCollisionData*> nearbyTriangles;
     if (Game::m_pWaveManager)
     {
         Game::m_pWaveManager->GetCollisionGrid().GetNearbyTriangles(camPos, nearbyTriangles);
     }
-    // レティクル色変更のみに影響。33ms程度の遅延は体感不可能。
+
+    // 照準チェック（レティクル色変更用）: kAimCheckInterval フレームに1回実行
+    // 数フレームの遅延は体感不可能
     if (++m_aimCheckSkipCounter >= kAimCheckInterval)
     {
         m_aimCheckSkipCounter = 0;
@@ -88,7 +100,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
         }
     }
 
-    // ── ロックオン処理（タックル判定）：毎フレーム実行 ───────────
+    // ロックオン処理（タックル判定）: 毎フレーム実行
     if (isGuarding && tackleCooldown <= 0)
     {
         m_isLockingOn = true;
@@ -103,7 +115,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
             if (VSquareSize(diff) > kTackleMaxReachSq) continue;
 
             VECTOR enemyTargetPos = enemy->GetPos();
-            enemyTargetPos.y += 70.0f;
+            enemyTargetPos.y += kEnemyTargetHeightOffset;
             VECTOR toEnemyDir = VNorm(VSub(enemyTargetPos, camPos));
 
             if (VDot(camDir, toEnemyDir) > kLockOnAngleCos)
@@ -111,7 +123,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
                 VECTOR screenPos = ConvWorldPosToScreenPos(enemyTargetPos);
                 if (screenPos.z > 0)
                 {
-                    float dx = screenPos.x - (Game::GetScreenWidth() * 0.5f);
+                    float dx = screenPos.x - (Game::GetScreenWidth()  * 0.5f);
                     float dy = screenPos.y - (Game::GetScreenHeight() * 0.5f);
 
                     if (fabsf(dy) < kLockOnMaxScreenOffsetY)
@@ -135,12 +147,12 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera, const 
         m_isLockingOn = false;
         m_lockedOnEnemy = nullptr;
     }
-    // ── ────────────────────────────────────────────────────────
 
     m_isTargetAvailable = (m_lockedOnEnemy != nullptr);
 }
 
-bool PlayerLockOnSystem::CheckLineOfSight(const VECTOR& start, const VECTOR& end, const std::vector<const Stage::StageCollisionData*>& triangles) const
+bool PlayerLockOnSystem::CheckLineOfSight(const VECTOR& start, const VECTOR& end,
+    const std::vector<const Stage::StageCollisionData*>& triangles) const
 {
     for (const auto* col : triangles)
     {
