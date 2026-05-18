@@ -138,10 +138,7 @@ void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
         // 攻撃ボイスの再生
         if (newAnimState == AnimState::Attack)
         {
-            float volRatio = 1.0f - (m_distToPlayer / EnemyRunnerConstants::kVoiceMaxDist);
-            if (volRatio < 0.0f) volRatio = 0.0f;
-            if (volRatio > 1.0f) volRatio = 1.0f;
-            SoundManager::GetInstance()->Play("EnemyRunner", "Attack", static_cast<int>(EnemyRunnerConstants::kAttackVoiceVolMax * volRatio));
+            SoundManager::GetInstance()->PlayAtDistance("EnemyRunner", "Attack", m_distToPlayer, EnemyRunnerConstants::kVoiceMaxDist);
         }
     }
 
@@ -430,11 +427,7 @@ void EnemyRunner::TakeDamage(float damage, AttackType type)
     // ダメージSEの再生（クールタイム中ならスキップ）
     if (m_damageSECooldown <= 0.0f && m_isAlive)
     {
-        float volRatio = 1.0f - (m_distToPlayer / EnemyRunnerConstants::kVoiceMaxDist);
-        if (volRatio < 0.0f) volRatio = 0.0f;
-        if (volRatio > 1.0f) volRatio = 1.0f;
-
-        SoundManager::GetInstance()->Play("EnemyRunner", "Damage", static_cast<int>(EnemyRunnerConstants::kDamageSEVolMax * volRatio));
+        SoundManager::GetInstance()->PlayAtDistance("EnemyRunner", "Damage", m_distToPlayer, EnemyRunnerConstants::kVoiceMaxDist);
         m_damageSECooldown = EnemyRunnerConstants::kDamageSECooldownMax;
     }
 }

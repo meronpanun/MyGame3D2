@@ -61,8 +61,7 @@ namespace EnemyNormalConstants
     // 環境ボイス関連
     constexpr int   kVoiceTimerMin  = 180;     // 環境ボイス再生間隔の最小値（フレーム数）
     constexpr int   kVoiceTimerRand = 420;     // 環境ボイス再生間隔のランダム幅（フレーム数）
-    constexpr float kVoiceMaxDist   = 2000.0f; // 環境ボイスが聞こえる最大距離
-    constexpr int   kVoiceVolumeMax = 150;     // 環境ボイスの最大音量
+    constexpr float kVoiceMaxDist   = 2000.0f; // 環境ボイスが聞こえる最大距離（最大音量はSoundList.csvのVolumeから取得）
 
     // シールド関連
     constexpr float kShieldMaxHp          = 50.0f;  // シールドの最大耐久値

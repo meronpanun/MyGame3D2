@@ -39,6 +39,15 @@ public:
     void Play(const std::string& category, const std::string& name, int volume, bool loop = false);
 
     /// <summary>
+    /// 距離に応じて音量を減衰させてSEを再生する。最大音量はCSVのVolumeから取得する。
+    /// </summary>
+    /// <param name="category">カテゴリ名</param>
+    /// <param name="name">SE名</param>
+    /// <param name="distance">音源までの距離</param>
+    /// <param name="maxDist">この距離以上では無音になる最大距離</param>
+    void PlayAtDistance(const std::string& category, const std::string& name, float distance, float maxDist);
+
+    /// <summary>
     /// SEを停止する
     /// </summary>
     /// <param name="category">カテゴリ名</param>

@@ -97,6 +97,23 @@ void SoundManager::Play(const std::string& category, const std::string& name, in
     }
 }
 
+void SoundManager::PlayAtDistance(const std::string& category, const std::string& name, float distance, float maxDist)
+{
+    auto itCat = m_soundMap.find(category);
+    if (itCat == m_soundMap.end()) return;
+
+    auto itName = itCat->second.find(name);
+    if (itName == itCat->second.end()) return;
+
+    float volRatio = 1.0f - (distance / maxDist);
+    if (volRatio < 0.0f) volRatio = 0.0f;
+    if (volRatio > 1.0f) volRatio = 1.0f;
+
+    int volume = static_cast<int>(itName->second.defaultVolume * volRatio);
+    ChangeVolumeSoundMem(volume, itName->second.handle);
+    PlaySoundMem(itName->second.handle, DX_PLAYTYPE_BACK);
+}
+
 void SoundManager::Stop(const std::string& category, const std::string& name)
 {
     auto itCat = m_soundMap.find(category);

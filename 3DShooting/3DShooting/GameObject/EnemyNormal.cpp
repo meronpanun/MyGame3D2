@@ -203,9 +203,7 @@ void EnemyNormal::UpdateAI(const EnemyUpdateContext& context)
         if (m_voiceTimer <= 0)
         {
             int randomIndex = 1 + GetRand(3);
-            float volRatio = 1.0f - (m_distToPlayer / EnemyNormalConstants::kVoiceMaxDist);
-            if (volRatio < 0.0f) volRatio = 0.0f;
-            SoundManager::GetInstance()->Play("EnemyNormal", "Voice" + std::to_string(randomIndex), (int)(EnemyNormalConstants::kVoiceVolumeMax * volRatio));
+            SoundManager::GetInstance()->PlayAtDistance("EnemyNormal", "Voice" + std::to_string(randomIndex), m_distToPlayer, EnemyNormalConstants::kVoiceMaxDist);
             m_voiceTimer = EnemyNormalConstants::kVoiceTimerMin + GetRand(EnemyNormalConstants::kVoiceTimerRand);
         }
     }

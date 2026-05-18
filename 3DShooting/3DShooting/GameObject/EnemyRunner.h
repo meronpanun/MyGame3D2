@@ -47,9 +47,7 @@ namespace EnemyRunnerConstants
     constexpr float kEvasionSwitchTime   = 60.0f; // 回避方向を切り替える間隔（フレーム数）
 
     // サウンド関連
-    constexpr float kVoiceMaxDist        = 2000.0f; // 攻撃ボイス・ダメージSEが聞こえる最大距離
-    constexpr int   kAttackVoiceVolMax   = 100;     // 攻撃ボイスの最大音量
-    constexpr int   kDamageSEVolMax      = 255;     // ダメージSEの最大音量
+    constexpr float kVoiceMaxDist        = 2000.0f; // 攻撃ボイス・ダメージSEが聞こえる最大距離（最大音量はSoundList.csvのVolumeから取得）
     constexpr float kDamageSECooldownMax = 45.0f;   // ダメージSE再生クールタイム（フレーム数）
 
     // 当たり判定関連
