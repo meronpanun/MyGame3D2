@@ -1,4 +1,4 @@
-#include "PlayerEffectManager.h"
+﻿#include "PlayerEffectManager.h"
 #include "EffekseerWarningSuppress.h"
 #include <cmath>
 
