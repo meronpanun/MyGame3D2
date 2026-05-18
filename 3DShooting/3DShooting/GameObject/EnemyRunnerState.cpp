@@ -21,8 +21,8 @@ void EnemyRunnerStateRun::Update(EnemyRunner* enemy, const EnemyUpdateContext& c
     }
     else
     {
-        // 攻撃トリガー範囲内なら攻撃開始 (30.0f)
-        if (enemy->CanAttackPlayer(context.player, 30.0f)) // EnemyRunnerConstants::kAttackTriggerRadius
+        // 攻撃トリガー範囲内なら攻撃遷移
+        if (enemy->CanAttackPlayer(context.player, EnemyRunnerConstants::kAttackTriggerRadius))
         {
             enemy->m_hasAttackHit = false;
             enemy->ChangeState(std::make_shared<EnemyRunnerStateAttack>());
@@ -41,20 +41,15 @@ void EnemyRunnerStateAttack::Update(EnemyRunner* enemy, const EnemyUpdateContext
     if (!enemy->m_shouldUpdateAI) return;
 
     // 攻撃アニメーションの終了判定
-    float currentAnimTotalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, "Armature|Attack");
+    float currentAnimTotalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, EnemyRunnerConstants::kAttackAnimName);
     if (enemy->m_animTime >= currentAnimTotalTime)
     {
-        enemy->m_attackEndDelayTimer = 10; // EnemyRunnerConstants::kAttackEndDelay
-        enemy->ChangeState(std::make_shared<EnemyRunnerStateRun>()); // 走り直す
+        enemy->m_attackEndDelayTimer = EnemyRunnerConstants::kAttackEndDelay;
+        enemy->ChangeState(std::make_shared<EnemyRunnerStateRun>());
     }
 }
 
 void EnemyRunnerStateDead::Enter(EnemyRunner* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false);
-}
-
-void EnemyRunnerStateDead::Update(EnemyRunner* enemy, const EnemyUpdateContext& context)
-{
-    // 何もしない
 }

@@ -12,38 +12,53 @@ class CapsuleCollider;
 
 namespace EnemyRunnerConstants
 {
-    // アニメーション関連
-    constexpr char kAttackAnimName[] = "Armature|Attack"; // 攻撃アニメーション
-    constexpr char kRunAnimName[] = "Armature|Run";       // 走るアニメーション
-    constexpr char kDeadAnimName[] = "Armature|Death";    // 死亡アニメーション
+    // アニメーション名
+    constexpr char kAttackAnimName[] = "Armature|Attack"; // 攻撃アニメーション名
+    constexpr char kRunAnimName[]    = "Armature|Run";    // 走行アニメーション名
+    constexpr char kDeadAnimName[]   = "Armature|Death";  // 死亡アニメーション名
 
-    // カプセルコライダーのサイズを定義
-    constexpr float kBodyColliderRadius = 20.0f;  // 体のコライダー半径
-    constexpr float kBodyColliderHeight = 110.0f; // 体のコライダー高さ
-    constexpr float kHeadRadius = 15.0f;          // 頭のコライダー半径
+    inline const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // ヘッドショット判定コライダーの中心補正値
+
+    // コライダーサイズ
+    constexpr float kBodyColliderRadius = 20.0f;  // 体のカプセルコライダー半径
+    constexpr float kBodyColliderHeight = 110.0f; // 体のカプセルコライダー高さ
+    constexpr float kHeadRadius         = 15.0f;  // 頭の球コライダー半径
 
     // 攻撃関連
-    constexpr int kAttackCooldownMax = 30;       // 攻撃クールダウン時間
-    constexpr float kAttackHitRadius = 60.0f;    // 攻撃の当たり判定半径
-    constexpr float kAttackTriggerRadius = 30.0f; // 攻撃開始判定半径(通常より小さめ)
-    constexpr float kAttackRangeRadius = 100.0f; // 攻撃範囲の半径
+    constexpr int   kAttackCooldownMax   = 30;     // 攻撃クールダウン時間（フレーム数）
+    constexpr float kAttackHitRadius     = 60.0f;  // 攻撃の当たり判定半径
+    constexpr float kAttackTriggerRadius = 30.0f;  // 攻撃開始判定半径（通常より小さめ）
+    constexpr float kAttackRangeRadius   = 100.0f; // 攻撃範囲の半径
+    constexpr int   kAttackEndDelay      = 10;     // 攻撃後の硬直時間（フレーム数）
+    constexpr float kAttackHitStartRatio = 0.3f;   // 攻撃ヒット判定の開始タイミング比率
+    constexpr float kAttackHitEndRatio   = 0.6f;   // 攻撃ヒット判定の終了タイミング比率
 
-    // 追跡関連
-    constexpr int kAttackEndDelay = 10;
+    // 追跡・移動関連
+    constexpr float kRotateSpeedPerFrame = 0.05f; // フレームあたりの旋回速度（ラジアン）
+    constexpr int   kTargetOffsetRange   = 40;    // 追跡目標へのランダムオフセット範囲（±この値）
 
-    inline const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f };
+    // 徘徊関連
+    constexpr int   kWanderTimerInterval = 120;    // 徘徊位置更新間隔（フレーム数）
+    constexpr float kWanderMinDist       = 300.0f; // 徘徊時の最小距離
+    constexpr int   kWanderDistRange     = 400;    // 徘徊時の距離のランダム幅
 
-    // 回避判定
-    constexpr float kEvasionMarginRadius = 80.0f;
-    constexpr float kEvasionSwitchTime = 60.0f;
+    // 回避関連
+    constexpr float kEvasionMarginRadius = 80.0f; // 回避判定のマージン半径
+    constexpr float kEvasionSwitchTime   = 60.0f; // 回避方向を切り替える間隔（フレーム数）
 
-    // 描画
-    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f; // 16000から5000に縮小
-    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
-    constexpr float kDrawDotThreshold = 0.4f;
+    // サウンド関連
+    constexpr float kVoiceMaxDist        = 2000.0f; // 攻撃ボイス・ダメージSEが聞こえる最大距離
+    constexpr int   kAttackVoiceVolMax   = 100;     // 攻撃ボイスの最大音量
+    constexpr int   kDamageSEVolMax      = 255;     // ダメージSEの最大音量
+    constexpr float kDamageSECooldownMax = 45.0f;   // ダメージSE再生クールタイム（フレーム数）
 
-    // 押し出し
-    constexpr float kPushBackEpsilon = 0.0001f;
+    // 当たり判定関連
+    constexpr float kPushBackEpsilon = 0.0001f; // ゼロ除算防止のための最小距離の二乗閾値
+
+    // 描画関連
+    constexpr float kDrawDistanceSq     = 5000.0f * 5000.0f; // 最大描画距離の二乗
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;   // 常に描画する近距離の二乗
+    constexpr float kDrawDotThreshold   = 0.4f;              // 視野内判定に使う内積閾値
 }
 class SphereCollider;
 
@@ -62,6 +77,10 @@ public:
 
     void OnDeath() override;
 
+    /// <summary>
+    /// ボディコライダーを取得する
+    /// </summary>
+    /// <returns>ボディコライダー</returns>
     std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
     /// <summary>
@@ -69,7 +88,14 @@ public:
     /// </summary>
     virtual void DrawCollisionDebug() const override;
 
+    /// <summary>
+    /// モデルの読み込み（共有）
+    /// </summary>
     static void LoadModel();
+
+    /// <summary>
+    /// モデルの解放（共有）
+    /// </summary>
     static void DeleteModel();
 
     static void SetDrawCollision(bool draw) { s_shouldDrawCollision = draw; }
@@ -86,10 +112,7 @@ private:
     /// <returns>当たった部位</returns>
     HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const override;
 
-    /// <summary>
-    /// タックルダメージを受ける処理
-    /// </summary>
-    void ResetTackleHitFlag() { m_hasTakenTackleDamage = false; }
+    void ResetTackleHitFlag() override { m_hasTakenTackleDamage = false; }
 
     /// <summary>
     /// アイテムドロップ時のコールバック関数を設定する
@@ -97,8 +120,16 @@ private:
     /// <param name="cb">コールバック関数</param>
     void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
 
-    // ダメージ処理
+    /// <summary>
+    /// ダメージを受ける処理
+    /// </summary>
+    /// <param name="damage">受けるダメージ量</param>
     void TakeDamage(float damage, AttackType type) override;
+
+    /// <summary>
+    /// タックルダメージを受ける処理
+    /// </summary>
+    /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
 
@@ -124,13 +155,14 @@ private:
     /// <returns>攻撃可能ならtrue</returns>
     bool CanAttackPlayer(const Player& player, float checkRadius = -1.0f);
 
+    // EnemyBase::UpdateStandard から呼び出される内部処理
     void UpdateAI(const EnemyUpdateContext& context) override;
     void UpdateAnimation(const EnemyUpdateContext& context) override;
     void UpdateDeath(const EnemyUpdateContext& context) override;
     void UpdateSimpleMode(const EnemyUpdateContext& context) override;
 
 private:
-    VECTOR m_headPosOffset; // ヘッドショット判定用座標
+    VECTOR m_headPosOffset; // ヘッドショット判定コライダーの中心補正値
 
     std::shared_ptr<CapsuleCollider> m_pBodyCollider;      // 体のコライダー
     std::shared_ptr<SphereCollider> m_pHeadCollider;       // 頭のコライダー

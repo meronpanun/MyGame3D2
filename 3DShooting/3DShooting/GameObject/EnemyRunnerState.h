@@ -31,5 +31,5 @@ class EnemyRunnerStateDead : public EnemyState<EnemyRunner>
 {
 public:
     void Enter(EnemyRunner* enemy) override;
-    void Update(EnemyRunner* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyRunner* enemy, const EnemyUpdateContext& context) override {} // 死亡ステートでは更新処理なし
 };

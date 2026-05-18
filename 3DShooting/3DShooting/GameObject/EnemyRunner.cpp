@@ -41,10 +41,8 @@ EnemyRunner::EnemyRunner()
     , m_distToPlayer(0.0f)
     , m_damageSECooldown(0.0f)
 {
-    // モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
-    // コライダーの初期化
     m_pBodyCollider = std::make_shared<CapsuleCollider>();
     m_pHeadCollider = std::make_shared<SphereCollider>();
     m_pAttackRangeCollider = std::make_shared<SphereCollider>();
@@ -53,7 +51,6 @@ EnemyRunner::EnemyRunner()
 
 EnemyRunner::~EnemyRunner()
 {
-    // モデルの解放
     MV1DeleteModel(m_modelHandle);
 }
 
@@ -76,37 +73,31 @@ void EnemyRunner::Init()
     m_hasDroppedItem = false;
     m_lastHitPart = HitPart::None;
     m_hitDisplayTimer = 0;
-    
-    // CSVからRunnerEnemyのTransform情報を取得
+
     LoadTransformData("RunnerEnemy");
 
-    // ここで一度「絶対にRunでない値」にリセット
-    // 初期アニメーションを強制的に再生させるため
+    // ChangeAnimation で初期アニメーションを強制再生させるため、現在状態を非Run値でリセット
     m_currentAnimState = AnimState::Dead;
 
-    // 初期ステートの設定
     ChangeState(std::make_shared<EnemyRunnerStateRun>());
 
-    // ターゲットオフセットの初期化 (±40.0f)
-    float offsetX = static_cast<float>(GetRand(80) - 40);
-    float offsetZ = static_cast<float>(GetRand(80) - 40);
+    // 追跡目標にランダムオフセットを付与して各敵が同一点に集中しないようにする
+    float offsetX = static_cast<float>(GetRand(EnemyRunnerConstants::kTargetOffsetRange * 2) - EnemyRunnerConstants::kTargetOffsetRange);
+    float offsetZ = static_cast<float>(GetRand(EnemyRunnerConstants::kTargetOffsetRange * 2) - EnemyRunnerConstants::kTargetOffsetRange);
     m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 
-    // 回避用パラメータ初期化
     m_evadeSwitchTimer = 0.0f;
     m_isEvadingRight = (GetRand(1) == 0);
 
-    // 徘徊用パラメータ初期化
     m_wanderTimer = 0;
     m_wanderOffset = VGet(0.0f, 0.0f, 0.0f);
 }
 
 void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
 {
-    // Attackだけはリセット再生
     if (m_currentAnimState == newAnimState)
     {
-        // どの状態でも必ず再生し直す
+        // 同じ状態でも必ずリセット再生する
         switch (newAnimState)
         {
         case AnimState::Attack:
@@ -147,11 +138,10 @@ void EnemyRunner::ChangeAnimation(AnimState newAnimState, bool loop)
         // 攻撃ボイスの再生
         if (newAnimState == AnimState::Attack)
         {
-            float maxDist = 2000.0f;
-            float volRatio = 1.0f - (m_distToPlayer / maxDist);
+            float volRatio = 1.0f - (m_distToPlayer / EnemyRunnerConstants::kVoiceMaxDist);
             if (volRatio < 0.0f) volRatio = 0.0f;
             if (volRatio > 1.0f) volRatio = 1.0f;
-            SoundManager::GetInstance()->Play("EnemyRunner", "Attack", static_cast<int>(100 * volRatio));
+            SoundManager::GetInstance()->Play("EnemyRunner", "Attack", static_cast<int>(EnemyRunnerConstants::kAttackVoiceVolMax * volRatio));
         }
     }
 
@@ -173,7 +163,6 @@ void EnemyRunner::ChangeState(std::shared_ptr<EnemyState<EnemyRunner>> newState)
 
 bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
 {
-    // 手の位置を取得
     int handRIndex = MV1SearchFrame(m_modelHandle, "mixamorig:RightHand");
     int handLIndex = MV1SearchFrame(m_modelHandle, "mixamorig:LeftHand");
     if (handRIndex == -1 || handLIndex == -1) return false;
@@ -183,7 +172,6 @@ bool EnemyRunner::CanAttackPlayer(const Player& player, float checkRadius)
 
     m_pAttackHitCollider->SetSegment(handRPos, handLPos);
 
-    // 半径の設定
     float radius = (checkRadius > 0.0f) ? checkRadius : EnemyRunnerConstants::kAttackHitRadius;
     m_pAttackHitCollider->SetRadius(radius);
 
@@ -220,9 +208,9 @@ void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
             m_wanderTimer -= m_aiUpdateInterval;
             if (m_wanderTimer <= 0)
             {
-                m_wanderTimer = 120;
+                m_wanderTimer = EnemyRunnerConstants::kWanderTimerInterval;
                 float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
-                float dist = static_cast<float>(300 + GetRand(400));
+                float dist = EnemyRunnerConstants::kWanderMinDist + static_cast<float>(GetRand(EnemyRunnerConstants::kWanderDistRange));
                 m_wanderOffset = VGet(cosf(angle) * dist, 0.0f, sinf(angle) * dist);
             }
             targetPos = VAdd(playerPos, m_wanderOffset);
@@ -232,7 +220,7 @@ void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
             targetPos = VAdd(playerPos, m_targetOffset);
         }
 
-        RotateTowards(targetPos, 0.05f * Game::GetTimeScale() * m_aiUpdateInterval);
+        RotateTowards(targetPos, EnemyRunnerConstants::kRotateSpeedPerFrame * Game::GetTimeScale() * m_aiUpdateInterval);
 
         // 移動と回避
         {
@@ -253,7 +241,7 @@ void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
 
             if (!shouldEvade)
             {
-                VECTOR enemyCenter = VAdd(m_pos, VGet(0.0f, 55.0f, 0.0f));
+                VECTOR enemyCenter = VAdd(m_pos, VGet(0.0f, EnemyRunnerConstants::kBodyColliderHeight * 0.5f, 0.0f));
                 VECTOR toEnemy = VSub(enemyCenter, camPos);
                 float t = VDot(toEnemy, camDir);
                 if (t > 0.0f)
@@ -289,8 +277,8 @@ void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
     if (m_currentAnimState == AnimState::Attack)
     {
         float currentAnimTotalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyRunnerConstants::kAttackAnimName);
-        float attackStart = currentAnimTotalTime * 0.3f;
-        float attackEnd = currentAnimTotalTime * 0.6f;
+        float attackStart = currentAnimTotalTime * EnemyRunnerConstants::kAttackHitStartRatio;
+        float attackEnd   = currentAnimTotalTime * EnemyRunnerConstants::kAttackHitEndRatio;
 
         if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
         {
@@ -351,7 +339,7 @@ void EnemyRunner::UpdateSimpleMode(const EnemyUpdateContext& context)
         VECTOR dir = VNorm(toTarget);
         m_pos.x += dir.x * m_chaseSpeed * Game::GetTimeScale();
         m_pos.z += dir.z * m_chaseSpeed * Game::GetTimeScale();
-        RotateTowards(targetPos, 0.05f * Game::GetTimeScale());
+        RotateTowards(targetPos, EnemyRunnerConstants::kRotateSpeedPerFrame * Game::GetTimeScale());
     }
     UpdateStageCollision(context.collisionData, context.collisionGrid);
 }
@@ -435,24 +423,20 @@ void EnemyRunner::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
-// ダメージ処理
 void EnemyRunner::TakeDamage(float damage, AttackType type)
 {
     EnemyBase::TakeDamage(damage, type);
 
-    // ダメージSEの再生 (クールタイム中ならスキップ)
+    // ダメージSEの再生（クールタイム中ならスキップ）
     if (m_damageSECooldown <= 0.0f && m_isAlive)
     {
-        float maxDist = 2000.0f;
-        float volRatio = 1.0f - (m_distToPlayer / maxDist);
+        float volRatio = 1.0f - (m_distToPlayer / EnemyRunnerConstants::kVoiceMaxDist);
         if (volRatio < 0.0f) volRatio = 0.0f;
         if (volRatio > 1.0f) volRatio = 1.0f;
 
-        SoundManager::GetInstance()->Play("EnemyRunner", "Damage", static_cast<int>(255 * volRatio));
-
-        m_damageSECooldown = 45.0f; // 約0.75秒のクールタイム
+        SoundManager::GetInstance()->Play("EnemyRunner", "Damage", static_cast<int>(EnemyRunnerConstants::kDamageSEVolMax * volRatio));
+        m_damageSECooldown = EnemyRunnerConstants::kDamageSECooldownMax;
     }
-
 }
 
 void EnemyRunner::OnDeath()
@@ -479,7 +463,6 @@ std::shared_ptr<CapsuleCollider> EnemyRunner::GetBodyCollider() const
     return m_pBodyCollider;
 }
 
-// 死亡時の更新処理
 void EnemyRunner::UpdateDeath(const EnemyUpdateContext& context)
 {
     if (!m_isDeadAnimPlaying)
