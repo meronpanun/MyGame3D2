@@ -10,7 +10,7 @@ class EnemyBossStateWalk : public EnemyState<EnemyBoss>
 {
 public:
     void Enter(EnemyBoss* enemy) override;
-    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override {} // 移動・遷移判断はUpdateAIに委譲
 };
 
 /// <summary>
@@ -20,7 +20,7 @@ class EnemyBossStateAttack : public EnemyState<EnemyBoss>
 {
 public:
     void Enter(EnemyBoss* enemy) override;
-    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override {} // ヒット判定・エフェクトはUpdateAIに委譲
 };
 
 /// <summary>
@@ -30,7 +30,7 @@ class EnemyBossStateLongRange : public EnemyState<EnemyBoss>
 {
 public:
     void Enter(EnemyBoss* enemy) override;
-    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override {} // 弾発射ロジックはUpdateAIに委譲
 };
 
 /// <summary>
@@ -40,7 +40,7 @@ class EnemyBossStateStunned : public EnemyState<EnemyBoss>
 {
 public:
     void Enter(EnemyBoss* enemy) override;
-    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override {} // 怯みタイマー更新はUpdateAIで優先的に処理される
 };
 
 /// <summary>
@@ -50,5 +50,5 @@ class EnemyBossStateDead : public EnemyState<EnemyBoss>
 {
 public:
     void Enter(EnemyBoss* enemy) override;
-    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyBoss* enemy, const EnemyUpdateContext& context) override {} // 死亡ステートでは更新処理なし
 };
