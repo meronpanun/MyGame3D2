@@ -17,18 +17,21 @@ public:
 		float timer = 0.0f;
 		float alpha = 0.0f;
 		float duration = 45.0f;
+		/// <summary>
+		/// エフェクトを発動する
+		/// </summary>
 		void Trigger(float d, int r, int g, int b)
 		{
-			timer	 = d;
+			timer    = d;
 			alpha    = 1.0f;
 			duration = d;
-			colorR   = r; 
-			colorG   = g; 
+			colorR   = r;
+			colorG   = g;
 			colorB   = b;
 		}
 	};
 
-	PlayerEffectManager();
+	PlayerEffectManager() = default;
 	~PlayerEffectManager() = default;
 
 	/// <summary>
@@ -82,6 +85,3 @@ private:
 	EffectFeedback m_healEffect;
 	EffectFeedback m_ammoEffect;
 };
-
-
-
