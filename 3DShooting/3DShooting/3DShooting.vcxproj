@@ -196,7 +196,6 @@
     <ClCompile Include="ManagedGraph.cpp" />
     <ClCompile Include="ManagedSound.cpp" />
     <ClCompile Include="Scene\SceneGameOver.cpp" />
-    <ClCompile Include="Scene\SceneBase.cpp" />
     <ClCompile Include="Scene\SceneMain.cpp" />
     <ClCompile Include="Scene\SceneManager.cpp" />
     <ClCompile Include="Scene\SceneResult.cpp" />
