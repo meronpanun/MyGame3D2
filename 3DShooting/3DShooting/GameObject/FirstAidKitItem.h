@@ -8,41 +8,48 @@ class Player;
 class SphereCollider;
 
 /// <summary>
-/// ‰ñ•œƒAƒCƒeƒ€ƒNƒ‰ƒX
+/// å›å¾©ã‚¢ã‚¤ãƒ†ãƒ ã‚¯ãƒ©ã‚¹
 /// </summary>
 class FirstAidKitItem : public ItemBase
 {
 public:
-	FirstAidKitItem();
-	virtual ~FirstAidKitItem();
+    FirstAidKitItem();
+    virtual ~FirstAidKitItem();
 
-	void Init() override;
-	void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) override;
-	void Draw() override;
-	void DrawCollisionDebug() override;
+    void Init() override;
+    void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) override;
+    void Draw() override;
+    void DrawCollisionDebug() override;
 
-	void SetPos(const VECTOR& pos) override { m_pos = pos; }
-	bool IsUsed() const override { return m_isUsed; }
-	bool IsExpired() const override { return m_lifeTimer <= 0; }
+    void SetPos(const VECTOR& pos) override { m_pos = pos; }
+    bool IsUsed() const override { return m_isUsed; }
+    bool IsExpired() const override { return m_lifeTimer <= 0; }
 
-	static void LoadModel();
-	static void DeleteModel();
+    /// <summary>
+    /// ãƒ¢ãƒ‡ãƒ«ã®èª­ã¿è¾¼ã¿ï¼ˆå…±æœ‰ï¼‰
+    /// </summary>
+    static void LoadModel();
+
+    /// <summary>
+    /// ãƒ¢ãƒ‡ãƒ«ã®è§£æ”¾ï¼ˆå…±æœ‰ï¼‰
+    /// </summary>
+    static void DeleteModel();
 
 private:
-	VECTOR m_pos;
+    VECTOR m_pos;
 
-	SphereCollider m_collider;
+    SphereCollider m_collider;
 
-	int m_modelHandle; // ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹
+    int m_modelHandle; // ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«
 
-	float m_radius;    // ”¼Œa
-	float m_velocityY; // —‰º‘¬“x
-	float m_rotY;      // Y²‰ñ“]Šp“x
+    float m_radius;    // å½“ãŸã‚Šåˆ¤å®šåŠå¾„
+    float m_velocityY; // Yæ–¹å‘ã®è½ä¸‹é€Ÿåº¦
+    float m_rotY;      // Yè»¸ã®å›è»¢è§’åº¦
 
-	bool m_isHit;      // ƒvƒŒƒCƒ„[‚ÆÚG‚µ‚½‚©‚Ç‚¤‚©
-	bool m_isUsed;     // ƒAƒCƒeƒ€‚ªg—p‚³‚ê‚½‚©‚Ç‚¤‚©
-	bool m_isDropping; // —‰º’†‚©‚Ç‚¤‚©
-	int m_lifeTimer;
+    bool m_isHit;      // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨æ¥è§¦ã—ãŸã‹ã©ã†ã‹
+    bool m_isUsed;     // ã‚¢ã‚¤ãƒ†ãƒ ãŒä½¿ç”¨ã•ã‚ŒãŸã‹ã©ã†ã‹
+    bool m_isDropping; // ãƒ‰ãƒ­ãƒƒãƒ—è½ä¸‹ä¸­ã‹ã©ã†ã‹
+    int  m_lifeTimer;  // æ®‹ã‚Šå¯¿å‘½ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ æ•°ï¼‰
 
-	static int s_modelHandle;
+    static int s_modelHandle; // å…±æœ‰ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«
 };
