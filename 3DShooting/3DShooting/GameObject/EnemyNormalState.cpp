@@ -26,10 +26,9 @@ void EnemyNormalStateWalk::Update(EnemyNormal* enemy, const EnemyUpdateContext& 
         enemy->m_wanderTimer -= enemy->m_aiUpdateInterval;
         if (enemy->m_wanderTimer <= 0)
         {
-            // 2秒ごとに新しい目標位置を設定 (距離300~700)
-            enemy->m_wanderTimer = 120;
+            enemy->m_wanderTimer = EnemyNormalConstants::kWanderTimerInterval;
             float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
-            float dist = static_cast<float>(300 + GetRand(400));
+            float dist = EnemyNormalConstants::kWanderMinDist + static_cast<float>(GetRand(EnemyNormalConstants::kWanderDistRange));
             enemy->m_wanderOffset = VGet(cosf(angle) * dist, 0.0f, sinf(angle) * dist);
         }
         targetPos = VAdd(playerPos, enemy->m_wanderOffset);
@@ -45,7 +44,7 @@ void EnemyNormalStateWalk::Update(EnemyNormal* enemy, const EnemyUpdateContext& 
     float disToTarget = VSize(toTarget);
 
     // 向き変更
-    float rotSpeed = 0.05f * Game::GetTimeScale() * enemy->m_aiUpdateInterval;
+    float rotSpeed = EnemyNormalConstants::kRotateSpeedPerFrame * Game::GetTimeScale() * enemy->m_aiUpdateInterval;
     enemy->RotateTowards(targetPos, rotSpeed);
 
     // 移動処理
@@ -77,12 +76,12 @@ void EnemyNormalStateAttack::Update(EnemyNormal* enemy, const EnemyUpdateContext
 {
     if (!enemy->m_shouldUpdateAI) return;
 
-    // 攻撃ヒット判定（アニメーションの 50%〜70% のフレームで行う）
+    // 攻撃ヒット判定（アニメーションの kAttackHitStartRatio〜kAttackHitEndRatio のタイミングで行う）
     if (enemy->m_currentAnimState == EnemyBase::AnimState::Attack)
     {
         float totalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, EnemyNormalConstants::kAttackAnimName);
-        float attackStart = totalTime * 0.5f;
-        float attackEnd   = totalTime * 0.7f;
+        float attackStart = totalTime * EnemyNormalConstants::kAttackHitStartRatio;
+        float attackEnd   = totalTime * EnemyNormalConstants::kAttackHitEndRatio;
 
         if (!enemy->m_hasAttackHit && enemy->m_animTime >= attackStart && enemy->m_animTime <= attackEnd)
         {
@@ -95,12 +94,12 @@ void EnemyNormalStateAttack::Update(EnemyNormal* enemy, const EnemyUpdateContext
     }
 
     // 攻撃アニメーションはループしないので、終了したらディレイタイマーをセット
-    float currentAnimTotalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, "ATK");
+    float currentAnimTotalTime = enemy->m_animationManager.GetAnimationTotalTime(enemy->m_modelHandle, EnemyNormalConstants::kAttackAnimName);
     if (enemy->m_animTime >= currentAnimTotalTime)
     {
         if (enemy->m_attackEndDelayTimer <= 0) 
         {
-            enemy->m_attackEndDelayTimer = 20; // EnemyNormalConstants::kAttackEndDelay
+            enemy->m_attackEndDelayTimer = EnemyNormalConstants::kAttackEndDelay;
         }
     }
 
@@ -149,13 +148,12 @@ void EnemyNormalStateDamage::Update(EnemyNormal* enemy, const EnemyUpdateContext
     // ノックバック処理（少し後ろに下がる）
     VECTOR toPlayer = VSub(context.player.GetPos(), enemy->m_pos);
     toPlayer.y = 0.0f;
-    if (VSquareSize(toPlayer) > 0.0001f) // EnemyNormalConstants::kPushBackEpsilon
+    if (VSquareSize(toPlayer) > EnemyNormalConstants::kPushBackEpsilon)
     {
         VECTOR knockbackDir = VNorm(VScale(toPlayer, -1.0f));
-        // 減衰させつつ移動
-        if (enemy->m_damageTimer > 10) // 最初だけ下がる
+        if (enemy->m_damageTimer > EnemyNormalConstants::kDamageKnockbackMinTimer)
         {
-            float knockbackSpeed = 2.0f * Game::GetTimeScale();
+            float knockbackSpeed = EnemyNormalConstants::kDamageKnockbackSpeed * Game::GetTimeScale();
             enemy->m_pos = VAdd(enemy->m_pos, VScale(knockbackDir, knockbackSpeed));
         }
     }
@@ -164,9 +162,4 @@ void EnemyNormalStateDamage::Update(EnemyNormal* enemy, const EnemyUpdateContext
 void EnemyNormalStateDead::Enter(EnemyNormal* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false);
-}
-
-void EnemyNormalStateDead::Update(EnemyNormal* enemy, const EnemyUpdateContext& context)
-{
-    // 死亡アニメーション中は移動や攻撃を行わない
 }

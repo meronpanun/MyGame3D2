@@ -49,13 +49,11 @@ EnemyNormal::EnemyNormal()
     , m_shieldEffectTimer(0.0f)
     , m_hasPlayedShieldBreakableEffect(false)
     , m_shieldChainBreakTimer(0)
-    , m_voiceTimer(180 + GetRand(420))
+    , m_voiceTimer(EnemyNormalConstants::kVoiceTimerMin + GetRand(EnemyNormalConstants::kVoiceTimerRand))
     , m_distToPlayer(0.0f)
 {
-    // モデルの複製
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
 
-    // コライダーの初期化
     m_pBodyCollider = std::make_shared<CapsuleCollider>();
     m_pHeadCollider = std::make_shared<SphereCollider>();
     m_pAttackRangeCollider = std::make_shared<SphereCollider>();
@@ -64,7 +62,6 @@ EnemyNormal::EnemyNormal()
 
 EnemyNormal::~EnemyNormal()
 {
-    // モデルの解放
     MV1DeleteModel(m_modelHandle);
 }
 
@@ -84,28 +81,25 @@ void EnemyNormal::Init()
     m_attackCooldownMax = EnemyNormalConstants::kAttackCooldownMax;
 
     m_isAlive = true;
-    m_isDeadAnimPlaying = false; // フラグリセット
+    m_isDeadAnimPlaying = false;
     m_hasDroppedItem = false;
-    m_voiceTimer = 180 + GetRand(420); // 3秒?10秒
-    m_lastHitPart = HitPart::None; // 最後のヒット部位をリセット
-    m_hitDisplayTimer = 0;         // ヒット表示タイマーもリセット
-    m_damageTimer = 0;             // ダメージタイマー初期化
-    m_isBlownAway = false;         // 吹き飛びフラグリセット
-    m_deathKnockbackSpeed = 0.0f;  // 速度リセット
+    m_voiceTimer = EnemyNormalConstants::kVoiceTimerMin + GetRand(EnemyNormalConstants::kVoiceTimerRand);
+    m_lastHitPart = HitPart::None;
+    m_hitDisplayTimer = 0;
+    m_damageTimer = 0;
+    m_isBlownAway = false;
+    m_deathKnockbackSpeed = 0.0f;
 
-    // CSVからNormalEnemyのTransform情報を取得
     LoadTransformData("NormalEnemy");
 
-    // ここで一度「絶対にWalkでない値」にリセット
-    // 初期アニメーションを強制的に再生させるため
+    // ChangeAnimation で初期アニメーションを強制再生させるため、現在状態を非Walk値でリセット
     m_currentAnimState = AnimState::Dead;
 
-    // 初期ステートの設定
     ChangeState(std::make_shared<EnemyNormalStateWalk>());
 
-    // ターゲットオフセットの初期化 (±100.0f)
-    float offsetX = static_cast<float>(GetRand(200) - 100);
-    float offsetZ = static_cast<float>(GetRand(200) - 100);
+    // 追跡目標にランダムオフセットを付与して各敵が同一点に集中しないようにする
+    float offsetX = static_cast<float>(GetRand(EnemyNormalConstants::kTargetOffsetRange * 2) - EnemyNormalConstants::kTargetOffsetRange);
+    float offsetZ = static_cast<float>(GetRand(EnemyNormalConstants::kTargetOffsetRange * 2) - EnemyNormalConstants::kTargetOffsetRange);
     m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 
     // 徘徊用パラメータ初期化
@@ -124,7 +118,6 @@ void EnemyNormal::Init()
     m_shieldChainBreakTimer = 0;
 }
 
-// アニメーションを変更する
 void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
 {
     if (m_currentAnimState == newAnimState)
@@ -147,7 +140,7 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
     case AnimState::Attack:
         animName = EnemyNormalConstants::kAttackAnimName;
         break;
-    case AnimState::Damage: // ダメージ（怯み）時は歩行モーションなどを流用（あるいは専用）
+    case AnimState::Damage: // 怯み時は歩行モーションを流用
         animName = EnemyNormalConstants::kWalkAnimName;
         break;
     case AnimState::Dead:
@@ -157,9 +150,8 @@ void EnemyNormal::ChangeAnimation(AnimState newAnimState, bool loop)
 
     if (animName)
     {
-        // AnimationManagerにアニメーションの再生を依頼
         m_animationManager.PlayAnimation(m_modelHandle, animName, loop);
-        m_animTime = 0.0f; // アニメーション切り替え時に時間をリセット
+        m_animTime = 0.0f;
     }
 
     m_currentAnimState = newAnimState;
@@ -178,7 +170,6 @@ void EnemyNormal::ChangeState(std::shared_ptr<EnemyState<EnemyNormal>> newState)
     }
 }
 
-// プレイヤーに攻撃可能かどうかを判定
 bool EnemyNormal::CanAttackPlayer(const Player& player)
 {
     int handRIndex = MV1SearchFrame(m_modelHandle, "Hand_R");
@@ -212,11 +203,10 @@ void EnemyNormal::UpdateAI(const EnemyUpdateContext& context)
         if (m_voiceTimer <= 0)
         {
             int randomIndex = 1 + GetRand(3);
-            float maxDist = 2000.0f;
-            float volRatio = 1.0f - (m_distToPlayer / maxDist);
+            float volRatio = 1.0f - (m_distToPlayer / EnemyNormalConstants::kVoiceMaxDist);
             if (volRatio < 0.0f) volRatio = 0.0f;
-            SoundManager::GetInstance()->Play("EnemyNormal", "Voice" + std::to_string(randomIndex), (int)(150 * volRatio));
-            m_voiceTimer = 180 + GetRand(420);
+            SoundManager::GetInstance()->Play("EnemyNormal", "Voice" + std::to_string(randomIndex), (int)(EnemyNormalConstants::kVoiceVolumeMax * volRatio));
+            m_voiceTimer = EnemyNormalConstants::kVoiceTimerMin + GetRand(EnemyNormalConstants::kVoiceTimerRand);
         }
     }
 
@@ -278,7 +268,7 @@ void EnemyNormal::UpdateSimpleMode(const EnemyUpdateContext& context)
             float step = (std::min)(dist - EnemyNormalConstants::kChaseStopDistance, m_chaseSpeed * Game::GetTimeScale());
             m_pos.x += dir.x * step;
             m_pos.z += dir.z * step;
-            RotateTowards(targetPos, 0.05f * Game::GetTimeScale());
+            RotateTowards(targetPos, EnemyNormalConstants::kRotateSpeedPerFrame * Game::GetTimeScale());
         }
     }
     UpdateStageCollision(context.collisionData, context.collisionGrid);
@@ -289,7 +279,6 @@ void EnemyNormal::Draw()
     DrawStandard(EnemyNormalConstants::kDrawDistanceSq, EnemyNormalConstants::kDrawNearDistanceSq, EnemyNormalConstants::kDrawDotThreshold);
 }
 
-// デバック用の当たり判定を描画する
 void EnemyNormal::DrawCollisionDebug() const
 {
     if (s_shouldDrawShieldCollision && m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
@@ -321,7 +310,6 @@ void EnemyNormal::DrawCollisionDebug() const
     }
 }
 
-// どこに当たったのか判定する
 EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
     if (m_isDeadAnimPlaying) return HitPart::None;
@@ -383,13 +371,11 @@ EnemyBase::HitPart EnemyNormal::CheckHitPart(const VECTOR& rayStart, const VECTO
     return HitPart::None;
 }
 
-// アイテムドロップ時のコールバック関数
 void EnemyNormal::SetOnDropItemCallback(std::function<void(const VECTOR&)> cb)
 {
     m_onDropItem = cb;
 }
 
-// ダメージ処理
 void EnemyNormal::TakeDamage(float damage, AttackType type)
 {
     if (m_isDeadAnimPlaying) return;
@@ -436,7 +422,7 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
         {
             // ショットガンは上書きしてでも大きく怯む
             ChangeState(std::make_shared<EnemyNormalStateDamage>());
-            m_damageTimer = EnemyNormalConstants::kDamageDuration; // 30フレーム
+            m_damageTimer = EnemyNormalConstants::kDamageDuration;
         }
         else if (type == AttackType::Shoot)
         {
@@ -444,7 +430,7 @@ void EnemyNormal::TakeDamage(float damage, AttackType type)
             if (m_currentAnimState != AnimState::Damage)
             {
                 ChangeState(std::make_shared<EnemyNormalStateDamage>());
-                m_damageTimer = 15; // ショットガンの半分の時間（15フレーム）
+                m_damageTimer = EnemyNormalConstants::kShortDamageDuration; // 連射によるスタンロック防止のため短い怯み時間
             }
         }
     }
@@ -464,7 +450,7 @@ void EnemyNormal::OnDeath()
             if (VSquareSize(toEnemy) > EnemyNormalConstants::kPushBackEpsilon)
             {
                 m_deathKnockbackDir = VNorm(toEnemy);
-                m_deathKnockbackSpeed = 15.0f; // 初速を強化
+                m_deathKnockbackSpeed = EnemyNormalConstants::kKnockbackInitialSpeed;
             }
         }
 
@@ -483,7 +469,7 @@ void EnemyNormal::OnDeath()
             {
                 m_deathKnockbackDir = VGet(0, 0, 1); // 完全なフォールバック
             }
-            m_deathKnockbackSpeed = 15.0f;
+            m_deathKnockbackSpeed = EnemyNormalConstants::kKnockbackInitialSpeed;
         }
     }
 
@@ -497,7 +483,6 @@ void EnemyNormal::OnDeath()
     }
 }
 
-// タックル攻撃のダメージ処理
 void EnemyNormal::TakeTackleDamage(float damage)
 {
     if (m_isDeadAnimPlaying) return;
@@ -510,12 +495,8 @@ std::shared_ptr<CapsuleCollider> EnemyNormal::GetBodyCollider() const
     return m_pBodyCollider;
 }
 
-// 弾との当たり判定とダメージ処理 (複数弾ヒットや貫通対策用)
 void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect)
 {
-    // ショットガン等の散弾や複数弾が同時に当たるケースを想定
-    // ループを1回にまとめて効率化
-
     for (auto& bullet : bullets)
     {
         if (!bullet.IsActive()) continue;
@@ -524,11 +505,10 @@ void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffec
         VECTOR rayEnd = bullet.GetPos();
 
         // 共通の距離チェック（ブロードフェーズ）
-        // EnemyBase::FindClosestHitBullet でも行っているが、ここでは独自に判定が必要なため
         VECTOR enemyCenter = VAdd(m_pos, VGet(0, EnemyNormalConstants::kBodyColliderHeight * 0.5f, 0));
         float d1 = VSquareSize(VSub(rayStart, enemyCenter));
         float d2 = VSquareSize(VSub(rayEnd, enemyCenter));
-        if (d1 > 300.0f * 300.0f && d2 > 300.0f * 300.0f) continue;
+        if (d1 > EnemyNormalConstants::kBroadPhaseDistSq && d2 > EnemyNormalConstants::kBroadPhaseDistSq) continue;
 
         // ① シールド判定 (シールドがある場合)
         if (m_hasShieldConfigured && !m_isShieldBroken && m_pShieldCollider)
@@ -553,7 +533,6 @@ void EnemyNormal::CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffec
     }
 }
 
-// ダメージ計算
 float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
 {
     if (m_isDeadAnimPlaying) return 0.0f;
@@ -567,14 +546,13 @@ float EnemyNormal::CalcDamage(float bulletDamage, HitPart part) const
     // ヘッドショット時
     if (part == HitPart::Head)
     {
-        return bulletDamage * 2.0f; // 2倍ダメージ
+        return bulletDamage * EnemyNormalConstants::kHeadshotMultiplier;
     }
 
     // それ以外（Bodyなど）
     return bulletDamage * 1.0f;
 }
 
-// ダメージ適用（シールドヒット時はエフェクトを変えるためオーバーライド）
 void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect)
 {
     // シールドヒット時
@@ -590,7 +568,7 @@ void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, 
             {
                 VECTOR center = m_pShieldCollider->GetCenter();
                 VECTOR diff = VSub(hitPos, center);
-                if (VSquareSize(diff) > 0.0001f)
+                if (VSquareSize(diff) > EnemyNormalConstants::kPushBackEpsilon)
                 {
                     normal = VNorm(diff);
                     // 弾の現在位置(内側にめり込んでいる可能性がある)ではなく、シールドの表面でエフェクトを発生させる
@@ -623,7 +601,6 @@ void EnemyNormal::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, 
     }
 }
 
-// 死亡時の更新処理
 void EnemyNormal::UpdateDeath(const EnemyUpdateContext& context)
 {
     if (!m_isDeadAnimPlaying)
@@ -658,7 +635,7 @@ void EnemyNormal::UpdateDeath(const EnemyUpdateContext& context)
     if (m_isBlownAway && m_deathKnockbackSpeed > 0.0f)
     {
         m_pos = VAdd(m_pos, VScale(m_deathKnockbackDir, m_deathKnockbackSpeed * Game::GetTimeScale()));
-        m_deathKnockbackSpeed -= 0.5f * Game::GetTimeScale();
+        m_deathKnockbackSpeed -= EnemyNormalConstants::kKnockbackDeceleration * Game::GetTimeScale();
         if (m_deathKnockbackSpeed < 0.0f) m_deathKnockbackSpeed = 0.0f;
 
         UpdateStageCollision(context.collisionData, context.collisionGrid);

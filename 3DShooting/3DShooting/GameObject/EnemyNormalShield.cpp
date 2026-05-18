@@ -13,13 +13,13 @@ void EnemyNormal::SetHasShield(bool hasShield)
     m_hasShieldConfigured = hasShield;
     if (m_hasShieldConfigured)
     {
-        m_maxShieldHp = 50.0f; // ノーマルゾンビ用シールド耐久値
+        m_maxShieldHp = EnemyNormalConstants::kShieldMaxHp;
         m_shieldHp = m_maxShieldHp;
         m_isShieldBroken = false;
 
         // シールドコライダーの生成と初期化
         m_pShieldCollider = std::make_shared<SphereCollider>();
-        m_pShieldCollider->SetRadius(80.0f);
+        m_pShieldCollider->SetRadius(EnemyNormalConstants::kShieldColliderRadius);
         m_shieldRotation = 0.0f;
         m_shieldEffectTimer = 0.0f;
         m_shieldEffectHandles.clear();
@@ -34,7 +34,6 @@ void EnemyNormal::TriggerShieldChainBreak(int delayFrames)
     m_shieldChainBreakTimer = delayFrames;
 }
 
-// シールド破壊 + 周囲への連鎖処理
 void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
 {
     if (!m_hasShieldConfigured) return;
@@ -55,21 +54,18 @@ void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
         if (SceneMain::Instance() && SceneMain::Instance()->GetEffect())
         {
             VECTOR shieldPos = m_pos;
-            shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * 0.5f;
+            shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * EnemyNormalConstants::kShieldYRatio;
             SceneMain::Instance()->GetEffect()->PlayShieldBreakEffect(shieldPos);
 
             // プレイヤーとの距離に応じたカメラシェイク
             if (Game::m_pPlayer && Game::m_pPlayer->GetCamera())
             {
                 float dist = VSize(VSub(m_pos, Game::m_pPlayer->GetPos()));
-                float maxDist = 1000.0f;
-                float intensityBase = 20.0f;
-
-                float ratio = 1.0f - (dist / maxDist);
-                if (ratio < 0.2f) ratio = 0.2f;
+                float ratio = 1.0f - (dist / EnemyNormalConstants::kCameraShakeMaxDist);
+                if (ratio < EnemyNormalConstants::kCameraShakeMinRatio) ratio = EnemyNormalConstants::kCameraShakeMinRatio;
                 if (ratio > 1.0f) ratio = 1.0f;
 
-                Game::m_pPlayer->GetCamera()->Shake(intensityBase * ratio, 10);
+                Game::m_pPlayer->GetCamera()->Shake(EnemyNormalConstants::kCameraShakeIntensity * ratio, EnemyNormalConstants::kCameraShakeDuration);
             }
         }
     }
@@ -77,7 +73,7 @@ void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
     // 周囲の敵への連鎖（contextがある場合のみ）
     if (context)
     {
-        float chainRadius = 400.0f;
+        float chainRadius = EnemyNormalConstants::kChainBreakRadius;
         std::vector<EnemyBase*> neighbors;
         if (context->collisionGrid)
         {
@@ -99,7 +95,7 @@ void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
                     // まだ連鎖タイマーが動いていない場合のみセット
                     if (normalEnemy->m_shieldChainBreakTimer <= 0)
                     {
-                        normalEnemy->TriggerShieldChainBreak(12); // 12フレーム（約0.2秒）の遅延
+                        normalEnemy->TriggerShieldChainBreak(EnemyNormalConstants::kChainBreakDelay);
                     }
                 }
             }
@@ -107,7 +103,6 @@ void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
     }
 }
 
-// UpdateShield - UpdateAI から切り出した処理
 void EnemyNormal::UpdateShield(const EnemyUpdateContext& context)
 {
     // 連鎖破壊タイマーの更新
@@ -125,15 +120,14 @@ void EnemyNormal::UpdateShield(const EnemyUpdateContext& context)
 
     // コライダー位置を胸のあたりに設定
     VECTOR shieldPos = m_pos;
-    shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * 0.5f;
+    shieldPos.y += EnemyNormalConstants::kBodyColliderHeight * EnemyNormalConstants::kShieldYRatio;
     m_pShieldCollider->SetCenter(shieldPos);
 
     // 生存中のみエフェクトを表示
     if (m_hp <= 0.0f) return;
 
     // シームレスループエフェクト生成
-    const float kEffectDuration    = 240.0f;
-    const float kOverlapSpawnTime  = kEffectDuration - 30.0f;
+    const float kOverlapSpawnTime = EnemyNormalConstants::kShieldEffectDuration - EnemyNormalConstants::kShieldFadeInDuration;
     m_shieldEffectTimer += 1.0f * Game::GetTimeScale();
 
     if (m_shieldEffectHandles.empty() || m_shieldEffectTimer >= kOverlapSpawnTime)
@@ -150,7 +144,7 @@ void EnemyNormal::UpdateShield(const EnemyUpdateContext& context)
     }
 
     // シールド回転更新
-    m_shieldRotation += 0.3f * Game::GetTimeScale();
+    m_shieldRotation += EnemyNormalConstants::kShieldRotationSpeed * Game::GetTimeScale();
     while (m_shieldRotation >= 360.0f) m_shieldRotation -= 360.0f;
 
     // エフェクトのパラメータを更新（終了したものは除去）
@@ -165,7 +159,7 @@ void EnemyNormal::UpdateShield(const EnemyUpdateContext& context)
         }
         SetPosPlayingEffekseer3DEffect(handle, shieldPos.x, shieldPos.y, shieldPos.z);
         SetRotationPlayingEffekseer3DEffect(handle, 0.0f, (m_shieldRotation * DX_PI_F / 180.0f), 0.0f);
-        SetScalePlayingEffekseer3DEffect(handle, 0.3f, 0.3f, 0.3f);
+        SetScalePlayingEffekseer3DEffect(handle, EnemyNormalConstants::kShieldEffectScale, EnemyNormalConstants::kShieldEffectScale, EnemyNormalConstants::kShieldEffectScale);
 
         // シールドHP割合に応じた色変化（青 → 赤）
         if (m_maxShieldHp > 0.0f)
