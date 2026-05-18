@@ -1,4 +1,4 @@
-#include "PlayerMovement.h"
+ï»¿#include "PlayerMovement.h"
 #include "Camera.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -9,38 +9,53 @@
 
 namespace PlayerMovementConstants
 {
-    // d—Í‚ÆƒWƒƒƒ“ƒvŠÖ˜A
-    constexpr float kGravity = 0.3f;
-    constexpr float kJumpPower = 7.0f;
+    // é‡åŠ›ã¨ã‚¸ãƒ£ãƒ³ãƒ—é–¢é€£
+    constexpr float kGravity      = 0.3f;
+    constexpr float kJumpPower    = 7.0f;
     constexpr float kRunJumpPower = 12.5f;
 
-    // ”òsƒ‚[ƒhŠÖ˜A
-    constexpr float kFlightAscendSpeed = 8.0f;     // ã¸‘¬“x
-    constexpr float kFlightDescendSpeed = 8.0f;    // ‰º~‘¬“x
-    constexpr float kFlightAccelMultiplier = 3.0f; // ”òsƒ‚[ƒh’†‚Ì‰Á‘¬”{—¦
+    // é£›è¡Œãƒ¢ãƒ¼ãƒ‰é–¢é€£
+    constexpr float kFlightAscendSpeed      = 8.0f;  // ä¸Šæ˜‡é€Ÿåº¦
+    constexpr float kFlightDescendSpeed     = 8.0f;  // é™ä¸‹é€Ÿåº¦
+    constexpr float kFlightAccelMultiplier  = 3.0f;  // é£›è¡Œãƒ¢ãƒ¼ãƒ‰ä¸­ã®åŠ é€Ÿå€ç‡
 
-    // ƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[‚ÌƒTƒCƒY
+    // ã‚«ãƒ—ã‚»ãƒ«ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã®ã‚µã‚¤ã‚º
     constexpr float kCapsuleHeight = 100.0f;
     constexpr float kCapsuleRadius = 50.0f;
 
-    // UpdateŠÖ˜A
-    constexpr float kPlayerColliderYOffset = 60.0f; // ƒRƒ‰ƒCƒ_[‚ÌYƒIƒtƒZƒbƒg
-    constexpr float kGroundCheckTolerance = 1.0f;   // ’n–Ê”»’è‚Ì‹–—eŒë·
-    constexpr float kCoyoteTimeDuration = 0.2f;     // ƒRƒˆ[ƒeƒ^ƒCƒ€‚Ì‘±ŠÔ (•b)
-    constexpr float kJumpSwayPower = 5.0f;          // ƒWƒƒƒ“ƒv‚Ì—h‚ê‚Ì‹­‚³
-    constexpr float kLandingSwayPower = 5.0f;       // ’…’n‚Ì—h‚ê‚Ì‹­‚³
-    constexpr float kRunLandingSwayPower = 20.0f;   // ƒ_ƒbƒVƒ…’…’n‚Ì—h‚ê‚Ì‹­‚³
-    constexpr float kLandingVelocityFactor = 0.5f; // ’…’n‚ÌÕŒ‚i‘¬“xj‚É‚æ‚é—h‚ê‚Ì•â³ŒW”
+    // ç§»å‹•ãƒ»åˆ¤å®šé–¢é€£
+    constexpr float kPlayerColliderYOffset  = 60.0f;  // ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã® Y ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    constexpr float kGroundCheckTolerance   = 1.0f;   // åœ°é¢åˆ¤å®šã®è¨±å®¹èª¤å·®
+    constexpr float kCoyoteTimeDuration     = 0.2f;   // ã‚³ãƒ¨ãƒ¼ãƒ†ã‚¿ã‚¤ãƒ ã®æŒç¶šæ™‚é–“ï¼ˆç§’ï¼‰
+    constexpr float kDeltaTimeEpsilon       = 0.0001f; // é€Ÿåº¦è¨ˆç®—ç”¨ deltaTime ã®æœ€å°å€¤
+    constexpr float kSlopeNormalYThreshold  = 0.6f;   // å‚¾æ–œã¨åˆ¤å®šã™ã‚‹æ³•ç·š Y ã®é–¾å€¤
+    constexpr float kRunBlockPushBackSq     = 1.0f;   // ãƒ€ãƒƒã‚·ãƒ¥è§£é™¤ã¨ã¿ãªã™æŠ¼ã—è¿”ã—é‡ã®äºŒä¹—
 
-    // ƒ_ƒbƒVƒ…’…’n‚ÌƒVƒFƒCƒNi‰æ–Ê‘S‘Ì‚ÌU“®j
-    constexpr float kRunLandingShakeIntensity = 1.0f; // ƒx[ƒXƒVƒFƒCƒN‹­“x
-    constexpr float kRunLandingShakeVelocityFactor = 0.2f; // ‘¬“x‚É‚æ‚éƒVƒFƒCƒN‰ÁZŒW”
-    constexpr int kRunLandingShakeDuration = 5; // ƒVƒFƒCƒN‘±ŠÔiƒtƒŒ[ƒ€j
+    // ç€åœ°åˆ¤å®šé–¢é€£
+    constexpr float kAirborneTimeThreshold    = 0.15f; // ç€åœ°SEã‚’é³´ã‚‰ã™ãŸã‚ã®æœ€ä½æ»ç©ºæ™‚é–“ï¼ˆç§’ï¼‰
+    constexpr float kLandingVelocityThreshold = -1.5f; // ç€åœ°ã¨ã¿ãªã™æœ€ä½è½ä¸‹é€Ÿåº¦
+    constexpr float kHeavyLandingThreshold    = -5.0f; // é‡ç€åœ°ã¨ã¿ãªã™è½ä¸‹é€Ÿåº¦
 
-    // ‹ó’†§Œä
-    constexpr float kAirControlFactor = 1.0f; // ‹ó’†‚Å‚Ì‘€ì‚ÌŒø‚«‹ï‡
-    constexpr float kAirBrakeFactor = 0.01f;  // ‹ó’†‚Å‚ÌƒuƒŒ[ƒL‚Ì‹­‚³iLerpŒW”j
-    constexpr float kAirAccelFactor = 0.05f;   // ‹ó’†‚Å‚Ì‰Á‘¬‚Ì‹­‚³iLerpŒW”j
+    // ã‚«ãƒ¡ãƒ©æºã‚Œé–¢é€£
+    constexpr float kJumpSwayPower              = 5.0f;  // ã‚¸ãƒ£ãƒ³ãƒ—æ™‚ã®æºã‚Œã®å¼·ã•
+    constexpr float kLandingSwayPower           = 5.0f;  // ç€åœ°æ™‚ã®æºã‚Œã®å¼·ã•
+    constexpr float kRunLandingSwayPower        = 20.0f; // ãƒ€ãƒƒã‚·ãƒ¥ç€åœ°æ™‚ã®æºã‚Œã®å¼·ã•
+    constexpr float kLandingVelocityFactor      = 0.5f;  // ç€åœ°æ™‚ã®è¡æ’ƒï¼ˆé€Ÿåº¦ï¼‰ã«ã‚ˆã‚‹æºã‚Œã®è£œæ­£ä¿‚æ•°
+    constexpr float kRunLandingShakeIntensity   = 1.0f;  // ãƒ€ãƒƒã‚·ãƒ¥ç€åœ°æ™‚ã®ã‚·ã‚§ã‚¤ã‚¯å¼·åº¦ï¼ˆç”»é¢å…¨ä½“ã®æŒ¯å‹•ï¼‰
+    constexpr float kRunLandingShakeVelocityFactor = 0.2f; // é€Ÿåº¦ã«ã‚ˆã‚‹ã‚·ã‚§ã‚¤ã‚¯åŠ ç®—ä¿‚æ•°
+    constexpr int   kRunLandingShakeDuration    = 5;     // ã‚·ã‚§ã‚¤ã‚¯æŒç¶šæ™‚é–“ï¼ˆãƒ•ãƒ¬ãƒ¼ãƒ æ•°ï¼‰
+
+    // ãƒãƒƒã‚¯ãƒãƒƒã‚¯é–¢é€£
+    constexpr float kKnockbackDamping       = 0.9f;  // ãƒãƒƒã‚¯ãƒãƒƒã‚¯é€Ÿåº¦ã®æ¸›è¡°ç‡
+    constexpr float kKnockbackStopThreshold = 0.1f;  // ãƒãƒƒã‚¯ãƒãƒƒã‚¯åœæ­¢ã¨ã¿ãªã™é€Ÿåº¦
+
+    // ç©ºä¸­åˆ¶å¾¡é–¢é€£
+    constexpr float kAirControlFactor      = 1.0f;  // ç©ºä¸­ã§ã®æ“ä½œã®åŠ¹ãå…·åˆ
+    constexpr float kAirBrakeFactor        = 0.01f; // ç©ºä¸­ã§ã®ãƒ–ãƒ¬ãƒ¼ã‚­ã®åŠ¹ãå…·åˆï¼ˆLerp ä¿‚æ•°ï¼‰
+    constexpr float kAirAccelFactor        = 0.05f; // ç©ºä¸­ã§ã®åŠ é€Ÿã®åŠ¹ãå…·åˆï¼ˆLerp ä¿‚æ•°ï¼‰
+    constexpr float kAirSteerFactor        = 0.1f;  // ç©ºä¸­ã§ã®å‰æ–¹ã‚¹ãƒ†ã‚¢ãƒªãƒ³ã‚°ã®å¼·ã•
+    constexpr float kInertiaSpeedThreshold = 0.1f;  // æ…£æ€§é€Ÿåº¦ãŒå°ã•ã„ã¨ã¿ãªã™é–¾å€¤
+    constexpr float kJumpVelocityMinSize   = 0.001f; // ã‚¸ãƒ£ãƒ³ãƒ—é€Ÿåº¦ãƒ™ã‚¯ãƒˆãƒ«ã®æœ€å°é•·
 }
 
 PlayerMovement::PlayerMovement()
@@ -71,19 +86,18 @@ PlayerMovement::PlayerMovement()
 {
 }
 
-void PlayerMovement::Init(const VECTOR& pos, float moveSpeed, float runSpeed,
-    float scale)
+void PlayerMovement::Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale)
 {
     m_modelPos = pos;
     m_moveSpeed = moveSpeed;
-    m_runSpeed = runSpeed;
-    m_scale = VGet(scale, scale, scale);
+    m_runSpeed  = runSpeed;
+    m_scale     = VGet(scale, scale, scale);
 }
 
 void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
     bool isFlightMode, const std::vector<Stage::StageCollisionData>& collisionData, bool isInputDisabled)
 {
-    m_justLanded = false; // ƒtƒŒ[ƒ€–ˆ‚ÉƒŠƒZƒbƒg
+    m_justLanded = false;
     VECTOR prevPos = m_modelPos;
 
     UpdateCollider();
@@ -92,40 +106,30 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
 
     if (isTackling)
     {
-        // ƒ^ƒbƒNƒ‹’†‚Ì‘¬“xŒvZ‚ğXVi“™‘¬’¼ü‰^“®‚Æ‚µ‚Äˆ—j
+        // ã‚¿ãƒƒã‚¯ãƒ«ä¸­ã®é€Ÿåº¦è¨ˆç®—ã‚’æ›´æ–°ï¼ˆç§»å‹•å‡¦ç†ã¯ã‚¿ãƒƒã‚¯ãƒ«å´ã§è¡Œã†ãŸã‚ã‚¹ã‚­ãƒƒãƒ—ï¼‰
         float dist = VSize(VSub(m_modelPos, prevPos));
-        m_currentSpeed = (deltaTime > 0.0001f) ? dist / deltaTime : 0.0f;
+        m_currentSpeed = (deltaTime > PlayerMovementConstants::kDeltaTimeEpsilon) ? dist / deltaTime : 0.0f;
         return;
     }
 
-    // Ú’n”»’èiˆÚ“®‘Oj
-    CollisionResult preCollisionResult = Collision::CheckStageCollision(m_modelPos, PlayerMovementConstants::kCapsuleHeight, PlayerMovementConstants::kCapsuleRadius,
-            PlayerMovementConstants::kPlayerColliderYOffset, collisionData);
+    // æ¥åœ°åˆ¤å®šï¼ˆç§»å‹•å‰ï¼‰
+    CollisionResult preCollisionResult = Collision::CheckStageCollision(
+        m_modelPos,
+        PlayerMovementConstants::kCapsuleHeight,
+        PlayerMovementConstants::kCapsuleRadius,
+        PlayerMovementConstants::kPlayerColliderYOffset,
+        collisionData);
     m_isGroundedOnStage = preCollisionResult.isGrounded;
-    if (preCollisionResult.isGrounded)
-    {
-        m_groundedObjectName = preCollisionResult.groundedObjectName;
-    }
-    else
-    {
-        m_groundedObjectName = "";
-    }
+    m_groundedObjectName = preCollisionResult.isGrounded ? preCollisionResult.groundedObjectName : "";
 
     if (m_isGroundedOnStage && m_jumpVelocity < 0.0f)
     {
         m_jumpVelocity = 0.0f;
-        m_isJumping = false;
+        m_isJumping    = false;
         m_airborneTime = 0.0f;
     }
 
-    if (!IsOnGround())
-    {
-        m_airborneTime += deltaTime;
-    }
-    else
-    {
-        m_airborneTime = 0.0f;
-    }
+    m_airborneTime = IsOnGround() ? 0.0f : m_airborneTime + deltaTime;
 
     if (isFlightMode && !isDead)
     {
@@ -136,9 +140,9 @@ void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool 
         UpdateNormalMode(deltaTime, pCamera, isDead, isTackling, collisionData, isInputDisabled);
     }
 
-    // ‘¬“xŒvZ
+    // é€Ÿåº¦è¨ˆç®—
     float dist = VSize(VSub(m_modelPos, prevPos));
-    m_currentSpeed = (deltaTime > 0.0001f) ? dist / deltaTime : 0.0f;
+    m_currentSpeed = (deltaTime > PlayerMovementConstants::kDeltaTimeEpsilon) ? dist / deltaTime : 0.0f;
 }
 
 void PlayerMovement::UpdateCollider()
@@ -146,7 +150,7 @@ void PlayerMovement::UpdateCollider()
     VECTOR center = m_modelPos;
     center.y += PlayerMovementConstants::kPlayerColliderYOffset;
     VECTOR capA = VAdd(center, VGet(0, -PlayerMovementConstants::kCapsuleHeight * 0.5f, 0));
-    VECTOR capB = VAdd(center, VGet(0, PlayerMovementConstants::kCapsuleHeight * 0.5f, 0));
+    VECTOR capB = VAdd(center, VGet(0,  PlayerMovementConstants::kCapsuleHeight * 0.5f, 0));
     m_pBodyCollider->SetSegment(capA, capB);
     m_pBodyCollider->SetRadius(PlayerMovementConstants::kCapsuleRadius);
 }
@@ -154,28 +158,23 @@ void PlayerMovement::UpdateCollider()
 void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isDead, bool isInputDisabled)
 {
     m_jumpVelocity = 0.0f;
-    m_isJumping = false;
+    m_isJumping    = false;
 
     unsigned char keyState[256];
     if (isInputDisabled)
-    {
         memset(keyState, 0, sizeof(keyState));
-    }
     else
-    {
         GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
-    }
 
     float timeScale = Game::GetTimeScale();
 
-    if (keyState[KEY_INPUT_SPACE]) m_modelPos.y += PlayerMovementConstants::kFlightAscendSpeed * timeScale;
+    if (keyState[KEY_INPUT_SPACE])  m_modelPos.y += PlayerMovementConstants::kFlightAscendSpeed  * timeScale;
     if (keyState[KEY_INPUT_LSHIFT]) m_modelPos.y -= PlayerMovementConstants::kFlightDescendSpeed * timeScale;
 
     bool isAccelerating = (keyState[KEY_INPUT_LCONTROL] != 0);
     float speed = (isAccelerating ? m_runSpeed * PlayerMovementConstants::kFlightAccelMultiplier : m_moveSpeed) * timeScale;
 
     VECTOR moveDir = CalculateMoveDirection(pCamera, keyState);
-
     if (VSize(moveDir) > 0.0f)
     {
         m_modelPos = VAdd(m_modelPos, VScale(moveDir, speed));
@@ -191,20 +190,18 @@ void PlayerMovement::UpdateFlightMode(float deltaTime, Camera* pCamera, bool isD
     if (pCamera) pCamera->SetHeadBobbingState(m_isMoving, isAccelerating);
 }
 
-void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling, const std::vector<Stage::StageCollisionData>& collisionData, bool isInputDisabled)
+void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,
+    const std::vector<Stage::StageCollisionData>& collisionData, bool isInputDisabled)
 {
     bool isOnGround = (m_modelPos.y <= kGroundY + PlayerMovementConstants::kGroundCheckTolerance) || m_isGroundedOnStage;
     if (isOnGround) m_coyoteTimeTimer = PlayerMovementConstants::kCoyoteTimeDuration;
 
     unsigned char keyState[256];
     if (isInputDisabled)
-    {
         memset(keyState, 0, sizeof(keyState));
-    }
     else
-    {
         GetHitKeyStateAll(reinterpret_cast<char*>(keyState));
-    }
+
     static unsigned char prevKeyState[256] = {};
 
     if (keyState[KEY_INPUT_LSHIFT] && keyState[KEY_INPUT_W]) m_isRunMode = true;
@@ -219,12 +216,12 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
 
     float timeScale = Game::GetTimeScale();
 
-    // ƒmƒbƒNƒoƒbƒNˆ—
+    // ãƒãƒƒã‚¯ãƒãƒƒã‚¯å‡¦ç†
     if (VSize(m_knockbackVelocity) > 0.0f)
     {
         m_modelPos = VAdd(m_modelPos, VScale(m_knockbackVelocity, timeScale));
-        m_knockbackVelocity = VScale(m_knockbackVelocity, 0.9f); // Œ¸Š
-        if (VSize(m_knockbackVelocity) < 0.1f)
+        m_knockbackVelocity = VScale(m_knockbackVelocity, PlayerMovementConstants::kKnockbackDamping);
+        if (VSize(m_knockbackVelocity) < PlayerMovementConstants::kKnockbackStopThreshold)
         {
             m_knockbackVelocity = VGet(0, 0, 0);
         }
@@ -257,61 +254,62 @@ void PlayerMovement::UpdateNormalMode(float deltaTime, Camera* pCamera, bool isD
 
 void PlayerMovement::UpdateAirControl(const VECTOR& moveDir, Camera* pCamera, float timeScale)
 {
-    m_isMoving = true; // Šµ«‚É‚æ‚è‹ó’†‚ğˆÚ“®’†‚Ì‚½‚ßƒtƒ‰ƒO‚ğ—§‚Ä‚é
+    m_isMoving = true;
 
-    m_modelPos = VAdd(m_modelPos, VScale(m_jumpMoveVelocity, timeScale)); // Šµ«ƒxƒNƒgƒ‹‚Éƒ^ƒCƒ€ƒXƒP[ƒ‹‚ğ“K—p‚µAƒvƒŒƒCƒ„[À•W‚ğXV
+    // æ…£æ€§é€Ÿåº¦ãƒ™ã‚¯ãƒˆãƒ«ã«ã‚¿ã‚¤ãƒ ã‚¹ã‚±ãƒ¼ãƒ«ã‚’é©ç”¨ã—ã¦ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼åº§æ¨™ã‚’æ›´æ–°
+    m_modelPos = VAdd(m_modelPos, VScale(m_jumpMoveVelocity, timeScale));
 
-    // “ü—Í‚ª‚È‚¢A‚Ü‚½‚ÍƒJƒƒ‰‚ª‘¶İ‚µ‚È‚¢ê‡‚ÍˆÈŒã‚Ìp¨§Œä‚ğƒXƒLƒbƒv
+    // å…¥åŠ›ãŒãªã„ã€ã¾ãŸã¯ã‚«ãƒ¡ãƒ©ãŒå­˜åœ¨ã—ãªã„å ´åˆã¯ä»¥é™ã®ä¿®æ­£å‡¦ç†ã‚’ã‚¹ã‚­ãƒƒãƒ—
     if (VSize(moveDir) <= 0.0f || !pCamera) return;
 
     float currentSpeed = ((m_isRunMode || m_isRunJumping) ? m_runSpeed : m_moveSpeed) * timeScale;
     float inertiaSpeed = VSize(m_jumpMoveVelocity);
 
-    // Šµ«‚ª‚Ù‚Ú–³‚¢ê‡‚Í’¼ÚˆÊ’u‚ğ‰ÁZ‚µ‚ÄI—¹iˆ—‚ÌŠÈ—ª‰»j
-    if (inertiaSpeed <= 0.1f)
+    // æ…£æ€§é€Ÿåº¦ãŒæ¥µã‚ã¦å°ã•ã„å ´åˆã¯ç›´æ¥ä½ç½®ã‚’åŠ ç®—ã—ã¦çµ‚äº†
+    if (inertiaSpeed <= PlayerMovementConstants::kInertiaSpeedThreshold)
     {
         m_modelPos = VAdd(m_modelPos, VScale(moveDir, currentSpeed * PlayerMovementConstants::kAirControlFactor));
         return;
     }
 
-    // ‹ó’†§Œä
+    // ç©ºä¸­åˆ¶å¾¡
     float yaw = pCamera->GetYaw();
     VECTOR camFwd   = VGet(sinf(yaw), 0.0f, cosf(yaw));
     VECTOR camRight = VGet(sinf(yaw + DX_PI_F * 0.5f), 0.0f, cosf(yaw + DX_PI_F * 0.5f));
     float dotFwd    = VDot(moveDir, camFwd);
     float dotRight  = VDot(moveDir, camRight);
 
-    // [ƒXƒgƒŒƒCƒt§Œä] –Ú•W‚Ì‰¡ˆÚ“®‘¬“x‚ğZo‚µALerp‚ÅŠŠ‚ç‚©‚É‰ÁŒ¸‘¬
+    // [ã‚¹ãƒˆãƒ¬ã‚¤ãƒ•] ç›®æ¨™ã®æ¨ªç§»å‹•é€Ÿåº¦ã‚’ç®—å‡ºã—ã€Lerp ã§æ»‘ã‚‰ã‹ã«åŠ é€Ÿ
     VECTOR targetSideVelocity = VScale(camRight, dotRight * currentSpeed * PlayerMovementConstants::kAirControlFactor);
     m_airSideControlVelocity.x += (targetSideVelocity.x - m_airSideControlVelocity.x) * PlayerMovementConstants::kAirAccelFactor * timeScale;
     m_airSideControlVelocity.z += (targetSideVelocity.z - m_airSideControlVelocity.z) * PlayerMovementConstants::kAirAccelFactor * timeScale;
     m_modelPos = VAdd(m_modelPos, m_airSideControlVelocity);
 
-    // [ù‰ñi‘Çæ‚èj§Œä] ƒWƒƒƒ“ƒvŠJn‚©‚ç‚ÌƒJƒƒ‰‰ñ“]—Ê‚ğ-ƒÎ`ƒÎ‚É³‹K‰»
+    // [å‰æ–¹è¿½å¾“] ã‚¸ãƒ£ãƒ³ãƒ—é–‹å§‹ã‹ã‚‰ã®ã‚«ãƒ¡ãƒ©å›è»¢é‡ã‚’ -Ï€ã€œÏ€ ã«æ­£è¦åŒ–
     float diffYaw = yaw - m_jumpStartYaw;
     while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
     while (diffYaw >   DX_PI_F) diffYaw -= DX_TWO_PI_F;
 
     if (fabsf(diffYaw) < DX_PI_F * 0.5f && dotFwd > 0.0f)
     {
-        VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor * 0.1f);
+        VECTOR steerForce = VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor * PlayerMovementConstants::kAirSteerFactor);
         m_jumpMoveVelocity = VAdd(m_jumpMoveVelocity, steerForce);
-        if (VSize(m_jumpMoveVelocity) > 0.001f) 
+        if (VSize(m_jumpMoveVelocity) > PlayerMovementConstants::kJumpVelocityMinSize)
         {
             m_jumpMoveVelocity = VScale(VNorm(m_jumpMoveVelocity), m_jumpSpeedScalar);
         }
     }
 
-    // [‹ó’†ƒuƒŒ[ƒL§Œä] Šµ«‚Æ‹t•ûŒü‚Ö‚Ì“ü—Í‚ª‚ ‚éê‡‚ÍLerp‚Å©‘R‚ÉŒ¸‘¬
+    // [ç©ºä¸­ãƒ–ãƒ¬ãƒ¼ã‚­] æ…£æ€§ã¨é€†æ–¹å‘ã¸ã®å…¥åŠ›ãŒã‚ã‚‹å ´åˆã€Lerp ã§è‡ªç„¶ã«æ¸›é€Ÿ
     VECTOR inertiaDir = VNorm(m_jumpMoveVelocity);
     float fwdProjDot  = VDot(VScale(camFwd, dotFwd * currentSpeed * PlayerMovementConstants::kAirControlFactor), inertiaDir);
-    
+
     if (fwdProjDot < 0.0f)
     {
-        float curSpeed = VSize(m_jumpMoveVelocity);
+        float curSpeed    = VSize(m_jumpMoveVelocity);
         float targetSpeed = (std::max)(0.0f, curSpeed + fwdProjDot);
-        float newSpeed = curSpeed + (targetSpeed - curSpeed) * PlayerMovementConstants::kAirBrakeFactor * timeScale;
-        
+        float newSpeed    = curSpeed + (targetSpeed - curSpeed) * PlayerMovementConstants::kAirBrakeFactor * timeScale;
+
         m_jumpMoveVelocity = VScale(inertiaDir, newSpeed);
         m_jumpSpeedScalar  = newSpeed;
     }
@@ -322,8 +320,7 @@ void PlayerMovement::ApplyKnockback(const VECTOR& velocity)
     m_knockbackVelocity = velocity;
 }
 
-VECTOR PlayerMovement::CalculateMoveDirection(Camera* pCamera,
-    const unsigned char* keyState)
+VECTOR PlayerMovement::CalculateMoveDirection(Camera* pCamera, const unsigned char* keyState)
 {
     if (!pCamera) return VGet(0, 0, 0);
 
@@ -365,14 +362,14 @@ void PlayerMovement::HandleJump(const unsigned char* keyState,
     if (keyState[KEY_INPUT_SPACE] && !prevKeyState[KEY_INPUT_SPACE] && m_coyoteTimeTimer > 0.0f && !m_isJumping)
     {
         m_jumpVelocity = m_isRunMode ? PlayerMovementConstants::kRunJumpPower : PlayerMovementConstants::kJumpPower;
-        m_isJumping = true;
+        m_isJumping    = true;
         m_isRunJumping = m_isRunMode;
         m_coyoteTimeTimer = 0.0f;
 
         if (VSize(moveDir) > 0.0f)
         {
             m_isJumpInertiaActive = true;
-            m_jumpMoveVelocity = VScale(moveDir, m_isRunMode ? m_runSpeed : m_moveSpeed);
+            m_jumpMoveVelocity    = VScale(moveDir, m_isRunMode ? m_runSpeed : m_moveSpeed);
             if (pCamera) m_jumpStartYaw = pCamera->GetYaw();
             m_jumpSpeedScalar = VSize(m_jumpMoveVelocity);
         }
@@ -393,17 +390,17 @@ void PlayerMovement::HandlePhysics(bool isOnGround, Camera* pCamera)
         if (m_modelPos.y <= kGroundY)
         {
             m_modelPos.y = kGroundY;
-            
-            // ’µ–ô’†A‚Ü‚½‚Íˆê’èˆÈã‚ÌŠÔE‘¬“x‚Å—‰º’†‚É’…’n‚µ‚½ê‡‚Ì‚İu’…’nv‚Æ‚İ‚È‚·
-            // Î–Ê‚ğ~‚è‚éÛ‚È‚Ç‚Ì”÷¬‚È•‚‚«ã‚ª‚è‚É‚æ‚éSE˜A‘Å‚ğ–h~ (0.15sˆÈã‚Ì‘Ø‹ó‚ª•K—v)
-            if (m_isJumping || (m_airborneTime > 0.15f && m_jumpVelocity < -1.5f))
+
+            // ã‚¸ãƒ£ãƒ³ãƒ—çŠ¶æ…‹ã€ã¾ãŸã¯ä¸€å®šä»¥ä¸Šã®æ»ç©ºæ™‚é–“ãƒ»é€Ÿåº¦ã§è½ä¸‹ã—ã¦ç€åœ°ã—ãŸå ´åˆã®ã¿ã€Œç€åœ°ã€ã¨ã¿ãªã™
+            // æ–œé¢ã®æ»‘ã‚Šæ­¢ã‚ãªã©ã®å¾®ç´°ãªæµ®ãæ²ˆã¿ã«ã‚ˆã‚‹ SE å†ç”Ÿã‚’é˜²æ­¢ï¼ˆ0.15s ä»¥ä¸Šã®æ»ç©ºãŒå¿…è¦ï¼‰
+            if (m_isJumping || (m_airborneTime > PlayerMovementConstants::kAirborneTimeThreshold && m_jumpVelocity < PlayerMovementConstants::kLandingVelocityThreshold))
             {
-                m_justLanded = true;
+                m_justLanded     = true;
                 m_impactVelocity = m_jumpVelocity;
             }
 
             m_jumpVelocity = 0.0f;
-            m_isJumping = false;
+            m_isJumping    = false;
 
             if (m_wasJumping && pCamera)
             {
@@ -412,80 +409,75 @@ void PlayerMovement::HandlePhysics(bool isOnGround, Camera* pCamera)
                 pCamera->ApplyLandingSway(swayPower);
                 if (m_isRunJumping)
                 {
-                    pCamera->Shake(PlayerMovementConstants::kRunLandingShakeIntensity + fabsf(lastJumpVelocity) *
-                        PlayerMovementConstants::kRunLandingShakeVelocityFactor, PlayerMovementConstants::kRunLandingShakeDuration);
+                    pCamera->Shake(
+                        PlayerMovementConstants::kRunLandingShakeIntensity + fabsf(lastJumpVelocity) * PlayerMovementConstants::kRunLandingShakeVelocityFactor,
+                        PlayerMovementConstants::kRunLandingShakeDuration);
                 }
             }
-            m_isRunJumping = false;
+            m_isRunJumping        = false;
             m_isJumpInertiaActive = false;
             m_airSideControlVelocity = VGet(0, 0, 0);
         }
     }
 }
 
-void PlayerMovement::ResolveCollisions(const std::vector<Stage::StageCollisionData>& collisionData, Camera* pCamera, bool isMoving)
+void PlayerMovement::ResolveCollisions(const std::vector<Stage::StageCollisionData>& collisionData,
+    Camera* pCamera, bool isMoving)
 {
     VECTOR posBefore = m_modelPos;
-    CollisionResult res = Collision::CheckStageCollision(m_modelPos, PlayerMovementConstants::kCapsuleHeight, PlayerMovementConstants::kCapsuleRadius,
-            PlayerMovementConstants::kPlayerColliderYOffset, collisionData);
-    m_isGroundedOnStage = res.isGrounded;
-    if (res.isGrounded)
-    {
-        m_groundedObjectName = res.groundedObjectName;
-    }
-    else
-    {
-        m_groundedObjectName = "";
-    }
+    CollisionResult res = Collision::CheckStageCollision(
+        m_modelPos,
+        PlayerMovementConstants::kCapsuleHeight,
+        PlayerMovementConstants::kCapsuleRadius,
+        PlayerMovementConstants::kPlayerColliderYOffset,
+        collisionData);
+    m_isGroundedOnStage  = res.isGrounded;
+    m_groundedObjectName = res.isGrounded ? res.groundedObjectName : "";
 
     if (m_isRunMode && !m_isJumping && isMoving)
     {
         float pushBackSq = powf(m_modelPos.x - posBefore.x, 2) + powf(m_modelPos.z - posBefore.z, 2);
-        bool isOnSlope = res.isGrounded && res.groundNormal.y > 0.6f;
-        if (pushBackSq > 1.0f && !isOnSlope) m_isRunMode = false;
+        bool isOnSlope   = res.isGrounded && res.groundNormal.y > PlayerMovementConstants::kSlopeNormalYThreshold;
+        if (pushBackSq > PlayerMovementConstants::kRunBlockPushBackSq && !isOnSlope) m_isRunMode = false;
     }
 
-    // ƒWƒƒƒ“ƒv’†A‚Ü‚½‚Íˆê’èˆÈã‚Ì‘Ø‹óŠÔE‘¬“x‚Å—‰º‚µ‚Ä’…’n‚µ‚½ê‡‚Ì‚İ’…’n”»’è‚Æ‚·‚é
-    // ‚±‚ê‚É‚æ‚èAÎ–Ê‚ğ‹ì‚¯‰º‚è‚éÛ‚È‚Ç‚Ì”÷¬‚ÈÚ’n”»’è‚Ì“rØ‚ê‚É‚æ‚éSEÄ¶‚ğ—}§‚·‚é
-    if (m_isGroundedOnStage && (m_isJumping || (m_airborneTime > 0.15f && m_jumpVelocity < -1.5f)))
+    // ã‚¸ãƒ£ãƒ³ãƒ—çŠ¶æ…‹ã€ã¾ãŸã¯ä¸€å®šä»¥ä¸Šã®æ»ç©ºæ™‚é–“ãƒ»é€Ÿåº¦ã§è½ä¸‹ã—ã¦ã‚¹ãƒ†ãƒ¼ã‚¸ã«ç€åœ°ã—ãŸå ´åˆã®ã¿ç€åœ°ã¨ã™ã‚‹
+    // æ–œé¢ã®æ»‘ã‚Šæ­¢ã‚ãªã©ã®å¾®ç´°ãªæ¥åœ°åˆ¤å®šã«ã‚ˆã‚‹ãƒˆãƒªã‚¬ãƒ¼ã®èª¤ç™ºç«ã‚’é˜²æ­¢
+    if (m_isGroundedOnStage && (m_isJumping || (m_airborneTime > PlayerMovementConstants::kAirborneTimeThreshold && m_jumpVelocity < PlayerMovementConstants::kLandingVelocityThreshold)))
     {
-        m_justLanded = true;
+        m_justLanded     = true;
         m_impactVelocity = m_jumpVelocity;
 
-        if ((m_wasJumping || m_jumpVelocity < -5.0f) && pCamera)
+        if ((m_wasJumping || m_jumpVelocity < PlayerMovementConstants::kHeavyLandingThreshold) && pCamera)
         {
             float sway = (m_isRunJumping ? PlayerMovementConstants::kRunLandingSwayPower : PlayerMovementConstants::kLandingSwayPower) +
                 fabsf(m_jumpVelocity) * PlayerMovementConstants::kLandingVelocityFactor;
             pCamera->ApplyLandingSway(sway);
             if (m_isRunJumping)
             {
-                pCamera->Shake(PlayerMovementConstants::kRunLandingShakeIntensity +
-                    fabsf(m_jumpVelocity) *
-                    PlayerMovementConstants::kRunLandingShakeVelocityFactor,
+                pCamera->Shake(
+                    PlayerMovementConstants::kRunLandingShakeIntensity + fabsf(m_jumpVelocity) * PlayerMovementConstants::kRunLandingShakeVelocityFactor,
                     PlayerMovementConstants::kRunLandingShakeDuration);
                 float diffYaw = pCamera->GetYaw() - m_jumpStartYaw;
                 while (diffYaw <= -DX_PI_F) diffYaw += DX_TWO_PI_F;
-                while (diffYaw > DX_PI_F) diffYaw -= DX_TWO_PI_F;
-
+                while (diffYaw >   DX_PI_F) diffYaw -= DX_TWO_PI_F;
                 if (fabsf(diffYaw) >= DX_PI_F * 0.5f) m_isRunMode = false;
             }
         }
-        m_isRunJumping = false;
+        m_isRunJumping        = false;
         m_isJumpInertiaActive = false;
         m_airSideControlVelocity = VGet(0, 0, 0);
         m_jumpVelocity = 0.0f;
-        m_isJumping = false;
+        m_isJumping    = false;
     }
 }
 
 void PlayerMovement::Jump(Camera* pCamera)
 {
-    bool canJump = (m_coyoteTimeTimer > 0.0f);
-
-    if (!m_isJumping && canJump)
+    if (!m_isJumping && m_coyoteTimeTimer > 0.0f)
     {
-        m_jumpVelocity = PlayerMovementConstants::kJumpPower;
-        m_isJumping = true;
+        m_jumpVelocity    = PlayerMovementConstants::kJumpPower;
+        m_isJumping       = true;
         m_coyoteTimeTimer = 0.0f;
         if (pCamera)
         {
