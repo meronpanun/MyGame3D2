@@ -14,38 +14,54 @@
 
 namespace EnemyConstants
 {
-    constexpr int kDefaultHitDisplayDuration = 60; // 1秒間表示
-    constexpr float kDefaultInitialHP        = 100.0f;    // デフォルトの初期体力
-    constexpr float kDefaultCooldownMax      = 60;      // 攻撃クールダウンの最大値
-    constexpr float kDefaultAttackPower = 10.0f;   // 攻撃力
+    constexpr int   kDefaultHitDisplayDuration = 60;     // ヒット表示の持続時間（フレーム数）
+    constexpr float kDefaultInitialHP          = 100.0f; // デフォルトの初期体力
+    constexpr int   kDefaultCooldownMax        = 60;     // デフォルトの攻撃クールダウン最大値（フレーム数）
+    constexpr float kDefaultAttackPower        = 10.0f;  // デフォルトの攻撃力
 
-	// 物理関連定数
-    constexpr float kCapsuleHeight   = 100.0f;
-    constexpr float kCapsuleRadius   = 30.0f;
-    constexpr float kColliderYOffset = 60.0f;
-    constexpr float kGravity         = 0.35f;
+    // 物理関連定数
+    constexpr float kCapsuleHeight   = 100.0f; // カプセルコライダーの高さ
+    constexpr float kCapsuleRadius   = 30.0f;  // カプセルコライダーの半径
+    constexpr float kColliderYOffset = 60.0f;  // コライダーのY座標オフセット
+    constexpr float kGravity         = 0.35f;  // 重力加速度
 
-	// 描画最適化関連定数
-    constexpr float kThrottlingSuperLongRangeSq = 1500.0f * 1500.0f;
-    constexpr float kThrottlingLongRangeSq      = 800.0f * 800.0f;
-    constexpr float kThrottlingMidRangeSq       = 400.0f * 400.0f;
-    constexpr float kThrottlingViewCheckDistSq  = 300.0f * 300.0f;
-    constexpr float kThrottlingFOVThreshold     = 0.4f;
-    constexpr int kUpdateIntervalSuperLong      = 10;
-    constexpr int kUpdateIntervalLong           = 5; // 3から5に増加
-    constexpr int kUpdateIntervalMid            = 2;
-    constexpr int kUpdateIntervalDefault        = 1;
-    constexpr float kBulletBroadPhaseDistSq     = 300.0f * 300.0f;
+    // 衝突解決関連定数
+    constexpr float kPushBackEpsilon      = 0.0001f; // ゼロ除算防止のための最小距離の二乗閾値
+    constexpr float kMinDistSqThreshold   = 0.0001f; // ゼロベクトル判定用の最小距離の二乗閾値
+    constexpr float kMinDistThreshold     = 0.001f;  // 視線判定における最小距離閾値
 
-	// 放物線運動関連定数
-    constexpr float kParabolicMinTime       = 20.0f;
-    constexpr float kParabolicTimeFactor    = 2.0f;
-    constexpr float kParabolicGravityFactor = 0.5f;
+    // 簡易モード関連定数
+    constexpr float kSimpleModeStopDist    = 50.0f;  // 簡易モード時の停止距離
+    constexpr float kSimpleModeRotateSpeed = 0.05f;  // 簡易モード時の旋回速度（ラジアン/フレーム）
 
-	// デバッグ表示関連定数
-    constexpr int kDebugBoxPaddingX = 20;
-    constexpr int kDebugBoxPaddingY = 10;
-    constexpr float kDebugBoxValidYRatio = 0.15f;
+    // AI間引き（更新最適化）関連定数
+    constexpr float kThrottlingSuperLongRangeSq = 1500.0f * 1500.0f; // 超遠距離判定の二乗距離閾値
+    constexpr float kThrottlingLongRangeSq      = 800.0f * 800.0f;   // 遠距離判定の二乗距離閾値
+    constexpr float kThrottlingMidRangeSq       = 400.0f * 400.0f;   // 中距離判定の二乗距離閾値
+    constexpr float kThrottlingViewCheckDistSq  = 300.0f * 300.0f;   // 視界判定を適用する二乗距離閾値
+    constexpr float kThrottlingFOVThreshold     = 0.4f;              // 視野外判定に使う内積閾値
+    constexpr int   kUpdateIntervalSuperLong    = 10; // 超遠距離時のAI更新フレーム間隔
+    constexpr int   kUpdateIntervalLong         = 5;  // 遠距離時のAI更新フレーム間隔
+    constexpr int   kUpdateIntervalMid          = 2;  // 中距離時のAI更新フレーム間隔
+    constexpr int   kUpdateIntervalDefault      = 1;  // 近距離時のAI更新フレーム間隔（毎フレーム）
+    constexpr float kBulletBroadPhaseDistSq     = 300.0f * 300.0f; // 弾の当たり判定ブロードフェーズ閾値
+
+    // 放物線運動関連定数
+    constexpr float kParabolicMinTime       = 20.0f; // 放物線弾の最低滞空時間（フレーム数）
+    constexpr float kParabolicTimeFactor    = 2.0f;  // 滞空時間算出に使う速度倍率
+    constexpr float kParabolicGravityFactor = 0.5f;  // 重力項の計算係数
+
+    // ダメージ計算関連定数
+    constexpr float kHeadshotMultiplier = 2.0f; // ヘッドショット時のダメージ倍率
+
+    // デバッグ表示関連定数
+    constexpr int   kDebugBoxPaddingX    = 20;    // デバッグ表示ボックスの横パディング
+    constexpr int   kDebugBoxPaddingY    = 10;    // デバッグ表示ボックスの縦パディング
+    constexpr int   kDebugBoxAlpha       = 128;   // デバッグ表示ボックスの背景透明度
+    constexpr float kDebugBoxValidYRatio = 0.15f; // デバッグ表示ボックスの縦位置（画面高さ比率）
+
+    // 敵同士の衝突解決で処理する最大対象数
+    constexpr int kMaxEnemyCollisionChecks = 8;
 }
 
 int EnemyBase::s_drawCount = 0;
@@ -69,7 +85,7 @@ EnemyBase::EnemyBase()
     , m_isAlive(true)
     , m_hasTakenTackleDamage(false)
     , m_attackCooldown(0)
-    , m_attackCooldownMax(static_cast<int>(EnemyConstants::kDefaultCooldownMax))
+    , m_attackCooldownMax(EnemyConstants::kDefaultCooldownMax)
     , m_attackPower(EnemyConstants::kDefaultAttackPower)
     , m_attackHitFrame(0)
     , m_isAttacking(false)
@@ -138,7 +154,7 @@ void EnemyBase::UpdateStandard(const EnemyUpdateContext& context)
     if (playerBodyCollider)
     {
         float minDist = GetBodyCollider()->GetRadius() + playerBodyCollider->GetRadius();
-        ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
+        ResolvePlayerCollision(playerBodyCollider, minDist, EnemyConstants::kPushBackEpsilon);
     }
 
     if (m_shouldUpdateAI)
@@ -146,7 +162,7 @@ void EnemyBase::UpdateStandard(const EnemyUpdateContext& context)
         std::vector<EnemyBase*> neighbors;
         if (context.collisionGrid) context.collisionGrid->GetNeighbors(m_pos, neighbors);
         const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : context.enemyList;
-        ResolveEnemyCollision(targets, GetBodyCollider()->GetRadius(), 0.0001f);
+        ResolveEnemyCollision(targets, GetBodyCollider()->GetRadius(), EnemyConstants::kPushBackEpsilon);
     }
 
     // 8. 弾のヒットチェック
@@ -200,13 +216,13 @@ void EnemyBase::UpdateSimpleMode(const EnemyUpdateContext& context)
     toTarget.y = 0.0f;
     float distToTarget = VSize(toTarget);
 
-    if (distToTarget > 50.0f) // 50.0f は一般的な停止距離
+    if (distToTarget > EnemyConstants::kSimpleModeStopDist)
     {
         VECTOR dir = VNorm(toTarget);
-        float step = (std::min)(distToTarget - 50.0f, m_chaseSpeed * Game::GetTimeScale());
+        float step = (std::min)(distToTarget - EnemyConstants::kSimpleModeStopDist, m_chaseSpeed * Game::GetTimeScale());
         m_pos.x += dir.x * step;
         m_pos.z += dir.z * step;
-        RotateTowards(targetPos, 0.05f * Game::GetTimeScale());
+        RotateTowards(targetPos, EnemyConstants::kSimpleModeRotateSpeed * Game::GetTimeScale());
     }
 
     UpdateStageCollision(context.collisionData, context.collisionGrid);
@@ -310,7 +326,6 @@ void EnemyBase::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
     }
 }
 
-// 敵がダメージを受ける処理
 void EnemyBase::TakeDamage(float damage, AttackType type)
 {
     m_lastAttackType = type;
@@ -326,7 +341,7 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
             {
                 m_onDeathWithTypeCallback(m_pos, m_lastAttackType);
             }
-            OnDeath(); // 敵が死亡した際にOnDeathを呼び出す
+            OnDeath();
         }
     }
 
@@ -356,7 +371,6 @@ void EnemyBase::TakeDamage(float damage, AttackType type)
     }
 }
 
-// 敵がタックルダメージを受ける処理
 void EnemyBase::TakeTackleDamage(float damage)
 {
     TakeDamage(damage, AttackType::Tackle);
@@ -424,7 +438,7 @@ bool EnemyBase::IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos,
 {
     VECTOR dir = VSub(targetPos, startPos);
     float dist = VSize(dir);
-    if (dist < 0.001f) return true;
+    if (dist < EnemyConstants::kMinDistThreshold) return true;
     dir = VNorm(dir);
 
     float t;
@@ -544,7 +558,6 @@ void EnemyBase::UpdateThrottling(const VECTOR& playerPos)
     }
 }
 
-// デバッグ用ダメージ描画
 void EnemyBase::DrawDebugDamage()
 {
     if (s_shouldShowDamage && s_debugDamageTimer > 0)
@@ -575,7 +588,7 @@ void EnemyBase::DrawDebugDamage()
         int boxY = static_cast<int>(screenH * EnemyConstants::kDebugBoxValidYRatio); // 画面上部から15%の位置
 
         // 半透明背景描画 (黒, alpha=128)
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, EnemyConstants::kDebugBoxAlpha);
         DrawBox(boxX, boxY, boxX + boxW, boxY + boxH, 0x000000, true);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -584,7 +597,6 @@ void EnemyBase::DrawDebugDamage()
     }
 }
 
-// Transformデータをロードする
 bool EnemyBase::LoadTransformData(const std::string& enemyName)
 {
     auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
@@ -604,12 +616,11 @@ bool EnemyBase::LoadTransformData(const std::string& enemyName)
     return false;
 }
 
-// ターゲットに向かって回転する
 void EnemyBase::RotateTowards(const VECTOR& targetPos, float rotationSpeed)
 {
     VECTOR toTarget = VSub(targetPos, m_pos);
     toTarget.y = 0.0f;
-    if (VSquareSize(toTarget) < 0.0001f) return;
+    if (VSquareSize(toTarget) < EnemyConstants::kMinDistSqThreshold) return;
 
     float yaw = atan2f(toTarget.x, toTarget.z) + DX_PI_F;
     float currentYaw = MV1GetRotationXYZ(m_modelHandle).y;
@@ -629,7 +640,6 @@ void EnemyBase::RotateTowards(const VECTOR& targetPos, float rotationSpeed)
     MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, currentYaw, 0.0f));
 }
 
-// 描画すべきかどうかを判定
 bool EnemyBase::ShouldDraw(float drawDistSq, float nearDistSq, float dotThreshold) const
 {
     // 描画カリングによる描画負荷の最適化
@@ -656,7 +666,6 @@ bool EnemyBase::ShouldDraw(float drawDistSq, float nearDistSq, float dotThreshol
     return dot >= dotThreshold;
 }
 
-// プレイヤーとの衝突（押し出し）処理
 void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& playerCol, float radiusSum, float pushBackEpsilon)
 {
     auto myCol = GetBodyCollider();
@@ -678,8 +687,8 @@ void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& p
             {
                 VECTOR pushDir = VSub(enemyCenter, playerCenter);
                 pushDir.y = 0.0f;
-                // 水平成分がある場合のみ
-                if (VDot(pushDir, pushDir) > pushBackEpsilon)
+                // 水平成分がある場合のみ押し出しを適用する
+                if (VDot(pushDir, pushDir) > EnemyConstants::kMinDistSqThreshold)
                 {
                     pushDir = VNorm(pushDir);
                     m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
@@ -689,17 +698,15 @@ void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& p
     }
 }
 
-// 敵同士の衝突（押し出し）処理
 void EnemyBase::ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, float radius, float pushBackEpsilon)
 {
-    // 密集対策: 計算負荷を一定に保つため、判定対象を最大8体までに制限する
+    // 密集対策: 計算負荷を一定に保つため、判定対象を最大数までに制限する
     int count = 0;
-    constexpr int kMaxCollisionChecks = 8;
 
     for (EnemyBase* other : targets)
     {
         if (!other || other == this) continue;
-        if (++count > kMaxCollisionChecks) break;
+        if (++count > EnemyConstants::kMaxEnemyCollisionChecks) break;
 
         VECTOR otherPos = other->GetPos();
         VECTOR diff = VSub(m_pos, otherPos);
@@ -720,10 +727,9 @@ void EnemyBase::ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, fl
     }
 }
 
-// 弾のダメージを計算する（デフォルト実装）
 float EnemyBase::CalcDamage(float bulletDamage, HitPart part) const
 {
-    if (part == HitPart::Head) return bulletDamage * 2.0f;
+    if (part == HitPart::Head) return bulletDamage * EnemyConstants::kHeadshotMultiplier;
     if (part == HitPart::Body) return bulletDamage;
     return 0.0f;
 }

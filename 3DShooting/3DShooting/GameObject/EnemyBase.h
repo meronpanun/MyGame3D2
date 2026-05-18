@@ -29,7 +29,7 @@ struct EnemyUpdateContext
 
 namespace EnemyConstants
 {
-    constexpr int kDebugDamageDisplayTimer = 120;
+    constexpr int kDebugDamageDisplayTimer = 120; // デバッグダメージ表示の持続時間（フレーム数）
 }
 
 /// <summary>
@@ -212,9 +212,9 @@ public:
     void SetLastAttackType(AttackType type) { m_lastAttackType = type; }
 
     /// <summary>
-    /// 最後に当たった部位を取得する
+    /// 死亡時に攻撃タイプ付きで呼ばれるコールバックを設定する
     /// </summary>
-    /// <param name="cb">最後に当たった部位</param>
+    /// <param name="cb">死亡時に呼ばれるコールバック関数</param>
     virtual void SetOnDeathWithTypeCallback(std::function<void(const VECTOR&, AttackType)> cb) { m_onDeathWithTypeCallback = cb; }
 
     /// <summary>
@@ -336,12 +336,12 @@ protected:
 
 protected:
     VECTOR m_pos;          // 位置
-    VECTOR m_targetOffset; // ターゲット座標オフセット
+    VECTOR m_targetOffset; // ターゲット座標オフセット（プレイヤー位置にランダムオフセットを加えた追跡目標）
 
-    std::shared_ptr<Player> m_pTargetPlayer;               // ターゲットプレイヤー
-    std::function<void(const VECTOR&)> m_onDeathCallback; // 死亡コールバック
-    std::function<void(HitPart, float)> m_onHitCallback;   // 部位情報付き
-    std::function<void(const VECTOR&, AttackType)> m_onDeathWithTypeCallback;
+    std::shared_ptr<Player> m_pTargetPlayer;                                   // 追跡対象のプレイヤー
+    std::function<void(const VECTOR&)> m_onDeathCallback;                      // 死亡時に呼ばれるコールバック
+    std::function<void(HitPart, float)> m_onHitCallback;                       // ヒット時に呼ばれるコールバック（部位・ダメージ量付き）
+    std::function<void(const VECTOR&, AttackType)> m_onDeathWithTypeCallback;  // 死亡時に攻撃タイプ付きで呼ばれるコールバック
 
     HitPart m_lastHitPart; // 最後に当たった部位
 
@@ -357,10 +357,10 @@ protected:
     float m_attackPower; // 攻撃力
     float m_chaseSpeed;  // 追跡速度
 
-    bool m_isAlive;     // 生存状態フラグ
-    bool m_hasTakenTackleDamage; // タックルで既にダメージを受けたか
-    bool m_isAttacking; // 攻撃中かどうか
-    bool m_isActive;    // デフォルトはアクティブ
+    bool m_isAlive;              // 生存状態フラグ
+    bool m_hasTakenTackleDamage; // 同一タックルで複数回ダメージを受けないためのフラグ
+    bool m_isAttacking;          // 攻撃中かどうか
+    bool m_isActive;             // 更新・描画対象かどうか（非アクティブ時はスキップ）
 
     // 重力関連
     float m_verticalVelocity; // 垂直方向の速度
@@ -368,11 +368,11 @@ protected:
 
     AttackType m_lastAttackType = AttackType::None;
 
-    // AI Throttling
-    int m_updateFrameCount;
-    int m_aiUpdateInterval;
-    bool m_isSimpleMode;
-    bool m_shouldUpdateAI;
+    // AIの間引き（距離に応じて遠い敵のAI更新頻度を下げる）
+    int m_updateFrameCount;  // 現在の更新フレームカウント
+    int m_aiUpdateInterval;  // AIを実行するフレーム間隔
+    bool m_isSimpleMode;     // 簡易動作モード中かどうか（遠距離時）
+    bool m_shouldUpdateAI;   // 今フレームにAI更新を実行するかどうか
 
 protected:
     static int s_drawCount;
