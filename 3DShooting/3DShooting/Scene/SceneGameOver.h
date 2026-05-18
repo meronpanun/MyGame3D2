@@ -10,11 +10,29 @@
 class SceneGameOver : public SceneBase
 {
 public:
+    /// <summary>
+    /// コンストラクタ
+    /// </summary>
+    /// <param name="wave">生き残ったウェーブ数</param>
+    /// <param name="killCount">倒した敵の数</param>
+    /// <param name="score">獲得スコア</param>
     SceneGameOver(int wave, int killCount, int score);
-    virtual ~SceneGameOver();
+    virtual ~SceneGameOver() = default;
 
+    /// <summary>
+    /// 初期化処理（マウス表示・BGM再生など）
+    /// </summary>
     void Init() override;
+
+    /// <summary>
+    /// 毎フレームの更新処理
+    /// </summary>
+    /// <returns>遷移先シーンのポインタ（遷移しない場合はnullptrを返す）</returns>
     SceneBase* Update() override;
+
+    /// <summary>
+    /// 描画処理
+    /// </summary>
     void Draw() override;
 
 private:
@@ -28,34 +46,41 @@ private:
     /// </summary>
     void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
 
+    /// <summary>
+    /// UIスケールに合わせてフォントを再生成する
+    /// </summary>
+    /// <param name="scale">UIスケール値</param>
     void ReloadFonts(float scale);
 
 private:
     // リソース管理
-    ManagedGraph m_background;           // 背景画像のハンドル
-    ManagedGraph m_gameOverImage;        // ゲームオーバー画像のハンドル
-    ManagedGraph m_gameOverImage2;       // ゲームオーバー画像2（乱れた画像）
-    ManagedGraph m_gameOverImage3;       // ゲームオーバー画像3（乱れた画像）
-    ManagedFont m_japaneseFont;          // 日本語フォントハンドル
-    ManagedFont m_arialBlackFont;        // Arial Blackフォントハンドル
-    ManagedFont m_arialBlackLargeFont;   // Arial Blackラージフォントハンドル
-    ManagedFont m_japaneseLargeFont;     // 日本語ラージフォントハンドル
-    ManagedFont m_japaneseButtonFont;    // 日本語ボタンフォントハンドル
+    ManagedGraph m_background;         // 背景画像のハンドル
+    ManagedGraph m_gameOverImage;      // ゲームオーバー画像のハンドル
+    ManagedGraph m_gameOverImage2;     // ゲームオーバー画像2（乱れた画像）
+    ManagedGraph m_gameOverImage3;     // ゲームオーバー画像3（乱れた画像）
+    ManagedFont m_japaneseFont;        // 日本語フォントハンドル
+    ManagedFont m_arialBlackFont;      // Arial Blackフォントハンドル
+    ManagedFont m_arialBlackLargeFont; // Arial Blackラージフォントハンドル
+    ManagedFont m_japaneseLargeFont;   // 日本語ラージフォントハンドル
+    ManagedFont m_japaneseButtonFont;  // 日本語ボタンフォントハンドル
 
     // ゲーム結果情報
-    int m_wave;      // ウェーブ
-    int m_killCount; // キル数
-    int m_score;     // スコア
+    int m_wave;      // 生き残ったウェーブ数
+    int m_killCount; // 倒した敵の数
+    int m_score;     // 獲得スコア
 
     // 背景スクロール管理
     float m_scrollX; // 背景のスクロールX座標
     float m_scrollY; // 背景のスクロールY座標
 
     // 演出管理
-    int m_currentImageIndex; // 現在表示中の画像インデックス
-    int m_imageChangeTimer;    // 画像切り替えタイマー
-    int m_imageChangeInterval; // 画像切り替え間隔（フレーム数）
+    int m_currentImageIndex;  // 現在表示中の画像インデックス
+    int m_imageChangeTimer;   // 画像切り替えタイマー
+    int m_imageChangeInterval;// 画像切り替え間隔（フレーム数）
 
+    /// <summary>
+    /// 画面解像度に応じたレイアウト座標を保持する構造体
+    /// </summary>
     struct GameOverLayout
     {
         // 画像

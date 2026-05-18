@@ -9,15 +9,45 @@
 
 namespace SceneGameOverConstants
 {
-    constexpr int kButtonWidth = 220;       // ボタンの幅
-    constexpr int kButtonHeight = 60;       // ボタンの高さ
-    constexpr int kButtonSpacing = 40;      // ボタン間のスペース
-    constexpr int kBgImageSize = 1024;      // 背景画像のサイズ
-    constexpr float kScrollSpeed = 1.0f;    // 背景のスクロール速度
-    constexpr int kImageChangeInterval = 3; // 画像切り替え間隔（フレーム数）
+    // 背景スクロール
+    constexpr int   kBgImageSize   = 1024;  // 背景画像のサイズ（ピクセル）
+    constexpr float kScrollSpeed   = 1.0f;  // 背景のスクロール速度
 
-    // テキスト間隔
-    constexpr float kTextInterval = 70.0f;
+    // 画像切り替え演出
+    constexpr int kImageChangeInterval      =  3; // 初期の切り替え間隔（フレーム）
+    constexpr int kImageChangeIntervalMin   =  5; // ランダム切り替え間隔の最小値
+    constexpr int kImageChangeIntervalRange = 30; // ランダム切り替え間隔の幅
+
+    // テキスト
+    constexpr float kTextInterval = 70.0f; // テキスト行間（UIスケール前）
+
+    // レイアウト - 画像
+    constexpr float kImageNativeWidth  = 1024.0f; // 画像の元の幅（ピクセル）
+    constexpr float kImageNativeHeight = 1110.0f; // 画像の元の高さ（ピクセル）
+    constexpr float kImageScale        =    0.4f; // 画像の表示スケール
+    constexpr float kTopMarginRatio    =   0.04f; // 画面上端マージンの割合
+
+    // レイアウト - リザルト背景
+    constexpr float kResBgBaseW      = 700.0f; // リザルト背景の基準幅（UIスケール前）
+    constexpr float kResBgBaseH      = 260.0f; // リザルト背景の基準高さ（UIスケール前）
+    constexpr float kImageToResBgGap =  20.0f; // 画像とリザルト背景の間隔
+
+    // レイアウト - テキスト
+    constexpr float kTextLabelOffsetX = 100.0f; // ラベル左端のXオフセット
+    constexpr float kTextValueOffsetX = 450.0f; // 値左端のXオフセット
+    constexpr float kTextBaseOffsetY  =  40.0f; // テキスト開始Yオフセット
+
+    // レイアウト - ボタン
+    constexpr float kBtnBaseW       = 270.0f; // ボタンの基準幅
+    constexpr float kBtnBaseH       =  70.0f; // ボタンの基準高さ
+    constexpr float kBtnSpacingBase =  60.0f; // ボタン間の基準スペース
+    constexpr float kBtnToResBgGap  =  40.0f; // リザルト背景とボタン間の間隔
+
+    // 描画パラメータ
+    constexpr int   kOverlayAlpha   = 128;   // 黒オーバーレイのアルファ値（0〜255）
+    constexpr int   kResBgAlpha     = 200;   // リザルト背景のアルファ値（0〜255）
+    constexpr int   kShadowOffset   =   2;   // テキスト影のピクセルオフセット
+    constexpr float kButtonFontSize =  36.0f; // ボタンテキストのフォントサイズ
 }
 
 using namespace SceneGameOverConstants;
@@ -52,11 +82,6 @@ void SceneGameOver::ReloadFonts(float scale)
     m_arialBlackLargeFont.Reload(scale);
     m_japaneseLargeFont.Reload(scale);
     m_japaneseButtonFont.Reload(scale);
-}
-
-SceneGameOver::~SceneGameOver()
-{
-    // 自動解放されるため処理不要
 }
 
 void SceneGameOver::Init()
@@ -94,8 +119,7 @@ SceneBase* SceneGameOver::Update()
 
         m_imageChangeTimer = 0;
 
-        // より頻繁な切り替え
-        m_imageChangeInterval = 5 + (rand() % 30);
+        m_imageChangeInterval = kImageChangeIntervalMin + (rand() % kImageChangeIntervalRange);
     }
 
     if (InputManager::GetInstance()->IsTriggerMouseLeft())
@@ -159,7 +183,7 @@ void SceneGameOver::Draw()
     }
 
     // 全体への黒半透明オーバーレイで文字を読みやすくする
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kOverlayAlpha);
     DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -188,8 +212,7 @@ void SceneGameOver::Draw()
                     currentImageHandle, true);
 
     // リザルト表示エリアの背景（グラデーション）
-    // SceneResultと同様の配色
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 200);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kResBgAlpha);
     DrawGradientBox(m_layout.resBgX, m_layout.resBgY,
                     m_layout.resBgX + m_layout.resBgW,
                     m_layout.resBgY + m_layout.resBgH, 0x000000, 0x404040);
@@ -205,7 +228,7 @@ void SceneGameOver::Draw()
     float scale = Game::GetUIScale();
     int textInterval = static_cast<int>(kTextInterval * scale);
     int textY = m_layout.textBaseY;
-    int shadowOffset = 2; // 影のオフセット
+    const int shadowOffset = kShadowOffset;
 
     // テキスト配置
     char waveStr[64];
@@ -262,7 +285,7 @@ void SceneGameOver::Draw()
 
         // テキスト
         int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
-        int textHeight = static_cast<int>(36 * Game::GetUIScale()); // フォントサイズに合わせて調整
+        int textHeight = static_cast<int>(kButtonFontSize * Game::GetUIScale());
         int textX = x1 + static_cast<int>((x2 - x1 - textWidth) * 0.5f);
         int textY = y1 + static_cast<int>((y2 - y1 - textHeight) * 0.5f);
 
@@ -339,46 +362,44 @@ void SceneGameOver::UpdateLayout()
     float scale = Game::GetUIScale();
 
     // 画像サイズの計算
-    float imageAspect = 1024.0f / 1110.0f;
-    float screenAspect = (float)screenW / (float)screenH;
+    float imageAspect  = kImageNativeWidth / kImageNativeHeight;
+    float screenAspect = static_cast<float>(screenW) / static_cast<float>(screenH);
     int drawWidth, drawHeight;
     if (imageAspect > screenAspect)
     {
-        drawWidth = screenW;
+        drawWidth  = screenW;
         drawHeight = static_cast<int>(screenW / imageAspect);
     }
     else
     {
         drawHeight = screenH;
-        drawWidth = static_cast<int>(screenH * imageAspect);
+        drawWidth  = static_cast<int>(screenH * imageAspect);
     }
-    // 縮小スケール
-    const float kScale = 0.4f;
-    m_layout.imageDrawWidth = static_cast<int>(drawWidth * kScale);
-    m_layout.imageDrawHeight = static_cast<int>(drawHeight * kScale);
+    m_layout.imageDrawWidth  = static_cast<int>(drawWidth  * kImageScale);
+    m_layout.imageDrawHeight = static_cast<int>(drawHeight * kImageScale);
 
     // 画面上部に配置
-    const int kTopMargin = static_cast<int>(screenH * 0.04f);
+    const int topMargin = static_cast<int>(screenH * kTopMarginRatio);
     m_layout.imageDrawX = static_cast<int>((screenW - m_layout.imageDrawWidth) * 0.5f);
-    m_layout.imageDrawY = kTopMargin;
+    m_layout.imageDrawY = topMargin;
 
     // リザルト表示エリア
-    m_layout.resBgW = static_cast<int>(700 * scale);
-    m_layout.resBgH = static_cast<int>(260 * scale);
+    m_layout.resBgW = static_cast<int>(kResBgBaseW * scale);
+    m_layout.resBgH = static_cast<int>(kResBgBaseH * scale);
     m_layout.resBgX = static_cast<int>((screenW - m_layout.resBgW) * 0.5f);
-    m_layout.resBgY = m_layout.imageDrawY + m_layout.imageDrawHeight + static_cast<int>(20 * scale);
+    m_layout.resBgY = m_layout.imageDrawY + m_layout.imageDrawHeight + static_cast<int>(kImageToResBgGap * scale);
 
     // テキスト配置
-    m_layout.textLabelX = m_layout.resBgX + static_cast<int>(100 * scale);
-    m_layout.textValueX = m_layout.resBgX + static_cast<int>(450 * scale);
-    m_layout.textBaseY = m_layout.resBgY + static_cast<int>(40 * scale);
+    m_layout.textLabelX = m_layout.resBgX + static_cast<int>(kTextLabelOffsetX * scale);
+    m_layout.textValueX = m_layout.resBgX + static_cast<int>(kTextValueOffsetX * scale);
+    m_layout.textBaseY  = m_layout.resBgY + static_cast<int>(kTextBaseOffsetY  * scale);
 
     // ボタン
-    m_layout.btnW = static_cast<int>(270 * scale);
-    m_layout.btnH = static_cast<int>(70 * scale);
-    int btnSpacing = static_cast<int>(60 * scale);
-    int centerX = static_cast<int>(screenW * 0.5f);
-    int btnBaseY = m_layout.resBgY + m_layout.resBgH + static_cast<int>(40 * scale);
+    m_layout.btnW      = static_cast<int>(kBtnBaseW       * scale);
+    m_layout.btnH      = static_cast<int>(kBtnBaseH       * scale);
+    int btnSpacing     = static_cast<int>(kBtnSpacingBase  * scale);
+    int centerX        = static_cast<int>(screenW * 0.5f);
+    int btnBaseY       = m_layout.resBgY + m_layout.resBgH + static_cast<int>(kBtnToResBgGap * scale);
 
     // タイトルに戻るボタン
     m_layout.titleBtnX1 = static_cast<int>(centerX - m_layout.btnW - btnSpacing * 0.5f);
