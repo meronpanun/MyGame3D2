@@ -180,7 +180,6 @@
     <ClCompile Include="GameObject\EnemyRunner.cpp" />
     <ClCompile Include="GameObject\EnemyRunnerState.cpp" />
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GameObject\ItemBase.cpp" />
     <ClCompile Include="GameObject\PlayerEffectManager.cpp" />
     <ClCompile Include="GameObject\PlayerMovement.cpp" />
     <ClCompile Include="GameObject\PlayerShieldSystem.cpp" />

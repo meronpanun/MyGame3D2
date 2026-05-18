@@ -1,4 +1,4 @@
-#include "EffekseerWarningSuppress.h"
+﻿#include "EffekseerWarningSuppress.h"
 #include "FirstAidKitItem.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"

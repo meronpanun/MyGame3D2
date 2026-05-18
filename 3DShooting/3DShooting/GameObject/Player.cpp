@@ -126,10 +126,20 @@ namespace PlayerConstants
     constexpr unsigned int kColorHpBarFill = 0xff4040;
     constexpr unsigned int kColorHpBarBorder = 0x000000;
 
-    // タックルヒット時のSE音量 (DxLibの設定上0?255が範囲、255で最大音量)
+    // タックルヒット時のSE音量 (DxLibの設定上0〜255が範囲、255で最大音量)
     constexpr int kTackleHitVolume = 255;
     constexpr int kLightLandingVolume = 120; // 通常着地（小さめ）
     constexpr int kHeavyLandingVolume = 180; // 重量着地（中くらい）
+
+    // 開始演出・UI
+    constexpr float kStartAnimDuration   = 60.0f;  // 開始演出アニメーション時間（フレーム数）
+    constexpr float kUiFadeDuration      = 60.0f;  // UIフェードイン時間（フレーム数）
+    constexpr float kAmmoTextFlashDuration = 60.0f; // 弾薬テキストフラッシュ持続時間（フレーム数）
+    constexpr float kStartAnimDropHeight = 500.0f; // 開始演出ドロップ高さ
+
+    // タックル・移動関連
+    constexpr float kTackleBodyOffsetY   = 20.0f;  // タックル判定用ボディ中心Yオフセット
+    constexpr float kEnemyProximityDist  = 100.0f; // 敵接近によるダッシュ解除距離
 }
 
 Player::Player()
@@ -142,9 +152,9 @@ Player::Player()
     , m_isStartAnimating(false)
     , m_hasLandedAtStart(false)
     , m_startAnimTimer(0.0f)
-    , m_startAnimDuration(60.0f)
+    , m_startAnimDuration(PlayerConstants::kStartAnimDuration)
     , m_uiFadeTimer(0.0f)
-    , m_uiFadeDuration(60.0f)
+    , m_uiFadeDuration(PlayerConstants::kUiFadeDuration)
     , m_isUiFadeStarted(false)
     , m_idleSwayTimer(0.0f)
     , m_ammoTextFlashTimer(0.0f)
@@ -169,17 +179,14 @@ Player::~Player()
 void Player::Init(bool isTutorial)
 {
     m_isTutorial = isTutorial;
-    // CSVからPlayerのTransform情報を取得
     auto dataList = TransformDataLoader::LoadDataCSV("data/CSV/CharacterTransfromData.csv");
     for (const auto& data : dataList)
     {
         if (data.name == "Player")
         {
-            // 武器モデルのスケールと回転を設定
             m_weaponManager.SetWeaponScale(data.scale);
             m_weaponManager.SetWeaponRotation(data.rot);
 
-            // コンポーネントの初期化
             m_weaponManager.Init(data.arInitAmmo, data.sgInitAmmo, data.arInitAmmo, data.sgInitAmmo,
                 data.bulletPower, data.sgBulletPower);
             m_movement.Init(data.pos, data.speed, data.runSpeed, data.scale.x);
@@ -189,7 +196,7 @@ void Player::Init(bool isTutorial)
             break;
         }
     }
-    m_pCamera->Init(); // カメラの初期化
+    m_pCamera->Init();
     m_allowedAttackType = AttackType::None; // 攻撃制限をリセット
     m_tackleSystem.ResetCooldown();         // クールタイムをリセット
     m_shouldIgnoreGuardInput = false;       // 入力無視をリセット
@@ -198,9 +205,9 @@ void Player::Init(bool isTutorial)
     m_isStartAnimating = false; // 着地するまで待機
     m_hasLandedAtStart = false; 
     m_startAnimTimer = 0.0f;
-    m_startAnimDuration = 60.0f; // 1秒間（60フレーム）
+    m_startAnimDuration = PlayerConstants::kStartAnimDuration;
     m_uiFadeTimer = 0.0f;
-    m_uiFadeDuration = 60.0f;
+    m_uiFadeDuration = PlayerConstants::kUiFadeDuration;
     m_isUiFadeStarted = false;
 }
 
@@ -321,7 +328,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
         }
     }
 
-    // カメラ更新
     m_pCamera->Update(isInputDisabled);
 
     // Sway更新
@@ -353,7 +359,7 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
     }
 
     m_shieldSystem.UpdateShieldThrow(deltaTime, m_pCamera.get(), m_modelPos, enemyList, collisionData, m_pEffect, currentIsGuarding, m_prevIsGuarding);
-    m_prevIsGuarding = currentIsGuarding; // 更新
+    m_prevIsGuarding = currentIsGuarding;
 
     // 銃揺れ計算
     m_gunSwayOffset.x -= yawDelta * PlayerConstants::kGunSwayAmount;
@@ -461,13 +467,13 @@ void Player::Draw3D()
     float startAnimOffsetY = 0.0f;
     if (!m_hasLandedAtStart)
     {
-        startAnimOffsetY = 500.0f;
+        startAnimOffsetY = PlayerConstants::kStartAnimDropHeight;
     }
     else if (m_isStartAnimating)
     {
         float progress = m_startAnimTimer / m_startAnimDuration;
         float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-        startAnimOffsetY = (1.0f - easeOut) * 500.0f;
+        startAnimOffsetY = (1.0f - easeOut) * PlayerConstants::kStartAnimDropHeight;
     }
 
     // カメラのジャンプ・着地揺れを銃の揺れに反映
@@ -507,13 +513,13 @@ void Player::DrawShield()
     float startAnimOffsetY = 0.0f;
     if (!m_hasLandedAtStart)
     {
-        startAnimOffsetY = 500.0f;
+        startAnimOffsetY = PlayerConstants::kStartAnimDropHeight;
     }
     else if (m_isStartAnimating)
     {
         float progress = m_startAnimTimer / m_startAnimDuration;
         float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-        startAnimOffsetY = (1.0f - easeOut) * 500.0f;
+        startAnimOffsetY = (1.0f - easeOut) * PlayerConstants::kStartAnimDropHeight;
     }
 
     m_shieldSystem.Draw(m_pCamera.get(), m_modelPos, m_tackleSystem.IsTackling(),
@@ -530,7 +536,6 @@ void Player::DeathUpdate()
     }
 }
 
-// ダメージを受ける処理
 void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryable)
 {
     if (m_status.IsDead()) return;
@@ -548,16 +553,14 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
         m_pDirectionIndicator->ShowAttackedEnemyDirection(Vec3(attackerPos));
     }
 
-    if (m_shieldSystem.IsGuarding() && !m_shieldSystem.IsShieldBroken()) // ガード中で盾が壊れていなければ
+    if (m_shieldSystem.IsGuarding() && !m_shieldSystem.IsShieldBroken())
     {
-
         // カメラシェイクを発生
         if (m_pCamera)
         {
             m_pCamera->Shake(PlayerConstants::kTakeDamageShakePower, PlayerConstants::kTakeDamageShakeDuration);
         }
 
-        // ガード音を再生
         SoundManager::GetInstance()->Play("Player", "Guard");
 
         // 盾の前方にスパークエフェクトを再生
@@ -588,10 +591,8 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
             // 被弾演出（SE/振動）をフレーム内で一度だけ実行
             if (!m_isDamageHandledInThisFrame)
             {
-                // 衝撃音の再生
                 SoundManager::GetInstance()->Play("Player", "Hit");
 
-                // ボイスの再生
                 int randomIndex = 1 + GetRand(3);
                 SoundManager::GetInstance()->Play("Player", "Hurt" + std::to_string(randomIndex));
                 if (m_pCamera)
@@ -605,7 +606,6 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
         return; // 盾で防いだ場合はここで処理を終了
     }
 
-    // ガードしていない、または盾が壊れている場合は直接ダメージを受ける
     // ステータス更新 (チュートリアル中は死なないロジックを考慮)
     m_status.TakeDamage(damage);
     if (m_isTutorial && m_status.GetHealth() <= 0.0f)
@@ -634,15 +634,13 @@ void Player::TakeDamage(float damage, const VECTOR& attackerPos, bool isParryabl
     }
 }
 
-// 弾の取得
 std::vector<Bullet>& Player::GetBullets() { return m_bullets; }
 
-// プレイヤーがショット可能かどうか
 bool Player::HasShot()
 {
     bool shot = m_hasShot;
-    m_hasShot = false; // 状態をリセット
-    return shot;       // 撃ったかどうかを返す
+    m_hasShot = false;
+    return shot;
 }
 
 void Player::Shoot(std::vector<Bullet>& bullets)
@@ -650,19 +648,16 @@ void Player::Shoot(std::vector<Bullet>& bullets)
     m_weaponManager.Shoot(bullets, m_modelPos, m_pCamera.get(), m_pEffect, m_pAnimManager, m_shellCasings);
 }
 
-// 銃の位置を取得
 VECTOR Player::GetGunPos() const
 {
     return m_weaponManager.GetGunPos(m_modelPos, m_pCamera.get());
 }
 
-// 銃の向きを取得
 VECTOR Player::GetGunRot() const
 {
     return m_weaponManager.GetGunRot(m_pCamera.get());
 }
 
-// 薬莢の排出位置を取得
 VECTOR Player::GetEjectionPortPos() const
 {
     return m_weaponManager.GetEjectionPortPos();
@@ -678,19 +673,16 @@ std::string Player::GetGroundedObjectName() const
     return m_movement.GetGroundedObjectName();
 }
 
-// タックル情報を取得
 Player::TackleInfo Player::GetTackleInfo() const
 {
     TackleInfo info;
     info.isTackling = m_tackleSystem.IsTackling();
     info.tackleId = m_tackleSystem.GetTackleId();
     info.damage = m_tackleSystem.GetDamage();
-    
+
     VECTOR dir = m_tackleSystem.GetDir();
-    // プレイヤーの体の中心位置
     VECTOR bodyCenter = m_modelPos;
-    constexpr float kAROffsetY = 20.0f; // ARオフセットY
-    bodyCenter.y += kAROffsetY;
+    bodyCenter.y += PlayerConstants::kTackleBodyOffsetY;
 
     // プレイヤーの前面中心（体の中心から前方へkTackleHitRangeだけ進める）
     VECTOR frontCenter = VAdd(bodyCenter, VScale(dir, PlayerConstants::kTackleHitRange));
@@ -702,10 +694,8 @@ Player::TackleInfo Player::GetTackleInfo() const
     return info;
 }
 
-// カプセル情報を取得
 void Player::GetCapsuleInfo(VECTOR& capA, VECTOR& capB, float& radius) const
 {
-    // m_movementのコライダーから直接取得
     auto collider = m_movement.GetBodyCollider();
     capA = collider->GetSegmentA();
     capB = collider->GetSegmentB();
@@ -724,7 +714,7 @@ void Player::AddARAmmo(int value)
     m_weaponManager.AddARAmmo(value);
     // 弾薬取得時にエフェクトを発動
     m_effectManager.TriggerAmmoEffect(PlayerConstants::kAmmoEffectDuration, PlayerConstants::kAmmoEffectColorR, PlayerConstants::kAmmoEffectColorG, PlayerConstants::kAmmoEffectColorB);
-    m_ammoTextFlashTimer = 60.0f;
+    m_ammoTextFlashTimer = PlayerConstants::kAmmoTextFlashDuration;
 }
 
 void Player::AddSGAmmo(int value)
@@ -732,7 +722,7 @@ void Player::AddSGAmmo(int value)
     m_weaponManager.AddSGAmmo(value);
     // 弾薬取得時にエフェクトを発動
     m_effectManager.TriggerAmmoEffect(PlayerConstants::kAmmoEffectDuration, PlayerConstants::kAmmoEffectColorR, PlayerConstants::kAmmoEffectColorG, PlayerConstants::kAmmoEffectColorB);
-    m_ammoTextFlashTimer = 60.0f;
+    m_ammoTextFlashTimer = PlayerConstants::kAmmoTextFlashDuration;
 }
 
 int Player::GetCurrentAmmo() const 
@@ -770,7 +760,6 @@ WeaponType Player::GetCurrentWeaponType() const
     return m_weaponManager.GetCurrentWeaponType();
 }
 
-// 武器を切り替える
 void Player::SwitchWeapon(WeaponType weaponType)
 {
     m_weaponManager.SwitchWeapon(weaponType);
@@ -784,13 +773,9 @@ void Player::CheckEnemyProximity(const std::vector<EnemyBase*>& enemyList)
     {
         if (!enemy || !enemy->IsAlive()) continue;
 
-        // プレイヤーと敵の距離をチェック
-        // カプセル半径の和 + マージン
-        constexpr float kEnemyCollisionDist = 100.0f;
         VECTOR diff = VSub(m_movement.GetPos(), enemy->GetPos());
-        float distSq = VSize(diff); // VSizeも2乗を返すわけではないので注意。VSizeはsqrtを取る。
-        // ここでは距離そのもので比較
-        if (distSq < kEnemyCollisionDist)
+        float dist = VSize(diff);
+        if (dist < PlayerConstants::kEnemyProximityDist)
         {
             m_movement.CancelRunMode();
             break;
