@@ -21,8 +21,6 @@
 #include "SoundManager.h"
 #include "EnemyRunnerState.h"
 
-
-
 int EnemyRunner::s_modelHandle = -1;
 bool EnemyRunner::s_shouldDrawCollision = false;
 
