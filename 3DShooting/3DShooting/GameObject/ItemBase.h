@@ -6,30 +6,59 @@
 class Player;
 
 /// <summary>
-/// �A�C�e�����N���X
+/// アイテム基底クラス
 /// </summary>
 class ItemBase
 {
 public:
-	ItemBase() = default;
-	virtual ~ItemBase() = default;
+    ItemBase() = default;
+    virtual ~ItemBase() = default;
 
-	virtual void Init()   = 0;
-	virtual void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) = 0;
-	virtual void Draw()   = 0;
+    /// <summary>
+    /// 初期化処理
+    /// </summary>
+    virtual void Init() = 0;
 
-	virtual bool IsUsed() const = 0;
-	virtual bool IsExpired() const { return false; }
+    /// <summary>
+    /// 更新処理
+    /// </summary>
+    virtual void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) = 0;
 
-	// �ʒu�ݒ�p
-	// �ʒu�ݒ�p
-	virtual void SetPos(const VECTOR& pos) = 0;
+    /// <summary>
+    /// 描画処理
+    /// </summary>
+    virtual void Draw() = 0;
 
-	// �f�o�b�O�\���p
-	static void SetDrawCollision(bool isDraw) { s_shouldDrawCollision = isDraw; }
-	static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
+    /// <summary>
+    /// アイテムが使用済みかどうかを返す
+    /// </summary>
+    virtual bool IsUsed() const = 0;
+
+    /// <summary>
+    /// アイテムの寿命が切れたかどうかを返す
+    /// </summary>
+    virtual bool IsExpired() const { return false; }
+
+    /// <summary>
+    /// 位置を設定する
+    /// </summary>
+    virtual void SetPos(const VECTOR& pos) = 0;
+
+    /// <summary>
+    /// コリジョンのデバッグ描画フラグを設定する
+    /// </summary>
+    static void SetDrawCollision(bool isDraw) { s_shouldDrawCollision = isDraw; }
+
+    /// <summary>
+    /// コリジョンのデバッグ描画フラグを取得する
+    /// </summary>
+    static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 
 protected:
-	virtual void DrawCollisionDebug() {}
-	static bool s_shouldDrawCollision;
+    /// <summary>
+    /// デバッグ用の当たり判定を描画する
+    /// </summary>
+    virtual void DrawCollisionDebug() {}
+
+    static bool s_shouldDrawCollision; // デバッグ用コリジョン描画フラグ
 };
