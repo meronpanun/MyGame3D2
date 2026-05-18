@@ -1,7 +1,7 @@
-#pragma once
+ï»¿#pragma once
 #include "AttackType.h"
-// ŠO•”ƒ‰ƒCƒuƒ‰ƒŠiEffekseerj“à•”‚Å”­¶‚·‚éŒx‚ğ—}§
-// 4244: Œ^•ÏŠ·, 26495: –¢‰Šú‰»ƒƒ“ƒo[
+// å¤–éƒ¨ãƒ©ã‚¤ãƒ–ãƒ©ãƒªï¼ˆEffekseerï¼‰å†…éƒ¨ã§ç™ºç”Ÿã™ã‚‹è­¦å‘Šã‚’æŠ‘åˆ¶
+// 4244: å‹å¤‰æ›, 26495: æœªåˆæœŸåŒ–ãƒ¡ãƒ³ãƒå¤‰æ•°
 #pragma warning(push)
 #pragma warning(disable: 4244 26495)
 #include "EffekseerWarningSuppress.h"
@@ -19,16 +19,16 @@ class ShellCasing;
 class EnemyBase;
 
 /// <summary>
-/// •Ší‚Ìí—Ş—ñ‹“Œ^
+/// æ­¦å™¨ã®ç¨®é¡åˆ—æŒ™å‹
 /// </summary>
 enum class WeaponType
 {
-    AssaultRifle, // ƒAƒTƒ‹ƒgƒ‰ƒCƒtƒ‹
-    Shotgun       // ƒVƒ‡ƒbƒgƒKƒ“
+    AssaultRifle, // ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«
+    Shotgun       // ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³
 };
 
 /// <summary>
-/// ƒvƒŒƒCƒ„[‚Ì•ŠíŠÇ—ƒNƒ‰ƒX
+/// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ­¦å™¨ç®¡ç†ã‚¯ãƒ©ã‚¹
 /// </summary>
 class PlayerWeaponManager
 {
@@ -37,19 +37,19 @@ public:
     ~PlayerWeaponManager();
 
     /// <summary>
-    /// ‰Šú‰»
+    /// åˆæœŸåŒ–å‡¦ç†
     /// </summary>
-    /// <param name="arInitAmmo">AR‰Šú’e–ò</param>
-    /// <param name="sgInitAmmo">SG‰Šú’e–ò</param>
-    /// <param name="arMaxAmmo">ARÅ‘å’e–ò</param>
-    /// <param name="sgMaxAmmo">SGÅ‘å’e–ò</param>
-    /// <param name="bulletPower">AR’eˆĞ—Í</param>
-    /// <param name="sgBulletPower">SG’eˆĞ—Í</param>
-    /// <param name="arShootRate">ARËŒ‚ƒŒ[ƒg</param>
+    /// <param name="arInitAmmo">ARåˆæœŸå¼¾æ•°</param>
+    /// <param name="sgInitAmmo">SGåˆæœŸå¼¾æ•°</param>
+    /// <param name="arMaxAmmo">ARæœ€å¤§å¼¾æ•°</param>
+    /// <param name="sgMaxAmmo">SGæœ€å¤§å¼¾æ•°</param>
+    /// <param name="bulletPower">ARå¼¾å¨åŠ›</param>
+    /// <param name="sgBulletPower">SGå¼¾å¨åŠ›</param>
+    /// <param name="arShootRate">ARå°„æ’ƒãƒ¬ãƒ¼ãƒˆï¼ˆçœç•¥æ™‚ã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã‚’ä½¿ç”¨ï¼‰</param>
     void Init(int arInitAmmo, int sgInitAmmo, int arMaxAmmo, int sgMaxAmmo,
-        float bulletPower, float sgBulletPower, float arShootRate = 10.0f);
+        float bulletPower, float sgBulletPower, float arShootRate = kARShootRate);
 
-    // ƒRƒ“ƒeƒLƒXƒg\‘¢‘Ì
+    // ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆæ§‹é€ ä½“
     struct UpdateContext
     {
         float deltaTime;
@@ -85,286 +85,286 @@ public:
     };
 
     /// <summary>
-    /// XVˆ—
+    /// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ›´æ–°å‡¦ç†
     /// </summary>
-    /// <param name="context">XVƒRƒ“ƒeƒLƒXƒg</param>
+    /// <param name="context">æ›´æ–°ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ</param>
     void Update(const UpdateContext& context);
 
     /// <summary>
-    /// 3D•`‰æˆ—
+    /// 3Dæç”»å‡¦ç†
     /// </summary>
-    /// <param name="context">•`‰æƒRƒ“ƒeƒLƒXƒg</param>
+    /// <param name="context">æç”»ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆ</param>
     void Draw3D(const DrawContext& context);
 
     /// <summary>
-    /// ƒAƒTƒ‹ƒgƒ‰ƒCƒtƒ‹‚ÌËŒ‚ƒŒ[ƒgæ“¾
+    /// ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«ã®å°„æ’ƒãƒ¬ãƒ¼ãƒˆã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>ƒAƒTƒ‹ƒgƒ‰ƒCƒtƒ‹‚ÌËŒ‚ƒŒ[ƒg</returns>
-    static float GetARShootRate() { return 10.0f; }
+    /// <returns>ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«ã®å°„æ’ƒãƒ¬ãƒ¼ãƒˆ</returns>
+    static float GetARShootRate() { return kARShootRate; }
 
     /// <summary>
-    /// •Ší‚ğØ‚è‘Ö‚¦‚é
+    /// æ­¦å™¨ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
     /// </summary>
-    /// <param name="weaponType">Ø‚è‘Ö‚¦‚é•Ší‚Ìí—Ş</param>
+    /// <param name="weaponType">åˆ‡ã‚Šæ›¿ãˆã‚‹æ­¦å™¨ã®ç¨®é¡</param>
     void SwitchWeapon(WeaponType weaponType);
 
     /// <summary>
-    /// Œ»İ‚Ì•Ší‚Ìí—Şæ“¾
+    /// ç¾åœ¨ã®æ­¦å™¨ã®ç¨®é¡ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>Œ»İ‚Ì•Ší‚Ìí—Ş</returns>
+    /// <returns>ç¾åœ¨ã®æ­¦å™¨ã®ç¨®é¡</returns>
     WeaponType GetCurrentWeaponType() const { return m_currentWeaponType; }
 
     /// <summary>
-    /// ËŒ‚ˆ—
+    /// å°„æ’ƒå‡¦ç†
     /// </summary>
-    /// <param name="bullets">’e‚ÌŠÇ—”z—ñ</param>
-    /// <param name="playerPos">ƒvƒŒƒCƒ„[‚ÌˆÊ’uƒxƒNƒgƒ‹</param>
-    /// <param name="pCamera">ƒJƒƒ‰ƒ|ƒCƒ“ƒ^</param>
-    /// <param name="pEffect">ƒGƒtƒFƒNƒgƒ|ƒCƒ“ƒ^</param>
-    /// <param name="pAnimManager">ƒAƒjƒ[ƒVƒ‡ƒ“ƒ}ƒl[ƒWƒƒ[ƒ|ƒCƒ“ƒ^</param>
-    /// <param name="shellCasings">–òä°‚ÌŠÇ—”z—ñ</param>
+    /// <param name="bullets">å¼¾ã®ç®¡ç†é…åˆ—</param>
+    /// <param name="playerPos">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ãƒ™ã‚¯ãƒˆãƒ«</param>
+    /// <param name="pCamera">ã‚«ãƒ¡ãƒ©ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="pEffect">ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="pAnimManager">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="shellCasings">è–¬è¢ã®ç®¡ç†é…åˆ—</param>
     void Shoot(std::vector<Bullet>& bullets, const VECTOR& playerPos,
         Camera* pCamera, Effect* pEffect, AnimationManager* pAnimManager,
         std::vector<ShellCasing>& shellCasings);
 
     /// <summary>
-    /// ËŒ‚‰Â”\‚©‚Ç‚¤‚©æ“¾
+    /// å°„æ’ƒå¯èƒ½ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>true: ËŒ‚‰Â”\, false: ËŒ‚•s‰Â</returns>
+    /// <returns>å°„æ’ƒå¯èƒ½ãªã‚‰true</returns>
     bool CanShoot() const;
 
     /// <summary>
-    /// Œ»İ‚Ì’e–ò”æ“¾
+    /// ç¾åœ¨ã®å¼¾è–¬æ•°ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>Œ»İ‚Ì’e–ò”</returns>
+    /// <returns>ç¾åœ¨ã®å¼¾æ•°</returns>
     int GetCurrentAmmo() const;
 
     /// <summary>
-    /// Å‘å’e–ò”æ“¾
+    /// æœ€å¤§å¼¾è–¬æ•°ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>Å‘å’e–ò”</returns>
+    /// <returns>æœ€å¤§å¼¾æ•°</returns>
     int GetMaxAmmo() const;
 
     /// <summary>
-    /// ƒAƒTƒ‹ƒgƒ‰ƒCƒtƒ‹‚Ì’e–ò‚ğ’Ç‰Á
+    /// ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«ã®å¼¾ã‚’è¿½åŠ ã™ã‚‹
     /// </summary>
-    /// <param name="value">’Ç‰Á‚·‚é’e–ò”</param>
+    /// <param name="value">è¿½åŠ ã™ã‚‹å¼¾æ•°</param>
     void AddARAmmo(int value);
 
     /// <summary>
-    /// ƒVƒ‡ƒbƒgƒKƒ“‚Ì’e–ò‚ğ’Ç‰Á
+    /// ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³ã®å¼¾ã‚’è¿½åŠ ã™ã‚‹
     /// </summary>
-    /// <param name="value">’Ç‰Á‚·‚é’e–ò”</param>
+    /// <param name="value">è¿½åŠ ã™ã‚‹å¼¾æ•°</param>
     void AddSGAmmo(int value);
 
     /// <summary>
-    /// ’e–ò‚ğÁ”ï
+    /// å¼¾è–¬ã‚’æ¶ˆè²»ã™ã‚‹
     /// </summary>
     void ConsumeAmmo();
 
     /// <summary>
-    /// •ŠíØ‚è‘Ö‚¦’†‚©‚Ç‚¤‚©æ“¾
+    /// æ­¦å™¨åˆ‡ã‚Šæ›¿ãˆä¸­ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>true: •ŠíØ‚è‘Ö‚¦’†, false: •ŠíØ‚è‘Ö‚¦’†‚Å‚Í‚È‚¢</returns>
+    /// <returns>åˆ‡ã‚Šæ›¿ãˆä¸­ãªã‚‰true</returns>
     bool IsSwitchingWeapon() const { return m_isSwitchingWeapon; }
 
     /// <summary>
-    /// •ŠíØ‚è‘Ö‚¦’†‚©‚Ç‚¤‚©İ’è
+    /// æ­¦å™¨åˆ‡ã‚Šæ›¿ãˆä¸­ã‹ã©ã†ã‹ã‚’è¨­å®šã™ã‚‹
     /// </summary>
-    /// <param name="switching">•ŠíØ‚è‘Ö‚¦’†‚È‚çtrue</param>
+    /// <param name="switching">åˆ‡ã‚Šæ›¿ãˆä¸­ã«ã™ã‚‹ãªã‚‰true</param>
     void SetSwitchingWeapon(bool switching) { m_isSwitchingWeapon = switching; }
 
     /// <summary>
-    /// •ŠíØ‚è‘Ö‚¦ƒ^ƒCƒ}[æ“¾
+    /// æ­¦å™¨åˆ‡ã‚Šæ›¿ãˆã‚¿ã‚¤ãƒãƒ¼ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>•ŠíØ‚è‘Ö‚¦ƒ^ƒCƒ}[’l</returns>
+    /// <returns>åˆ‡ã‚Šæ›¿ãˆã‚¿ã‚¤ãƒãƒ¼ã®å€¤</returns>
     float GetWeaponSwitchTimer() const { return m_weaponSwitchTimer; }
 
     /// <summary>
-    /// •ŠíØ‚è‘Ö‚¦ƒAƒjƒ[ƒVƒ‡ƒ“ŠÔæ“¾
+    /// æ­¦å™¨åˆ‡ã‚Šæ›¿ãˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>•ŠíØ‚è‘Ö‚¦ƒAƒjƒ[ƒVƒ‡ƒ“ŠÔ</returns>
+    /// <returns>åˆ‡ã‚Šæ›¿ãˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“</returns>
     float GetWeaponSwitchDuration() const { return m_weaponSwitchDuration; }
 
     /// <summary>
-    /// ‘O‚Ì•Ší‚Ìí—Şæ“¾
+    /// å‰ã®æ­¦å™¨ã®ç¨®é¡ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>‘O‚Ì•Ší‚Ìí—Ş</returns>
+    /// <returns>å‰ã®æ­¦å™¨ã®ç¨®é¡</returns>
     WeaponType GetPreviousWeaponType() const { return m_previousWeaponType; }
 
     /// <summary>
-    /// ‘O‚Ì•Ší‚ª’e–ò­‚È‚¢ó‘Ô‚¾‚Á‚½‚©‚Ç‚¤‚©æ“¾
+    /// å‰ã®æ­¦å™¨ãŒå¼¾è–¬å°‘ãªã„çŠ¶æ…‹ã ã£ãŸã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>true: ’e–ò­‚È‚¢, false: ’e–ò\•ª</returns>
+    /// <returns>å¼¾è–¬ãŒå°‘ãªã„çŠ¶æ…‹ãªã‚‰true</returns>
     bool GetPrevWeaponHadLowAmmo() const { return m_prevWeaponHadLowAmmo; }
 
     /// <summary>
-    /// ‘O‚Ì•Ší‚ª’e–òØ‚ê‚¾‚Á‚½‚©‚Ç‚¤‚©æ“¾
+    /// å‰ã®æ­¦å™¨ãŒå¼¾åˆ‡ã‚Œã ã£ãŸã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>true: ’e–òØ‚ê, false: ’e–òØ‚ê‚¶‚á‚È‚¢</returns>
+    /// <returns>å¼¾åˆ‡ã‚Œãªã‚‰true</returns>
     bool GetPrevWeaponHadNoAmmo() const { return m_prevWeaponHadNoAmmo; }
 
     /// <summary>
-    /// e‚ÌƒVƒFƒCƒNƒIƒtƒZƒbƒgæ“¾
+    /// éŠƒã®ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>e‚ÌƒVƒFƒCƒNƒIƒtƒZƒbƒgƒxƒNƒgƒ‹</returns>
+    /// <returns>éŠƒã®ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆãƒ™ã‚¯ãƒˆãƒ«</returns>
     VECTOR GetGunShakeOffset() const { return m_gunShakeOffset; }
 
     /// <summary>
-    /// ’e–ò­‚È‚¢Œx‚©‚Ç‚¤‚©æ“¾
+    /// å¼¾è–¬å°‘ãªã„è­¦å‘ŠçŠ¶æ…‹ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>’e–ò­‚È‚¢Œx‚È‚çtrue</returns>
+    /// <returns>å¼¾è–¬ãŒå°‘ãªã„è­¦å‘Šãªã‚‰true</returns>
     bool IsLowAmmo() const { return m_isLowAmmo; }
 
     /// <summary>
-    /// ’e–òØ‚êŒx‚©‚Ç‚¤‚©æ“¾
+    /// å¼¾åˆ‡ã‚Œè­¦å‘ŠçŠ¶æ…‹ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>’e–òØ‚êŒx‚È‚çtrue</returns>
+    /// <returns>å¼¾åˆ‡ã‚Œè­¦å‘Šãªã‚‰true</returns>
     bool IsNoAmmoWarning() const { return m_isShowingNoAmmoWarning; }
 
     /// <summary>
-    /// ’e–òŒx‚Ì“_–Åƒ^ƒCƒ}[æ“¾
+    /// å¼¾è–¬è­¦å‘Šã®ç‚¹æ»…ã‚¿ã‚¤ãƒãƒ¼ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>“_–Åƒ^ƒCƒ}[‚Ì’l</returns>
+    /// <returns>ç‚¹æ»…ã‚¿ã‚¤ãƒãƒ¼ã®å€¤</returns>
     float GetLowAmmoBlinkTimer() const { return m_lowAmmoBlinkTimer; }
 
     /// <summary>
-    /// –³ŒÀ’e–òƒ‚[ƒhİ’è
+    /// ç„¡é™å¼¾è–¬ãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹
     /// </summary>
-    /// <param name="infinite">–³ŒÀ’e–ò‚É‚·‚é‚È‚çtrue</param>
+    /// <param name="infinite">ç„¡é™å¼¾è–¬ã«ã™ã‚‹ãªã‚‰true</param>
     void SetInfiniteAmmo(bool infinite) { m_isInfiniteAmmo = infinite; }
 
     /// <summary>
-    /// –³ŒÀ’e–ò‚©‚Ç‚¤‚©æ“¾
+    /// ç„¡é™å¼¾è–¬ã‹ã©ã†ã‹ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>–³ŒÀ’e–ò‚È‚çtrue</returns>
+    /// <returns>ç„¡é™å¼¾è–¬ãªã‚‰true</returns>
     bool IsInfiniteAmmo() const { return m_isInfiniteAmmo; }
 
     /// <summary>
-    /// e‚ÌˆÊ’u‚ğæ“¾
+    /// éŠƒã®ä½ç½®ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <param name="playerPos">ƒvƒŒƒCƒ„[‚ÌˆÊ’u</param>
-    /// <param name="pCamera">ƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^</param>
-    /// <returns>e‚ÌˆÊ’uƒxƒNƒgƒ‹</returns>
+    /// <param name="playerPos">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®</param>
+    /// <param name="pCamera">ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <returns>éŠƒã®ä½ç½®ãƒ™ã‚¯ãƒˆãƒ«</returns>
     VECTOR GetGunPos(const VECTOR& playerPos, Camera* pCamera) const;
 
     /// <summary>
-    /// e‚Ì‰ñ“]‚ğæ“¾
+    /// éŠƒã®å‘ããƒ™ã‚¯ãƒˆãƒ«ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <param name="pCamera">ƒJƒƒ‰‚Ìƒ|ƒCƒ“ƒ^</param>
-    /// <returns>e‚Ì‰ñ“]ƒxƒNƒgƒ‹</returns>
+    /// <param name="pCamera">ã‚«ãƒ¡ãƒ©ã®ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <returns>éŠƒã®å‘ããƒ™ã‚¯ãƒˆãƒ«</returns>
     VECTOR GetGunRot(Camera* pCamera) const;
 
     /// <summary>
-    /// –òä°”roŒû‚ÌˆÊ’u‚ğæ“¾
+    /// è–¬è¢æ’å‡ºå£ã®ä½ç½®ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>–òä°”roŒû‚ÌˆÊ’u</returns>
+    /// <returns>è–¬è¢æ’å‡ºå£ã®ä½ç½®ãƒ™ã‚¯ãƒˆãƒ«</returns>
     VECTOR GetEjectionPortPos() const;
 
     /// <summary>
-    /// e‚ÌƒVƒFƒCƒN‚ğŠJn
+    /// éŠƒã®ã‚·ã‚§ã‚¤ã‚¯ã‚’é–‹å§‹ã™ã‚‹
     /// </summary>
-    /// <param name="power">ƒVƒFƒCƒN‚Ì‹­‚³</param>
-    /// <param name="duration">ƒVƒFƒCƒN‚Ì‘±ŠÔ</param>
+    /// <param name="power">ã‚·ã‚§ã‚¤ã‚¯ã®å¼·ã•</param>
+    /// <param name="duration">ã‚·ã‚§ã‚¤ã‚¯ã®æŒç¶šæ™‚é–“</param>
     void ShakeGun(float power, float duration);
 
     /// <summary>
-    /// ƒAƒTƒ‹ƒgƒ‰ƒCƒtƒ‹ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹æ“¾
+    /// ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>ƒAƒTƒ‹ƒgƒ‰ƒCƒtƒ‹ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹</returns>
+    /// <returns>ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«</returns>
     int GetARHandle() const { return m_arHandle; }
 
     /// <summary>
-    /// ƒVƒ‡ƒbƒgƒKƒ“ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹æ“¾
+    /// ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã‚’å–å¾—ã™ã‚‹
     /// </summary>
-    /// <returns>ƒVƒ‡ƒbƒgƒKƒ“ƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹</returns>
+    /// <returns>ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«</returns>
     int GetSGHandle() const { return m_sgHandle; }
 
     /// <summary>
-    /// ƒVƒ‡ƒbƒgƒKƒ“ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌXV
+    /// ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’æ›´æ–°ã™ã‚‹
     /// </summary>
-    /// <param name="pAnimManager">ƒAƒjƒ[ƒVƒ‡ƒ“ƒ}ƒl[ƒWƒƒ[‚Ìƒ|ƒCƒ“ƒ^</param>
-    /// <param name="deltaTime">Œo‰ßŠÔ</param>
+    /// <param name="pAnimManager">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã®ãƒã‚¤ãƒ³ã‚¿</param>
+    /// <param name="deltaTime">çµŒéæ™‚é–“</param>
     void UpdateSGAnimation(AnimationManager* pAnimManager, float deltaTime);
 
     /// <summary>
-    /// •Šíƒ‚ƒfƒ‹‚ÌƒXƒP[ƒ‹‚ğİ’è
+    /// æ­¦å™¨ãƒ¢ãƒ‡ãƒ«ã®ã‚¹ã‚±ãƒ¼ãƒ«ã‚’è¨­å®šã™ã‚‹
     /// </summary>
-    /// <param name="scale">ƒXƒP[ƒ‹ƒxƒNƒgƒ‹</param>
+    /// <param name="scale">ã‚¹ã‚±ãƒ¼ãƒ«ãƒ™ã‚¯ãƒˆãƒ«</param>
     void SetWeaponScale(const VECTOR& scale);
 
     /// <summary>
-    /// •Šíƒ‚ƒfƒ‹‚Ì‰ñ“]‚ğİ’è
+    /// æ­¦å™¨ãƒ¢ãƒ‡ãƒ«ã®å›è»¢ã‚’è¨­å®šã™ã‚‹
     /// </summary>
-    /// <param name="rot">‰ñ“]ƒxƒNƒgƒ‹</param>
+    /// <param name="rot">å›è»¢ãƒ™ã‚¯ãƒˆãƒ«</param>
     void SetWeaponRotation(const VECTOR& rot);
+
+    /// <summary>
+    /// å°„æ’ƒåå‹•ã®ã‚¹ã‚±ãƒ¼ãƒ«ã‚’å–å¾—ã™ã‚‹ï¼ˆ0.0fã€œ1.0fï¼‰
+    /// </summary>
+    /// <returns>åå‹•ã‚¹ã‚±ãƒ¼ãƒ«</returns>
+    float GetRecoilScale() const;
+
+    static constexpr float kARShootRate = 10.0f; // ARã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå°„æ’ƒãƒ¬ãƒ¼ãƒˆ
 
 private:
     /// <summary>
-    /// e‚Ìƒ‚ƒfƒ‹‚ª•Ç‚â“G‚ÉÚG‚µ‚Ä‚¢‚é‚©ŒvZ‚µAˆø‚«‚İ‹——£‚ğ•Ô‚·
+    /// éŠƒã®ãƒ¢ãƒ‡ãƒ«ãŒè¿‘ãã®éšœå®³ç‰©ã«æ¥è§¦ã—ã¦ã„ã‚‹ã‹è¨ˆç®—ã—ã€å¼•ãè¾¼ã¿é‡ã‚’è¿”ã™
     /// </summary>
     float CalculatePullBackOffset(
         const VECTOR& playerPos, Camera* pCamera,
         const std::vector<EnemyBase*>& enemyList,
         const std::vector<Stage::StageCollisionData>& collisionData) const;
 
-public:
-    /// <summary>
-    /// ËŒ‚”½“®i‰‰o—pj‚ÌƒXƒP[ƒ‹‚ğæ“¾ (0.0f ~ 1.0f)
-    /// </summary>
-    /// <returns>”½“®ƒXƒP[ƒ‹</returns>
-    float GetRecoilScale() const;
+    // æ­¦å™¨ãƒ¢ãƒ‡ãƒ«ãƒãƒ³ãƒ‰ãƒ«
+    int m_arHandle;           // ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«ãƒ¢ãƒ‡ãƒ«
+    int m_sgHandle;           // ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³ãƒ¢ãƒ‡ãƒ«
+    int m_ejectionPortFrame;  // è–¬è¢æ’å‡ºå£ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+    int m_currentWeaponIndex; // ç¾åœ¨ã®æ­¦å™¨ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 
-private:
-    // •Šíƒ‚ƒfƒ‹ƒnƒ“ƒhƒ‹
-    int m_arHandle;
-    int m_sgHandle;
-    int m_ejectionPortFrame;
-    int m_currentWeaponIndex;
+    // å¼¾è–¬é–¢é€£
+    int   m_arAmmo;       // ARã®ç¾åœ¨å¼¾æ•°
+    int   m_sgAmmo;       // SGã®ç¾åœ¨å¼¾æ•°
+    int   m_arMaxAmmo;    // ARã®æœ€å¤§å¼¾æ•°
+    int   m_sgMaxAmmo;    // SGã®æœ€å¤§å¼¾æ•°
+    float m_bulletPower;  // ARã®å¼¾å¨åŠ›
+    float m_sgBulletPower;// SGã®å¼¾å¨åŠ›
 
-    // ’e–òŠÖ˜A
-    int m_arAmmo;
-    int m_sgAmmo;
-    int m_arMaxAmmo;
-    int m_sgMaxAmmo;
-    float m_bulletPower;
-    float m_sgBulletPower;
+    // å°„æ’ƒé–¢é€£
+    float m_shootCooldown;      // 1ç™ºã‚ãŸã‚Šã®ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³æ™‚é–“
+    float m_shootCooldownTimer; // ç¾åœ¨ã®ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã‚¿ã‚¤ãƒãƒ¼
+    float m_arShootRate;        // ARã®å°„æ’ƒãƒ¬ãƒ¼ãƒˆ
 
-    // ËŒ‚ŠÖ˜A
-    float m_shootCooldown;
-    float m_shootCooldownTimer;
-    float m_arShootRate;
+    // æ­¦å™¨åˆ‡ã‚Šæ›¿ãˆ
+    WeaponType              m_currentWeaponType;   // ç¾åœ¨ã®æ­¦å™¨ç¨®é¡
+    WeaponType              m_previousWeaponType;  // å‰ã®æ­¦å™¨ç¨®é¡
+    std::vector<WeaponType> m_weaponTypes;         // æ­¦å™¨ãƒªã‚¹ãƒˆ
+    bool  m_isSwitchingWeapon;    // æ­¦å™¨åˆ‡ã‚Šæ›¿ãˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ä¸­ãƒ•ãƒ©ã‚°
+    float m_weaponSwitchTimer;    // åˆ‡ã‚Šæ›¿ãˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚¿ã‚¤ãƒãƒ¼
+    float m_weaponSwitchDuration; // åˆ‡ã‚Šæ›¿ãˆã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æ™‚é–“
+    bool  m_prevWeaponHadLowAmmo; // å‰ã®æ­¦å™¨ãŒå¼¾è–¬å°‘ãªã„çŠ¶æ…‹ã ã£ãŸã‹
+    bool  m_prevWeaponHadNoAmmo;  // å‰ã®æ­¦å™¨ãŒå¼¾åˆ‡ã‚Œã ã£ãŸã‹
 
-    // •ŠíØ‚è‘Ö‚¦
-    WeaponType m_currentWeaponType;
-    WeaponType m_previousWeaponType;
-    std::vector<WeaponType> m_weaponTypes;
-    bool m_isSwitchingWeapon;
-    float m_weaponSwitchTimer;
-    float m_weaponSwitchDuration;
-    bool m_prevWeaponHadLowAmmo;
-    bool m_prevWeaponHadNoAmmo;
+    // å¼¾è–¬è­¦å‘Š
+    bool  m_isLowAmmo;              // å¼¾è–¬å°‘ãªã„è­¦å‘Šãƒ•ãƒ©ã‚°
+    bool  m_isShowingNoAmmoWarning; // å¼¾åˆ‡ã‚Œè­¦å‘Šè¡¨ç¤ºãƒ•ãƒ©ã‚°
+    float m_lowAmmoBlinkTimer;      // è­¦å‘Šç‚¹æ»…ã‚¿ã‚¤ãƒãƒ¼
 
-    // ’e–òŒx
-    bool m_isLowAmmo;
-    bool m_isShowingNoAmmoWarning;
-    float m_lowAmmoBlinkTimer;
+    // ç„¡é™å¼¾è–¬
+    bool m_isInfiniteAmmo; // ç„¡é™å¼¾è–¬ãƒ¢ãƒ¼ãƒ‰ãƒ•ãƒ©ã‚°
 
-    // –³ŒÀ’e–ò
-    bool m_isInfiniteAmmo;
+    // éŠƒã®ã‚·ã‚§ã‚¤ã‚¯
+    VECTOR m_gunShakeOffset; // ã‚·ã‚§ã‚¤ã‚¯ã«ã‚ˆã‚‹ä½ç½®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    float  m_gunShakeTimer;  // ã‚·ã‚§ã‚¤ã‚¯ã‚¿ã‚¤ãƒãƒ¼
+    float  m_gunShakePower;  // ã‚·ã‚§ã‚¤ã‚¯ã®å¼·ã•
 
-    // e‚ÌƒVƒFƒCƒN
-    VECTOR m_gunShakeOffset;
-    float m_gunShakeTimer;
-    float m_gunShakePower;
+    // ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+    bool  m_isSGAnimPlaying;              // SGã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿä¸­ãƒ•ãƒ©ã‚°
+    float m_sgAnimTime;                   // SGã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµŒéæ™‚é–“
+    float m_sgPumpTimer;                  // ãƒãƒ³ãƒ—ã‚¢ã‚¯ã‚·ãƒ§ãƒ³éŸ³ã®é…å»¶ã‚¿ã‚¤ãƒãƒ¼
+    std::deque<float> m_arCartridgeQueue; // ARè–¬è¢SEå†ç”Ÿäºˆç´„ã‚­ãƒ¥ãƒ¼
+    std::deque<float> m_sgCartridgeQueue; // SGè–¬è¢SEå†ç”Ÿäºˆç´„ã‚­ãƒ¥ãƒ¼
 
-    // ƒVƒ‡ƒbƒgƒKƒ“ƒAƒjƒ[ƒVƒ‡ƒ“
-    bool m_isSGAnimPlaying;
-    float m_sgAnimTime;
-    float m_sgPumpTimer;
-    std::deque<float> m_arCartridgeQueue;
-    std::deque<float> m_sgCartridgeQueue;
-
-    // ˆø‚«‚İƒIƒtƒZƒbƒg
-    float m_pullBackOffset;
+    // å¼•ãè¾¼ã¿ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    float m_pullBackOffset; // éŠƒã®å¼•ãè¾¼ã¿é‡ï¼ˆéšœå®³ç‰©å›é¿ç”¨ï¼‰
 };

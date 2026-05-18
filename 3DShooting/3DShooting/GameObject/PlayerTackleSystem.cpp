@@ -9,6 +9,24 @@
 #include "CapsuleCollider.h"
 #include "Game.h"
 
+namespace
+{
+    // タックル中のステージ衝突判定カプセルパラメータ（PlayerMovement と合わせる）
+    constexpr float kStageCheckRadius = 100.0f;
+    constexpr float kStageCheckLow    =  50.0f;
+    constexpr float kStageCheckHigh   =  60.0f;
+
+    // タックルヒット時のカメラシェイク
+    constexpr float kCameraShakePower    = 20.0f;
+    constexpr int   kCameraShakeDuration = 10;
+
+    // ヒットSEのクールダウン（フレーム数）
+    constexpr int kHitSECooldown = 60;
+
+    // タックルヒット時のノックバック速度
+    constexpr float kKnockbackSpeed = 15.0f;
+}
+
 PlayerTackleSystem::PlayerTackleSystem()
     : m_isTackling(false)
     , m_cooldownTimer(0.0f)
@@ -40,9 +58,9 @@ void PlayerTackleSystem::UpdateCooldownOnly(float deltaTime)
     if (m_cooldownTimer > 0) m_cooldownTimer -= 1.0f * Game::GetTimeScale();
 }
 
-void PlayerTackleSystem::Update(float deltaTime, bool isLockingOn, EnemyBase* lockedOnEnemy, 
-                                VECTOR& playerPos, PlayerMovement& movement, Camera* pCamera, 
-                                Effect* pEffect, const std::vector<EnemyBase*>& enemyList, 
+void PlayerTackleSystem::Update(float deltaTime, bool isLockingOn, EnemyBase* lockedOnEnemy,
+                                VECTOR& playerPos, PlayerMovement& movement, Camera* pCamera,
+                                Effect* pEffect, const std::vector<EnemyBase*>& enemyList,
                                 const std::vector<Stage::StageCollisionData>& collisionData,
                                 Player* pPlayer)
 {
@@ -86,7 +104,8 @@ void PlayerTackleSystem::Update(float deltaTime, bool isLockingOn, EnemyBase* lo
         if (playerPos.y < 0.0f) playerPos.y = 0.0f;
 
         // ステージ衝突判定
-        CollisionResult res = Collision::CheckStageCollision(playerPos, 100.0f, 50.0f, 60.0f, collisionData);
+        CollisionResult res = Collision::CheckStageCollision(
+            playerPos, kStageCheckRadius, kStageCheckLow, kStageCheckHigh, collisionData);
         movement.SetPos(playerPos);
 
         // 敵との衝突・停止判定
@@ -114,14 +133,14 @@ void PlayerTackleSystem::Update(float deltaTime, bool isLockingOn, EnemyBase* lo
         {
             if (isBodyHit)
             {
-                if (pCamera) pCamera->Shake(20.0f, 10);
+                if (pCamera) pCamera->Shake(kCameraShakePower, kCameraShakeDuration);
                 if (m_hitSECooldownTimer <= 0)
                 {
                     SoundManager::GetInstance()->Play("Player", "TackleHit");
-                    m_hitSECooldownTimer = 60;
+                    m_hitSECooldownTimer = kHitSECooldown;
                 }
                 VECTOR knockbackDir = VScale(m_tackleDir, -1.0f);
-                movement.ApplyKnockback(VScale(knockbackDir, 15.0f));
+                movement.ApplyKnockback(VScale(knockbackDir, kKnockbackSpeed));
             }
 
             m_isTackling = false;
@@ -148,4 +167,3 @@ void PlayerTackleSystem::Update(float deltaTime, bool isLockingOn, EnemyBase* lo
         }
     }
 }
-

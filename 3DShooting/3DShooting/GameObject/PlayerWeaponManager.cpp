@@ -63,8 +63,36 @@ namespace PlayerWeaponConstants
     constexpr int kBaseSoundFrequency = 44100;
 
     // 薬莢SEの音量
-	constexpr int kARCartridgeSEVolume = 120;
-	constexpr int kSGCartridgeSEVolume = 120;
+    constexpr int kARCartridgeSEVolume = 120;
+    constexpr int kSGCartridgeSEVolume = 120;
+
+    // 武器切り替えアニメーションの縦スライド量
+    constexpr float kWeaponSwitchSlideOffset = 300.0f;
+
+    // 銃引き込み時の補正値
+    constexpr float kPullBackRightLean = 60.0f; // 内側（左）へ寄せる量
+    constexpr float kPullBackUpLean    = 20.0f; // 上（胸元）へ寄せる量
+    constexpr float kPullBackTwist     =  1.5f; // 反時計方向のひねり量（ラジアン）
+    constexpr float kPullBackClamp     = 80.0f; // 引き込み量の上限
+
+    // 武器ごとの引き込み障害物検出距離
+    constexpr float kARPullCheckDist       = 160.0f; // 切り替え・射撃中（AR）
+    constexpr float kSGPullCheckDist       = 180.0f; // 切り替え・射撃中（SG）
+    constexpr float kARPullCheckDistNormal = 220.0f; // 通常表示時（AR）
+    constexpr float kSGPullCheckDistNormal = 240.0f; // 通常表示時（SG）
+
+    // 引き込み判定レイのスタートオフセット（自キャラ背面誤判定防止）
+    constexpr float kRayStartOffset = 10.0f;
+    // 引き込み量の計算係数（衝突割合への乗数）
+    constexpr float kPullBackFactor = 0.5f;
+
+    // 発射後の遅延タイマー（秒）
+    constexpr float kSGPumpDelay      = 0.4f; // ポンプアクション音の遅延
+    constexpr float kSGCartridgeDelay = 1.2f; // SG薬莢落下音の遅延
+    constexpr float kARCartridgeDelay = 0.8f; // AR薬莢落下音の遅延
+
+    // ガードアニメーション中の銃スライド幅
+    constexpr float kGuardAnimGunOffsetY = 200.0f;
 }
 
 PlayerWeaponManager::PlayerWeaponManager()
@@ -258,7 +286,7 @@ void PlayerWeaponManager::Update(const UpdateContext& context)
 
     // 画面外（カメラの後ろ）に消えないようにクランプ。
     // 初期Zオフセットが60.0f程度なので、80.0f程度を上限とする。
-    if (m_pullBackOffset > 80.0f) m_pullBackOffset = 80.0f;
+    if (m_pullBackOffset > PlayerWeaponConstants::kPullBackClamp) m_pullBackOffset = PlayerWeaponConstants::kPullBackClamp;
 }
 
 void PlayerWeaponManager::Draw3D(const DrawContext& context)
@@ -319,7 +347,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
         {
             float progress = (std::min)(m_weaponSwitchTimer / (m_weaponSwitchDuration * 0.5f), 1.0f);
             float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-            float yOffset = easeOut * 300.0f;
+            float yOffset = easeOut * PlayerWeaponConstants::kWeaponSwitchSlideOffset;
 
             // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
             prevOffset.y -= yOffset;
@@ -343,13 +371,13 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
             // 現時点での checkDistance 概算値を使用して進行度を計算
-            float checkDistance = (previousWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+            float checkDistance = (previousWeaponType == WeaponType::AssaultRifle) ? PlayerWeaponConstants::kARPullCheckDist : PlayerWeaponConstants::kSGPullCheckDist;
             float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
 
             // 引き込みによる位置補正 (手前に引き、左上に寄せる)
             finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
-            finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
-            finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
+            finalPos = VSub(finalPos, VScale(camRight, pullProgress * PlayerWeaponConstants::kPullBackRightLean)); // 左に寄せる
+            finalPos = VAdd(finalPos, VScale(camUp, pullProgress * PlayerWeaponConstants::kPullBackUpLean)); // 上に寄せる
 
             // 最前面に描画するために Z バッファをクリア
             ClearDrawScreenZBuffer();
@@ -358,7 +386,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 
             // 回転の補正 (反時計回りにひねる等)
             VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
-            baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる (ラジアン)
+            baseRot.z += pullProgress * PlayerWeaponConstants::kPullBackTwist; // 反時計回りにひねる (ラジアン)
 
             MV1SetRotationXYZ(prevHandle, baseRot);
             MV1SetVisible(prevHandle, true);
@@ -373,7 +401,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
         {
             float progress = (std::max)(0.0f, (m_weaponSwitchTimer - (m_weaponSwitchDuration * 0.5f)) / (m_weaponSwitchDuration * 0.5f));
             float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-            float yOffset = (1.0f - easeOut) * 300.0f;
+            float yOffset = (1.0f - easeOut) * PlayerWeaponConstants::kWeaponSwitchSlideOffset;
 
             // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
             currentOffset.y -= yOffset;
@@ -395,12 +423,12 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             VECTOR camRight = VTransform(VGet(1, 0, 0), modelRot);
             VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
-            float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+            float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? PlayerWeaponConstants::kARPullCheckDist : PlayerWeaponConstants::kSGPullCheckDist;
             float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
 
             finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
-            finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
-            finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
+            finalPos = VSub(finalPos, VScale(camRight, pullProgress * PlayerWeaponConstants::kPullBackRightLean)); // 左に寄せる
+            finalPos = VAdd(finalPos, VScale(camUp, pullProgress * PlayerWeaponConstants::kPullBackUpLean)); // 上に寄せる
 
             // 最前面に描画するために Z バッファをクリア
             ClearDrawScreenZBuffer();
@@ -409,7 +437,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 
             // 回転の補正
             VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
-            baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる
+            baseRot.z += pullProgress * PlayerWeaponConstants::kPullBackTwist; // 反時計回りにひねる
 
             MV1SetRotationXYZ(currentHandle, baseRot);
             MV1SetVisible(currentHandle, true);
@@ -431,7 +459,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 
             // ガードアニメーションの進行度を計算
             float guardAnimProgress = guardAnimTimer / guardAnimDuration;
-            float gunOffsetY = -200.0f * (1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f));
+            float gunOffsetY = -PlayerWeaponConstants::kGuardAnimGunOffsetY * (1.0f - cosf(guardAnimProgress * DX_PI_F * 0.5f));
 
             // 修正: オフセットをカメラ空間（ローカル）のY軸に適用する
             modelOffset.y += gunOffsetY;
@@ -454,12 +482,12 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
             VECTOR camRight = VTransform(VGet(1, 0, 0), modelRot);
             VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
-            float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 220.0f : 240.0f;
+            float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? PlayerWeaponConstants::kARPullCheckDistNormal : PlayerWeaponConstants::kSGPullCheckDistNormal;
             float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
 
             finalPos = VSub(finalPos, VScale(camForward, m_pullBackOffset));
-            finalPos = VSub(finalPos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
-            finalPos = VAdd(finalPos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
+            finalPos = VSub(finalPos, VScale(camRight, pullProgress * PlayerWeaponConstants::kPullBackRightLean)); // 左に寄せる
+            finalPos = VAdd(finalPos, VScale(camUp, pullProgress * PlayerWeaponConstants::kPullBackUpLean)); // 上に寄せる
 
             // 最前面に描画するために Z バッファをクリア
             ClearDrawScreenZBuffer();
@@ -468,7 +496,7 @@ void PlayerWeaponManager::Draw3D(const DrawContext& context)
 
             // モデルの回転を設定 (ひねりを加える)
             VECTOR baseRot = VAdd(VGet(pCamera->GetPitch(), pCamera->GetYaw() + DX_PI_F, 0.0f), gunSwayRotOffset);
-            baseRot.z += pullProgress * 1.5f; // 反時計回りにひねる
+            baseRot.z += pullProgress * PlayerWeaponConstants::kPullBackTwist; // 反時計回りにひねる
 
             MV1SetRotationXYZ(currentHandle, baseRot);
 
@@ -548,8 +576,8 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
             pAnimManager->PlayAnimation(m_sgHandle, "Armature.001|Armature.001|lever action_FIRE|Baked frames", false);
             m_isSGAnimPlaying = true;
             m_sgAnimTime = 0.0f;
-            m_sgPumpTimer = 0.4f;      // 0.4秒後にポンプアクション音を再生
-            m_sgCartridgeQueue.push_back(1.2f); // 1.2秒後に薬莢落下音を再生
+            m_sgPumpTimer = PlayerWeaponConstants::kSGPumpDelay;
+            m_sgCartridgeQueue.push_back(PlayerWeaponConstants::kSGCartridgeDelay);
         }
         // ショットガンは複数弾をばらけさせて発射
         for (int i = 0; i < 5; ++i)
@@ -572,7 +600,7 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
     // 薬莢SEを予約
     if (m_currentWeaponType == WeaponType::AssaultRifle)
     {
-        m_arCartridgeQueue.push_back(0.8f); // 0.8秒後に薬莢落下音を再生
+        m_arCartridgeQueue.push_back(PlayerWeaponConstants::kARCartridgeDelay);
 
         // 薬莢モデルの生成
         VECTOR ejectionPos = GetEjectionPortPos();
@@ -598,9 +626,9 @@ void PlayerWeaponManager::Shoot(std::vector<Bullet>& bullets,
     if (pEffect)
     {
         // 引き込みによる「ひねり」を Z 回転に反映
-        float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+        float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? PlayerWeaponConstants::kARPullCheckDist : PlayerWeaponConstants::kSGPullCheckDist;
         float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
-        rotZ += pullProgress * 1.5f;
+        rotZ += pullProgress * PlayerWeaponConstants::kPullBackTwist;
 
         pEffect->PlayMuzzleFlash(gunPos.x, gunPos.y, gunPos.z, rotX, rotY, rotZ);
     }
@@ -728,12 +756,12 @@ VECTOR PlayerWeaponManager::GetGunPos(const VECTOR& playerPos,
     VECTOR camRight = VTransform(VGet(1, 0, 0), modelRot);
     VECTOR camUp = VTransform(VGet(0, 1, 0), modelRot);
 
-    float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+    float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? PlayerWeaponConstants::kARPullCheckDist : PlayerWeaponConstants::kSGPullCheckDist;
     float pullProgress = (std::min)(1.0f, m_pullBackOffset / checkDistance);
 
     gunMuzzlePos = VSub(gunMuzzlePos, VScale(camForward, m_pullBackOffset));
-    gunMuzzlePos = VSub(gunMuzzlePos, VScale(camRight, pullProgress * 60.0f)); // 左に寄せる
-    gunMuzzlePos = VAdd(gunMuzzlePos, VScale(camUp, pullProgress * 20.0f)); // 上に寄せる
+    gunMuzzlePos = VSub(gunMuzzlePos, VScale(camRight, pullProgress * PlayerWeaponConstants::kPullBackRightLean)); // 左に寄せる
+    gunMuzzlePos = VAdd(gunMuzzlePos, VScale(camUp, pullProgress * PlayerWeaponConstants::kPullBackUpLean)); // 上に寄せる
 
     return gunMuzzlePos;
 }
@@ -806,13 +834,13 @@ float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Came
     if (!pCamera || pCamera->GetPitch() < -DX_PI_F * 0.25f) return 0.0f;
 
     // 現在装備中の武器の銃身長をレイの長さとして定義
-    float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? 160.0f : 180.0f;
+    float checkDistance = (m_currentWeaponType == WeaponType::AssaultRifle) ? PlayerWeaponConstants::kARPullCheckDist : PlayerWeaponConstants::kSGPullCheckDist;
 
     VECTOR camPos     = pCamera->GetPos();
     VECTOR camForward = VNorm(VSub(pCamera->GetTarget(), camPos));
 
     // カメラの少し前方を起点としたレイを形成（自キャラの背中などへの誤判定を防ぐ）
-    VECTOR rayStart = VAdd(camPos, VScale(camForward, 10.0f));
+    VECTOR rayStart = VAdd(camPos, VScale(camForward, PlayerWeaponConstants::kRayStartOffset));
     VECTOR rayEnd   = VAdd(rayStart, VScale(camForward, checkDistance));
 
     float minHitT = 1.0f; // レイの割合(0.0 ～ 1.0)における最短ヒット距離を保持
@@ -859,7 +887,7 @@ float PlayerWeaponManager::CalculatePullBackOffset(const VECTOR& playerPos, Came
     {
         // 障害物との距離が近い（tが小さい）ほど、手前への引き込み量を大きく設定
         // ※最前面描画との併用のため、位置の引き下げ自体は控えめにし「銃のひねり演出」を補完する
-        return (1.0f - minHitT) * checkDistance * 0.5f;
+        return (1.0f - minHitT) * checkDistance * PlayerWeaponConstants::kPullBackFactor;
     }
 
     return 0.0f;

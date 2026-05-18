@@ -4,8 +4,12 @@
 
 namespace
 {
-	constexpr float kGravity       = 0.05f; // 重力の影響
-	constexpr int   kMaxLifeTime   = 60;    // 最大寿命（フレーム）約1秒
+    constexpr float kGravity        = 0.05f;  // 重力の影響
+    constexpr int   kMaxLifeTime    = 60;     // 最大寿命（フレーム数）約1秒
+    constexpr float kInitialSpeed   = 2.0f;   // 初期速度スケール
+    constexpr float kInitialUpSpeed = 1.0f;   // 初期上向き速度
+    constexpr float kRotationSpeed  = 0.1f;   // 毎フレームの回転量（ラジアン）
+    constexpr float kScreenMargin   = 50.0f;  // 画面外判定のマージン（ピクセル）
 }
 
 int ShellCasing::s_modelHandle = -1;
@@ -22,12 +26,14 @@ void ShellCasing::DeleteResources()
 
 ShellCasing::ShellCasing(const VECTOR& pos, const VECTOR& dir)
 {
-    m_pos = pos;
-    m_velocity = VScale(dir, 2.0f);
-    m_velocity.y += 1.0f;
-    m_rotation = VGet(GetRand(360) * DX_PI_F / 180.0f, GetRand(360) * DX_PI_F / 180.0f, GetRand(360) * DX_PI_F / 180.0f);
+    m_pos      = pos;
+    m_velocity = VScale(dir, kInitialSpeed);
+    m_velocity.y += kInitialUpSpeed;
+    m_rotation = VGet(GetRand(360) * DX_PI_F / 180.0f,
+                      GetRand(360) * DX_PI_F / 180.0f,
+                      GetRand(360) * DX_PI_F / 180.0f);
     m_modelHandle = MV1DuplicateModel(s_modelHandle);
-    m_lifeTime = kMaxLifeTime;
+    m_lifeTime    = kMaxLifeTime;
 }
 
 void ShellCasing::Update()
@@ -35,20 +41,17 @@ void ShellCasing::Update()
     m_velocity.y -= kGravity;
     m_pos = VAdd(m_pos, m_velocity);
 
-    // 3D座標を2Dスクリーン座標に変換
+    // 3D座標を2Dスクリーン座標に変換し、画面外なら即削除
     VECTOR screenPos = ConvWorldPosToScreenPos(m_pos);
-
-    // 画面外に出たら削除
-    constexpr float margin = 50.0f;
-    if (screenPos.x < -margin || screenPos.x > Game::GetScreenWidth() + margin ||
-        screenPos.y < -margin || screenPos.y > Game::GetScreenHeight() + margin ||
-        screenPos.z < 0.0f) 
+    if (screenPos.x < -kScreenMargin || screenPos.x > Game::GetScreenWidth()  + kScreenMargin ||
+        screenPos.y < -kScreenMargin || screenPos.y > Game::GetScreenHeight() + kScreenMargin ||
+        screenPos.z < 0.0f)
     {
         m_lifeTime = 0;
     }
 
-    m_rotation.x += 0.1f;
-    m_rotation.z += 0.1f;
+    m_rotation.x += kRotationSpeed;
+    m_rotation.z += kRotationSpeed;
 
     m_lifeTime--;
 }
