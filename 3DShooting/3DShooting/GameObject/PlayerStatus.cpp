@@ -15,22 +15,22 @@ PlayerStatus::PlayerStatus()
 
 void PlayerStatus::Init(float maxHp)
 {
-    m_maxHealth = maxHp;
-    m_health = maxHp;
-    m_healthBarAnim = maxHp;
-    m_isDead = false;
-    m_isInvincible = false;
-    m_isLowHealth = false;
+    m_maxHealth          = maxHp;
+    m_health             = maxHp;
+    m_healthBarAnim      = maxHp;
+    m_isDead             = false;
+    m_isInvincible       = false;
+    m_isLowHealth        = false;
     m_lowHealthBlinkTimer = 0.0f;
-    m_deathTimer = 0.0f;
+    m_deathTimer         = 0.0f;
 }
 
 void PlayerStatus::Update(float deltaTime)
 {
     if (m_isDead)
     {
-        m_deathTimer += deltaTime;
-        m_healthBarAnim = 0.0f;
+        m_deathTimer    += deltaTime;
+        m_healthBarAnim  = 0.0f;
         return;
     }
 
@@ -57,7 +57,7 @@ void PlayerStatus::Update(float deltaTime)
     }
     else
     {
-        m_isLowHealth = false;
+        m_isLowHealth         = false;
         m_lowHealthBlinkTimer = 0.0f;
     }
 }

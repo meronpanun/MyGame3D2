@@ -69,7 +69,28 @@ namespace PlayerShieldConstants
 
     // 盾投げ失敗アニメーション
     constexpr float kShieldThrowFailedAnimDuration = 0.2f; // 失敗アニメーションの持続時間（秒）
-    constexpr float kShieldThrowFailedAnimOffset = 15.0f; // 失敗アニメーションの突き出し距離
+    constexpr float kShieldThrowFailedAnimOffset   = 15.0f; // 失敗アニメーションの突き出し距離
+
+    // 描画関連
+    constexpr float kShieldWaitAngleY        = -0.3f;  // 待機時のY軸回転角度
+    constexpr float kShieldGuardPosZ         = -15.0f; // ガード時の盾のZ位置
+    constexpr float kWeaponSwitchHideOffset  = 300.0f; // 武器切り替え時の盾を隠すYオフセット
+    constexpr float kWeaponSwitchShowOffset  = 100.0f; // 武器切り替え後の盾を戻すYオフセット
+    constexpr float kSparkEffectForwardOffset = 80.0f; // スパークエフェクトの前方オフセット
+    constexpr int   kSparkEffectDuration     = 30;     // スパークエフェクトの持続フレーム数
+    constexpr float kShieldAnimDuration      = 1.0f;   // 盾アニメーション（破壊・回復）の総時間（秒）
+
+    // SE関連
+    constexpr float kHitSECooldown          = 0.1f;  // ヒットSE再生クールダウン（秒）
+    constexpr float kBoomerangFadeSpeed     = 5.0f;  // ブーメランSEフェードアウト速度（約0.2秒で完了）
+    constexpr float kBoomerangVolumeFalloff = 1.2f;  // ブーメラン音量減衰の距離係数（射程の何倍で0になるか）
+    constexpr float kBoomerangMinVolRatio   = 0.2f;  // ブーメランSEの最低音量比率
+    constexpr int   kBoomerangLoopCheckMinMs = 500;  // ループ手動制御を行う最低総時間（ms）
+    constexpr int   kBoomerangLoopPreEndMs   = 350;  // ループ折り返し点（末尾から何ms前か）
+
+    // コリジョン関連
+    constexpr float kReflectPushbackDist   = 2.0f;  // 反射後の押し出し距離（ステージめり込み防止）
+    constexpr float kBossHitPushbackDist   = 5.0f;  // ボスシールドヒット後の押し出し距離
 }
 
 PlayerShieldSystem::PlayerShieldSystem()
@@ -88,7 +109,7 @@ PlayerShieldSystem::PlayerShieldSystem()
     , m_isShieldAnimating(false)
     , m_isShieldRecovering(false)
     , m_shieldAnimTimer(0.0f)
-    , m_shieldAnimDuration(1.0f)
+    , m_shieldAnimDuration(PlayerShieldConstants::kShieldAnimDuration)
     , m_guardEffectHandle(-1)
     , m_sparkEffectHandle(-1)
     , m_sparkEffectTimer(0)
@@ -198,7 +219,7 @@ void PlayerShieldSystem::Update(float deltaTime, Camera* pCamera,
     // ブーメランSEのフェードアウト更新
     if (m_isBoomerangFading)
     {
-        m_boomerangFadeVolume -= deltaTime * 5.0f; // 約0.2秒でフェードアウト
+        m_boomerangFadeVolume -= deltaTime * PlayerShieldConstants::kBoomerangFadeSpeed;
         if (m_boomerangFadeVolume <= 0.0f)
         {
             m_boomerangFadeVolume = 0.0f;
@@ -324,7 +345,6 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, NULL);
 
-    /*盾の描画*/
     // 画面サイズに応じてスケーリング
     float scaleW = screenW / PlayerShieldConstants::kShieldBaseScreenW;
     float scaleH = screenH / PlayerShieldConstants::kShieldBaseScreenH;
@@ -357,15 +377,14 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
     // 待機位置とガード位置を定義
     VECTOR waitPos = VAdd(VGet(PlayerShieldConstants::kShieldWaitX * scaleW, PlayerShieldConstants::kShieldWaitY * scaleH, PlayerShieldConstants::kShieldWaitZ),
             m_shieldSwayOffset);
-    VECTOR guardPos = VGet(0.0f, PlayerShieldConstants::kShieldWaitY * scaleH, -15.0f); // 中央の位置
+    VECTOR guardPos = VGet(0.0f, PlayerShieldConstants::kShieldWaitY * scaleH, PlayerShieldConstants::kShieldGuardPosZ);
 
     // 進行度に応じて位置を補間
     VECTOR currentPos = VAdd(waitPos, VScale(VSub(guardPos, waitPos), easeProgress));
     currentPos.y -= startAnimOffsetY;
 
     // 待機回転とガード回転を定義
-    constexpr float kShieldWaitAngleY = -0.3f; // 待機時のY軸回転角度
-    VECTOR waitRot = VGet(0.0f, DX_PI_F + kShieldWaitAngleY, 0.0f);
+    VECTOR waitRot = VGet(0.0f, DX_PI_F + PlayerShieldConstants::kShieldWaitAngleY, 0.0f);
     VECTOR guardRot = VGet(0.0f, DX_PI_F, 0.0f);
 
     // 進行度に応じて回転を補間
@@ -389,7 +408,7 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
         {
             float progress = weaponSwitchTimer / halfDuration;
             float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-            float yOffset = easeOut * 300.0f;
+            float yOffset = easeOut * PlayerShieldConstants::kWeaponSwitchHideOffset;
             currentPos.y -= yOffset;
         }
         // 後半：盾を元の位置に戻す
@@ -397,7 +416,7 @@ void PlayerShieldSystem::Draw(Camera* pCamera, const VECTOR& playerPos, bool isT
         {
             float progress = (weaponSwitchTimer - halfDuration) / halfDuration;
             float easeOut = 1.0f - powf(1.0f - progress, 3.0f);
-            float yOffset = (1.0f - easeOut) * 100.0f;
+            float yOffset = (1.0f - easeOut) * PlayerShieldConstants::kWeaponSwitchShowOffset;
             currentPos.y -= yOffset;
         }
     }
@@ -482,10 +501,10 @@ float PlayerShieldSystem::TakeDamage(float damage, Effect* pEffect,
     if (pEffect && pCamera)
     {
         VECTOR forward = VNorm(VSub(pCamera->GetTarget(), pCamera->GetPos()));
-        VECTOR effectPos = VAdd(playerPos, VScale(forward, 80.0f));
+        VECTOR effectPos = VAdd(playerPos, VScale(forward, PlayerShieldConstants::kSparkEffectForwardOffset));
         m_sparkEffectHandle =
             pEffect->PlaySparkEffect(effectPos.x, effectPos.y, effectPos.z);
-        m_sparkEffectTimer = 30;
+        m_sparkEffectTimer = PlayerShieldConstants::kSparkEffectDuration;
     }
 
     if (m_shieldDurability <= 0.0f)
@@ -651,10 +670,8 @@ bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
     VECTOR cameraForward = VSub(camTarget, camPos);
     m_shieldThrowDir = VNorm(cameraForward); // カメラの前方方向ベクトル（レティクル方向）
 
-    // シールドの初期位置を設定
-    constexpr float kShieldThrowStartYOffset = 80.0f;
     VECTOR throwStartPos = playerPos;
-    throwStartPos.y += kShieldThrowStartYOffset;
+    throwStartPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
     m_shieldThrowStartPos = throwStartPos;
     m_shieldThrowPos = m_shieldThrowStartPos;
     m_shieldThrowDistance = 0.0f;
@@ -698,11 +715,10 @@ void PlayerShieldSystem::UpdateShieldThrow(
         currentPPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
         float dist = VSize(VSub(m_shieldThrowPos, currentPPos));
         
-        // 距離に応じて音量を0〜255で計算 (最大射程付近で最小になるように設定)
-        // 距離500以上で減衰開始、最大射程で音量20%程度にする
+        // 距離に応じて音量を減衰（kBoomerangMinVolRatio 以下にはならないようにする）
         float maxRange = PlayerShieldConstants::kShieldThrowMaxRange;
-        float volRatio = 1.0f - (dist / (maxRange * 1.2f)); // 余裕を持たせて完全に0にならないように
-        if (volRatio < 0.2f) volRatio = 0.2f;
+        float volRatio = 1.0f - (dist / (maxRange * PlayerShieldConstants::kBoomerangVolumeFalloff));
+        if (volRatio < PlayerShieldConstants::kBoomerangMinVolRatio) volRatio = PlayerShieldConstants::kBoomerangMinVolRatio;
         if (volRatio > 1.0f) volRatio = 1.0f;
         
         SoundManager::GetInstance()->SetVolume("Shield", "Boomerang", static_cast<int>(255 * volRatio));
@@ -724,10 +740,10 @@ void PlayerShieldSystem::UpdateShieldThrow(
             // 総時間が取得できており、かつある程度の長さがある場合のみ手動ループ処理を行う
             // currentTime が 0 の場合は再生開始直後なのでスキップする
             // また、currentTime が総時間を超えているような異常値の場合もスキップする
-            if (m_boomerangTotalTime > 500)
+            if (m_boomerangTotalTime > PlayerShieldConstants::kBoomerangLoopCheckMinMs)
             {
                 int currentTime = static_cast<int>(GetSoundCurrentTime(handle));
-                if (currentTime > 0 && currentTime < m_boomerangTotalTime && currentTime >= m_boomerangTotalTime - 350)
+                if (currentTime > 0 && currentTime < m_boomerangTotalTime && currentTime >= m_boomerangTotalTime - PlayerShieldConstants::kBoomerangLoopPreEndMs)
                 {
                     SetSoundCurrentTime(0, handle);
                 }
@@ -836,7 +852,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
                     }
 
                     // 壁へのめり込み（Clipping）を防ぐため、算出した法線方向へ微小に押し出し
-                    m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, 2.0f));
+                    m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, PlayerShieldConstants::kReflectPushbackDist));
                 }
                 else
                 {
@@ -894,7 +910,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
                                  if (m_shieldHitSECooldown <= 0.0f)
                                  {
                                      SoundManager::GetInstance()->Play("Shield", "Hit");
-                                     m_shieldHitSECooldown = 0.1f;
+                                     m_shieldHitSECooldown = PlayerShieldConstants::kHitSECooldown;
                                  }
 
                                  // エフェクト再生
@@ -913,7 +929,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
                                  m_shieldThrowState = ShieldThrowState::Returning;
                                  
                                  // めり込み防止（法線方向に少し押し出す）
-                                 m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, 5.0f));
+                                 m_shieldThrowPos = VAdd(m_shieldThrowPos, VScale(normal, PlayerShieldConstants::kBossHitPushbackDist));
 
                                  continue; // 本体との判定はスキップ
                              }
@@ -989,9 +1005,8 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPo
     if (m_shieldThrowState == ShieldThrowState::Returning)
     {
         // 戻り中はプレイヤー方向を向く（水平方向のみ）
-        constexpr float kShieldThrowStartYOffset = 80.0f;
         VECTOR returnTargetPos = playerPos;
-        returnTargetPos.y += kShieldThrowStartYOffset;
+        returnTargetPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
         VECTOR toPlayer = VSub(returnTargetPos, m_shieldThrowPos);
         forward = VNorm(toPlayer);
     }
@@ -1030,10 +1045,8 @@ void PlayerShieldSystem::ImmediateReturnShield(const VECTOR& playerPos)
 {
     if (!m_isShieldThrown) return;
 
-    // 盾を即座にプレイヤーの位置（Yオフセット付き）に戻す
-    constexpr float kShieldThrowStartYOffset = 80.0f;
     VECTOR returnTargetPos = playerPos;
-    returnTargetPos.y += kShieldThrowStartYOffset;
+    returnTargetPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
     m_shieldThrowPos = returnTargetPos;
 
     // 待機モードに戻す
