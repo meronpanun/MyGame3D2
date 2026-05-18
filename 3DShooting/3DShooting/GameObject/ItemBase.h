@@ -60,5 +60,5 @@ protected:
     /// </summary>
     virtual void DrawCollisionDebug() {}
 
-    static bool s_shouldDrawCollision; // デバッグ用コリジョン描画フラグ
+    inline static bool s_shouldDrawCollision = false; // デバッグ用コリジョン描画フラグ
 };
