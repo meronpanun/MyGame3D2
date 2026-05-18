@@ -14,43 +14,68 @@ class CapsuleCollider;
 class SphereCollider;
 class Collider;
 
-namespace EnemyAcidConstants 
+namespace EnemyAcidConstants
 {
     // アニメーション関連
     constexpr char kAttackAnimName[] = "Armature|ATK"; // 攻撃アニメーション
-    constexpr char kWalkAnimName[] = "Armature|WALK";  // 歩くアニメーション
-    constexpr char kBackAnimName[] = "Armature|BACK";  // 後退アニメーション
-    constexpr char kDeadAnimName[] = "Armature|DEAD";  // 死亡アニメーション
+    constexpr char kWalkAnimName[]   = "Armature|WALK"; // 歩くアニメーション
+    constexpr char kBackAnimName[]   = "Armature|BACK"; // 後退アニメーション
+    constexpr char kDeadAnimName[]   = "Armature|DEAD"; // 死亡アニメーション
 
-    inline const VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // オフセット
+    inline const VECTOR kHeadShotPositionOffset = {0.0f, 0.0f, 0.0f}; // ヘッドショット判定コライダーの中心補正値
 
-    // コライダーのサイズを定義
+    // コライダーサイズ
     constexpr float kBodyColliderRadius = 40.0f; // 体のコライダー半径
     constexpr float kBodyColliderHeight = 50.0f; // 体のコライダー高さ
-    constexpr float kHeadRadius = 18.0f;         // 頭のコライダー半径
+    constexpr float kHeadRadius         = 18.0f; // 頭のコライダー半径
 
     // 攻撃関連（遠距離攻撃に特化）
-    constexpr int kAttackCooldownMax = 160;       // 攻撃クールダウン時間
-    constexpr float kAttackRangeRadius = 1500.0f; // 攻撃範囲の半径
-    constexpr float kAcidBulletSpeed = 5.0f;      // 酸弾の速度
+    constexpr int   kAttackCooldownMax    = 160;     // 攻撃クールダウン時間（フレーム数）
+    constexpr float kAttackRangeRadius    = 1500.0f; // 攻撃範囲の半径
+    constexpr float kAcidBulletSpeed      = 5.0f;    // 酸弾の速度
+    constexpr float kAcidBallRadius       = 12.0f;   // 酸弾の当たり判定半径
+    constexpr float kParabolicGravity     = 0.3f;    // 放物線弾の重力加速度
+    constexpr float kAttackTimingRatio    = 0.3f;    // 弾を発射する攻撃アニメーションの進行比率
+    constexpr int   kAttackEndDelayFrames = 20;      // 攻撃後の行動再開までの硬直フレーム数
 
-    // 追跡関連（遠距離型なので、近づきすぎたら離れる）
-    constexpr float kOptimalAttackDistanceMin = 500.0f; // 攻撃可能最小距離
+    // 追跡関連
+    constexpr float kOptimalAttackDistanceMin = 500.0f; // 後退を開始するプレイヤーとの最小距離
+    constexpr float kRotateSpeedPerFrame      = 0.05f;  // フレームあたりの旋回速度（ラジアン）
+    constexpr int   kTargetOffsetRange        = 400;    // ターゲットオフセットの範囲（±この値でランダム）
 
     // スタン関連
-    constexpr int kStunDuration = 120; // スタンの総持続時間
+    constexpr int   kStunDuration       = 120;  // スタンの総持続時間（フレーム数）
     constexpr float kStunAnimFrameLimit = 60.0f; // スタンアニメーションの再生上限フレーム
 
-    // AcidBallの画面外判定距離
-    constexpr float kAcidBallBoundaryDistance = 1500.0f;
- 
-    // 描画距離
-    constexpr float kDrawDistanceSq = 5000.0f * 5000.0f;
-    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;
-    constexpr float kDrawDotThreshold = 0.4f;
+    // パリィ関連
+    constexpr float kParryNotifyDistance         = 100.0f; // チュートリアルにパリィ通知を送るプレイヤーからの距離
+    constexpr float kParryRadiusMultiplier        = 1.5f;  // パリィコライダーの半径倍率
+    constexpr float kReflectedBallSpeedMultiplier = 1.5f;  // パリィ反射後の弾速倍率
+    constexpr float kParryBodyCenterOffsetY       = 50.0f; // 反射先として使う敵体の中心Y補正値
+    constexpr float kParryTimeScale               = 0.1f;  // パリィ成功時のタイムスケール
+    constexpr float kParryTimeScaleDuration       = 1.0f;  // パリィタイムスケールの持続時間（秒）
+
+    // サウンド関連
+    constexpr float kSoundMaxDistance = 2000.0f; // 音量計算の最大聴取距離（これ以上は無音）
+    constexpr int   kSoundMaxVolume   = 150;     // 攻撃ボイスの最大音量
+
+    // 酸弾の消滅判定
+    constexpr float kAcidBallBoundaryDistance = 1500.0f; // 酸弾がプレイヤーから離れすぎたら非アクティブにする距離
+
+    // 視錐台カリング用描画距離
+    constexpr float kDrawDistanceSq     = 5000.0f * 5000.0f; // 最大描画距離の二乗
+    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;   // 常に描画する近距離の二乗
+    constexpr float kDrawDotThreshold   = 0.4f;              // 視野内判定に使う内積閾値
 
     // 押し出し
-    constexpr float kPushBackEpsilon = 0.0001f;
+    constexpr float kPushBackEpsilon = 0.0001f; // コライダー押し出し時のゼロ除算防止閾値
+
+    // デバッグ描画用パラメータ
+    constexpr int kDebugSphereDiv        = 16;       // 球の分割数
+    constexpr int kDebugBodyColor        = 0xff00ff; // 体のコライダーの色（マゼンタ）
+    constexpr int kDebugHeadColor        = 0xffff00; // 頭のコライダーの色（黄色）
+    constexpr int kDebugAttackRangeColor = 0x00ffff; // 攻撃範囲コライダーの色（シアン）
+    constexpr int kDebugParryColor       = 0x0000ff; // パリィコライダーの色（青）
 }
 
 /// <summary>
@@ -67,10 +92,7 @@ public:
     void Draw() override;
 
     /// <summary>
-    /// デバッグ用の当たり判定を描画する
-    /// </summary>
-    /// <summary>
-    /// モデルの読み込み(共有)
+    /// モデルの読み込み（共有）
     /// </summary>
     static void LoadModel();
 
@@ -148,21 +170,21 @@ private:
         VECTOR pos;          // 弾の位置
         VECTOR dir;          // 弾の進行方向
 
-        bool active = false;
-        float radius = 12.0f;
-        float damage = 0.0f;
-        float speed = 5.0f;        // 弾の速度
-        int effectHandle = -1;
-        bool isReflected = false;  // パリィで反射されたか
-        bool isParryable = true;   // パリィ可能かどうか
-        EnemyBase* owner = nullptr;// この弾の所有者
+        bool  active       = false;                               // アクティブ状態かどうか
+        float radius       = EnemyAcidConstants::kAcidBallRadius; // 当たり判定半径
+        float damage       = 0.0f;                                // ダメージ量
+        float speed        = EnemyAcidConstants::kAcidBulletSpeed; // 弾の速度
+        int   effectHandle = -1;                                  // エフェクトハンドル
+        bool isReflected   = false;                               // パリィで反射されたか
+        bool isParryable   = true;                                // パリィ可能かどうか
+        EnemyBase* owner   = nullptr;                             // この弾の所有者
 
         // 放物線用
-        bool isParabolic = false;
-        VECTOR velocity = { 0, 0, 0 };
-        float gravity = 0.0f;
+        bool  isParabolic = false;
+        VECTOR velocity   = { 0, 0, 0 };
+        float gravity     = 0.0f;
 
-        AcidBall() : pos(VGet(0,0,0)), dir(VGet(0,0,1)), active(false), radius(12.0f), damage(0.0f), speed(5.0f), effectHandle(-1), isReflected(false), isParryable(true), owner(nullptr), isParabolic(false), velocity(VGet(0,0,0)), gravity(0.0f) {}
+        AcidBall() : pos(VGet(0,0,0)), dir(VGet(0,0,1)), active(false), radius(EnemyAcidConstants::kAcidBallRadius), damage(0.0f), speed(EnemyAcidConstants::kAcidBulletSpeed), effectHandle(-1), isReflected(false), isParryable(true), owner(nullptr), isParabolic(false), velocity(VGet(0,0,0)), gravity(0.0f) {}
 
         void Update(float timeScale);
     };
@@ -195,7 +217,7 @@ private:
     /// <param name="pEffect">エフェクトオブジェクト</param>
     void ShootAcidBullet(std::vector<Bullet>& bullets, const Player& player, Effect* pEffect, const std::vector<Stage::StageCollisionData>& stageCollision, const class CollisionGrid* pGrid = nullptr);
 
-    // リファクタリング用メソッド
+    // EnemyBase::UpdateStandard から呼び出される内部処理
     void UpdateAI(const EnemyUpdateContext& context) override;
     void UpdateAnimation(const EnemyUpdateContext& context) override;
     void UpdateDeath(const EnemyUpdateContext& context) override;

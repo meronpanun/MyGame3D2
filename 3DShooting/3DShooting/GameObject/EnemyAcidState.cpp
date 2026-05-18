@@ -33,7 +33,7 @@ void EnemyAcidStateBack::Update(EnemyAcid* enemy, const EnemyUpdateContext& cont
 void EnemyAcidStateAttack::Enter(EnemyAcid* enemy)
 {
     enemy->m_hasAttacked = false;
-    enemy->m_attackCooldown = 160; // EnemyAcidConstants::kAttackCooldownMax;
+    enemy->m_attackCooldown = EnemyAcidConstants::kAttackCooldownMax;
     enemy->ChangeAnimation(EnemyBase::AnimState::Attack, false);
 }
 
@@ -45,7 +45,7 @@ void EnemyAcidStateAttack::Update(EnemyAcid* enemy, const EnemyUpdateContext& co
 void EnemyAcidStateStunned::Enter(EnemyAcid* enemy)
 {
     enemy->m_isStunned = true;
-    enemy->m_stunTimer = 120; // EnemyAcidConstants::kStunDuration
+    enemy->m_stunTimer = EnemyAcidConstants::kStunDuration;
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false); // 死亡アニメーションを流用
 }
 
@@ -66,7 +66,6 @@ void EnemyAcidStateDead::Update(EnemyAcid* enemy, const EnemyUpdateContext& cont
     // 死亡時は何もしない
 }
 
-// UpdateAcidBalls - EnemyAcid.cpp の UpdateAI から分離
 void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
 {
     const Player& player = context.player;
@@ -94,7 +93,7 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
         }
 
         // チュートリアル通知（パリィ可能弾が近い場合）
-        if (ball.isParryable && !ball.isReflected && distanceToPlayer <= 100.0f)
+        if (ball.isParryable && !ball.isReflected && distanceToPlayer <= EnemyAcidConstants::kParryNotifyDistance)
         {
             TaskTutorialManager::GetInstance()->NotifyParryableAttack();
         }
@@ -110,7 +109,7 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
                 VECTOR playerCapA, playerCapB;
                 float playerRadius;
                 player.GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
-                float parryRadius = playerRadius * 1.5f;
+                float parryRadius = playerRadius * EnemyAcidConstants::kParryRadiusMultiplier;
                 CapsuleCollider parryCollider(playerCapA, playerCapB, parryRadius);
 
 #ifdef _DEBUG
@@ -129,10 +128,10 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
                     if (playerCam)
                     {
                         VECTOR enemyBodyCenter = m_pos;
-                        enemyBodyCenter.y += 50.0f;
+                        enemyBodyCenter.y += EnemyAcidConstants::kParryBodyCenterOffsetY;
                         ball.dir = VNorm(VSub(enemyBodyCenter, ball.pos));
-                        ball.speed *= 1.5f;
-                        Game::SetTimeScale(0.1f, 1.0f);
+                        ball.speed *= EnemyAcidConstants::kReflectedBallSpeedMultiplier;
+                        Game::SetTimeScale(EnemyAcidConstants::kParryTimeScale, EnemyAcidConstants::kParryTimeScaleDuration);
                     }
                 }
             }
@@ -177,7 +176,6 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
         m_acidBalls.end());
 }
 
-// UpdateMovementAI - EnemyAcid.cpp の UpdateAI から分離
 void EnemyAcid::UpdateMovementAI(const EnemyUpdateContext& context)
 {
     const Player& player = context.player;
@@ -186,7 +184,7 @@ void EnemyAcid::UpdateMovementAI(const EnemyUpdateContext& context)
     VECTOR playerPos = player.GetPos();
 
     // プレイヤーの方向を向く
-    RotateTowards(playerPos, 0.05f * Game::GetTimeScale() * m_aiUpdateInterval);
+    RotateTowards(playerPos, EnemyAcidConstants::kRotateSpeedPerFrame * Game::GetTimeScale() * m_aiUpdateInterval);
     float disToPlayer = VSize(VSub(playerPos, m_pos));
 
     // 攻撃範囲判定
@@ -229,14 +227,14 @@ void EnemyAcid::UpdateMovementAI(const EnemyUpdateContext& context)
     if (m_currentAnimState == AnimState::Attack)
     {
         float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kAttackAnimName);
-        if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * 0.3f)
+        if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * EnemyAcidConstants::kAttackTimingRatio)
         {
             ShootAcidBullet(const_cast<std::vector<Bullet>&>(context.bullets), player, pEffect, context.collisionData, context.collisionGrid);
             m_hasAttacked = true;
         }
         if (m_animTime >= totalAttackAnimTime)
         {
-            m_attackEndDelayTimer = 20;
+            m_attackEndDelayTimer = EnemyAcidConstants::kAttackEndDelayFrames;
             m_animTime = 0.0f;
             if (m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) != -1)
             {

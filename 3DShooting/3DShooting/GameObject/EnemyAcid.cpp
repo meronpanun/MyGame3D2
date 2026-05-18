@@ -63,8 +63,8 @@ EnemyAcid::EnemyAcid()
 
 EnemyAcid::~EnemyAcid()
 {
-  // モデルの解放
-  MV1DeleteModel(m_modelHandle);
+    // モデルの解放
+    MV1DeleteModel(m_modelHandle);
 
     for (auto& ball : m_acidBalls)
     {
@@ -77,16 +77,15 @@ EnemyAcid::~EnemyAcid()
 
 void EnemyAcid::LoadModel()
 {
-  s_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
-  assert(s_modelHandle != -1);
+    s_modelHandle = MV1LoadModel("data/model/AcidZombie.mv1");
+    assert(s_modelHandle != -1);
 }
 
 void EnemyAcid::DeleteModel()
 {
-  MV1DeleteModel(s_modelHandle);
+    MV1DeleteModel(s_modelHandle);
 }
 
-// 初期化
 void EnemyAcid::Init()
 {
   m_attackCooldownMax = EnemyAcidConstants::kAttackCooldownMax;
@@ -98,22 +97,21 @@ void EnemyAcid::Init()
   // CSVからAcidEnemyのTransform情報を取得
   LoadTransformData("AcidEnemy");
 
-  // ここで一度「絶対にRunでない値」にリセット
-  // 初期アニメーションを強制的に再生させるため
-  m_currentAnimState = AnimState::Dead;
+    // ChangeAnimation は同じステートを受け取ると再生をスキップするため、
+    // 初期アニメーションを確実に再生させるために現在と異なる値で初期化しておく
+    m_currentAnimState = AnimState::Dead;
 
   // 初期ステートの設定
   ChangeState(std::make_shared<EnemyAcidStateWalk>());
 
   m_isNextAttackNormal = false; // 最初はパリィ弾から
 
-  // ターゲットオフセットの初期化 (±400.0f)
-  float offsetX = static_cast<float>(GetRand(800) - 400);
-  float offsetZ = static_cast<float>(GetRand(800) - 400);
+    // ターゲットオフセットの初期化
+    float offsetX = static_cast<float>(GetRand(EnemyAcidConstants::kTargetOffsetRange * 2) - EnemyAcidConstants::kTargetOffsetRange);
+    float offsetZ = static_cast<float>(GetRand(EnemyAcidConstants::kTargetOffsetRange * 2) - EnemyAcidConstants::kTargetOffsetRange);
   m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 }
 
-// アニメーションを変更する
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
 {
   // 後退アニメーションは同じ状態でも必ず再生し直す
@@ -127,14 +125,12 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
             {
                 m_hasAttacked = false;
 
-                // 攻撃ボイスを再生
-                // 距離に応じた音量計算 (2000以上で無音、最大音量を150に抑える)
-                float maxDist = 2000.0f;
-                float volRatio = 1.0f - (m_distToPlayer / maxDist);
+                // 攻撃ボイスを距離に応じた音量で再生
+                float volRatio = 1.0f - (m_distToPlayer / EnemyAcidConstants::kSoundMaxDistance);
                 if (volRatio < 0.0f) volRatio = 0.0f;
                 if (volRatio > 1.0f) volRatio = 1.0f;
 
-                SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(150 * volRatio));
+                SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(EnemyAcidConstants::kSoundMaxVolume * volRatio));
             }
             if (newAnimState == AnimState::Back) m_backAnimCount = 0;
         }
@@ -168,20 +164,17 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
         {
             m_hasAttacked = false;
 
-            // 攻撃ボイスを再生
-            // 距離に応じた音量計算
-            float maxDist = 2000.0f;
-            float volRatio = 1.0f - (m_distToPlayer / maxDist);
-    
+            // 攻撃ボイスを距離に応じた音量で再生
+            float volRatio = 1.0f - (m_distToPlayer / EnemyAcidConstants::kSoundMaxDistance);
             if (volRatio < 0.0f) volRatio = 0.0f;
             if (volRatio > 1.0f) volRatio = 1.0f;
 
-            SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(150 * volRatio));
+            SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(EnemyAcidConstants::kSoundMaxVolume * volRatio));
         }
         if (newAnimState == AnimState::Back) m_backAnimCount = 0;
     }
 
-  m_currentAnimState = newAnimState;
+    m_currentAnimState = newAnimState;
 }
 
 void EnemyAcid::ChangeState(std::shared_ptr<EnemyState<EnemyAcid>> newState)
@@ -197,7 +190,6 @@ void EnemyAcid::ChangeState(std::shared_ptr<EnemyState<EnemyAcid>> newState)
     }
 }
 
-// プレイヤーに攻撃可能かどうかを判定する
 bool EnemyAcid::CanAttackPlayer(const Player &player)
 {
     VECTOR playerPos = player.GetPos();
@@ -211,8 +203,7 @@ bool EnemyAcid::CanAttackPlayer(const Player &player)
     return m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
 }
 
-// 酸弾を発射する
-void EnemyAcid::ShootAcidBullet(std::vector<Bullet> &bullets, const Player &player, Effect *pEffect, const std::vector<Stage::StageCollisionData> &stageCollision, const CollisionGrid *pGrid) 
+void EnemyAcid::ShootAcidBullet(std::vector<Bullet> &bullets, const Player &player, Effect *pEffect, const std::vector<Stage::StageCollisionData> &stageCollision, const CollisionGrid *pGrid)
 {
     // 発射位置
     int mouthIndex = MV1SearchFrame(m_modelHandle, "mixamorig:JawDowm");
@@ -253,7 +244,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet> &bullets, const Player &play
     if ((groundedObj == "Rock3" || groundedObj == "Rock6") && !EnemyBase::IsTargetVisible(viewStartPos, player.GetPos(), stageCollision, pGrid)) 
     {
         ball.isParabolic = true;
-        ball.gravity = 0.3f; // 重力設定
+        ball.gravity = EnemyAcidConstants::kParabolicGravity;
         ball.velocity = EnemyBase::CalculateParabolicVelocity(ball.pos, target, ball.gravity, EnemyAcidConstants::kAcidBulletSpeed);
     }
 
@@ -283,8 +274,7 @@ void EnemyAcid::ShootAcidBullet(std::vector<Bullet> &bullets, const Player &play
     m_acidBalls.push_back(ball);
 }
 
-// 更新処理
-void EnemyAcid::Update(const EnemyUpdateContext &context) 
+void EnemyAcid::Update(const EnemyUpdateContext &context)
 {
     UpdateStandard(context);
 }
@@ -386,13 +376,12 @@ void EnemyAcid::UpdateSimpleMode(const EnemyUpdateContext &context)
         float scaledSpeed = m_chaseSpeed * Game::GetTimeScale();
         m_pos.x += dirTowards.x * scaledSpeed;
         m_pos.z += dirTowards.z * scaledSpeed;
-        RotateTowards(playerPos, 0.05f * Game::GetTimeScale());
+        RotateTowards(playerPos, EnemyAcidConstants::kRotateSpeedPerFrame * Game::GetTimeScale());
     }
     UpdateStageCollision(context.collisionData, context.collisionGrid);
 }
 
-// パリィされた時のコールバック
-void EnemyAcid::OnParried() 
+void EnemyAcid::OnParried()
 {
     // 既に怯んでいるか、死んでいる場合は何もしない
     if (m_isStunned || m_hp <= 0.0f) return;
@@ -401,17 +390,15 @@ void EnemyAcid::OnParried()
     m_stunTimer = EnemyAcidConstants::kStunDuration; // 怯み時間
     ChangeState(std::make_shared<EnemyAcidStateStunned>());
 
-    // パリィボイスを再生
-    float maxDist = 2000.0f;
-    float volRatio = 1.0f - (m_distToPlayer / maxDist);
+    // パリィボイスを距離に応じた音量で再生
+    float volRatio = 1.0f - (m_distToPlayer / EnemyAcidConstants::kSoundMaxDistance);
     if (volRatio < 0.0f) volRatio = 0.0f;
     if (volRatio > 1.0f) volRatio = 1.0f;
 
-    SoundManager::GetInstance()->Play("EnemyAcid", "ParryHit", (int)(150 * volRatio));
+    SoundManager::GetInstance()->Play("EnemyAcid", "ParryHit", (int)(EnemyAcidConstants::kSoundMaxVolume * volRatio));
 }
 
-// 描画処理
-void EnemyAcid::Draw() 
+void EnemyAcid::Draw()
 {
     // 死亡時も死亡アニメーションが終わるまでは描画する
     if (!m_isAlive) 
@@ -427,9 +414,8 @@ void EnemyAcid::Draw()
     // 死亡アニメーションが完全に終了したらモデルを描画しない
     if (m_hp <= 0.0f && m_animationManager.IsAnimationFinished(m_modelHandle)) return;
 
-    // 視錐台カリング (描画最適化)
-    // 距離チェック: 5000^2, 近距離: 300^2, 内積閾値: 0.4
-    if (!ShouldDraw(5000.0f * 5000.0f, 300.0f * 300.0f, 0.4f)) return;
+    // 視錐台カリング（描画最適化）
+    if (!ShouldDraw(EnemyAcidConstants::kDrawDistanceSq, EnemyAcidConstants::kDrawNearDistanceSq, EnemyAcidConstants::kDrawDotThreshold)) return;
 
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
@@ -451,25 +437,24 @@ void EnemyAcid::DrawCollisionDebug() const
 
     if (!s_shouldDrawCollision) return;
   
-    if (m_pBodyCollider) 
+    if (m_pBodyCollider)
     {
-        DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), 16, 0xff00ff);
+        DebugUtil::DrawCapsule(m_pBodyCollider->GetSegmentA(), m_pBodyCollider->GetSegmentB(), m_pBodyCollider->GetRadius(), EnemyAcidConstants::kDebugSphereDiv, EnemyAcidConstants::kDebugBodyColor);
     }
-    if (m_pHeadCollider) 
+    if (m_pHeadCollider)
     {
-        DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), 16, 0xffff00);
+        DebugUtil::DrawSphere(m_pHeadCollider->GetCenter(), m_pHeadCollider->GetRadius(), EnemyAcidConstants::kDebugSphereDiv, EnemyAcidConstants::kDebugHeadColor);
     }
-    if (m_pAttackRangeCollider) 
+    if (m_pAttackRangeCollider)
     {
-        DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), 16, 0x00ffff);
+        DebugUtil::DrawSphere(m_pAttackRangeCollider->GetCenter(), m_pAttackRangeCollider->GetRadius(), EnemyAcidConstants::kDebugSphereDiv, EnemyAcidConstants::kDebugAttackRangeColor);
     }
-    if (m_shouldDrawParryCollider) 
+    if (m_shouldDrawParryCollider)
     {
-        DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, 16, 0x0000ff);
+        DebugUtil::DrawCapsule(m_debugParryCapA, m_debugParryCapB, m_debugParryRadius, EnemyAcidConstants::kDebugSphereDiv, EnemyAcidConstants::kDebugParryColor);
     }
 }
 
-// どこに当たったのか判定する
 EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR &rayStart, const VECTOR &rayEnd, VECTOR &outHtPos, float &outHtDistSq) const
 {
     if (m_isDeadAnimPlaying) return HitPart::None;
@@ -521,14 +506,12 @@ EnemyBase::HitPart EnemyAcid::CheckHitPart(const VECTOR &rayStart, const VECTOR 
     return HitPart::None;
 }
 
-// アイテムドロップ時のコールバック関数
-void EnemyAcid::SetOnDropItemCallback(std::function<void(const VECTOR &)> cb) 
+void EnemyAcid::SetOnDropItemCallback(std::function<void(const VECTOR &)> cb)
 {
     m_onDropItem = cb;
 }
 
-// ダメージ処理
-void EnemyAcid::TakeDamage(float damage, AttackType type) 
+void EnemyAcid::TakeDamage(float damage, AttackType type)
 {
     if (m_isDeadAnimPlaying) return;
 
@@ -560,8 +543,7 @@ void EnemyAcid::OnDeath()
     m_acidBalls.clear(); // 全てのAcidBallをクリア
 }
 
-// タックル攻撃のダメージ処理
-void EnemyAcid::TakeTackleDamage(float damage) 
+void EnemyAcid::TakeTackleDamage(float damage)
 {
     if (m_isDeadAnimPlaying) return;
   
@@ -593,7 +575,6 @@ void EnemyAcid::AcidBall::Update(float timeScale)
   if (pos.y < 0.0f) active = false; // 地面で消滅
 }
 
-// 死亡時の更新処理
 void EnemyAcid::UpdateDeath(const EnemyUpdateContext& context)
 {
     if (!m_isDeadAnimPlaying) 
