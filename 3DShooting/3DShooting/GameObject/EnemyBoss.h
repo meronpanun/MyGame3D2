@@ -13,33 +13,67 @@ namespace EnemyBossConstants
 {
     // アニメーション名
     constexpr char kWalkAnimName[]            = "Armature|Run";
-    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // 近接範囲攻撃
-    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // 遠距離攻撃
-    constexpr char kDeadAnimName[]            = "Armature|Death";
-
-    constexpr float kLongRangeAttackMinDist   = 400.0f;  // 遠距離攻撃を行う最小距離
-    constexpr float kLongRangeAttackMaxDist   = 1000.0f; // 遠距離攻撃を行う最大距離
-    constexpr int   kLongRangeAttackCooldownMax = 120;
-    constexpr float kHomingBulletSpeed        = 6.0f;
-    constexpr float kHomingTurnRate           = 0.02f;   // 旋回性能
-    constexpr float kHomingBulletMaxDist      = 1800.0f; // 弾の最大飛距離
-    constexpr float kHomingBulletDamage       = 20.0f;
-    constexpr float kHomingBulletRadius       = 15.0f;
+    constexpr char kCloseAttackAnimName[]     = "Armature|CloseRangeAttack"; // 近接範囲攻撃アニメーション名
+    constexpr char kLongRangeAttackAnimName[] = "Armature|LongRangeAttack";  // 遠距離攻撃アニメーション名
+    constexpr char kDeadAnimName[]            = "Armature|Death";             // 死亡アニメーション名
 
     // コライダーサイズ
-    constexpr float kBodyColliderRadius = 40.0f;
-    constexpr float kBodyColliderHeight = 350.0f;
-    constexpr float kHeadRadius         = 25.0f;
-    constexpr float kAttackRangeRadius  = 450.0f;
-    constexpr float kAttackHitRadius    = 60.0f;
+    constexpr float kBodyColliderRadius = 40.0f;  // 体のカプセルコライダー半径
+    constexpr float kBodyColliderHeight = 350.0f; // 体のカプセルコライダー高さ
+    constexpr float kHeadRadius         = 25.0f;  // 頭の球コライダー半径
+    constexpr float kAttackRangeRadius  = 450.0f; // 近接攻撃範囲の球コライダー半径
+    constexpr float kShieldColliderRadius = 300.0f; // シールドの球コライダー半径
+    constexpr float kShieldYRatio         = 0.6f;   // シールド位置のY軸比率（ボディ高さに対する割合）
+    constexpr float kMinDistSqThreshold   = 0.0001f; // ゼロベクトル判定用の最小距離の二乗閾値
 
-    // 攻撃関連
-    constexpr int kAttackCooldownMax = 60;
-    constexpr int kAttackEndDelay    = 30; // 攻撃後の硬直
+    // 近接攻撃関連
+    constexpr int   kAttackCooldownMax          = 60;  // 近接攻撃クールダウン時間（フレーム数）
+    constexpr int   kAttackEndDelay             = 30;  // 攻撃後の硬直時間（フレーム数）
+    constexpr float kCloseAttackHitStartRatio   = 0.4f; // 近接攻撃ヒット判定の開始タイミング比率
+    constexpr float kCloseAttackHitEndRatio     = 0.6f; // 近接攻撃ヒット判定の終了タイミング比率
+    constexpr float kCloseAttackEffectRatio     = 0.3f; // 近接攻撃エフェクト再生のタイミング比率
+    constexpr int   kAttackEffectTimerDuration  = 100;  // 近接攻撃エフェクトの最大持続フレーム数
+
+    // 遠距離攻撃（ホーミング弾）関連
+    constexpr float kLongRangeAttackMinDist     = 400.0f;  // 遠距離攻撃を行う最小プレイヤー距離
+    constexpr float kLongRangeAttackMaxDist     = 1000.0f; // 遠距離攻撃を行う最大プレイヤー距離
+    constexpr int   kLongRangeAttackCooldownMax = 120;     // 遠距離攻撃クールダウン時間（フレーム数）
+    constexpr float kLongRangeAttackShotRatio   = 0.3f;    // 遠距離攻撃における弾発射のタイミング比率
+    constexpr float kHomingBulletSpeed          = 6.0f;    // ホーミング弾の速度
+    constexpr float kHomingTurnRate             = 0.02f;   // ホーミング弾の旋回性能（フレームあたりのラジアン）
+    constexpr float kHomingBulletMaxDist        = 1800.0f; // ホーミング弾の最大飛距離
+    constexpr float kHomingBulletDamage         = 20.0f;   // ホーミング弾のダメージ量
+    constexpr float kHomingBulletRadius         = 15.0f;   // ホーミング弾の当たり判定半径
+    constexpr float kParabolicGravity           = 0.3f;    // 放物線弾の重力加速度
+
+    // スタン関連
+    constexpr int kStunDuration = 120; // スタンの総持続時間（フレーム数）
+
+    // パリィ関連
+    constexpr float kParryRadiusMultiplier          = 1.5f; // パリィコライダーの半径倍率
+    constexpr float kReflectedBulletSpeedMultiplier = 1.5f; // パリィ反射後の弾速倍率
+    constexpr float kReflectedBulletDamageMultiplier = 2.0f; // パリィ反射弾のダメージ倍率
+    constexpr float kParryTimeScale                 = 0.1f; // パリィ成功時のタイムスケール
+    constexpr float kParryTimeScaleDuration         = 1.0f; // パリィタイムスケールの持続時間（秒）
+
+    // 移動・回転関連
+    constexpr float kRotateSpeedPerFrame = 0.05f; // フレームあたりの旋回速度（ラジアン）
+    constexpr float kWalkAnimSpeed       = 0.9f;  // 歩行アニメーション再生速度
+
+    // シールドエフェクト関連
+    constexpr float kShieldEffectDuration = 240.0f; // シールドエフェクトの総再生時間（フレーム数）
+    constexpr float kShieldFadeInDuration = 30.0f;  // シールドエフェクトのフェードイン時間（フレーム数）
+    constexpr float kShieldRotationSpeed  = 0.3f;   // シールドの1フレームあたりの回転速度（度）
+
+    // ダメージ計算関連
+    constexpr float kBossHeadshotMultiplier   = 1.5f; // ヘッドショット時のダメージ倍率
+    constexpr float kBossBodyDamageMultiplier = 0.8f; // ボディヒット時のダメージ倍率（やや硬い）
+    constexpr int   kBossScoreMultiplier      = 10;   // ボス撃破時のスコア倍率
 
     // 描画関連
-    constexpr float kDrawDistanceSq     = 10000.0f * 10000.0f;
-    constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;
+    constexpr float kDrawDistanceSq     = 10000.0f * 10000.0f; // 最大描画距離の二乗
+    constexpr float kDrawNearDistanceSq = 600.0f * 600.0f;     // 常に描画する近距離の二乗
+    constexpr float kDrawDotThreshold   = 0.0f;                // 視野内判定に使う内積閾値（ボスは常に描画）
 
     // シールド関連
     constexpr float kShieldMaxHp = 200.0f; // シールドの最大耐久値
@@ -60,8 +94,14 @@ public:
     EnemyBoss();
     virtual ~EnemyBoss();
 
-    // モデルロード・アンロード
+    /// <summary>
+    /// モデルをロードする（共有）
+    /// </summary>
     static void LoadModel();
+
+    /// <summary>
+    /// モデルを解放する（共有）
+    /// </summary>
     static void DeleteModel();
 
     static void SetDrawCollision(bool draw) { s_shouldDrawCollision = draw; }
@@ -80,8 +120,17 @@ public:
     void OnDeath() override;
     bool IsBoss() const override { return true; }
 
-    // ダメージ処理
+    /// <summary>
+    /// ダメージを受ける処理（シールド破壊ロジックを含む）
+    /// </summary>
+    /// <param name="damage">受けるダメージ量</param>
+    /// <param name="type">攻撃の種類</param>
     void TakeDamage(float damage, AttackType type) override;
+
+    /// <summary>
+    /// タックルダメージを受ける処理
+    /// </summary>
+    /// <param name="damage">受けるダメージ量</param>
     void TakeTackleDamage(float damage) override;
 
     /// <summary>
@@ -89,17 +138,26 @@ public:
     /// </summary>
     void OnParried();
 
-    // コライダー取得
+    /// <summary>
+    /// ボディコライダーを取得する
+    /// </summary>
     std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
 
-    // タックルヒットフラグのリセット
     void ResetTackleHitFlag() override { m_hasTakenTackleDamage = false; }
 
-    // 衝突判定
+    /// <summary>
+    /// 弾のRayが当たった部位を判定する（シールド優先）
+    /// </summary>
     HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const override;
 
-    // シールド状態取得
+    /// <summary>
+    /// シールドが破壊済みかどうかを返す
+    /// </summary>
     bool IsShieldBroken() const { return m_isShieldBroken; }
+
+    /// <summary>
+    /// シールドコライダーを取得する
+    /// </summary>
     std::shared_ptr<SphereCollider> GetShieldCollider() const { return m_pShieldCollider; }
 
 protected:
@@ -165,29 +223,27 @@ private:
     int m_attackEndDelayTimer; // 攻撃後の硬直タイマー
     bool m_hasAttackHit;        // 攻撃がヒットしたか
 
-    // 遠距離攻撃用
+    /// <summary>
+    /// ホーミング弾の構造体
+    /// </summary>
     struct HomingBullet
     {
-        VECTOR pos;
-        VECTOR dir;
-        float speed;
-        bool active;
-        float damage;
-        int effectHandle;
-        float distTraveled; // 移動距離
+        VECTOR pos;           // 弾の現在位置
+        VECTOR dir;           // 弾の進行方向（正規化済み）
+        float  speed;         // 弾の速度
+        bool   active;        // アクティブ状態かどうか
+        float  damage;        // ダメージ量
+        int    effectHandle;  // エフェクトハンドル
+        float  distTraveled;  // 累計移動距離（最大飛距離の判定に使用）
+        float  turnRate;      // ホーミングの旋回性能（フレームあたりのラジアン）
+        bool   isReflected;   // パリィで反射されたか
+        bool   isParryable;   // パリィ可能かどうか
+        EnemyBase* owner;     // この弾の所有者
 
-        // パラメータ
-        float turnRate; // 旋回性能
-
-        // パリィ・反射関連
-        bool isReflected; // パリィで反射されたか
-        bool isParryable; // パリィ可能かどうか
-        EnemyBase* owner; // この弾の所有者
-
-        // 放物線用
-        bool isParabolic = false;
-        VECTOR velocity = { 0, 0, 0 };
-        float gravity = 0.0f;
+        // 放物線弾用
+        bool   isParabolic;   // 放物線軌道で飛ぶかどうか
+        VECTOR velocity;      // 放物線弾の現在速度ベクトル
+        float  gravity;       // 放物線弾の重力加速度
 
         HomingBullet()
             : pos(VGet(0, 0, 0))
@@ -197,7 +253,7 @@ private:
             , damage(0)
             , effectHandle(-1)
             , distTraveled(0)
-            , turnRate(0.05f)
+            , turnRate(EnemyBossConstants::kHomingTurnRate)
             , isReflected(false)
             , isParryable(true)
             , owner(nullptr)
@@ -227,7 +283,7 @@ private:
     VECTOR m_debugParryCapB = { 0,0,0 };    // デバッグ用パリィカプセルのB点
     float m_debugParryRadius = 0.0f;        // デバッグ用パリィカプセルの半径
 
-    // リファクタリング用メソッド
+    // EnemyBase::UpdateStandard から呼び出される内部処理
     void UpdateAI(const EnemyUpdateContext& context) override;
     void UpdateAnimation(const EnemyUpdateContext& context) override;
     void UpdateDeath(const EnemyUpdateContext& context) override;

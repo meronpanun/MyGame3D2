@@ -7,13 +7,12 @@
 #include <algorithm>
 #include <cmath>
 
-// UpdateShieldEffect - UpdateAnimation から切り出した処理
 void EnemyBoss::UpdateShieldEffect(const EnemyUpdateContext& context)
 {
     Effect* pEffect = context.pEffect;
 
     VECTOR shieldPos = m_pos;
-    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f;
+    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * EnemyBossConstants::kShieldYRatio;
 
     // シールドコライダー位置更新
     if (m_pShieldCollider)
@@ -23,11 +22,8 @@ void EnemyBoss::UpdateShieldEffect(const EnemyUpdateContext& context)
 
     if (!m_isShieldBroken)
     {
-        // シームレスループエフェクト生成
-        // フェードイン30F、総再生240F を想定 → 210Fで次を生成して重ねる
-        const float kEffectDuration   = 240.0f;
-        const float kFadeInDuration   = 30.0f;
-        const float kOverlapSpawnTime = kEffectDuration - kFadeInDuration;
+        // シームレスループエフェクト生成（フェードイン期間分だけ前倒しで次を生成して重ねる）
+        const float kOverlapSpawnTime = EnemyBossConstants::kShieldEffectDuration - EnemyBossConstants::kShieldFadeInDuration;
 
         m_shieldEffectTimer += 1.0f * Game::GetTimeScale();
 
@@ -45,7 +41,7 @@ void EnemyBoss::UpdateShieldEffect(const EnemyUpdateContext& context)
         }
 
         // シールド回転更新
-        m_shieldRotation += 0.3f * Game::GetTimeScale();
+        m_shieldRotation += EnemyBossConstants::kShieldRotationSpeed * Game::GetTimeScale();
         while (m_shieldRotation >= 360.0f) m_shieldRotation -= 360.0f;
 
         // 有効なエフェクト全てのパラメータを更新（終了したものは除去）
@@ -87,14 +83,13 @@ void EnemyBoss::UpdateShieldEffect(const EnemyUpdateContext& context)
     }
 }
 
-// UpdateShieldPushout - UpdateAnimation から切り出した処理
 void EnemyBoss::UpdateShieldPushout()
 {
     if (m_isShieldBroken || !m_pShieldCollider) return;
     if (!Game::m_pPlayer) return;
 
     VECTOR shieldPos = m_pos;
-    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * 0.6f;
+    shieldPos.y += EnemyBossConstants::kBodyColliderHeight * EnemyBossConstants::kShieldYRatio;
     float shieldRadius = m_pShieldCollider->GetRadius();
 
     VECTOR playerPos = Game::m_pPlayer->GetPos();
@@ -107,7 +102,7 @@ void EnemyBoss::UpdateShieldPushout()
     VECTOR ptToA    = VSub(shieldPos, playerCapA);
     float segLenSq  = VSquareSize(segVec);
     float t = 0.0f;
-    if (segLenSq > 0.0001f)
+    if (segLenSq > EnemyBossConstants::kMinDistSqThreshold)
     {
         t = VDot(ptToA, segVec) / segLenSq;
         t = (std::max)(0.0f, (std::min)(1.0f, t));
@@ -118,12 +113,12 @@ void EnemyBoss::UpdateShieldPushout()
     float distSq   = VSquareSize(pushDir);
     float minDist  = shieldRadius + playerRadius;
 
-    // 完全重なり対策
-    if (distSq <= 0.0001f)
+    // 完全重なり対策（押し出し方向が定まらない場合のフォールバック）
+    if (distSq <= EnemyBossConstants::kMinDistSqThreshold)
     {
         pushDir = VSub(playerPos, m_pos);
         pushDir.y = 0.0f;
-        if (VSquareSize(pushDir) > 0.0001f)
+        if (VSquareSize(pushDir) > EnemyBossConstants::kMinDistSqThreshold)
         {
             pushDir = VNorm(pushDir);
         }
@@ -139,7 +134,7 @@ void EnemyBoss::UpdateShieldPushout()
         float dist    = sqrtf(distSq);
         float pushLen = minDist - dist + 1.0f; // マージン込み
 
-        if (dist > 0.0001f)
+        if (dist > EnemyBossConstants::kMinDistSqThreshold)
         {
             pushDir = VScale(pushDir, 1.0f / dist);
         }

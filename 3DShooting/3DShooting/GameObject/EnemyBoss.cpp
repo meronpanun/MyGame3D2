@@ -18,7 +18,6 @@
 #include <cmath>
 #include "EnemyBossState.h"
 
-// static変数の初期化
 int EnemyBoss::s_modelHandle = -1;
 bool EnemyBoss::s_shouldDrawCollision = false;
 bool EnemyBoss::s_shouldDrawAttackHit = false;
@@ -104,7 +103,7 @@ void EnemyBoss::Init()
 
     // シールドコライダー設定 (初期化)
     m_pShieldCollider = std::make_shared<SphereCollider>();
-    m_pShieldCollider->SetRadius(300.0f); 
+    m_pShieldCollider->SetRadius(EnemyBossConstants::kShieldColliderRadius);
 
     m_homingBullets.clear();
     m_hasPlayedCloseRangeEffect = false;
@@ -186,7 +185,7 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
     {
         VECTOR toPlayer = VSub(player.GetPos(), m_pos);
         toPlayer.y = 0.0f;
-        if (VSquareSize(toPlayer) > 0.0001f)
+        if (VSquareSize(toPlayer) > EnemyBossConstants::kMinDistSqThreshold)
         {
             float yaw = atan2f(toPlayer.x, toPlayer.z) + DX_PI_F;
             MV1SetRotationXYZ(m_modelHandle, VGet(0.0f, yaw, 0.0f));
@@ -266,29 +265,28 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
         m_pAttackHitCollider->SetRadius(m_pAttackRangeCollider->GetRadius());
 
         // 攻撃ヒット判定
-        // 判定期間 (0.4 ~ 0.6)
-        if (m_animTime >= currentAnimTotalTime * 0.4f && m_animTime <= currentAnimTotalTime * 0.6f)
+        // ヒット判定期間（アニメーション進行比率で指定）
+        if (m_animTime >= currentAnimTotalTime * EnemyBossConstants::kCloseAttackHitStartRatio &&
+            m_animTime <= currentAnimTotalTime * EnemyBossConstants::kCloseAttackHitEndRatio)
         {
             if (!m_hasAttackHit)
             {
-                // 範囲攻撃判定
                 if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
                 {
-                    // ダメージを与える
                     const_cast<Player&>(player).TakeDamage(static_cast<float>(m_attackPower), m_pos);
                     m_hasAttackHit = true;
                 }
             }
         }
 
-        // エフェクト再生 (ヒット判定開始タイミングに合わせて再生)
-        if (!m_hasPlayedCloseRangeEffect && m_animTime > currentAnimTotalTime * 0.3f)
+        // エフェクト再生（ヒット判定開始タイミングに合わせて再生）
+        if (!m_hasPlayedCloseRangeEffect && m_animTime > currentAnimTotalTime * EnemyBossConstants::kCloseAttackEffectRatio)
         {
             if (pEffect)
             {
                 // 足元を中心に再生
                 m_currentEffectHandle = pEffect->PlayCloseRangeAttackEffect(m_pos.x, m_pos.y, m_pos.z);
-                m_effectTimer = 100; // 100フレームで強制終了
+                m_effectTimer = EnemyBossConstants::kAttackEffectTimerDuration;
             }
             m_hasPlayedCloseRangeEffect = true;
         }
@@ -328,7 +326,7 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
         float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyBossConstants::kLongRangeAttackAnimName);
 
         // 弾生成タイミング
-        if (!m_hasShotLongRange && m_animTime > totalTime * 0.3f)
+        if (!m_hasShotLongRange && m_animTime > totalTime * EnemyBossConstants::kLongRangeAttackShotRatio)
         {
             // 弾生成
             VECTOR spawnPos = m_pos;
@@ -345,7 +343,7 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
             HomingBullet bullet;
             bullet.pos = spawnPos;
             bullet.active = true;
-            bullet.damage = EnemyBossConstants::kHomingBulletDamage; // ダメージ20
+            bullet.damage = EnemyBossConstants::kHomingBulletDamage;
             bullet.distTraveled = 0.0f;
             // プレイヤー方向へ発射
             VECTOR toTarget = VSub(playerPos, spawnPos);
@@ -360,7 +358,7 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
                 !EnemyBase::IsTargetVisible(spawnPos, playerPos, context.collisionData, context.collisionGrid))
             {
                 bullet.isParabolic = true;
-                bullet.gravity = 0.3f; // 重力設定
+                bullet.gravity = EnemyBossConstants::kParabolicGravity;
                 bullet.velocity = EnemyBase::CalculateParabolicVelocity(bullet.pos, playerPos, bullet.gravity, EnemyBossConstants::kHomingBulletSpeed);
             }
             else
@@ -398,8 +396,7 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
 
         if (m_animTime >= totalTime)
         {
-            // アニメーション終了
-            if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = 30; // 硬直
+            if (m_attackEndDelayTimer <= 0) m_attackEndDelayTimer = EnemyBossConstants::kAttackEndDelay;
         }
 
         if (m_attackEndDelayTimer > 0)
@@ -421,17 +418,15 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
         toPlayer.y = 0.0f;
         float disToPlayer = VSize(toPlayer);
 
-        // 向き変更
-        float rotSpeed = 0.05f * Game::GetTimeScale();
-        RotateTowards(playerPos, rotSpeed);
+        RotateTowards(playerPos, EnemyBossConstants::kRotateSpeedPerFrame * Game::GetTimeScale());
 
-        // 1. 近接攻撃判定
+        // 1. 近接攻撃
         if (CanAttackPlayer(player))
         {
             m_hasAttackHit = false;
             ChangeState(std::make_shared<EnemyBossStateAttack>());
         }
-        // 2. 遠距離攻撃判定 (クールダウン中でなく、適切な距離にいる場合)
+        // 2. 遠距離攻撃（クールダウン終了かつ適切な距離の場合）
         else if (disToPlayer > EnemyBossConstants::kLongRangeAttackMinDist && 
                  disToPlayer < EnemyBossConstants::kLongRangeAttackMaxDist && 
                  m_longRangeAttackCooldown <= 0)
@@ -439,14 +434,13 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
             m_hasShotLongRange = false;
             ChangeState(std::make_shared<EnemyBossStateLongRange>());
         }
-        // 3. 移動 (どちらの攻撃もできない、または移動が必要な距離にいる場合)
+        // 3. 移動（どちらの攻撃条件も満たさない場合）
         else
         {
-            // プレイヤーに近づく
+            // プレイヤーに向かって接近
             VECTOR dir = VNorm(toPlayer);
             m_pos = VAdd(m_pos, VScale(dir, m_chaseSpeed * Game::GetTimeScale()));
 
-            // アニメーションをWalkに
             if (m_currentAnimState != AnimState::Walk)
             {
                 ChangeAnimation(AnimState::Walk, true);
@@ -469,7 +463,7 @@ void EnemyBoss::UpdateAnimation(const EnemyUpdateContext& context)
         if (m_currentAnimState == AnimState::Walk)
         {
             animName = EnemyBossConstants::kWalkAnimName;
-            animSpeed = 0.9f; // 移動速度に合わせて調整 (0.6 -> 0.9)
+            animSpeed = EnemyBossConstants::kWalkAnimSpeed;
         }
         else if (m_currentAnimState == AnimState::Idle)
         {
@@ -543,7 +537,7 @@ void EnemyBoss::UpdateAnimation(const EnemyUpdateContext& context)
 
     // プレイヤーとの押し出し処理(共通関数使用)
     float minDist = EnemyBossConstants::kBodyColliderRadius + playerBodyCollider->GetRadius();
-    ResolvePlayerCollision(playerBodyCollider, minDist, 0.0001f);
+    ResolvePlayerCollision(playerBodyCollider, minDist, EnemyBossConstants::kMinDistSqThreshold);
 
 
 
@@ -594,8 +588,8 @@ void EnemyBoss::Draw()
 {
     if (!m_isAlive && m_animationManager.GetCurrentAttachedAnimHandle(m_modelHandle) == -1) return;
 
-    // 視錐台カリング (描画最適化) (共通関数使用)
-    if (!ShouldDraw(EnemyBossConstants::kDrawDistanceSq, EnemyBossConstants::kDrawNearDistanceSq, 0.0f)) return;
+    // 視錐台カリング（共通関数使用）
+    if (!ShouldDraw(EnemyBossConstants::kDrawDistanceSq, EnemyBossConstants::kDrawNearDistanceSq, EnemyBossConstants::kDrawDotThreshold)) return;
 
     EnemyBase::IncrementDrawCount();
     MV1DrawModel(m_modelHandle);
@@ -667,7 +661,7 @@ void EnemyBoss::TakeDamage(float damage, AttackType type)
 void EnemyBoss::OnDeath()
 {
     bool isHeadShot = (m_lastHitPart == HitPart::Head);
-    int addScore = ScoreManager::Instance().AddScore(isHeadShot) * 10; // ボスなのでスコア高め
+    int addScore = ScoreManager::Instance().AddScore(isHeadShot) * EnemyBossConstants::kBossScoreMultiplier;
     if (SceneMain::Instance())
     {
         SceneMain::Instance()->AddScorePopup(addScore, isHeadShot, ScoreManager::Instance().GetCombo());
@@ -684,7 +678,7 @@ void EnemyBoss::TakeTackleDamage(float damage)
 void EnemyBoss::OnParried()
 {
     m_isStunned = true;
-    m_stunTimer = 120; // 怯み時間
+    m_stunTimer = EnemyBossConstants::kStunDuration;
     ChangeState(std::make_shared<EnemyBossStateStunned>());
 }
 
@@ -698,9 +692,9 @@ float EnemyBoss::CalcDamage(float bulletDamage, HitPart part) const
     // ボスは硬い, あるいは弱点だけ効くなどの調整が可能
     if (part == HitPart::Head)
     {
-        return bulletDamage * 1.5f;
+        return bulletDamage * EnemyBossConstants::kBossHeadshotMultiplier;
     }
-    return bulletDamage * 0.8f; // ボディは少し硬い
+    return bulletDamage * EnemyBossConstants::kBossBodyDamageMultiplier;
 }
 
 void EnemyBoss::DrawCollisionDebug() const
@@ -761,7 +755,6 @@ void EnemyBoss::DrawCollisionDebug() const
     }
 }
 
-// 死亡時の更新処理
 void EnemyBoss::UpdateDeath(const EnemyUpdateContext& context)
 {
     if (!m_isDeadAnimPlaying)
@@ -805,7 +798,6 @@ bool EnemyBoss::CanAttackPlayer(const Player& player)
     return m_pAttackRangeCollider->IsIntersects(playerCol.get());
 }
 
-// ダメージ適用（シールドヒット時はエフェクトを変えるためオーバーライド）
 void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect)
 {
     // シールドヒット時
@@ -821,7 +813,7 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
             {
                 VECTOR center = m_pShieldCollider->GetCenter();
                 VECTOR diff = VSub(hitPos, center);
-                if (VSquareSize(diff) > 0.0001f)
+                if (VSquareSize(diff) > EnemyBossConstants::kMinDistSqThreshold)
                 {
                     normal = VNorm(diff);
                 }
@@ -853,7 +845,6 @@ void EnemyBoss::ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Ef
 }
 
 
-// どこに当たったのか判定する
 EnemyBase::HitPart EnemyBoss::CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
 {
     if (m_isDeadAnimPlaying) return HitPart::None;

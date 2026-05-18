@@ -22,7 +22,7 @@ void EnemyBoss::UpdateHomingBullets(const EnemyUpdateContext& context)
             // 放物線運動（重力あり）
             bullet.velocity.y -= bullet.gravity * scale;
             bullet.pos = VAdd(bullet.pos, VScale(bullet.velocity, scale));
-            if (VSquareSize(bullet.velocity) > 0.0001f)
+            if (VSquareSize(bullet.velocity) > EnemyBossConstants::kMinDistSqThreshold)
             {
                 bullet.dir = VNorm(bullet.velocity);
             }
@@ -56,7 +56,7 @@ void EnemyBoss::UpdateHomingBullets(const EnemyUpdateContext& context)
                 VECTOR playerCapA, playerCapB;
                 float playerRadius;
                 player.GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
-                float parryRadius = playerRadius * 1.5f;
+                float parryRadius = playerRadius * EnemyBossConstants::kParryRadiusMultiplier;
                 CapsuleCollider parryCollider(playerCapA, playerCapB, parryRadius);
 
 #ifdef _DEBUG
@@ -83,9 +83,9 @@ void EnemyBoss::UpdateHomingBullets(const EnemyUpdateContext& context)
                     {
                         bullet.dir = VScale(bullet.dir, -1.0f);
                     }
-                    bullet.speed *= 1.5f;
+                    bullet.speed *= EnemyBossConstants::kReflectedBulletSpeedMultiplier;
                     bullet.turnRate = 0.0f;
-                    Game::SetTimeScale(0.1f, 1.0f);
+                    Game::SetTimeScale(EnemyBossConstants::kParryTimeScale, EnemyBossConstants::kParryTimeScaleDuration);
                 }
             }
 
@@ -108,7 +108,7 @@ void EnemyBoss::UpdateHomingBullets(const EnemyUpdateContext& context)
             SphereCollider bulletCol(bullet.pos, EnemyBossConstants::kHomingBulletRadius);
             if (m_pBodyCollider && m_pBodyCollider->IsIntersects(&bulletCol))
             {
-                this->TakeDamage(bullet.damage * 2.0f, AttackType::Parry); // 反射弾はダメージ大きめ
+                this->TakeDamage(bullet.damage * EnemyBossConstants::kReflectedBulletDamageMultiplier, AttackType::Parry);
                 OnParried();
                 bullet.active = false;
                 if (bullet.effectHandle != -1) { StopEffekseer3DEffect(bullet.effectHandle); bullet.effectHandle = -1; }

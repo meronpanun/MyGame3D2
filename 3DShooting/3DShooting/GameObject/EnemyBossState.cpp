@@ -42,8 +42,8 @@ void EnemyBossStateLongRange::Update(EnemyBoss* enemy, const EnemyUpdateContext&
 void EnemyBossStateStunned::Enter(EnemyBoss* enemy)
 {
     enemy->m_isStunned = true;
-    enemy->m_stunTimer = 120;
-    // 死亡アニメーションを怯みとして再生
+    enemy->m_stunTimer = EnemyBossConstants::kStunDuration;
+    // 死亡アニメーションを怯みとして流用
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false);
 }
 
