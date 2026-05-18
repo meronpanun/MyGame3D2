@@ -15,19 +15,9 @@ void EnemyAcidStateWalk::Enter(EnemyAcid* enemy)
     enemy->ChangeAnimation(EnemyBase::AnimState::Walk, true);
 }
 
-void EnemyAcidStateWalk::Update(EnemyAcid* enemy, const EnemyUpdateContext& context)
-{
-    // 移動AIは UpdateMovementAI に委譲されているため、ここでは何もしない
-}
-
 void EnemyAcidStateBack::Enter(EnemyAcid* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Back, true);
-}
-
-void EnemyAcidStateBack::Update(EnemyAcid* enemy, const EnemyUpdateContext& context)
-{
-    // 移動AIは UpdateMovementAI に委譲
 }
 
 void EnemyAcidStateAttack::Enter(EnemyAcid* enemy)
@@ -37,11 +27,6 @@ void EnemyAcidStateAttack::Enter(EnemyAcid* enemy)
     enemy->ChangeAnimation(EnemyBase::AnimState::Attack, false);
 }
 
-void EnemyAcidStateAttack::Update(EnemyAcid* enemy, const EnemyUpdateContext& context)
-{
-    // 攻撃ロジックは UpdateMovementAI に委譲
-}
-
 void EnemyAcidStateStunned::Enter(EnemyAcid* enemy)
 {
     enemy->m_isStunned = true;
@@ -49,21 +34,11 @@ void EnemyAcidStateStunned::Enter(EnemyAcid* enemy)
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false); // 死亡アニメーションを流用
 }
 
-void EnemyAcidStateStunned::Update(EnemyAcid* enemy, const EnemyUpdateContext& context)
-{
-    // 怯み処理はUpdateAIで優先的に処理される
-}
-
 void EnemyAcidStateDead::Enter(EnemyAcid* enemy)
 {
     enemy->ChangeAnimation(EnemyBase::AnimState::Dead, false);
     enemy->m_isDeadAnimPlaying = true;
     enemy->m_animTime = 0.0f;
-}
-
-void EnemyAcidStateDead::Update(EnemyAcid* enemy, const EnemyUpdateContext& context)
-{
-    // 死亡時は何もしない
 }
 
 void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)

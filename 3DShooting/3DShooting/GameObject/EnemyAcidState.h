@@ -10,7 +10,7 @@ class EnemyAcidStateWalk : public EnemyState<EnemyAcid>
 {
 public:
     void Enter(EnemyAcid* enemy) override;
-    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override {} // 移動AIはUpdateMovementAIに委譲
 };
 
 /// <summary>
@@ -20,7 +20,7 @@ class EnemyAcidStateBack : public EnemyState<EnemyAcid>
 {
 public:
     void Enter(EnemyAcid* enemy) override;
-    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override {} // 移動AIはUpdateMovementAIに委譲
 };
 
 /// <summary>
@@ -30,7 +30,7 @@ class EnemyAcidStateAttack : public EnemyState<EnemyAcid>
 {
 public:
     void Enter(EnemyAcid* enemy) override;
-    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override {} // 攻撃ロジックはUpdateMovementAIに委譲
 };
 
 /// <summary>
@@ -40,7 +40,7 @@ class EnemyAcidStateStunned : public EnemyState<EnemyAcid>
 {
 public:
     void Enter(EnemyAcid* enemy) override;
-    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override {} // 怯み処理はUpdateAIで優先的に処理される
 };
 
 /// <summary>
@@ -50,5 +50,5 @@ class EnemyAcidStateDead : public EnemyState<EnemyAcid>
 {
 public:
     void Enter(EnemyAcid* enemy) override;
-    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override;
+    void Update(EnemyAcid* enemy, const EnemyUpdateContext& context) override {} // 死亡ステートでは更新処理なし
 };

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Stage.h"
@@ -54,10 +54,6 @@ namespace EnemyAcidConstants
     constexpr float kParryBodyCenterOffsetY       = 50.0f; // 反射先として使う敵体の中心Y補正値
     constexpr float kParryTimeScale               = 0.1f;  // パリィ成功時のタイムスケール
     constexpr float kParryTimeScaleDuration       = 1.0f;  // パリィタイムスケールの持続時間（秒）
-
-    // サウンド関連
-    constexpr float kSoundMaxDistance = 2000.0f; // 音量計算の最大聴取距離（これ以上は無音）
-    constexpr int   kSoundMaxVolume   = 150;     // 攻撃ボイスの最大音量
 
     // 酸弾の消滅判定
     constexpr float kAcidBallBoundaryDistance = 1500.0f; // 酸弾がプレイヤーから離れすぎたら非アクティブにする距離

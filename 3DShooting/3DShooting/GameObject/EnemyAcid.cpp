@@ -1,4 +1,4 @@
-#include "EnemyAcid.h"
+﻿#include "EnemyAcid.h"
 #include "Bullet.h"
 #include "CapsuleCollider.h"
 #include "Collision.h"
@@ -88,33 +88,32 @@ void EnemyAcid::DeleteModel()
 
 void EnemyAcid::Init()
 {
-  m_attackCooldownMax = EnemyAcidConstants::kAttackCooldownMax;
-  m_attackCooldown = 0; // 最初は攻撃可能にしておく
+    m_attackCooldownMax = EnemyAcidConstants::kAttackCooldownMax;
+    m_attackCooldown = 0; // 最初は攻撃可能にしておく
 
-  m_isAlive = true;
-  m_isDeadAnimPlaying = false;
+    m_isAlive = true;
+    m_isDeadAnimPlaying = false;
 
-  // CSVからAcidEnemyのTransform情報を取得
-  LoadTransformData("AcidEnemy");
+    // CSVからAcidEnemyのTransform情報を取得
+    LoadTransformData("AcidEnemy");
 
     // ChangeAnimation は同じステートを受け取ると再生をスキップするため、
     // 初期アニメーションを確実に再生させるために現在と異なる値で初期化しておく
     m_currentAnimState = AnimState::Dead;
 
-  // 初期ステートの設定
-  ChangeState(std::make_shared<EnemyAcidStateWalk>());
-
-  m_isNextAttackNormal = false; // 最初はパリィ弾から
+    // 初期ステートの設定
+    ChangeState(std::make_shared<EnemyAcidStateWalk>());
+    m_isNextAttackNormal = false; // 最初はパリィ弾から
 
     // ターゲットオフセットの初期化
     float offsetX = static_cast<float>(GetRand(EnemyAcidConstants::kTargetOffsetRange * 2) - EnemyAcidConstants::kTargetOffsetRange);
     float offsetZ = static_cast<float>(GetRand(EnemyAcidConstants::kTargetOffsetRange * 2) - EnemyAcidConstants::kTargetOffsetRange);
-  m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
+    m_targetOffset = VGet(offsetX, 0.0f, offsetZ);
 }
 
 void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
 {
-  // 後退アニメーションは同じ状態でも必ず再生し直す
+    // 後退アニメーションは同じ状態でも必ず再生し直す
     if (m_currentAnimState == newAnimState)
     {
         if (newAnimState == AnimState::Attack || newAnimState == AnimState::Back)
@@ -125,12 +124,7 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
             {
                 m_hasAttacked = false;
 
-                // 攻撃ボイスを距離に応じた音量で再生
-                float volRatio = 1.0f - (m_distToPlayer / EnemyAcidConstants::kSoundMaxDistance);
-                if (volRatio < 0.0f) volRatio = 0.0f;
-                if (volRatio > 1.0f) volRatio = 1.0f;
-
-                SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(EnemyAcidConstants::kSoundMaxVolume * volRatio));
+                SoundManager::GetInstance()->Play("EnemyAcid", "Attack");
             }
             if (newAnimState == AnimState::Back) m_backAnimCount = 0;
         }
@@ -164,12 +158,7 @@ void EnemyAcid::ChangeAnimation(AnimState newAnimState, bool loop)
         {
             m_hasAttacked = false;
 
-            // 攻撃ボイスを距離に応じた音量で再生
-            float volRatio = 1.0f - (m_distToPlayer / EnemyAcidConstants::kSoundMaxDistance);
-            if (volRatio < 0.0f) volRatio = 0.0f;
-            if (volRatio > 1.0f) volRatio = 1.0f;
-
-            SoundManager::GetInstance()->Play("EnemyAcid", "Attack", (int)(EnemyAcidConstants::kSoundMaxVolume * volRatio));
+            SoundManager::GetInstance()->Play("EnemyAcid", "Attack");
         }
         if (newAnimState == AnimState::Back) m_backAnimCount = 0;
     }
@@ -390,12 +379,7 @@ void EnemyAcid::OnParried()
     m_stunTimer = EnemyAcidConstants::kStunDuration; // 怯み時間
     ChangeState(std::make_shared<EnemyAcidStateStunned>());
 
-    // パリィボイスを距離に応じた音量で再生
-    float volRatio = 1.0f - (m_distToPlayer / EnemyAcidConstants::kSoundMaxDistance);
-    if (volRatio < 0.0f) volRatio = 0.0f;
-    if (volRatio > 1.0f) volRatio = 1.0f;
-
-    SoundManager::GetInstance()->Play("EnemyAcid", "ParryHit", (int)(EnemyAcidConstants::kSoundMaxVolume * volRatio));
+    SoundManager::GetInstance()->Play("EnemyAcid", "ParryHit");
 }
 
 void EnemyAcid::Draw()
