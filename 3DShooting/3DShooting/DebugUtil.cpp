@@ -1,4 +1,4 @@
-#include "DebugUtil.h"
+ï»¿#include "DebugUtil.h"
 #include "EffekseerWarningSuppress.h"
 #include "DebugMenu.h"
 #include "Game.h"
@@ -6,39 +6,43 @@
 #include "SceneMain.h"
 #include <cstdarg>
 
-bool DebugUtil::s_isVisible = false; // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì•\¦ó‘Ô‚ğŠÇ—‚·‚éÃ“I•Ï”
+namespace
+{
+    constexpr int          kFormatBufSize        = 256;      // DrawFormat ã®ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º
+    constexpr int          kDebugWindowAlpha     = 128;      // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦èƒŒæ™¯ã®ä¸é€æ˜åº¦
+    constexpr int          kDebugMenuX           = 40;       // ãƒ‡ãƒãƒƒã‚°ãƒ¡ãƒ‹ãƒ¥ãƒ¼æç”» X åº§æ¨™
+    constexpr int          kDebugMenuY           = 40;       // ãƒ‡ãƒãƒƒã‚°ãƒ¡ãƒ‹ãƒ¥ãƒ¼æç”» Y åº§æ¨™
+    constexpr unsigned int kColorDebugBackground = 0x000000; // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦èƒŒæ™¯è‰²
+}
+
+bool      DebugUtil::s_isVisible  = false;
 DebugMenu DebugUtil::s_debugMenu;
 
-// 3DƒJƒvƒZƒ‹‚ÌƒfƒoƒbƒO•`‰æŠÖ”
 void DebugUtil::DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill)
 {
     DrawCapsule3D(a, b, radius, div, color, color, fill);
 }
 
-// 3D‹…‚ÌƒfƒoƒbƒO•`‰æŠÖ”
 void DebugUtil::DrawSphere(const VECTOR& center, float radius, int div, int color, bool fill)
 {
     DrawSphere3D(center, radius, div, color, color, fill);
 }
 
-// 2DƒƒbƒZ[ƒW‚ğ•`‰æ‚·‚éŠÖ”
 void DebugUtil::DrawMessage(int x, int y, unsigned int color, const std::string& msg)
 {
     DrawString(x, y, msg.c_str(), color);
 }
 
-// 2DƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğ•`‰æ‚·‚éŠÖ”
 void DebugUtil::DrawFormat(int x, int y, unsigned int color, const char* format, ...)
 {
-    char buf[256];
-    va_list args;                              // ‰Â•Ïˆø”ƒŠƒXƒg
-    va_start(args, format);                    // ‰Â•Ïˆø”‚Ì‰Šú‰»
-    vsnprintf(buf, sizeof(buf), format, args); // ƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğƒoƒbƒtƒ@‚É‘‚«‚Ş
-    va_end(args);                              // ‰Â•Ïˆø”‚ÌI—¹
-    DrawString(x, y, buf, color); // •`‰æ
+    char    buf[kFormatBufSize];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf, sizeof(buf), format, args);
+    va_end(args);
+    DrawString(x, y, buf, color);
 }
 
-// ƒƒSƒXƒLƒbƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚·‚éŠÖ”
 bool DebugUtil::IsSkipLogoKeyPressed()
 {
     return CheckHitKey(KEY_INPUT_S) != 0;
@@ -46,31 +50,31 @@ bool DebugUtil::IsSkipLogoKeyPressed()
 
 void DebugUtil::ShowDebugWindow()
 {
-    // F1ƒL[‚ª‰Ÿ‚³‚ê‚½uŠÔ‚É•\¦/”ñ•\¦‚ğØ‚è‘Ö‚¦
+    // F1 ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸç¬é–“ã«è¡¨ç¤º/éè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
     static int prevF1 = 0;
-    int nowF1 = CheckHitKey(KEY_INPUT_F1);
+    int        nowF1  = CheckHitKey(KEY_INPUT_F1);
     if (nowF1 && !prevF1)
     {
         s_isVisible = !s_isVisible;
 
         if (s_isVisible)
         {
-            // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ğŠJ‚­‚Í•K‚¸ƒ}ƒEƒX‚ğ•\¦
+            // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒé–‹ãæ™‚ã¯å¿…ãšãƒã‚¦ã‚¹ã‚’è¡¨ç¤º
             SetMouseDispFlag(true);
         }
         else
         {
-            // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚é‚ÍŒ»İ‚ÌƒV[ƒ“‚É‰‚¶‚Äƒ}ƒEƒX‚Ì•\¦‚ğŒˆ’è
+            // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã‚‹æ™‚ã¯ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã«å¿œã˜ã¦ãƒã‚¦ã‚¹ã®è¡¨ç¤ºã‚’æ±ºå®š
             if (Game::m_pSceneManager)
             {
                 SceneBase* currentScene = Game::m_pSceneManager->GetCurrentScene();
                 if (dynamic_cast<SceneMain*>(currentScene))
                 {
-                    SetMouseDispFlag(false); // ƒQ[ƒ€–{•Ò‚Å‚Í”ñ•\¦
+                    SetMouseDispFlag(false); // ã‚²ãƒ¼ãƒ æœ¬ä½“ã§ã¯éè¡¨ç¤º
                 }
                 else
                 {
-                    SetMouseDispFlag(true); // ‚»‚êˆÈŠO‚ÌƒV[ƒ“‚Å‚Í•\¦
+                    SetMouseDispFlag(true); // ãã‚Œä»¥å¤–ã®ã‚·ãƒ¼ãƒ³ã§ã¯è¡¨ç¤º
                 }
             }
         }
@@ -79,16 +83,16 @@ void DebugUtil::ShowDebugWindow()
 
     if (!s_isVisible) return;
 
-    // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì”wŒi‚ğ”¼“§–¾‚Å•`‰æ
+    // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®èƒŒæ™¯ã‚’åŠé€æ˜ã§æç”»
     int screenW, screenH;
     GetScreenState(&screenW, &screenH, NULL);
 
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-    DrawBox(0, 0, screenW, screenH, 0x000000, true);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kDebugWindowAlpha);
+    DrawBox(0, 0, screenW, screenH, kColorDebugBackground, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
     s_debugMenu.Update();
-    s_debugMenu.Draw(40, 40);
+    s_debugMenu.Draw(kDebugMenuX, kDebugMenuY);
 }
 
 bool DebugUtil::IsDebugWindowVisible()

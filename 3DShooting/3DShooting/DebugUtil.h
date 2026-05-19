@@ -1,73 +1,74 @@
-#pragma once
+ï»¿#pragma once
 #include "DebugMenu.h"
-#include "EffekseerWarningSuppress.h"  
+#include "EffekseerWarningSuppress.h"
 #include <vector>
 #include <string>
 
 /// <summary>
-/// ƒfƒoƒbƒOƒNƒ‰ƒX
+/// ãƒ‡ãƒãƒƒã‚°æç”»ãƒ»å…¥åŠ›ãƒã‚§ãƒƒã‚¯ãƒ»ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç®¡ç†ã‚’æä¾›ã™ã‚‹ãƒ¦ãƒ¼ãƒ†ã‚£ãƒªãƒ†ã‚£ã‚¯ãƒ©ã‚¹ã€‚
+/// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹åŒ–ã›ãšã« static ãƒ¡ã‚½ãƒƒãƒ‰ã¨ã—ã¦ä½¿ç”¨ã™ã‚‹ã€‚
 /// </summary>
 class DebugUtil
 {
 public:
     /// <summary>
-	/// 3DƒJƒvƒZƒ‹‚ğ•`‰æ‚·‚é
+    /// 3D ã‚«ãƒ—ã‚»ãƒ«ã‚’æç”»ã™ã‚‹
     /// </summary>
-	/// <param name="a">’[“_A</param>
-	/// <param name="b">’[“_B</param>
-	/// <param name="radius">”¼Œa</param>
-	/// <param name="div">•ªŠ„”</param>
-	/// <param name="color">F</param>
-	/// <param name="fill">“h‚è‚Â‚Ô‚µƒtƒ‰ƒO</param>
+    /// <param name="a">é ‚ç‚¹ A</param>
+    /// <param name="b">é ‚ç‚¹ B</param>
+    /// <param name="radius">åŠå¾„</param>
+    /// <param name="div">åˆ†å‰²æ•°</param>
+    /// <param name="color">è‰²</param>
+    /// <param name="fill">å¡—ã‚Šæ½°ã—ãƒ•ãƒ©ã‚°</param>
     static void DrawCapsule(const VECTOR& a, const VECTOR& b, float radius, int div, int color, bool fill = false);
 
     /// <summary>
-	/// 3D‹…‚ğ•`‰æ‚·‚é
+    /// 3D çƒã‚’æç”»ã™ã‚‹
     /// </summary>
-	/// <param name="center">’†SÀ•W</param>
-	/// <param name="radius">”¼Œa</param>
-	/// <param name="div">•ªŠ„”</param>
-	/// <param name="color">F</param>
-	/// <param name="fill">“h‚è‚Â‚Ô‚µƒtƒ‰ƒO</param>
+    /// <param name="center">ä¸­å¿ƒåº§æ¨™</param>
+    /// <param name="radius">åŠå¾„</param>
+    /// <param name="div">åˆ†å‰²æ•°</param>
+    /// <param name="color">è‰²</param>
+    /// <param name="fill">å¡—ã‚Šæ½°ã—ãƒ•ãƒ©ã‚°</param>
     static void DrawSphere(const VECTOR& center, float radius, int div, int color, bool fill = false);
 
     /// <summary>
-	/// 2DƒƒbƒZ[ƒW‚ğ•`‰æ‚·‚é
+    /// 2D ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’æç”»ã™ã‚‹
     /// </summary>
-	/// <param name="x">xÀ•W</param>
-	/// <param name="y">yÀ•W</param>
-	/// <param name="color">F</param>
-	/// <param name="msg">ƒƒbƒZ[ƒW</param>
+    /// <param name="x">X åº§æ¨™</param>
+    /// <param name="y">Y åº§æ¨™</param>
+    /// <param name="color">è‰²</param>
+    /// <param name="msg">ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸æ–‡å­—åˆ—</param>
     static void DrawMessage(int x, int y, unsigned int color, const std::string& msg);
 
     /// <summary>
-	/// 2DƒtƒH[ƒ}ƒbƒg•¶š—ñ‚ğ•`‰æ‚·‚é
+    /// 2D ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—ã‚’æç”»ã™ã‚‹
     /// </summary>
-	/// <param name="x">xÀ•W</param>
-	/// <param name="y">yÀ•W</param>
-    /// <param name="color">F</param>
-	/// <param name="format">ƒtƒH[ƒ}ƒbƒg•¶š—ñ</param>
-	/// <param name="">‰Â•Ïˆø”</param>
+    /// <param name="x">X åº§æ¨™</param>
+    /// <param name="y">Y åº§æ¨™</param>
+    /// <param name="color">è‰²</param>
+    /// <param name="format">ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—</param>
+    /// <param name="...">å¯å¤‰å¼•æ•°</param>
     static void DrawFormat(int x, int y, unsigned int color, const char* format, ...);
 
     /// <summary>
-	/// ƒƒSƒXƒLƒbƒvƒL[‚ª‰Ÿ‚³‚ê‚½‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN‚·‚é
+    /// ãƒ­ã‚´ã‚¹ã‚­ãƒƒãƒ—ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
     /// </summary>
-	/// <returns>‰Ÿ‚³‚ê‚½‚çtrue</returns>
+    /// <returns>æŠ¼ã•ã‚ŒãŸã‚‰ true</returns>
     static bool IsSkipLogoKeyPressed();
 
     /// <summary>
-	/// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì•\¦/”ñ•\¦‚ğØ‚è‘Ö‚¦‚é
+    /// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤º/éè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ï¼ˆF1 ã‚­ãƒ¼ã§åˆ‡ã‚Šæ›¿ãˆï¼‰
     /// </summary>
     static void ShowDebugWindow();
 
     /// <summary>
-	/// ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ğXV‚·‚é
+    /// ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒç¾åœ¨è¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™
     /// </summary>
-	/// <returns>ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚ª•\¦‚³‚ê‚Ä‚¢‚é‚È‚çtrue</returns>
+    /// <returns>è¡¨ç¤ºä¸­ãªã‚‰ true</returns>
     static bool IsDebugWindowVisible();
 
 private:
-    static bool s_isVisible; // ƒfƒoƒbƒOƒEƒBƒ“ƒhƒE‚Ì•\¦ó‘Ô
-    static DebugMenu s_debugMenu;
+    static bool      s_isVisible;  // ãƒ‡ãƒãƒƒã‚°ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤ºçŠ¶æ…‹
+    static DebugMenu s_debugMenu;  // ãƒ‡ãƒãƒƒã‚°ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
 };
