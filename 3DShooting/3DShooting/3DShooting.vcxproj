@@ -159,7 +159,6 @@
     <ClCompile Include="GameObject\AmmoItem.cpp" />
     <ClCompile Include="AnimationManager.cpp" />
     <ClCompile Include="CapsuleCollider.cpp" />
-    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
     <ClCompile Include="GameObject\EnemyBossHomingBullet.cpp" />

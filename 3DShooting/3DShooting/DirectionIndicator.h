@@ -71,7 +71,7 @@ public:
     static void DeleteResources();
 
 private:
-    Player*                        m_pPlayer;        // 参照するプレイヤーへのポインタ
+    Player*                        m_pPlayer;         // 参照するプレイヤーへのポインタ
     std::vector<AttackedEnemyInfo> m_attackedEnemies; // 表示中のインジケーター情報リスト
     static int                     s_indicatorImage;  // インジケーター画像ハンドル
 };
