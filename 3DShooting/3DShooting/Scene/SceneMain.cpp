@@ -100,9 +100,39 @@ namespace SceneMainConstants
     constexpr VECTOR kRoadFloorMin = { -500.0f, 0.0f, -500.0f }; // 床の最小座標
     constexpr VECTOR kRoadFloorMax = { 500.0f, 0.0f, 500.0f };   // 床の最大座標
 
-	// サウンド関連の定数(0?255の音量範囲)
-    constexpr int kGameSceneBgmVolume = 100; // ゲームシーンBGMの音量 
+    // サウンド関連の定数（0〜255の音量範囲）
+    constexpr int kGameSceneBgmVolume = 100; // ゲームシーンBGMの音量
     constexpr int kHeadShotSEVolume   = 255; // ヘッドショット時のSE音量
+
+    // ローディング演出
+    constexpr int   kLoadingAnimInterval =  30;    // ドット点滅のフレーム間隔
+    constexpr int   kLoadingDotMax       =   3;    // ドットの最大数
+    constexpr float kLoadingModelSpeed   =   3.0f; // ローディングモデルの移動速度（ピクセル/フレーム）
+    constexpr float kLoadingModelMaxX    = 350.0f; // ローディングモデルのX移動上限
+    constexpr int   kMinLoadingFrames    =  80;    // 最低ローディング表示フレーム数
+    constexpr int   kLoadingFontSize     =  48;    // ローディングテキストのフォントサイズ
+    constexpr int   kDefaultFontSize     =  16;    // デフォルトフォントサイズ
+    constexpr float kLoadingTextOffsetY  =  50.0f; // ローディングテキストの上シフト量
+
+    // ローディング専用カメラ
+    constexpr float kLoadingCamY       = -550.0f; // カメラのY座標
+    constexpr float kLoadingCamTargetZ = 1000.0f; // カメラターゲットのZ座標
+    constexpr float kLoadingCamFovDeg  =   60.0f; // FOV（度）
+
+    // ゲームオーバー・クリア
+    constexpr int kGameOverDelayFrames = 180; // ゲームオーバー遷移の遅延フレーム数（約3秒）
+    constexpr int kMaxWave             =   5; // 最終ウェーブ番号
+
+    // フレームレート
+    constexpr float kFrameRate = 60.0f; // 想定フレームレート
+
+    // デバッグHUD
+    constexpr int kDebugOverlayAlpha    = 128; // デバッグオーバーレイのアルファ値
+    constexpr int kDebugDisplayInterval =   5; // デバッグ情報の更新間隔（フレーム）
+    constexpr int kPauseMenuMargin      =  50; // ポーズメニューの余白（ピクセル）
+
+    // ヘッドショットSEクールタイム（フレーム数）
+    constexpr int kHeadShotSECooldown = 10;
 }
 
 using namespace SceneMainConstants;
@@ -379,7 +409,7 @@ void SceneMain::Init()
         m_pTutorialManager->Init();
     }
 
-    // ヒットマーク用コールバックをWaveManagerに  // 敵ヒット時のコールバック設定
+    // 敵ヒット時のコールバック設定
     m_pWaveManager->SetOnEnemyHitCallback(
         [this](EnemyBase::HitPart part, float distance)
         {
@@ -401,8 +431,7 @@ void SceneMain::Init()
     }
 }
 
-// スコアポップアップを追加する
-void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo) 
+void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 {
     if (m_pUIManager)
     {
@@ -416,35 +445,36 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 
 void SceneMain::SwitchToMainStage()
 {
-  // チュートリアルのアイテムを消去
-  m_items.clear();
+    // チュートリアルのアイテムを消去
+    m_items.clear();
 
-  // WaveManagerをリセット (敵の消去とWave情報の初期化)
-  m_pWaveManager->Reset();
+    // WaveManagerをリセット（敵の消去とWave情報の初期化）
+    m_pWaveManager->Reset();
 
-  // エフェクトを全て停止
-  if (m_pEffect) {
-    m_pEffect->StopAllEffects();
-  }
+    // エフェクトを全て停止
+    if (m_pEffect)
+    {
+        m_pEffect->StopAllEffects();
+    }
 
-  // メインステージをロード
-  m_pStage->LoadStage(false);
-  m_isTutorialStage = false;
+    // メインステージをロード
+    m_pStage->LoadStage(false);
+    m_isTutorialStage = false;
 
-  // ステージ範囲を更新
-  m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
-  m_pWaveManager->RegisterStageToGrid(m_pStage->GetCollisionData());
-  m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
+    // ステージ範囲を更新
+    m_pWaveManager->SetRoadFloorBounds(m_pStage->GetMinBounds(), m_pStage->GetMaxBounds());
+    m_pWaveManager->RegisterStageToGrid(m_pStage->GetCollisionData());
+    m_pWaveManager->GetCollisionGrid().CalculateHeights(m_pStage->GetCollisionData());
 
-  // プレイヤーの再初期化（位置などをCSVから再取得）
-  m_pPlayer->Init(false);
+    // プレイヤーの再初期化（位置などをCSVから再取得）
+    m_pPlayer->Init(false);
 
-  // WaveUIを表示する
-  auto waveUI = m_pUIManager->GetUI<WaveUI>();
-  if (waveUI)
-  {
-      waveUI->SetVisible(true);
-  }
+    // WaveUIを表示する
+    auto waveUI = m_pUIManager->GetUI<WaveUI>();
+    if (waveUI)
+    {
+        waveUI->SetVisible(true);
+    }
 }
 
 SceneBase* SceneMain::Update()
@@ -454,11 +484,11 @@ SceneBase* SceneMain::Update()
     {
         // ローディングアニメーション更新
         m_loadingAnimTimer++;
-        if (m_loadingAnimTimer > 30)
+        if (m_loadingAnimTimer > kLoadingAnimInterval)
         {
             m_loadingAnimTimer = 0;
             m_loadingDotCount++;
-            if (m_loadingDotCount > 3)
+            if (m_loadingDotCount > kLoadingDotMax)
             {
                 m_loadingDotCount = 0;
             }
@@ -477,10 +507,10 @@ SceneBase* SceneMain::Update()
             MV1SetAttachAnimTime(m_loadingModel, 0, m_loadingModelAnimTime);
 
             // 移動 (左から右へ)
-            m_loadingModelPos.x += 3.0f;
-            if (m_loadingModelPos.x > 350.0f) // 画面右端を超えたらループ
+            m_loadingModelPos.x += kLoadingModelSpeed;
+            if (m_loadingModelPos.x > kLoadingModelMaxX) // 画面右端を超えたらループ
             {
-                m_loadingModelPos.x = -350.0f;
+                m_loadingModelPos.x = -kLoadingModelMaxX;
             }
 
             // 位置設定 (固定カメラを前提とした簡易配置)
@@ -491,7 +521,7 @@ SceneBase* SceneMain::Update()
         {
             // 最低限のローディング時間を確保
             m_loadingFrameCount++;
-            if (m_loadingFrameCount >= 80)
+            if (m_loadingFrameCount >= kMinLoadingFrames)
             {
                 m_isLoading = false;
                 m_loadingFrameCount = 0;
@@ -536,7 +566,7 @@ SceneBase* SceneMain::Update()
     m_lastDeltaTime = (now - m_prevTimeCount) / 1000000.0f;
     m_prevTimeCount = now;
 
-    float dt = (1.0f / 60.0f) * Game::GetTimeScale();
+    float dt = (1.0f / kFrameRate) * Game::GetTimeScale();
     s_elapsedTime += dt;
 
     // UIの更新 (ポーズ中やチュートリアル中もタイマーを進める、またはスケールを更新するためにここで呼ぶ)
@@ -670,7 +700,7 @@ SceneBase* SceneMain::Update()
         {
             if (m_gameOverDelayTimer == -1)
             {
-                m_gameOverDelayTimer = 180; // 3秒の遅延
+                m_gameOverDelayTimer = kGameOverDelayFrames;
             }
             else if (m_gameOverDelayTimer > 0)
             {
@@ -712,7 +742,7 @@ SceneBase* SceneMain::Update()
     {
         if (m_gameOverDelayTimer == -1)
         {
-            m_gameOverDelayTimer = 180;
+            m_gameOverDelayTimer = kGameOverDelayFrames;
         }
         else if (m_gameOverDelayTimer > 0)
         {
@@ -729,7 +759,7 @@ SceneBase* SceneMain::Update()
     }
 
     // ウェーブ5終了後の遅延処理
-    if (m_pWaveManager->GetCurrentWave() > 5)
+    if (m_pWaveManager->GetCurrentWave() > kMaxWave)
     {
         if (m_clearSceneDelayTimer == -1) // 遅延がまだ開始されていない場合
         {
@@ -793,7 +823,8 @@ void SceneMain::Draw()
         DrawBox(0, 0, screenW, screenH, 0x000000, true);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-        SetFontSize(static_cast<int>(48 * Game::GetUIScale()));
+        float scale = Game::GetUIScale();
+        SetFontSize(static_cast<int>(kLoadingFontSize * scale));
         std::string loadingText = "Now Loading";
         for (int i = 0; i < m_loadingDotCount; ++i)
         {
@@ -802,20 +833,18 @@ void SceneMain::Draw()
 
         int textWidth = GetDrawStringWidth(loadingText.c_str(), -1);
         int textX = static_cast<int>((screenW - textWidth) * 0.5f);
-        float scale = Game::GetUIScale();
-        int textY = static_cast<int>((screenH - static_cast<int>(48 * scale)) * 0.5f - static_cast<int>(50 * scale)); // テキストを少し上にずらす
+        int textY = static_cast<int>((screenH - static_cast<int>(kLoadingFontSize * scale)) * 0.5f
+                                     - static_cast<int>(kLoadingTextOffsetY * scale));
         DrawString(textX, textY, loadingText.c_str(), 0xffffff);
-        SetFontSize(16);
+        SetFontSize(kDefaultFontSize);
 
-        // ローディングモデルの描画
         // ローディングモデルの描画
         if (m_loadingModel.IsValid())
         {
             // カメラ設定をローディング専用にする
-            VECTOR camPos = VGet(0.0f, -550.0f, 0.0f);
-
-            VECTOR camTarget = VGet(0.0f, -550.0f, 1000.0f);
-            SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
+            VECTOR camPos    = VGet(0.0f, kLoadingCamY, 0.0f);
+            VECTOR camTarget = VGet(0.0f, kLoadingCamY, kLoadingCamTargetZ);
+            SetupCamera_Perspective(kLoadingCamFovDeg * DX_PI_F / 180.0f);
             SetCameraPositionAndTarget_UpVecY(camPos, camTarget);
 
             // モデル位置設定
@@ -883,7 +912,7 @@ void SceneMain::DrawDebugHUD()
     int screenH = Game::GetScreenHeight();
 
     // 画面全体を半透明の黒で覆う
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kDebugOverlayAlpha);
     DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -899,7 +928,7 @@ void SceneMain::DrawDebugHUD()
         m_cachedTotalEnemies = EnemyBase::GetTotalCount();
         m_cachedUpdatedEnemies = EnemyBase::GetAIUpdateCount();
         m_cachedDrawnEnemies = EnemyBase::GetDrawCount();
-        m_debugDisplayTimer = 5;
+        m_debugDisplayTimer = kDebugDisplayInterval;
     }
     float fps = m_cachedFPS;
     int aliveEnemyCount = m_pWaveManager ? m_pWaveManager->GetAliveEnemyCount() : 0;
@@ -938,12 +967,12 @@ void SceneMain::DrawDebugHUD()
     // AI間引き(Throttling)の評価
     int totalCount = m_cachedTotalEnemies;
     int aiUpdatedCount = m_cachedUpdatedEnemies;
-    float throttlingRate = totalCount > 0 ? (1.0f - (float)aiUpdatedCount / totalCount) * 100.0f : 0.0f;
+    float throttlingRate = totalCount > 0 ? (1.0f - static_cast<float>(aiUpdatedCount) / totalCount) * 100.0f : 0.0f;
     DrawFormatString(x, y, color, "AI Update: %d/%d (Throttled: %.1f%%)", aiUpdatedCount, totalCount, throttlingRate);
     y += lineHeight;
 
     // 描画カリングの評価
-    float cullingRate = totalCount > 0 ? (1.0f - (float)drawnEnemyCount / totalCount) * 100.0f : 0.0f;
+    float cullingRate = totalCount > 0 ? (1.0f - static_cast<float>(drawnEnemyCount) / totalCount) * 100.0f : 0.0f;
     DrawFormatString(x, y, color, "Draw Culling: %.1f%%", cullingRate);
     y += lineHeight;
 
@@ -957,8 +986,10 @@ void SceneMain::DrawPauseMenu()
 {
     Vec2 mousePos = InputManager::GetInstance()->GetMousePos();
 
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-    DrawBox(50, 50, Game::GetScreenWidth() - 50, Game::GetScreenHeight() - 50, 0x000000, true);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kDebugOverlayAlpha);
+    DrawBox(kPauseMenuMargin, kPauseMenuMargin,
+            Game::GetScreenWidth()  - kPauseMenuMargin,
+            Game::GetScreenHeight() - kPauseMenuMargin, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
@@ -968,7 +999,6 @@ void SceneMain::SetPaused(bool paused)
     SetMouseDispFlag(m_isPaused);
 }
 
-// カメラの感度を設定
 void SceneMain::SetCameraSensitivity(float sensitivity)
 {
     m_cameraSensitivity = sensitivity;
@@ -978,7 +1008,6 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
     }
 }
 
-// プレイヤーの弾が敵にヒットした際に呼ばれる
 void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
 {
     // ヒットの部位によってSE再生
@@ -987,7 +1016,7 @@ void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
         if (m_headShotSECooldownTimer <= 0)
         {
             SoundManager::GetInstance()->Play("UI", "HeadShot");
-            m_headShotSECooldownTimer = 10;
+            m_headShotSECooldownTimer = kHeadShotSECooldown;
         }
     }
 
