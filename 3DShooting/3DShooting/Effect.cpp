@@ -1,11 +1,6 @@
-#include "Effect.h"
+ï»¿#include "Effect.h"
 #include "DxLib.h"
-// ŠO•”ƒ‰ƒCƒuƒ‰ƒŠiEffekseerj“à•”‚Å”­¶‚·‚éŒx‚ğA‚±‚ÌƒCƒ“ƒNƒ‹[ƒh‚ÌŠÔ‚¾‚¯—}§‚·‚é
-// 4100: –¢g—pˆø”, 4244: Œ^•ÏŠ·, 4481: ”ñ•W€Šg’£(abstract“™), 26495: –¢‰Šú‰»ƒƒ“ƒo[
-#pragma warning(push)
-#pragma warning(disable: 4100 4244 4481 26495)
 #include "EffekseerWarningSuppress.h"
-#pragma warning(pop)
 #include "Game.h"
 #include <algorithm>
 #include <assert.h>
@@ -16,25 +11,32 @@
 
 namespace
 {
-    // ŠeƒGƒtƒFƒNƒgŠg‘å—¦
-    constexpr float kMuzzleFlashEffectScale = 2.0f;
-    constexpr float kMuzzleFlashEffectScale2 = 3.0f;
-    constexpr float kMuzzleFlashEffectScale3 = 3.5f;
-    constexpr float kMuzzleFlashEffectScale4 = 2.5f;
-    constexpr float kLossOfBloodEffectScale = 2.5f;
+    // å„ã‚¨ãƒ•ã‚§ã‚¯ãƒˆå€ç‡
+    constexpr float kMuzzleFlashEffectScale       = 2.0f;
+    constexpr float kMuzzleFlashEffectScale2      = 3.0f;
+    constexpr float kMuzzleFlashEffectScale3      = 3.5f;
+    constexpr float kMuzzleFlashEffectScale4      = 2.5f;
+    constexpr float kLossOfBloodEffectScale       = 2.5f;
     constexpr float kConcentrationLineEffectScale = 20.0f;
-    constexpr float kGuardEffectScale = 10.5f;
-    constexpr float kSparkEffectScale = 20.0f;
-    constexpr float kBossShieldEffectScale = 30.0f; 
+    constexpr float kGuardEffectScale             = 10.5f;
+    constexpr float kSparkEffectScale             = 20.0f;
+    constexpr float kBossShieldEffectScale        = 30.0f;
+    constexpr float kAcidEffectScale              = 15.0f;
+    constexpr float kNormalBulletEffectScale      = 15.0f;
+    constexpr float kCloseRangeAttackScale        = 50.0f;
+    constexpr float kShieldHitEffectScale         = 5.0f;
+    constexpr float kShieldHitDisplayScale        = 2.0f;
+    constexpr float kShieldBreakEffectScale       = 50.0f;
+    constexpr float kLossOfBloodSpeed             = 5.0f;
 
-    // ƒGƒtƒFƒNƒg‚ÌƒJƒŠƒ“ƒO‹——£ (‚±‚êˆÈã—£‚ê‚½‚çÄ¶‚µ‚È‚¢)
+    // ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®ã‚«ãƒªãƒ³ã‚°è·é›¢ï¼ˆã“ã‚Œä»¥ä¸Šé›¢ã‚ŒãŸã‚‰å†ç”Ÿã—ãªã„ï¼‰
     constexpr float kEffectCullDistance = 3000.0f;
 
     bool ShouldPlayEffect(float x, float y, float z)
     {
         VECTOR cameraPos = GetCameraPosition();
         VECTOR effectPos = VGet(x, y, z);
-        VECTOR diff = VSub(effectPos, cameraPos);
+        VECTOR diff      = VSub(effectPos, cameraPos);
         return VSquareSize(diff) <= kEffectCullDistance * kEffectCullDistance;
     }
 }
@@ -48,66 +50,45 @@ Effect::Effect()
     , m_shieldBreakEffectHandle(-1)
     , m_muzzleFlashEffectHandles{ -1, -1, -1, -1, -1 }
 {
-    // —”‚ÌƒV[ƒh‚ğİ’è
     srand(static_cast<unsigned int>(time(NULL)));
 
-    // ƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_muzzleFlashEffectHandles[0] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc", kMuzzleFlashEffectScale);
+    m_muzzleFlashEffectHandles[0] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash.efkefc",  kMuzzleFlashEffectScale);
     m_muzzleFlashEffectHandles[1] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash2.efkefc", kMuzzleFlashEffectScale);
     m_muzzleFlashEffectHandles[2] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash3.efkefc", kMuzzleFlashEffectScale);
     m_muzzleFlashEffectHandles[3] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash4.efkefc", kMuzzleFlashEffectScale3);
     m_muzzleFlashEffectHandles[4] = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale2);
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < kMuzzleFlashCount; ++i)
     {
         assert(m_muzzleFlashEffectHandles[i] != -1);
     }
 
-    // oŒŒƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_lossOfBloodEffectHandle = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc", kLossOfBloodEffectScale);
+    m_lossOfBloodEffectHandle       = LoadEffekseerEffect("data/Effekseer/LossOfBlood.efkefc",       kLossOfBloodEffectScale);
     assert(m_lossOfBloodEffectHandle != -1);
-    // W’†üƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
     m_concentrationLineEffectHandle = LoadEffekseerEffect("data/Effekseer/ConcentrationLine.efkefc", kConcentrationLineEffectScale);
     assert(m_concentrationLineEffectHandle != -1);
-
-    // ƒK[ƒhƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_guardEffectHandle = LoadEffekseerEffect("data/Effekseer/Circle.efkefc", kGuardEffectScale);
+    m_guardEffectHandle             = LoadEffekseerEffect("data/Effekseer/Circle.efkefc",             kGuardEffectScale);
     assert(m_guardEffectHandle != -1);
-
-    // ƒXƒp[ƒNƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_sparkEffectHandle = LoadEffekseerEffect("data/Effekseer/Spark.efkefc", kSparkEffectScale);
+    m_sparkEffectHandle             = LoadEffekseerEffect("data/Effekseer/Spark.efkefc",              kSparkEffectScale);
     assert(m_sparkEffectHandle != -1);
-    m_sparkEffectHandle2 = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc", kMuzzleFlashEffectScale4);
+    m_sparkEffectHandle2            = LoadEffekseerEffect("data/Effekseer/MuzzleFlash5.efkefc",       kMuzzleFlashEffectScale4);
     assert(m_sparkEffectHandle2 != -1);
-
-    // _ƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_acidEffectHandle = LoadEffekseerEffect("data/Effekseer/ParryBullet.efkefc", 15.0f);
+    m_acidEffectHandle              = LoadEffekseerEffect("data/Effekseer/ParryBullet.efkefc",        kAcidEffectScale);
     assert(m_acidEffectHandle != -1);
-
-    // ’Êí’eƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_normalBulletEffectHandle = LoadEffekseerEffect("data/Effekseer/NormalBullet.efkefc", 15.0f);
+    m_normalBulletEffectHandle      = LoadEffekseerEffect("data/Effekseer/NormalBullet.efkefc",       kNormalBulletEffectScale);
     assert(m_normalBulletEffectHandle != -1);
-
-    // ‹ßÚ”ÍˆÍUŒ‚ƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_closeRangeAttackEffectHandle = LoadEffekseerEffect("data/Effekseer/CloseRangeAttack.efkefc", 50.0f);
+    m_closeRangeAttackEffectHandle  = LoadEffekseerEffect("data/Effekseer/CloseRangeAttack.efkefc",   kCloseRangeAttackScale);
     assert(m_closeRangeAttackEffectHandle != -1);
-
-    // ƒ{ƒXƒV[ƒ‹ƒhƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_bossShieldEffectHandle = LoadEffekseerEffect("data/Effekseer/Shield.efkefc", kBossShieldEffectScale);
+    m_bossShieldEffectHandle        = LoadEffekseerEffect("data/Effekseer/Shield.efkefc",             kBossShieldEffectScale);
     assert(m_bossShieldEffectHandle != -1);
-
-    // ƒV[ƒ‹ƒhƒqƒbƒgƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_shieldHitEffectHandle = LoadEffekseerEffect("data/Effekseer/HitBurst.efkefc", 5.0f);
+    m_shieldHitEffectHandle         = LoadEffekseerEffect("data/Effekseer/HitBurst.efkefc",           kShieldHitEffectScale);
     assert(m_shieldHitEffectHandle != -1);
-
-    // ƒV[ƒ‹ƒh”j‰ó‰Â”\ƒGƒtƒFƒNƒgƒnƒ“ƒhƒ‹‚Ì“Ç‚İ‚İ
-    m_shieldBreakEffectHandle = LoadEffekseerEffect("data/Effekseer/ShieldBreak.efkefc", 50.0f); 
+    m_shieldBreakEffectHandle       = LoadEffekseerEffect("data/Effekseer/ShieldBreak.efkefc",        kShieldBreakEffectScale);
     assert(m_shieldBreakEffectHandle != -1);
 }
 
 Effect::~Effect()
 {
-    // ƒGƒtƒFƒNƒg‚Ìƒnƒ“ƒhƒ‹‚ğíœ
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < kMuzzleFlashCount; ++i)
     {
         DeleteEffekseerEffect(m_muzzleFlashEffectHandles[i]);
     }
@@ -129,25 +110,21 @@ void Effect::Init()
 
 void Effect::Update()
 {
-    // ƒQ[ƒ€‚ªˆê’â~’†‚ÍƒGƒtƒFƒNƒg‚ÌXV‚ğs‚í‚È‚¢
     if (Game::IsPaused()) return;
 
-    // 3DƒGƒtƒFƒNƒg‚ÌXV
     UpdateEffekseer3D();
 }
 
 void Effect::Draw()
 {
-    // 3DƒGƒtƒFƒNƒg‚Ì•`‰æ
     DrawEffekseer3D();
 }
 
-// ƒ}ƒYƒ‹ƒtƒ‰ƒbƒVƒ…‚ğÄ¶‚·‚é
 int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
 
-    int index = rand() % 5;
+    int index = rand() % kMuzzleFlashCount;
     if (m_muzzleFlashEffectHandles[index] != -1)
     {
         int handle = PlayEffekseer3DEffect(m_muzzleFlashEffectHandles[index]);
@@ -162,7 +139,6 @@ int Effect::PlayMuzzleFlash(float x, float y, float z, float rotX, float rotY, f
     return -1;
 }
 
-// oŒŒƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -174,7 +150,7 @@ int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, f
         {
             SetPosPlayingEffekseer3DEffect(handle, x, y, z);
             SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, rotZ);
-            SetSpeedPlayingEffekseer3DEffect(handle, 5.0f); // Ä¶‘¬“x‚ğ5”{‚É
+            SetSpeedPlayingEffekseer3DEffect(handle, kLossOfBloodSpeed);
             m_playingEffectHandles.push_back(handle);
         }
         return handle;
@@ -182,7 +158,6 @@ int Effect::PlayLossOfBlood(float x, float y, float z, float rotX, float rotY, f
     return -1;
 }
 
-// W’†üƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayConcentrationLine(float x, float y, float z)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -200,7 +175,6 @@ int Effect::PlayConcentrationLine(float x, float y, float z)
     return -1;
 }
 
-// ƒK[ƒhƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, float rotZ)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -219,7 +193,6 @@ int Effect::PlayGuardEffect(float x, float y, float z, float rotX, float rotY, f
     return -1;
 }
 
-// ƒXƒp[ƒNƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlaySparkEffect(float x, float y, float z, float speed)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -241,7 +214,6 @@ int Effect::PlaySparkEffect(float x, float y, float z, float speed)
     return -1;
 }
 
-// ƒXƒp[ƒNƒGƒtƒFƒNƒg2‚ğÄ¶‚·‚é
 int Effect::PlaySparkEffect2(float x, float y, float z)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -252,7 +224,8 @@ int Effect::PlaySparkEffect2(float x, float y, float z)
         if (handle != -1)
         {
             SetPosPlayingEffekseer3DEffect(handle, x, y, z);
-            SetScalePlayingEffekseer3DEffect(handle, kMuzzleFlashEffectScale4,
+            SetScalePlayingEffekseer3DEffect(handle,
+                kMuzzleFlashEffectScale4,
                 kMuzzleFlashEffectScale4,
                 kMuzzleFlashEffectScale4);
             m_playingEffectHandles.push_back(handle);
@@ -262,7 +235,6 @@ int Effect::PlaySparkEffect2(float x, float y, float z)
     return -1;
 }
 
-// _ƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayAcidEffect(float x, float y, float z)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -280,7 +252,6 @@ int Effect::PlayAcidEffect(float x, float y, float z)
     return -1;
 }
 
-// ’Êí’eƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayNormalBulletEffect(float x, float y, float z)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -307,7 +278,6 @@ void Effect::StopAllEffects()
     m_playingEffectHandles.clear();
 }
 
-// ‹ßÚ”ÍˆÍUŒ‚ƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayCloseRangeAttackEffect(float x, float y, float z)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -325,7 +295,6 @@ int Effect::PlayCloseRangeAttackEffect(float x, float y, float z)
     return -1;
 }
 
-// ƒ{ƒXƒV[ƒ‹ƒhƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayBossShieldEffect(float x, float y, float z)
 {
     if (!ShouldPlayEffect(x, y, z)) return -1;
@@ -353,7 +322,6 @@ int Effect::GetBossShieldEffectDuration() const
     return effectRef->CalculateTerm().TermMax;
 }
 
-// ƒV[ƒ‹ƒhƒqƒbƒgƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayShieldHitEffect(const VECTOR& pos, const VECTOR& normal)
 {
     if (!ShouldPlayEffect(pos.x, pos.y, pos.z)) return -1;
@@ -364,22 +332,17 @@ int Effect::PlayShieldHitEffect(const VECTOR& pos, const VECTOR& normal)
         if (handle != -1)
         {
             SetPosPlayingEffekseer3DEffect(handle, pos.x, pos.y, pos.z);
-            
-            // …•½‹——£
+
+            // æ³•ç·šã‹ã‚‰å›è»¢è§’ã‚’è¨ˆç®—
             float hDist = sqrtf(normal.x * normal.x + normal.z * normal.z);
-            
-            // Yaw (Y²‰ñ“])
-            // atan2(x, z) ‚ÅŠp“xæ“¾
-            float rotY = atan2f(normal.x, normal.z);
-            
-            // Pitch (X²‰ñ“])
-            // Y¬•ª‚©‚çŠp“xæ“¾ (-asin‚ÅãŒü‚«ƒxƒNƒgƒ‹‚É‘Î‰)
-            float rotX = -atan2f(normal.y, hDist);
+            float rotY  = atan2f(normal.x, normal.z);  // Yawï¼ˆYè»¸å›è»¢ï¼‰
+            float rotX  = -atan2f(normal.y, hDist);    // Pitchï¼ˆXè»¸å›è»¢ï¼‰
 
             SetRotationPlayingEffekseer3DEffect(handle, rotX, rotY, 0.0f);
-
-            // HitBurst‚Í­‚µ‘å‚«‚ß‚É‚µ‚½‚è’²®‚ª•K—v‚È‚ç‚±‚±‚Å
-            SetScalePlayingEffekseer3DEffect(handle, 2.0f, 2.0f, 2.0f);
+            SetScalePlayingEffekseer3DEffect(handle,
+                kShieldHitDisplayScale,
+                kShieldHitDisplayScale,
+                kShieldHitDisplayScale);
             m_playingEffectHandles.push_back(handle);
         }
         return handle;
@@ -387,7 +350,6 @@ int Effect::PlayShieldHitEffect(const VECTOR& pos, const VECTOR& normal)
     return -1;
 }
 
-// ƒV[ƒ‹ƒh”j‰ó‰Â”\ƒGƒtƒFƒNƒg‚ğÄ¶‚·‚é
 int Effect::PlayShieldBreakEffect(const VECTOR& pos)
 {
     if (!ShouldPlayEffect(pos.x, pos.y, pos.z)) return -1;
@@ -398,8 +360,6 @@ int Effect::PlayShieldBreakEffect(const VECTOR& pos)
         if (handle != -1)
         {
             SetPosPlayingEffekseer3DEffect(handle, pos.x, pos.y, pos.z);
-            // •K—v‚É‰‚¶‚ÄƒXƒP[ƒ‹’²®
-            // SetScalePlayingEffekseer3DEffect(handle, 10.0f, 10.0f, 10.0f);
             m_playingEffectHandles.push_back(handle);
         }
         return handle;
