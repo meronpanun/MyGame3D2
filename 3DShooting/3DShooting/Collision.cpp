@@ -1,12 +1,22 @@
 ﻿#include "Collision.h"
-#include <algorithm>
 #include "CollisionGrid.h"
+#include <algorithm>
 #include <cmath>
 
 namespace
 {
-    // トライアングル上の最近接点を求める関数
-    VECTOR GetClosestPointOnTriangle(const VECTOR& p, const VECTOR& a,const VECTOR& b, const VECTOR& c)
+    constexpr int   kCollisionIterations  = 4;       // 衝突解決の反復回数
+    constexpr float kGroundTolerance      = 0.5f;    // 接地判定に用いる半径外側マージン
+    constexpr float kNormalEpsilon        = 0.0001f; // 法線計算でゼロとみなす閾値
+    constexpr float kWallSlopeThreshold   = 0.5f;    // 壁面とみなす法線 Y 成分の閾値
+    constexpr float kGroundSlopeThreshold = 0.6f;    // 接地とみなす法線 Y 成分の閾値
+    constexpr float kPenetrationEpsilon   = 0.001f;  // 押し出し処理を行う最小めり込み量
+    constexpr float kRayEpsilon           = 1e-6f;   // Ray-三角形交差判定の平行判定閾値
+
+    /// <summary>
+    /// 三角形 abc 上で点 p に最も近い点を求めて返す
+    /// </summary>
+    VECTOR GetClosestPointOnTriangle(const VECTOR& p, const VECTOR& a, const VECTOR& b, const VECTOR& c)
     {
         VECTOR ab = VSub(b, a);
         VECTOR ac = VSub(c, a);
@@ -43,16 +53,10 @@ namespace
             return VAdd(a, VScale(ac, w));
         }
 
-        float va = d3 * d6 - d5 * d4;
-        if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)
-        {
-            float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
-            return VAdd(b, VScale(VSub(c, b), w));
-        }
-
+        float va    = d3 * d6 - d5 * d4;
         float denom = 1.0f / (va + vb + vc);
-        float v = vb * denom;
-        float w = vc * denom;
+        float v     = vb * denom;
+        float w     = vc * denom;
         return VAdd(a, VAdd(VScale(ab, v), VScale(ac, w)));
     }
 }
@@ -62,94 +66,77 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
     CollisionResult result;
     result.isGrounded = false;
 
-    const int kIterations = 4;
-    const float kGroundTolerance = 0.5f;
     const float kGroundToleranceSq = (capsuleRadius + kGroundTolerance) * (capsuleRadius + kGroundTolerance);
 
-    // 空間分割を利用して判定対象のポリゴンを抽出
+    // 空間分割グリッドを利用して判定対象ポリゴンを絞り込む
     std::vector<const Stage::StageCollisionData*> nearbyTriangles;
     bool useGrid = (pGrid != nullptr);
     if (useGrid)
     {
         pGrid->GetNearbyTriangles(position, nearbyTriangles);
-        // 万が一周囲にポリゴンが一つもない場合は、安全のため全件判定に切り替えるか
-        // あるいは接地判定が漏れるのを防ぐためそのまま続行
+        // 周囲にポリゴンがない場合は安全のため全件判定に切り替える
         if (nearbyTriangles.empty()) useGrid = false;
     }
 
-    for (int i = 0; i < kIterations; ++i)
+    for (int i = 0; i < kCollisionIterations; ++i)
     {
         VECTOR checkPos = VAdd(position, VGet(0.0f, colliderYOffset, 0.0f));
-        float radius = capsuleRadius;
 
-        VECTOR capA = VAdd(checkPos, VGet(0, -capsuleHeight * 0.5f, 0));
-        VECTOR capB = VAdd(checkPos, VGet(0, capsuleHeight * 0.5f, 0));
+        VECTOR capA = VAdd(checkPos, VGet(0.0f, -capsuleHeight * 0.5f, 0.0f));
+        VECTOR capB = VAdd(checkPos, VGet(0.0f,  capsuleHeight * 0.5f, 0.0f));
 
-        auto processTriangle = [&](const Stage::StageCollisionData& data) {
-            VECTOR points[3];
-            points[0] = capA;
-            points[1] = checkPos;
-            points[2] = capB;
+        auto processTriangle = [&](const Stage::StageCollisionData& data)
+        {
+            const VECTOR points[3] = { capA, checkPos, capB };
 
             for (const auto& p : points)
             {
                 VECTOR closest = GetClosestPointOnTriangle(p, data.v1, data.v2, data.v3);
-                VECTOR diff = VSub(p, closest);
-                float distSq = VDot(diff, diff);
+                VECTOR diff    = VSub(p, closest);
+                float  distSq  = VDot(diff, diff);
 
-                if (distSq < kGroundToleranceSq)
+                if (distSq >= kGroundToleranceSq) continue;
+
+                float dist = sqrtf(distSq);
+
+                VECTOR v12       = VSub(data.v2, data.v1);
+                VECTOR v13       = VSub(data.v3, data.v1);
+                VECTOR triNormal = VNorm(VCross(v12, v13));
+                VECTOR normal    = triNormal;
+
+                // 壁面（Y 成分が閾値以下）かつ法線が上向きの場合は水平成分のみで押し出す
+                if (triNormal.y <= kWallSlopeThreshold && normal.y > 0.0f)
                 {
-                    float dist = sqrtf(distSq);
-                    VECTOR v12 = VSub(data.v2, data.v1);
-                    VECTOR v13 = VSub(data.v3, data.v1);
-                    VECTOR triNormal = VNorm(VCross(v12, v13));
-
-                    VECTOR normal;
-
-                    if (dist > 0.0001f)
+                    normal.y    = 0.0f;
+                    float sq    = normal.x * normal.x + normal.z * normal.z;
+                    if (sq > kNormalEpsilon)
                     {
-                        normal = VScale(diff, 1.0f / dist);
-                        if (triNormal.y > 0.5f) normal = triNormal;
-                        else if (triNormal.y <= 0.5f) normal = triNormal;
+                        float len = sqrtf(sq);
+                        normal.x /= len;
+                        normal.z /= len;
                     }
                     else
                     {
-                        normal = triNormal;
+                        normal = VGet(0.0f, 0.0f, 0.0f);
                     }
+                }
 
-                    if (triNormal.y <= 0.5f && normal.y > 0.0f)
-                    {
-                        normal.y = 0.0f;
-                        float sq = normal.x * normal.x + normal.z * normal.z;
-                        if (sq > 0.0001f)
-                        {
-                            float len = sqrtf(sq);
-                            normal.x /= len;
-                            normal.z /= len;
-                        }
-                        else
-                        {
-                            normal = VGet(0.0f, 0.0f, 0.0f);
-                        }
-                    }
+                if (normal.y > kGroundSlopeThreshold)
+                {
+                    result.isGrounded         = true;
+                    result.groundNormal       = normal;
+                    result.groundedObjectName = data.name;
+                }
 
-                    if (normal.y > 0.6f)
+                if (distSq < capsuleRadius * capsuleRadius)
+                {
+                    float penetration = capsuleRadius - dist;
+                    if (penetration > kPenetrationEpsilon)
                     {
-                        result.isGrounded = true;
-                        result.groundNormal = normal;
-                        result.groundedObjectName = data.name;
-                    }
-
-                    if (distSq < radius * radius)
-                    {
-                        float penetration = radius - dist;
-                        if (penetration > 0.001f)
-                        {
-                            position = VAdd(position, VScale(normal, penetration));
-                            checkPos = VAdd(position, VGet(0.0f, colliderYOffset, 0.0f));
-                            capA = VAdd(checkPos, VGet(0, -capsuleHeight * 0.5f, 0));
-                            capB = VAdd(checkPos, VGet(0, capsuleHeight * 0.5f, 0));
-                        }
+                        position = VAdd(position, VScale(normal, penetration));
+                        checkPos = VAdd(position, VGet(0.0f, colliderYOffset, 0.0f));
+                        capA     = VAdd(checkPos, VGet(0.0f, -capsuleHeight * 0.5f, 0.0f));
+                        capB     = VAdd(checkPos, VGet(0.0f,  capsuleHeight * 0.5f, 0.0f));
                     }
                 }
             }
@@ -175,32 +162,30 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
 
 bool Collision::IntersectRayTriangle(const VECTOR& rayOrig, const VECTOR& rayDir, const VECTOR& v0, const VECTOR& v1, const VECTOR& v2, float& outT)
 {
-    constexpr float kEpsilon = 1e-6f;
-
     VECTOR edge1 = VSub(v1, v0);
     VECTOR edge2 = VSub(v2, v0);
-    VECTOR h = VCross(rayDir, edge2);
-    float a = VDot(edge1, h);
+    VECTOR h     = VCross(rayDir, edge2);
+    float  a     = VDot(edge1, h);
 
-    if (a > -kEpsilon && a < kEpsilon) return false; 
+    if (a > -kRayEpsilon && a < kRayEpsilon) return false;
 
-    float f = 1.0f / a;
+    float  f = 1.0f / a;
     VECTOR s = VSub(rayOrig, v0);
-    float u = f * VDot(s, h);
+    float  u = f * VDot(s, h);
 
     if (u < 0.0f || u > 1.0f) return false;
 
     VECTOR q = VCross(s, edge1);
-    float v = f * VDot(rayDir, q);
+    float  v = f * VDot(rayDir, q);
 
     if (v < 0.0f || u + v > 1.0f) return false;
 
     float t = f * VDot(edge2, q);
 
-    if (t > kEpsilon) 
+    if (t > kRayEpsilon)
     {
         outT = t;
         return true;
     }
-    else return false;
+    return false;
 }
