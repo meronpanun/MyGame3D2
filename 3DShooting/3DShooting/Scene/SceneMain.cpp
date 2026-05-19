@@ -130,6 +130,9 @@ namespace SceneMainConstants
     constexpr int kDebugOverlayAlpha    = 128; // デバッグオーバーレイのアルファ値
     constexpr int kDebugDisplayInterval =   5; // デバッグ情報の更新間隔（フレーム）
     constexpr int kPauseMenuMargin      =  50; // ポーズメニューの余白（ピクセル）
+    constexpr int kDebugTextX           =  20; // デバッグテキストの左端X座標
+    constexpr int kDebugTextY           =  20; // デバッグテキストの上端Y座標
+    constexpr int kDebugLineHeight      =  20; // デバッグテキストの行間隔（ピクセル）
 
     // ヘッドショットSEクールタイム（フレーム数）
     constexpr int kHeadShotSECooldown = 10;
@@ -176,8 +179,6 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_debugDisplayTimer(0)
 {
     g_sceneMainInstance = this;
-    
-    // ManagedFontによりコンストラクタでロードされるため、ここでのロードは不要
 }
 
 SceneMain::~SceneMain()
@@ -189,8 +190,6 @@ SceneMain::~SceneMain()
     FirstAidKitItem::DeleteModel();
     AmmoItem::DeleteModel();
     ShellCasing::DeleteResources();
-
-    // 自動解放されるため処理不要
 
     // インジケーター画像の解放
     DirectionIndicator::DeleteResources();
@@ -307,7 +306,6 @@ void SceneMain::Init()
 
     // スカイドームのスケールを設定
     MV1SetScale(m_skyDome, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
-
 
     m_items.clear();
 
@@ -512,8 +510,6 @@ SceneBase* SceneMain::Update()
             {
                 m_loadingModelPos.x = -kLoadingModelMaxX;
             }
-
-            // 位置設定 (固定カメラを前提とした簡易配置)
         }
 
         // 非同期読み込みが完了しているかチェック
@@ -668,9 +664,6 @@ SceneBase* SceneMain::Update()
         // タスクチュートリアル中もWaveManagerの更新（スポーン処理のみ）を行う
         m_pWaveManager->Update();
 
-        // タスクチュートリアル中はWaveManagerの通常の更新は行わない
-        // ただし、敵の更新とプレイヤーの更新は必要
-
         // WaveManagerからアクティブな敵のリストを取得してプレイヤーを更新
         std::vector<std::shared_ptr<EnemyBase>>& enemyList = m_pWaveManager->GetEnemyList();
         std::vector<EnemyBase*> enemyPtrList;
@@ -678,10 +671,7 @@ SceneBase* SceneMain::Update()
         {
             enemyPtrList.push_back(enemy.get());
         }
-        // プレイヤーは敵を撃ったりタックルしたりするために敵で更新する必要がある
         m_pPlayer->Update(enemyPtrList, m_pStage->GetCollisionData());
-        
-        // 敵も更新する必要がある
         m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer,
             m_pStage->GetCollisionData(), m_pEffect.get());
 
@@ -850,9 +840,6 @@ void SceneMain::Draw()
             // モデル位置設定
             MV1SetPosition(m_loadingModel, m_loadingModelPos);
             MV1DrawModel(m_loadingModel);
-
-            // カメラ設定を戻す (次のフレームの描画に影響しないように推奨されるが、
-            // 実際にはメインループで毎フレーム設定されるため、ここでは簡易的で良い)
         }
 
         return; // ローディング中はこれ以降描画しない
@@ -865,14 +852,10 @@ void SceneMain::Draw()
     m_pEffect->Draw();
 
     m_pPlayer->Draw3D();
-        // ここからUI描画
+    // ここからUI描画
     m_pPlayer->DrawShield();
 
-    if (m_pTutorialManager && m_pTutorialManager->IsActive())
-    {
-        // ...
-    }
-    else if (!TaskTutorialManager::GetInstance()->IsCompleted())
+    if (!TaskTutorialManager::GetInstance()->IsCompleted())
     {
         TaskTutorialManager::GetInstance()->Draw();
     }
@@ -938,12 +921,12 @@ void SceneMain::DrawDebugHUD()
     float lastDamage = EnemyBase::GetDebugLastDamage();
     std::string hitInfo = EnemyBase::GetDebugHitInfo();
     int damageTimer = EnemyBase::GetDebugDamageTimer();
-    std::string damageStr = (damageTimer > 0) ? std::to_string((int)lastDamage) + (hitInfo.empty() ? "" : " " + hitInfo) : "-";
+    std::string damageStr = (damageTimer > 0) ? std::to_string(static_cast<int>(lastDamage)) + (hitInfo.empty() ? "" : " " + hitInfo) : "-";
 
     // テキスト描画 (左上)
-    int x = 20;
-    int y = 20;
-    int lineHeight = 20;
+    int x = kDebugTextX;
+    int y = kDebugTextY;
+    int lineHeight = kDebugLineHeight;
     unsigned int color = 0xFFFFFF;
 
     DrawFormatString(x, y, color, "fps: %.1f", fps);
