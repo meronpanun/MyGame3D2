@@ -8,7 +8,7 @@
 #include <memory>
 
 /// <summary>
-/// ゾンビの描画用データ
+/// 背景ゾンビ一体分の描画用データ
 /// </summary>
 struct ZombieData
 {
@@ -16,67 +16,82 @@ struct ZombieData
     float angleY;        // Y軸回転
     float animTime;      // 現在のアニメーション再生時間
     float animSpeed;     // アニメーション再生速度
-    int animIndex;       // 再生するアニメーションのインデックス（IDLEかATK_HEADなど）
+    int animIndex;       // 再生するアニメーションのインデックス
     float totalAnimTime; // アニメーションの総再生時間
 };
 
 /// <summary>
-/// タイトルシーンクラス
+/// タイトルシーンクラス。3D背景とゾンビ群を描画し、クリック待機でメインシーンへ遷移する
 /// </summary>
 class SceneTitle : public SceneBase
 {
 public:
+    /// <summary>
+    /// コンストラクタ
+    /// </summary>
+    /// <param name="skipLogo">タイトルロゴのフェードイン演出をスキップするならtrue</param>
     SceneTitle(bool skipLogo = false);
-    virtual ~SceneTitle();
 
+    virtual ~SceneTitle() = default;
+
+    /// <summary>
+    /// 初期化処理
+    /// </summary>
     void Init() override;
+
+    /// <summary>
+    /// 毎フレームの更新処理
+    /// </summary>
+    /// <returns>遷移先シーンのポインタ（遷移しない場合はthisを返す）</returns>
     SceneBase* Update() override;
+
+    /// <summary>
+    /// 描画処理
+    /// </summary>
     void Draw() override;
 
 private:
     // リソース管理
-    ManagedFont m_font;            // フォント
-    ManagedGraph m_titleLogo;      // タイトルロゴ
-    ManagedGraph m_banner;         // バナー画像
-    int m_zombieVoiceTimer;        // ゾンビボイス再生用タイマー
+    ManagedFont  m_font;       // フォント
+    ManagedGraph m_titleLogo;  // タイトルロゴ画像
+    ManagedGraph m_banner;     // バナー（看板テキスト）画像
+    int m_zombieVoiceTimer;    // ゾンビ環境ボイスの再生間隔タイマー
 
     // フェード・シーン遷移管理
-    int  m_fadeAlpha;       // フェードのアルファ値
-    int  m_fadeFrame;       // フェードのフレームカウント
-    int  m_sceneFadeAlpha;  // シーンフェードのアルファ値
-    bool m_isFadeComplete;  // フェード完了フラグ
-    bool m_isFadeOut;       // フェードアウトフラグ
-    bool m_isSceneFadeIn;   // シーンフェードインフラグ
+    int  m_fadeAlpha;      // タイトルロゴのフェードアルファ値
+    int  m_fadeFrame;      // フェードのフレームカウント
+    int  m_sceneFadeAlpha; // シーンフェードのアルファ値
+    bool m_isFadeComplete; // タイトルロゴのフェードイン完了フラグ
+    bool m_isFadeOut;      // フェードアウト中フラグ
+    bool m_isSceneFadeIn;  // シーンフェードイン中フラグ
 
     // 演出管理
-    int  m_waitFrame;       // 待機フレーム
+    int m_waitFrame; // フェードイン後の待機フレームカウント
 
-    // ゲームスタートテキスト演出関連
-    int m_gameStartTextAlpha;     // ゲームスタートテキストのアルファ値
-    int m_gameStartTextAlphaDir;  // ゲームスタートテキストのアルファ値の増減方向
+    // 「ゲームスタート」テキスト点滅
+    int m_gameStartTextAlpha;    // テキストのアルファ値
+    int m_gameStartTextAlphaDir; // アルファ値の増減方向（+1 or -1）
 
-    // 看板の揺れ演出関連
-    float m_billboardShakeOffsetX; // 現在の看板のX軸揺れオフセット
-    float m_billboardShakeOffsetY; // 現在の看板のY軸揺れオフセット
-    float m_billboardShakePower;   // 看板の揺れの強さ（減衰していく）
-    int m_shakeTimer;              // 揺れ計算用タイマー（サイン波用またはランダム更新用）
+    // 看板の揺れ演出
+    float m_billboardShakeOffsetX; // 看板のX軸揺れオフセット
+    float m_billboardShakeOffsetY; // 看板のY軸揺れオフセット
+    float m_billboardShakePower;   // 看板の揺れの強さ（フレームごとに減衰）
+    int   m_shakeTimer;            // 揺れ計算用タイマー
 
-    // フェンスの揺れ演出関連
-    // 画面に映っているフェンス(左:0, 中央:1, 右:2)の3枚のみ揺れパワーを管理する
-    float m_fenceShakePower[3]; 
+    // フェンスの揺れ演出（画面内の左:0・中央:1・右:2 の3枚分）
+    float m_fenceShakePower[3];
 
-    // 3D背景演出パラメータ
-    SafeHandle<ModelDeleter> m_skyDome;    // スカイドームモデル
-    SafeHandle<ModelDeleter> m_floorModel; // 床モデル
-    SafeHandle<ModelDeleter> m_fenceModel; // フェンスモデル
-    SafeHandle<ModelDeleter> m_armoryBillboardModel; // Armory看板モデル
-    SafeHandle<ModelDeleter> m_hangarV3Model; // HangarV3モデル
-    SafeHandle<ModelDeleter> m_hangarModel; // Hangarモデル
-    SafeHandle<ModelDeleter> m_containerModel; // コンテナモデル
-    SafeHandle<ModelDeleter> m_zombieModel; // ゾンビモデル
-    std::vector<ZombieData> m_zombies;     // 背景に配置するゾンビのリスト
+    // 3D背景モデル
+    SafeHandle<ModelDeleter> m_skyDome;               // スカイドーム
+    SafeHandle<ModelDeleter> m_floorModel;            // 床
+    SafeHandle<ModelDeleter> m_fenceModel;            // フェンス
+    SafeHandle<ModelDeleter> m_armoryBillboardModel;  // Armory看板
+    SafeHandle<ModelDeleter> m_hangarV3Model;         // HangarV3（白い建物）
+    SafeHandle<ModelDeleter> m_hangarModel;           // Hangar（オレンジの建物）
+    SafeHandle<ModelDeleter> m_containerModel;        // コンテナ
+    SafeHandle<ModelDeleter> m_zombieModel;           // ゾンビ（共有モデル）
+    std::vector<ZombieData>  m_zombies;               // 背景ゾンビのリスト
 
     int m_animIndexIdle;    // IDLEアニメーションのインデックス
     int m_animIndexAtkHead; // ATK_HEADアニメーションのインデックス
 };
-

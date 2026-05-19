@@ -11,22 +11,78 @@
 
 namespace
 {
-    // タイトルロゴの幅と高さ
-    constexpr int kLogoWidth = 1050;
-    constexpr int kLogoHeight = 1080;
+    // タイトルロゴ
+    constexpr int kLogoWidth  = 1050; // タイトルロゴ画像の幅（ピクセル）
+    constexpr int kLogoHeight = 1080; // タイトルロゴ画像の高さ（ピクセル）
 
     // スカイドーム関連
-    constexpr float kSkyDomePosY = 60.0f;  // スカイドームのY座標
-    constexpr float kSkyDomePosZ = -100.0f; // スカイドームのZ座標
-    constexpr float kSkyDomeScale = 150.0f;  // スカイドームのスケール
-    constexpr float kSkyDomeRotaSpeed = 0.001f; // スカイドームの回転速度
+    constexpr float kSkyDomePosY      =   60.0f; // スカイドームのY座標
+    constexpr float kSkyDomePosZ      = -100.0f; // スカイドームのZ座標
+    constexpr float kSkyDomeScale     =  150.0f; // スカイドームのスケール
+    constexpr float kSkyDomeRotaSpeed =    0.001f; // スカイドームの回転速度（ラジアン/フレーム）
 
     // フェード関連
     constexpr int kFadeDuration = 60; // フェードイン・フェードアウトのフレーム数
-    constexpr int kWaitDuration = 60; // フェードイン後の待機時間（フレーム数）
+    constexpr int kWaitDuration = 60; // フェードイン後の待機フレーム数
 
-    // ゲームスタートテキストの点滅速度
-    constexpr int kGameStartTextBlinkSpeed = 4;
+    // ゲームスタートテキスト
+    constexpr int kGameStartTextBlinkSpeed    =   4; // 点滅速度（フレームあたりのアルファ変化量）
+    constexpr int kGameStartTextBottomOffset  = 180; // 画面下端からのY座標オフセット
+
+    // ゾンビ配置
+    constexpr int   kZombieCount          =   30;    // 背景ゾンビの最大数
+    constexpr int   kZombieSpawnTimeout   = 2000;    // 配置試行のタイムアウト回数
+    constexpr float kZombieMinDistance    =   25.0f; // ゾンビ同士の最小距離
+    constexpr float kZombieSpawnXMin      = -280.0f; // 生成X範囲（最小）
+    constexpr float kZombieSpawnXMax      =  280.0f; // 生成X範囲（最大）
+    constexpr float kZombieSpawnZMin      =  200.0f; // 生成Z範囲（最小）
+    constexpr float kZombieSpawnZMax      =  450.0f; // 生成Z範囲（最大）
+    constexpr float kZombieAngleRange     =    0.2f; // Y軸回転のランダム範囲（π × ±range）
+    constexpr float kZombieSpeedMin       =    0.8f; // アニメーション再生速度の最小値
+    constexpr float kZombieSpeedMax       =    1.2f; // アニメーション再生速度の最大値
+    constexpr float kZombieAtkZThreshold  =  250.0f; // ATK_HEAD使用のZ座標閾値（これ以下のゾンビがフェンスを叩く）
+
+    // フェンス関連
+    constexpr float kFenceScale            =   0.3f; // フェンスモデルのスケール
+    constexpr float kFenceInterval         = 157.8f; // フェンスの配置間隔（スケール前）
+    constexpr float kFenceXOffset          = 995.6f; // フェンス先頭X位置（スケール前）
+    constexpr float kFenceZ                = 110.0f; // フェンスのZ座標
+    constexpr float kFenceHitPower         =   5.0f; // ヒット時のフェンス揺れ加算量
+    constexpr float kFenceMaxPower         =  18.0f; // フェンス揺れの最大パワー
+    constexpr float kFenceAdjacentPower    =   2.0f; // 隣接フェンスへの余波パワー
+    constexpr float kFenceAdjacentMaxPower =  10.0f; // 隣接フェンス揺れの最大パワー
+    constexpr float kFenceDamping          =   0.7f; // 揺れの減衰率（毎フレーム乗算）
+    constexpr float kFenceShakeThreshold   =   0.1f; // 揺れ計算を行う最小パワー閾値
+
+    // 看板（Armory Billboard）関連
+    constexpr float kHitTimingRatio       =  0.4f;  // ATK_HEADのヒットタイミング割合（総時間の何割か）
+    constexpr float kBillboardPowerScale  =  1.2f;  // 看板の揺れパワー倍率（中央フェンスに連動）
+    constexpr float kBillboardScale       =  0.7f;  // 看板モデルのスケール
+    constexpr float kBillboardPosY        = 80.0f;  // 看板のY座標
+    constexpr float kBillboardPosZ        = 90.0f;  // 看板のZ座標
+    constexpr float kBannerZOffset        =  2.0f;  // バナーの手前オフセット（Z方向）
+    constexpr float kBannerWidth          = 224.0f; // バナーの表示幅（3D空間単位）
+    constexpr float kBannerAspect         = 1080.0f / 1920.0f; // バナー画像のアスペクト比
+
+    // カメラ設定
+    constexpr float kCamPosY    =   120.0f; // カメラのY座標
+    constexpr float kCamPosZ    =   -80.0f; // カメラのZ座標
+    constexpr float kCamTargetY =    50.0f; // カメラターゲットのY座標
+    constexpr float kCamTargetZ =   100.0f; // カメラターゲットのZ座標
+    constexpr float kCamNear    =     5.0f; // カメラのニア距離
+    constexpr float kCamFar     = 15000.0f; // カメラのファー距離（スカイドーム対応）
+
+    // 床（RoadFloor）
+    constexpr float kFloorY        =  -40.0f;  // 床モデルのY座標
+    constexpr float kFloorTileSize = 2000.0f;  // 床タイルの一辺サイズ
+
+    // 背景建物の基準
+    constexpr float kBgBaseZ = 2000.0f; // 背景建物の基準Z座標
+
+    // ゾンビ環境ボイス
+    constexpr int kZombieVoiceTimerMin   =  60; // ボイス再生間隔の最小フレーム数（約1秒）
+    constexpr int kZombieVoiceTimerRange = 120; // ボイス再生間隔のランダム範囲（フレーム）
+    constexpr int kZombieVoiceIndexRange =   3; // ボイスインデックスのランダム範囲（1〜4）
 }
 
 SceneTitle::SceneTitle(bool isReturningFromOtherScene)
@@ -85,19 +141,15 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
         // ゾンビの初期配置を生成
         std::random_device rd;
         std::mt19937 gen(rd());
-        // 画面の端から端までゾンビが湧くように、見えている範囲に合わせて生成範囲を調整（-280.0f ? 280.0f）
-        std::uniform_real_distribution<float> distPosX(-280.0f, 280.0f); 
-        // ATK_HEADで前傾姿勢になった時にフェンスを貫通せず、かつ触れているように見える距離に微調整
-        std::uniform_real_distribution<float> distPosZ(200.0f, 450.0f);  // 手前を少しフェンス寄りに戻す
-        std::uniform_real_distribution<float> distAngleY(DX_PI_F * -0.2f, DX_PI_F * 0.2f); // 手前（カメラ側）を向く角度
-        std::uniform_real_distribution<float> distSpeed(0.8f, 1.2f); // 再生速度のばらつき
+        std::uniform_real_distribution<float> distPosX(kZombieSpawnXMin, kZombieSpawnXMax);
+        std::uniform_real_distribution<float> distPosZ(kZombieSpawnZMin, kZombieSpawnZMax);
+        std::uniform_real_distribution<float> distAngleY(DX_PI_F * -kZombieAngleRange, DX_PI_F * kZombieAngleRange);
+        std::uniform_real_distribution<float> distSpeed(kZombieSpeedMin, kZombieSpeedMax);
 
-        // ゾンビを数十体生成（密度を上げるため60体に増加）
         int i = 0;
         int timeoutCounter = 0;
-        constexpr float kMinDistance = 25.0f; // ゾンビ同士の最小距離を縮めて密集できるようにする
-        
-        while (i < 30 && timeoutCounter < 2000)
+
+        while (i < kZombieCount && timeoutCounter < kZombieSpawnTimeout)
         {
             timeoutCounter++;
             
@@ -107,7 +159,7 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
             bool isTooClose = false;
             for (const auto& zombie : m_zombies)
             {
-                if (VDot(VSub(potentialPos, zombie.pos), VSub(potentialPos, zombie.pos)) < kMinDistance * kMinDistance)
+                if (VDot(VSub(potentialPos, zombie.pos), VSub(potentialPos, zombie.pos)) < kZombieMinDistance * kZombieMinDistance)
                 {
                     isTooClose = true;
                     break;
@@ -123,9 +175,8 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
             data.pos = potentialPos;
             data.angleY = distAngleY(gen);
             
-            // 手前ギリギリのゾンビだけがフェンスを叩くように調整(250.0f以下)
-            // 奥の方にいるゾンビは待機（IDLE）にする
-            if (data.pos.z <= 250.0f && m_animIndexAtkHead != -1)
+            // 手前のゾンビはフェンスを叩き、奥のゾンビは待機する
+            if (data.pos.z <= kZombieAtkZThreshold && m_animIndexAtkHead != -1)
             {
                 // 近いゾンビはフェンスを叩く
                 data.animIndex = m_animIndexAtkHead;
@@ -153,10 +204,6 @@ SceneTitle::SceneTitle(bool isReturningFromOtherScene)
             i++;
         }
     }
-}
-
-SceneTitle::~SceneTitle()
-{
 }
 
 void SceneTitle::Init()
@@ -210,7 +257,7 @@ SceneBase* SceneTitle::Update()
             m_fadeAlpha = 0;
             // フェードアウトが完全に終了した状態＝3D背景のみを描画する状態
         }
-        return this; // フェードアウト中（完全に消え切るまで）はゾンビの更新や描画への移行を保留するなら return this; を付けるか、Alphaが0かチェックする。
+        return this;
     }
 
     // BGM再生
@@ -242,10 +289,6 @@ SceneBase* SceneTitle::Update()
     // ゾンビのアニメーション時間を進める (フェードイン完了後のみ)
     if (m_isFadeComplete)
     {
-        float scale = 0.3f;
-        float kFenceInterval = 157.8f;
-        float kXOffset = 995.6f * scale; // = 298.68f
-
         for (auto& zombie : m_zombies)
         {
             float oldAnimTime = zombie.animTime;
@@ -255,7 +298,7 @@ SceneBase* SceneTitle::Update()
             if (zombie.animIndex == m_animIndexAtkHead)
             {
                 // アニメーションの総再生時間の特定の割合を通過したかチェック
-                float hitTiming = zombie.totalAnimTime * 0.4f; 
+                float hitTiming = zombie.totalAnimTime * kHitTimingRatio;
                 
                 // 今回のフレームでヒットタイミングを跨いだか判定（ループ時のリセット前の純粋な加算値で比較）
                 if (oldAnimTime < hitTiming && newAnimTime >= hitTiming)
@@ -272,17 +315,19 @@ SceneBase* SceneTitle::Update()
                         int arrIdx = nearest_i + 1;
 
                         // 攻撃されたフェンスに強い揺れを加算
-                        m_fenceShakePower[arrIdx] += 5.0f;
-                        if (m_fenceShakePower[arrIdx] > 18.0f) m_fenceShakePower[arrIdx] = 18.0f;
-                        
+                        m_fenceShakePower[arrIdx] += kFenceHitPower;
+                        if (m_fenceShakePower[arrIdx] > kFenceMaxPower) m_fenceShakePower[arrIdx] = kFenceMaxPower;
+
                         // 隣接するフェンスに余波（少し弱い揺れ）を加算
-                        if (arrIdx - 1 >= 0) {
-                            m_fenceShakePower[arrIdx - 1] += 2.0f;
-                            if (m_fenceShakePower[arrIdx - 1] > 10.0f) m_fenceShakePower[arrIdx - 1] = 10.0f;
+                        if (arrIdx - 1 >= 0)
+                        {
+                            m_fenceShakePower[arrIdx - 1] += kFenceAdjacentPower;
+                            if (m_fenceShakePower[arrIdx - 1] > kFenceAdjacentMaxPower) m_fenceShakePower[arrIdx - 1] = kFenceAdjacentMaxPower;
                         }
-                        if (arrIdx + 1 <= 2) {
-                            m_fenceShakePower[arrIdx + 1] += 2.0f;
-                            if (m_fenceShakePower[arrIdx + 1] > 10.0f) m_fenceShakePower[arrIdx + 1] = 10.0f;
+                        if (arrIdx + 1 <= 2)
+                        {
+                            m_fenceShakePower[arrIdx + 1] += kFenceAdjacentPower;
+                            if (m_fenceShakePower[arrIdx + 1] > kFenceAdjacentMaxPower) m_fenceShakePower[arrIdx + 1] = kFenceAdjacentMaxPower;
                         }
                     }
                 }
@@ -301,9 +346,9 @@ SceneBase* SceneTitle::Update()
         // フェンスの揺れパワーの減衰 (3枚分)
         for (int i = 0; i < 3; ++i)
         {
-            if (m_fenceShakePower[i] > 0.1f)
+            if (m_fenceShakePower[i] > kFenceShakeThreshold)
             {
-                m_fenceShakePower[i] *= 0.7f;
+                m_fenceShakePower[i] *= kFenceDamping;
             }
             else
             {
@@ -312,15 +357,14 @@ SceneBase* SceneTitle::Update()
         }
 
         // 看板の揺れは、画面中央のフェンス（インデックス1）に連動させる
-        m_billboardShakePower = m_fenceShakePower[1] * 1.2f;
-        
+        m_billboardShakePower = m_fenceShakePower[1] * kBillboardPowerScale;
+
         // 看板の揺れ計算
-        if (m_billboardShakePower > 0.1f)
+        if (m_billboardShakePower > kFenceShakeThreshold)
         {
             // 規則的なサイン波ではなく、ランダム値を使って細かくガタガタ揺れるようにする
-            // フレームごとに+と-をランダムに振る
-            float randX = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 ? 1.0
-            float randY = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0 ? 1.0
+            float randX = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0〜1.0
+            float randY = (GetRand(100) / 100.0f) * 2.0f - 1.0f; // -1.0〜1.0
 
             m_billboardShakeOffsetX = randX * m_billboardShakePower;
             m_billboardShakeOffsetY = randY * m_billboardShakePower;
@@ -342,11 +386,9 @@ SceneBase* SceneTitle::Update()
         m_zombieVoiceTimer--;
         if (m_zombieVoiceTimer <= 0)
         {
-            int randomIndex = 1 + GetRand(3); // 1?4
+            int randomIndex = 1 + GetRand(kZombieVoiceIndexRange); // 1〜4
             SoundManager::GetInstance()->Play("EnemyNormal", "Voice" + std::to_string(randomIndex));
-            
-            // 次の再生までの時間をランダムに設定 (1秒?3秒)
-            m_zombieVoiceTimer = 60 + GetRand(120);
+            m_zombieVoiceTimer = kZombieVoiceTimerMin + GetRand(kZombieVoiceTimerRange);
         }
     }
 
@@ -379,11 +421,11 @@ void SceneTitle::Draw()
     // 3D背景 & 2Dテキストの描画 (フェードアウト完了後のみ)
     else // m_fadeAlpha == 0 の場合（フェードアウトが完全に終わった状態）
     {
-        // カメラの設定（少し見下ろす位置に修正）
-        VECTOR camPos = VGet(0.0f, 120.0f, -80.0f);
-        VECTOR camTarget = VGet(0.0f, 50.0f, 100.0f); // ゾンビの群れの中心やや上を向く
+        // カメラの設定
+        VECTOR camPos    = VGet(0.0f, kCamPosY,    kCamPosZ);
+        VECTOR camTarget = VGet(0.0f, kCamTargetY, kCamTargetZ);
         SetCameraPositionAndTarget_UpVecY(camPos, camTarget);
-        SetCameraNearFar(5.0f, 15000.0f); // スカイドームなどの遠景用
+        SetCameraNearFar(kCamNear, kCamFar);
 
         // Zバッファ設定などを有効化
         SetUseZBuffer3D(true);
@@ -412,16 +454,12 @@ void SceneTitle::Draw()
             MV1SetScale(m_floorModel, VGet(1.0f, 1.0f, 1.0f));
             MV1SetRotationXYZ(m_floorModel, VGet(0.0f, 0.0f, 0.0f));
             
-            // ゾンビが床に埋まらないようにするためのY座標オフセット
-            float floorY = -40.0f;
-            
-            // 幅2000、奥行2000の床を複数枚並べて広大な地面を作る
+            // 床を複数枚並べて広大な地面を作る
             for (int z = -1; z <= 3; ++z)
             {
                 for (int x = -2; x <= 2; ++x)
                 {
-                    // 中心を2000間隔に配置することでピッタリ敷き詰める
-                    MV1SetPosition(m_floorModel, VGet(x * 2000.0f, floorY, z * 2000.0f));
+                    MV1SetPosition(m_floorModel, VGet(x * kFloorTileSize, kFloorY, z * kFloorTileSize));
                     MV1DrawModel(m_floorModel);
                 }
             }
@@ -433,19 +471,11 @@ void SceneTitle::Draw()
         // フェンス描画
         if (m_fenceModel.IsValid())
         {
-            // 画像の頂点座標より、高さが約468ある巨大なモデルであるため
-            // ゾンビの高さ(約110)に合わせてスケールを0.3倍程度に縮小します。
-            float scale = 0.3f;
-            MV1SetScale(m_fenceModel, VGet(scale, scale, scale));
-
+            MV1SetScale(m_fenceModel, VGet(kFenceScale, kFenceScale, kFenceScale));
             // モデルの面がZ方向（奥）を向いているため、Y軸で90度回転してX方向（横幅）に沿わせます
-            MV1SetRotationXYZ(m_fenceModel, VGet(0.0f, 3.141592654f * 0.5f, 0.0f));
+            MV1SetRotationXYZ(m_fenceModel, VGet(0.0f, DX_PI_F * 0.5f, 0.0f));
 
-            float kFenceInterval = 157.8f;
-            float kXOffset = 995.6f * scale;
-
-            // 画面に映るフェンス3枚のみを描画して不要な負荷を削減（手前側 Z=110 に配置）
-            // -1 が左, 0 が中央, 1 が右
+            // 画面に映るフェンス3枚のみを描画（-1:左, 0:中央, 1:右）
             for (int i = -1; i <= 1; ++i)
             {
                 float offsetX = 0.0f;
@@ -455,7 +485,7 @@ void SceneTitle::Draw()
                 int arrIdx = i + 1;
                 float power = m_fenceShakePower[arrIdx];
 
-                if (power > 0.1f)
+                if (power > kFenceShakeThreshold)
                 {
                     float randX = (GetRand(100) / 100.0f) * 2.0f - 1.0f;
                     float randY = (GetRand(100) / 100.0f) * 2.0f - 1.0f;
@@ -463,7 +493,7 @@ void SceneTitle::Draw()
                     offsetY = randY * power;
                 }
 
-                MV1SetPosition(m_fenceModel, VGet(i * kFenceInterval + kXOffset + offsetX, offsetY, 110.0f));
+                MV1SetPosition(m_fenceModel, VGet(i * kFenceInterval + kFenceXOffset * kFenceScale + offsetX, offsetY, kFenceZ));
                 MV1DrawModel(m_fenceModel);
             }
         }
@@ -473,16 +503,12 @@ void SceneTitle::Draw()
         // Armory看板描画（フェンスの中央に張り付ける）
         if (m_armoryBillboardModel.IsValid())
         {
-            float billboardScale = 0.7f; // 0.5fから約1.4倍に拡大
-            MV1SetScale(m_armoryBillboardModel, VGet(billboardScale, billboardScale, billboardScale));
+            MV1SetScale(m_armoryBillboardModel, VGet(kBillboardScale, kBillboardScale, kBillboardScale));
+            // 正面をカメラ側（-Z方向）に向けるためY軸で-90度回転
+            MV1SetRotationXYZ(m_armoryBillboardModel, VGet(0.0f, -DX_PI_F * 0.5f, 0.0f));
 
-            // Unity画像(Xが正面、Zが横幅)に基づき、正面をカメラ側(-Z方向)に向けるためY軸で90度回転させる
-            // ユーザーの要望により、さらに180度回転させて裏側を向ける（90度 + 180度 = 270度 = -90度）
-            MV1SetRotationXYZ(m_armoryBillboardModel, VGet(0.0f, -3.14159f * 0.5f, 0.0f));
-
-            // 中央のフェンス(X=0付近)の高さ80くらい、少しだけ手前(Z=90.0)に配置
-            // 揺れ演出のオフセット（XとY）を加算する
-            VECTOR billboardPos = VGet(m_billboardShakeOffsetX, 80.0f + m_billboardShakeOffsetY, 90.0f);
+            // 中央フェンス付近に配置し、揺れオフセットを加算する
+            VECTOR billboardPos = VGet(m_billboardShakeOffsetX, kBillboardPosY + m_billboardShakeOffsetY, kBillboardPosZ);
             MV1SetPosition(m_armoryBillboardModel, billboardPos);
             MV1DrawModel(m_armoryBillboardModel);
 
@@ -490,12 +516,11 @@ void SceneTitle::Draw()
             if (m_banner.IsValid())
             {
                 // Zバッファを有効にしたまま、3D空間内に2D画像（ビルボード）として描画
-                // 看板より少し手前に配置（Z=88.0fなど）
-                VECTOR bannerPos = VGet(billboardPos.x, billboardPos.y, billboardPos.z - 2.0f);
-                
-                // TitleBannerは1920x1080 (16:9)。元の幅160.0fから、看板の拡大に合わせて224.0f程度に拡大します。
-                float bannerWidth = 224.0f;
-                float bannerHeight = bannerWidth * (1080.0f / 1920.0f); 
+                // 看板より少し手前に配置
+                VECTOR bannerPos = VGet(billboardPos.x, billboardPos.y, billboardPos.z - kBannerZOffset);
+
+                float bannerWidth  = kBannerWidth;
+                float bannerHeight = kBannerWidth * kBannerAspect;
 
                 // カメラ固定を前提とし、看板の表面に平行な板ポリゴン（XY平面に平行）として画像を描画する
                 VERTEX3D vertex[6];
@@ -582,8 +607,8 @@ void SceneTitle::Draw()
         SetUseLighting(false);
 
         float bgScale = 1.0f;
-        float baseZ = 2000.0f; // 奥に配置する基準Z座標
-        float baseY = -40.0f;  // 床モデルと同じ高さに合わせるためのYオフセット
+        float baseZ   = kBgBaseZ;
+        float baseY   = kFloorY;
 
         // 画像内の中央に並ぶ2つの白い建物（HangarV3）
         // HangarV3.mv1 (幅1350, 高さ936 -> Yオフセット468)
@@ -649,7 +674,7 @@ void SceneTitle::Draw()
         int textWidth = GetDrawStringWidthToHandle(gameStartText, -1, m_font);
 
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_gameStartTextAlpha);
-        DrawFormatStringToHandle(static_cast<int>((Game::GetScreenWidth() - textWidth) * 0.5f), Game::GetScreenHeight() - 180, 0xffffff, m_font, gameStartText);
+        DrawFormatStringToHandle(static_cast<int>((Game::GetScreenWidth() - textWidth) * 0.5f), Game::GetScreenHeight() - kGameStartTextBottomOffset, 0xffffff, m_font, gameStartText);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }
