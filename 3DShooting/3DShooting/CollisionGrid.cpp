@@ -9,16 +9,41 @@
 
 namespace
 {
+    // グリッド構造
     constexpr int   kGridBorderMargin          = 2;        // グリッド境界の余白セル数
     constexpr float kRaycastStartY             = 10000.0f; // 高さ計算用レイキャストの開始 Y 座標
     constexpr float kCachedHeightBaseOffset    = 1.0f;     // レイが当たらなかった場合の高さオフセット
     constexpr float kCachedHeightHitOffset     = 1.5f;     // レイヒット時の高さオフセット
     constexpr int   kAccessFlagPersistDuration = 30;       // persist モードのアクセスフラグ維持フレーム数
     constexpr int   kDisplayTimerInterval      = 30;       // パフォーマンス表示の更新間隔（フレーム）
+
+    // グリッドデバッグ描画（3D）
     constexpr float kDrawRange                 = 2500.0f;  // グリッドデバッグ描画の最大半径
+    constexpr float kEnemyCountTextOffset      = 5.0f;     // 敵数テキストのセル平均高さからのオフセット
+
+    // デバッグ UI 共通
     constexpr int   kDefaultScreenWidth        = 1280;     // デフォルト画面幅
     constexpr int   kDefaultScreenHeight       = 720;      // デフォルト画面高さ
     constexpr int   kUIAlpha                   = 180;      // デバッグ UI 背景の不透明度
+    constexpr int   kUIPanelMargin             = 20;       // パネル外側マージン
+    constexpr int   kUIBottomOffset            = 100;      // 下部ゲーム HUD 分の追加マージン
+
+    // 凡例パネル
+    constexpr int   kLegendPanelWidth          = 240;      // 凡例パネルの幅
+    constexpr int   kLegendPanelHeight         = 90;       // 凡例パネルの高さ
+
+    // 統計パネル
+    constexpr int   kStatPanelWidth            = 320;      // 統計パネルの幅
+    constexpr int   kStatPanelHeight           = 150;      // 統計パネルの高さ
+
+    // テキスト・アイコンレイアウト
+    constexpr int   kUITextPaddingX            = 10;       // パネル内テキストの X パディング
+    constexpr int   kUITextPaddingY            = 10;       // パネル内テキストの Y パディング
+    constexpr int   kUIIconSize                = 12;       // 凡例アイコンの一辺サイズ（px）
+    constexpr int   kUIIconOffsetY             = 2;        // 凡例アイコンの Y オフセット
+    constexpr int   kUIIconLabelGap            = 20;       // アイコンとラベルの水平間隔
+    constexpr int   kUILineSpacingLarge        = 25;       // 大きい行間隔（px）
+    constexpr int   kUILineSpacingSmall        = 20;       // 小さい行間隔（px）
 }
 
 bool CollisionGrid::s_drawGrid = false;
@@ -367,7 +392,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
             if (hasEnemies)
             {
                 float  avgH    = (h00 + h10 + h11 + h01) * 0.25f;
-                VECTOR center  = VGet((minX + maxX) * 0.5f, avgH + 5.0f, (minZ + maxZ) * 0.5f);
+                VECTOR center  = VGet((minX + maxX) * 0.5f, avgH + kEnemyCountTextOffset, (minZ + maxZ) * 0.5f);
                 char   buf[32];
                 snprintf(buf, sizeof(buf), "%d", static_cast<int>(m_cells[index].size()));
 
@@ -399,51 +424,46 @@ void CollisionGrid::DrawUI() const
     GetWindowSize(&screenW, &screenH);
 
     // 凡例パネル
-    const int margin = 20;
-    const int rectW  = 240;
-    const int rectH  = 90;
-    const int x      = screenW - rectW - margin;
-    const int y      = screenH - rectH - margin - 100;
+    const int x = screenW - kLegendPanelWidth - kUIPanelMargin;
+    const int y = screenH - kLegendPanelHeight - kUIPanelMargin - kUIBottomOffset;
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kUIAlpha);
-    DrawBox(x, y, x + rectW, y + rectH, 0x000000, true);
+    DrawBox(x, y, x + kLegendPanelWidth, y + kLegendPanelHeight, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    DrawBox(x, y, x + rectW, y + rectH, 0xffffff, false);
+    DrawBox(x, y, x + kLegendPanelWidth, y + kLegendPanelHeight, 0xffffff, false);
 
-    int textX = x + 10;
-    int textY = y + 10;
-    DrawBox(textX, textY + 2, textX + 12, textY + 14, 0x00FF00, true);
-    DrawString(textX + 20, textY, "：敵が存在するセル", 0xffffff);
+    int textX = x + kUITextPaddingX;
+    int textY = y + kUITextPaddingY;
+    DrawBox(textX, textY + kUIIconOffsetY, textX + kUIIconSize, textY + kUIIconOffsetY + kUIIconSize, 0x00FF00, true);
+    DrawString(textX + kUIIconLabelGap, textY, "：敵が存在するセル", 0xffffff);
 
-    textY += 25;
-    DrawBox(textX, textY + 2, textX + 12, textY + 14, 0xFFFF00, true);
-    DrawString(textX + 20, textY, "：検索・アクセス範囲", 0xffffff);
+    textY += kUILineSpacingLarge;
+    DrawBox(textX, textY + kUIIconOffsetY, textX + kUIIconSize, textY + kUIIconOffsetY + kUIIconSize, 0xFFFF00, true);
+    DrawString(textX + kUIIconLabelGap, textY, "：検索・アクセス範囲", 0xffffff);
 
-    textY += 25;
+    textY += kUILineSpacingLarge;
     DrawString(textX, textY, "数字：セル内の敵の数", 0xffffff);
 
     // パフォーマンス統計パネル
-    const int statW = 320;
-    const int statH = 150;
-    const int sx    = margin;
-    const int sy    = screenH - statH - margin - 100;
+    const int sx = kUIPanelMargin;
+    const int sy = screenH - kStatPanelHeight - kUIPanelMargin - kUIBottomOffset;
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kUIAlpha);
-    DrawBox(sx, sy, sx + statW, sy + statH, 0x000000, true);
+    DrawBox(sx, sy, sx + kStatPanelWidth, sy + kStatPanelHeight, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    DrawBox(sx, sy, sx + statW, sy + statH, 0xffffff, false);
+    DrawBox(sx, sy, sx + kStatPanelWidth, sy + kStatPanelHeight, 0xffffff, false);
 
-    int sTextX = sx + 10;
-    int sTextY = sy + 10;
+    int sTextX = sx + kUITextPaddingX;
+    int sTextY = sy + kUITextPaddingY;
     DrawString(sTextX, sTextY, "【空間分割パフォーマンス評価】", 0x00ffff);
 
-    sTextY += 25;
+    sTextY += kUILineSpacingLarge;
     DrawFormatString(sTextX, sTextY, 0xffffff, "現在のモード: %s", s_useSpatialPartitioning ? "空間分割 (ON)" : "総当たり (OFF)");
 
-    sTextY += 20;
+    sTextY += kUILineSpacingSmall;
     DrawFormatString(sTextX, sTextY, 0xffffff, "総敵数: %d / クエリ数: %d", m_totalEnemies, m_totalQueries);
 
-    sTextY += 20;
+    sTextY += kUILineSpacingSmall;
     int   fullScanChecks = m_totalEnemies * m_totalQueries;
     float reduction      = 0.0f;
     if (fullScanChecks > 0)
@@ -454,10 +474,10 @@ void CollisionGrid::DrawUI() const
     unsigned int statColor = s_useSpatialPartitioning ? 0x00ff00 : 0xffaa00;
     DrawFormatString(sTextX, sTextY, statColor, "判定対象削減率: %.1f%%", s_useSpatialPartitioning ? reduction : 0.0f);
 
-    sTextY += 20;
+    sTextY += kUILineSpacingSmall;
     DrawFormatString(sTextX, sTextY, 0xffffff, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
 
-    sTextY += 25;
+    sTextY += kUILineSpacingLarge;
 
     // 表示更新頻度を落とす
     m_displayTimer--;
