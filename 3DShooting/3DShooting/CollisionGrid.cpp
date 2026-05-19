@@ -7,6 +7,20 @@
 #include <string>
 #include <algorithm>
 
+namespace
+{
+    constexpr int   kGridBorderMargin          = 2;        // グリッド境界の余白セル数
+    constexpr float kRaycastStartY             = 10000.0f; // 高さ計算用レイキャストの開始 Y 座標
+    constexpr float kCachedHeightBaseOffset    = 1.0f;     // レイが当たらなかった場合の高さオフセット
+    constexpr float kCachedHeightHitOffset     = 1.5f;     // レイヒット時の高さオフセット
+    constexpr int   kAccessFlagPersistDuration = 30;       // persist モードのアクセスフラグ維持フレーム数
+    constexpr int   kDisplayTimerInterval      = 30;       // パフォーマンス表示の更新間隔（フレーム）
+    constexpr float kDrawRange                 = 2500.0f;  // グリッドデバッグ描画の最大半径
+    constexpr int   kDefaultScreenWidth        = 1280;     // デフォルト画面幅
+    constexpr int   kDefaultScreenHeight       = 720;      // デフォルト画面高さ
+    constexpr int   kUIAlpha                   = 180;      // デバッグ UI 背景の不透明度
+}
+
 bool CollisionGrid::s_drawGrid = false;
 bool CollisionGrid::s_useSpatialPartitioning = true;
 
@@ -25,47 +39,34 @@ CollisionGrid::CollisionGrid()
 {
 }
 
-CollisionGrid::~CollisionGrid()
-{
-}
-
 void CollisionGrid::Init(const VECTOR& minArea, const VECTOR& maxArea, float cellSize)
 {
-    m_minArea = minArea;
-    m_maxArea = maxArea;
+    m_minArea  = minArea;
+    m_maxArea  = maxArea;
     m_cellSize = cellSize;
 
-    m_width = static_cast<int>(ceilf((maxArea.x - minArea.x) / cellSize));
+    m_width  = static_cast<int>(ceilf((maxArea.x - minArea.x) / cellSize));
     m_height = static_cast<int>(ceilf((maxArea.z - minArea.z) / cellSize));
 
     // 境界チェックに余裕を持たせる
-    m_width += 2;
-    m_height += 2;
+    m_width  += kGridBorderMargin;
+    m_height += kGridBorderMargin;
 
     m_cells.assign(m_width * m_height, std::vector<EnemyBase*>());
     m_stageCells.assign(m_width * m_height, std::vector<const Stage::StageCollisionData*>());
     m_accessedCells.assign(m_width * m_height, 0);
-    m_cachedHeights.assign((m_width + 1) * (m_height + 1), minArea.y + 1.0f);
+    m_cachedHeights.assign((m_width + 1) * (m_height + 1), minArea.y + kCachedHeightBaseOffset);
 }
 
 void CollisionGrid::Clear()
 {
-    for (auto& cell : m_cells)
-    {
-        cell.clear();
-    }
-    for (auto& cell : m_stageCells)
-    {
-        cell.clear();
-    }
+    for (auto& cell : m_cells)      cell.clear();
+    for (auto& cell : m_stageCells) cell.clear();
 }
 
 void CollisionGrid::ClearEnemies()
 {
-    for (auto& cell : m_cells)
-    {
-        cell.clear();
-    }
+    for (auto& cell : m_cells) cell.clear();
 }
 
 void CollisionGrid::ResetAccessFlags()
@@ -78,9 +79,9 @@ void CollisionGrid::ResetAccessFlags()
 
 void CollisionGrid::ResetStats()
 {
-    m_totalQueries = 0;
+    m_totalQueries         = 0;
     m_totalEntitiesChecked = 0;
-    m_totalSearchTime = 0;
+    m_totalSearchTime      = 0;
 }
 
 void CollisionGrid::CalculateHeights(const std::vector<Stage::StageCollisionData>& collisionData)
@@ -94,10 +95,10 @@ void CollisionGrid::CalculateHeights(const std::vector<Stage::StageCollisionData
             float posX = m_minArea.x + x * m_cellSize;
             float posZ = m_minArea.z + z * m_cellSize;
 
-            VECTOR start = VGet(posX, 10000.0f, posZ);
-            VECTOR dir = VGet(0, -1.0f, 0);
-            float minDist = FLT_MAX;
-            bool hit = false;
+            VECTOR start   = VGet(posX, kRaycastStartY, posZ);
+            VECTOR dir     = VGet(0.0f, -1.0f, 0.0f);
+            float  minDist = FLT_MAX;
+            bool   hit     = false;
 
             for (const auto& col : collisionData)
             {
@@ -107,11 +108,12 @@ void CollisionGrid::CalculateHeights(const std::vector<Stage::StageCollisionData
                     if (t < minDist)
                     {
                         minDist = t;
-                        hit = true;
+                        hit     = true;
                     }
                 }
             }
-            m_cachedHeights[z * (m_width + 1) + x] = hit ? (start.y - minDist + 1.5f) : (m_minArea.y + 1.0f);
+            m_cachedHeights[z * (m_width + 1) + x] =
+                hit ? (start.y - minDist + kCachedHeightHitOffset) : (m_minArea.y + kCachedHeightBaseOffset);
         }
     }
 }
@@ -132,8 +134,8 @@ void CollisionGrid::RegisterStageTriangle(const Stage::StageCollisionData& trian
     // 範囲をグリッド内に収める
     startX = (std::max)(0, startX);
     startZ = (std::max)(0, startZ);
-    endX = (std::min)(m_width - 1, endX);
-    endZ = (std::min)(m_height - 1, endZ);
+    endX   = (std::min)(m_width  - 1, endX);
+    endZ   = (std::min)(m_height - 1, endZ);
 
     for (int z = startZ; z <= endZ; ++z)
     {
@@ -146,8 +148,7 @@ void CollisionGrid::RegisterStageTriangle(const Stage::StageCollisionData& trian
 
 void CollisionGrid::RegisterEnemy(EnemyBase* enemy)
 {
-    if (!enemy)
-        return;
+    if (!enemy) return;
 
     int cellIndex = GetCellIndex(enemy->GetPos());
     if (cellIndex != -1)
@@ -162,7 +163,7 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
     LONGLONG startTime = GetNowHiPerformanceCount();
     m_totalQueries++;
 
-    // 空間分割を使用しない場合（総当たりモード）
+    // 空間分割を使用しない場合は総当たり
     if (!s_useSpatialPartitioning)
     {
         for (int z = 0; z < m_height; ++z)
@@ -180,23 +181,21 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
 
     int cx, cz;
     GetCellIndices(pos, cx, cz);
-    
-    // 指定位置の周囲9マスをチェック
+
+    // 指定位置の周囲 3×3 セルをチェック
     for (int z = cz - 1; z <= cz + 1; ++z)
     {
         for (int x = cx - 1; x <= cx + 1; ++x)
         {
-            if (x >= 0 && x < m_width && z >= 0 && z < m_height)
-            {
-                int index = z * m_width + x;
-                // デバッグ用アクセスフラグ。persist=trueなら維持時間を設定、falseなら即時クリア対象
-                const_cast<CollisionGrid*>(this)->m_accessedCells[index] = persist ? 30 : 1;
-                
-                const auto& targetCell = m_cells[index];
-            
-                m_totalEntitiesChecked += static_cast<int>(targetCell.size());
-                outNeighbors.insert(outNeighbors.end(), targetCell.begin(), targetCell.end());
-            }
+            if (x < 0 || x >= m_width || z < 0 || z >= m_height) continue;
+
+            int index = z * m_width + x;
+            // persist=true なら複数フレーム維持、false なら即時クリア対象（デバッグ用）
+            const_cast<CollisionGrid*>(this)->m_accessedCells[index] = persist ? kAccessFlagPersistDuration : 1;
+
+            const auto& targetCell = m_cells[index];
+            m_totalEntitiesChecked += static_cast<int>(targetCell.size());
+            outNeighbors.insert(outNeighbors.end(), targetCell.begin(), targetCell.end());
         }
     }
     m_totalSearchTime += GetNowHiPerformanceCount() - startTime;
@@ -208,12 +207,7 @@ void CollisionGrid::GetNearbyTriangles(const VECTOR& pos, std::vector<const Stag
     {
         for (const auto& cell : m_stageCells)
         {
-            for (const auto* tri : cell)
-            {
-                // 重複を避けるために必要だが、ここでは単純化のため全て追加し、
-                // 呼び出し側で対処するか、あるいは重複を許容する（判定回数は増えるが全件よりはマシ）
-                outTriangles.push_back(tri);
-            }
+            outTriangles.insert(outTriangles.end(), cell.begin(), cell.end());
         }
         return;
     }
@@ -225,12 +219,10 @@ void CollisionGrid::GetNearbyTriangles(const VECTOR& pos, std::vector<const Stag
     {
         for (int x = cx - 1; x <= cx + 1; ++x)
         {
-            if (x >= 0 && x < m_width && z >= 0 && z < m_height)
-            {
-                int index = z * m_width + x;
-                const auto& targetCell = m_stageCells[index];
-                outTriangles.insert(outTriangles.end(), targetCell.begin(), targetCell.end());
-            }
+            if (x < 0 || x >= m_width || z < 0 || z >= m_height) continue;
+
+            const auto& targetCell = m_stageCells[z * m_width + x];
+            outTriangles.insert(outTriangles.end(), targetCell.begin(), targetCell.end());
         }
     }
 
@@ -243,10 +235,7 @@ int CollisionGrid::GetCellIndex(const VECTOR& pos) const
 {
     int x, z;
     GetCellIndices(pos, x, z);
-    if (x < 0 || x >= m_width || z < 0 || z >= m_height)
-    {
-        return -1;
-    }
+    if (x < 0 || x >= m_width || z < 0 || z >= m_height) return -1;
     return z * m_width + x;
 }
 
@@ -264,27 +253,25 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
     if (!s_drawGrid) return;
 
     // プレイヤーの周囲のみ描画して負荷を抑える
-    VECTOR playerPos = VGet(0, 0, 0);
-    if (Game::m_pPlayer) playerPos = Game::m_pPlayer->GetPos();
-    const float drawRange = 2500.0f; 
-    const float drawRangeSq = drawRange * drawRange;
+    VECTOR     playerPos   = Game::m_pPlayer ? Game::m_pPlayer->GetPos() : VGet(0, 0, 0);
+    const float drawRangeSq = kDrawRange * kDrawRange;
 
     // 深度テストを有効にし、モデルに隠れるようにする
     SetUseZBuffer3D(true);
     SetWriteZBuffer3D(false);
 
-    unsigned int lineColor = 0x646464;
-    unsigned int activeCellColor = 0x00FF00;
-    unsigned int searchedCellColor = 0xFFFF00;
-    unsigned int textColor = 0xFFFFFF;
+    const unsigned int lineColor        = 0x646464;
+    const unsigned int activeCellColor  = 0x00FF00;
+    const unsigned int searchedCellColor = 0xFFFF00;
+    const unsigned int textColor        = 0xFFFFFF;
 
-    auto GetCachedHeight = [&](int x, int z) {
-        if (x < 0 || x > m_width || z < 0 || z > m_height) return m_minArea.y + 1.0f;
+    auto GetCachedHeight = [&](int x, int z) -> float
+    {
+        if (x < 0 || x > m_width || z < 0 || z > m_height) return m_minArea.y + kCachedHeightBaseOffset;
         return m_cachedHeights[z * (m_width + 1) + x];
     };
 
-    // グリッド線の描画
-    // 縦線
+    // 縦のグリッド線
     for (int x = 0; x <= m_width; ++x)
     {
         float posX = m_minArea.x + x * m_cellSize;
@@ -292,8 +279,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
         {
             float posZ1 = m_minArea.z + z * m_cellSize;
             float posZ2 = m_minArea.z + (z + 1) * m_cellSize;
-            
-            // プレイヤーからの距離チェック
+
             float dx = posX - playerPos.x;
             float dz = ((posZ1 + posZ2) * 0.5f) - playerPos.z;
             if (dx * dx + dz * dz > drawRangeSq) continue;
@@ -302,7 +288,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
         }
     }
 
-    // 横線
+    // 横のグリッド線
     for (int z = 0; z <= m_height; ++z)
     {
         float posZ = m_minArea.z + z * m_cellSize;
@@ -311,7 +297,6 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
             float posX1 = m_minArea.x + x * m_cellSize;
             float posX2 = m_minArea.x + (x + 1) * m_cellSize;
 
-            // プレイヤーからの距離チェック
             float dx = ((posX1 + posX2) * 0.5f) - playerPos.x;
             float dz = posZ - playerPos.z;
             if (dx * dx + dz * dz > drawRangeSq) continue;
@@ -320,86 +305,81 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
         }
     }
 
-    // 敵がいるセルをハイライト
+    // 敵が存在するセル・アクセスされたセルをハイライト
     for (int z = 0; z < m_height; ++z)
     {
         for (int x = 0; x < m_width; ++x)
         {
             float minX = m_minArea.x + x * m_cellSize;
             float minZ = m_minArea.z + z * m_cellSize;
-            
-            // プレイヤーからの距離チェック
+
             float dx = (minX + m_cellSize * 0.5f) - playerPos.x;
             float dz = (minZ + m_cellSize * 0.5f) - playerPos.z;
             if (dx * dx + dz * dz > drawRangeSq) continue;
 
-            int index = z * m_width + x;
+            int  index      = z * m_width + x;
             bool hasEnemies = !m_cells[index].empty();
             bool isAccessed = m_accessedCells[index] > 0;
 
-            if (hasEnemies || isAccessed)
+            if (!hasEnemies && !isAccessed) continue;
+
+            float maxX = minX + m_cellSize;
+            float maxZ = minZ + m_cellSize;
+            float h00  = GetCachedHeight(x,     z);
+            float h10  = GetCachedHeight(x + 1, z);
+            float h11  = GetCachedHeight(x + 1, z + 1);
+            float h01  = GetCachedHeight(x,     z + 1);
+
+            // 敵が存在するセルは明るい緑の二重枠で表示
+            if (hasEnemies)
             {
-                float maxX = minX + m_cellSize;
-                float maxZ = minZ + m_cellSize;
+                const unsigned int brightGreen = 0x00FF00;
+                const float offset = 1.0f;
+                const float inner  = 0.5f;
+                DrawLine3D(VGet(minX, h00 + offset, minZ), VGet(maxX, h10 + offset, minZ), brightGreen);
+                DrawLine3D(VGet(maxX, h10 + offset, minZ), VGet(maxX, h11 + offset, maxZ), brightGreen);
+                DrawLine3D(VGet(maxX, h11 + offset, maxZ), VGet(minX, h01 + offset, maxZ), brightGreen);
+                DrawLine3D(VGet(minX, h01 + offset, maxZ), VGet(minX, h00 + offset, minZ), brightGreen);
 
-                float h00 = GetCachedHeight(x, z);
-                float h10 = GetCachedHeight(x + 1, z);
-                float h11 = GetCachedHeight(x + 1, z + 1);
-                float h01 = GetCachedHeight(x, z + 1);
+                DrawLine3D(VGet(minX + inner, h00 + offset, minZ + inner), VGet(maxX - inner, h10 + offset, minZ + inner), brightGreen);
+                DrawLine3D(VGet(maxX - inner, h10 + offset, minZ + inner), VGet(maxX - inner, h11 + offset, maxZ - inner), brightGreen);
+                DrawLine3D(VGet(maxX - inner, h11 + offset, maxZ - inner), VGet(minX + inner, h01 + offset, maxZ - inner), brightGreen);
+                DrawLine3D(VGet(minX + inner, h01 + offset, maxZ - inner), VGet(minX + inner, h00 + offset, minZ + inner), brightGreen);
+            }
 
-                // 敵が存在するセルは常に明るい緑の枠を表示
-                if (hasEnemies)
+            // アクセスされたセルは黄色の二重枠で表示
+            if (isAccessed)
+            {
+                const float offset = 10.0f;
+                const float shift  = 1.0f;
+                DrawLine3D(VGet(minX,        h00 + offset, minZ),        VGet(maxX,        h10 + offset, minZ),        searchedCellColor);
+                DrawLine3D(VGet(maxX,        h10 + offset, minZ),        VGet(maxX,        h11 + offset, maxZ),        searchedCellColor);
+                DrawLine3D(VGet(maxX,        h11 + offset, maxZ),        VGet(minX,        h01 + offset, maxZ),        searchedCellColor);
+                DrawLine3D(VGet(minX,        h01 + offset, maxZ),        VGet(minX,        h00 + offset, minZ),        searchedCellColor);
+
+                DrawLine3D(VGet(minX + shift, h00 + offset, minZ + shift), VGet(maxX - shift, h10 + offset, minZ + shift), searchedCellColor);
+                DrawLine3D(VGet(maxX - shift, h10 + offset, minZ + shift), VGet(maxX - shift, h11 + offset, maxZ - shift), searchedCellColor);
+                DrawLine3D(VGet(maxX - shift, h11 + offset, maxZ - shift), VGet(minX + shift, h01 + offset, maxZ - shift), searchedCellColor);
+                DrawLine3D(VGet(minX + shift, h01 + offset, maxZ - shift), VGet(minX + shift, h00 + offset, minZ + shift), searchedCellColor);
+            }
+
+            // 敵数をセル中央に表示（カメラ前方のみ）
+            if (hasEnemies)
+            {
+                float  avgH    = (h00 + h10 + h11 + h01) * 0.25f;
+                VECTOR center  = VGet((minX + maxX) * 0.5f, avgH + 5.0f, (minZ + maxZ) * 0.5f);
+                char   buf[32];
+                snprintf(buf, sizeof(buf), "%d", static_cast<int>(m_cells[index].size()));
+
+                VECTOR camPos    = GetCameraPosition();
+                VECTOR camTarget = GetCameraTarget();
+                VECTOR camDir    = VSub(camTarget, camPos);
+                VECTOR toCenter  = VSub(center, camPos);
+
+                if (VDot(camDir, toCenter) > 0.0f)
                 {
-                    unsigned int brightGreen = 0x00FF00;
-                    float offset = 1.0f; // 地面から少し離す
-                    DrawLine3D(VGet(minX, h00 + offset, minZ), VGet(maxX, h10 + offset, minZ), brightGreen);
-                    DrawLine3D(VGet(maxX, h10 + offset, minZ), VGet(maxX, h11 + offset, maxZ), brightGreen);
-                    DrawLine3D(VGet(maxX, h11 + offset, maxZ), VGet(minX, h01 + offset, maxZ), brightGreen);
-                    DrawLine3D(VGet(minX, h01 + offset, maxZ), VGet(minX, h00 + offset, minZ), brightGreen);
-
-                    // 太く見せるために少し内側にも描画
-                    float inner = 0.5f;
-                    DrawLine3D(VGet(minX + inner, h00 + offset, minZ + inner), VGet(maxX - inner, h10 + offset, minZ + inner), brightGreen);
-                    DrawLine3D(VGet(maxX - inner, h10 + offset, minZ + inner), VGet(maxX - inner, h11 + offset, maxZ - inner), brightGreen);
-                    DrawLine3D(VGet(maxX - inner, h11 + offset, maxZ - inner), VGet(minX + inner, h01 + offset, maxZ - inner), brightGreen);
-                    DrawLine3D(VGet(minX + inner, h01 + offset, maxZ - inner), VGet(minX + inner, h00 + offset, minZ + inner), brightGreen);
-                }
-
-                // 検索（アクセス）されたセルは黄色い太枠（さらに上の高さ）で表示
-                if (isAccessed)
-                {
-                    float offset = 10.0f; // 緑より高くする
-                    DrawLine3D(VGet(minX, h00 + offset, minZ), VGet(maxX, h10 + offset, minZ), searchedCellColor);
-                    DrawLine3D(VGet(maxX, h10 + offset, minZ), VGet(maxX, h11 + offset, maxZ), searchedCellColor);
-                    DrawLine3D(VGet(maxX, h11 + offset, maxZ), VGet(minX, h01 + offset, maxZ), searchedCellColor);
-                    DrawLine3D(VGet(minX, h01 + offset, maxZ), VGet(minX, h00 + offset, minZ), searchedCellColor);
-                    
-                    // 少しずらして描画して太線に見せる
-                    float shift = 1.0f;
-                    DrawLine3D(VGet(minX+shift, h00 + offset, minZ+shift), VGet(maxX-shift, h10 + offset, minZ+shift), searchedCellColor);
-                    DrawLine3D(VGet(maxX-shift, h10 + offset, minZ+shift), VGet(maxX-shift, h11 + offset, maxZ-shift), searchedCellColor);
-                    DrawLine3D(VGet(maxX-shift, h11 + offset, maxZ-shift), VGet(minX+shift, h01 + offset, maxZ-shift), searchedCellColor);
-                    DrawLine3D(VGet(minX+shift, h01 + offset, maxZ-shift), VGet(minX+shift, h00 + offset, minZ+shift), searchedCellColor);
-                }
-
-                if (hasEnemies)
-                {
-                    float avgH = (h00 + h10 + h11 + h01) * 0.25f;
-                    VECTOR center = VGet((minX + maxX) * 0.5f, avgH + 5.0f, (minZ + maxZ) * 0.5f);
-                    char buf[32];
-                    snprintf(buf, sizeof(buf), "%d", static_cast<int>(m_cells[index].size()));
-
-                    // カメラの前方にある場合のみ描画
-                    VECTOR camPos = GetCameraPosition();
-                    VECTOR camTarget = GetCameraTarget();
-                    VECTOR camDir = VSub(camTarget, camPos);
-                    VECTOR toCenter = VSub(center, camPos);
-                    
-                    if (VDot(camDir, toCenter) > 0.0f)
-                    {
-                        VECTOR screenPos = ConvWorldPosToScreenPos(center);
-                        DrawString(static_cast<int>(screenPos.x), static_cast<int>(screenPos.y), buf, textColor);
-                    }
+                    VECTOR screenPos = ConvWorldPosToScreenPos(center);
+                    DrawString(static_cast<int>(screenPos.x), static_cast<int>(screenPos.y), buf, textColor);
                 }
             }
         }
@@ -410,28 +390,26 @@ void CollisionGrid::DrawUI() const
 {
     if (!s_drawGrid) return;
 
-    // 2DUI描画の際は深度テストを無効化
+    // 2D UI 描画時は深度テストを無効化
     SetUseZBuffer3D(false);
     SetWriteZBuffer3D(false);
 
-    // デバッグ用の凡例（説明）を描画
-    int screenW = 1280;
-    int screenH = 720;
+    int screenW = kDefaultScreenWidth;
+    int screenH = kDefaultScreenHeight;
     GetWindowSize(&screenW, &screenH);
 
-    int margin = 20;
-    int rectW = 240;
-    int rectH = 90; 
-    int x = screenW - rectW - margin;
-    int y = screenH - rectH - margin - 100;
+    // 凡例パネル
+    const int margin = 20;
+    const int rectW  = 240;
+    const int rectH  = 90;
+    const int x      = screenW - rectW - margin;
+    const int y      = screenH - rectH - margin - 100;
 
-    // 半透明の背景
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kUIAlpha);
     DrawBox(x, y, x + rectW, y + rectH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     DrawBox(x, y, x + rectW, y + rectH, 0xffffff, false);
 
-    // 凡例テキスト
     int textX = x + 10;
     int textY = y + 10;
     DrawBox(textX, textY + 2, textX + 12, textY + 14, 0x00FF00, true);
@@ -444,13 +422,13 @@ void CollisionGrid::DrawUI() const
     textY += 25;
     DrawString(textX, textY, "数字：セル内の敵の数", 0xffffff);
 
-    // パフォーマンス統計
-    int statW = 320;
-    int statH = 150; 
-    int sx = margin;
-    int sy = screenH - statH - margin - 100;
+    // パフォーマンス統計パネル
+    const int statW = 320;
+    const int statH = 150;
+    const int sx    = margin;
+    const int sy    = screenH - statH - margin - 100;
 
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kUIAlpha);
     DrawBox(sx, sy, sx + statW, sy + statH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     DrawBox(sx, sy, sx + statW, sy + statH, 0xffffff, false);
@@ -458,35 +436,35 @@ void CollisionGrid::DrawUI() const
     int sTextX = sx + 10;
     int sTextY = sy + 10;
     DrawString(sTextX, sTextY, "【空間分割パフォーマンス評価】", 0x00ffff);
-    
+
     sTextY += 25;
     DrawFormatString(sTextX, sTextY, 0xffffff, "現在のモード: %s", s_useSpatialPartitioning ? "空間分割 (ON)" : "総当たり (OFF)");
-    
+
     sTextY += 20;
     DrawFormatString(sTextX, sTextY, 0xffffff, "総敵数: %d / クエリ数: %d", m_totalEnemies, m_totalQueries);
-    
+
     sTextY += 20;
-    int fullScanChecks = m_totalEnemies * m_totalQueries;
-    float reduction = 0.0f;
+    int   fullScanChecks = m_totalEnemies * m_totalQueries;
+    float reduction      = 0.0f;
     if (fullScanChecks > 0)
     {
-        reduction = (1.0f - (float)m_totalEntitiesChecked / fullScanChecks) * 100.0f;
+        reduction = (1.0f - static_cast<float>(m_totalEntitiesChecked) / static_cast<float>(fullScanChecks)) * 100.0f;
     }
-    
+
     unsigned int statColor = s_useSpatialPartitioning ? 0x00ff00 : 0xffaa00;
     DrawFormatString(sTextX, sTextY, statColor, "判定対象削減率: %.1f%%", s_useSpatialPartitioning ? reduction : 0.0f);
-    
+
     sTextY += 20;
     DrawFormatString(sTextX, sTextY, 0xffffff, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
 
     sTextY += 25;
-    
+
     // 表示更新頻度を落とす
     m_displayTimer--;
     if (m_displayTimer <= 0)
     {
         m_displayedSearchTime = m_totalSearchTime;
-        m_displayTimer = 30;
+        m_displayTimer        = kDisplayTimerInterval;
     }
     DrawFormatString(sTextX, sTextY, 0xffff00, "検索処理時間: %lld us (マイクロ秒)", m_displayedSearchTime);
 }
