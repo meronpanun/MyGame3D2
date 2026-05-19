@@ -1,4 +1,4 @@
-#include "PlayerUI.h"
+ï»¿#include "PlayerUI.h"
 #include "EffekseerWarningSuppress.h"
 #include "EnemyBase.h"
 #include "Game.h"
@@ -6,70 +6,82 @@
 #include <cmath>
 #include <cstring>
 
-namespace PlayerUIConstants
+namespace
 {
-    // ƒAƒTƒ‹ƒgƒ‰ƒCƒtƒ‹UIŠÖ˜A
-    constexpr int kARImageWidth = 300;
-    constexpr int kARImageHeight = 200;
-    constexpr int kARImageMarginX = 60;
+    // ã‚¢ã‚µãƒ«ãƒˆãƒ©ã‚¤ãƒ•ãƒ«UIé–¢é€£
+    constexpr int kARImageWidth   = 300;
+    constexpr int kARImageHeight  = 200;
+    constexpr int kARImageMarginX =  60;
     constexpr int kARImageMarginY = -90;
 
-    // ƒVƒ‡ƒbƒgƒKƒ“UIŠÖ˜A
-    constexpr int kSGImageWidth = 300;
-    constexpr int kSGImageHeight = 96;
-    constexpr int kSGImageMarginX = 60;
+    // ã‚·ãƒ§ãƒƒãƒˆã‚¬ãƒ³UIé–¢é€£
+    constexpr int kSGImageWidth   = 300;
+    constexpr int kSGImageHeight  =  96;
+    constexpr int kSGImageMarginX =  60;
     constexpr int kSGImageMarginY = -30;
 
-    // ’e–òUIŠÖ˜A
-    constexpr int kAmmoTextHeight = 48;
-    constexpr char kAmmoTextMaxWidthStr[] = "999";
-    constexpr int kAmmoTextGunOffsetX = 30;
-    constexpr int kAmmoTextGunOffsetY = -22;
+    // å¼¾è–¬UIé–¢é€£
+    constexpr int          kAmmoTextHeight        =  48;
+    constexpr char         kAmmoTextMaxWidthStr[] = "999";
+    constexpr int          kAmmoTextGunOffsetX    =  30;
+    constexpr int          kAmmoTextGunOffsetY    = -22;
+    constexpr float        kFlashTimerMax         = 60.0f; // å¼¾è–¬ãƒ†ã‚­ã‚¹ãƒˆãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒãƒ¼ã®æœ€å¤§å€¤
+    constexpr float        kPulseScaleMax         =  0.2f; // æ®‹å¼¾å°‘æ™‚ã®ãƒ‘ãƒ«ã‚¹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³æœ€å¤§ã‚¹ã‚±ãƒ¼ãƒ«
+    constexpr unsigned int kColorAmmoFlash        = 0xffff00; // å¼¾è–¬ãƒ•ãƒ©ãƒƒã‚·ãƒ¥è‰²ï¼ˆé»„è‰²ï¼‰
 
-    // ŒxUIŠÖ˜A
-    constexpr int kWarningImageSize = 192;
-    constexpr int kWarningImageYOffset = 240;
-    constexpr int kWarningTextYOffset = 8;
-    constexpr int kWarningImageSpacing = 30;
-    constexpr float kWarningBlinkSpeed = 1.5f; // ŒxUI‚Ì“_–Å‘¬“x
+    // è­¦å‘ŠUIé–¢é€£
+    constexpr int   kWarningImageSize    = 192;
+    constexpr int   kWarningImageYOffset = 240;
+    constexpr int   kWarningTextYOffset  =   8;
+    constexpr int   kWarningImageSpacing =  30;
+    constexpr float kWarningBlinkSpeed   =  1.5f; // è­¦å‘ŠUIã®ç‚¹æ»…é€Ÿåº¦
 
-    // HpUIŠÖ˜A
-    constexpr int kHpBarWidth = 300;
-    constexpr int kHpBarHeight = 36;
-    constexpr int kHpBarMargin = 45;
-    constexpr int kHealthUiImageSize = 96;
-    constexpr int kHealthUiImageBarSpacing = 15;
-    constexpr float kMaxHp = 100.0f;
-    constexpr int kHpTextOffsetX = 30;
-    constexpr int kHpTextOffsetY = 3;
+    // HP UIé–¢é€£
+    constexpr int   kHpBarWidth              = 300;
+    constexpr int   kHpBarHeight             =  36;
+    constexpr int   kHpBarMargin             =  45;
+    constexpr int   kHealthUiImageSize       =  96;
+    constexpr int   kHealthUiImageBarSpacing =  15;
+    constexpr float kMaxHp                   = 100.0f;
+    constexpr int   kHpTextOffsetX           =  30;
+    constexpr int   kHpTextOffsetY           =   3;
+    constexpr int   kHpUiBottomCorrection    =  15; // HP UIä¸‹éƒ¨é ˜åŸŸã®è£œæ­£å€¤
 
-    // FŠÖ˜A
-    constexpr unsigned int kColorWhite = 0xffffff;
-    constexpr unsigned int kColorLowAmmo = 0xd3381c;
-    constexpr unsigned int kColorHpBarBg = 0x505050;
-    constexpr unsigned int kColorHpBarDamage = 0xFFD700;
-    constexpr unsigned int kColorHpBarFill = 0xff4040;
-    constexpr unsigned int kColorHpBarBorder = 0x000000;
+    // ç›¾UIé–¢é€£
+    constexpr int kShieldGaugeHeight = 230; // ç›¾ã‚²ãƒ¼ã‚¸ã®é«˜ã•ï¼ˆãƒ”ã‚¯ã‚»ãƒ«ï¼‰
+    constexpr int kShieldBgAlpha     = 100; // ç›¾ã‚²ãƒ¼ã‚¸èƒŒæ™¯ã®ã‚¢ãƒ«ãƒ•ã‚¡å€¤
 
-    // ‚UIŠÖ˜A
-    constexpr int kShieldUIYPosition = 630;
-    constexpr int kShieldUIYOffset = 45; // ‚UI‚ÌY²’²®ƒIƒtƒZƒbƒg
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³UIé–¢é€£
+    constexpr float kLockOnUISize    = 64.0f; // ãƒ­ãƒƒã‚¯ã‚ªãƒ³UIã®1è¾ºã®ã‚µã‚¤ã‚º
+    constexpr float kLockOnUIYOffset = 90.0f; // UIã‚’è¶³å…ƒæ–¹å‘ã«ç§»å‹•ã•ã›ã‚‹ãŸã‚ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
 
-    // ƒtƒHƒ“ƒgŠÖ˜A
-    constexpr int kDefaultFontThickness = 4; // ƒtƒHƒ“ƒg‚Ì‘¾‚³
-    constexpr int kAmmoFont = 48;            // ’e–òƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr int kHpFont = 30;              // HPƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr int kWarningFont = 36;         // ŒxƒtƒHƒ“ƒgƒTƒCƒY
-    constexpr char kDefaultFontName[] = "Arial Black";
-    constexpr char kWarningFontName[] = "HGPƒSƒVƒbƒNE";
-    constexpr int kDefaultFontType = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
+    // ã‚¬ãƒ¼ãƒ‰UIé–¢é€£
+    constexpr int kGuardTextYOffset = 60; // ã‚¬ãƒ¼ãƒ‰ãƒ†ã‚­ã‚¹ãƒˆã®ç”»é¢ä¸­å¿ƒã‹ã‚‰ã®Yã‚ªãƒ•ã‚»ãƒƒãƒˆ
 
-    // ƒrƒWƒ…ƒAƒ‹‹­‰»—p’è”
-    constexpr unsigned int kColorHpBarTop = 0xff6060;       // HPƒo[ã•”i–¾‚é‚¢Ôj
-    constexpr unsigned int kColorHpBarBottom = 0xa00000;    // HPƒo[‰º•”iˆÃ‚¢Ôj
-    constexpr unsigned int kColorHpBarDamageFlash = 0xffffff;// ƒ_ƒ[ƒW‚Ìƒtƒ‰ƒbƒVƒ…F
-    constexpr unsigned int kColorShadow = 0x000000;          // ‰e‚ÌF
-    constexpr int kShadowOffset = 2;                         // ‰e‚ÌƒIƒtƒZƒbƒg
+    // è‰²é–¢é€£
+    constexpr unsigned int kColorWhite           = 0xffffff;
+    constexpr unsigned int kColorLowAmmo         = 0xd3381c;
+    constexpr unsigned int kColorHpBarBg         = 0x505050;
+    constexpr unsigned int kColorHpBarTop        = 0xff6060; // HPãƒãƒ¼ä¸Šéƒ¨ï¼ˆæ˜ã‚‹ã„èµ¤ï¼‰
+    constexpr unsigned int kColorHpBarBottom     = 0xa00000; // HPãƒãƒ¼ä¸‹éƒ¨ï¼ˆæš—ã„èµ¤ï¼‰
+    constexpr unsigned int kColorHpBarDamageFlash= 0xffffff; // ãƒ€ãƒ¡ãƒ¼ã‚¸æ™‚ã®ãƒ•ãƒ©ãƒƒã‚·ãƒ¥è‰²
+    constexpr unsigned int kColorHpBarRecover    = 0x90EE90; // å›å¾©æ™‚ã®ãƒãƒ¼è‰²ï¼ˆãƒ©ã‚¤ãƒˆã‚°ãƒªãƒ¼ãƒ³ï¼‰
+    constexpr unsigned int kColorHpBarBorder     = 0x000000;
+    constexpr unsigned int kColorShadow          = 0x000000; // å½±ã®è‰²
+    constexpr int          kShadowOffset         =         2; // å½±ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    constexpr int          kAlphaMax             =       255; // ã‚¢ãƒ«ãƒ•ã‚¡æœ€å¤§å€¤
+
+    // ãƒ•ã‚©ãƒ³ãƒˆé–¢é€£
+    constexpr int  kDefaultFontThickness = 4;
+    constexpr int  kAmmoFont             = 48;
+    constexpr int  kHpFont               = 30;
+    constexpr int  kWarningFont          = 36;
+    constexpr char kDefaultFontName[]    = "Arial Black";
+    constexpr char kWarningFontName[]    = "HGPã‚´ã‚·ãƒƒã‚¯E";
+    constexpr int  kDefaultFontType      = DX_FONTTYPE_ANTIALIASING_EDGE_8X8;
+
+    // ã‚¹ã‚±ãƒ¼ãƒ«å¤‰æ›´æ¤œçŸ¥
+    constexpr float kScaleChangeTolerance = 0.001f; // ã‚¹ã‚±ãƒ¼ãƒ«å¤‰æ›´æ¤œçŸ¥ã®ã—ãã„å€¤
 }
 
 PlayerUI::PlayerUI(Player* player)
@@ -83,14 +95,10 @@ PlayerUI::PlayerUI(Player* player)
     , m_healthUiImage("data/image/HealthUI.png")
     , m_shieldImage("data/image/ShieldUI.png")
     , m_lockOnUI("data/image/LockOnUI.png")
-    , m_font(PlayerUIConstants::kDefaultFontName, PlayerUIConstants::kAmmoFont, PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType)
-    , m_hpFont(PlayerUIConstants::kDefaultFontName, PlayerUIConstants::kHpFont, PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType)
-    , m_warningFont(PlayerUIConstants::kWarningFontName, PlayerUIConstants::kWarningFont, PlayerUIConstants::kDefaultFontThickness, PlayerUIConstants::kDefaultFontType)
+    , m_font(kDefaultFontName, kAmmoFont, kDefaultFontThickness, kDefaultFontType)
+    , m_hpFont(kDefaultFontName, kHpFont, kDefaultFontThickness, kDefaultFontType)
+    , m_warningFont(kWarningFontName, kWarningFont, kDefaultFontThickness, kDefaultFontType)
     , m_prevScale(1.0f)
-{
-}
-
-PlayerUI::~PlayerUI()
 {
 }
 
@@ -101,9 +109,9 @@ void PlayerUI::Init()
 
 void PlayerUI::Update(float deltaTime)
 {
-    // ƒXƒP[ƒ‹•ÏXŒŸ’m
+    // ã‚¹ã‚±ãƒ¼ãƒ«å¤‰æ›´æ¤œçŸ¥
     float currentScale = Game::GetUIScale();
-    if (fabsf(currentScale - m_prevScale) > 0.001f)
+    if (fabsf(currentScale - m_prevScale) > kScaleChangeTolerance)
     {
         ReloadFonts(currentScale);
         m_prevScale = currentScale;
@@ -114,167 +122,158 @@ void PlayerUI::Draw()
 {
     if (!m_pPlayer) return;
 
-    float baseAlpha = 1.0f; // •K—v‚È‚çPlayer‚©‚çƒtƒF[ƒhó‘Ô‚ğæ“¾
+    float baseAlpha = 1.0f;
 
-    // ƒK[ƒh’†‚ÌƒeƒLƒXƒg•\¦
+    // ã‚¬ãƒ¼ãƒ‰ä¸­ã®ãƒ†ã‚­ã‚¹ãƒˆè¡¨ç¤º
     DrawGuardText(baseAlpha);
 
-    // ƒƒbƒNƒIƒ“UI‚Ì•`‰æ
+    // ãƒ­ãƒƒã‚¯ã‚ªãƒ³UIã®æç”»
     DrawLockOnUI(baseAlpha);
 
     if (!m_pPlayer->IsDead())
     {
-        // •ŠíUI‚Ì•`‰æ
+        // æ­¦å™¨UIã®æç”»
         DrawWeaponUI(baseAlpha);
 
-        // ‚UI‚Ì•`‰æ
+        // ç›¾UIã®æç”»
         DrawShieldUI(baseAlpha);
 
-        // ŒxUI‚Ì•`‰æ
+        // è­¦å‘ŠUIã®æç”»
         DrawWarningUI(baseAlpha);
 
-        // HPƒo[‚Ì•`‰æ
+        // HPãƒãƒ¼ã®æç”»
         DrawHPBar(baseAlpha);
     }
 }
 
 void PlayerUI::DrawHPBar(float baseAlpha)
 {
-    float health = m_pPlayer->GetHealth();
-    float healthBarAnim = m_pPlayer->GetHealthBarAnim();
-    float maxHealth = m_pPlayer->GetMaxHealth();
+    float health       = m_pPlayer->GetHealth();
+    float healthBarAnim= m_pPlayer->GetHealthBarAnim();
+    float maxHealth    = m_pPlayer->GetMaxHealth();
 
-    int screenW = Game::GetScreenWidth();
-    int screenH = Game::GetScreenHeight();
-    float scale = Game::GetUIScale();
+    int   screenW = Game::GetScreenWidth();
+    int   screenH = Game::GetScreenHeight();
+    float scale   = Game::GetUIScale();
 
-    // ƒXƒP[ƒ‹“K—pŒã‚ÌƒTƒCƒY‚Æƒ}[ƒWƒ“
-    int scaledHpBarHeight = static_cast<int>(PlayerUIConstants::kHpBarHeight * scale);
-    int scaledHpBarMargin = static_cast<int>(PlayerUIConstants::kHpBarMargin * scale);
-    int scaledHealthUiSize = static_cast<int>(PlayerUIConstants::kHealthUiImageSize * scale);
-    int scaledBarSpacing = static_cast<int>(PlayerUIConstants::kHealthUiImageBarSpacing * scale);
-    int scaledHpBarWidth = static_cast<int>(PlayerUIConstants::kHpBarWidth * scale);
+    // ã‚¹ã‚±ãƒ¼ãƒ«é©ç”¨å¾Œã®ã‚µã‚¤ã‚ºã¨ãƒãƒ¼ã‚¸ãƒ³
+    int scaledHpBarHeight = static_cast<int>(kHpBarHeight             * scale);
+    int scaledHpBarMargin = static_cast<int>(kHpBarMargin             * scale);
+    int scaledHealthUiSize= static_cast<int>(kHealthUiImageSize       * scale);
+    int scaledBarSpacing  = static_cast<int>(kHealthUiImageBarSpacing * scale);
+    int scaledHpBarWidth  = static_cast<int>(kHpBarWidth              * scale);
 
-    // HPƒo[‚ÌYÀ•W‚ğŒvZ
+    // HPãƒãƒ¼ã®Yåº§æ¨™ç®—å‡º
     const int barY = screenH - scaledHpBarHeight - scaledHpBarMargin;
 
-    // HPƒo[‚Ìƒpƒ‰ƒ[ƒ^
+    // ãƒ˜ãƒ«ã‚¹ã‚¢ã‚¤ã‚³ãƒ³æç”»
     const int healthUiImageX = scaledHpBarMargin;
-    const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin + static_cast<int>((scaledHpBarHeight - scaledHealthUiSize) * 0.5f); // ’†‰›‘µ‚¦C³
-    
-    int baseAlphaInt = static_cast<int>(baseAlpha * 255);
+    const int healthUiImageY = screenH - scaledHpBarHeight - scaledHpBarMargin
+                               + static_cast<int>((scaledHpBarHeight - scaledHealthUiSize) * 0.5f); // ç¸¦æ–¹å‘ã‚»ãƒ³ã‚¿ãƒªãƒ³ã‚°
+
+    int baseAlphaInt = static_cast<int>(baseAlpha * kAlphaMax);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
-    DrawExtendGraph(healthUiImageX, healthUiImageY, healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize, m_healthUiImage, true);
+    DrawExtendGraph(healthUiImageX, healthUiImageY,
+                    healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize,
+                    m_healthUiImage, true);
     const int barX = healthUiImageX + scaledHealthUiSize + scaledBarSpacing;
 
-    // Å‘åHP
-    float hp = health;
-    if (hp < 0) hp = 0;
-    if (hp > PlayerUIConstants::kMaxHp) hp = PlayerUIConstants::kMaxHp;
+    // HPå€¤ã‚’ã‚¯ãƒ©ãƒ³ãƒ—
+    float hp     = (health       < 0.0f) ? 0.0f : (health       > kMaxHp ? kMaxHp : health);
+    float hpAnim = (healthBarAnim < 0.0f) ? 0.0f : (healthBarAnim > kMaxHp ? kMaxHp : healthBarAnim);
 
-    float hpAnim = healthBarAnim;
-    if (hpAnim < 0) hpAnim = 0;
-    if (hpAnim > PlayerUIConstants::kMaxHp) hpAnim = PlayerUIConstants::kMaxHp;
+    float hpRate     = hp     / kMaxHp;
+    float hpAnimRate = hpAnim / kMaxHp;
 
-    // HPŠ„‡
-    float hpRate = hp / PlayerUIConstants::kMaxHp;
-    float hpAnimRate = hpAnim / PlayerUIConstants::kMaxHp;
+    // èƒŒæ™¯
+    DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, kColorHpBarBg, true);
 
-    // ”wŒi
-    DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarBg, true);
-
-    // HPƒo[–{‘ÌiÀÛ‚Ì‘Ì—Í‚ğ”½‰fj
-    // ƒOƒ‰ƒf[ƒVƒ‡ƒ“•`‰æ
+    // HPãƒãƒ¼æœ¬ä½“ï¼ˆã‚°ãƒ©ãƒ‡ãƒ¼ã‚·ãƒ§ãƒ³ï¼‰
     if (hpRate > 0.0f)
     {
         int currentBarWidth = static_cast<int>(scaledHpBarWidth * hpRate);
-        DrawGradientBox(barX, barY, barX + currentBarWidth, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarTop, PlayerUIConstants::kColorHpBarBottom);
+        DrawGradientBox(barX, barY, barX + currentBarWidth, barY + scaledHpBarHeight,
+                        kColorHpBarTop, kColorHpBarBottom);
     }
 
-    // ƒAƒjƒ[ƒVƒ‡ƒ“ƒo[iƒS[ƒXƒgƒo[j
+    // ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒ¼ï¼ˆã‚´ãƒ¼ã‚¹ãƒˆãƒãƒ¼ï¼‰
     if (healthBarAnim > health)
     {
-        // ƒ_ƒ[ƒWi‰©F‚¢ƒo[ -> ”’ƒtƒ‰ƒbƒVƒ…j
+        // ãƒ€ãƒ¡ãƒ¼ã‚¸å¾Œï¼šç™½ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ãƒãƒ¼
         int animStart = barX + static_cast<int>(scaledHpBarWidth * hpRate);
-        int animEnd = barX + static_cast<int>(scaledHpBarWidth * hpAnimRate);
-        
-        // ƒ_ƒ[ƒW‚ğó‚¯‚½uŠÔ‚Ìƒtƒ‰ƒbƒVƒ…Œø‰Ê
-        DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarDamageFlash, true);
+        int animEnd   = barX + static_cast<int>(scaledHpBarWidth * hpAnimRate);
+        DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, kColorHpBarDamageFlash, true);
     }
     else if (healthBarAnim < health)
     {
-        // ‰ñ•œi–¾‚é‚¢—Î‚Ìƒo[j
+        // å›å¾©æ™‚ï¼šãƒ©ã‚¤ãƒˆã‚°ãƒªãƒ¼ãƒ³ã®ãƒãƒ¼
         int animStart = barX + static_cast<int>(scaledHpBarWidth * hpAnimRate);
-        int animEnd = barX + static_cast<int>(scaledHpBarWidth * hpRate);
-        DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, 0x90EE90, true);
+        int animEnd   = barX + static_cast<int>(scaledHpBarWidth * hpRate);
+        DrawBox(animStart, barY, animEnd, barY + scaledHpBarHeight, kColorHpBarRecover, true);
     }
 
-    // ˜g
-    DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, PlayerUIConstants::kColorHpBarBorder, false);
+    // æ 
+    DrawBox(barX, barY, barX + scaledHpBarWidth, barY + scaledHpBarHeight, kColorHpBarBorder, false);
 
-    // HP”’li‰e•t‚«j
-    int textAlpha = static_cast<int>(baseAlpha * 255);
-    int textX = barX + static_cast<int>(PlayerUIConstants::kHpTextOffsetX * scale);
-    int textY = barY + static_cast<int>(PlayerUIConstants::kHpTextOffsetY * scale);
-    DrawFormatStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset,
-        (textAlpha << 24) | PlayerUIConstants::kColorShadow, m_hpFont, "%.0f", healthBarAnim);
+    // HPæ•°å€¤ãƒ†ã‚­ã‚¹ãƒˆï¼ˆå½±ä»˜ãï¼‰
+    int textAlpha = static_cast<int>(baseAlpha * kAlphaMax);
+    int textX = barX + static_cast<int>(kHpTextOffsetX * scale);
+    int textY = barY + static_cast<int>(kHpTextOffsetY * scale);
+    DrawFormatStringToHandle(textX + kShadowOffset, textY + kShadowOffset,
+        (textAlpha << 24) | kColorShadow, m_hpFont, "%.0f", healthBarAnim);
     DrawFormatStringToHandle(textX, textY,
-        (textAlpha << 24) | PlayerUIConstants::kColorWhite, m_hpFont, "%.0f", healthBarAnim);
+        (textAlpha << 24) | kColorWhite, m_hpFont, "%.0f", healthBarAnim);
 
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 void PlayerUI::DrawWeaponUI(float baseAlpha)
 {
-    const PlayerWeaponManager& weaponManager = m_pPlayer->GetWeaponManager();
+    const PlayerWeaponManager& weaponManager  = m_pPlayer->GetWeaponManager();
     float ammoTextFlashTimer = m_pPlayer->GetAmmoTextFlashTimer();
 
-    int screenW = Game::GetScreenWidth();
-    int screenH = Game::GetScreenHeight();
-    float scale = Game::GetUIScale();
+    int   screenW = Game::GetScreenWidth();
+    int   screenH = Game::GetScreenHeight();
+    float scale   = Game::GetUIScale();
 
-    // ƒXƒP[ƒ‹“K—p
-    int scaledHpBarHeight = static_cast<int>(PlayerUIConstants::kHpBarHeight * scale);
-    int scaledHpBarMargin = static_cast<int>(PlayerUIConstants::kHpBarMargin * scale);
-
-    // HPƒo[‚ÌYÀ•W‚ğŒvZ
-    const int barY = screenH - scaledHpBarHeight - scaledHpBarMargin;
-
-    // ƒ^ƒbƒNƒ‹UI‚ÌYÀ•W‚ğHPƒo[‚É‡‚í‚¹‚é
+    // HP ãƒãƒ¼ã®Yåº§æ¨™ï¼ˆæ­¦å™¨UIã¯ã“ã‚Œã«åˆã‚ã›ã‚‹ï¼‰
+    int scaledHpBarHeight = static_cast<int>(kHpBarHeight * scale);
+    int scaledHpBarMargin = static_cast<int>(kHpBarMargin * scale);
+    const int barY      = screenH - scaledHpBarHeight - scaledHpBarMargin;
     const int tackleUIY = barY;
 
-    // eUI‰æ‘œ‚Ì•`‰æ
-    int gunHandle = -1;
-    int gunImageWidth = 0;
-    int gunImageHeight = 0;
+    // éŠƒç”»åƒãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+    int gunHandle       = -1;
+    int gunImageWidth   = 0;
+    int gunImageHeight  = 0;
     int gunImageMarginX = 0;
     int gunImageMarginY = 0;
 
     WeaponType currentWeaponType = weaponManager.GetCurrentWeaponType();
-    bool isLowAmmo = weaponManager.IsLowAmmo();
-    bool isInfiniteAmmo = weaponManager.IsInfiniteAmmo();
-    int currentAmmo = weaponManager.GetCurrentAmmo();
+    bool isLowAmmo     = weaponManager.IsLowAmmo();
+    bool isInfiniteAmmo= weaponManager.IsInfiniteAmmo();
+    int  currentAmmo   = weaponManager.GetCurrentAmmo();
 
-    int baseAlphaInt = static_cast<int>(baseAlpha * 255);
+    int baseAlphaInt = static_cast<int>(baseAlpha * kAlphaMax);
 
     switch (currentWeaponType)
     {
     case WeaponType::AssaultRifle:
-        gunImageWidth = static_cast<int>(PlayerUIConstants::kARImageWidth * scale);
-        gunImageHeight = static_cast<int>(PlayerUIConstants::kARImageHeight * scale);
-        gunImageMarginX = static_cast<int>(PlayerUIConstants::kARImageMarginX * scale);
-        gunImageMarginY = static_cast<int>(PlayerUIConstants::kARImageMarginY * scale);
+        gunImageWidth   = static_cast<int>(kARImageWidth   * scale);
+        gunImageHeight  = static_cast<int>(kARImageHeight  * scale);
+        gunImageMarginX = static_cast<int>(kARImageMarginX * scale);
+        gunImageMarginY = static_cast<int>(kARImageMarginY * scale);
         if (currentAmmo == 0 && !isInfiniteAmmo)
         {
-            // ’eØ‚ê‚Í“_–Å‚³‚¹‚¸‚»‚Ì‚Ü‚Ü
+            // å¼¾åˆ‡ã‚Œæ™‚ã¯ç‚¹æ»…ãªã—ã€ãã®ã¾ã¾
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
             gunHandle = static_cast<int>(m_noAmmoARImage);
         }
         else if (isLowAmmo)
         {
-            // ’á’e–ò‚Í“_–Å‚³‚¹‚é
-            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-            int alphaInt = static_cast<int>(blinkAlpha * baseAlpha * 255);
+            // æ®‹å¼¾å°‘æ™‚ã¯ç‚¹æ»…
+            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+            int alphaInt = static_cast<int>(blinkAlpha * baseAlpha * kAlphaMax);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
             gunHandle = static_cast<int>(m_noAmmoARImage);
         }
@@ -285,21 +284,21 @@ void PlayerUI::DrawWeaponUI(float baseAlpha)
         }
         break;
     case WeaponType::Shotgun:
-        gunImageWidth = static_cast<int>(PlayerUIConstants::kSGImageWidth * scale);
-        gunImageHeight = static_cast<int>(PlayerUIConstants::kSGImageHeight * scale);
-        gunImageMarginX = static_cast<int>(PlayerUIConstants::kSGImageMarginX * scale);
-        gunImageMarginY = static_cast<int>(PlayerUIConstants::kSGImageMarginY * scale);
+        gunImageWidth   = static_cast<int>(kSGImageWidth   * scale);
+        gunImageHeight  = static_cast<int>(kSGImageHeight  * scale);
+        gunImageMarginX = static_cast<int>(kSGImageMarginX * scale);
+        gunImageMarginY = static_cast<int>(kSGImageMarginY * scale);
         if (currentAmmo == 0 && !isInfiniteAmmo)
         {
-            // ’eØ‚ê‚Í“_–Å‚³‚¹‚¸‚»‚Ì‚Ü‚Ü
+            // å¼¾åˆ‡ã‚Œæ™‚ã¯ç‚¹æ»…ãªã—ã€ãã®ã¾ã¾
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
             gunHandle = static_cast<int>(m_noAmmoSGImage);
         }
         else if (isLowAmmo)
         {
-            // ’á’e–ò‚Í“_–Å‚³‚¹‚é
-            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-            int alphaInt = static_cast<int>(blinkAlpha * baseAlpha * 255);
+            // æ®‹å¼¾å°‘æ™‚ã¯ç‚¹æ»…
+            float blinkAlpha = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+            int alphaInt = static_cast<int>(blinkAlpha * baseAlpha * kAlphaMax);
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaInt);
             gunHandle = static_cast<int>(m_noAmmoSGImage);
         }
@@ -314,98 +313,91 @@ void PlayerUI::DrawWeaponUI(float baseAlpha)
     }
 
     int gunImageY = tackleUIY - gunImageHeight - gunImageMarginY;
-    int gunImageX = screenW - gunImageWidth - gunImageMarginX;
+    int gunImageX = screenW   - gunImageWidth  - gunImageMarginX;
 
     DrawExtendGraph(gunImageX, gunImageY, gunImageX + gunImageWidth, gunImageY + gunImageHeight, gunHandle, true);
 
-    // c’e”‚Ì•`‰æ‚ÉŒü‚¯‚½ƒuƒŒƒ“ƒhƒ‚[ƒhİ’èiƒx[ƒX‚Ì“§–¾“x‚ğ“K—pj
+    // æ®‹å¼¾æ•°ã®æç”»ã«å‘ã‘ãŸãƒ–ãƒ¬ãƒ³ãƒ‰ãƒ¢ãƒ¼ãƒ‰è¨­å®šï¼ˆãƒ™ãƒ¼ã‚¹ã®ä¸é€æ˜åº¦ã‚’é©ç”¨ï¼‰
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
 
-    // c’e”‚Ì•\¦
-    int ammoTextWidth = GetDrawStringWidthToHandle(PlayerUIConstants::kAmmoTextMaxWidthStr, static_cast<int>(strlen(PlayerUIConstants::kAmmoTextMaxWidthStr)), m_font);
+    int ammoTextWidth = GetDrawStringWidthToHandle(kAmmoTextMaxWidthStr,
+                            static_cast<int>(strlen(kAmmoTextMaxWidthStr)), m_font);
 
-    // ’e–ò”UI‚ÌˆÊ’u‚ğARŠî€‚ÅŒÅ’èŒvZ
-    int arGunImageX = screenW - PlayerUIConstants::kARImageWidth - PlayerUIConstants::kARImageMarginX;
-    int arGunImageY = tackleUIY - PlayerUIConstants::kARImageHeight - PlayerUIConstants::kARImageMarginY;
-    // ‚±‚±‚Å‚àƒXƒP[ƒ‹Ï‚İ‚Ì’l‚ğg—p‚·‚é
-    int scaledARWidth = static_cast<int>(PlayerUIConstants::kARImageWidth * scale);
-    int scaledARMarginX = static_cast<int>(PlayerUIConstants::kARImageMarginX * scale);
-    int scaledARHeight = static_cast<int>(PlayerUIConstants::kARImageHeight * scale);
-    int scaledARMarginY = static_cast<int>(PlayerUIConstants::kARImageMarginY * scale);
-    int scaledAmmoTextHeight = static_cast<int>(PlayerUIConstants::kAmmoTextHeight * scale);
+    // å¼¾è–¬UIã®ä½ç½®ã‚’ARã®ä½ç½®ã§å›ºå®šè¨ˆç®—ï¼ˆã‚¹ã‚±ãƒ¼ãƒ«æ¸ˆã¿å€¤ã‚’ä½¿ç”¨ï¼‰
+    int scaledARWidth        = static_cast<int>(kARImageWidth   * scale);
+    int scaledARMarginX      = static_cast<int>(kARImageMarginX * scale);
+    int scaledARHeight       = static_cast<int>(kARImageHeight  * scale);
+    int scaledARMarginY      = static_cast<int>(kARImageMarginY * scale);
+    int scaledAmmoTextHeight = static_cast<int>(kAmmoTextHeight * scale);
 
-    arGunImageX = screenW - scaledARWidth - scaledARMarginX;
-    arGunImageY = tackleUIY - scaledARHeight - scaledARMarginY;
+    int arGunImageX = screenW - scaledARWidth  - scaledARMarginX;
+    int arGunImageY = tackleUIY - scaledARHeight - scaledARMarginY;
 
-    int scaledAmmoOffsetX = static_cast<int>(PlayerUIConstants::kAmmoTextGunOffsetX * scale);
-    int scaledAmmoOffsetY = static_cast<int>(PlayerUIConstants::kAmmoTextGunOffsetY * scale);
+    int scaledAmmoOffsetX = static_cast<int>(kAmmoTextGunOffsetX * scale);
+    int scaledAmmoOffsetY = static_cast<int>(kAmmoTextGunOffsetY * scale);
 
     int ammoTextX = arGunImageX - scaledAmmoOffsetX - ammoTextWidth;
     int ammoTextY = arGunImageY + static_cast<int>((scaledARHeight - scaledAmmoTextHeight) * 0.5f) + scaledAmmoOffsetY;
 
-    // ’e–ò–³ŒÀƒ‚[ƒh‚Ìê‡‚Íu‡v‚ğ•\¦
+    // å¼¾è–¬ç„¡é™ãƒ¢ãƒ¼ãƒ‰ã®å ´åˆã¯ã€Œâˆã€ã‚’è¡¨ç¤º
     if (isInfiniteAmmo)
     {
-        int alpha = static_cast<int>(baseAlpha * 255);
-        DrawFormatStringToHandle(ammoTextX + PlayerUIConstants::kShadowOffset, ammoTextY + PlayerUIConstants::kShadowOffset,
-            (alpha << 24) | PlayerUIConstants::kColorShadow, m_font, "‡");
-        DrawFormatStringToHandle(ammoTextX, ammoTextY, (alpha << 24) | PlayerUIConstants::kColorWhite, m_font, "‡");
+        int alpha = static_cast<int>(baseAlpha * kAlphaMax);
+        DrawFormatStringToHandle(ammoTextX + kShadowOffset, ammoTextY + kShadowOffset,
+            (alpha << 24) | kColorShadow, m_font, "âˆ");
+        DrawFormatStringToHandle(ammoTextX, ammoTextY, (alpha << 24) | kColorWhite, m_font, "âˆ");
     }
     else
     {
-        // ƒfƒtƒHƒ‹ƒg‚ÌF‚ğŒˆ’è
-        int textColor = isLowAmmo ? PlayerUIConstants::kColorLowAmmo : PlayerUIConstants::kColorWhite;
+        // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®è‰²ã‹ã‚‰å§‹ã‚ã‚‹
+        int textColor = isLowAmmo ? kColorLowAmmo : kColorWhite;
         float textScale = 1.0f;
 
-        // ƒtƒ‰ƒbƒVƒ…ƒ^ƒCƒ}[‚ªì“®’†‚È‚çF‚ÆƒTƒCƒY‚ğ•âŠÔ
+        // ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã‚¿ã‚¤ãƒãƒ¼ãŒå‹•ä½œä¸­ãªã‚‰è‰²ã¨ã‚µã‚¤ã‚ºã‚’å¤‰æ›´
         if (ammoTextFlashTimer > 0.0f)
         {
-            float flashProgress = ammoTextFlashTimer / 60.0f;
+            float flashProgress = ammoTextFlashTimer / kFlashTimerMax;
 
-            // ƒ^[ƒQƒbƒg‚ÌFiƒfƒtƒHƒ‹ƒgFj‚ÌRGB¬•ª
+            // ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®è‰²ã®RGBæˆåˆ†
             int targetR = (textColor >> 16) & 0xFF;
-            int targetG = (textColor >> 8) & 0xFF;
-            int targetB = textColor & 0xFF;
+            int targetG = (textColor >> 8)  & 0xFF;
+            int targetB =  textColor         & 0xFF;
 
-            // ƒtƒ‰ƒbƒVƒ…‚ÌFi‰©Fj‚ÌRGB¬•ª
-            int flashR = 255;
-            int flashG = 255;
-            int flashB = 0;
+            // ãƒ•ãƒ©ãƒƒã‚·ãƒ¥è‰²ï¼ˆé»„è‰²ï¼‰ã®RGBæˆåˆ†
+            int flashR = (kColorAmmoFlash >> 16) & 0xFF;
+            int flashG = (kColorAmmoFlash >> 8)  & 0xFF;
+            int flashB =  kColorAmmoFlash         & 0xFF;
 
-            // üŒ`•âŠÔ
-            int currentR = static_cast<int>(flashR * flashProgress +
-                targetR * (1.0f - flashProgress));
-            int currentG = static_cast<int>(flashG * flashProgress +
-                targetG * (1.0f - flashProgress));
-            int currentB = static_cast<int>(flashB * flashProgress +
-                targetB * (1.0f - flashProgress));
+            // ç·šå½¢è£œé–“
+            int currentR = static_cast<int>(flashR * flashProgress + targetR * (1.0f - flashProgress));
+            int currentG = static_cast<int>(flashG * flashProgress + targetG * (1.0f - flashProgress));
+            int currentB = static_cast<int>(flashB * flashProgress + targetB * (1.0f - flashProgress));
 
             textColor = GetColor(currentR, currentG, currentB);
         }
         else if (isLowAmmo)
         {
-            // ’á’e–ò‚Ìƒpƒ‹ƒXƒAƒjƒ[ƒVƒ‡ƒ“
-            float pulse = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 5.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-            textScale = 1.0f + pulse * 0.2f; // 1.0 ~ 1.2”{
+            // æ®‹å¼¾å°‘æ™‚ã®ãƒ‘ãƒ«ã‚¹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³
+            float pulse = (sinf(weaponManager.GetLowAmmoBlinkTimer() * 5.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+            textScale = 1.0f + pulse * kPulseScaleMax;
         }
-        
-        // ƒeƒLƒXƒg•`‰æi‰e•t‚«EŠg‘åk¬‘Î‰j
+
+        // ãƒ†ã‚­ã‚¹ãƒˆæç”»ï¼ˆå½±ä»˜ããƒ»æ‹¡ç¸®å¯¾å¿œï¼‰
         char ammoStr[16];
         sprintf_s(ammoStr, "%d", currentAmmo);
-        
-        // ƒTƒCƒYæ“¾
+
         int strW = GetDrawStringWidthToHandle(ammoStr, static_cast<int>(strlen(ammoStr)), m_font);
         int strH = GetFontSizeToHandle(m_font);
 
-        // ’†SŠî€‚ÅŠg‘åk¬
-        int drawW = static_cast<int>(strW * textScale);
-        int drawH = static_cast<int>(strH * textScale);
+        // ä¸­å¿ƒåŸºæº–ã§æ‹¡ç¸®
+        int drawW   = static_cast<int>(strW * textScale);
+        int drawH   = static_cast<int>(strH * textScale);
         int offsetX = static_cast<int>((drawW - strW) * 0.5f);
         int offsetY = static_cast<int>((drawH - strH) * 0.5f);
 
-        int alpha = static_cast<int>(baseAlpha * 255);
-        DrawExtendStringToHandle(ammoTextX - offsetX + PlayerUIConstants::kShadowOffset, ammoTextY - offsetY + PlayerUIConstants::kShadowOffset,
-            textScale, textScale, ammoStr, (alpha << 24) | PlayerUIConstants::kColorShadow, m_font);
+        int alpha = static_cast<int>(baseAlpha * kAlphaMax);
+        DrawExtendStringToHandle(ammoTextX - offsetX + kShadowOffset, ammoTextY - offsetY + kShadowOffset,
+            textScale, textScale, ammoStr, (alpha << 24) | kColorShadow, m_font);
         DrawExtendStringToHandle(ammoTextX - offsetX, ammoTextY - offsetY,
             textScale, textScale, ammoStr, (alpha << 24) | textColor, m_font);
     }
@@ -416,58 +408,56 @@ void PlayerUI::DrawWeaponUI(float baseAlpha)
 void PlayerUI::DrawShieldUI(float baseAlpha)
 {
     const PlayerShieldSystem& shieldSystem = m_pPlayer->GetShieldSystem();
-    int screenW = Game::GetScreenWidth();
-    int screenH = Game::GetScreenHeight();
-    float scale = Game::GetUIScale();
+    int   screenW = Game::GetScreenWidth();
+    int   screenH = Game::GetScreenHeight();
+    float scale   = Game::GetUIScale();
 
-    // ‚‘Ï‹v’l‚Ì•`‰æ
-    float shieldBarAnim = shieldSystem.GetBarAnim();
-    float maxShieldDurability = shieldSystem.GetMaxDurability();
-    float shieldDurabilityRate = shieldBarAnim / maxShieldDurability;
+    // è€ä¹…å€¤ã®å‰²åˆ
+    float shieldBarAnim         = shieldSystem.GetBarAnim();
+    float maxShieldDurability   = shieldSystem.GetMaxDurability();
+    float shieldDurabilityRate  = shieldBarAnim / maxShieldDurability;
 
     if (shieldDurabilityRate < 0.0f) shieldDurabilityRate = 0.0f;
     if (shieldDurabilityRate > 1.0f) shieldDurabilityRate = 1.0f;
 
-    // ‚‚ÌƒeƒNƒXƒ`ƒƒƒTƒCƒY‚ğæ“¾
+    // ç›¾ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚µã‚¤ã‚ºã‚’å–å¾—
     int shieldTexW, shieldTexH;
     GetGraphSize(m_shieldImage, &shieldTexW, &shieldTexH);
 
-    // ‚ƒQ[ƒW‚ÌƒTƒCƒY‚ÆˆÊ’u
-    const int shieldGaugeHeight = static_cast<int>(230 * scale);
-    const int shieldGaugeWidth = static_cast<int>(static_cast<float>(shieldGaugeHeight) * shieldTexW / shieldTexH); // cŒü‚«‚ÌƒQ[ƒW‚Ì•
+    // ç›¾ã‚²ãƒ¼ã‚¸ã®ã‚µã‚¤ã‚ºã¨ä½ç½®
+    const int shieldGaugeHeight = static_cast<int>(kShieldGaugeHeight * scale);
+    const int shieldGaugeWidth  = static_cast<int>(static_cast<float>(shieldGaugeHeight) * shieldTexW / shieldTexH); // ç¸¦é•·ã®ã‚²ãƒ¼ã‚¸ã®å¹…
     float drawScale = static_cast<float>(shieldGaugeHeight) / shieldTexH;
 
-    int scaledHpBarMargin = static_cast<int>(PlayerUIConstants::kHpBarMargin * scale);
+    int scaledHpBarMargin = static_cast<int>(kHpBarMargin * scale);
 
-    // HP UI‚Ì‘S‚‚ğŒvZ 
-    int hpUITopFromBottom = static_cast<int>((PlayerUIConstants::kHpBarMargin + PlayerUIConstants::kHealthUiImageSize - 15) * scale);
-
+    // HP UIã®å ã‚ã‚‹é«˜ã•ã‚’è¨ˆç®—ã—ã¦ã‚²ãƒ¼ã‚¸ã®Yåº§æ¨™ã‚’æ±ºã‚ã‚‹
+    int hpUITopFromBottom = static_cast<int>((kHpBarMargin + kHealthUiImageSize - kHpUiBottomCorrection) * scale);
     int shieldGaugeY = screenH - hpUITopFromBottom - shieldGaugeHeight;
 
-    // HPƒo[‚Ìƒ}[ƒWƒ“‚ğŠî€‚É‚·‚é
+    // HPãƒãƒ¼ã®ãƒãƒ¼ã‚¸ãƒ³ã«æƒãˆã‚‹
     int shieldGaugeX = scaledHpBarMargin;
 
-    // ƒQ[ƒW‚Ì”wŒii”¼“§–¾‚Ì‚j
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(100 * baseAlpha));
+    // ã‚²ãƒ¼ã‚¸ã®èƒŒæ™¯ï¼ˆåŠé€æ˜ã§è¡¨ç¤ºï¼‰
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(kShieldBgAlpha * baseAlpha));
     DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
-        shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-        shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImage, true);
+                    shieldGaugeY + shieldGaugeHeight * 0.5f,
+                    shieldTexW * 0.5f, shieldTexH * 0.5f,
+                    drawScale, drawScale, 0.0f, m_shieldImage, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-    // ƒQ[ƒW–{‘Ì
+    // ã‚²ãƒ¼ã‚¸æœ¬ä½“ï¼ˆè€ä¹…å€¤åˆ†ã ã‘ã‚¯ãƒªãƒƒãƒ”ãƒ³ã‚°ã—ã¦è¡¨ç¤ºï¼‰
     if (shieldDurabilityRate > 0.0f)
     {
         int filledWidth = static_cast<int>(shieldGaugeWidth * shieldDurabilityRate);
-        // •`‰æ”ÍˆÍ‚ğİ’è‚µ‚ÄƒNƒŠƒbƒsƒ“ƒO
         SetDrawArea(shieldGaugeX, shieldGaugeY, shieldGaugeX + filledWidth, shieldGaugeY + shieldGaugeHeight);
 
-        // ‚‚ğ–ƒ^ƒ“ó‘Ô‚Å•`‰æ
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(255 * baseAlpha));
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(kAlphaMax * baseAlpha));
         DrawRotaGraph3F(shieldGaugeX + shieldGaugeWidth * 0.5f,
-            shieldGaugeY + shieldGaugeHeight * 0.5f, shieldTexW * 0.5f,
-            shieldTexH * 0.5f, drawScale, drawScale, 0.0f, m_shieldImage, true);
+                        shieldGaugeY + shieldGaugeHeight * 0.5f,
+                        shieldTexW * 0.5f, shieldTexH * 0.5f,
+                        drawScale, drawScale, 0.0f, m_shieldImage, true);
 
-        // •`‰æ”ÍˆÍ‚ğƒŠƒZƒbƒg
         SetDrawArea(0, 0, screenW, screenH);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
@@ -475,85 +465,85 @@ void PlayerUI::DrawShieldUI(float baseAlpha)
 
 void PlayerUI::DrawWarningUI(float baseAlpha)
 {
-    bool isLowHealth = m_pPlayer->IsLowHealth();
-    float lowHealthBlinkTimer = m_pPlayer->GetLowHealthBlinkTimer();
+    bool isLowHealth         = m_pPlayer->IsLowHealth();
+    float lowHealthBlinkTimer= m_pPlayer->GetLowHealthBlinkTimer();
     const PlayerWeaponManager& weaponManager = m_pPlayer->GetWeaponManager();
 
-    int screenW = Game::GetScreenWidth();
-    int screenH = Game::GetScreenHeight();
-    float scale = Game::GetUIScale();
+    int   screenW = Game::GetScreenWidth();
+    int   screenH = Game::GetScreenHeight();
+    float scale   = Game::GetUIScale();
 
-    int scaledWarningSize = static_cast<int>(PlayerUIConstants::kWarningImageSize * scale);
-    int scaledWarningYOffset = static_cast<int>(PlayerUIConstants::kWarningImageYOffset * scale);
-    int scaledWarningTextYOffset = static_cast<int>(PlayerUIConstants::kWarningTextYOffset * scale);
-    int scaledWarningSpacing = static_cast<int>(PlayerUIConstants::kWarningImageSpacing * scale);
+    int scaledWarningSize      = static_cast<int>(kWarningImageSize    * scale);
+    int scaledWarningYOffset   = static_cast<int>(kWarningImageYOffset * scale);
+    int scaledWarningTextYOffset = static_cast<int>(kWarningTextYOffset * scale);
+    int scaledWarningSpacing   = static_cast<int>(kWarningImageSpacing * scale);
 
-    // ‘Ì—Í’á‰º‚ÌŒx
+    // ä½“åŠ›ä½ä¸‹ã®è­¦å‘Š
     if (isLowHealth)
     {
-        float alpha = (sinf(lowHealthBlinkTimer * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-        int alphaInt = static_cast<int>(alpha * 255);
-        int drawX = static_cast<int>((screenW - scaledWarningSize) * 0.5f);
-        int drawY = static_cast<int>((screenH - scaledWarningSize) * 0.5f) + scaledWarningYOffset;
+        float alpha = (sinf(lowHealthBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+        int drawX   = static_cast<int>((screenW - scaledWarningSize) * 0.5f);
+        int drawY   = static_cast<int>((screenH - scaledWarningSize) * 0.5f) + scaledWarningYOffset;
 
-        // ’e–òŒx‚à•\¦‚·‚é•K—v‚ª‚ ‚éê‡‚ÍA‘Ì—ÍŒx‚ğ¶‚É‚¸‚ç‚·
-        bool isLowAmmoForHealth = weaponManager.IsLowAmmo();
+        // å¼¾è–¬è­¦å‘Šã‚‚è¡¨ç¤ºã™ã‚‹å ´åˆã¯å·¦ã«å¯„ã›ã‚‹
+        bool isLowAmmoForHealth    = weaponManager.IsLowAmmo();
         bool isNoAmmoWarningForHealth = weaponManager.IsNoAmmoWarning();
         bool isSwitchingWeaponForHealth = weaponManager.IsSwitchingWeapon();
         bool prevWeaponHadLowAmmoForHealth = weaponManager.GetPrevWeaponHadLowAmmo();
-        bool prevWeaponHadNoAmmoForHealth = weaponManager.GetPrevWeaponHadNoAmmo();
-        if (isLowAmmoForHealth || isNoAmmoWarningForHealth || (isSwitchingWeaponForHealth && (prevWeaponHadLowAmmoForHealth || prevWeaponHadNoAmmoForHealth)))
+        bool prevWeaponHadNoAmmoForHealth  = weaponManager.GetPrevWeaponHadNoAmmo();
+        if (isLowAmmoForHealth || isNoAmmoWarningForHealth
+            || (isSwitchingWeaponForHealth && (prevWeaponHadLowAmmoForHealth || prevWeaponHadNoAmmoForHealth)))
         {
             drawX = static_cast<int>((screenW * 0.5f) - scaledWarningSize - (scaledWarningSpacing * 0.5f));
         }
 
-        int finalAlpha = static_cast<int>(alpha * baseAlpha * 255);
+        int finalAlpha = static_cast<int>(alpha * baseAlpha * kAlphaMax);
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, finalAlpha);
         DrawExtendGraph(drawX, drawY, drawX + scaledWarningSize, drawY + scaledWarningSize, m_noHealthImage, true);
 
-        const char* text = "‘Ì—Í’á‰º";
+        const char* text = "ä½“åŠ›ä½ä¸‹";
         int textWidth = GetDrawStringWidthToHandle(text, static_cast<int>(strlen(text)), m_warningFont);
         int textX = drawX + static_cast<int>((scaledWarningSize - textWidth) * 0.5f);
         int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
-        unsigned int textColor = (finalAlpha << 24) | PlayerUIConstants::kColorWhite;
+        unsigned int textColor = (finalAlpha << 24) | kColorWhite;
         DrawStringToHandle(textX, textY, text, textColor, m_warningFont);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // ’e–ò’á‰º‚ÌŒx
-    bool isLowAmmo = weaponManager.IsLowAmmo();
-    bool isSwitchingWeapon = weaponManager.IsSwitchingWeapon();
+    // å¼¾è–¬ä½ä¸‹ã®è­¦å‘Š
+    bool isLowAmmo          = weaponManager.IsLowAmmo();
+    bool isSwitchingWeapon  = weaponManager.IsSwitchingWeapon();
     bool prevWeaponHadLowAmmo = weaponManager.GetPrevWeaponHadLowAmmo();
-    bool prevWeaponHadNoAmmo = weaponManager.GetPrevWeaponHadNoAmmo();
-    float weaponSwitchTimer = weaponManager.GetWeaponSwitchTimer();
-    float weaponSwitchDuration = weaponManager.GetWeaponSwitchDuration();
+    bool prevWeaponHadNoAmmo  = weaponManager.GetPrevWeaponHadNoAmmo();
+    float weaponSwitchTimer   = weaponManager.GetWeaponSwitchTimer();
+    float weaponSwitchDuration= weaponManager.GetWeaponSwitchDuration();
 
-    bool isNoAmmoWarning = weaponManager.IsNoAmmoWarning();
+    bool isNoAmmoWarning   = weaponManager.IsNoAmmoWarning();
     bool currentNeedsWarning = isLowAmmo || isNoAmmoWarning;
-    bool prevNeedsWarning = prevWeaponHadLowAmmo || prevWeaponHadNoAmmo;
+    bool prevNeedsWarning    = prevWeaponHadLowAmmo || prevWeaponHadNoAmmo;
 
-    bool shouldDraw = false;
-    float fadeAlpha = 1.0f;
+    bool shouldDraw  = false;
+    float fadeAlpha  = 1.0f;
 
     if (isSwitchingWeapon)
     {
         float halfDuration = weaponSwitchDuration * 0.5f;
         if (weaponSwitchTimer < halfDuration)
         {
-            // ƒtƒF[ƒhƒAƒEƒg
+            // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆ
             if (prevNeedsWarning)
             {
                 shouldDraw = true;
-                fadeAlpha = 1.0f - (weaponSwitchTimer / halfDuration);
+                fadeAlpha  = 1.0f - (weaponSwitchTimer / halfDuration);
             }
         }
         else
         {
-            // ƒtƒF[ƒhƒCƒ“
+            // ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¤ãƒ³
             if (currentNeedsWarning)
             {
                 shouldDraw = true;
-                fadeAlpha = (weaponSwitchTimer - halfDuration) / halfDuration;
+                fadeAlpha  = (weaponSwitchTimer - halfDuration) / halfDuration;
             }
         }
     }
@@ -565,17 +555,17 @@ void PlayerUI::DrawWarningUI(float baseAlpha)
     if (shouldDraw)
     {
         bool isFadingOut = isSwitchingWeapon && (weaponSwitchTimer < weaponSwitchDuration * 0.5f);
-        bool isNoAmmo = isFadingOut ? prevWeaponHadNoAmmo : isNoAmmoWarning;
-        const char* text = isNoAmmo ? "c’e‚È‚µ" : "c’e‹Í‚©";
+        bool isNoAmmo    = isFadingOut ? prevWeaponHadNoAmmo : isNoAmmoWarning;
+        const char* text = isNoAmmo ? "æ®‹å¼¾ãªã—" : "æ®‹å¼¾å°‘";
 
         float lowAmmoBlinkTimer = weaponManager.GetLowAmmoBlinkTimer();
-        float blinkAlpha = (sinf(lowAmmoBlinkTimer * 2.0f * DX_PI_F / PlayerUIConstants::kWarningBlinkSpeed) + 1.0f) * 0.5f;
-        int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * baseAlpha * 255);
+        float blinkAlpha = (sinf(lowAmmoBlinkTimer * 2.0f * DX_PI_F / kWarningBlinkSpeed) + 1.0f) * 0.5f;
+        int alphaInt = static_cast<int>(blinkAlpha * fadeAlpha * baseAlpha * kAlphaMax);
 
         int drawX = static_cast<int>((screenW - scaledWarningSize) * 0.5f);
         int drawY = static_cast<int>((screenH - scaledWarningSize) * 0.5f) + scaledWarningYOffset;
 
-        // ‘Ì—ÍŒx‚à•\¦‚·‚é•K—v‚ª‚ ‚éê‡‚ÍA’e–òŒx‚ğ‰E‚É‚¸‚ç‚·
+        // ä½“åŠ›è­¦å‘Šã‚‚è¡¨ç¤ºã™ã‚‹å ´åˆã¯å³ã«å¯„ã›ã‚‹
         if (isLowHealth)
         {
             drawX = static_cast<int>((screenW * 0.5f) + (scaledWarningSpacing * 0.5f));
@@ -587,7 +577,7 @@ void PlayerUI::DrawWarningUI(float baseAlpha)
         int textWidth = GetDrawStringWidthToHandle(text, static_cast<int>(strlen(text)), m_warningFont);
         int textX = drawX + static_cast<int>((scaledWarningSize - textWidth) * 0.5f);
         int textY = drawY + scaledWarningSize + scaledWarningTextYOffset;
-        unsigned int textColor = (alphaInt << 24) | PlayerUIConstants::kColorWhite;
+        unsigned int textColor = (alphaInt << 24) | kColorWhite;
         DrawStringToHandle(textX, textY, text, textColor, m_warningFont);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
@@ -596,50 +586,49 @@ void PlayerUI::DrawWarningUI(float baseAlpha)
 void PlayerUI::DrawLockOnUI(float baseAlpha)
 {
     EnemyBase* lockedOnEnemy = m_pPlayer->GetLockedOnEnemy();
-    if (lockedOnEnemy)
+    if (!lockedOnEnemy) return;
+
+    float scale      = Game::GetUIScale();
+    float scaledSize = kLockOnUISize * scale;
+
+    VECTOR enemyPos = lockedOnEnemy->GetPos();
+    enemyPos.y += kLockOnUIYOffset; // Yåº§æ¨™ã‚’èª¿æ•´ã—ã¦ä½“ã®ä¸­å¿ƒã«è¿‘ã¥ã‘ã‚‹
+    VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
+
+    if (screenPos.z > 0.0f) // ç”»é¢å†…ã«ã‚ã‚‹ã‹
     {
-        constexpr float kLockOnUISize = 64.0f;
-        constexpr float kLockOnUIYOffset = 90.0f; // UI‚ğ‘«Œ³‚©‚çã‚ÉˆÚ“®‚³‚¹‚é‚½‚ß‚ÌƒIƒtƒZƒbƒg
-        float scale = Game::GetUIScale();
-        float scaledSize = kLockOnUISize * scale;
-
-        VECTOR enemyPos = lockedOnEnemy->GetPos();
-        enemyPos.y += kLockOnUIYOffset; // YÀ•W‚ğ’²®‚µ‚Ä‘Ì‚Ì’†S‚É‹ß‚Ã‚¯‚é
-        VECTOR screenPos = ConvWorldPosToScreenPos(enemyPos);
-
-        if (screenPos.z > 0) // ‰æ–Ê“à‚É‚ ‚é‚©
-        {
-            float halfSize = scaledSize * 0.5f;
-            SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(baseAlpha * 255));
-            DrawExtendGraph(static_cast<int>(screenPos.x - halfSize), static_cast<int>(screenPos.y - halfSize), static_cast<int>(screenPos.x + halfSize), static_cast<int>(screenPos.y + halfSize), m_lockOnUI, true);
-            SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-        }
+        float halfSize = scaledSize * 0.5f;
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, static_cast<int>(baseAlpha * kAlphaMax));
+        DrawExtendGraph(static_cast<int>(screenPos.x - halfSize), static_cast<int>(screenPos.y - halfSize),
+                        static_cast<int>(screenPos.x + halfSize), static_cast<int>(screenPos.y + halfSize),
+                        m_lockOnUI, true);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 }
 
 void PlayerUI::DrawGuardText(float baseAlpha)
 {
-    bool isGuarding = m_pPlayer->IsGuarding();
+    bool isGuarding      = m_pPlayer->IsGuarding();
     EnemyBase* lockedOnEnemy = m_pPlayer->GetLockedOnEnemy();
-    bool isTargetAvailable = m_pPlayer->IsTargetAvailable();
 
-    if (isGuarding && !lockedOnEnemy)
-    {
-        int screenW = Game::GetScreenWidth();
-        int screenH = Game::GetScreenHeight();
-        int alpha = static_cast<int>(baseAlpha * 255);
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+    if (!isGuarding || lockedOnEnemy) return;
 
-        const char* text = "ƒ^[ƒQƒbƒg‚È‚µ";
-        int textWidth = GetDrawStringWidthToHandle(text, static_cast<int>(strlen(text)), m_warningFont);
-        int textX = static_cast<int>((screenW - textWidth) * 0.5f);
-        int textY = static_cast<int>(screenH * 0.5f) + 60; // ƒŒƒeƒBƒNƒ‹‚Ì‰º‚ ‚½‚è‚É•\¦
+    int screenW = Game::GetScreenWidth();
+    int screenH = Game::GetScreenHeight();
+    int alpha   = static_cast<int>(baseAlpha * kAlphaMax);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
 
-        DrawStringToHandle(textX + PlayerUIConstants::kShadowOffset, textY + PlayerUIConstants::kShadowOffset, text, (alpha << 24) | PlayerUIConstants::kColorShadow, m_warningFont);
-        DrawStringToHandle(textX, textY, text, (alpha << 24) | PlayerUIConstants::kColorWhite, m_warningFont);
-        
-        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    }
+    const char* text = "ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãªã—";
+    int textWidth = GetDrawStringWidthToHandle(text, static_cast<int>(strlen(text)), m_warningFont);
+    int textX = static_cast<int>((screenW - textWidth) * 0.5f);
+    int textY = static_cast<int>(screenH * 0.5f) + kGuardTextYOffset; // ç”»é¢ä¸­å¤®ã®ä¸‹æ–¹å‘ã«è¡¨ç¤º
+
+    DrawStringToHandle(textX + kShadowOffset, textY + kShadowOffset,
+        text, (alpha << 24) | kColorShadow, m_warningFont);
+    DrawStringToHandle(textX, textY,
+        text, (alpha << 24) | kColorWhite, m_warningFont);
+
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 void PlayerUI::ReloadFonts(float scale)
@@ -657,28 +646,28 @@ void PlayerUI::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topC
     float fx2 = static_cast<float>(x2);
     float fy2 = static_cast<float>(y2);
 
-    // 0xRRGGBB Œ`®‚©‚çRGB‚ğ’Šo
+    // 0xRRGGBB å½¢å¼ã‹ã‚‰RGBã‚’æŠ½å‡º
     unsigned char topR = (topColor >> 16) & 0xFF;
-    unsigned char topG = (topColor >> 8) & 0xFF;
-    unsigned char topB = topColor & 0xFF;
-    
+    unsigned char topG = (topColor >> 8)  & 0xFF;
+    unsigned char topB =  topColor         & 0xFF;
+
     unsigned char btmR = (bottomColor >> 16) & 0xFF;
-    unsigned char btmG = (bottomColor >> 8) & 0xFF;
-    unsigned char btmB = bottomColor & 0xFF;
+    unsigned char btmG = (bottomColor >> 8)  & 0xFF;
+    unsigned char btmB =  bottomColor         & 0xFF;
 
-    // ¶ã
-    Vertex[0].pos = VGet(fx1, fy1, 0.0f); Vertex[0].rhw = 1.0f; Vertex[0].u = 0.0f; Vertex[0].v = 0.0f; Vertex[0].dif = GetColorU8(topR, topG, topB, 255);
-    // ‰Eã
-    Vertex[1].pos = VGet(fx2, fy1, 0.0f); Vertex[1].rhw = 1.0f; Vertex[1].u = 0.0f; Vertex[1].v = 0.0f; Vertex[1].dif = GetColorU8(topR, topG, topB, 255);
-    // ¶‰º
-    Vertex[2].pos = VGet(fx1, fy2, 0.0f); Vertex[2].rhw = 1.0f; Vertex[2].u = 0.0f; Vertex[2].v = 0.0f; Vertex[2].dif = GetColorU8(btmR, btmG, btmB, 255);
+    // å·¦ä¸Š
+    Vertex[0].pos = VGet(fx1, fy1, 0.0f); Vertex[0].rhw = 1.0f; Vertex[0].u = 0.0f; Vertex[0].v = 0.0f; Vertex[0].dif = GetColorU8(topR, topG, topB, kAlphaMax);
+    // å³ä¸Š
+    Vertex[1].pos = VGet(fx2, fy1, 0.0f); Vertex[1].rhw = 1.0f; Vertex[1].u = 0.0f; Vertex[1].v = 0.0f; Vertex[1].dif = GetColorU8(topR, topG, topB, kAlphaMax);
+    // å·¦ä¸‹
+    Vertex[2].pos = VGet(fx1, fy2, 0.0f); Vertex[2].rhw = 1.0f; Vertex[2].u = 0.0f; Vertex[2].v = 0.0f; Vertex[2].dif = GetColorU8(btmR, btmG, btmB, kAlphaMax);
 
-    // ¶‰º
+    // å·¦ä¸‹
     Vertex[3] = Vertex[2];
-    // ‰Eã
+    // å³ä¸Š
     Vertex[4] = Vertex[1];
-    // ‰E‰º
-    Vertex[5].pos = VGet(fx2, fy2, 0.0f); Vertex[5].rhw = 1.0f; Vertex[5].u = 0.0f; Vertex[5].v = 0.0f; Vertex[5].dif = GetColorU8(btmR, btmG, btmB, 255);
+    // å³ä¸‹
+    Vertex[5].pos = VGet(fx2, fy2, 0.0f); Vertex[5].rhw = 1.0f; Vertex[5].u = 0.0f; Vertex[5].v = 0.0f; Vertex[5].dif = GetColorU8(btmR, btmG, btmB, kAlphaMax);
 
     DrawPolygon2D(Vertex, 2, DX_NONE_GRAPH, true);
 }

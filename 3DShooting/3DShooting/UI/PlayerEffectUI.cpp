@@ -7,10 +7,6 @@ PlayerEffectUI::PlayerEffectUI(Player* player)
 {
 }
 
-PlayerEffectUI::~PlayerEffectUI()
-{
-}
-
 void PlayerEffectUI::Init()
 {
 }

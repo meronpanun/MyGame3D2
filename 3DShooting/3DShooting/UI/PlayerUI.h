@@ -5,96 +5,105 @@
 #include "ManagedFont.h"
 #include "ManagedGraph.h"
 
-
 class EnemyBase;
 class Player;
 
 /// <summary>
-/// プレイヤーのUI描画クラス
+/// プレイヤーのHP・武器・盾・警告・ロックオンなどのUIを描画するクラス
 /// </summary>
 class PlayerUI : public UIBase
 {
 public:
+    /// <summary>
+    /// コンストラクタ
+    /// </summary>
+    /// <param name="player">プレイヤーのポインタ</param>
     PlayerUI(Player* player);
-    virtual ~PlayerUI();
+
+    virtual ~PlayerUI() = default;
 
     /// <summary>
-    /// 初期化処理
+    /// 初期化処理（フォントのロードを行う）
     /// </summary>
     void Init() override;
 
     /// <summary>
-    /// 更新処理
+    /// 毎フレームの更新処理（UIスケール変更の検知を行う）
     /// </summary>
+    /// <param name="deltaTime">前フレームからの経過時間（秒）</param>
     void Update(float deltaTime) override;
 
     /// <summary>
-    /// UIの描画
+    /// 描画処理（各UIパーツの描画を委譲する）
     /// </summary>
     void Draw() override;
 
 private:
     /// <summary>
-    /// HPバーの描画
+    /// HPバーを描画する
     /// </summary>
+    /// <param name="baseAlpha">基準の不透明度（0.0〜1.0）</param>
     void DrawHPBar(float baseAlpha);
 
     /// <summary>
-    /// 武器UIの描画
+    /// 武器UIを描画する（銃画像・弾薬数テキスト）
     /// </summary>
+    /// <param name="baseAlpha">基準の不透明度（0.0〜1.0）</param>
     void DrawWeaponUI(float baseAlpha);
 
     /// <summary>
-    /// 盾UIの描画
+    /// 盾UIを描画する（耐久度ゲージ）
     /// </summary>
+    /// <param name="baseAlpha">基準の不透明度（0.0〜1.0）</param>
     void DrawShieldUI(float baseAlpha);
 
     /// <summary>
-    /// 警告UIの描画
+    /// 警告UIを描画する（体力低下・弾薬警告）
     /// </summary>
+    /// <param name="baseAlpha">基準の不透明度（0.0〜1.0）</param>
     void DrawWarningUI(float baseAlpha);
 
     /// <summary>
-    /// ロックオンUIの描画
+    /// ロックオンUIを描画する（ロック中の敵上にリングを表示）
     /// </summary>
+    /// <param name="baseAlpha">基準の不透明度（0.0〜1.0）</param>
     void DrawLockOnUI(float baseAlpha);
 
     /// <summary>
-    /// ガード中のテキスト表示
+    /// ガード中テキストを描画する（ロック対象がいない時に「ターゲットなし」を表示）
     /// </summary>
+    /// <param name="baseAlpha">基準の不透明度（0.0〜1.0）</param>
     void DrawGuardText(float baseAlpha);
-    
+
     /// <summary>
-    /// フォントのリロード（スケール変更時）
+    /// UIスケールに合わせてフォントを再生成する
     /// </summary>
-    /// <param name="scale">UIスケール</param>
+    /// <param name="scale">UIスケール値</param>
     void ReloadFonts(float scale);
 
     /// <summary>
-    /// グラデーション矩形を描画する
+    /// グラデーションボックスを描画する
     /// </summary>
     void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
 
 private:
-    Player* m_pPlayer;
+    Player* m_pPlayer; // UIの情報元となるプレイヤーのポインタ
 
     // UI画像ハンドル
-    ManagedGraph m_noAmmoImage;
-    ManagedGraph m_noHealthImage;
-    ManagedGraph m_arImage;
-    ManagedGraph m_noAmmoARImage;
-    ManagedGraph m_sgImage;
-    ManagedGraph m_noAmmoSGImage;
-    ManagedGraph m_healthUiImage;
-    ManagedGraph m_shieldImage;
-    ManagedGraph m_lockOnUI;
+    ManagedGraph m_noAmmoImage;    // 弾薬切れ警告画像
+    ManagedGraph m_noHealthImage;  // 体力低下警告画像
+    ManagedGraph m_arImage;        // アサルトライフル画像
+    ManagedGraph m_noAmmoARImage;  // アサルトライフル弾切れ画像
+    ManagedGraph m_sgImage;        // ショットガン画像
+    ManagedGraph m_noAmmoSGImage;  // ショットガン弾切れ画像
+    ManagedGraph m_healthUiImage;  // HP UIアイコン画像
+    ManagedGraph m_shieldImage;    // 盾ゲージ画像
+    ManagedGraph m_lockOnUI;       // ロックオンリング画像
 
     // フォントハンドル
-    ManagedFont m_font;
-    ManagedFont m_hpFont;
-    ManagedFont m_warningFont;
+    ManagedFont m_font;        // 弾薬数テキスト用フォント
+    ManagedFont m_hpFont;      // HP数値テキスト用フォント
+    ManagedFont m_warningFont; // 警告テキスト用フォント
 
-    // スケール管理
-    float m_prevScale;
+    float m_prevScale; // スケール変更検知用の前フレームUIスケール値
 };
-

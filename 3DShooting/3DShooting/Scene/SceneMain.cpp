@@ -216,7 +216,7 @@ void SceneMain::Init()
     m_loadingModelAnimTime = 0.0f;
     // スケール調整
     MV1SetScale(m_loadingModel, VGet(1.0f, 1.0f, 1.0f));
-    // 回転 (右向きに修正: 90度で左だったため-90度に変更)
+    // 回転
     MV1SetRotationXYZ(m_loadingModel, VGet(0.0f, -90.0f * DX_PI_F / 180.0f, 0.0f));
 
     // 非同期読み込みを有効化
