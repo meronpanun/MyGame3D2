@@ -1,125 +1,110 @@
-#include "EffekseerWarningSuppress.h"
+ï»¿#include "EffekseerWarningSuppress.h"
 #include "SphereCollider.h"
-#include "CapsuleCollider.h" 
-#include <cmath> 
+#include "CapsuleCollider.h"
 #include <algorithm>
+#include <cmath>
 
-SphereCollider::SphereCollider(const VECTOR& center, float radius) 
+namespace
+{
+    constexpr float kRayLengthSqEpsilon = 0.0001f; // ãƒ¬ã‚¤é•·ã•ã®äºŒä¹—ãŒã“ã‚Œæœªæº€ãªã‚‰é€€åŒ–ãƒ¬ã‚¤ã¨è¦‹ãªã™
+    constexpr float kSegmentLenSqEpsilon = 0.0f;   // ç·šåˆ†é•·ã•ã®äºŒä¹—ãŒã“ã‚Œã‚ˆã‚Šå¤§ãã„å ´åˆã«å°„å½±ã‚’è¨ˆç®—ã™ã‚‹
+}
+
+SphereCollider::SphereCollider(const VECTOR& center, float radius)
     : m_center(center)
     , m_radius(radius)
 {
 }
 
-// “–‚½‚è”»’è‚ğs‚¤
 bool SphereCollider::IsIntersects(const Collider* other) const
 {
-	// ‘¼‚ÌƒRƒ‰ƒCƒ_[‚ªnullptr‚Ìê‡‚ÍŒğ·‚µ‚È‚¢
     if (!other) return false;
 
-    // SphereCollider“¯m‚Ì”»’è
+    // çƒåŒå£«ã®åˆ¤å®š
     const SphereCollider* sphere = dynamic_cast<const SphereCollider*>(other);
     if (sphere)
     {
-		// ‹…“¯m‚Ì“–‚½‚è”»’è
-		float dx = m_center.x - sphere->m_center.x; // XÀ•W‚Ì·
-		float dy = m_center.y - sphere->m_center.y; // YÀ•W‚Ì·
-		float dz = m_center.z - sphere->m_center.z; // ZÀ•W‚Ì·
-		float distSq = dx * dx + dy * dy + dz * dz; // ’†SŠÔ‚Ì‹——£‚Ì“ñæ‚ğŒvZ
-		float radiusSum = m_radius + sphere->m_radius; // ”¼Œa‚Ì˜a‚ğŒvZ
-
-        // ‹…‚Ì’†SŠÔ‚Ì‹——£‚Ì“ñæ‚ª”¼Œa‚Ì˜a‚Ì“ñæˆÈ‰º‚È‚ç“–‚½‚Á‚Ä‚¢‚é
-		return distSq <= radiusSum * radiusSum; 
+        float dx     = m_center.x - sphere->m_center.x;
+        float dy     = m_center.y - sphere->m_center.y;
+        float dz     = m_center.z - sphere->m_center.z;
+        float distSq = dx * dx + dy * dy + dz * dz;
+        float radiusSum = m_radius + sphere->m_radius;
+        return distSq <= radiusSum * radiusSum;
     }
 
-    // CapsuleCollider‚Æ‚Ì”»’è
+    // çƒã¨ã‚«ãƒ—ã‚»ãƒ«ã®åˆ¤å®š
     const CapsuleCollider* capsule = dynamic_cast<const CapsuleCollider*>(other);
     if (capsule)
     {
-        // ‹…‚ÆƒJƒvƒZƒ‹‚Ì“–‚½‚è”»’è
-        VECTOR capA = capsule->GetSegmentA();
-        VECTOR capB = capsule->GetSegmentB();
+        VECTOR capA     = capsule->GetSegmentA();
+        VECTOR capB     = capsule->GetSegmentB();
         float capRadius = capsule->GetRadius();
 
-		// ƒJƒvƒZƒ‹‚Ì’†Sü•ª‚ÌƒxƒNƒgƒ‹‚ğŒvZ
-        VECTOR ab = VSub(capB, capA);
-        VECTOR ac = VSub(m_center, capA);
+        // ã‚«ãƒ—ã‚»ãƒ«è»¸ç·šåˆ† AB ä¸Šã§çƒã®ä¸­å¿ƒã«æœ€ã‚‚è¿‘ã„ç‚¹ã‚’æ±‚ã‚ã‚‹
+        VECTOR ab     = VSub(capB, capA);
+        VECTOR ac     = VSub(m_center, capA);
+        float abLenSq = VDot(ab, ab);
+        float t       = 0.0f;
 
-		float abLenSq = VDot(ab, ab); // ü•ªAB‚Ì’·‚³‚Ì“ñæ
-		float t = 0.0f; // ü•ªABã‚Ì“_‚Ö‚Ìƒpƒ‰ƒ[ƒ^t
-
-		// ü•ªAB‚Ì’·‚³‚ªƒ[ƒ‚É‹ß‚¢ê‡A‹…‚Ì’†S‚ªƒJƒvƒZƒ‹‚Ì’[“_‚É‹ß‚¢‚©‚Ç‚¤‚©‚ğ”»’è
-        if (abLenSq > 0.0f)
+        if (abLenSq > kSegmentLenSqEpsilon)
         {
-			t = VDot(ac, ab) / abLenSq; // ‹…‚Ì’†S‚©‚çü•ªAB‚Ö‚Ì“Š‰eƒpƒ‰ƒ[ƒ^
-			t = (std::max)(0.0f, (std::min)(1.0f, t)); // t‚ğ0‚©‚ç1‚Ì”ÍˆÍ‚É§ŒÀ
+            t = VDot(ac, ab) / abLenSq;
+            t = (std::max)(0.0f, (std::min)(1.0f, t)); // [0, 1] ã«ã‚¯ãƒ©ãƒ³ãƒ—
         }
 
-		VECTOR closest = VAdd(capA, VScale(ab, t)); // ü•ªABã‚ÌÅ‚à‹ß‚¢“_‚ğŒvZ
-
-		// ‹…‚Ì’†S‚Æü•ªABã‚ÌÅ‚à‹ß‚¢“_‚Æ‚Ì‹——£‚ğŒvZ
-        float distSq = VDot(VSub(m_center, closest), VSub(m_center, closest));
+        VECTOR closest  = VAdd(capA, VScale(ab, t));
+        float distSq    = VDot(VSub(m_center, closest), VSub(m_center, closest));
         float radiusSum = m_radius + capRadius;
-
-        // ”¼Œa‚Ì˜a‚Ì“ñæˆÈ‰º‚È‚ç“–‚½‚Á‚Ä‚¢‚é
-		return distSq <= radiusSum * radiusSum; 
+        return distSq <= radiusSum * radiusSum;
     }
 
-    return false; // –¢’m‚ÌƒRƒ‰ƒCƒ_[ƒ^ƒCƒv
+    return false; // æœªå¯¾å¿œã®ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼å‹
 }
 
-// Ray‚Æ‚Ì“–‚½‚è”»’è‚ğs‚¤
-bool SphereCollider::IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHtPos, float& outHtDistSq) const
+bool SphereCollider::IsIsIntersectsRay(const VECTOR& rayStart, const VECTOR& rayEnd, VECTOR& outHitPos, float& outHitDistSq) const
 {
-	// Ray‚Ìn“_‚ÆI“_‚ğƒxƒNƒgƒ‹‚Æ‚µ‚Äæ“¾
-    VECTOR rayDir = VSub(rayEnd, rayStart);
+    VECTOR rayDir     = VSub(rayEnd, rayStart);
     float rayLengthSq = VDot(rayDir, rayDir);
 
-    // Ray‚Ì’·‚³‚ª”ñí‚É’Z‚¢A‚Ü‚½‚Íƒ[ƒ‚Ìê‡
-    if (rayLengthSq < 0.0001f)
+    // é€€åŒ–ãƒ¬ã‚¤ï¼ˆé•·ã•ãŒã»ã¼ã‚¼ãƒ­ï¼‰ã®å ´åˆï¼šå§‹ç‚¹ãŒçƒå†…ã«ã‚ã‚Œã°ãƒ’ãƒƒãƒˆ
+    if (rayLengthSq < kRayLengthSqEpsilon)
     {
-        // Ray‚Ìn“_‚Æ‹…‚Ì’†S‚Ì‹——£‚ğŒvZ
         float distSq = VDot(VSub(m_center, rayStart), VSub(m_center, rayStart));
-        // n“_‚ª‹…“à•”‚É‚ ‚ê‚Îƒqƒbƒg
         if (distSq <= m_radius * m_radius)
         {
-            outHtPos    = rayStart;
-            outHtDistSq = 0.0f;
+            outHitPos    = rayStart;
+            outHitDistSq = 0.0f;
             return true;
         }
         return false;
     }
 
-	// Ray‚Ì•ûŒü‚ğ³‹K‰»
-    VECTOR oc = VSub(rayStart, m_center);
-    float a = rayLengthSq;
-    float b = 2.0f * VDot(oc, rayDir);
-    float c = VDot(oc, oc) - m_radius * m_radius;
-    float discriminant = b * b - 4 * a * c;
+    // äºŒæ¬¡æ–¹ç¨‹å¼ atÂ² + bt + c = 0 ã‚’è§£ãï¼ˆãƒ¬ã‚¤ã¨çƒã®äº¤å·®åˆ¤å®šï¼‰
+    VECTOR oc        = VSub(rayStart, m_center);
+    float a          = rayLengthSq;
+    float b          = 2.0f * VDot(oc, rayDir);
+    float c          = VDot(oc, oc) - m_radius * m_radius;
+    float discriminant = b * b - 4.0f * a * c;
 
-	// ”»•Ê®‚ª•‰‚Ìê‡ARay‚Æ‹…‚ÍŒğ·‚µ‚È‚¢
     if (discriminant < 0)
     {
-        return false; // Œğ·‚µ‚È‚¢
+        return false; // äº¤å·®ãªã—
     }
-    else
+
+    float t  = (-b - sqrtf(discriminant)) / (2.0f * a); // æ‰‹å‰ã®äº¤ç‚¹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+    float t1 = (-b + sqrtf(discriminant)) / (2.0f * a); // å¥¥ã®äº¤ç‚¹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+
+    // ãƒ¬ã‚¤ç¯„å›² [0, 1] å†…ã§æœ€ã‚‚æ‰‹å‰ã®äº¤ç‚¹ã‚’æ¡ç”¨ã™ã‚‹
+    if (t < 0.0f || t > 1.0f)
     {
-		float t  = (-b - sqrtf(discriminant)) / (2.0f * a); // Å‰‚ÌŒğ“_‚Ü‚Å‚Ìƒpƒ‰ƒ[ƒ^t
-		float t1 = (-b + sqrtf(discriminant)) / (2.0f * a); // ‚à‚¤ˆê‚Â‚ÌŒğ“_‚Ü‚Å‚Ìƒpƒ‰ƒ[ƒ^t
-
-        // Ray‚Ì”ÍˆÍ(0‚©‚ç1)“à‚ÅAÅ‚à‹ß‚¢Œğ“_‚ğ’T‚·
-        if (t < 0.0f || t > 1.0f) // Å‰‚ÌŒğ“_‚ª”ÍˆÍŠO
+        t = t1;
+        if (t < 0.0f || t > 1.0f)
         {
-            t = t1; // “ñ‚Â–ÚŒğ“_‚ğ‚·
-
-            // “ñ‚Â–Ú‚ÌŒğ“_‚à”ÍˆÍŠO
-            if (t < 0.0f || t > 1.0f) 
-            {
-                return false; // ‚Ç‚¿‚ç‚ÌŒğ“_‚àRay‚Ì”ÍˆÍŠO
-            }
+            return false; // ã©ã¡ã‚‰ã®äº¤ç‚¹ã‚‚ãƒ¬ã‚¤ç¯„å›²å¤–
         }
+    }
 
-        outHtPos    = VAdd(rayStart, VScale(rayDir, t));
-        outHtDistSq = VDot(VSub(outHtPos, rayStart), VSub(outHtPos, rayStart));
-        return true; 
-    } 
+    outHitPos    = VAdd(rayStart, VScale(rayDir, t));
+    outHitDistSq = VDot(VSub(outHitPos, rayStart), VSub(outHitPos, rayStart));
+    return true;
 }
