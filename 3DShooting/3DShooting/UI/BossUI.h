@@ -9,44 +9,57 @@ class EnemyBase;
 class WaveManager;
 
 /// <summary>
-/// ボスUI描画クラス
+/// ボスのHPバーと名前を画面上部に表示するUIクラス
 /// </summary>
 class BossUI : public UIBase
 {
 public:
-	BossUI(WaveManager* waveManager);
-	virtual ~BossUI();
+    /// <summary>
+    /// コンストラクタ
+    /// </summary>
+    /// <param name="waveManager">WaveManagerのポインタ（ボス情報の取得に使用）</param>
+    BossUI(WaveManager* waveManager);
 
-	void Init() override;
-	void Update(float deltaTime) override;
-	void Draw() override;
+    virtual ~BossUI() = default;
 
-private:
-	/// <summary>
-	/// ボスHPバーの描画
-	/// </summary>
-	/// <param name="hp">現在の体力</param>
-	/// <param name="maxHp">最大体力</param>
-	void DrawBossHPBar(float hp, float maxHp);
+    /// <summary>
+    /// 初期化処理（フォントのロードを行う）
+    /// </summary>
+    void Init() override;
 
-	/// <summary>
-	/// フォントのリロード（スケール変更時に呼び出す）
-	/// </summary>
-	/// <param name="scale">新しいスケール</param>
-	void ReloadFonts(float scale);
+    /// <summary>
+    /// 毎フレームの更新処理（スケール変更の検知を行う）
+    /// </summary>
+    /// <param name="deltaTime">前フレームからの経過時間（秒）</param>
+    void Update(float deltaTime) override;
 
-	/// <summary>
-	/// グラデーションボックスの描画（上部と下部で色が変わる）
-	/// </summary>
-	void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
+    /// <summary>
+    /// 描画処理（ボスが存在する場合にHPバーと名前を描画する）
+    /// </summary>
+    void Draw() override;
 
 private:
-	WaveManager* m_pWaveManager;
-	float m_healthBarAnim; // HPバーアニメーション用体力値
-	ManagedFont m_font;    // フォントハンドル
+    /// <summary>
+    /// ボスHPバーを描画する
+    /// </summary>
+    /// <param name="hp">現在の体力</param>
+    /// <param name="maxHp">最大体力</param>
+    void DrawBossHPBar(float hp, float maxHp);
 
-	// スケール管理
-	float m_prevScale;
+    /// <summary>
+    /// UIスケールに合わせてフォントを再生成する
+    /// </summary>
+    /// <param name="scale">UIスケール値</param>
+    void ReloadFonts(float scale);
 
+    /// <summary>
+    /// グラデーションボックスを描画する
+    /// </summary>
+    void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
+
+private:
+    WaveManager* m_pWaveManager; // ボス情報を取得するWaveManagerのポインタ
+    float m_healthBarAnim;       // HPバーの滑らかな追従アニメーション用体力値
+    ManagedFont m_font;          // ボス名・HPテキスト用フォント
+    float m_prevScale;           // スケール変更検知用の前フレームUIスケール値
 };
-

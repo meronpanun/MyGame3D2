@@ -22,18 +22,17 @@ namespace
     constexpr unsigned int kColorHpBarBorder = 0xffffff;
     constexpr float kAnimSpeed = 0.05f; // HPバーの追従速度
 
-    constexpr int kShadowOffset = 2; // 文字の影オフセット
-} 
+    constexpr int   kShadowOffset        =   2;    // 文字の影オフセット（ピクセル）
+    constexpr int   kGlossAlpha          = 100;    // 光沢ラインのアルファ値
+    constexpr float kGlossHeightRatio    =   0.2f; // 光沢ラインの高さ割合（バー高さに対する比率）
+    constexpr float kScaleChangeTolerance =  0.001f; // スケール変更検知のしきい値
+}
 
 BossUI::BossUI(WaveManager* waveManager)
     : m_pWaveManager(waveManager)
     , m_healthBarAnim(0.0f)
     , m_font("ＭＳ ゴシック", 36, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_prevScale(1.0f)
-{
-}
-
-BossUI::~BossUI() 
 {
 }
 
@@ -46,7 +45,7 @@ void BossUI::Update(float deltaTime)
 {
     // スケール変更検知
     float currentScale = Game::GetUIScale();
-    if (fabsf(currentScale - m_prevScale) > 0.001f) 
+    if (fabsf(currentScale - m_prevScale) > kScaleChangeTolerance)
     {
         ReloadFonts(currentScale);
         m_prevScale = currentScale;
@@ -84,8 +83,7 @@ void BossUI::Draw()
         m_healthBarAnim = hp;
     }
 
-    // アニメーション更新
-    // タイムスケールを考慮
+    // アニメーション更新（タイムスケールを考慮）
     float speed = kAnimSpeed * Game::GetTimeScale();
     if (m_healthBarAnim > hp) 
     {
@@ -101,18 +99,10 @@ void BossUI::Draw()
 }
 
 
-void BossUI::DrawBossHPBar(float hp, float maxHp) 
+void BossUI::DrawBossHPBar(float hp, float maxHp)
 {
-    // スケール変更検知
-    float currentScale = Game::GetUIScale();
-    if (fabsf(currentScale - m_prevScale) > 0.001f) 
-    {
-        ReloadFonts(currentScale);
-        m_prevScale = currentScale;
-    }
-
     int screenW = Game::GetScreenWidth();
-     float scale = Game::GetUIScale();
+    float scale = Game::GetUIScale();
 
     int barW = static_cast<int>(kBossHpBarWidth * scale);
     int barH = static_cast<int>(kBossHpBarHeight * scale);
@@ -140,9 +130,9 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
         int hpW = static_cast<int>(barW * hpRate);
         DrawGradientBox(barX, barY, barX + hpW, barY + barH, kColorHpBarTop, kColorHpBarBottom);
         
-        // 光沢ライン（上部20%）
-        int glossH = static_cast<int>(barH * 0.2f);
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
+        // 光沢ライン（上部）
+        int glossH = static_cast<int>(barH * kGlossHeightRatio);
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kGlossAlpha);
         DrawBox(barX, barY, barX + hpW, barY + glossH, 0xffffff, true);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
@@ -161,9 +151,9 @@ void BossUI::DrawBossHPBar(float hp, float maxHp)
     DrawStringToHandle(textX, textY, bossName, kColorWhite, m_font);
 }
 
-void BossUI::ReloadFonts(float scale) 
+void BossUI::ReloadFonts(float scale)
 {
-	m_font.Reload(scale); // スケールに応じてフォントを再生成
+    m_font.Reload(scale);
 }
 
 void BossUI::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor)
