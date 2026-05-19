@@ -1,14 +1,5 @@
 ﻿#include "UIManager.h"
 
-UIManager::UIManager()
-{
-}
-
-UIManager::~UIManager()
-{
-    Clear();
-}
-
 void UIManager::AddUI(std::shared_ptr<UIBase> ui)
 {
     if (ui)

@@ -27,13 +27,31 @@ namespace
     constexpr float kCheckMarkAnimScale = 2.0f;
 
     // メッセージ関連定数
-    constexpr float kMessageDisplayTime = 5.0f;
-    constexpr int kMessageTitleFontSize = 36;
-    constexpr int kMessageDetailFontSize = 28;
-    constexpr int kMessageOffsetY = 220;
-    constexpr int kMessageLineSpacing = 8;
-    constexpr int kMessageTimeBarHeight = 6;
-    constexpr int kMessageTimeBarPaddingY = 24;
+    constexpr float kMessageDisplayTime    =  5.0f;
+    constexpr int   kMessageTitleFontSize  =  36;
+    constexpr int   kMessageDetailFontSize =  28;
+    constexpr int   kMessageOffsetY        = 220;
+    constexpr int   kMessageLineSpacing    =   8;
+    constexpr int   kMessageTimeBarHeight  =   6;
+    constexpr int   kMessageTimeBarPaddingY=  24;
+
+    // レイアウト・余白関連定数
+    constexpr int   kBoxRightMargin        =  60;   // ボックスの右マージン（画面端からの距離）
+    constexpr int   kBoxInnerSpacing       =  10;   // ボックス内要素間の追加スペース
+    constexpr int   kMessageBoxSpacing     =  10;   // メッセージボックス間の縦スペース
+
+    // 色関連定数
+    constexpr unsigned int kColorWhite     = 0xffffff; // テキスト色（白）
+    constexpr unsigned int kColorTimeBar   = 0xFF0000; // メッセージ時間バー色（赤）
+
+    // フォント関連定数
+    constexpr char kJapaneseFontName[]     = "HGPゴシックE";
+    constexpr int  kJapaneseFontSize       = 30; // 通常サイズ日本語フォントのサイズ
+    constexpr int  kJapaneseLargeFontSize  = 54; // 大サイズ日本語フォントのサイズ
+    constexpr int  kFontThickness          =  3; // フォントの太さ
+
+    // スケール変更検知
+    constexpr float kScaleChangeTolerance  = 0.001f; // スケール変更検知のしきい値
 }
 
 TutorialUI::TutorialUI(TutorialManager* pManager)
@@ -58,14 +76,10 @@ TutorialUI::TutorialUI(TutorialManager* pManager)
     , m_spaceKeyHandle("data/image/Space.png")
     , m_leftShiftKeyHandle("data/image/LeftShift.png")
     , m_crossHandle("data/image/Cross.png")
-    , m_japaneseFontHandle("HGPゴシックE", 30, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_japaneseLargeFontHandle("HGPゴシックE", 54, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
-    , m_messageDetailFontHandle("HGPゴシックE", kMessageDetailFontSize, 3, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseFontHandle(kJapaneseFontName, kJapaneseFontSize,      kFontThickness, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_japaneseLargeFontHandle(kJapaneseFontName, kJapaneseLargeFontSize, kFontThickness, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
+    , m_messageDetailFontHandle(kJapaneseFontName, kMessageDetailFontSize,  kFontThickness, DX_FONTTYPE_ANTIALIASING_EDGE_8X8)
     , m_prevScale(1.0f)
-{
-}
-
-TutorialUI::~TutorialUI()
 {
 }
 
@@ -86,7 +100,7 @@ void TutorialUI::Update(float deltaTime)
     if (!m_pManager) return;
 
     float scale = Game::GetUIScale();
-    if (fabsf(scale - m_prevScale) > 0.001f)
+    if (fabsf(scale - m_prevScale) > kScaleChangeTolerance)
     {
         ReloadFonts(scale);
         m_prevScale = scale;
@@ -245,10 +259,10 @@ void TutorialUI::DrawTutorialItem(int screenW, int screenH, float scale, const c
     }
     if (!icons.empty()) totalIconsWidth -= scaledKeyImageSpacing;
 
-    int boxWidth = totalIconsWidth + remainingTextWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2 + 10;
+    int boxWidth  = totalIconsWidth + remainingTextWidth + scaledCheckMarkBaseSize + scaledBoxPaddingX * 2 + kBoxInnerSpacing;
     int boxHeight = scaledKeyImageSize + scaledBoxPaddingY * 2;
 
-    int boxX = screenW - boxWidth - static_cast<int>(60 * scale) + static_cast<int>(m_uiXOffset * scale);
+    int boxX = screenW - boxWidth - static_cast<int>(kBoxRightMargin * scale) + static_cast<int>(m_uiXOffset * scale);
     int boxY = static_cast<int>(kUIOffsetY * scale);
 
     // 背景ボックス
@@ -268,7 +282,7 @@ void TutorialUI::DrawTutorialItem(int screenW, int screenH, float scale, const c
 
     // テキスト
     int textY = boxY + static_cast<int>((boxHeight - static_cast<int>(kFontSize * scale)) * 0.5f);
-    DrawStringToHandle(currentX, textY, text, 0xffffff, m_japaneseFontHandle);
+    DrawStringToHandle(currentX, textY, text, kColorWhite, m_japaneseFontHandle);
 
     // チェックマーク
     if (isDone)
@@ -314,7 +328,7 @@ void TutorialUI::DrawMessagesUI(int screenW, int screenH, float scale)
         int boxW = (std::max)(titleW, maxDetailW) + scaledBoxPaddingX * 2;
         int boxH = scaledBoxPaddingY * 2 + static_cast<int>(kMessageTitleFontSize * scale) + static_cast<int>(kMessageTimeBarPaddingY * 2 * scale) + static_cast<int>(kMessageTimeBarHeight * scale) + static_cast<int>(kMessageDetailFontSize * detailLines.size() * scale);
 
-        int boxX = screenW - boxW - static_cast<int>(60 * scale) + static_cast<int>(msg.xOffset * scale);
+        int boxX = screenW - boxW - static_cast<int>(kBoxRightMargin * scale) + static_cast<int>(msg.xOffset * scale);
         
         // 描画
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBoxAlpha);
@@ -322,22 +336,22 @@ void TutorialUI::DrawMessagesUI(int screenW, int screenH, float scale)
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
         int curY = yPos + scaledBoxPaddingY;
-        DrawStringToHandle(boxX + scaledBoxPaddingX, curY, msg.title.c_str(), 0xFFFFFF, m_japaneseLargeFontHandle);
+        DrawStringToHandle(boxX + scaledBoxPaddingX, curY, msg.title.c_str(), kColorWhite, m_japaneseLargeFontHandle);
         curY += static_cast<int>(kMessageTitleFontSize * scale) + static_cast<int>(kMessageTimeBarPaddingY * scale);
 
         if (msg.state == TutorialManager::UIState::OnScreen)
         {
             float progress = 1.0f - (msg.displayTimer / kMessageDisplayTime);
-            DrawBox(boxX + scaledBoxPaddingX, curY, boxX + scaledBoxPaddingX + static_cast<int>((boxW - scaledBoxPaddingX * 2) * progress), curY + static_cast<int>(kMessageTimeBarHeight * scale), 0xFF0000, true);
+            DrawBox(boxX + scaledBoxPaddingX, curY, boxX + scaledBoxPaddingX + static_cast<int>((boxW - scaledBoxPaddingX * 2) * progress), curY + static_cast<int>(kMessageTimeBarHeight * scale), kColorTimeBar, true);
         }
         curY += static_cast<int>(kMessageTimeBarHeight * scale) + static_cast<int>(kMessageTimeBarPaddingY * scale);
 
         for (const auto& l : detailLines)
         {
-            DrawStringToHandle(boxX + scaledBoxPaddingX, curY, l.c_str(), 0xFFFFFF, m_messageDetailFontHandle);
+            DrawStringToHandle(boxX + scaledBoxPaddingX, curY, l.c_str(), kColorWhite, m_messageDetailFontHandle);
             curY += static_cast<int>(kMessageDetailFontSize * scale) + static_cast<int>(kMessageLineSpacing * scale);
         }
 
-        yPos += boxH + static_cast<int>(10 * scale);
+        yPos += boxH + static_cast<int>(kMessageBoxSpacing * scale);
     }
 }
