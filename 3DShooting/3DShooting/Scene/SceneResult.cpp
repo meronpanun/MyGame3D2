@@ -10,11 +10,54 @@
 
 namespace
 {
-    constexpr int kButtonWidth = 220;    // ボタンの幅
-    constexpr int kButtonHeight = 60;    // ボタンの高さ
-    constexpr int kButtonSpacing = 40;   // ボタン間のスペース
-    constexpr int kBgImageSize = 1024;   // 背景画像のサイズ
-    constexpr float kScrollSpeed = 1.0f; // 背景のスクロール速度
+    // 背景スクロール
+    constexpr int   kBgImageSize  = 1024;  // 背景画像のタイルサイズ（ピクセル）
+    constexpr float kScrollSpeed  =  1.0f; // 背景のスクロール速度（ピクセル/フレーム）
+
+    // ランク閾値
+    constexpr int kRankSScore = 10000; // Sランクの最低スコア
+    constexpr int kRankAScore =  5000; // Aランクの最低スコア
+    constexpr int kRankBScore =  3000; // Bランクの最低スコア
+
+    // 描画共通
+    constexpr int kShadowOffset  =   2; // テキスト影のオフセット（ピクセル）
+    constexpr int kOverlayAlpha  = 128; // 背景オーバーレイのアルファ値
+    constexpr int kResBgAlpha    = 200; // リザルト背景パネルのアルファ値
+
+    // レイアウト基準値（UIスケール適用前の設計値）
+    constexpr int kImageNativeWidth  = 800; // ゲームクリア画像の表示幅
+    constexpr int kImageNativeHeight = 200; // ゲームクリア画像の表示高さ
+    constexpr int kImageTopMargin    =  50; // ゲームクリア画像の上マージン
+
+    constexpr int kResBgNativeWidth  = 700; // リザルト背景パネルの幅
+    constexpr int kResBgNativeHeight = 240; // リザルト背景パネルの高さ
+    constexpr int kResBgTopOffset    = 280; // リザルト背景パネルの上端Y座標
+
+    constexpr int kTextLabelOffsetX  = 100; // テキストラベルの左端オフセット
+    constexpr int kTextValueOffsetX  = 450; // テキスト値の左端オフセット
+    constexpr int kTextTopPadding    =  25; // テキスト領域の上パディング
+    constexpr int kTextLineInterval  =  65; // テキスト行間隔
+    constexpr int kHighScoreExtraOffset = 260; // ハイスコア欄の追加オフセット（70+70+100+20）
+    constexpr int kHighScoreInterval =  60; // ハイスコア行間隔
+
+    constexpr int kBtnBottomMargin   = 150; // ボタンの下マージン
+    constexpr int kBtnNativeWidth    = 270; // ボタン幅
+    constexpr int kBtnNativeHeight   =  70; // ボタン高さ
+    constexpr int kBtnSpacingNative  =  60; // ボタン間スペース
+    constexpr int kBtnTextFontSize   =  36; // ボタンテキストのフォントサイズ（スケール前）
+
+    // ハイスコア色
+    constexpr unsigned int kColorGold   = 0xffd700; // 1位の色（金）
+    constexpr unsigned int kColorSilver = 0xc0c0c0; // 2位の色（銀）
+    constexpr unsigned int kColorBronze = 0xff8c00; // 3位の色（銅）
+
+    // ボタン色
+    constexpr unsigned int kBtnTopColorHover = 0x666666; // ホバー時ボタン上部色
+    constexpr unsigned int kBtnBtmColorHover = 0x444444; // ホバー時ボタン下部色
+    constexpr unsigned int kBtnTopColor      = 0x444444; // 通常ボタン上部色
+    constexpr unsigned int kBtnBtmColor      = 0x222222; // 通常ボタン下部色
+    constexpr unsigned int kBtnBorderHover   = 0xffffff; // ホバー時枠線色
+    constexpr unsigned int kBtnBorderNormal  = 0xaaaaaa; // 通常枠線色
 }
 
 SceneResult::SceneResult()
@@ -48,16 +91,14 @@ SceneResult::SceneResult()
     m_maxCombo = ScoreManager::Instance().GetMaxCombo();
 
     // ランク計算
-    if (m_score >= 10000) m_rank = 'S';
-    else if (m_score >= 5000) m_rank = 'A';
-    else if (m_score >= 3000) m_rank = 'B';
-    else m_rank = 'C';
+    if      (m_score >= kRankSScore) m_rank = 'S';
+    else if (m_score >= kRankAScore) m_rank = 'A';
+    else if (m_score >= kRankBScore) m_rank = 'B';
+    else                             m_rank = 'C';
 
-    // Fonts setup
     ReloadFonts(Game::GetUIScale());
 }
 
-// フォントリロード
 void SceneResult::ReloadFonts(float scale)
 {
     m_japaneseFont.Reload(scale);
@@ -65,11 +106,6 @@ void SceneResult::ReloadFonts(float scale)
     m_arialBlackLargeFont.Reload(scale);
     m_japaneseLargeFont.Reload(scale);
     m_japaneseButtonFont.Reload(scale);
-}
-
-SceneResult::~SceneResult()
-{
-    // 自動解放されるため処理不要
 }
 
 void SceneResult::Init()
@@ -163,7 +199,7 @@ void SceneResult::Draw()
     }
 
     // 全体への黒半透明オーバーレイで文字を読みやすくする
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kOverlayAlpha);
     DrawBox(0, 0, screenW, screenH, 0x000000, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -175,7 +211,7 @@ void SceneResult::Draw()
 
     // リザルト表示エリアの背景（グラデーション）
     // 上: 透明度のある濃い黒, 下: 少し明るい黒
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 200);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, kResBgAlpha);
     DrawGradientBox(m_layout.resBgX, m_layout.resBgY, m_layout.resBgX + m_layout.resBgW, m_layout.resBgY + m_layout.resBgH, 0x000000, 0x404040);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
@@ -184,7 +220,7 @@ void SceneResult::Draw()
     DrawBox(m_layout.resBgX + 4, m_layout.resBgY + 4, m_layout.resBgX + m_layout.resBgW - 4, m_layout.resBgY + m_layout.resBgH - 4, 0xaaaaaa, false);
 
     int y = m_layout.textBaseY;
-    int shadowOffset = 2; // 影のオフセット
+    int shadowOffset = kShadowOffset;
 
     // スコア、キル数、タイムの表示 (左寄せ気味に揃える)
     // 合計スコア
@@ -217,7 +253,7 @@ void SceneResult::Draw()
     // ハイスコア表示
     int highScoreY = m_layout.highScoreY;
     float scale = Game::GetUIScale();
-    int highScoreInterval = static_cast<int>(60 * scale);
+    int highScoreInterval = static_cast<int>(kHighScoreInterval * scale);
 
     // タイトル
     int highScoreTextWidth = GetDrawStringWidthToHandle("--- High Score ---", -1, m_arialBlackFont);
@@ -234,9 +270,9 @@ void SceneResult::Draw()
         sprintf_s(highStr, sizeof(highStr), "%d位: %d", i + 1, scores[i]);
         int highStrWidth = GetDrawStringWidthToHandle(highStr, -1, m_japaneseLargeFont);
         unsigned int color = 0xffffff;
-        if (i == 0) color = 0xffd700;
-        else if (i == 1) color = 0xc0c0c0; 
-        else if (i == 2) color = 0xff8c00; 
+        if      (i == 0) color = kColorGold;
+        else if (i == 1) color = kColorSilver;
+        else if (i == 2) color = kColorBronze;
 
         // 影
         DrawFormatStringToHandle(static_cast<int>(screenW * 0.5f - highStrWidth * 0.5f + shadowOffset), static_cast<int>(highScoreY + shadowOffset), 0x000000, m_japaneseLargeFont, "%s", highStr);
@@ -251,12 +287,12 @@ void SceneResult::Draw()
     auto DrawButton = [&](int x1, int y1, int x2, int y2, const char* text, bool isHover)
     {
         // グラデーション背景
-        unsigned int topColor = isHover ? 0x666666 : 0x444444;
-        unsigned int btmColor = isHover ? 0x444444 : 0x222222;
+        unsigned int topColor = isHover ? kBtnTopColorHover : kBtnTopColor;
+        unsigned int btmColor = isHover ? kBtnBtmColorHover : kBtnBtmColor;
         DrawGradientBox(x1, y1, x2, y2, topColor, btmColor);
 
         // 枠線
-        unsigned int borderColor = isHover ? 0xffffff : 0xaaaaaa;
+        unsigned int borderColor = isHover ? kBtnBorderHover : kBtnBorderNormal;
         DrawBox(x1, y1, x2, y2, borderColor, false);
         if (isHover)
         {
@@ -266,7 +302,7 @@ void SceneResult::Draw()
 
         // テキスト
         int textWidth = GetDrawStringWidthToHandle(text, -1, m_japaneseButtonFont);
-        int textHeight = static_cast<int>(36 * Game::GetUIScale());
+        int textHeight = static_cast<int>(kBtnTextFontSize * Game::GetUIScale());
         int textX = x1 + static_cast<int>((x2 - x1 - textWidth) * 0.5f);
         int textY = y1 + static_cast<int>((y2 - y1 - textHeight) * 0.5f);
 
@@ -300,43 +336,42 @@ void SceneResult::UpdateLayout()
         m_prevScale = scale;
     }
 
-    // Draw Game Clear Image
-    m_layout.imageDrawWidth = static_cast<int>(800 * scale);
-    m_layout.imageDrawHeight = static_cast<int>(200 * scale);
-    m_layout.imageDrawX = static_cast<int>((screenW - m_layout.imageDrawWidth) * 0.5f);
-    m_layout.imageDrawY = static_cast<int>(50 * scale);
+    // ゲームクリア画像
+    m_layout.imageDrawWidth  = static_cast<int>(kImageNativeWidth  * scale);
+    m_layout.imageDrawHeight = static_cast<int>(kImageNativeHeight * scale);
+    m_layout.imageDrawX      = static_cast<int>((screenW - m_layout.imageDrawWidth) * 0.5f);
+    m_layout.imageDrawY      = static_cast<int>(kImageTopMargin * scale);
 
-    // Result BG
-    m_layout.resBgW = static_cast<int>(700 * scale);
-    m_layout.resBgH = static_cast<int>(240 * scale);
+    // リザルト背景パネル
+    m_layout.resBgW = static_cast<int>(kResBgNativeWidth  * scale);
+    m_layout.resBgH = static_cast<int>(kResBgNativeHeight * scale);
     m_layout.resBgX = static_cast<int>((screenW - m_layout.resBgW) * 0.5f);
-    m_layout.resBgY = static_cast<int>(280 * scale);
+    m_layout.resBgY = static_cast<int>(kResBgTopOffset * scale);
 
-    // Text
-    m_layout.textLabelX = m_layout.resBgX + static_cast<int>(100 * scale);
-    m_layout.textValueX = m_layout.resBgX + static_cast<int>(450 * scale);
-    m_layout.textBaseY = m_layout.resBgY + static_cast<int>(25 * scale);
-    m_layout.textIntervalHigh = static_cast<int>(65 * scale);
+    // テキスト領域
+    m_layout.textLabelX      = m_layout.resBgX + static_cast<int>(kTextLabelOffsetX * scale);
+    m_layout.textValueX      = m_layout.resBgX + static_cast<int>(kTextValueOffsetX * scale);
+    m_layout.textBaseY       = m_layout.resBgY + static_cast<int>(kTextTopPadding   * scale);
+    m_layout.textIntervalHigh = static_cast<int>(kTextLineInterval * scale);
 
-    // High Score
-    m_layout.highScoreY = m_layout.textBaseY + static_cast<int>((70 + 70 + 100 + 20) * scale);
+    // ハイスコア欄
+    m_layout.highScoreY = m_layout.textBaseY + static_cast<int>(kHighScoreExtraOffset * scale);
 
-    // Buttons
-    int bottomMargin = static_cast<int>(150 * scale);
-    int btnY = screenH - bottomMargin;
+    // ボタン
+    int bottomMargin = static_cast<int>(kBtnBottomMargin   * scale);
+    int btnY         = screenH - bottomMargin;
+    m_layout.btnW    = static_cast<int>(kBtnNativeWidth    * scale);
+    m_layout.btnH    = static_cast<int>(kBtnNativeHeight   * scale);
+    int btnSpacing   = static_cast<int>(kBtnSpacingNative  * scale);
+    int centerX      = static_cast<int>(screenW * 0.5f);
 
-    m_layout.btnW = static_cast<int>(270 * scale);
-    m_layout.btnH = static_cast<int>(70 * scale);
-    int btnSpacing = static_cast<int>(60 * scale);
-    int centerX = static_cast<int>(screenW * 0.5f);
-
-    // Title Button
+    // タイトルボタン
     m_layout.titleBtnX1 = static_cast<int>(centerX - m_layout.btnW - btnSpacing * 0.5f);
     m_layout.titleBtnY1 = btnY;
     m_layout.titleBtnX2 = static_cast<int>(centerX - btnSpacing * 0.5f);
     m_layout.titleBtnY2 = btnY + m_layout.btnH;
 
-    // Retry Button
+    // リトライボタン
     m_layout.retryBtnX1 = static_cast<int>(centerX + btnSpacing * 0.5f);
     m_layout.retryBtnY1 = btnY;
     m_layout.retryBtnX2 = static_cast<int>(centerX + m_layout.btnW + btnSpacing * 0.5f);
