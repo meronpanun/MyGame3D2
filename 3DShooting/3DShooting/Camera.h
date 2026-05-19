@@ -1,244 +1,259 @@
-#pragma once
+ï»¿#pragma once
 #include "EffekseerWarningSuppress.h"
 
 /// <summary>
-/// ƒJƒƒ‰ƒNƒ‰ƒX
+/// DxLib ã® MV1 ãƒ¢ãƒ‡ãƒ«ç”¨ã‚«ãƒ¡ãƒ©ã‚¯ãƒ©ã‚¹ã€‚
+/// ä½ç½®ãƒ»æ³¨è¦–ç‚¹ãƒ»FOV ã®ã»ã‹ã€Head Bobbing / Sway / Shake / ç€åœ°æºã‚Œ / æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ç®¡ç†ã™ã‚‹ã€‚
 /// </summary>
 class Camera
 {
 public:
-	Camera();
-	virtual ~Camera();
+    /// <summary>
+    /// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ï¼ˆå„ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã§åˆæœŸåŒ–ã™ã‚‹ï¼‰
+    /// </summary>
+    Camera();
 
-	void Init();
-	void Update(bool isInputDisabled = false);
+    virtual ~Camera() = default;
 
-	/// <summary>
-	/// ƒJƒƒ‰‚ÌŠ´“x‚ğİ’è 
-	/// </summary>
-	/// <param name="sensitivity">Š´“x</param> 
-	void SetSensitivity(float sensitivity);
+    /// <summary>
+    /// åˆæœŸåŒ–å‡¦ç†ï¼ˆã‚«ãƒ¡ãƒ©è¨­å®šã‚’ DxLib ã«é©ç”¨ã™ã‚‹ï¼‰
+    /// </summary>
+    void Init();
 
-	/// <summary>
-	/// ƒJƒƒ‰‚ÌˆÊ’u‚ğæ“¾
-	/// </summary>
-	/// <returns>ƒJƒƒ‰‚ÌˆÊ’u</returns>
-	VECTOR GetPos() const { return m_pos; }
+    /// <summary>
+    /// æ¯ãƒ•ãƒ¬ãƒ¼ãƒ ã®æ›´æ–°å‡¦ç†ï¼ˆå›è»¢ãƒ»ã‚·ã‚§ã‚¤ã‚¯ãƒ»Head Bobbingãƒ»FOV è£œé–“ãªã©ï¼‰
+    /// </summary>
+    /// <param name="isInputDisabled">true ã®å ´åˆãƒã‚¦ã‚¹å…¥åŠ›ã‚’ç„¡è¦–ã—ã€ãƒã‚¦ã‚¹ã‚’ä¸­å¤®ã«å›ºå®šã™ã‚‹</param>
+    void Update(bool isInputDisabled = false);
 
-	/// <summary>
-	/// ƒJƒƒ‰‚Ì’‹“_‚ğæ“¾
-	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ì’‹“_</returns>
-	VECTOR GetTarget() const { return m_target; }
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®æ„Ÿåº¦ã‚’è¨­å®šã™ã‚‹
+    /// </summary>
+    /// <param name="sensitivity">æ„Ÿåº¦å€¤</param>
+    void SetSensitivity(float sensitivity);
 
-	/// <summary>
-	/// ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğæ“¾
-	/// </summary>
-	/// <returns>ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg</returns>
-	VECTOR GetOffset() const { return m_offset; }
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ç¾åœ¨ä½ç½®ã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ã‚«ãƒ¡ãƒ©ã®ä½ç½®</returns>
+    VECTOR GetPos() const { return m_pos; }
 
-	/// <summary>
-	/// ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğİ’è
-	/// </summary>
-	/// <param name="offset">ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg</param>
-	void SetOffset(const VECTOR& offset) { m_offset = offset; }
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ç¾åœ¨æ³¨è¦–ç‚¹ã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹</returns>
+    VECTOR GetTarget() const { return m_target; }
 
-	/// <summary>
-	/// ƒJƒƒ‰‚ÌˆÊ’u‚ğİ’è
-	/// </summary>
-	/// <param name="pos">ƒJƒƒ‰‚ÌˆÊ’u</param>
-	void SetPos(const VECTOR& pos) { m_pos = pos; }
-	/// <summary>
-	/// ƒJƒƒ‰‚Ì’‹“_‚ğİ’è
-	/// </summary>
-	/// <param name="target">ƒJƒƒ‰‚Ì’‹“_</param>
-	void SetTarget(const VECTOR& target) { m_target = target; }
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ</returns>
+    VECTOR GetOffset() const { return m_offset; }
 
-	/// <summary>
-	/// ƒvƒŒƒCƒ„[‚ÌˆÊ’u‚ğİ’è
-	/// </summary>
-	/// <param name="playerPos">ƒvƒŒƒCƒ„[‚ÌˆÊ’u</param>
-	void SetPlayerPos(const VECTOR& playerPos) { m_playerPos = playerPos; }
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’è¨­å®šã™ã‚‹
+    /// </summary>
+    /// <param name="offset">è¨­å®šã™ã‚‹ã‚ªãƒ•ã‚»ãƒƒãƒˆå€¤</param>
+    void SetOffset(const VECTOR& offset) { m_offset = offset; }
 
-	/// <summary>
-	/// ƒJƒƒ‰‚Ì‰ñ“]Šp“x‚ğæ“¾
-	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ì‰ñ“]Šp“x</returns>
-	float GetYaw()   const { return m_yaw; }
-	/// <summary>
-	/// ƒJƒƒ‰‚Ìƒsƒbƒ`Šp“x‚ğæ“¾
-	/// </summary>
-	/// <returns>ƒJƒƒ‰‚Ìƒsƒbƒ`Šp“x</returns>
-	float GetPitch() const { return m_pitch; }
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã‚’ç›´æ¥è¨­å®šã™ã‚‹
+    /// </summary>
+    /// <param name="pos">è¨­å®šã™ã‚‹ä½ç½®</param>
+    void SetPos(const VECTOR& pos) { m_pos = pos; }
 
-	/// <summary>
-	/// ƒJƒƒ‰‚ÌˆÊ’u‚Æ’‹“_‚ğDxLib‚Éİ’è
-	/// </summary>
-	void SetCameraToDxLib();
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹ã‚’ç›´æ¥è¨­å®šã™ã‚‹
+    /// </summary>
+    /// <param name="target">è¨­å®šã™ã‚‹æ³¨è¦–ç‚¹</param>
+    void SetTarget(const VECTOR& target) { m_target = target; }
 
-	/// <summary>
-	/// ƒJƒƒ‰‚Ì‹–ìŠp(FOV)‚ğİ’è
-	/// </summary>
-	/// <param name="fov">‹–ìŠp</param>
-	void SetFOV(float fov);
+    /// <summary>
+    /// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ã‚’è¨­å®šã™ã‚‹ï¼ˆã‚«ãƒ¡ãƒ©ä½ç½®ã®åŸºç‚¹ã¨ã—ã¦ä½¿ç”¨ï¼‰
+    /// </summary>
+    /// <param name="playerPos">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®</param>
+    void SetPlayerPos(const VECTOR& playerPos) { m_playerPos = playerPos; }
 
-	/// <summary>
-	/// Œ»İ‚Ì‹–ìŠp(FOV)‚ğæ“¾
-	/// </summary>
-	/// <returns>Œ»İ‚Ì‹–ìŠp(FOV)</returns>
-	float GetFOV() const;
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã® Yaw è§’åº¦ã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>Yaw è§’åº¦ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰</returns>
+    float GetYaw()   const { return m_yaw; }
 
-	/// <summary>
-	/// ƒJƒƒ‰‚Ì‹–ìŠp(FOV)‚ğƒfƒtƒHƒ‹ƒg‚É–ß‚·
-	/// </summary>
-	void ResetFOV();
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ãƒ”ãƒƒãƒè§’åº¦ã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ãƒ”ãƒƒãƒè§’åº¦ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰</returns>
+    float GetPitch() const { return m_pitch; }
 
-	/// <summary>
-	/// ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg‚ğƒfƒtƒHƒ‹ƒg‚É–ß‚·
-	/// </summary>
-	void ResetOffset();
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã¨æ³¨è¦–ç‚¹ã‚’ DxLib ã«è¨­å®šã™ã‚‹
+    /// </summary>
+    void SetCameraToDxLib();
 
-	/// <summary>
-	/// –Ú•WFOV‚ğƒZƒbƒg
-	/// </summary>
-	/// <param name="fov">–Ú•WFOV</param>
-	void SetTargetFOV(float fov);
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®è¦–é‡è§’ï¼ˆFOVï¼‰ã®ç›®æ¨™å€¤ã‚’è¨­å®šã™ã‚‹ï¼ˆæ»‘ã‚‰ã‹ã«è£œé–“ã•ã‚Œã‚‹ï¼‰
+    /// </summary>
+    /// <param name="fov">ç›®æ¨™è¦–é‡è§’ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰</param>
+    void SetFOV(float fov);
 
-	/// <summary>
-	/// ƒVƒFƒCƒNŒø‰Ê‚ğ“K—p
-	/// </summary>
-	/// <param name="intensity">ƒVƒFƒCƒN‚Ì‹­“x</param>
-	/// <param name="duration">ƒVƒFƒCƒN‚Ì‘±ŠÔ</param>
-	void Shake(float intensity, float duration);
+    /// <summary>
+    /// ç¾åœ¨ã®è¦–é‡è§’ï¼ˆFOVï¼‰ã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ç¾åœ¨ã®è¦–é‡è§’ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰</returns>
+    float GetFOV() const;
 
-	/// <summary>
-	/// ƒVƒFƒCƒNƒIƒtƒZƒbƒg‚ğæ“¾
-	/// </summary>
-	/// <returns>ƒVƒFƒCƒNƒIƒtƒZƒbƒg</returns>
-	VECTOR GetShakeOffset() const { return m_shakeOffset; }
+    /// <summary>
+    /// è¦–é‡è§’ï¼ˆFOVï¼‰ã‚’ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã«æˆ»ã™
+    /// </summary>
+    void ResetFOV();
 
-	/// <summary>
-	/// Head BobbingƒIƒtƒZƒbƒg‚ğæ“¾
-	/// </summary>
-	/// <returns>Head BobbingƒIƒtƒZƒbƒg</returns>
-	VECTOR GetHeadBobOffset() const { return m_headBobOffset; }
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã«æˆ»ã™
+    /// </summary>
+    void ResetOffset();
 
-	/// <summary>
-	/// Head Bobbini•às‚Ì‰æ–Ê—h‚êj‚Ìó‘Ô‚ğİ’è
-	/// </summary>
-	/// <param name="isMoving">ˆÚ“®’†‚©‚Ç‚¤‚©</param>
-	/// <param name="isRunning">‘–s’†‚©‚Ç‚¤‚©</param>
-	void SetHeadBobbingState(bool isMoving, bool isRunning);
+    /// <summary>
+    /// ç›®æ¨™ FOV ã‚’ç›´æ¥è¨­å®šã™ã‚‹
+    /// </summary>
+    /// <param name="fov">ç›®æ¨™ FOVï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰</param>
+    void SetTargetFOV(float fov);
 
-	/// <summary>
-	/// ’…’n‚Ì—h‚ê‚ğ“K—p
-	/// </summary>
-	/// <param name="intensity">—h‚ê‚Ì‹­‚³</param>
-	void ApplyLandingSway(float intensity);
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©ã‚·ã‚§ã‚¤ã‚¯ã‚’é–‹å§‹ã™ã‚‹
+    /// </summary>
+    /// <param name="intensity">ã‚·ã‚§ã‚¤ã‚¯ã®å¼·åº¦</param>
+    /// <param name="duration">ã‚·ã‚§ã‚¤ã‚¯ã®æŒç¶šãƒ•ãƒ¬ãƒ¼ãƒ æ•°</param>
+    void Shake(float intensity, float duration);
 
-	/// <summary>
-	/// ’…’n‚Ì—h‚êƒIƒtƒZƒbƒg‚ğæ“¾
-	/// </summary>
-	/// <returns>’…’n‚Ì—h‚êƒIƒtƒZƒbƒg</returns>
-	VECTOR GetLandingSwayOffset() const;
+    /// <summary>
+    /// ç¾åœ¨ã®ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆ</returns>
+    VECTOR GetShakeOffset() const { return m_shakeOffset; }
 
-	/// <summary>
-	/// ƒWƒƒƒ“ƒv‚Ì—h‚ê‚ğ“K—p
-	/// </summary>
-	/// <param name="intensity">—h‚ê‚Ì‹­‚³</param>
-	void ApplyJumpSway(float intensity);
+    /// <summary>
+    /// Head Bobbing ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>Head Bobbing ã«ã‚ˆã‚‹ã‚ªãƒ•ã‚»ãƒƒãƒˆ</returns>
+    VECTOR GetHeadBobOffset() const { return m_headBobOffset; }
 
-	/// <summary>
-	/// ƒWƒƒƒ“ƒv‚Ì—h‚êƒIƒtƒZƒbƒg‚ğæ“¾
-	/// </summary>
-	/// <returns>ƒWƒƒƒ“ƒv‚Ì—h‚êƒIƒtƒZƒbƒg</returns>
-	VECTOR GetJumpSwayOffset() const;
-	
-	/// <summary>
-	/// Yaw‚Ì·•ª‚ğæ“¾
-	/// </summary>
-	/// <returns>Yaw‚Ì·•ª</returns>
-	float GetYawDelta() const { return m_yawDelta; }
+    /// <summary>
+    /// Head Bobbingï¼ˆæ­©è¡Œæ™‚ã®ç”»é¢æºã‚Œï¼‰ã®çŠ¶æ…‹ã‚’è¨­å®šã™ã‚‹
+    /// </summary>
+    /// <param name="isMoving">ç§»å‹•ä¸­ã‹ã©ã†ã‹</param>
+    /// <param name="isRunning">èµ°è¡Œä¸­ã‹ã©ã†ã‹</param>
+    void SetHeadBobbingState(bool isMoving, bool isRunning);
 
-	/// <summary>
-	/// €–SƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶
-	/// </summary>
-	/// <param name="timer">ƒAƒjƒ[ƒVƒ‡ƒ“ƒ^ƒCƒ}[</param>
-	void PlayDeathAnimation(float timer);
-	
+    /// <summary>
+    /// ç€åœ°æ™‚ã®æºã‚Œã‚’é©ç”¨ã™ã‚‹
+    /// </summary>
+    /// <param name="intensity">æºã‚Œã®å¼·åº¦</param>
+    void ApplyLandingSway(float intensity);
+
+    /// <summary>
+    /// ç€åœ°æ™‚ã®æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ç€åœ°æ™‚ã®æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆ</returns>
+    VECTOR GetLandingSwayOffset() const;
+
+    /// <summary>
+    /// ã‚¸ãƒ£ãƒ³ãƒ—æ™‚ã®æºã‚Œã‚’é©ç”¨ã™ã‚‹
+    /// </summary>
+    /// <param name="intensity">æºã‚Œã®å¼·åº¦</param>
+    void ApplyJumpSway(float intensity);
+
+    /// <summary>
+    /// ã‚¸ãƒ£ãƒ³ãƒ—æ™‚ã®æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>ã‚¸ãƒ£ãƒ³ãƒ—æ™‚ã®æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆ</returns>
+    VECTOR GetJumpSwayOffset() const;
+
+    /// <summary>
+    /// å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰ã® Yaw å·®åˆ†ã‚’å–å¾—ã™ã‚‹
+    /// </summary>
+    /// <returns>Yaw ã®å·®åˆ†ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰</returns>
+    float GetYawDelta() const { return m_yawDelta; }
+
+    /// <summary>
+    /// æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’æ›´æ–°ã™ã‚‹ï¼ˆæ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã³å‡ºã™ï¼‰
+    /// </summary>
+    /// <param name="timer">ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³çµŒéæ™‚é–“ï¼ˆç§’ï¼‰</param>
+    void PlayDeathAnimation(float timer);
+
 private:
-	/// <summary>
-	/// Head BobbinŒø‰Ê‚ğXV
-	/// </summary>
-	void UpdateHeadBobbing();
-	
-	/// <summary>
-	/// SwayŒø‰Ê‚ğXV
-	/// </summary>
-	void UpdateSway();
-	
-	/// <summary>
-	/// ’l‚ğŠŠ‚ç‚©‚É•âŠÔ‚·‚é
-	/// </summary>
-	/// <param name="current">Œ»İ‚Ì’l</param>
-	/// <param name="target">–Ú•W’l</param>
-	/// <param name="speed">•âŠÔ‘¬“x</param>
-	/// <returns>•âŠÔ‚³‚ê‚½’l</returns>
-	float Lerp(float current, float target, float speed);
-	
-private:
-	// ˆÊ’uE’‹“_ŠÇ—
-	VECTOR m_pos;            // ƒJƒƒ‰‚ÌˆÊ’u
-	VECTOR m_target;         // ƒJƒƒ‰‚Ì’‹“_
-	VECTOR m_offset;         // ƒJƒƒ‰‚ÌƒIƒtƒZƒbƒg
-	VECTOR m_defaultOffset;  // ƒfƒtƒHƒ‹ƒg‚ÌƒIƒtƒZƒbƒg
-	VECTOR m_playerPos;      // ƒvƒŒƒCƒ„[‚ÌˆÊ’u
-	
-	// ‰ñ“]ŠÇ—
-	float m_yaw;             // ƒˆ[Šp“x
-	float m_pitch;           // ƒsƒbƒ`Šp“x
-	float m_roll;            // ƒ[ƒ‹Šp“x
-	float m_sensitivity;     // ƒJƒƒ‰‚ÌŠ´“x
-	float m_prevYaw;         // ‘OƒtƒŒ[ƒ€‚Ìƒˆ[Šp“x
-	float m_yawDelta;        // ƒˆ[Šp“x‚Ì·•ª
-	
-	// ‹–ìŠp(FOV)ŠÇ—
-	float m_fov;             // ƒJƒƒ‰‚Ì‹–ìŠp
-	float m_defaultFov;      // ƒfƒtƒHƒ‹ƒg‚ÌFOV
-	float m_targetFov;       // –Ú•WFOV
-	float m_fovLerpSpeed;    // FOV‚Ì•âŠÔ‘¬“x
-	
-	// ƒVƒFƒCƒNŒø‰ÊŠÇ—
-	VECTOR m_shakeOffset;    // ƒVƒFƒCƒNƒIƒtƒZƒbƒg
-	float  m_shakeIntensity; // ƒVƒFƒCƒN‚Ì‹­“x
-	int    m_shakeDuration;  // ƒVƒFƒCƒN‚Ì‘±ŠÔ
-	
-	// Head BobbingŠÇ—
-	VECTOR m_headBobOffset;      // Head Bobbing‚É‚æ‚éƒIƒtƒZƒbƒg
-	float  m_headBobTimer;       // Head Bobbing‚Ìƒ^ƒCƒ}[
-	float  m_headBobIntensity;   // Œ»İ‚ÌHead Bobbing‹­“x
-	float  m_targetBobIntensity; // –Ú•W‚ÌHead Bobbing‹­“x
-	float  m_headBobSpeed;       // Œ»İ‚ÌHead Bobbing‘¬“x
-	float  m_targetBobSpeed;     // –Ú•W‚ÌHead Bobbing‘¬“x
-	bool   m_isMoving;           // ˆÚ“®’†‚©‚Ç‚¤‚©
-	bool   m_isRunning;          // ‘–s’†‚©‚Ç‚¤‚©
-	
-	// ’…’n‚Ì—h‚êŠÇ—
-	VECTOR m_landingSwayOffset; // ’…’n‚Ì—h‚êƒIƒtƒZƒbƒg
-	float m_landingSwayTimer;
-	float m_landingSwayIntensity;
-	
-	// ƒWƒƒƒ“ƒv‚Ì—h‚êŠÇ—
-	VECTOR m_jumpSwayOffset; // ƒWƒƒƒ“ƒv‚Ì—h‚êƒIƒtƒZƒbƒg
-	float m_jumpSwayTimer;
-	float m_jumpSwayIntensity;
-	
-	// SwayŠÇ—
-	VECTOR m_swayOffset;
-	VECTOR m_swayRotOffset;
+    /// <summary>
+    /// Head Bobbing ã®æºã‚Œé‡ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ã™ã‚‹
+    /// </summary>
+    void UpdateHeadBobbing();
 
-	// €–SƒAƒjƒ[ƒVƒ‡ƒ“ŠÇ—
-	bool m_isDeathAnimationPlaying; // €–SƒAƒjƒ[ƒVƒ‡ƒ“Ä¶’†‚©
-	float m_deathAnimationTimer;    // €–SƒAƒjƒ[ƒVƒ‡ƒ“‚Ìƒ^ƒCƒ}[
-	bool m_hasBounced;              // ƒoƒEƒ“ƒh‚µ‚½‚©
+    /// <summary>
+    /// ã‚«ãƒ¡ãƒ©æ¨ªç§»å‹•æ™‚ã® Sway æºã‚Œé‡ã‚’æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ã™ã‚‹
+    /// </summary>
+    void UpdateSway();
+
+    /// <summary>
+    /// ç·šå½¢è£œé–“ï¼ˆLerpï¼‰ã‚’è¡Œã†
+    /// </summary>
+    /// <param name="current">ç¾åœ¨ã®å€¤</param>
+    /// <param name="target">ç›®æ¨™å€¤</param>
+    /// <param name="speed">è£œé–“é€Ÿåº¦ï¼ˆ0ã€œ1ï¼‰</param>
+    /// <returns>è£œé–“ã•ã‚ŒãŸå€¤</returns>
+    float Lerp(float current, float target, float speed);
+
+private:
+    // ä½ç½®ãƒ»æ³¨è¦–ç‚¹ç®¡ç†
+    VECTOR m_pos;           // ã‚«ãƒ¡ãƒ©ã®ä½ç½®
+    VECTOR m_target;        // ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹
+    VECTOR m_offset;        // ã‚«ãƒ¡ãƒ©ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä½ç½®ã‹ã‚‰ã®ç›¸å¯¾ä½ç½®ï¼‰
+    VECTOR m_defaultOffset; // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    VECTOR m_playerPos;     // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®ï¼ˆã‚«ãƒ¡ãƒ©åŸºç‚¹ï¼‰
+
+    // å›è»¢ç®¡ç†
+    float m_yaw;         // ãƒ¨ãƒ¼è§’åº¦ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰
+    float m_pitch;       // ãƒ”ãƒƒãƒè§’åº¦ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰
+    float m_roll;        // ãƒ­ãƒ¼ãƒ«è§’åº¦ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰
+    float m_sensitivity; // ã‚«ãƒ¡ãƒ©ã®æ„Ÿåº¦
+    float m_prevYaw;     // å‰ãƒ•ãƒ¬ãƒ¼ãƒ ã®ãƒ¨ãƒ¼è§’åº¦
+    float m_yawDelta;    // ãƒ¨ãƒ¼è§’åº¦ã®å·®åˆ†
+
+    // è¦–é‡è§’ï¼ˆFOVï¼‰ç®¡ç†
+    float m_fov;          // ã‚«ãƒ¡ãƒ©ã®ç¾åœ¨è¦–é‡è§’ï¼ˆãƒ©ã‚¸ã‚¢ãƒ³ï¼‰
+    float m_defaultFov;   // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã® FOV
+    float m_targetFov;    // ç›®æ¨™ FOVï¼ˆè£œé–“å…ˆï¼‰
+    float m_fovLerpSpeed; // FOV è£œé–“é€Ÿåº¦
+
+    // ã‚·ã‚§ã‚¤ã‚¯æ¼”å‡ºç®¡ç†
+    VECTOR m_shakeOffset;    // ã‚·ã‚§ã‚¤ã‚¯ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    float  m_shakeIntensity; // ã‚·ã‚§ã‚¤ã‚¯ã®å¼·åº¦
+    int    m_shakeDuration;  // ã‚·ã‚§ã‚¤ã‚¯ã®æ®‹ã‚ŠæŒç¶šãƒ•ãƒ¬ãƒ¼ãƒ æ•°
+
+    // Head Bobbing ç®¡ç†
+    VECTOR m_headBobOffset;      // Head Bobbing ã«ã‚ˆã‚‹ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    float  m_headBobTimer;       // Head Bobbing ã®ã‚¿ã‚¤ãƒãƒ¼
+    float  m_headBobIntensity;   // ç¾åœ¨ã® Head Bobbing å¼·åº¦
+    float  m_targetBobIntensity; // ç›®æ¨™ã® Head Bobbing å¼·åº¦
+    float  m_headBobSpeed;       // ç¾åœ¨ã® Head Bobbing é€Ÿåº¦
+    float  m_targetBobSpeed;     // ç›®æ¨™ã® Head Bobbing é€Ÿåº¦
+    bool   m_isMoving;           // ç§»å‹•ä¸­ã‹ã©ã†ã‹
+    bool   m_isRunning;          // èµ°è¡Œä¸­ã‹ã©ã†ã‹
+
+    // ç€åœ°æ™‚ã®æºã‚Œç®¡ç†
+    VECTOR m_landingSwayOffset;    // ç€åœ°æ™‚ã®æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    float  m_landingSwayTimer;     // ç€åœ°æºã‚Œã‚¿ã‚¤ãƒãƒ¼
+    float  m_landingSwayIntensity; // ç€åœ°æºã‚Œã®å¼·åº¦
+
+    // ã‚¸ãƒ£ãƒ³ãƒ—æ™‚ã®æºã‚Œç®¡ç†
+    VECTOR m_jumpSwayOffset;    // ã‚¸ãƒ£ãƒ³ãƒ—æ™‚ã®æºã‚Œã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    float  m_jumpSwayTimer;     // ã‚¸ãƒ£ãƒ³ãƒ—æºã‚Œã‚¿ã‚¤ãƒãƒ¼
+    float  m_jumpSwayIntensity; // ã‚¸ãƒ£ãƒ³ãƒ—æºã‚Œã®å¼·åº¦
+
+    // Sway ç®¡ç†
+    VECTOR m_swayOffset;    // Sway ã«ã‚ˆã‚‹ã‚«ãƒ¡ãƒ©ä½ç½®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    VECTOR m_swayRotOffset; // Sway ã«ã‚ˆã‚‹å›è»¢ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+
+    // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç®¡ç†
+    bool  m_isDeathAnimationPlaying; // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å†ç”Ÿä¸­ã‹ã©ã†ã‹
+    float m_deathAnimationTimer;     // æ­»äº¡ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã®çµŒéæ™‚é–“ï¼ˆç§’ï¼‰
+    bool  m_hasBounced;              // ãƒã‚¦ãƒ³ãƒ‰æ¼”å‡ºãŒå®Œäº†ã—ãŸã‹ã©ã†ã‹
 };
