@@ -2,97 +2,86 @@
 #include "Vec2.h"
 
 /// <summary>
-/// 入力管理クラス (シングルトン)
-/// マウスやキーボードからの入力を一元的に管理
+/// マウス・キーボード入力を一元管理するシングルトンクラス。
+/// ボタンの押下・トリガー・リリース判定およびカメラ回転の更新を提供する。
 /// </summary>
 class InputManager
 {
 public:
     /// <summary>
-    /// InputManagerのシングルトンインスタンスを取得
+    /// シングルトンインスタンスを返す
     /// </summary>
-    /// <returns>InputManagerのインスタンスへのポインタ</returns>
+    /// <returns>InputManager インスタンスへのポインタ</returns>
     static InputManager* GetInstance();
 
     /// <summary>
-    /// 毎フレームの入力状態を更新
-    /// マウスボタンの状態やホイールの回転量などを取得し、内部に保持する
+    /// 毎フレームの入力状態を更新する（ボタンログ・ホイール量を取得）
     /// </summary>
     void Update();
 
     /// <summary>
-    /// 現在のマウスカーソルのスクリーン座標を取得
+    /// 現在のマウスカーソルのスクリーン座標を返す
     /// </summary>
-    /// <returns>マウスカーソルのX, Y座標を格納したVec2オブジェクト</returns>
-    Vec2 GetMousePos();
+    /// <returns>マウスカーソルの X, Y 座標</returns>
+    Vec2 GetMousePos() const;
 
     /// <summary>
-    /// マウスの左ボタンが現在押されているかどうかを判定
+    /// マウス左ボタンが現在押されているかを返す
     /// </summary>
-    /// <returns>押されていればtrue、そうでなければfalse</returns>
-    bool IsPressMouseLeft();
+    /// <returns>押されていれば true</returns>
+    bool IsPressMouseLeft() const;
 
     /// <summary>
-    /// マウスの左ボタンが押された瞬間のフレームかどうかを判定
+    /// マウス左ボタンが押された瞬間かを返す
     /// </summary>
-    /// <returns>押された瞬間であればtrue、そうでなければfalse</returns>
-    bool IsTriggerMouseLeft();
+    /// <returns>押された瞬間のフレームなら true</returns>
+    bool IsTriggerMouseLeft() const;
 
     /// <summary>
-    /// マウスの左ボタンが離された瞬間のフレームかどうかを判定
+    /// マウス左ボタンが離された瞬間かを返す
     /// </summary>
-    /// <returns>離された瞬間であればtrue、そうでなければfalse</returns>
-    bool IsReleaseMouseLeft();
+    /// <returns>離された瞬間のフレームなら true</returns>
+    bool IsReleaseMouseLeft() const;
 
     /// <summary>
-    /// マウスの右ボタンが押された瞬間のフレームかどうかを判定
+    /// マウス右ボタンが押された瞬間かを返す
     /// </summary>
-    /// <returns>押された瞬間であればtrue、そうでなければfalse</returns>
-    bool IsTriggerMouseRight();
+    /// <returns>押された瞬間のフレームなら true</returns>
+    bool IsTriggerMouseRight() const;
 
     /// <summary>
-    /// マウスの右ボタンが現在押されているかどうかを判定
+    /// マウス右ボタンが現在押されているかを返す
     /// </summary>
-    /// <returns>押されていればtrue、そうでなければfalse</returns>
-    bool IsPressMouseRight();
+    /// <returns>押されていれば true</returns>
+    bool IsPressMouseRight() const;
 
     /// <summary>
-    /// マウスの移動量に基づいてカメラの回転角度を更新
+    /// マウスの移動量に基づいてカメラのヨー・ピッチ角を更新する。
+    /// ウィンドウ非アクティブ時および PrintScreen キー押下時は処理をスキップする。
     /// </summary>
-    /// <param name="cameraYaw">更新するカメラのヨー角度への参照</param>
-    /// <param name="cameraPitch">更新するカメラのピッチ角度への参照</param>
+    /// <param name="cameraYaw">更新するカメラのヨー角（ラジアン）への参照</param>
+    /// <param name="cameraPitch">更新するカメラのピッチ角（ラジアン）への参照</param>
     /// <param name="sensitivity">マウス感度</param>
     void UpdateCameraRotation(float& cameraYaw, float& cameraPitch, float sensitivity);
 
     /// <summary>
-    /// マウスホイールの回転量を取得
+    /// マウスホイールの回転量を返す
     /// </summary>
-    /// <returns>マウスホイールの回転量 (正の値:上方向, 負の値:下方向)</returns>
-    int GetMouseWheelRotVol();
+    /// <returns>回転量（正：上方向、負：下方向）</returns>
+    int GetMouseWheelRotVol() const;
 
 private:
     /// <summary>
-    /// InputManagerクラスのコンストラクタ
-    /// シングルトンパターンにより外部からの直接生成はできない
+    /// シングルトンパターンのためコンストラクタを private にする
     /// </summary>
     InputManager();
-    
-    /// <summary>
-    /// コピーコンストラクタを削除し、シングルトン性を保証する
-    /// </summary>
-    InputManager(const InputManager&) = delete;
-    
-    /// <summary>
-    /// 代入演算子を削除し、シングルトン性を保証する
-    /// </summary>
-    InputManager& operator=(const InputManager&) = delete;
 
-    /// <summary>
-    /// マウスボタンの入力履歴を保持する配列
-    /// mouseLog[0]が最新の状態を示す
-    /// </summary>
-    static constexpr int kLogNum = 16;
-    int mouseLog[kLogNum];      /// 左ボタンの入力ログ
-    int mouseRightLog[kLogNum]; /// 右ボタンの入力ログ
-    int m_mouseWheelRot;        /// マウスホイールの回転量
+    InputManager(const InputManager&)            = delete; // コピー禁止
+    InputManager& operator=(const InputManager&) = delete; // 代入禁止
+
+    static constexpr int kLogNum = 16; // ボタン入力ログのフレーム数
+
+    int m_mouseLog[kLogNum];      // 左ボタンの入力ログ（[0] が最新）
+    int m_mouseRightLog[kLogNum]; // 右ボタンの入力ログ（[0] が最新）
+    int m_mouseWheelRot;          // マウスホイールの回転量
 };
