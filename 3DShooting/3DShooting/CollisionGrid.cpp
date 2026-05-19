@@ -44,6 +44,15 @@ namespace
     constexpr int   kUIIconLabelGap            = 20;       // アイコンとラベルの水平間隔
     constexpr int   kUILineSpacingLarge        = 25;       // 大きい行間隔（px）
     constexpr int   kUILineSpacingSmall        = 20;       // 小さい行間隔（px）
+
+    // デバッグ描画・UI 色
+    constexpr unsigned int kColorGridLine     = 0x646464; // グリッド線
+    constexpr unsigned int kColorEnemyCell    = 0x00FF00; // 敵ありセルの枠・UI アイコン・統計良好色
+    constexpr unsigned int kColorSearchedCell = 0xFFFF00; // アクセスセルの枠・UI アイコン・時間テキスト
+    constexpr unsigned int kColorDebugText    = 0xFFFFFF; // デバッグテキスト・UI 枠線・一般テキスト
+    constexpr unsigned int kColorUIBackground = 0x000000; // UI パネル背景
+    constexpr unsigned int kColorUIHeader     = 0x00FFFF; // UI ヘッダーテキスト
+    constexpr unsigned int kColorStatWarn     = 0xFFAA00; // 統計警告色（総当たりモード）
 }
 
 bool CollisionGrid::s_drawGrid = false;
@@ -285,10 +294,6 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
     SetUseZBuffer3D(true);
     SetWriteZBuffer3D(false);
 
-    const unsigned int lineColor        = 0x646464;
-    const unsigned int activeCellColor  = 0x00FF00;
-    const unsigned int searchedCellColor = 0xFFFF00;
-    const unsigned int textColor        = 0xFFFFFF;
 
     auto GetCachedHeight = [&](int x, int z) -> float
     {
@@ -309,7 +314,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
             float dz = ((posZ1 + posZ2) * 0.5f) - playerPos.z;
             if (dx * dx + dz * dz > drawRangeSq) continue;
 
-            DrawLine3D(VGet(posX, GetCachedHeight(x, z), posZ1), VGet(posX, GetCachedHeight(x, z + 1), posZ2), lineColor);
+            DrawLine3D(VGet(posX, GetCachedHeight(x, z), posZ1), VGet(posX, GetCachedHeight(x, z + 1), posZ2), kColorGridLine);
         }
     }
 
@@ -326,7 +331,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
             float dz = posZ - playerPos.z;
             if (dx * dx + dz * dz > drawRangeSq) continue;
 
-            DrawLine3D(VGet(posX1, GetCachedHeight(x, z), posZ), VGet(posX2, GetCachedHeight(x + 1, z), posZ), lineColor);
+            DrawLine3D(VGet(posX1, GetCachedHeight(x, z), posZ), VGet(posX2, GetCachedHeight(x + 1, z), posZ), kColorGridLine);
         }
     }
 
@@ -358,18 +363,17 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
             // 敵が存在するセルは明るい緑の二重枠で表示
             if (hasEnemies)
             {
-                const unsigned int brightGreen = 0x00FF00;
                 const float offset = 1.0f;
                 const float inner  = 0.5f;
-                DrawLine3D(VGet(minX, h00 + offset, minZ), VGet(maxX, h10 + offset, minZ), brightGreen);
-                DrawLine3D(VGet(maxX, h10 + offset, minZ), VGet(maxX, h11 + offset, maxZ), brightGreen);
-                DrawLine3D(VGet(maxX, h11 + offset, maxZ), VGet(minX, h01 + offset, maxZ), brightGreen);
-                DrawLine3D(VGet(minX, h01 + offset, maxZ), VGet(minX, h00 + offset, minZ), brightGreen);
+                DrawLine3D(VGet(minX, h00 + offset, minZ), VGet(maxX, h10 + offset, minZ), kColorEnemyCell);
+                DrawLine3D(VGet(maxX, h10 + offset, minZ), VGet(maxX, h11 + offset, maxZ), kColorEnemyCell);
+                DrawLine3D(VGet(maxX, h11 + offset, maxZ), VGet(minX, h01 + offset, maxZ), kColorEnemyCell);
+                DrawLine3D(VGet(minX, h01 + offset, maxZ), VGet(minX, h00 + offset, minZ), kColorEnemyCell);
 
-                DrawLine3D(VGet(minX + inner, h00 + offset, minZ + inner), VGet(maxX - inner, h10 + offset, minZ + inner), brightGreen);
-                DrawLine3D(VGet(maxX - inner, h10 + offset, minZ + inner), VGet(maxX - inner, h11 + offset, maxZ - inner), brightGreen);
-                DrawLine3D(VGet(maxX - inner, h11 + offset, maxZ - inner), VGet(minX + inner, h01 + offset, maxZ - inner), brightGreen);
-                DrawLine3D(VGet(minX + inner, h01 + offset, maxZ - inner), VGet(minX + inner, h00 + offset, minZ + inner), brightGreen);
+                DrawLine3D(VGet(minX + inner, h00 + offset, minZ + inner), VGet(maxX - inner, h10 + offset, minZ + inner), kColorEnemyCell);
+                DrawLine3D(VGet(maxX - inner, h10 + offset, minZ + inner), VGet(maxX - inner, h11 + offset, maxZ - inner), kColorEnemyCell);
+                DrawLine3D(VGet(maxX - inner, h11 + offset, maxZ - inner), VGet(minX + inner, h01 + offset, maxZ - inner), kColorEnemyCell);
+                DrawLine3D(VGet(minX + inner, h01 + offset, maxZ - inner), VGet(minX + inner, h00 + offset, minZ + inner), kColorEnemyCell);
             }
 
             // アクセスされたセルは黄色の二重枠で表示
@@ -377,15 +381,15 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
             {
                 const float offset = 10.0f;
                 const float shift  = 1.0f;
-                DrawLine3D(VGet(minX,        h00 + offset, minZ),        VGet(maxX,        h10 + offset, minZ),        searchedCellColor);
-                DrawLine3D(VGet(maxX,        h10 + offset, minZ),        VGet(maxX,        h11 + offset, maxZ),        searchedCellColor);
-                DrawLine3D(VGet(maxX,        h11 + offset, maxZ),        VGet(minX,        h01 + offset, maxZ),        searchedCellColor);
-                DrawLine3D(VGet(minX,        h01 + offset, maxZ),        VGet(minX,        h00 + offset, minZ),        searchedCellColor);
+                DrawLine3D(VGet(minX,        h00 + offset, minZ),        VGet(maxX,        h10 + offset, minZ),        kColorSearchedCell);
+                DrawLine3D(VGet(maxX,        h10 + offset, minZ),        VGet(maxX,        h11 + offset, maxZ),        kColorSearchedCell);
+                DrawLine3D(VGet(maxX,        h11 + offset, maxZ),        VGet(minX,        h01 + offset, maxZ),        kColorSearchedCell);
+                DrawLine3D(VGet(minX,        h01 + offset, maxZ),        VGet(minX,        h00 + offset, minZ),        kColorSearchedCell);
 
-                DrawLine3D(VGet(minX + shift, h00 + offset, minZ + shift), VGet(maxX - shift, h10 + offset, minZ + shift), searchedCellColor);
-                DrawLine3D(VGet(maxX - shift, h10 + offset, minZ + shift), VGet(maxX - shift, h11 + offset, maxZ - shift), searchedCellColor);
-                DrawLine3D(VGet(maxX - shift, h11 + offset, maxZ - shift), VGet(minX + shift, h01 + offset, maxZ - shift), searchedCellColor);
-                DrawLine3D(VGet(minX + shift, h01 + offset, maxZ - shift), VGet(minX + shift, h00 + offset, minZ + shift), searchedCellColor);
+                DrawLine3D(VGet(minX + shift, h00 + offset, minZ + shift), VGet(maxX - shift, h10 + offset, minZ + shift), kColorSearchedCell);
+                DrawLine3D(VGet(maxX - shift, h10 + offset, minZ + shift), VGet(maxX - shift, h11 + offset, maxZ - shift), kColorSearchedCell);
+                DrawLine3D(VGet(maxX - shift, h11 + offset, maxZ - shift), VGet(minX + shift, h01 + offset, maxZ - shift), kColorSearchedCell);
+                DrawLine3D(VGet(minX + shift, h01 + offset, maxZ - shift), VGet(minX + shift, h00 + offset, minZ + shift), kColorSearchedCell);
             }
 
             // 敵数をセル中央に表示（カメラ前方のみ）
@@ -404,7 +408,7 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
                 if (VDot(camDir, toCenter) > 0.0f)
                 {
                     VECTOR screenPos = ConvWorldPosToScreenPos(center);
-                    DrawString(static_cast<int>(screenPos.x), static_cast<int>(screenPos.y), buf, textColor);
+                    DrawString(static_cast<int>(screenPos.x), static_cast<int>(screenPos.y), buf, kColorDebugText);
                 }
             }
         }
@@ -428,40 +432,40 @@ void CollisionGrid::DrawUI() const
     const int y = screenH - kLegendPanelHeight - kUIPanelMargin - kUIBottomOffset;
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kUIAlpha);
-    DrawBox(x, y, x + kLegendPanelWidth, y + kLegendPanelHeight, 0x000000, true);
+    DrawBox(x, y, x + kLegendPanelWidth, y + kLegendPanelHeight, kColorUIBackground, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    DrawBox(x, y, x + kLegendPanelWidth, y + kLegendPanelHeight, 0xffffff, false);
+    DrawBox(x, y, x + kLegendPanelWidth, y + kLegendPanelHeight, kColorDebugText, false);
 
     int textX = x + kUITextPaddingX;
     int textY = y + kUITextPaddingY;
-    DrawBox(textX, textY + kUIIconOffsetY, textX + kUIIconSize, textY + kUIIconOffsetY + kUIIconSize, 0x00FF00, true);
-    DrawString(textX + kUIIconLabelGap, textY, "：敵が存在するセル", 0xffffff);
+    DrawBox(textX, textY + kUIIconOffsetY, textX + kUIIconSize, textY + kUIIconOffsetY + kUIIconSize, kColorEnemyCell, true);
+    DrawString(textX + kUIIconLabelGap, textY, "：敵が存在するセル", kColorDebugText);
 
     textY += kUILineSpacingLarge;
-    DrawBox(textX, textY + kUIIconOffsetY, textX + kUIIconSize, textY + kUIIconOffsetY + kUIIconSize, 0xFFFF00, true);
-    DrawString(textX + kUIIconLabelGap, textY, "：検索・アクセス範囲", 0xffffff);
+    DrawBox(textX, textY + kUIIconOffsetY, textX + kUIIconSize, textY + kUIIconOffsetY + kUIIconSize, kColorSearchedCell, true);
+    DrawString(textX + kUIIconLabelGap, textY, "：検索・アクセス範囲", kColorDebugText);
 
     textY += kUILineSpacingLarge;
-    DrawString(textX, textY, "数字：セル内の敵の数", 0xffffff);
+    DrawString(textX, textY, "数字：セル内の敵の数", kColorDebugText);
 
     // パフォーマンス統計パネル
     const int sx = kUIPanelMargin;
     const int sy = screenH - kStatPanelHeight - kUIPanelMargin - kUIBottomOffset;
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kUIAlpha);
-    DrawBox(sx, sy, sx + kStatPanelWidth, sy + kStatPanelHeight, 0x000000, true);
+    DrawBox(sx, sy, sx + kStatPanelWidth, sy + kStatPanelHeight, kColorUIBackground, true);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-    DrawBox(sx, sy, sx + kStatPanelWidth, sy + kStatPanelHeight, 0xffffff, false);
+    DrawBox(sx, sy, sx + kStatPanelWidth, sy + kStatPanelHeight, kColorDebugText, false);
 
     int sTextX = sx + kUITextPaddingX;
     int sTextY = sy + kUITextPaddingY;
-    DrawString(sTextX, sTextY, "【空間分割パフォーマンス評価】", 0x00ffff);
+    DrawString(sTextX, sTextY, "【空間分割パフォーマンス評価】", kColorUIHeader);
 
     sTextY += kUILineSpacingLarge;
-    DrawFormatString(sTextX, sTextY, 0xffffff, "現在のモード: %s", s_useSpatialPartitioning ? "空間分割 (ON)" : "総当たり (OFF)");
+    DrawFormatString(sTextX, sTextY, kColorDebugText, "現在のモード: %s", s_useSpatialPartitioning ? "空間分割 (ON)" : "総当たり (OFF)");
 
     sTextY += kUILineSpacingSmall;
-    DrawFormatString(sTextX, sTextY, 0xffffff, "総敵数: %d / クエリ数: %d", m_totalEnemies, m_totalQueries);
+    DrawFormatString(sTextX, sTextY, kColorDebugText, "総敵数: %d / クエリ数: %d", m_totalEnemies, m_totalQueries);
 
     sTextY += kUILineSpacingSmall;
     int   fullScanChecks = m_totalEnemies * m_totalQueries;
@@ -471,11 +475,11 @@ void CollisionGrid::DrawUI() const
         reduction = (1.0f - static_cast<float>(m_totalEntitiesChecked) / static_cast<float>(fullScanChecks)) * 100.0f;
     }
 
-    unsigned int statColor = s_useSpatialPartitioning ? 0x00ff00 : 0xffaa00;
+    unsigned int statColor = s_useSpatialPartitioning ? kColorEnemyCell : kColorStatWarn;
     DrawFormatString(sTextX, sTextY, statColor, "判定対象削減率: %.1f%%", s_useSpatialPartitioning ? reduction : 0.0f);
 
     sTextY += kUILineSpacingSmall;
-    DrawFormatString(sTextX, sTextY, 0xffffff, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
+    DrawFormatString(sTextX, sTextY, kColorDebugText, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
 
     sTextY += kUILineSpacingLarge;
 
@@ -486,5 +490,5 @@ void CollisionGrid::DrawUI() const
         m_displayedSearchTime = m_totalSearchTime;
         m_displayTimer        = kDisplayTimerInterval;
     }
-    DrawFormatString(sTextX, sTextY, 0xffff00, "検索処理時間: %lld us (マイクロ秒)", m_displayedSearchTime);
+    DrawFormatString(sTextX, sTextY, kColorSearchedCell, "検索処理時間: %lld us (マイクロ秒)", m_displayedSearchTime);
 }
