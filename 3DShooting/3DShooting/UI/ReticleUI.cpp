@@ -4,16 +4,19 @@
 #include "PlayerWeaponManager.h"
 #include <cmath>
 
+namespace
+{
+    constexpr float kRecoilScaleMultiplier = 0.5f; // 反動によるレティクル拡大率（最大 1 + kRecoilScaleMultiplier 倍）
+    constexpr int   kAlphaMax              = 255;  // アルファ最大値
+    constexpr int   kAimingTintGB          = 100;  // 狙い中の赤みティント（G・B チャンネル値）
+}
+
 ReticleUI::ReticleUI(Player* player)
     : m_pPlayer(player)
     , m_reticleDefault("data/image/SGDefaultReticl.png")
     , m_reticleOnTarget("data/image/SGOnTargetReticle.png")
     , m_dotDefault("data/image/DotDefault.png")
     , m_dotOnTarget("data/image/DotOnTarget.png")
-{
-}
-
-ReticleUI::~ReticleUI()
 {
 }
 
@@ -36,9 +39,9 @@ void ReticleUI::Draw()
     // 拡大描画時のジャギー対策
     SetDrawMode(DX_DRAWMODE_BILINEAR);
 
-    // 反動によるスケール計算
-    float recoil = m_pPlayer->GetWeaponManager().GetRecoilScale();
-    float recoilScale = 1.0f + (recoil * 0.5f); // 最大1.5倍
+    // 反動によるスケール計算（最大 1 + kRecoilScaleMultiplier 倍）
+    float recoil      = m_pPlayer->GetWeaponManager().GetRecoilScale();
+    float recoilScale = 1.0f + (recoil * kRecoilScaleMultiplier);
 
     bool isAiming = m_pPlayer->IsAimingAtEnemy();
     WeaponType currentWeapon = m_pPlayer->GetWeaponManager().GetCurrentWeaponType();
@@ -58,8 +61,8 @@ void ReticleUI::Draw()
 
             if (isAiming)
             {
-                SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-                SetDrawBright(255, 100, 100);
+                SetDrawBlendMode(DX_BLENDMODE_ADD, kAlphaMax);
+                SetDrawBright(kAlphaMax, kAimingTintGB, kAimingTintGB);
             }
 
             DrawExtendGraph(static_cast<int>(centerX - scaledReticleW * 0.5f), static_cast<int>(centerY - scaledReticleH * 0.5f),
@@ -67,7 +70,7 @@ void ReticleUI::Draw()
 
             if (isAiming)
             {
-                SetDrawBright(255, 255, 255);
+                SetDrawBright(kAlphaMax, kAlphaMax, kAlphaMax);
                 SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
             }
         }
