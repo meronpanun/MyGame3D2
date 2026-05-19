@@ -287,7 +287,8 @@ void CollisionGrid::Draw(const std::vector<Stage::StageCollisionData>& collision
     if (!s_drawGrid) return;
 
     // プレイヤーの周囲のみ描画して負荷を抑える
-    VECTOR     playerPos   = Game::m_pPlayer ? Game::m_pPlayer->GetPos() : VGet(0, 0, 0);
+    Player*    pPlayer     = Game::GetPlayer();
+    VECTOR     playerPos   = pPlayer ? pPlayer->GetPos() : VGet(0, 0, 0);
     const float drawRangeSq = kDrawRange * kDrawRange;
 
     // 深度テストを有効にし、モデルに隠れるようにする

@@ -86,16 +86,16 @@ void EnemyBoss::UpdateShieldEffect(const EnemyUpdateContext& context)
 void EnemyBoss::UpdateShieldPushout()
 {
     if (m_isShieldBroken || !m_pShieldCollider) return;
-    if (!Game::m_pPlayer) return;
+    if (!Game::GetPlayer()) return;
 
     VECTOR shieldPos = m_pos;
     shieldPos.y += EnemyBossConstants::kBodyColliderHeight * EnemyBossConstants::kShieldYRatio;
     float shieldRadius = m_pShieldCollider->GetRadius();
 
-    VECTOR playerPos = Game::m_pPlayer->GetPos();
+    VECTOR playerPos = Game::GetPlayer()->GetPos();
     VECTOR playerCapA, playerCapB;
     float playerRadius;
-    Game::m_pPlayer->GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
+    Game::GetPlayer()->GetCapsuleInfo(playerCapA, playerCapB, playerRadius);
 
     // カプセル（Player）と球（Shield）の最近接点を求める
     VECTOR segVec   = VSub(playerCapB, playerCapA);
@@ -140,12 +140,12 @@ void EnemyBoss::UpdateShieldPushout()
         }
 
         VECTOR newPos = VAdd(playerPos, VScale(pushDir, pushLen));
-        Game::m_pPlayer->SetPos(newPos);
+        Game::GetPlayer()->SetPos(newPos);
 
         // 上方向に押し出された場合（シールドに乗ったとき）は垂直速度をリセット
         if (pushDir.y > 0.5f)
         {
-            Game::m_pPlayer->ResetVerticalVelocity();
+            Game::GetPlayer()->ResetVerticalVelocity();
         }
     }
 }

@@ -7,44 +7,44 @@
 
 namespace
 {
-    constexpr float kDefaultCameraSensitivity = 0.002f; // カメラ感度のデフォルト値
-    constexpr int   kDefaultScreenWidth       = 1280;   // デフォルト画面幅
-    constexpr int   kDefaultScreenHeight      = 720;    // デフォルト画面高さ
-    constexpr int   kDefaultColorBitDepth     = 32;     // カラービット数
+    constexpr float kDefaultCameraSensitivity = 0.002f;       // カメラ感度のデフォルト値
+    constexpr int   kDefaultScreenWidth       = 1280;         // デフォルト画面幅
+    constexpr int   kDefaultScreenHeight      = 720;          // デフォルト画面高さ
+    constexpr int   kDefaultColorBitDepth     = 32;           // カラービット数
     constexpr float kFixedDeltaTime           = 1.0f / 60.0f; // 固定フレーム時間（秒）
-    constexpr float kUIScaleReferenceHeight   = 720.0f; // UI スケール計算の基準画面高さ
-    constexpr float kUIScaleFactor            = 0.7f;   // UI 全体サイズの補正係数
+    constexpr float kUIScaleReferenceHeight   = 720.0f;       // UI スケール計算の基準画面高さ
+    constexpr float kUIScaleFactor            = 0.7f;         // UI 全体サイズの補正係数
 }
 
 // グローバルなカメラ感度
-float        Game::g_cameraSensitivity = kDefaultCameraSensitivity;
-Player*      Game::m_pPlayer           = nullptr;
-WaveManager* Game::m_pWaveManager      = nullptr;
-SceneManager* Game::m_pSceneManager   = nullptr;
+float        Game::s_cameraSensitivity = kDefaultCameraSensitivity;
+Player*      Game::s_pPlayer           = nullptr;
+WaveManager* Game::s_pWaveManager      = nullptr;
+SceneManager* Game::s_pSceneManager   = nullptr;
 
 // 画面解像度とモードの初期化
-int  Game::m_screenWidth  = kDefaultScreenWidth;
-int  Game::m_screenHeight = kDefaultScreenHeight;
-int  Game::m_colorBitNum  = kDefaultColorBitDepth;
+int  Game::s_screenWidth  = kDefaultScreenWidth;
+int  Game::s_screenHeight = kDefaultScreenHeight;
+int  Game::s_colorBitNum  = kDefaultColorBitDepth;
 bool Game::s_isWindowMode = true;
 
 // タイムスケール関連の初期化
-float Game::g_timeScale         = 1.0f;
-float Game::g_targetTimeScale   = 1.0f;
-float Game::g_timeScaleDuration = 0.0f;
-float Game::g_timeScaleTimer    = 0.0f;
-float Game::g_initialTimeScale  = 1.0f;
+float Game::s_timeScale         = 1.0f;
+float Game::s_targetTimeScale   = 1.0f;
+float Game::s_timeScaleDuration = 0.0f;
+float Game::s_timeScaleTimer    = 0.0f;
+float Game::s_initialTimeScale  = 1.0f;
 
 bool Game::s_isPaused = false;
 
 void Game::SetResolution(int w, int h)
 {
-    m_screenWidth  = w;
-    m_screenHeight = h;
-    SetGraphMode(m_screenWidth, m_screenHeight, m_colorBitNum);
+    s_screenWidth  = w;
+    s_screenHeight = h;
+    SetGraphMode(s_screenWidth, s_screenHeight, s_colorBitNum);
     if (s_isWindowMode)
     {
-        SetWindowSize(m_screenWidth, m_screenHeight);
+        SetWindowSize(s_screenWidth, s_screenHeight);
     }
     SetDrawScreen(DX_SCREEN_BACK); // 描画先を裏画面に設定し直す
 }
@@ -59,48 +59,48 @@ void Game::SetWindowMode(bool windowed)
 
 void Game::SetTimeScale(float scale, float duration)
 {
-    g_timeScale         = scale;
-    g_initialTimeScale  = scale; // 補間開始時のスケールを保存
-    g_targetTimeScale   = 1.0f;
-    g_timeScaleDuration = duration;
-    g_timeScaleTimer    = duration;
+    s_timeScale         = scale;
+    s_initialTimeScale  = scale; // 補間開始時のスケールを保存
+    s_targetTimeScale   = 1.0f;
+    s_timeScaleDuration = duration;
+    s_timeScaleTimer    = duration;
 }
 
 void Game::UpdateTimeScale()
 {
-    if (g_timeScaleTimer > 0.0f)
+    if (s_timeScaleTimer > 0.0f)
     {
         // 実時間で管理するため、タイムスケールに関わらず固定フレーム時間を減算
-        g_timeScaleTimer -= kFixedDeltaTime;
+        s_timeScaleTimer -= kFixedDeltaTime;
 
-        if (g_timeScaleTimer <= 0.0f)
+        if (s_timeScaleTimer <= 0.0f)
         {
-            g_timeScaleTimer = 0.0f;
-            g_timeScale      = 1.0f;
+            s_timeScaleTimer = 0.0f;
+            s_timeScale      = 1.0f;
         }
         else
         {
             // 線形補間（Lerp）で徐々に通常速度へ復帰
-            float t     = 1.0f - (g_timeScaleTimer / g_timeScaleDuration);
-            g_timeScale = g_initialTimeScale + (1.0f - g_initialTimeScale) * t;
+            float t     = 1.0f - (s_timeScaleTimer / s_timeScaleDuration);
+            s_timeScale = s_initialTimeScale + (1.0f - s_initialTimeScale) * t;
         }
     }
     else
     {
-        g_timeScale = 1.0f;
+        s_timeScale = 1.0f;
     }
 }
 
 float Game::GetTimeScale()
 {
     if (s_isPaused) return 0.0f;
-    return g_timeScale;
+    return s_timeScale;
 }
 
 float Game::GetUIScale()
 {
     // 基準解像度（720p）に対する比率に補正係数を掛けてスケールを返す
-    return (static_cast<float>(m_screenHeight) / kUIScaleReferenceHeight) * kUIScaleFactor;
+    return (static_cast<float>(s_screenHeight) / kUIScaleReferenceHeight) * kUIScaleFactor;
 }
 
 void Game::SetPaused(bool paused)

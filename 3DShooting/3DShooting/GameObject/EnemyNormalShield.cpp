@@ -58,14 +58,14 @@ void EnemyNormal::BreakShield(const EnemyUpdateContext* context)
             SceneMain::Instance()->GetEffect()->PlayShieldBreakEffect(shieldPos);
 
             // プレイヤーとの距離に応じたカメラシェイク
-            if (Game::m_pPlayer && Game::m_pPlayer->GetCamera())
+            if (Game::GetPlayer() && Game::GetPlayer()->GetCamera())
             {
-                float dist = VSize(VSub(m_pos, Game::m_pPlayer->GetPos()));
+                float dist = VSize(VSub(m_pos, Game::GetPlayer()->GetPos()));
                 float ratio = 1.0f - (dist / EnemyNormalConstants::kCameraShakeMaxDist);
                 if (ratio < EnemyNormalConstants::kCameraShakeMinRatio) ratio = EnemyNormalConstants::kCameraShakeMinRatio;
                 if (ratio > 1.0f) ratio = 1.0f;
 
-                Game::m_pPlayer->GetCamera()->Shake(EnemyNormalConstants::kCameraShakeIntensity * ratio, EnemyNormalConstants::kCameraShakeDuration);
+                Game::GetPlayer()->GetCamera()->Shake(EnemyNormalConstants::kCameraShakeIntensity * ratio, EnemyNormalConstants::kCameraShakeDuration);
             }
         }
     }

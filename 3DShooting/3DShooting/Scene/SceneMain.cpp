@@ -148,7 +148,7 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     : m_isPaused(false)
     , m_isEscapePressed(false)
     , m_isReturningFromOtherScene(isReturningFromOtherScene)
-    , m_cameraSensitivity(Game::g_cameraSensitivity)
+    , m_cameraSensitivity(Game::GetCameraSensitivity())
     , m_hitDistance(0.0f)
     , m_pCamera(std::make_unique<Camera>())
     , m_hasDroppedWave1FirstAid(false)
@@ -238,7 +238,7 @@ void SceneMain::Init()
     m_pPlayer = std::make_unique<Player>();
     m_pPlayer->SetEffect(m_pEffect.get());
     m_pPlayer->SetAnimationManager(m_pAnimManager.get());
-    Game::m_pPlayer = m_pPlayer.get();
+    Game::SetPlayer(m_pPlayer.get());
 
     m_pStage = std::make_shared<Stage>();
 
@@ -256,7 +256,7 @@ void SceneMain::Init()
 
     m_pWaveManager = std::make_shared<WaveManager>();
     m_pWaveManager->Init();
-    Game::m_pWaveManager = m_pWaveManager.get();
+    Game::SetWaveManager(m_pWaveManager.get());
 
     // 方向インジケーターの初期化
     m_pDirectionIndicator = std::make_unique<DirectionIndicator>();

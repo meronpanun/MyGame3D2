@@ -12,10 +12,8 @@ class WaveManager;
 class Game
 {
 public:
-    static int  m_screenWidth;    // 現在の画面幅（ピクセル）
-    static int  m_screenHeight;   // 現在の画面高さ（ピクセル）
-    static int  m_colorBitNum;    // カラービット数
-    static bool s_isWindowMode;   // ウィンドウモードフラグ
+    // ウィンドウタイトル
+    static constexpr const char* kWindowTitle = "WAVEBREAKER";
 
     /// <summary>
     /// 解像度を変更し、DxLib のグラフィックモードとウィンドウサイズを更新する
@@ -24,17 +22,17 @@ public:
     /// <param name="h">画面高さ（ピクセル）</param>
     static void SetResolution(int w, int h);
 
-    /// <summary>
-    /// 現在の画面幅を返す
-    /// </summary>
+    /// <summary>現在の画面幅を返す</summary>
     /// <returns>画面幅（ピクセル）</returns>
-    static int GetScreenWidth() { return m_screenWidth; }
+    static int  GetScreenWidth()  { return s_screenWidth; }
 
-    /// <summary>
-    /// 現在の画面高さを返す
-    /// </summary>
+    /// <summary>現在の画面高さを返す</summary>
     /// <returns>画面高さ（ピクセル）</returns>
-    static int GetScreenHeight() { return m_screenHeight; }
+    static int  GetScreenHeight() { return s_screenHeight; }
+
+    /// <summary>カラービット数を返す</summary>
+    /// <returns>カラービット数</returns>
+    static int  GetColorBitNum()  { return s_colorBitNum; }
 
     /// <summary>
     /// ウィンドウモード／フルスクリーンモードを切り替える
@@ -42,63 +40,77 @@ public:
     /// <param name="windowed">true ならウィンドウモード</param>
     static void SetWindowMode(bool windowed);
 
-    /// <summary>
-    /// 現在ウィンドウモードかどうかを返す
-    /// </summary>
+    /// <summary>現在ウィンドウモードかどうかを返す</summary>
     /// <returns>ウィンドウモードなら true</returns>
     static bool IsWindowMode() { return s_isWindowMode; }
-
-    // ウィンドウタイトル
-    static constexpr const char* kWindowTitle = "WAVEBREAKER";
 
     /// <summary>
     /// タイムスケールを設定し、指定時間かけて通常速度（1.0）へ復帰させる
     /// </summary>
     /// <param name="scale">初期タイムスケール</param>
     /// <param name="duration">復帰までの時間（秒）</param>
-    static void SetTimeScale(float scale, float duration);
+    static void  SetTimeScale(float scale, float duration);
 
-    /// <summary>
-    /// タイムスケールを毎フレーム更新し、目標値へ線形補間する
-    /// </summary>
-    static void UpdateTimeScale();
+    /// <summary>タイムスケールを毎フレーム更新し、目標値へ線形補間する</summary>
+    static void  UpdateTimeScale();
 
-    /// <summary>
-    /// 現在のタイムスケールを返す（ポーズ中は 0.0 を返す）
-    /// </summary>
+    /// <summary>現在のタイムスケールを返す（ポーズ中は 0.0 を返す）</summary>
     /// <returns>タイムスケール</returns>
     static float GetTimeScale();
 
-    /// <summary>
-    /// 画面高さを基準にした UI スケール値を返す
-    /// </summary>
+    /// <summary>画面高さを基準にした UI スケール値を返す</summary>
     /// <returns>UI スケール係数</returns>
     static float GetUIScale();
 
-    /// <summary>
-    /// ゲームの一時停止状態を設定する
-    /// </summary>
+    /// <summary>ゲームの一時停止状態を設定する</summary>
     /// <param name="paused">true で一時停止、false で再開</param>
     static void SetPaused(bool paused);
 
-    /// <summary>
-    /// ゲームが一時停止中かどうかを返す
-    /// </summary>
+    /// <summary>ゲームが一時停止中かどうかを返す</summary>
     /// <returns>一時停止中なら true</returns>
     static bool IsPaused();
 
-    static Player*       m_pPlayer;       // プレイヤーへのポインタ
-    static WaveManager*  m_pWaveManager;  // ウェーブマネージャへのポインタ
-    static SceneManager* m_pSceneManager; // シーンマネージャへのポインタ
+    /// <summary>プレイヤーへのポインタを返す</summary>
+    static Player*       GetPlayer()       { return s_pPlayer; }
 
-    static float g_cameraSensitivity; // カメラ感度（グローバル設定）
+    /// <summary>プレイヤーへのポインタを設定する</summary>
+    static void          SetPlayer(Player* p) { s_pPlayer = p; }
+
+    /// <summary>ウェーブマネージャへのポインタを返す</summary>
+    static WaveManager*  GetWaveManager()  { return s_pWaveManager; }
+
+    /// <summary>ウェーブマネージャへのポインタを設定する</summary>
+    static void          SetWaveManager(WaveManager* wm) { s_pWaveManager = wm; }
+
+    /// <summary>シーンマネージャへのポインタを返す</summary>
+    static SceneManager* GetSceneManager() { return s_pSceneManager; }
+
+    /// <summary>シーンマネージャへのポインタを設定する</summary>
+    static void          SetSceneManager(SceneManager* sm) { s_pSceneManager = sm; }
+
+    /// <summary>カメラ感度を返す</summary>
+    static float GetCameraSensitivity()        { return s_cameraSensitivity; }
+
+    /// <summary>カメラ感度を設定する</summary>
+    static void  SetCameraSensitivity(float v) { s_cameraSensitivity = v; }
 
 private:
-    static float g_timeScale;         // 現在のタイムスケール
-    static float g_targetTimeScale;   // 目標タイムスケール（常に 1.0）
-    static float g_timeScaleDuration; // タイムスケール補間の総持続時間（秒）
-    static float g_timeScaleTimer;    // 補間残り時間（秒）
-    static float g_initialTimeScale;  // 補間開始時のタイムスケール
+    static int   s_screenWidth;    // 現在の画面幅（ピクセル）
+    static int   s_screenHeight;   // 現在の画面高さ（ピクセル）
+    static int   s_colorBitNum;    // カラービット数
+    static bool  s_isWindowMode;   // ウィンドウモードフラグ
 
-    static bool s_isPaused;           // 一時停止フラグ
+    static Player*       s_pPlayer;       // プレイヤーへのポインタ
+    static WaveManager*  s_pWaveManager;  // ウェーブマネージャへのポインタ
+    static SceneManager* s_pSceneManager; // シーンマネージャへのポインタ
+
+    static float s_cameraSensitivity; // カメラ感度
+
+    static float s_timeScale;         // 現在のタイムスケール
+    static float s_targetTimeScale;   // 目標タイムスケール（常に 1.0）
+    static float s_timeScaleDuration; // タイムスケール補間の総持続時間（秒）
+    static float s_timeScaleTimer;    // 補間残り時間（秒）
+    static float s_initialTimeScale;  // 補間開始時のタイムスケール
+
+    static bool  s_isPaused;          // 一時停止フラグ
 };

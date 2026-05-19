@@ -19,7 +19,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     // ウインドウのタイトルを設定する
     SetMainWindowText(Game::kWindowTitle);
     // 画面のサイズを変更する
-    SetGraphMode(Game::GetScreenWidth(), Game::GetScreenHeight(), Game::m_colorBitNum);
+    SetGraphMode(Game::GetScreenWidth(), Game::GetScreenHeight(), Game::GetColorBitNum());
 
     // 非アクティブ時も処理を継続する
     SetAlwaysRunFlag(true);
@@ -54,7 +54,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     SceneManager *pScene = new SceneManager();
     pScene->Init();
 
-    Game::m_pSceneManager = pScene; 
+    Game::SetSceneManager(pScene);
 
     // ゲームループ
     while (ProcessMessage() == 0) // Windowsが行う処理を待つ必要がある

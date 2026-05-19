@@ -38,10 +38,10 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,
 
     // 近傍の敵を取得（グリッド利用）
     std::vector<EnemyBase*> nearbyEnemies;
-    if (Game::m_pWaveManager)
+    if (Game::GetWaveManager())
     {
-        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(playerPos,                                          nearbyEnemies, false);
-        Game::m_pWaveManager->GetCollisionGrid().GetNeighbors(VAdd(playerPos, VScale(camDir, kGridLookAheadDist)), nearbyEnemies, false);
+        Game::GetWaveManager()->GetCollisionGrid().GetNeighbors(playerPos,                                          nearbyEnemies, false);
+        Game::GetWaveManager()->GetCollisionGrid().GetNeighbors(VAdd(playerPos, VScale(camDir, kGridLookAheadDist)), nearbyEnemies, false);
     }
 
     // 重複除去（2回の GetNeighbors で同一敵が混入する場合がある）
@@ -69,9 +69,9 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,
     // CheckLineOfSight で毎回 collisionData 全件を走査する代わりに、
     // グリッドで絞り込んだ近傍ポリゴンのみを使う。
     std::vector<const Stage::StageCollisionData*> nearbyTriangles;
-    if (Game::m_pWaveManager)
+    if (Game::GetWaveManager())
     {
-        Game::m_pWaveManager->GetCollisionGrid().GetNearbyTriangles(camPos, nearbyTriangles);
+        Game::GetWaveManager()->GetCollisionGrid().GetNearbyTriangles(camPos, nearbyTriangles);
     }
 
     // 照準チェック（レティクル色変更用）: kAimCheckInterval フレームに1回実行

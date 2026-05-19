@@ -65,9 +65,9 @@ void DebugUtil::ShowDebugWindow()
         else
         {
             // デバッグウィンドウを閉じる時は現在のシーンに応じてマウスの表示を決定
-            if (Game::m_pSceneManager)
+            if (Game::GetSceneManager())
             {
-                SceneBase* currentScene = Game::m_pSceneManager->GetCurrentScene();
+                SceneBase* currentScene = Game::GetSceneManager()->GetCurrentScene();
                 if (dynamic_cast<SceneMain*>(currentScene))
                 {
                     SetMouseDispFlag(false); // ゲーム本体では非表示

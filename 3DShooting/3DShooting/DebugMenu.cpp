@@ -219,48 +219,48 @@ DebugMenu::MenuItem DebugMenu::CreatePlayerMenu()
         {"Invincible",
          {},
          [this]() {
-           if (Game::m_pPlayer)
+           if (Game::GetPlayer())
            {
-             bool isInvincible = !Game::m_pPlayer->IsInvincible();
-             Game::m_pPlayer->SetInvincible(isInvincible);
+             bool isInvincible = !Game::GetPlayer()->IsInvincible();
+             Game::GetPlayer()->SetInvincible(isInvincible);
            }
          },
          []() {
-           if (Game::m_pPlayer) 
+           if (Game::GetPlayer()) 
            {
-             return Game::m_pPlayer->IsInvincible() ? "[ON]" : "[OFF]";
+             return Game::GetPlayer()->IsInvincible() ? "[ON]" : "[OFF]";
            }
            return "[N/A]";
          }},
         {"Infinite Ammo",
          {},
          [this]() {
-           if (Game::m_pPlayer) 
+           if (Game::GetPlayer()) 
            {
-             bool isInfiniteAmmo = !Game::m_pPlayer->IsInfiniteAmmo();
-             Game::m_pPlayer->SetInfiniteAmmo(isInfiniteAmmo);
+             bool isInfiniteAmmo = !Game::GetPlayer()->IsInfiniteAmmo();
+             Game::GetPlayer()->SetInfiniteAmmo(isInfiniteAmmo);
            }
          },
          []() {
-           if (Game::m_pPlayer) 
+           if (Game::GetPlayer()) 
            {
-             return Game::m_pPlayer->IsInfiniteAmmo() ? "[ON]" : "[OFF]";
+             return Game::GetPlayer()->IsInfiniteAmmo() ? "[ON]" : "[OFF]";
            }
            return "[N/A]";
          }},
         {"Flight Mode",
          {},
          [this]() {
-           if (Game::m_pPlayer) 
+           if (Game::GetPlayer()) 
            {
-             bool isFlightMode = !Game::m_pPlayer->IsFlightMode();
-             Game::m_pPlayer->SetFlightMode(isFlightMode);
+             bool isFlightMode = !Game::GetPlayer()->IsFlightMode();
+             Game::GetPlayer()->SetFlightMode(isFlightMode);
            }
          },
          []() {
-           if (Game::m_pPlayer) 
+           if (Game::GetPlayer()) 
            {
-             return Game::m_pPlayer->IsFlightMode() ? "[ON]" : "[OFF]";
+             return Game::GetPlayer()->IsFlightMode() ? "[ON]" : "[OFF]";
            }
            return "[N/A]";
          }}};
@@ -362,29 +362,29 @@ DebugMenu::MenuItem DebugMenu::CreateSceneMenu()
         {"TitleScene",
          {},
          []() {
-           if (Game::m_pSceneManager) {
-             Game::m_pSceneManager->RequestChangeScene(new SceneTitle(false));
+           if (Game::GetSceneManager()) {
+             Game::GetSceneManager()->RequestChangeScene(new SceneTitle(false));
            }
          }},
         {"MainScene",
          {},
          []() {
-           if (Game::m_pSceneManager) {
-             Game::m_pSceneManager->RequestChangeScene(new SceneMain(false));
+           if (Game::GetSceneManager()) {
+             Game::GetSceneManager()->RequestChangeScene(new SceneMain(false));
            }
          }},
         {"ResultScene",
          {},
          []() {
-           if (Game::m_pSceneManager) {
-             Game::m_pSceneManager->RequestChangeScene(new SceneResult());
+           if (Game::GetSceneManager()) {
+             Game::GetSceneManager()->RequestChangeScene(new SceneResult());
            }
          }},
         {"GameOverScene",
          {},
          []() {
-           if (Game::m_pSceneManager) {
-             Game::m_pSceneManager->RequestChangeScene(new SceneGameOver(0, 0, 0));
+           if (Game::GetSceneManager()) {
+             Game::GetSceneManager()->RequestChangeScene(new SceneGameOver(0, 0, 0));
            }
          }}
     };

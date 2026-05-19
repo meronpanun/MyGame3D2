@@ -246,9 +246,9 @@ void WaveManager::Update()
                     if (m_spawnTimer >= spawnInfo.spawnTime && !spawnInfo.isSpawned)
                     {
                         VECTOR currentPlayerPos = VGet(0.0f, 0.0f, 0.0f);
-                        if (Game::m_pPlayer)
+                        if (Game::GetPlayer())
                         {
-                            currentPlayerPos = Game::m_pPlayer->GetPos();
+                            currentPlayerPos = Game::GetPlayer()->GetPos();
                         }
                         spawnInfo.spawnPos = GenerateSpawnPos(m_isTutorialMode ? 1 : 0, spawnInfo.enemyType, currentPlayerPos, spawnInfo.spawnLocationType);
 
@@ -718,9 +718,9 @@ void WaveManager::SpawnTutorialWave(int tutorialWaveId)
     m_currentWave = tutorialWaveId;
 
     VECTOR playerPos = VGet(0, 0, 0);
-    if (Game::m_pPlayer)
+    if (Game::GetPlayer())
     {
-        playerPos = Game::m_pPlayer->GetPos();
+        playerPos = Game::GetPlayer()->GetPos();
     }
 
     StartCurrentWave(playerPos);
