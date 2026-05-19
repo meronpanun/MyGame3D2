@@ -34,6 +34,12 @@ namespace
     // メニューアイテムの色
     constexpr unsigned int kColorItemHovered = 0x0000ff; // ホバー中の項目色
     constexpr unsigned int kColorItemNormal  = 0xffffff; // 通常の項目色
+
+    // 解像度プリセット
+    constexpr int kResHDWidth   = 1280; // HD 横解像度
+    constexpr int kResHDHeight  = 720;  // HD 縦解像度
+    constexpr int kResFHDWidth  = 1920; // FHD 横解像度
+    constexpr int kResFHDHeight = 1080; // FHD 縦解像度
 }
 
 DebugMenu::DebugMenu()
@@ -412,19 +418,19 @@ DebugMenu::MenuItem DebugMenu::CreateScreenMenu()
         {"Resolution",
          {{"1280x720",
            {},
-           []() { Game::SetResolution(1280, 720); },
+           []() { Game::SetResolution(kResHDWidth, kResHDHeight); },
            []() {
-             return (Game::GetScreenWidth() == 1280 &&
-                     Game::GetScreenHeight() == 720)
+             return (Game::GetScreenWidth()  == kResHDWidth &&
+                     Game::GetScreenHeight() == kResHDHeight)
                         ? "[Current]"
                         : "";
            }},
           {"1920x1080",
            {},
-           []() { Game::SetResolution(1920, 1080); },
+           []() { Game::SetResolution(kResFHDWidth, kResFHDHeight); },
            []() {
-             return (Game::GetScreenWidth() == 1920 &&
-                     Game::GetScreenHeight() == 1080)
+             return (Game::GetScreenWidth()  == kResFHDWidth &&
+                     Game::GetScreenHeight() == kResFHDHeight)
                         ? "[Current]"
                         : "";
            }}},
