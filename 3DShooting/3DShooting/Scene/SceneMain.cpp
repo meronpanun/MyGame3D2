@@ -19,7 +19,6 @@
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
-#include "EnemyAcid.h"
 #include "FirstAidKitItem.h"
 #include "ShellCasing.h"
 #include "Game.h"
@@ -30,7 +29,6 @@
 #include "SceneResult.h"
 #include "SceneTitle.h"
 #include "ScoreManager.h"
-#include "ShellCasing.h"
 #include "Stage.h"
 #include "TaskTutorialManager.h"
 #include "TutorialManager.h"
@@ -841,11 +839,6 @@ void SceneMain::Draw()
         // ここからUI描画
     m_pPlayer->DrawShield();
 
-    // チュートリアルUI（最前面に表示）
-    // TutorialUI is now drawn via UIManager
-    // if (m_pTutorialManager)
-    //    m_pTutorialManager->Draw(screenW, screenH);
-
     if (m_pTutorialManager && m_pTutorialManager->IsActive())
     {
         // ...
@@ -985,9 +978,7 @@ void SceneMain::SetCameraSensitivity(float sensitivity)
     }
 }
 
-/// <summary>
-/// プレイヤーの弾が敵にヒットした際に呼ばれる
-/// </summary>
+// プレイヤーの弾が敵にヒットした際に呼ばれる
 void SceneMain::OnPlayerBulletHitEnemy(EnemyBase::HitPart part, float distance)
 {
     // ヒットの部位によってSE再生
