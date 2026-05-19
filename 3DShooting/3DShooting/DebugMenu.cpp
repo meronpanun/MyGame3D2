@@ -30,6 +30,10 @@ namespace
     constexpr int kIndicatorTextOffset = 10; // インジケーターとテキストの間隔
     constexpr int kIndicatorOffsetY = 14;    // インジケーターのYオフセット
     constexpr float kIndicatorClosedAngle = -DX_PI_F * 0.5f; // 90度時計回り
+
+    // メニューアイテムの色
+    constexpr unsigned int kColorItemHovered = 0x0000ff; // ホバー中の項目色
+    constexpr unsigned int kColorItemNormal  = 0xffffff; // 通常の項目色
 }
 
 DebugMenu::DebugMenu()
@@ -54,9 +58,6 @@ DebugMenu::DebugMenu()
     }
 }
 
-DebugMenu::~DebugMenu()
-{
-}
 
 void DebugMenu::Update()
 {
@@ -76,7 +77,7 @@ void DebugMenu::Draw(int x, int y)
 
     for (size_t i = 0; i < m_root.children.size(); ++i)
     {
-        currentPath = { (int)i };
+        currentPath = { static_cast<int>(i) };
         DrawItem(m_root.children[i], x, currentY, 0, currentPath, m_selectedPath,
             mouseX, mouseY, leftClicked);
     }
@@ -109,7 +110,7 @@ void DebugMenu::DrawItem(MenuItem& item, int& x, int& y, int depth, const std::v
         }
     }
 
-    int color = isHovered ? 0x0000ff : 0xffffff;
+    unsigned int color = isHovered ? kColorItemHovered : kColorItemNormal;
     // 子項目がある場合、開閉状態に応じたインジケーター（三角形文字）を描画
     if (!item.children.empty())
     {
@@ -192,7 +193,7 @@ DebugMenu::MenuItem* DebugMenu::GetSelectedItem()
     MenuItem* item = &m_root;
     for (int index : m_selectedPath)
     {
-        if (index < item->children.size())
+        if (index < static_cast<int>(item->children.size()))
         {
             item = &item->children[index];
         }
