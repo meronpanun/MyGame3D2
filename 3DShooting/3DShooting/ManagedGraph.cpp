@@ -9,5 +9,5 @@ void ManagedGraph::Load(const std::string& path)
 {
     m_path = path;
     int newHandle = LoadGraph(path.c_str());
-    m_handle.Reset(newHandle);
+    m_handle.Reset(newHandle); // 古いハンドルは SafeHandle が自動解放する
 }
