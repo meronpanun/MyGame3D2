@@ -11,6 +11,14 @@
 #include <DxLib.h>
 #include <string>
 
+namespace
+{
+    constexpr int   kFadeSpeed      =   5;            // フェード速度（フレームあたりのアルファ変化量）
+    constexpr int   kFadeAlphaMax   = 255;            // フェードアルファの最大値（完全不透明）
+    constexpr int   kFadeAlphaMin   =   0;            // フェードアルファの最小値（完全透明）
+    constexpr float kUpdateDeltaTime = 1.0f / 60.0f;  // サウンド更新用デルタタイム
+}
+
 SceneManager::SceneManager()
     : m_pTitle(nullptr)
     , m_pSceneMain(nullptr)
@@ -23,8 +31,8 @@ SceneManager::SceneManager()
     , m_loadingDotCount(0)
     , m_loadingAnimTimer(0)
     , m_fadeState(FadeState::Idle)
-    , m_fadeAlpha(0)
-    , m_fadeSpeed(5)
+    , m_fadeAlpha(kFadeAlphaMin)
+    , m_fadeSpeed(kFadeSpeed)
 {
 }
 
@@ -65,13 +73,13 @@ void SceneManager::Init()
     m_pTitle->Init();
     m_pCurrentScene = m_pTitle;
     m_fadeState = FadeState::FadingIn;
-    m_fadeAlpha = 255;
+    m_fadeAlpha = kFadeAlphaMax;
 }
 
 void SceneManager::Update()
 {
     // サウンドの更新（フェード処理など）
-    SoundManager::GetInstance()->Update(1.0f / 60.0f);
+    SoundManager::GetInstance()->Update(kUpdateDeltaTime);
 
     // マウスの入力状態を更新
     InputManager::GetInstance()->Update();
@@ -80,18 +88,18 @@ void SceneManager::Update()
     if (m_fadeState == FadeState::FadingIn)
     {
         m_fadeAlpha -= m_fadeSpeed;
-        if (m_fadeAlpha <= 0)
+        if (m_fadeAlpha <= kFadeAlphaMin)
         {
-            m_fadeAlpha = 0;
+            m_fadeAlpha = kFadeAlphaMin;
             m_fadeState = FadeState::Idle;
         }
     }
     else if (m_fadeState == FadeState::FadingOut)
     {
         m_fadeAlpha += m_fadeSpeed;
-        if (m_fadeAlpha >= 255)
+        if (m_fadeAlpha >= kFadeAlphaMax)
         {
-            m_fadeAlpha = 255;
+            m_fadeAlpha = kFadeAlphaMax;
 
             // 現在のシーンがSceneMainなら、エフェクトをすべて停止する
             if (SceneMain* mainScene = dynamic_cast<SceneMain*>(m_pCurrentScene))
@@ -179,7 +187,6 @@ void SceneManager::Draw()
     DebugUtil::ShowDebugWindow();
 }
 
-// 外部からシーン変更をリクエストする関数
 void SceneManager::RequestChangeScene(SceneBase* newScene)
 {
     if (m_fadeState == FadeState::Idle)
