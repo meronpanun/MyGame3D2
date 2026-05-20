@@ -164,7 +164,7 @@ public:
     /// <summary>
     /// すべてのエフェクトを停止する
     /// </summary>
-    void StopAllEffects();
+    void StopAllEffects() override;
 
     /// <summary>
     /// TaskTutorialInitフラグを設定する

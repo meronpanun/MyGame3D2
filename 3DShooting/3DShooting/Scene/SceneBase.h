@@ -30,4 +30,10 @@ public:
     /// </summary>
     /// <returns>ロード中ならtrue</returns>
     virtual bool IsLoading() const { return false; }
+
+    /// <summary>
+    /// シーンが再生中のエフェクトをすべて停止する。
+    /// デフォルト実装は何もしない。エフェクトを持つシーンでオーバーライドする。
+    /// </summary>
+    virtual void StopAllEffects() {}
 };

@@ -219,20 +219,24 @@ void TaskTutorialManager::SkipToParry()
         SceneMain::Instance()->SetTaskTutorialInit(true);
     }
 
-    // パリィタスクから再開
-    m_step        = TaskStep::Parry;
-    m_currentTask = std::make_unique<ParryTutorialTask>();
-    m_currentTask->Start(m_pWaveManager, m_pPlayer);
-
-    // アニメーションをリセット
-    m_titlePosX            = kTitleStartX;
-    m_isTitleAnimFinished  = false;
-    m_taskAlpha            = 0;
+    // パリィタスクから再開（アニメーション状態も一括リセット）
     m_animationWaitTimer   = 0;
     m_transitionDelayTimer = 0;
-    m_displayedProgress    = 0.0f;
+    BeginTask(TaskStep::Parry, std::make_unique<ParryTutorialTask>(), kTitleStartX);
 
     Game::SetPaused(false);
+}
+
+void TaskTutorialManager::BeginTask(TaskStep nextStep, std::unique_ptr<ITutorialTask> task, float startX)
+{
+    m_step        = nextStep;
+    m_currentTask = std::move(task);
+    m_currentTask->Start(m_pWaveManager, m_pPlayer);
+
+    m_titlePosX           = startX;
+    m_isTitleAnimFinished = false;
+    m_taskAlpha           = 0;
+    m_displayedProgress   = 0.0f;
 }
 
 void TaskTutorialManager::Update()
@@ -304,15 +308,7 @@ void TaskTutorialManager::Update()
 
     case TaskStep::ShootCompleteDelay:
         if (--m_transitionDelayTimer <= 0)
-        {
-            m_step        = TaskStep::Tackle;
-            m_currentTask = std::make_unique<TackleTutorialTask>();
-            m_currentTask->Start(m_pWaveManager, m_pPlayer);
-            m_titlePosX           = kTitleStartX;
-            m_isTitleAnimFinished = false;
-            m_taskAlpha           = 0;
-            m_displayedProgress   = 0.0f;
-        }
+            BeginTask(TaskStep::Tackle, std::make_unique<TackleTutorialTask>(), kTitleStartX);
         break;
 
     case TaskStep::Tackle:
@@ -325,15 +321,7 @@ void TaskTutorialManager::Update()
 
     case TaskStep::TackleCompleteDelay:
         if (--m_transitionDelayTimer <= 0)
-        {
-            m_step        = TaskStep::ShieldThrow;
-            m_currentTask = std::make_unique<ShieldThrowTutorialTask>();
-            m_currentTask->Start(m_pWaveManager, m_pPlayer);
-            m_titlePosX           = kTitleStartXShort;
-            m_isTitleAnimFinished = false;
-            m_taskAlpha           = 0;
-            m_displayedProgress   = 0.0f;
-        }
+            BeginTask(TaskStep::ShieldThrow, std::make_unique<ShieldThrowTutorialTask>(), kTitleStartXShort);
         break;
 
     case TaskStep::ShieldThrow:
@@ -346,15 +334,7 @@ void TaskTutorialManager::Update()
 
     case TaskStep::ShieldThrowCompleteDelay:
         if (--m_transitionDelayTimer <= 0)
-        {
-            m_step        = TaskStep::Parry;
-            m_currentTask = std::make_unique<ParryTutorialTask>();
-            m_currentTask->Start(m_pWaveManager, m_pPlayer);
-            m_titlePosX           = kTitleStartXShort;
-            m_isTitleAnimFinished = false;
-            m_taskAlpha           = 0;
-            m_displayedProgress   = 0.0f;
-        }
+            BeginTask(TaskStep::Parry, std::make_unique<ParryTutorialTask>(), kTitleStartXShort);
         break;
 
     case TaskStep::Parry:

@@ -4,7 +4,6 @@
 #include "InputManager.h"
 #include "SoundManager.h"
 #include "SceneBase.h"
-#include "SceneMain.h"
 #include "SceneTitle.h"
 #include <DxLib.h>
 #include <string>
@@ -21,7 +20,6 @@ SceneManager::SceneManager()
     : m_pCurrentScene(nullptr)
     , m_pNextScene(nullptr)
     , m_pSceneToChange(nullptr)
-    , m_isExternalSceneChange(false)
     , m_loadingDotCount(0)
     , m_loadingAnimTimer(0)
     , m_fadeState(FadeState::Idle)
@@ -32,22 +30,15 @@ SceneManager::SceneManager()
 
 SceneManager::~SceneManager()
 {
-    // 現在のシーンと、フェードアウト中に終了した場合の遷移先シーンを解放する
-    delete m_pCurrentScene;
-    m_pCurrentScene = nullptr;
-    delete m_pSceneToChange;
-    m_pSceneToChange = nullptr;
-
+    // unique_ptr が m_pCurrentScene と m_pSceneToChange を自動解放する
     SoundManager::GetInstance()->Release();
 }
 
 void SceneManager::Init()
 {
-    // サウンドリストのロード
     SoundManager::GetInstance()->Load("data/CSV/SoundList.csv");
 
-    // 初期シーンをタイトルシーンに設定
-    m_pCurrentScene = new SceneTitle();
+    m_pCurrentScene = std::make_unique<SceneTitle>();
     m_pCurrentScene->Init();
     m_fadeState = FadeState::FadingIn;
     m_fadeAlpha = kFadeAlphaMax;
@@ -55,10 +46,7 @@ void SceneManager::Init()
 
 void SceneManager::Update()
 {
-    // サウンドの更新（フェード処理など）
     SoundManager::GetInstance()->Update(kUpdateDeltaTime);
-
-    // マウスの入力状態を更新
     InputManager::GetInstance()->Update();
 
     // フェードイン・アウト処理
@@ -78,54 +66,40 @@ void SceneManager::Update()
         {
             m_fadeAlpha = kFadeAlphaMax;
 
-            // 現在のシーンが SceneMain なら、エフェクトをすべて停止する
-            if (SceneMain* mainScene = dynamic_cast<SceneMain*>(m_pCurrentScene))
-            {
-                mainScene->StopAllEffects();
-            }
+            // エフェクト停止（SceneBase の virtual 呼び出し。エフェクトを持たないシーンは no-op）
+            m_pCurrentScene->StopAllEffects();
 
-            // シーン遷移時にすべてのサウンドを確実に停止させる
             SoundManager::GetInstance()->StopAllSE();
 
-            // 古いシーンを削除して遷移先シーンへ切り替える
-            delete m_pCurrentScene;
-            m_pCurrentScene = m_pSceneToChange;
-            m_pSceneToChange = nullptr;
+            // 所有権を移譲して現在シーンを破棄し、遷移先シーンへ切り替える
+            m_pCurrentScene = std::move(m_pSceneToChange);
             m_pCurrentScene->Init();
 
-            // 次のステートへ
-            if (m_pCurrentScene->IsLoading())
-            {
-                m_fadeState = FadeState::Loading;
-            }
-            else
-            {
-                m_fadeState = FadeState::FadingIn;
-            }
+            m_fadeState = m_pCurrentScene->IsLoading() ? FadeState::Loading : FadeState::FadingIn;
 
-            // シーン遷移直後のフレームで、前のシーンでの入力がトリガーされてしまうのを防ぐため、
-            // マウスの入力ログを意図的に更新してトリガー判定を無効化する。
+            // シーン遷移直後の誤トリガーを防ぐために入力ログを更新する
             InputManager::GetInstance()->Update();
         }
     }
 
     // 現在のシーンを更新（フェードアウト中は更新しない）
-    if (m_pCurrentScene != nullptr && m_fadeState != FadeState::FadingOut)
+    if (m_pCurrentScene && m_fadeState != FadeState::FadingOut)
     {
         m_pNextScene = m_pCurrentScene->Update();
-        // ロード完了監視（シーン更新直後にチェックすることで描画ラグを防ぐ）
+
+        // ロード完了を監視（描画ラグを防ぐためシーン更新直後にチェック）
         if (m_fadeState == FadeState::Loading && !m_pCurrentScene->IsLoading())
         {
             m_fadeState = FadeState::FadingIn;
         }
     }
 
-    // シーンが変わった場合、フェードアウトを開始
-    if (m_pNextScene != nullptr && m_pNextScene != m_pCurrentScene)
+    // シーンが切り替わった場合はフェードアウトを開始する
+    if (m_pNextScene != nullptr && m_pNextScene != m_pCurrentScene.get())
     {
         if (m_fadeState == FadeState::Idle)
         {
-            m_pSceneToChange = m_pNextScene;
+            m_pSceneToChange.reset(m_pNextScene);
             m_fadeState = FadeState::FadingOut;
         }
     }
@@ -133,14 +107,9 @@ void SceneManager::Update()
 
 void SceneManager::Draw()
 {
-    // 現在のシーンを描画
-    if (m_pCurrentScene != nullptr)
-    {
-        m_pCurrentScene->Draw();
-    }
+    if (m_pCurrentScene) m_pCurrentScene->Draw();
 
-    // フェード処理
-    // ロード中はシーン側で描画を行うため、フェード膜は描画しない（フェード膜で隠すとロード画面が見えない）
+    // ロード中はシーン側で描画するためフェード膜は重ねない
     if (m_fadeAlpha > 0 && m_fadeState != FadeState::Loading)
     {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_fadeAlpha);
@@ -148,7 +117,6 @@ void SceneManager::Draw()
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // デバッグウィンドウを表示
     DebugUtil::ShowDebugWindow();
 }
 
@@ -156,8 +124,7 @@ void SceneManager::RequestChangeScene(SceneBase* newScene)
 {
     if (m_fadeState == FadeState::Idle)
     {
-        m_pSceneToChange = newScene;
+        m_pSceneToChange.reset(newScene);
         m_fadeState = FadeState::FadingOut;
-        m_isExternalSceneChange = true; // 外部からの変更要求があったことを示す
     }
 }

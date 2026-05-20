@@ -186,4 +186,13 @@ private:
     int        m_restrictedActionAlpha; // フェード用アルファ値
 
     float m_prevScale; // 前フレームの UI スケール値（フォントリロード検出用）
+
+    /// <summary>
+    /// 次のタスクを開始し、アニメーション状態をリセットする。
+    /// CompleteDelay 各ケースと SkipToParry() で共通して使用するヘルパー。
+    /// </summary>
+    /// <param name="nextStep">遷移先のステップ</param>
+    /// <param name="task">開始するタスクオブジェクト</param>
+    /// <param name="startX">タイトルスライドインの開始 X 座標</param>
+    void BeginTask(TaskStep nextStep, std::unique_ptr<ITutorialTask> task, float startX);
 };
