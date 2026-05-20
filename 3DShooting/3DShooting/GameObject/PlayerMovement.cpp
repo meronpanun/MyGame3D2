@@ -88,10 +88,33 @@ PlayerMovement::PlayerMovement()
 
 void PlayerMovement::Init(const VECTOR& pos, float moveSpeed, float runSpeed, float scale)
 {
-    m_modelPos = pos;
+    m_modelPos  = pos;
     m_moveSpeed = moveSpeed;
     m_runSpeed  = runSpeed;
     m_scale     = VGet(scale, scale, scale);
+
+    // 速度・慣性・状態フラグをすべてリセットする。
+    // チュートリアルからメインステージへ移行するとき等に
+    // 前の移動慣性がそのまま引き継がれないようにする。
+    m_jumpMoveVelocity       = VGet(0.0f, 0.0f, 0.0f);
+    m_airSideControlVelocity = VGet(0.0f, 0.0f, 0.0f);
+    m_knockbackVelocity      = VGet(0.0f, 0.0f, 0.0f);
+    m_jumpVelocity           = 0.0f;
+    m_jumpStartYaw           = 0.0f;
+    m_jumpSpeedScalar        = 0.0f;
+    m_coyoteTimeTimer        = 0.0f;
+    m_currentSpeed           = 0.0f;
+    m_airborneTime           = 0.0f;
+    m_impactVelocity         = 0.0f;
+    m_isMoving               = false;
+    m_isJumping              = false;
+    m_wasJumping             = false;
+    m_wasRunning             = false;
+    m_isGroundedOnStage      = false;
+    m_isRunMode              = false;
+    m_isRunJumping           = false;
+    m_isJumpInertiaActive    = false;
+    m_justLanded             = false;
 }
 
 void PlayerMovement::Update(float deltaTime, Camera* pCamera, bool isDead, bool isTackling,

@@ -119,6 +119,12 @@ Camera::Camera()
 
 void Camera::Init()
 {
+    // 視点角度をコンストラクタと同じ初期値に戻す。
+    // チュートリアルからメインステージへ移行するとき等に
+    // 前のシーンでの視点方向が引き継がれないようにする。
+    m_yaw   = kInitialYaw;
+    m_pitch = 0.0f;
+
     SetCameraPositionAndTarget_UpVecY(m_pos, m_target);
     SetupCamera_Perspective(m_fov);
     SetCameraNearFar(kCameraNear, kCameraFar);
