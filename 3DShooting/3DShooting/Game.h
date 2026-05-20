@@ -70,22 +70,39 @@ public:
     /// <returns>一時停止中なら true</returns>
     static bool IsPaused();
 
-    /// <summary>プレイヤーへのポインタを返す</summary>
-    static Player*       GetPlayer()       { return s_pPlayer; }
+    /// <summary>
+    /// プレイヤーへの非所有ポインタを返す。
+    /// SceneMain が存在しない間は nullptr を返す。呼び出し元は必ず null チェックを行うこと。
+    /// </summary>
+    static Player*       GetPlayer()          { return s_pPlayer; }
 
-    /// <summary>プレイヤーへのポインタを設定する</summary>
+    /// <summary>
+    /// プレイヤーへの非所有ポインタを登録する。
+    /// SceneMain::Init() で所有オブジェクトの .get() を渡し、
+    /// SceneMain::~SceneMain() で nullptr を渡してダングリングを防ぐ。
+    /// </summary>
     static void          SetPlayer(Player* p) { s_pPlayer = p; }
 
-    /// <summary>ウェーブマネージャへのポインタを返す</summary>
-    static WaveManager*  GetWaveManager()  { return s_pWaveManager; }
+    /// <summary>
+    /// ウェーブマネージャへの非所有ポインタを返す。
+    /// SceneMain が存在しない間は nullptr を返す。呼び出し元は必ず null チェックを行うこと。
+    /// </summary>
+    static WaveManager*  GetWaveManager()            { return s_pWaveManager; }
 
-    /// <summary>ウェーブマネージャへのポインタを設定する</summary>
+    /// <summary>
+    /// ウェーブマネージャへの非所有ポインタを登録する。
+    /// SceneMain::Init() で所有オブジェクトの .get() を渡し、
+    /// SceneMain::~SceneMain() で nullptr を渡してダングリングを防ぐ。
+    /// </summary>
     static void          SetWaveManager(WaveManager* wm) { s_pWaveManager = wm; }
 
-    /// <summary>シーンマネージャへのポインタを返す</summary>
-    static SceneManager* GetSceneManager() { return s_pSceneManager; }
+    /// <summary>
+    /// シーンマネージャへの非所有ポインタを返す。
+    /// main.cpp が所有し、プログラム終了まで有効。
+    /// </summary>
+    static SceneManager* GetSceneManager()             { return s_pSceneManager; }
 
-    /// <summary>シーンマネージャへのポインタを設定する</summary>
+    /// <summary>シーンマネージャへの非所有ポインタを登録する（main.cpp から一度だけ呼ぶ）</summary>
     static void          SetSceneManager(SceneManager* sm) { s_pSceneManager = sm; }
 
     /// <summary>カメラ感度を返す</summary>
@@ -100,9 +117,9 @@ private:
     static int   s_colorBitNum;    // カラービット数
     static bool  s_isWindowMode;   // ウィンドウモードフラグ
 
-    static Player*       s_pPlayer;       // プレイヤーへのポインタ
-    static WaveManager*  s_pWaveManager;  // ウェーブマネージャへのポインタ
-    static SceneManager* s_pSceneManager; // シーンマネージャへのポインタ
+    static Player*       s_pPlayer;       // 非所有。SceneMain の生存期間中のみ有効（破棄時に nullptr）
+    static WaveManager*  s_pWaveManager;  // 非所有。SceneMain の生存期間中のみ有効（破棄時に nullptr）
+    static SceneManager* s_pSceneManager; // 非所有。main.cpp が所有しプログラム終了まで有効
 
     static float s_cameraSensitivity; // カメラ感度
 

@@ -183,6 +183,13 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
 
 SceneMain::~SceneMain()
 {
+    // Game が保持する生ポインタを null に戻す。
+    // ここで null にしておかないと、unique_ptr メンバの自動解放後も
+    // Game::s_pPlayer / s_pWaveManager がダングリングポインタになる。
+    // 呼び出し元は全て null チェックを行うため、null 化後も安全に動作する。
+    Game::SetPlayer(nullptr);
+    Game::SetWaveManager(nullptr);
+
     // 全てのSEを停止
     SoundManager::GetInstance()->StopAllSE();
 
