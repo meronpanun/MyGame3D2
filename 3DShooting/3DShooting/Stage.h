@@ -75,13 +75,13 @@ public:
     VECTOR GetMaxBounds() const { return m_maxBounds; }
 
     /// <summary>当たり判定のデバッグ描画フラグを設定する</summary>
-    static void SetDrawCollision(bool isDraw)         { s_shouldDrawCollision = isDraw; }
+    static void SetDrawCollision(bool isDraw) { s_shouldDrawCollision = isDraw; }
     /// <summary>当たり判定のデバッグ描画フラグを返す</summary>
-    static bool ShouldDrawCollision()                 { return s_shouldDrawCollision; }
+    static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
     /// <summary>チュートリアル当たり判定のデバッグ描画フラグを設定する</summary>
     static void SetDrawTutorialCollision(bool isDraw) { s_shouldDrawTutorialCollision = isDraw; }
     /// <summary>チュートリアル当たり判定のデバッグ描画フラグを返す</summary>
-    static bool ShouldDrawTutorialCollision()         { return s_shouldDrawTutorialCollision; }
+    static bool ShouldDrawTutorialCollision() { return s_shouldDrawTutorialCollision; }
 
 private:
     /// <summary>

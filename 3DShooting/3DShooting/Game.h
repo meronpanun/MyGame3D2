@@ -24,15 +24,15 @@ public:
 
     /// <summary>現在の画面幅を返す</summary>
     /// <returns>画面幅（ピクセル）</returns>
-    static int  GetScreenWidth()  { return s_screenWidth; }
+    static int GetScreenWidth()  { return s_screenWidth; }
 
     /// <summary>現在の画面高さを返す</summary>
     /// <returns>画面高さ（ピクセル）</returns>
-    static int  GetScreenHeight() { return s_screenHeight; }
+    static int GetScreenHeight() { return s_screenHeight; }
 
     /// <summary>カラービット数を返す</summary>
     /// <returns>カラービット数</returns>
-    static int  GetColorBitNum()  { return s_colorBitNum; }
+    static int GetColorBitNum()  { return s_colorBitNum; }
 
     /// <summary>
     /// ウィンドウモード／フルスクリーンモードを切り替える
@@ -49,10 +49,10 @@ public:
     /// </summary>
     /// <param name="scale">初期タイムスケール</param>
     /// <param name="duration">復帰までの時間（秒）</param>
-    static void  SetTimeScale(float scale, float duration);
+    static void SetTimeScale(float scale, float duration);
 
     /// <summary>タイムスケールを毎フレーム更新し、目標値へ線形補間する</summary>
-    static void  UpdateTimeScale();
+    static void UpdateTimeScale();
 
     /// <summary>現在のタイムスケールを返す（ポーズ中は 0.0 を返す）</summary>
     /// <returns>タイムスケール</returns>
@@ -74,42 +74,42 @@ public:
     /// プレイヤーへの非所有ポインタを返す。
     /// SceneMain が存在しない間は nullptr を返す。呼び出し元は必ず null チェックを行うこと。
     /// </summary>
-    static Player*       GetPlayer()          { return s_pPlayer; }
+    static Player* GetPlayer() { return s_pPlayer; }
 
     /// <summary>
     /// プレイヤーへの非所有ポインタを登録する。
     /// SceneMain::Init() で所有オブジェクトの .get() を渡し、
     /// SceneMain::~SceneMain() で nullptr を渡してダングリングを防ぐ。
     /// </summary>
-    static void          SetPlayer(Player* p) { s_pPlayer = p; }
+    static void SetPlayer(Player* p) { s_pPlayer = p; }
 
     /// <summary>
     /// ウェーブマネージャへの非所有ポインタを返す。
     /// SceneMain が存在しない間は nullptr を返す。呼び出し元は必ず null チェックを行うこと。
     /// </summary>
-    static WaveManager*  GetWaveManager()            { return s_pWaveManager; }
+    static WaveManager* GetWaveManager() { return s_pWaveManager; }
 
     /// <summary>
     /// ウェーブマネージャへの非所有ポインタを登録する。
     /// SceneMain::Init() で所有オブジェクトの .get() を渡し、
     /// SceneMain::~SceneMain() で nullptr を渡してダングリングを防ぐ。
     /// </summary>
-    static void          SetWaveManager(WaveManager* wm) { s_pWaveManager = wm; }
+    static void SetWaveManager(WaveManager* wm) { s_pWaveManager = wm; }
 
     /// <summary>
     /// シーンマネージャへの非所有ポインタを返す。
     /// main.cpp が所有し、プログラム終了まで有効。
     /// </summary>
-    static SceneManager* GetSceneManager()             { return s_pSceneManager; }
+    static SceneManager* GetSceneManager() { return s_pSceneManager; }
 
     /// <summary>シーンマネージャへの非所有ポインタを登録する（main.cpp から一度だけ呼ぶ）</summary>
-    static void          SetSceneManager(SceneManager* sm) { s_pSceneManager = sm; }
+    static void SetSceneManager(SceneManager* sm) { s_pSceneManager = sm; }
 
     /// <summary>カメラ感度を返す</summary>
-    static float GetCameraSensitivity()        { return s_cameraSensitivity; }
+    static float GetCameraSensitivity() { return s_cameraSensitivity; }
 
     /// <summary>カメラ感度を設定する</summary>
-    static void  SetCameraSensitivity(float v) { s_cameraSensitivity = v; }
+    static void SetCameraSensitivity(float v) { s_cameraSensitivity = v; }
 
 private:
     static int   s_screenWidth;    // 現在の画面幅（ピクセル）
