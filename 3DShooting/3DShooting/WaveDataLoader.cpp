@@ -3,6 +3,12 @@
 #include <fstream>
 #include <sstream>
 
+namespace
+{
+    // Unity 座標系（メートル）→ 本ゲーム座標系（センチメートル）への変換係数
+    constexpr float kUnityToGameScale = 100.0f;
+}
+
 std::vector<WaveData> WaveDataLoader::LoadWaveData(const std::string& path)
 {
     std::vector<WaveData> waveDataList;
@@ -14,78 +20,45 @@ std::vector<WaveData> WaveDataLoader::LoadWaveData(const std::string& path)
     }
 
     std::string line;
-    // ヘッダー行をスキップ
-    std::getline(file, line);
+    std::getline(file, line); // ヘッダー行をスキップ
 
-    // CSVファイルの各行を読み込む
     while (std::getline(file, line))
     {
         std::stringstream ss(line);
         std::string token;
-        WaveData waveData;
+        WaveData data;
 
-        // Wave
         if (!std::getline(ss, token, ',')) continue;
-        waveData.wave = std::stoi(token);
+        data.wave = std::stoi(token);
 
-        // EnemyType
         if (!std::getline(ss, token, ',')) continue;
-        waveData.enemyType = token;
+        data.enemyType = token;
 
-        // Count
         if (!std::getline(ss, token, ',')) continue;
-        waveData.count = std::stoi(token);
+        data.count = std::stoi(token);
 
-        // SpawnInterval
         if (!std::getline(ss, token, ',')) continue;
-        waveData.spawnInterval = std::stof(token);
+        data.spawnInterval = std::stof(token);
 
-        // StartTime
         if (!std::getline(ss, token, ',')) continue;
-        waveData.startTime = std::stof(token);
+        data.startTime = std::stof(token);
 
-        // WaveInterval
-        if (std::getline(ss, token, ','))
-        {
-            waveData.waveInterval = std::stof(token);
-        }
-        else
-        {
-            waveData.waveInterval = 0.0f;
-        }
+        // 以下はオプション列。取得できなければ struct の既定値を使用する
+        if (std::getline(ss, token, ',')) data.waveInterval      = std::stof(token);
+        if (std::getline(ss, token, ',')) data.spawnLocationType  = std::stoi(token);
+        if (std::getline(ss, token, ',')) data.hasShield          = (std::stoi(token) == 1);
 
-        if (std::getline(ss, token, ','))
-        {
-            waveData.spawnLocationType = std::stoi(token);
-        }
-        else
-        {
-            waveData.spawnLocationType = 0;
-        }
+        waveDataList.push_back(data);
 
-        // HasShield (0 または 1)
-        if (std::getline(ss, token, ','))
-        {
-            waveData.hasShield = (std::stoi(token) == 1);
-        }
-        else
-        {
-            waveData.hasShield = false;
-        }
-
-        waveDataList.push_back(waveData);
-
-        // デバッグ出力
         printf("Loaded: Wave %d, %s, Count %d, Interval %.1f, Start %.1f, Loc %d, Shield %d\n",
-               waveData.wave, waveData.enemyType.c_str(), waveData.count,
-               waveData.spawnInterval, waveData.startTime,
-               waveData.spawnLocationType, waveData.hasShield ? 1 : 0);
+               data.wave, data.enemyType.c_str(), data.count,
+               data.spawnInterval, data.startTime,
+               data.spawnLocationType, data.hasShield ? 1 : 0);
     }
     return waveDataList;
 }
 
-std::vector<SpawnAreaInfo>
-WaveDataLoader::LoadSpawnAreaData(const std::string& path)
+std::vector<SpawnAreaInfo> WaveDataLoader::LoadSpawnAreaData(const std::string& path)
 {
     std::vector<SpawnAreaInfo> spawnAreaList;
     std::ifstream file(path);
@@ -96,50 +69,36 @@ WaveDataLoader::LoadSpawnAreaData(const std::string& path)
     }
 
     std::string line;
-    // ヘッダー行をスキップ
-    std::getline(file, line);
+    std::getline(file, line); // ヘッダー行をスキップ
 
-    // CSVファイルの各行を読み込む
     while (std::getline(file, line))
     {
         std::stringstream ss(line);
         std::string token;
         SpawnAreaInfo info;
 
-        // Type
         if (!std::getline(ss, token, ',')) continue;
         info.type = std::stoi(token);
 
-        // PosX, PosY, PosZ
+        // 中心座標（Unity 座標系 → ゲーム座標系に変換）
         float x, y, z;
-        if (!std::getline(ss, token, ',')) continue;
-        x = std::stof(token);
-        if (!std::getline(ss, token, ',')) continue;
-        y = std::stof(token);
-        if (!std::getline(ss, token, ',')) continue;
-        z = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; x = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; y = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; z = std::stof(token);
+        info.center = VGet(x * kUnityToGameScale, y * kUnityToGameScale, z * kUnityToGameScale);
 
-        // Unity座標系からの変換（100倍）
-        info.center = VGet(x * 100.0f, y * 100.0f, z * 100.0f);
-
-        // ScaleX, ScaleY, ScaleZ
+        // サイズ（Unity 座標系 → ゲーム座標系に変換）
         float sx, sy, sz;
-        if (!std::getline(ss, token, ',')) continue;
-        sx = std::stof(token);
-        if (!std::getline(ss, token, ',')) continue;
-        sy = std::stof(token);
-        if (!std::getline(ss, token, ',')) continue;
-        sz = std::stof(token);
-
-        // スケールも100倍する
-        info.size = VGet(sx * 100.0f, sy * 100.0f, sz * 100.0f);
+        if (!std::getline(ss, token, ',')) continue; sx = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; sy = std::stof(token);
+        if (!std::getline(ss, token, ',')) continue; sz = std::stof(token);
+        info.size = VGet(sx * kUnityToGameScale, sy * kUnityToGameScale, sz * kUnityToGameScale);
 
         spawnAreaList.push_back(info);
 
-        // デバッグ出力
         printf("Loaded SpawnArea: Type %d, Pos(%.1f, %.1f, %.1f), Size(%.1f, %.1f, %.1f)\n",
-               info.type, info.center.x, info.center.y, info.center.z, info.size.x,
-               info.size.y, info.size.z);
+               info.type, info.center.x, info.center.y, info.center.z,
+               info.size.x, info.size.y, info.size.z);
     }
     return spawnAreaList;
 }
