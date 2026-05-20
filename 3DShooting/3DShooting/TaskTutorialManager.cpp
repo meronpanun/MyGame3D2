@@ -11,20 +11,50 @@
 
 namespace
 {
-    // UI関連
-    constexpr int kTaskTextX = 60;
-    constexpr int kTaskTextY = 200;
-    constexpr int kTitleFontSize = 48;
-    constexpr int kBarMaxWidth = 300;
-    constexpr int kBarHeight = 22;
+    // UI レイアウト（基準解像度 720p 時のピクセル値）
+    constexpr int kTaskTextX     =  60; // タスクテキストの X 座標
+    constexpr int kTaskTextY     = 200; // タスクテキストの Y 座標
+    constexpr int kTitleFontSize =  48; // タイトルフォントサイズ
+    constexpr int kBarMaxWidth   = 300; // 進捗バーの最大幅
+    constexpr int kBarHeight     =  22; // 進捗バーの高さ
 
-    // 背景ボックス関連
-    constexpr int kBgBoxPaddingX = 20;
-    constexpr int kBgBoxPaddingY = 15;
-    constexpr int kBgBoxWidth = 580;
-    constexpr int kBgBoxHeight = 250;
-    constexpr unsigned int kBgBoxColor = 0x000000;
-    constexpr int kBgBoxAlpha = 128;
+    // 背景ボックス
+    constexpr int          kBgBoxPaddingX =  20;      // 背景ボックス左右パディング
+    constexpr int          kBgBoxPaddingY =  15;      // 背景ボックス上下パディング
+    constexpr int          kBgBoxWidth    = 580;      // 背景ボックス幅
+    constexpr int          kBgBoxHeight   = 250;      // 背景ボックス高さ
+    constexpr unsigned int kBgBoxColor    = 0x000000; // 背景ボックスの色
+    constexpr int          kBgBoxAlpha    = 128;      // 背景ボックスのアルファ値
+
+    // アニメーション・ステップ遷移タイミング
+    constexpr int   kTitleAnimWaitFrames  =  30;     // タイトルアニメーション完了後の待機フレーム数
+    constexpr int   kStepTransitionDelay  =  60;     // ステップ遷移までの待機フレーム数
+    constexpr float kTitleStartX          = -450.0f; // タイトルスライドインの開始 X 座標
+    constexpr float kTitleStartXShort     = -300.0f; // 短いタイトル用の開始 X 座標（盾投げ・パリィ）
+    constexpr float kScaleChangeTolerance =   0.001f; // UI スケール変化を検出する閾値
+
+    // 制限アクションフィードバック
+    constexpr int kRestrictedActionTimerMax         = 120; // 制限アクション表示の最大タイマー値
+    constexpr int kRestrictedActionFadeInThreshold  = 100; // フェードイン継続の閾値（タイマー残量）
+    constexpr int kRestrictedActionFadeOutThreshold =  30; // フェードアウト開始の閾値（タイマー残量）
+    constexpr int kRestrictedActionAlphaIncrement   =  25; // フェードイン時のアルファ加算量
+    constexpr int kRestrictedActionAlphaDecrement   =  10; // フェードアウト時のアルファ減算量
+
+    // 制限アクション・フィードバック画像描画
+    constexpr float kFeedbackImageScale        = 0.12f; // フィードバック背景画像のスケール
+    constexpr float kFeedbackImageCenterYRatio = 0.6f;  // 画面高さに対するフィードバック画像の縦位置比率
+    constexpr int   kIconBaseSize              =  36;   // アイコンの基準サイズ（px）
+    constexpr float kIconScaleFactor           = 1.5f;  // アイコンのスケール倍率
+
+    // パリィ説明オーバーレイ
+    constexpr int kParryOverlayAlpha = 128; // 暗転オーバーレイのアルファ値
+    constexpr int kParryIconSize     =  32; // パリィ説明中のアイコンサイズ（px）
+    constexpr int kParryTextOffsetY  =  50; // パリィ説明テキストの縦オフセット（px）
+
+    // Draw 内のレイアウト補助
+    constexpr int kTitleToTaskGapY   = 10; // タイトルとタスクテキストの縦間隔（px）
+    constexpr int kProgressBarOffsetY = 40; // タスクテキストから進捗バーまでの縦間隔（px）
+    constexpr int kBarToTextGap      =  5; // 進捗バーとテキストの横間隔（px）
 }
 
 TaskTutorialManager* TaskTutorialManager::GetInstance()
@@ -54,16 +84,18 @@ TaskTutorialManager::TaskTutorialManager()
     , m_titleAnimSpeed(15.0f)
     , m_isTitleAnimFinished(false)
     , m_taskAlpha(0)
-    , m_taskFadeSpeed(15.0f) 
+    , m_taskFadeSpeed(15.0f)
     , m_animationWaitTimer(0)
     , m_displayedProgress(0.0f)
     , m_progressAnimSpeed(0.05f)
     , m_transitionDelayTimer(0)
     , m_hasShownParryTutorial(false)
     , m_isParryTutorialPaused(false)
+    , m_restrictedActionTimer(0)
+    , m_restrictedActionType(AttackType::None)
+    , m_restrictedActionAlpha(0)
     , m_prevScale(1.0f)
 {
-    // フォントの作成
     ReloadFonts(1.0f);
 }
 
@@ -76,23 +108,23 @@ void TaskTutorialManager::ReloadFonts(float scale)
 void TaskTutorialManager::Init(WaveManager* pWaveManager, Player* pPlayer)
 {
     m_pWaveManager = pWaveManager;
-    m_pPlayer = pPlayer;
-    m_step = TaskStep::Shoot;
-    m_currentTask = std::make_unique<ShootTutorialTask>();
+    m_pPlayer      = pPlayer;
+    m_step         = TaskStep::Shoot;
+    m_currentTask  = std::make_unique<ShootTutorialTask>();
     m_currentTask->Start(m_pWaveManager, m_pPlayer);
 
-    // アニメション初期化
-    m_titlePosX = -450.0f;
+    // アニメーション初期化
+    m_titlePosX           = kTitleStartX;
     m_isTitleAnimFinished = false;
-    m_taskAlpha = 0;
-    m_animationWaitTimer = 0;
-    m_displayedProgress = 0.0f;
+    m_taskAlpha           = 0;
+    m_animationWaitTimer  = 0;
+    m_displayedProgress   = 0.0f;
     m_transitionDelayTimer = 0;
     m_hasShownParryTutorial = false;
     m_isParryTutorialPaused = false;
-    
+
     m_restrictedActionTimer = 0;
-    m_restrictedActionType = AttackType::None;
+    m_restrictedActionType  = AttackType::None;
     m_restrictedActionAlpha = 0;
 
     if (m_pWaveManager)
@@ -117,17 +149,14 @@ void TaskTutorialManager::NotifyShieldThrowKill()
 
 void TaskTutorialManager::NotifyRestrictedAction(AttackType attemptedType)
 {
-    // すでに表示中ならタイプだけ更新してタイマーリセット（または無視）
-    // 違うタイプならリセット
     if (m_restrictedActionTimer > 0 && m_restrictedActionType == attemptedType)
     {
-        // タイマー延長
-        m_restrictedActionTimer = 120; 
+        m_restrictedActionTimer = kRestrictedActionTimerMax; // タイマー延長
     }
     else
     {
-        m_restrictedActionType = attemptedType;
-        m_restrictedActionTimer = 120;
+        m_restrictedActionType  = attemptedType;
+        m_restrictedActionTimer = kRestrictedActionTimerMax;
         m_restrictedActionAlpha = 0; // フェードインから開始
     }
 }
@@ -139,22 +168,22 @@ void TaskTutorialManager::NotifyParrySuccess()
 
 void TaskTutorialManager::NotifyParryableAttack()
 {
-    // パリィタスク中かつ、まだ説明を表示していない場合
+    // パリィタスク中かつ、まだ説明を表示していない場合に一時停止する
     if (m_step == TaskStep::Parry && !m_hasShownParryTutorial && !m_isParryTutorialPaused)
     {
         m_isParryTutorialPaused = true;
         m_hasShownParryTutorial = true;
-        Game::SetPaused(true); // ゲームを一時停止
+        Game::SetPaused(true);
     }
 }
 
 void TaskTutorialManager::Reset()
 {
-    m_step = TaskStep::None;
+    m_step        = TaskStep::None;
     m_currentTask = nullptr;
     m_pWaveManager = nullptr;
     if (m_pPlayer) m_pPlayer->SetAttackRestrictions(AttackType::None);
-    m_pPlayer = nullptr;
+    m_pPlayer               = nullptr;
     m_hasShownParryTutorial = false;
     m_isParryTutorialPaused = false;
     Game::SetPaused(false);
@@ -162,7 +191,7 @@ void TaskTutorialManager::Reset()
 
 void TaskTutorialManager::Skip(WaveManager* pWaveManager)
 {
-    m_step = TaskStep::Completed;
+    m_step         = TaskStep::Completed;
     m_pWaveManager = pWaveManager;
     if (m_pPlayer) m_pPlayer->SetAttackRestrictions(AttackType::None);
     m_hasShownParryTutorial = false;
@@ -172,49 +201,43 @@ void TaskTutorialManager::Skip(WaveManager* pWaveManager)
 
 void TaskTutorialManager::SkipToParry()
 {
-    // 必要なポインタがセットされていない場合はSceneMainから取得を試みる
+    // 必要なポインタがセットされていない場合は SceneMain から取得を試みる
     if (!m_pWaveManager || !m_pPlayer)
     {
         if (SceneMain::Instance())
         {
             m_pWaveManager = SceneMain::Instance()->GetWaveManager();
-            m_pPlayer = SceneMain::Instance()->GetPlayerPtr();
+            m_pPlayer      = SceneMain::Instance()->GetPlayerPtr();
         }
     }
-
-    // それでも取得できなければ無視
     if (!m_pWaveManager || !m_pPlayer) return;
 
-    // 前半の基本チュートリアル(TutorialManager)が終わっていない状態で呼ばれた場合、
-    // SceneMain側にTaskTutorialInitフラグを立てさせるか、強制的に切り替えるために
-    // 基本操作チュートリアルを終わらせる必要がある。
+    // 前半の基本チュートリアル（TutorialManager）が未完了の場合は強制終了させる
     if (SceneMain::Instance() && SceneMain::Instance()->GetTutorialManager())
     {
         SceneMain::Instance()->GetTutorialManager()->Skip();
-        SceneMain::Instance()->SetTaskTutorialInit(true); // SceneMain側でInit()の二重呼び出しを防ぐ
+        SceneMain::Instance()->SetTaskTutorialInit(true);
     }
 
-    // パリィタスクから再開するように状態を上書き
-    m_step = TaskStep::Parry;
+    // パリィタスクから再開
+    m_step        = TaskStep::Parry;
     m_currentTask = std::make_unique<ParryTutorialTask>();
     m_currentTask->Start(m_pWaveManager, m_pPlayer);
 
-    // アニメーションを最初から再生するように各種フラグ・座標をリセット
-    m_titlePosX = -450.0f;
-    m_isTitleAnimFinished = false;
-    m_taskAlpha = 0;
-    m_animationWaitTimer = 0;
+    // アニメーションをリセット
+    m_titlePosX            = kTitleStartX;
+    m_isTitleAnimFinished  = false;
+    m_taskAlpha            = 0;
+    m_animationWaitTimer   = 0;
     m_transitionDelayTimer = 0;
-    m_displayedProgress = 0.0f;
+    m_displayedProgress    = 0.0f;
 
     Game::SetPaused(false);
 }
 
-
-
 void TaskTutorialManager::Update()
 {
-    // パリィ説明表示中の更新処理
+    // パリィ説明表示中：右クリックで再開
     if (m_isParryTutorialPaused)
     {
         if (GetMouseInput() & MOUSE_INPUT_RIGHT)
@@ -225,16 +248,19 @@ void TaskTutorialManager::Update()
         return;
     }
 
-    // 制限アクションフィードバックの更新
+    // 制限アクションフィードバックのアルファ更新
     if (m_restrictedActionTimer > 0)
     {
         m_restrictedActionTimer--;
-        if (m_restrictedActionTimer > 100) m_restrictedActionAlpha = (std::min)(m_restrictedActionAlpha + 25, 255);
-        else if (m_restrictedActionTimer < 30) m_restrictedActionAlpha = (std::max)(m_restrictedActionAlpha - 10, 0);
-        else m_restrictedActionAlpha = 255;
+        if      (m_restrictedActionTimer > kRestrictedActionFadeInThreshold)
+            m_restrictedActionAlpha = (std::min)(m_restrictedActionAlpha + kRestrictedActionAlphaIncrement, 255);
+        else if (m_restrictedActionTimer < kRestrictedActionFadeOutThreshold)
+            m_restrictedActionAlpha = (std::max)(m_restrictedActionAlpha - kRestrictedActionAlphaDecrement, 0);
+        else
+            m_restrictedActionAlpha = 255;
     }
 
-    // プログレスバーのアニメーション
+    // 進捗バーのアニメーション補間
     if (m_currentTask)
     {
         float target = m_currentTask->GetProgress();
@@ -245,15 +271,15 @@ void TaskTutorialManager::Update()
         }
     }
 
-    // タイトルアニメーション
+    // タイトルスライドインアニメーション
     if (!m_isTitleAnimFinished)
     {
         m_titlePosX += m_titleAnimSpeed;
         if (m_titlePosX >= kTaskTextX)
         {
-            m_titlePosX = kTaskTextX;
+            m_titlePosX           = static_cast<float>(kTaskTextX);
             m_isTitleAnimFinished = true;
-            m_animationWaitTimer = 30;
+            m_animationWaitTimer  = kTitleAnimWaitFrames;
         }
     }
     else if (m_animationWaitTimer > 0)
@@ -271,73 +297,83 @@ void TaskTutorialManager::Update()
     case TaskStep::Shoot:
         if (m_currentTask && m_currentTask->IsCompleted())
         {
-            m_step = TaskStep::ShootCompleteDelay;
-            m_transitionDelayTimer = 60;
+            m_step                 = TaskStep::ShootCompleteDelay;
+            m_transitionDelayTimer = kStepTransitionDelay;
         }
         break;
+
     case TaskStep::ShootCompleteDelay:
         if (--m_transitionDelayTimer <= 0)
         {
-            m_step = TaskStep::Tackle;
+            m_step        = TaskStep::Tackle;
             m_currentTask = std::make_unique<TackleTutorialTask>();
             m_currentTask->Start(m_pWaveManager, m_pPlayer);
-            m_titlePosX = -450.0f;
+            m_titlePosX           = kTitleStartX;
             m_isTitleAnimFinished = false;
-            m_taskAlpha = 0;
-            m_displayedProgress = 0.0f;
+            m_taskAlpha           = 0;
+            m_displayedProgress   = 0.0f;
         }
         break;
+
     case TaskStep::Tackle:
         if (m_currentTask && m_currentTask->IsCompleted())
         {
-            m_step = TaskStep::TackleCompleteDelay;
-            m_transitionDelayTimer = 60;
+            m_step                 = TaskStep::TackleCompleteDelay;
+            m_transitionDelayTimer = kStepTransitionDelay;
         }
         break;
+
     case TaskStep::TackleCompleteDelay:
         if (--m_transitionDelayTimer <= 0)
         {
-            m_step = TaskStep::ShieldThrow;
+            m_step        = TaskStep::ShieldThrow;
             m_currentTask = std::make_unique<ShieldThrowTutorialTask>();
             m_currentTask->Start(m_pWaveManager, m_pPlayer);
-            m_titlePosX = -300.0f;
+            m_titlePosX           = kTitleStartXShort;
             m_isTitleAnimFinished = false;
-            m_taskAlpha = 0;
-            m_displayedProgress = 0.0f;
+            m_taskAlpha           = 0;
+            m_displayedProgress   = 0.0f;
         }
         break;
+
     case TaskStep::ShieldThrow:
         if (m_currentTask && m_currentTask->IsCompleted())
         {
-            m_step = TaskStep::ShieldThrowCompleteDelay;
-            m_transitionDelayTimer = 60;
+            m_step                 = TaskStep::ShieldThrowCompleteDelay;
+            m_transitionDelayTimer = kStepTransitionDelay;
         }
         break;
+
     case TaskStep::ShieldThrowCompleteDelay:
         if (--m_transitionDelayTimer <= 0)
         {
-            m_step = TaskStep::Parry;
+            m_step        = TaskStep::Parry;
             m_currentTask = std::make_unique<ParryTutorialTask>();
             m_currentTask->Start(m_pWaveManager, m_pPlayer);
-            m_titlePosX = -300.0f;
+            m_titlePosX           = kTitleStartXShort;
             m_isTitleAnimFinished = false;
-            m_taskAlpha = 0;
-            m_displayedProgress = 0.0f;
+            m_taskAlpha           = 0;
+            m_displayedProgress   = 0.0f;
         }
         break;
+
     case TaskStep::Parry:
         if (m_currentTask && m_currentTask->IsCompleted())
         {
-            m_step = TaskStep::ParryCompleteDelay;
-            m_transitionDelayTimer = 60;
+            m_step                 = TaskStep::ParryCompleteDelay;
+            m_transitionDelayTimer = kStepTransitionDelay;
         }
         break;
+
     case TaskStep::ParryCompleteDelay:
         if (--m_transitionDelayTimer <= 0)
         {
             m_step = TaskStep::Completed;
             if (m_pPlayer) m_pPlayer->SetAttackRestrictions(AttackType::None);
         }
+        break;
+
+    default:
         break;
     }
 }
@@ -350,7 +386,7 @@ bool TaskTutorialManager::IsCompleted() const
 void TaskTutorialManager::Draw()
 {
     float scale = Game::GetUIScale();
-    if (fabs(scale - m_prevScale) > 0.001f)
+    if (fabs(scale - m_prevScale) > kScaleChangeTolerance)
     {
         ReloadFonts(scale);
         m_prevScale = scale;
@@ -359,127 +395,121 @@ void TaskTutorialManager::Draw()
     if (m_step == TaskStep::Completed || m_step == TaskStep::None) return;
     if (!m_currentTask) return;
 
-    int scaledTaskTextX = static_cast<int>(kTaskTextX * scale);
-    int scaledTaskTextY = static_cast<int>(kTaskTextY * scale);
-    int scaledBgBoxWidth = static_cast<int>(kBgBoxWidth * scale);
-    int scaledBgBoxHeight = static_cast<int>(kBgBoxHeight * scale);
-    int scaledBgBoxPaddingX = static_cast<int>(kBgBoxPaddingX * scale);
-    int scaledBgBoxPaddingY = static_cast<int>(kBgBoxPaddingY * scale);
+    int scaledTaskTextX    = static_cast<int>(kTaskTextX     * scale);
+    int scaledTaskTextY    = static_cast<int>(kTaskTextY     * scale);
+    int scaledBgBoxWidth   = static_cast<int>(kBgBoxWidth    * scale);
+    int scaledBgBoxHeight  = static_cast<int>(kBgBoxHeight   * scale);
+    int scaledBgBoxPadX    = static_cast<int>(kBgBoxPaddingX * scale);
+    int scaledBgBoxPadY    = static_cast<int>(kBgBoxPaddingY * scale);
     int scaledTitleFontSize = static_cast<int>(kTitleFontSize * scale);
-    int scaledBarMaxWidth = static_cast<int>(kBarMaxWidth * scale);
-    int scaledBarHeight = static_cast<int>(kBarHeight * scale);
+    int scaledBarMaxWidth  = static_cast<int>(kBarMaxWidth   * scale);
+    int scaledBarHeight    = static_cast<int>(kBarHeight     * scale);
 
-    // 背景ボックス
-    if (m_isTitleAnimFinished || m_titlePosX > -450.0f)
+    // 背景ボックス（タイトルが少しでも動き始めたら表示）
+    if (m_isTitleAnimFinished || m_titlePosX > kTitleStartX)
     {
-        int bgX = static_cast<int>(m_titlePosX * scale) - scaledBgBoxPaddingX;
-        int bgY = scaledTaskTextY - scaledBgBoxPaddingY;
+        int bgX = static_cast<int>(m_titlePosX * scale) - scaledBgBoxPadX;
+        int bgY = scaledTaskTextY - scaledBgBoxPadY;
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, kBgBoxAlpha);
         DrawBox(bgX, bgY, bgX + scaledBgBoxWidth, bgY + scaledBgBoxHeight, kBgBoxColor, true);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // タイトル
-    DrawStringToHandle(static_cast<int>(m_titlePosX * scale), scaledTaskTextY, m_currentTask->GetTitle().c_str(), 0xFFFFFF, m_titleFont);
+    // タイトルテキスト
+    DrawStringToHandle(static_cast<int>(m_titlePosX * scale), scaledTaskTextY,
+                       m_currentTask->GetTitle().c_str(), 0xFFFFFF, m_titleFont);
 
-    // タスク内容
+    // タスク内容・進捗バー（タイトルアニメーション完了後に表示）
     if (m_isTitleAnimFinished)
     {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_taskAlpha);
 
-        int taskY = scaledTaskTextY + scaledTitleFontSize + static_cast<int>(10 * scale);
+        int taskY = scaledTaskTextY + scaledTitleFontSize + static_cast<int>(kTitleToTaskGapY * scale);
         m_currentTask->DrawTaskUI(scaledTaskTextX, taskY, scale, m_taskAlpha, this);
 
-        // 進捗バー
-        int barY = taskY + static_cast<int>(40 * scale);
+        int barY           = taskY + static_cast<int>(kProgressBarOffsetY * scale);
         int currentBarWidth = static_cast<int>(scaledBarMaxWidth * m_displayedProgress);
         unsigned int barColor = (m_displayedProgress >= 1.0f) ? 0x00ff80 : 0x6496ff;
 
         DrawBox(scaledTaskTextX, barY, scaledTaskTextX + scaledBarMaxWidth, barY + scaledBarHeight, 0x646464, true);
-        DrawBox(scaledTaskTextX, barY, scaledTaskTextX + currentBarWidth, barY + scaledBarHeight, barColor, true);
-
-        DrawStringToHandle(scaledTaskTextX + scaledBarMaxWidth + static_cast<int>(5 * scale), barY, m_currentTask->GetProgressText().c_str(), 0xFFFFFF, m_taskFont);
+        DrawBox(scaledTaskTextX, barY, scaledTaskTextX + currentBarWidth,   barY + scaledBarHeight, barColor, true);
+        DrawStringToHandle(scaledTaskTextX + scaledBarMaxWidth + static_cast<int>(kBarToTextGap * scale),
+                           barY, m_currentTask->GetProgressText().c_str(), 0xFFFFFF, m_taskFont);
 
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // 制限アクションフィードバック描画
+    // 制限アクションフィードバック画像
     if (m_restrictedActionAlpha > 0)
     {
-        // 画像サイズ取得
         int designerW = 0, designerH = 0;
         GetGraphSize(m_designerImg, &designerW, &designerH);
-        
-        float feedbackScale = scale * 0.12f; 
+
+        float feedbackScale = scale * kFeedbackImageScale;
         int targetW = static_cast<int>(designerW * feedbackScale);
-        int targetH = static_cast<int>(designerH * feedbackScale); 
-        
-        int centerX = Game::GetScreenWidth() / 2;
-        int centerY = static_cast<int>(Game::GetScreenHeight() * 0.6f);
-        
-        int drawX = centerX - static_cast<int>(targetW * 0.5f);
-        int drawY = centerY - static_cast<int>(targetH * 0.5f);
-        
+        int targetH = static_cast<int>(designerH * feedbackScale);
+
+        int centerX = Game::GetScreenWidth()  / 2;
+        int centerY = static_cast<int>(Game::GetScreenHeight() * kFeedbackImageCenterYRatio);
+        int drawX   = centerX - targetW / 2;
+        int drawY   = centerY - targetH / 2;
+
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, m_restrictedActionAlpha);
         DrawExtendGraph(drawX, drawY, drawX + targetW, drawY + targetH, m_designerImg, true);
-        
+
         int iconImg = -1;
         switch (m_restrictedActionType)
         {
         case AttackType::Shoot:
         case AttackType::Shotgun:
-            iconImg = m_mouseLeftImg;
-            break;
-        case AttackType::Tackle:
-            iconImg = m_mouseLeftImg; 
-            break;
-        case AttackType::ShieldThrow:
-            iconImg = m_rKeyImg;
-            break;
-        case AttackType::Parry:
-             iconImg = m_mouseRightGuardImg;
-             break;
-        default:
-            break;
+        case AttackType::Tackle:    iconImg = m_mouseLeftImg;      break;
+        case AttackType::ShieldThrow: iconImg = m_rKeyImg;         break;
+        case AttackType::Parry:     iconImg = m_mouseRightGuardImg; break;
+        default: break;
         }
-        
+
         if (iconImg != -1)
         {
-            int iconW = static_cast<int>(36 * scale * 1.5f);
-            int iconH = static_cast<int>(36 * scale * 1.5f);
-            DrawExtendGraph(centerX - static_cast<int>(iconW * 0.5f), drawY + static_cast<int>(targetH * 0.5f) - static_cast<int>(iconH * 0.5f), centerX + static_cast<int>(iconW * 0.5f), drawY + static_cast<int>(targetH * 0.5f) + static_cast<int>(iconH * 0.5f), iconImg, true);
+            int iconW = static_cast<int>(kIconBaseSize * scale * kIconScaleFactor);
+            int iconH = iconW;
+            int iconX = centerX - iconW / 2;
+            int iconY = drawY + targetH / 2 - iconH / 2;
+            DrawExtendGraph(iconX, iconY, iconX + iconW, iconY + iconH, iconImg, true);
         }
-        
+
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // パリィ説明表示 (一時停止中)
+    // パリィ説明オーバーレイ（一時停止中）
     if (m_isParryTutorialPaused)
     {
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, kParryOverlayAlpha);
         DrawBox(0, 0, Game::GetScreenWidth(), Game::GetScreenHeight(), 0x000000, true);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-        int centerX = Game::GetScreenWidth() / 2;
+        int centerX = Game::GetScreenWidth()  / 2;
         int centerY = Game::GetScreenHeight() / 2;
 
         std::string text1 = "緑色の攻撃はタイミングよくシールドブロック";
         std::string text2 = "を行うことでパリィできる";
 
         int text1Width = GetDrawStringWidthToHandle(text1.c_str(), -1, m_titleFont);
-        int iconWidth = static_cast<int>(32 * scale);
+        int iconWidth  = static_cast<int>(kParryIconSize * scale);
         int text2Width = GetDrawStringWidthToHandle(text2.c_str(), -1, m_titleFont);
-
         int totalWidth = text1Width + iconWidth + text2Width;
-        int startX = centerX - static_cast<int>(totalWidth * 0.5f);
-        int currentY = centerY - static_cast<int>(50 * scale);
+        int startX     = centerX - totalWidth / 2;
+        int currentY   = centerY - static_cast<int>(kParryTextOffsetY * scale);
 
         DrawStringToHandle(startX, currentY, text1.c_str(), 0xFFFFFF, m_titleFont);
-        DrawExtendGraph(startX + text1Width, currentY, startX + text1Width + iconWidth, currentY + iconWidth, m_mouseRightImg, true);
+        DrawExtendGraph(startX + text1Width, currentY,
+                        startX + text1Width + iconWidth, currentY + iconWidth,
+                        m_mouseRightImg, true);
         DrawStringToHandle(startX + text1Width + iconWidth, currentY, text2.c_str(), 0xFFFFFF, m_titleFont);
 
         std::string resumeText = "右クリックを押して再開";
-        int resumeTextWidth = GetDrawStringWidthToHandle(resumeText.c_str(), -1, m_taskFont);
-        DrawStringToHandle(centerX - static_cast<int>(resumeTextWidth * 0.5f), centerY + static_cast<int>(50 * scale), resumeText.c_str(), 0xAAAAAA, m_taskFont);
+        int resumeW = GetDrawStringWidthToHandle(resumeText.c_str(), -1, m_taskFont);
+        DrawStringToHandle(centerX - resumeW / 2,
+                           centerY + static_cast<int>(kParryTextOffsetY * scale),
+                           resumeText.c_str(), 0xAAAAAA, m_taskFont);
     }
 }

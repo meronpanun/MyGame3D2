@@ -1,41 +1,77 @@
 ﻿#include "StageObject.h"
 #include "EffekseerWarningSuppress.h"
 #include <cassert>
-#include <cmath>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+namespace
+{
+    constexpr float kDegToRad        = DX_PI_F / 180.0f; // 度からラジアンへの変換係数
+    constexpr float kModelScaleFactor = 0.01f;            // Unity エクスポートスケールを DxLib 単位に変換する係数
+}
+
+StageObject::StageObject()
+    : m_modelHandle(-1)
+    , m_pos()
+    , m_rot()
+    , m_scale(1.0f, 1.0f, 1.0f)
+{
+}
+
+StageObject::~StageObject()
+{
+    if (m_modelHandle != -1)
+    {
+        MV1DeleteModel(m_modelHandle);
+        m_modelHandle = -1;
+    }
+}
+
+StageObject::StageObject(StageObject&& other) noexcept
+    : m_modelHandle(other.m_modelHandle)
+    , m_pos(other.m_pos)
+    , m_rot(other.m_rot)
+    , m_scale(other.m_scale)
+{
+    other.m_modelHandle = -1; // 移譲元が二重解放しないよう無効化
+}
+
+StageObject& StageObject::operator=(StageObject&& other) noexcept
+{
+    if (this != &other)
+    {
+        if (m_modelHandle != -1)
+        {
+            MV1DeleteModel(m_modelHandle);
+        }
+        m_modelHandle       = other.m_modelHandle;
+        m_pos               = other.m_pos;
+        m_rot               = other.m_rot;
+        m_scale             = other.m_scale;
+        other.m_modelHandle = -1; // 移譲元が二重解放しないよう無効化
+    }
+    return *this;
+}
 
 void StageObject::Init(int duplicateHandle, Vec3 pos, Vec3 rot, Vec3 scale)
 {
-	m_modelHandle = duplicateHandle;
-	assert(m_modelHandle >= 0);
-	m_pos = pos;
-	m_rot = rot;
-	m_scale = scale;
+    m_modelHandle = duplicateHandle;
+    assert(m_modelHandle >= 0);
+    m_pos   = pos;
+    m_rot   = rot;
+    m_scale = scale;
 
-	// Unity側で既に座標系変換が行われているため、位置はそのまま使用
-	// Unity側: pos = new Vector3(pos.x, pos.y, -pos.z) でZ軸が反転済み
-	// DxLib側では、Unity側で既に変換済みの値を使用するため、そのまま適用
-	VECTOR dxPos = pos.ToDxVECTOR();
-	MV1SetPosition(m_modelHandle, dxPos); // 位置設定
+    // Unity 側で座標系変換済み（Z 軸反転）のため位置はそのまま適用する
+    MV1SetPosition(m_modelHandle, pos.ToDxVECTOR());
 
-	// 回転をラジアンに変換
-	// Unity側で既に座標系変換が行われている（rot = new Vector3(rot.x, -rot.y + config.rotationOffset, rot.z)）
-	// CSVファイルには既に変換済みの値が入っているため、そのまま使用
-	// ただし、UnityとDxLibで座標系が異なるため、Y軸回転を再度反転する必要がある
-	float rotXRad = rot.x * (3.14159265f / 180.0f);
-	float rotYRad = rot.y * (3.14159265f / 180.0f); // CSVには既に変換済みの値が入っているが、DxLibで正にするために再回転
-	float rotZRad = rot.z * (3.14159265f / 180.0f);
+    // Unity 側で Y 軸回転が反転済みのため、DxLib 側で再度 Y 軸を反転して正しい向きに戻す
+    MV1SetRotationXYZ(m_modelHandle, VGet(rot.x * kDegToRad, -rot.y * kDegToRad, rot.z * kDegToRad));
 
-	// DxLibの座標系に合わせて回転を適用
-	// Unity側で既にY軸回転が反転されているため、DxLib側で再度反転して正しい向きにする
-	MV1SetRotationXYZ(m_modelHandle, VGet(rotXRad, -rotYRad, rotZRad)); // Y軸回転を再度反転
-	MV1SetScale(m_modelHandle, VGet(scale.x * 0.01f, scale.y * 0.01f, scale.z * 0.01f)); // スケール設定
+    // Unity のスケール値は DxLib の 100 倍のため kModelScaleFactor で正規化する
+    MV1SetScale(m_modelHandle, VGet(scale.x * kModelScaleFactor,
+                                   scale.y * kModelScaleFactor,
+                                   scale.z * kModelScaleFactor));
 }
 
 void StageObject::Draw()
 {
-	MV1DrawModel(m_modelHandle);
+    MV1DrawModel(m_modelHandle);
 }

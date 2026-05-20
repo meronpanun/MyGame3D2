@@ -9,64 +9,122 @@ class Player;
 class ITutorialTask;
 
 /// <summary>
-/// タスク型チュートリアルマネージャークラス
+/// タスク型チュートリアルマネージャークラス。Meyer's シングルトン。
+/// 射撃・タックル・盾投げ・パリィの 4 タスクを順番にプレイヤーへ提示し、
+/// 達成状況をフォント・画像・プログレスバーで UI 表示する。
 /// </summary>
 class TaskTutorialManager
 {
 public:
-    TaskTutorialManager();
     ~TaskTutorialManager() = default;
 
-    void Init(WaveManager* pWaveManager, Player* pPlayer);
-    void Update();
-    void Draw();
+    // コピー・ムーブ禁止（シングルトン）
+    TaskTutorialManager(const TaskTutorialManager&)            = delete;
+    TaskTutorialManager& operator=(const TaskTutorialManager&) = delete;
 
-    // シングルトンインスタンスを取得
+    /// <summary>
+    /// シングルトンインスタンスを返す（Meyer's static local）
+    /// </summary>
+    /// <returns>唯一のインスタンスへのポインタ</returns>
     static TaskTutorialManager* GetInstance();
 
-    // 敵が倒されたことを通知する
+    /// <summary>
+    /// チュートリアルを初期化し、射撃タスクから開始する
+    /// </summary>
+    /// <param name="pWaveManager">ウェーブ制御オブジェクト</param>
+    /// <param name="pPlayer">プレイヤーオブジェクト</param>
+    void Init(WaveManager* pWaveManager, Player* pPlayer);
+
+    /// <summary>
+    /// 毎フレームの更新処理（タスク進行・アニメーション・ステップ遷移）
+    /// </summary>
+    void Update();
+
+    /// <summary>
+    /// UI を描画する（タスク説明・プログレスバー・フィードバック画像）
+    /// </summary>
+    void Draw();
+
+    /// <summary>
+    /// 敵が倒されたことをアクティブタスクに通知する
+    /// </summary>
+    /// <param name="attackType">倒した際の攻撃種別</param>
     void NotifyEnemyKilled(AttackType attackType);
 
-    // 盾投げで敵が倒されたことを通知する
+    /// <summary>
+    /// 盾投げで敵が倒されたことをアクティブタスクに通知する
+    /// </summary>
     void NotifyShieldThrowKill();
 
-    // パリィ成功を通知する
+    /// <summary>
+    /// パリィ成功をアクティブタスクに通知する
+    /// </summary>
     void NotifyParrySuccess();
 
-    // パリィ可能な攻撃が来たことを通知する（チュートリアル停止用）
+    /// <summary>
+    /// パリィ可能な攻撃が来たことを通知する（パリィ説明の一時停止トリガー）
+    /// </summary>
     void NotifyParryableAttack();
 
-    // チュートリアルが完了したか
+    /// <summary>
+    /// チュートリアルが全タスク完了しているかを返す
+    /// </summary>
+    /// <returns>全タスク完了なら true</returns>
     bool IsCompleted() const;
 
-    // 状態をリセットする
+    /// <summary>
+    /// チュートリアルをリセットし、待機状態に戻す
+    /// </summary>
     void Reset();
 
-    // チュートリアルをスキップする
+    /// <summary>
+    /// チュートリアルを強制完了させる
+    /// </summary>
+    /// <param name="pWaveManager">完了後のウェーブ制御に使用するポインタ</param>
     void Skip(WaveManager* pWaveManager);
 
-    // パリィタスクまでチュートリアルをスキップする
+    /// <summary>
+    /// パリィタスクまでスキップし、パリィ説明から再開する
+    /// </summary>
     void SkipToParry();
 
-    // 制限されたアクションが行われたことを通知する
+    /// <summary>
+    /// 現在のタスクで制限されたアクションが試みられたことを通知する
+    /// </summary>
+    /// <param name="attemptedType">試みられた攻撃種別</param>
     void NotifyRestrictedAction(AttackType attemptedType);
 
-    // スケール変更時のフォントリロード
+    /// <summary>
+    /// 画面スケール変更時にフォントを再生成する
+    /// </summary>
+    /// <param name="scale">新しい UI スケール係数</param>
     void ReloadFonts(float scale);
 
-    // タスクから利用するゲッター
-    int GetDiamondImg() const { return m_diamondImg; }
-    int GetMouseLeftImg() const { return m_mouseLeftImg; }
+    /// <summary>タスク UI 用ダイヤモンド画像ハンドルを返す</summary>
+    int GetDiamondImg()    const { return m_diamondImg;    }
+    /// <summary>マウス左ボタン画像ハンドルを返す</summary>
+    int GetMouseLeftImg()  const { return m_mouseLeftImg;  }
+    /// <summary>マウス右ボタン画像ハンドルを返す</summary>
     int GetMouseRightImg() const { return m_mouseRightImg; }
-    int GetAlpha1Img() const { return m_alpha1Img; }
-    int GetAlpha2Img() const { return m_alpha2Img; }
+    /// <summary>キーボード 1 キー画像ハンドルを返す</summary>
+    int GetAlpha1Img()     const { return m_alpha1Img;     }
+    /// <summary>キーボード 2 キー画像ハンドルを返す</summary>
+    int GetAlpha2Img()     const { return m_alpha2Img;     }
+    /// <summary>マウスホイール画像ハンドルを返す</summary>
     int GetMouseWheelImg() const { return m_mouseWheelImg; }
-    int GetRKeyImg() const { return m_rKeyImg; }
-    int GetLockOnUIImg() const { return m_lockOnUIImg; }
-    int GetTaskFont() const { return m_taskFont; }
+    /// <summary>R キー画像ハンドルを返す</summary>
+    int GetRKeyImg()       const { return m_rKeyImg;       }
+    /// <summary>ロックオン UI 画像ハンドルを返す</summary>
+    int GetLockOnUIImg()   const { return m_lockOnUIImg;   }
+    /// <summary>タスク説明用フォントハンドルを返す</summary>
+    int GetTaskFont()      const { return m_taskFont;      }
 
 private:
-    // チュートリアルの進行ステップ
+    TaskTutorialManager();
+
+    /// <summary>
+    /// チュートリアルの進行ステップ
+    /// </summary>
     enum class TaskStep
     {
         None,
@@ -80,60 +138,52 @@ private:
         ParryCompleteDelay,       // パリィタスク完了後の待機
         Completed                 // 全て完了
     };
-    TaskTutorialManager(const TaskTutorialManager&) = delete;
-    TaskTutorialManager& operator=(const TaskTutorialManager&) = delete;
 
-    WaveManager* m_pWaveManager; // WaveManagerへのポインタ
-    Player* m_pPlayer;           // Playerへのポインタ
+    WaveManager* m_pWaveManager; // WaveManager への非所有ポインタ
+    Player*      m_pPlayer;      // Player への非所有ポインタ
 
-    TaskStep m_step;
+    TaskStep                       m_step;        // 現在のチュートリアルステップ
     std::unique_ptr<ITutorialTask> m_currentTask; // 現在実行中のタスク
-    
-    // 進捗表示用のアニメーション変数
-    float m_displayedProgress;
-    float m_progressAnimSpeed;            // 進捗バーのアニメーション速度
 
-    ManagedFont m_titleFont; // タイトル用のフォントハンドル
-    ManagedFont m_taskFont;  // タスク内容用のフォントハンドル
-    
-    ManagedGraph m_diamondImg;
-    ManagedGraph m_mouseLeftImg;
-    ManagedGraph m_mouseRightImg;
+    // 進捗バーアニメーション
+    float m_displayedProgress; // 表示中の進捗値（アニメーション補間）
+    float m_progressAnimSpeed; // 進捗バーのアニメーション速度
 
-    // 武器切り替えヒント用画像
-    ManagedGraph m_alpha1Img;     // キーボード1キーの画像
-    ManagedGraph m_alpha2Img;     // キーボード2キーの画像
-    ManagedGraph m_mouseWheelImg; // マウスホイールの画像
+    ManagedFont m_titleFont; // タイトル用フォント
+    ManagedFont m_taskFont;  // タスク説明用フォント
 
-    // 盾投げ・パリィタスク用画像
-    ManagedGraph m_rKeyImg;            // Rキーの画像
-    ManagedGraph m_lockOnUIImg;        // ロックオンUIの画像
-    ManagedGraph m_mouseRightGuardImg; // マウス右クリック(ガード用)の画像
-    ManagedGraph m_designerImg;        // Designer.png画像
+    // UI 画像リソース
+    ManagedGraph m_diamondImg;        // ダイヤモンドアイコン
+    ManagedGraph m_mouseLeftImg;      // マウス左ボタン
+    ManagedGraph m_mouseRightImg;     // マウス右ボタン
+    ManagedGraph m_alpha1Img;         // キーボード 1 キー
+    ManagedGraph m_alpha2Img;         // キーボード 2 キー
+    ManagedGraph m_mouseWheelImg;     // マウスホイール
+    ManagedGraph m_rKeyImg;           // R キー
+    ManagedGraph m_lockOnUIImg;       // ロックオン UI
+    ManagedGraph m_mouseRightGuardImg; // マウス右ボタン（ガード用）
+    ManagedGraph m_designerImg;        // フィードバック用背景画像
 
-    // タイトルアニメーション用
-    float m_titlePosX;
-    float m_titleAnimSpeed;
-    bool m_isTitleAnimFinished;
+    // タイトルスライドインアニメーション
+    float m_titlePosX;          // タイトルテキストの現在 X 座標
+    float m_titleAnimSpeed;     // タイトルスライドインの速度
+    bool  m_isTitleAnimFinished; // タイトルアニメーション完了フラグ
 
-    // タスク内容フェードイン用
-    int m_taskAlpha;
-    float m_taskFadeSpeed;
+    // タスク内容フェードイン
+    int   m_taskAlpha;     // タスクテキストのアルファ値（0〜255）
+    float m_taskFadeSpeed; // タスクテキストのフェードイン速度
 
-    // アニメーション後の待機タイマー
-    int m_animationWaitTimer;
+    int m_animationWaitTimer;   // タイトルアニメーション後の待機タイマー
+    int m_transitionDelayTimer; // ステップ移行の遅延タイマー
 
-    // ステップ移行の遅延タイマー
-    int m_transitionDelayTimer;
+    // パリィチュートリアル一時停止
+    bool m_hasShownParryTutorial; // パリィ説明を表示済みかどうか
+    bool m_isParryTutorialPaused; // パリィ説明表示中で一時停止しているか
 
-    // パリィチュートリアル用一時停止制御
-    bool m_hasShownParryTutorial; // パリィ説明を表示したかどうか
-    bool m_isParryTutorialPaused; // パリィ説明表示中で停止しているか
+    // 制限アクションフィードバック
+    int        m_restrictedActionTimer; // 表示タイマー（0 で非表示）
+    AttackType m_restrictedActionType;  // 制限されたアクションの種類
+    int        m_restrictedActionAlpha; // フェード用アルファ値
 
-    // 制限アクションフィードバック用
-    int m_restrictedActionTimer;      // 表示タイマー
-    AttackType m_restrictedActionType; // 制限されたアクションの種類
-    int m_restrictedActionAlpha;      // フェード用アルファ値
-
-    float m_prevScale; // 前回のスケール値
+    float m_prevScale; // 前フレームの UI スケール値（フォントリロード検出用）
 };
