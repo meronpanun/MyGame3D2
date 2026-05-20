@@ -2,6 +2,7 @@
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "DxLib.h"
+#include "EnemySharedConstants.h"
 #include <memory>
 #include "EnemyState.h"
 
@@ -12,17 +13,26 @@ class CapsuleCollider;
 
 namespace EnemyRunnerConstants
 {
+    // EnemyNormal と共通の定数は EnemySharedConstants から取り込む
+    using EnemySharedConstants::kHeadShotPositionOffset;
+    using EnemySharedConstants::kBodyColliderRadius;
+    using EnemySharedConstants::kBodyColliderHeight;
+    using EnemySharedConstants::kRotateSpeedPerFrame;
+    using EnemySharedConstants::kWanderTimerInterval;
+    using EnemySharedConstants::kWanderMinDist;
+    using EnemySharedConstants::kWanderDistRange;
+    using EnemySharedConstants::kPushBackEpsilon;
+    using EnemySharedConstants::kDrawDistanceSq;
+    using EnemySharedConstants::kDrawNearDistanceSq;
+    using EnemySharedConstants::kDrawDotThreshold;
+
     // アニメーション名
     constexpr char kAttackAnimName[] = "Armature|Attack"; // 攻撃アニメーション名
     constexpr char kRunAnimName[]    = "Armature|Run";    // 走行アニメーション名
     constexpr char kDeadAnimName[]   = "Armature|Death";  // 死亡アニメーション名
 
-    inline const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // ヘッドショット判定コライダーの中心補正値
-
-    // コライダーサイズ
-    constexpr float kBodyColliderRadius = 20.0f;  // 体のカプセルコライダー半径
-    constexpr float kBodyColliderHeight = 110.0f; // 体のカプセルコライダー高さ
-    constexpr float kHeadRadius         = 15.0f;  // 頭の球コライダー半径
+    // コライダーサイズ（EnemyRunner 固有）
+    constexpr float kHeadRadius = 15.0f; // 頭の球コライダー半径
 
     // 攻撃関連
     constexpr int   kAttackCooldownMax   = 30;     // 攻撃クールダウン時間（フレーム数）
@@ -33,14 +43,8 @@ namespace EnemyRunnerConstants
     constexpr float kAttackHitStartRatio = 0.3f;   // 攻撃ヒット判定の開始タイミング比率
     constexpr float kAttackHitEndRatio   = 0.6f;   // 攻撃ヒット判定の終了タイミング比率
 
-    // 追跡・移動関連
-    constexpr float kRotateSpeedPerFrame = 0.05f; // フレームあたりの旋回速度（ラジアン）
-    constexpr int   kTargetOffsetRange   = 40;    // 追跡目標へのランダムオフセット範囲（±この値）
-
-    // 徘徊関連
-    constexpr int   kWanderTimerInterval = 120;    // 徘徊位置更新間隔（フレーム数）
-    constexpr float kWanderMinDist       = 300.0f; // 徘徊時の最小距離
-    constexpr int   kWanderDistRange     = 400;    // 徘徊時の距離のランダム幅
+    // 追跡・移動関連（EnemyRunner 固有）
+    constexpr int kTargetOffsetRange = 40; // 追跡目標へのランダムオフセット範囲（±この値）
 
     // 回避関連
     constexpr float kEvasionMarginRadius = 80.0f; // 回避判定のマージン半径
@@ -49,14 +53,6 @@ namespace EnemyRunnerConstants
     // サウンド関連
     constexpr float kVoiceMaxDist        = 2000.0f; // 攻撃ボイス・ダメージSEが聞こえる最大距離（最大音量はSoundList.csvのVolumeから取得）
     constexpr float kDamageSECooldownMax = 45.0f;   // ダメージSE再生クールタイム（フレーム数）
-
-    // 当たり判定関連
-    constexpr float kPushBackEpsilon = 0.0001f; // ゼロ除算防止のための最小距離の二乗閾値
-
-    // 描画関連
-    constexpr float kDrawDistanceSq     = 5000.0f * 5000.0f; // 最大描画距離の二乗
-    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;   // 常に描画する近距離の二乗
-    constexpr float kDrawDotThreshold   = 0.4f;              // 視野内判定に使う内積閾値
 }
 class SphereCollider;
 

@@ -2,6 +2,7 @@
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Effect.h"
+#include "EnemySharedConstants.h"
 #include <memory>
 #include "EnemyState.h"
 
@@ -13,50 +14,52 @@ class CapsuleCollider;
 
 namespace EnemyNormalConstants
 {
+    // EnemyRunner と共通の定数は EnemySharedConstants から取り込む
+    using EnemySharedConstants::kHeadShotPositionOffset;
+    using EnemySharedConstants::kBodyColliderRadius;
+    using EnemySharedConstants::kBodyColliderHeight;
+    using EnemySharedConstants::kRotateSpeedPerFrame;
+    using EnemySharedConstants::kWanderTimerInterval;
+    using EnemySharedConstants::kWanderMinDist;
+    using EnemySharedConstants::kWanderDistRange;
+    using EnemySharedConstants::kPushBackEpsilon;
+    using EnemySharedConstants::kDrawDistanceSq;
+    using EnemySharedConstants::kDrawNearDistanceSq;
+    using EnemySharedConstants::kDrawDotThreshold;
+
     // アニメーション名
     constexpr char kAttackAnimName[] = "ATK";  // 攻撃アニメーション名
     constexpr char kWalkAnimName[]   = "WALK"; // 歩行アニメーション名
     constexpr char kDeadAnimName[]   = "DEAD"; // 死亡アニメーション名
 
-    inline const VECTOR kHeadShotPositionOffset = { 0.0f, 0.0f, 0.0f }; // ヘッドショット判定コライダーの中心補正値
-
-    // コライダーサイズ
-    constexpr float kBodyColliderRadius = 20.0f;  // 体のカプセルコライダー半径
-    constexpr float kBodyColliderHeight = 110.0f; // 体のカプセルコライダー高さ
-    constexpr float kHeadRadius         = 12.0f;  // 頭の球コライダー半径
+    // コライダーサイズ（EnemyNormal 固有）
+    constexpr float kHeadRadius = 12.0f; // 頭の球コライダー半径
 
     // 近接攻撃関連
-    constexpr int   kAttackCooldownMax    = 45;    // 攻撃クールダウン時間（フレーム数）
-    constexpr float kAttackHitRadius      = 45.0f; // 攻撃の当たり判定半径
-    constexpr float kAttackRangeRadius    = 120.0f; // 攻撃範囲の半径
-    constexpr int   kAttackEndDelay       = 20;    // 攻撃後の硬直時間（フレーム数）
-    constexpr float kAttackHitStartRatio  = 0.5f;  // 攻撃ヒット判定の開始タイミング比率
-    constexpr float kAttackHitEndRatio    = 0.7f;  // 攻撃ヒット判定の終了タイミング比率
+    constexpr int   kAttackCooldownMax   = 45;    // 攻撃クールダウン時間（フレーム数）
+    constexpr float kAttackHitRadius     = 45.0f; // 攻撃の当たり判定半径
+    constexpr float kAttackRangeRadius   = 120.0f; // 攻撃範囲の半径
+    constexpr int   kAttackEndDelay      = 20;    // 攻撃後の硬直時間（フレーム数）
+    constexpr float kAttackHitStartRatio = 0.5f;  // 攻撃ヒット判定の開始タイミング比率
+    constexpr float kAttackHitEndRatio   = 0.7f;  // 攻撃ヒット判定の終了タイミング比率
 
-    // 追跡・移動関連
-    constexpr float kChaseStopDistance  = 50.0f;  // 追跡停止距離
-    constexpr float kRotateSpeedPerFrame = 0.05f; // フレームあたりの旋回速度（ラジアン）
-    constexpr int   kTargetOffsetRange  = 100;    // 追跡目標へのランダムオフセット範囲（±この値）
-
-    // 徘徊関連
-    constexpr int   kWanderTimerInterval = 120;    // 徘徊位置更新間隔（フレーム数）
-    constexpr float kWanderMinDist       = 300.0f; // 徘徊時の最小距離
-    constexpr int   kWanderDistRange     = 400;    // 徘徊時の距離のランダム幅
+    // 追跡・移動関連（EnemyNormal 固有）
+    constexpr float kChaseStopDistance = 50.0f; // 追跡停止距離
+    constexpr int   kTargetOffsetRange = 100;   // 追跡目標へのランダムオフセット範囲（±この値）
 
     // ダメージ・ノックバック関連
-    constexpr int   kDamageDuration         = 30;   // ダメージ（怯み）の持続時間（フレーム数）
-    constexpr int   kShortDamageDuration    = 15;   // 短い怯み時間（アサルトライフル用、フレーム数）
-    constexpr float kKnockbackInitialSpeed  = 15.0f; // 死亡吹き飛びの初速度
-    constexpr float kKnockbackDeceleration  = 0.5f;  // 死亡吹き飛びの減速度（毎フレーム）
-    constexpr float kDamageKnockbackSpeed   = 2.0f;  // 怯み時のノックバック速度
-    constexpr int   kDamageKnockbackMinTimer = 10;   // ノックバックを適用する怯みタイマーの閾値
+    constexpr int   kDamageDuration          = 30;    // ダメージ（怯み）の持続時間（フレーム数）
+    constexpr int   kShortDamageDuration     = 15;    // 短い怯み時間（アサルトライフル用、フレーム数）
+    constexpr float kKnockbackInitialSpeed   = 15.0f; // 死亡吹き飛びの初速度
+    constexpr float kKnockbackDeceleration   = 0.5f;  // 死亡吹き飛びの減速度（毎フレーム）
+    constexpr float kDamageKnockbackSpeed    = 2.0f;  // 怯み時のノックバック速度
+    constexpr int   kDamageKnockbackMinTimer = 10;    // ノックバックを適用する怯みタイマーの閾値
 
     // ダメージ計算関連
     constexpr float kHeadshotMultiplier = 2.0f; // ヘッドショット時のダメージ倍率
 
-    // 当たり判定関連
+    // 当たり判定関連（EnemyNormal 固有）
     constexpr float kBroadPhaseDistSq = 300.0f * 300.0f; // 弾の当たり判定ブロードフェーズ閾値
-    constexpr float kPushBackEpsilon  = 0.0001f;          // ゼロ除算防止のための最小距離の二乗閾値
 
     // 環境ボイス関連
     constexpr int   kVoiceTimerMin  = 180;     // 環境ボイス再生間隔の最小値（フレーム数）
@@ -79,11 +82,6 @@ namespace EnemyNormalConstants
     constexpr float kCameraShakeIntensity = 20.0f;   // カメラシェイクの基本強度
     constexpr int   kCameraShakeDuration  = 10;      // カメラシェイクの持続フレーム数
     constexpr float kCameraShakeMinRatio  = 0.2f;    // カメラシェイク強度の最小割合
-
-    // 描画関連
-    constexpr float kDrawDistanceSq     = 5000.0f * 5000.0f; // 最大描画距離の二乗
-    constexpr float kDrawNearDistanceSq = 300.0f * 300.0f;   // 常に描画する近距離の二乗
-    constexpr float kDrawDotThreshold   = 0.4f;              // 視野内判定に使う内積閾値
 }
 
 /// <summary>

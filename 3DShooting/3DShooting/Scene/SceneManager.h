@@ -1,13 +1,11 @@
 ﻿#pragma once
 
-class SceneTitle;
-class SceneMain;
-class SceneResult;
-class SceneGameOver;
 class SceneBase;
 
 /// <summary>
-/// シーン管理クラス。フェードイン・アウトを伴うシーン遷移を制御する
+/// シーン管理クラス。フェードイン・アウトを伴うシーン遷移を制御する。
+/// 具体的なシーンクラスへの依存を持たないため、新しいシーンを追加しても
+/// 本クラスの変更が不要な設計となっている（OCP 準拠）。
 /// </summary>
 class SceneManager
 {
@@ -29,7 +27,7 @@ public:
     SceneManager();
 
     /// <summary>
-    /// デストラクタ（保持シーンとサウンドリソースを解放する）
+    /// デストラクタ（現在シーン・遷移先シーン・サウンドリソースを解放する）
     /// </summary>
     ~SceneManager();
 
@@ -51,7 +49,7 @@ public:
     /// <summary>
     /// シーンを変更するリクエストを行う
     /// </summary>
-    /// <param name="newScene">新しいシーンのポインタ</param>
+    /// <param name="newScene">新しいシーンのポインタ（SceneManager が所有権を引き受ける）</param>
     void RequestChangeScene(SceneBase* newScene);
 
     /// <summary>
@@ -62,15 +60,9 @@ public:
 
 private:
     // シーン遷移管理
-    SceneBase* m_pCurrentScene;  // 現在実行中のシーン
-    SceneBase* m_pNextScene;     // 次フレームに遷移するシーン（Updateの戻り値）
-    SceneBase* m_pSceneToChange; // フェードアウト完了後に切り替えるシーン
-
-    // 各シーンの所有ポインタ（二重解放防止用）
-    SceneTitle*   m_pTitle;     // タイトルシーン
-    SceneMain*    m_pSceneMain; // メインシーン
-    SceneResult*  m_pResult;    // リザルトシーン
-    SceneGameOver* m_pGameOver; // ゲームオーバーシーン
+    SceneBase* m_pCurrentScene;  // 現在実行中のシーン（所有）
+    SceneBase* m_pNextScene;     // 次フレームに遷移するシーン（Update の戻り値、非所有）
+    SceneBase* m_pSceneToChange; // フェードアウト完了後に切り替えるシーン（所有）
 
     // ローディング演出
     int m_loadingDotCount;  // ローディングドットのアニメーションカウンタ

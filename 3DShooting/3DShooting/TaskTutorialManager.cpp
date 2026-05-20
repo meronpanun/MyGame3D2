@@ -27,16 +27,10 @@ namespace
     constexpr int kBgBoxAlpha = 128;
 }
 
-// 静的メンバ変数の実体を定義
-TaskTutorialManager* TaskTutorialManager::m_instance = nullptr;
-
 TaskTutorialManager* TaskTutorialManager::GetInstance()
 {
-    if (m_instance == nullptr)
-    {
-        m_instance = new TaskTutorialManager();
-    }
-    return m_instance;
+    static TaskTutorialManager instance;
+    return &instance;
 }
 
 TaskTutorialManager::TaskTutorialManager()
@@ -71,10 +65,6 @@ TaskTutorialManager::TaskTutorialManager()
 {
     // フォントの作成
     ReloadFonts(1.0f);
-}
-
-TaskTutorialManager::~TaskTutorialManager()
-{
 }
 
 void TaskTutorialManager::ReloadFonts(float scale)

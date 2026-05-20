@@ -15,7 +15,7 @@ class TaskTutorialManager
 {
 public:
     TaskTutorialManager();
-    ~TaskTutorialManager();
+    ~TaskTutorialManager() = default;
 
     void Init(WaveManager* pWaveManager, Player* pPlayer);
     void Update();
@@ -82,8 +82,6 @@ private:
     };
     TaskTutorialManager(const TaskTutorialManager&) = delete;
     TaskTutorialManager& operator=(const TaskTutorialManager&) = delete;
-
-    static TaskTutorialManager* m_instance;
 
     WaveManager* m_pWaveManager; // WaveManagerへのポインタ
     Player* m_pPlayer;           // Playerへのポインタ
