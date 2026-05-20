@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Effect.h"

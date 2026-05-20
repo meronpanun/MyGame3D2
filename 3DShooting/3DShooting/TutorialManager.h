@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Vec2.h"
 #include <memory>
 #include <string>
@@ -100,19 +100,9 @@ public:
 
 private:
     /// <summary>
-    /// UIアニメーション用の更新
-    /// </summary>
-    void UpdateUI();
-
-    /// <summary>
     /// メッセージの更新
     /// </summary>
     void UpdateMessages();
-
-    /// <summary>
-    /// メッセージの描画
-    /// </summary>
-    void DrawMessages(int screenW, int screenH);
 
 private:
     Vec2 m_prevMousePos;

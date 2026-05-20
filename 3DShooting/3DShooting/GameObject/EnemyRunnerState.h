@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EnemyState.h"
 
 // 前方宣言

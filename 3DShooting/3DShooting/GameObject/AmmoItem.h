@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EffekseerWarningSuppress.h"
 #include "SphereCollider.h"
 #include "ItemBase.h"

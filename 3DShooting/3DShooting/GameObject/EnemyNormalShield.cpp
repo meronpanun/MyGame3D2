@@ -1,4 +1,4 @@
-#include "EnemyNormal.h"
+﻿#include "EnemyNormal.h"
 #include "DxLib.h"
 #include "Effect.h"
 #include "EffekseerWarningSuppress.h"
