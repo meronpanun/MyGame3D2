@@ -214,8 +214,6 @@
     <ClCompile Include="UI\ScoreUI.cpp" />
     <ClCompile Include="UI\TutorialUI.cpp" />
     <ClCompile Include="UI\UIManager.cpp" />
-    <ClCompile Include="Vec2.cpp" />
-    <ClCompile Include="Vec3.cpp" />
     <ClCompile Include="WaveDataLoader.cpp" />
     <ClCompile Include="WaveManager.cpp" />
     <ClCompile Include="WaveUI.cpp" />
@@ -232,6 +230,7 @@
     <ClInclude Include="Collider.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="DebugUtil.h" />
+    <ClInclude Include="GameObject\EnemySharedConstants.h" />
     <ClInclude Include="UI\BossUI.h" />
     <ClInclude Include="GameObject\FirstAidKitItem.h" />
     <ClInclude Include="GameObject\Bullet.h" />
