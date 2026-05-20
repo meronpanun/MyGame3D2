@@ -446,6 +446,9 @@
     <ClInclude Include="UI\TutorialUI.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject\EnemySharedConstants.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="data\model\MeshFence.mv1" />

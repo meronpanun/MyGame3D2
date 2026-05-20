@@ -8,8 +8,8 @@
 namespace
 {
     constexpr float kDefaultCameraSensitivity = 0.002f;       // カメラ感度のデフォルト値
-    constexpr int   kDefaultScreenWidth       = 1920;         // デフォルト画面幅
-    constexpr int   kDefaultScreenHeight      = 1080;          // デフォルト画面高さ
+    constexpr int   kDefaultScreenWidth       = 1280;         // デフォルト画面幅
+    constexpr int   kDefaultScreenHeight      = 720;          // デフォルト画面高さ
     constexpr int   kDefaultColorBitDepth     = 32;           // カラービット数
     constexpr float kFixedDeltaTime           = 1.0f / 60.0f; // 固定フレーム時間（秒）
     constexpr float kUIScaleReferenceHeight   = 720.0f;       // UI スケール計算の基準画面高さ
