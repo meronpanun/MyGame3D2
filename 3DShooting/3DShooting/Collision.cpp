@@ -54,6 +54,11 @@ namespace
         }
 
         float va    = d3 * d6 - d5 * d4;
+        if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)
+        {
+            float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+            return VAdd(b, VScale(VSub(c, b), w));
+        }
         float denom = 1.0f / (va + vb + vc);
         float v     = vb * denom;
         float w     = vc * denom;
