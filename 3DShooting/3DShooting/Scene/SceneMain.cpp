@@ -592,6 +592,12 @@ SceneBase* SceneMain::Update()
         m_pPlayer->Update(enemyPtrList, m_pStage->GetCollisionData());
         m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer,
             m_pStage->GetCollisionData(), m_pEffect.get());
+        // タックル中でない場合はもう1回更新する（ゲームバランス維持のための意図的な2回更新）
+        if (!m_pPlayer->GetTackleInfo().isTackling)
+        {
+            m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(), *m_pPlayer,
+                m_pStage->GetCollisionData(), m_pEffect.get());
+        }
 
         // アイテム、スコアポップアップなどの更新はタスクチュートリアル中でも実行
         m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
@@ -687,6 +693,12 @@ SceneBase* SceneMain::Update()
 
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(),
         *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get());
+    // タックル中でない場合はもう1回更新する（ゲームバランス維持のための意図的な2回更新）
+    if (!m_pPlayer->GetTackleInfo().isTackling)
+    {
+        m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(),
+            *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get());
+    }
 
     m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
 
