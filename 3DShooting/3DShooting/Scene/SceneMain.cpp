@@ -18,6 +18,7 @@
 #include "EnemyBase.h"
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
+#include "AmmoItem.h"
 #include "FirstAidKitItem.h"
 #include "ItemDropManager.h"
 #include "ShellCasing.h"
