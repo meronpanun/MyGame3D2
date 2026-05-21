@@ -117,7 +117,7 @@ namespace
     Quaternion QuatBetweenVectors(const VECTOR& from, const VECTOR& to)
     {
         float dot = VDot(from, to);
-        dot = std::max(-1.0f, std::min(1.0f, dot)); // acos が NaN にならないよう clamp
+        dot = (std::max)(-1.0f, (std::min)(1.0f, dot)); // acos が NaN にならないよう clamp
 
         if (dot >= 1.0f - 1e-6f) return Quaternion(0.0f, 0.0f, 0.0f, 1.0f); // 同方向 → 恒等クォータニオン
 
@@ -979,7 +979,7 @@ void PlayerShieldSystem::UpdateShieldThrow(
         }
 
         // t = min(speed * dt, 1.0) で exponential decay 風に追従する
-        float slerpT            = std::min(1.0f, PlayerShieldConstants::kShieldOrientSlerpSpeed * deltaTime);
+        float slerpT            = (std::min)(1.0f, PlayerShieldConstants::kShieldOrientSlerpSpeed * deltaTime);
         Quaternion rotQ         = QuatBetweenVectors(m_shieldCurrentForward, targetForward);
         Quaternion interpolated = QuatSlerp(Quaternion(0.0f, 0.0f, 0.0f, 1.0f), rotQ, slerpT);
         m_shieldCurrentForward  = VNorm(QuatRotateVector(interpolated, m_shieldCurrentForward));
