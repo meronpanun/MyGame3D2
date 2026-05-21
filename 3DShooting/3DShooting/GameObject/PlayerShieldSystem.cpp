@@ -91,6 +91,95 @@ namespace PlayerShieldConstants
     // コリジョン関連
     constexpr float kReflectPushbackDist   = 2.0f;  // 反射後の押し出し距離（ステージめり込み防止）
     constexpr float kBossHitPushbackDist   = 5.0f;  // ボスシールドヒット後の押し出し距離
+
+    // 向き補間
+    constexpr float kShieldOrientSlerpSpeed = 12.0f; // 向き補間の追従速度（大きいほど素早く変わる）
+}
+
+namespace
+{
+    /// <summary>
+    /// 盾の向き補間に使うクォータニオン。
+    /// 数学的定義: q = (x*sin(θ/2), y*sin(θ/2), z*sin(θ/2), cos(θ/2))
+    /// ここで (x,y,z) は回転軸（単位ベクトル）、θ は回転角度。
+    /// </summary>
+    struct Quaternion
+    {
+        float x, y, z, w;
+        Quaternion() : x(0.0f), y(0.0f), z(0.0f), w(1.0f) {}
+        Quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+    };
+
+    /// <summary>
+    /// from から to へ向ける最短回転クォータニオンを生成する。
+    /// from と to はどちらも単位ベクトルであることを前提とする。
+    /// </summary>
+    Quaternion QuatBetweenVectors(const VECTOR& from, const VECTOR& to)
+    {
+        float dot = VDot(from, to);
+        dot = std::max(-1.0f, std::min(1.0f, dot)); // acos が NaN にならないよう clamp
+
+        if (dot >= 1.0f - 1e-6f) return Quaternion(0.0f, 0.0f, 0.0f, 1.0f); // 同方向 → 恒等クォータニオン
+
+        if (dot <= -1.0f + 1e-6f)
+        {
+            // 逆方向（180度回転）：外積がゼロになるので別の軸を探す
+            VECTOR perp = VCross(from, VGet(1.0f, 0.0f, 0.0f));
+            if (VDot(perp, perp) < 1e-6f) perp = VCross(from, VGet(0.0f, 1.0f, 0.0f));
+            perp = VNorm(perp);
+            return Quaternion(perp.x, perp.y, perp.z, 0.0f); // w=0 → 180度回転
+        }
+
+        // 公式: q = (axis * sin(θ/2), cos(θ/2))
+        // s = 2*cos(θ/2) を使うと正規化なしで単位クォータニオンが得られる
+        VECTOR axis = VCross(from, to);
+        float s    = sqrtf((1.0f + dot) * 2.0f);
+        float invS = 1.0f / s;
+        return Quaternion(axis.x * invS, axis.y * invS, axis.z * invS, s * 0.5f);
+    }
+
+    /// <summary>
+    /// 球面線形補間（Slerp）: t=0 で a、t=1 で b になる。
+    /// 参考: "Animating Rotation with Quaternion Curves" Ken Shoemake (1985)
+    /// </summary>
+    Quaternion QuatSlerp(Quaternion a, Quaternion b, float t)
+    {
+        float dot = a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
+
+        // 内積が負なら b を反転し、最短弧を通るようにする
+        if (dot < 0.0f) { b = Quaternion(-b.x, -b.y, -b.z, -b.w); dot = -dot; }
+
+        // 非常に近い場合は線形補間（Lerp）で代用する（acosf の精度問題を回避）
+        if (dot > 0.9995f)
+        {
+            Quaternion result(
+                a.x + t * (b.x - a.x), a.y + t * (b.y - a.y),
+                a.z + t * (b.z - a.z), a.w + t * (b.w - a.w));
+            float len = sqrtf(result.x*result.x + result.y*result.y + result.z*result.z + result.w*result.w);
+            if (len > 1e-6f) { result.x /= len; result.y /= len; result.z /= len; result.w /= len; }
+            return result;
+        }
+
+        float theta0    = acosf(dot);         // a-b 間の全角度
+        float theta     = theta0 * t;         // 補間後の角度
+        float sinTheta0 = sinf(theta0);
+        float s0        = cosf(theta) - dot * sinf(theta) / sinTheta0;
+        float s1        = sinf(theta) / sinTheta0;
+        return Quaternion(s0*a.x + s1*b.x, s0*a.y + s1*b.y, s0*a.z + s1*b.z, s0*a.w + s1*b.w);
+    }
+
+    /// <summary>
+    /// クォータニオン q でベクトル v を回転させる。
+    /// サンドイッチ積 q v q^(-1) を展開した形（単位クォータニオンなので q^(-1) = 共役）。
+    /// v' = v + 2w(q×v) + 2(q×(q×v))
+    /// </summary>
+    VECTOR QuatRotateVector(const Quaternion& q, const VECTOR& v)
+    {
+        VECTOR qv     = VGet(q.x, q.y, q.z);
+        VECTOR cross1 = VCross(qv, v);
+        VECTOR cross2 = VCross(qv, cross1);
+        return VAdd(v, VAdd(VScale(cross1, 2.0f * q.w), VScale(cross2, 2.0f)));
+    }
 }
 
 PlayerShieldSystem::PlayerShieldSystem()
@@ -129,6 +218,7 @@ PlayerShieldSystem::PlayerShieldSystem()
     , m_shieldReflectCount(0)
     , m_shieldThrowRotationTimer(0.0f)
     , m_shieldThrowCooldownTimer(0.0f)
+    , m_shieldCurrentForward(VGet(0.0f, 0.0f, 1.0f))
     , m_isShieldThrowFailedAnimating(false)
     , m_shieldThrowFailedAnimTimer(0.0f)
     , m_isTutorial(false)
@@ -678,8 +768,9 @@ bool PlayerShieldSystem::ThrowShield(Camera* pCamera, const VECTOR& playerPos)
     m_shieldThrowState = ShieldThrowState::Throwing;
     m_isShieldThrown = true;
     m_shieldThrowHitEnemyId = -1;
-    m_shieldReflectCount = 0;          // 反射回数をリセット
-    m_shieldThrowRotationTimer = 0.0f; // 回転タイマーをリセット
+    m_shieldReflectCount = 0;                      // 反射回数をリセット
+    m_shieldThrowRotationTimer = 0.0f;             // 回転タイマーをリセット
+    m_shieldCurrentForward = m_shieldThrowDir;     // Slerp の起点を投擲方向に合わせる
 
     // ブーメランSEの再生（ループ）
     m_isBoomerangFading = false;
@@ -866,6 +957,34 @@ void PlayerShieldSystem::UpdateShieldThrow(
         }
     }
 
+    // --- クォータニオン Slerp による向き補間 ---
+    // 盾が飛行中の場合のみ、m_shieldCurrentForward を目標方向へ近づける。
+    // Throwing 中は投擲方向、Returning 中はプレイヤーへの帰還方向が目標になる。
+    // 即座にスナップせず Slerp で補間することで、Throwing→Returning 切り替わり時に
+    // 盾の向きが滑らかに反転するアニメーションが生まれる。
+    if (m_isShieldThrown && m_shieldThrowState != ShieldThrowState::Idle)
+    {
+        VECTOR targetForward = m_shieldThrowDir; // デフォルト（投擲中）は投擲方向
+
+        if (m_shieldThrowState == ShieldThrowState::Returning)
+        {
+            VECTOR returnTargetPos = playerPos;
+            returnTargetPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
+            VECTOR toPlayer = VSub(returnTargetPos, m_shieldThrowPos);
+            float distToPlayer = VSize(toPlayer);
+            if (distToPlayer > 1.0f) // ほぼ手元に来た後は現状維持（ゼロ除算防止）
+            {
+                targetForward = VNorm(toPlayer);
+            }
+        }
+
+        // t = min(speed * dt, 1.0) で exponential decay 風に追従する
+        float slerpT            = std::min(1.0f, PlayerShieldConstants::kShieldOrientSlerpSpeed * deltaTime);
+        Quaternion rotQ         = QuatBetweenVectors(m_shieldCurrentForward, targetForward);
+        Quaternion interpolated = QuatSlerp(Quaternion(0.0f, 0.0f, 0.0f, 1.0f), rotQ, slerpT);
+        m_shieldCurrentForward  = VNorm(QuatRotateVector(interpolated, m_shieldCurrentForward));
+    }
+
     // 敵との当たり判定
     if (m_shieldThrowState == ShieldThrowState::Throwing || m_shieldThrowState == ShieldThrowState::Returning)
     {
@@ -1000,16 +1119,10 @@ void PlayerShieldSystem::DrawShieldThrow(Camera* pCamera, const VECTOR& playerPo
     // シールドの位置と回転を計算
     VECTOR shieldPos = m_shieldThrowPos;
 
-    // シールドの向きを計算（移動方向に合わせる）
-    VECTOR forward = m_shieldThrowDir;
-    if (m_shieldThrowState == ShieldThrowState::Returning)
-    {
-        // 戻り中はプレイヤー方向を向く（水平方向のみ）
-        VECTOR returnTargetPos = playerPos;
-        returnTargetPos.y += PlayerShieldConstants::kShieldThrowStartYOffset;
-        VECTOR toPlayer = VSub(returnTargetPos, m_shieldThrowPos);
-        forward = VNorm(toPlayer);
-    }
+    // UpdateShieldThrow() でクォータニオン Slerp により更新済みの前進方向を使う。
+    // Throwing→Returning の切り替わり時に向きが滑らかに反転する。
+    // （以前は即時スナップしていた箇所）
+    VECTOR forward = m_shieldCurrentForward;
 
     // 回転を計算
     // forward方向を向く回転行列を作成

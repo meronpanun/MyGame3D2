@@ -219,6 +219,7 @@ private:
     float    m_shieldThrowDamage;           // シールドソーのダメージ量
     float    m_shieldThrowRotationTimer;    // 回転タイマー
     float    m_shieldThrowCooldownTimer;    // クールダウンタイマー
+    VECTOR   m_shieldCurrentForward;        // Slerp 補間中の盾の前進方向（描画に使用）
     float    m_shieldThrowFailedAnimTimer;  // 投擲失敗アニメーションタイマー
     bool     m_isShieldThrowFailedAnimating; // 投擲失敗アニメーション中か
     intptr_t m_shieldThrowHitEnemyId;       // 同フレームでヒット済みの敵 ID（重複ヒット防止）
