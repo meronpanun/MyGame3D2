@@ -978,11 +978,22 @@ void PlayerShieldSystem::UpdateShieldThrow(
             }
         }
 
-        // t = min(speed * dt, 1.0) で exponential decay 風に追従する
-        float slerpT            = (std::min)(1.0f, PlayerShieldConstants::kShieldOrientSlerpSpeed * deltaTime);
-        Quaternion rotQ         = QuatBetweenVectors(m_shieldCurrentForward, targetForward);
-        Quaternion interpolated = QuatSlerp(Quaternion(0.0f, 0.0f, 0.0f, 1.0f), rotQ, slerpT);
-        m_shieldCurrentForward  = VNorm(QuatRotateVector(interpolated, m_shieldCurrentForward));
+        // 方向変化が90度を超える場合（内積 < 0）は即座にスナップする。
+        // Slerp で補間すると任意の軸まわりに大きく回転してしまい、
+        // 中間フレームで盾が変な向きを向くため。
+        // 90度以内の小さな追従（帰還中にプレイヤーが動いた分など）だけ Slerp で滑らかにする。
+        float dotToTarget = VDot(m_shieldCurrentForward, targetForward);
+        if (dotToTarget < 0.0f)
+        {
+            m_shieldCurrentForward = targetForward; // 大きな反転はスナップ
+        }
+        else
+        {
+            float slerpT            = (std::min)(1.0f, PlayerShieldConstants::kShieldOrientSlerpSpeed * deltaTime);
+            Quaternion rotQ         = QuatBetweenVectors(m_shieldCurrentForward, targetForward);
+            Quaternion interpolated = QuatSlerp(Quaternion(0.0f, 0.0f, 0.0f, 1.0f), rotQ, slerpT);
+            m_shieldCurrentForward  = VNorm(QuatRotateVector(interpolated, m_shieldCurrentForward));
+        }
     }
 
     // 敵との当たり判定
