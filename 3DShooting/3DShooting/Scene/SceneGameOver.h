@@ -42,11 +42,6 @@ private:
     void UpdateLayout();
 
     /// <summary>
-    /// グラデーションボックスを描画する
-    /// </summary>
-    void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
-
-    /// <summary>
     /// UIスケールに合わせてフォントを再生成する
     /// </summary>
     /// <param name="scale">UIスケール値</param>

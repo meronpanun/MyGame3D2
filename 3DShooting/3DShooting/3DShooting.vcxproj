@@ -161,6 +161,7 @@
     <ClCompile Include="CapsuleCollider.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DebugUtil.cpp" />
+    <ClCompile Include="DrawUtil.cpp" />
     <ClCompile Include="GameObject\EnemyBossHomingBullet.cpp" />
     <ClCompile Include="GameObject\EnemyBossShield.cpp" />
     <ClCompile Include="GameObject\EnemyNormalShield.cpp" />
@@ -230,6 +231,7 @@
     <ClInclude Include="Collider.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="DebugUtil.h" />
+    <ClInclude Include="DrawUtil.h" />
     <ClInclude Include="GameObject\EnemySharedConstants.h" />
     <ClInclude Include="UI\BossUI.h" />
     <ClInclude Include="GameObject\FirstAidKitItem.h" />

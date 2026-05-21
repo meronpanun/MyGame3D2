@@ -52,11 +52,6 @@ private:
     /// <param name="scale">UIスケール値</param>
     void ReloadFonts(float scale);
 
-    /// <summary>
-    /// グラデーションボックスを描画する
-    /// </summary>
-    void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
-
 private:
     WaveManager* m_pWaveManager; // ボス情報を取得するWaveManagerのポインタ
     float m_healthBarAnim;       // HPバーの滑らかな追従アニメーション用体力値

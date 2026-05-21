@@ -81,11 +81,6 @@ private:
     /// <param name="scale">UIスケール値</param>
     void ReloadFonts(float scale);
 
-    /// <summary>
-    /// グラデーションボックスを描画する
-    /// </summary>
-    void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
-
 private:
     Player* m_pPlayer; // UIの情報元となるプレイヤーのポインタ
 

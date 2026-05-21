@@ -46,11 +46,6 @@ private:
     /// </summary>
     void UpdateLayout();
 
-    /// <summary>
-    /// グラデーションボックスを描画する
-    /// </summary>
-    void DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor);
-
 private:
     // リソース管理
     ManagedGraph m_background;          // 背景画像のハンドル

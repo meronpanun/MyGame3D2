@@ -1,4 +1,5 @@
 ﻿#include "SceneGameOver.h"
+#include "DrawUtil.h"
 #include "EffekseerWarningSuppress.h"
 #include "Game.h"
 #include "InputManager.h"
@@ -213,7 +214,7 @@ void SceneGameOver::Draw()
 
     // リザルト表示エリアの背景（グラデーション）
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, kResBgAlpha);
-    DrawGradientBox(m_layout.resBgX, m_layout.resBgY,
+    DrawUtil::DrawGradientBox(m_layout.resBgX, m_layout.resBgY,
                     m_layout.resBgX + m_layout.resBgW,
                     m_layout.resBgY + m_layout.resBgH, 0x000000, 0x404040);
     SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -272,7 +273,7 @@ void SceneGameOver::Draw()
         // グラデーション背景
         unsigned int topColor = isHover ? 0x666666 : 0x444444;
         unsigned int btmColor = isHover ? 0x444444 : 0x222222;
-        DrawGradientBox(x1, y1, x2, y2, topColor, btmColor);
+        DrawUtil::DrawGradientBox(x1, y1, x2, y2, topColor, btmColor);
 
         // 枠線
         unsigned int borderColor = isHover ? 0xffffff : 0xaaaaaa;
@@ -304,55 +305,6 @@ void SceneGameOver::Draw()
     bool isRetryHover = (mousePos.x >= m_layout.retryBtnX1 && mousePos.x <= m_layout.retryBtnX2 &&
          mousePos.y >= m_layout.retryBtnY1 && mousePos.y <= m_layout.retryBtnY2);
     DrawButton(m_layout.retryBtnX1, m_layout.retryBtnY1, m_layout.retryBtnX2, m_layout.retryBtnY2, "リトライ", isRetryHover);
-}
-
-void SceneGameOver::DrawGradientBox(int x1, int y1, int x2, int y2, unsigned int topColor, unsigned int bottomColor)
-{
-    VERTEX2D Vertex[6];
-    float fx1 = static_cast<float>(x1);
-    float fy1 = static_cast<float>(y1);
-    float fx2 = static_cast<float>(x2);
-    float fy2 = static_cast<float>(y2);
-
-    unsigned char topR = (topColor >> 16) & 0xFF;
-    unsigned char topG = (topColor >> 8) & 0xFF;
-    unsigned char topB = topColor & 0xFF;
-
-    unsigned char btmR = (bottomColor >> 16) & 0xFF;
-    unsigned char btmG = (bottomColor >> 8) & 0xFF;
-    unsigned char btmB = bottomColor & 0xFF;
-
-    // 左上
-    Vertex[0].pos = VGet(fx1, fy1, 0.0f);
-    Vertex[0].rhw = 1.0f;
-    Vertex[0].u = 0.0f;
-    Vertex[0].v = 0.0f;
-    Vertex[0].dif = GetColorU8(topR, topG, topB, 255);
-    // 右上
-    Vertex[1].pos = VGet(fx2, fy1, 0.0f);
-    Vertex[1].rhw = 1.0f;
-    Vertex[1].u = 0.0f;
-    Vertex[1].v = 0.0f;
-    Vertex[1].dif = GetColorU8(topR, topG, topB, 255);
-    // 左下
-    Vertex[2].pos = VGet(fx1, fy2, 0.0f);
-    Vertex[2].rhw = 1.0f;
-    Vertex[2].u = 0.0f;
-    Vertex[2].v = 0.0f;
-    Vertex[2].dif = GetColorU8(btmR, btmG, btmB, 255);
-
-    // 左下
-    Vertex[3] = Vertex[2];
-    // 右上
-    Vertex[4] = Vertex[1];
-    // 右下
-    Vertex[5].pos = VGet(fx2, fy2, 0.0f);
-    Vertex[5].rhw = 1.0f;
-    Vertex[5].u = 0.0f;
-    Vertex[5].v = 0.0f;
-    Vertex[5].dif = GetColorU8(btmR, btmG, btmB, 255);
-
-    DrawPolygon2D(Vertex, 2, DX_NONE_GRAPH, true);
 }
 
 void SceneGameOver::UpdateLayout()

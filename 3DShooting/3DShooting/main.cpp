@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "SceneManager.h"
 #include "SceneTitle.h"
+#include <memory>
 
 namespace
 {
@@ -48,9 +49,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     SetChangeScreenModeGraphicsSystemResetFlag(false);
     Effekseer_SetGraphicsDeviceLostCallbackFunctions();
 
-    SceneManager* pScene = new SceneManager();
+    auto pScene = std::make_unique<SceneManager>();
     pScene->Init();
-    Game::SetSceneManager(pScene);
+    Game::SetSceneManager(pScene.get());
 
     // ゲームループ
     while (ProcessMessage() == 0)
@@ -73,8 +74,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         {
         }
     }
-
-    delete pScene;
 
     Effkseer_End();
     DxLib_End();
