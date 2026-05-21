@@ -417,18 +417,6 @@ void Player::Update(const std::vector<EnemyBase*>& enemyList, const std::vector<
         m_tackleSystem.UpdateCooldownOnly(deltaTime);
     }
 
-    // タックルが実行されていない場合のみ、通常の敵更新を行う
-    if (!m_tackleSystem.IsTackling())
-    {
-        TackleInfo tackleInfo = GetTackleInfo(); // 初期値(isTackling=false)
-        for (EnemyBase* enemy : enemyList)
-        {
-            if (!enemy) continue;
-            EnemyUpdateContext context = { m_bullets, tackleInfo, *this, enemyList, collisionData, m_pEffect };
-            enemy->Update(context);
-        }
-    }
-
     // 弾更新
     Bullet::UpdateBullets(m_bullets, m_modelPos, collisionData);
 

@@ -167,6 +167,7 @@
     <ClCompile Include="GameObject\EnemyNormalShield.cpp" />
     <ClCompile Include="UI\BossUI.cpp" />
     <ClCompile Include="GameObject\FirstAidKitItem.cpp" />
+    <ClCompile Include="GameObject\ItemDropManager.cpp" />
     <ClCompile Include="GameObject\Bullet.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Effect.cpp" />
@@ -250,6 +251,7 @@
     <ClInclude Include="GameObject\EnemyRunnerState.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject\ItemBase.h" />
+    <ClInclude Include="GameObject\ItemDropManager.h" />
     <ClInclude Include="GameObject\PlayerEffectManager.h" />
     <ClInclude Include="GameObject\PlayerMovement.h" />
     <ClInclude Include="GameObject\PlayerShieldSystem.h" />

@@ -175,12 +175,11 @@ void PlayerUI::DrawHPBar(float baseAlpha)
     int baseAlphaInt = static_cast<int>(baseAlpha * kAlphaMax);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, baseAlphaInt);
     DrawExtendGraph(healthUiImageX, healthUiImageY,
-                    healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize,
-                    m_healthUiImage, true);
+                    healthUiImageX + scaledHealthUiSize, healthUiImageY + scaledHealthUiSize, m_healthUiImage, true);
     const int barX = healthUiImageX + scaledHealthUiSize + scaledBarSpacing;
 
     // HP値をクランプ
-    float hp     = (health       < 0.0f) ? 0.0f : (health       > kMaxHp ? kMaxHp : health);
+    float hp     = (health < 0.0f) ? 0.0f : (health > kMaxHp ? kMaxHp : health);
     float hpAnim = (healthBarAnim < 0.0f) ? 0.0f : (healthBarAnim > kMaxHp ? kMaxHp : healthBarAnim);
 
     float hpRate     = hp     / kMaxHp;
@@ -609,7 +608,7 @@ void PlayerUI::DrawLockOnUI(float baseAlpha)
 
 void PlayerUI::DrawGuardText(float baseAlpha)
 {
-    bool isGuarding      = m_pPlayer->IsGuarding();
+    bool isGuarding = m_pPlayer->IsGuarding();
     EnemyBase* lockedOnEnemy = m_pPlayer->GetLockedOnEnemy();
 
     if (!isGuarding || lockedOnEnemy) return;

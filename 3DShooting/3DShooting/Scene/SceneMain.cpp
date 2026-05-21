@@ -1,5 +1,4 @@
 ﻿#include "SceneMain.h"
-#include "AmmoItem.h"
 #include "AnimationManager.h"
 #include "BossUI.h"
 #include "PlayerUI.h"
@@ -20,6 +19,7 @@
 #include "EnemyNormal.h"
 #include "EnemyRunner.h"
 #include "FirstAidKitItem.h"
+#include "ItemDropManager.h"
 #include "ShellCasing.h"
 #include "Game.h"
 #include "InputManager.h"
@@ -69,9 +69,6 @@ namespace SceneMainConstants
     // スカイドーム関連
     constexpr float kSkyDomePosY = 200.0f;  // スカイドームのY座標
     constexpr float kSkyDomeScale = 150.0f; // スカイドームのスケール
-
-    // アイテムドロップ時の初期上昇量
-    constexpr float kDropInitialHeight = 140.0f;
 
     // 環境光設定
     constexpr float kAmbientLightR = 0.5f; // 環境光の赤成分
@@ -151,9 +148,6 @@ SceneMain::SceneMain(bool isReturningFromOtherScene)
     , m_cameraSensitivity(Game::GetCameraSensitivity())
     , m_hitDistance(0.0f)
     , m_pCamera(std::make_unique<Camera>())
-    , m_hasDroppedWave1FirstAid(false)
-    , m_hasDroppedWave1Ammo(false)
-    , m_wave1DropCount(0)
     , m_isLoading(true)
     , m_headShotSECooldownTimer(0)
     , m_isPlayerInit(false)
@@ -314,95 +308,11 @@ void SceneMain::Init()
     // スカイドームのスケールを設定
     MV1SetScale(m_skyDome, VGet(kSkyDomeScale, kSkyDomeScale, kSkyDomeScale));
 
-    m_items.clear();
-
-    // wave1開始時にフラグとカウントをリセット
-    m_hasDroppedWave1FirstAid = false;
-    m_hasDroppedWave1Ammo = false;
-    m_wave1DropCount = 0;
+    // アイテムドロップマネージャの初期化（コールバック登録も内部で行う）
+    m_pItemDropManager = std::make_unique<ItemDropManager>();
+    m_pItemDropManager->Init(m_pWaveManager.get());
 
     m_clearSceneDelayTimer = -1; // 遅延タイマーをリセット
-
-    // WaveManagerの敵の死亡時にアイテムをドロップするコールバックを設定
-    m_pWaveManager->SetOnEnemyDeathCallback([this](const VECTOR &pos)
-    {
-        static VECTOR lastDropPos = { -99999, -99999, -99999 };
-        // 直前と同じ座標なら何もしない
-        if (pos.x == lastDropPos.x && pos.y == lastDropPos.y && pos.z == lastDropPos.z) return;
-        lastDropPos = pos;
-        if (m_pWaveManager->GetCurrentWave() == 1)
-        {
-            if (m_wave1DropCount >= 2) return; // 0.5f体分だけドロップ
-
-            if (!m_hasDroppedWave1FirstAid && !m_hasDroppedWave1Ammo) 
-            {
-                int randValue = GetRand(99);
-                if (randValue < 50) 
-                {
-                    auto firstAid = std::make_shared<FirstAidKitItem>();
-                    firstAid->Init();
-                    VECTOR dropPos = pos;
-                    dropPos.y += kDropInitialHeight;
-                    firstAid->SetPos(dropPos);
-                    m_items.push_back(firstAid);
-                    m_hasDroppedWave1FirstAid = true;
-                }
-                else 
-                {
-                    auto ammo = std::make_shared<AmmoItem>();
-                    ammo->Init();
-                    VECTOR dropPos = pos;
-                    dropPos.y += kDropInitialHeight;
-                    ammo->SetPos(dropPos);
-                    m_items.push_back(ammo);
-                    m_hasDroppedWave1Ammo = true;
-                }
-                m_wave1DropCount++;
-            } 
-            else if (!m_hasDroppedWave1FirstAid) 
-            {
-                auto firstAid = std::make_shared<FirstAidKitItem>();
-                firstAid->Init();
-                VECTOR dropPos = pos;
-                dropPos.y += kDropInitialHeight;
-                firstAid->SetPos(dropPos);
-                m_items.push_back(firstAid);
-                m_hasDroppedWave1FirstAid = true;
-                m_wave1DropCount++;
-            }
-            else if (!m_hasDroppedWave1Ammo) 
-            {
-                auto ammo = std::make_shared<AmmoItem>();
-                ammo->Init();
-                VECTOR dropPos = pos;
-                dropPos.y += kDropInitialHeight;
-                ammo->SetPos(dropPos);
-                m_items.push_back(ammo);
-                m_hasDroppedWave1Ammo = true;
-                m_wave1DropCount++;
-            }
-            // 両方ドロップ済み or 2体分超えたら何も落とさない
-        } 
-        else 
-        {
-            // wave2以降はどちらか一方のみドロップ
-            int randValue = GetRand(99);
-            std::shared_ptr<ItemBase> dropItem;
-            if (randValue < 50) 
-            {
-                dropItem = std::make_shared<FirstAidKitItem>();
-            }
-            else 
-            {
-                dropItem = std::make_shared<AmmoItem>();
-            }
-            dropItem->Init();
-            VECTOR dropPos = pos;
-            dropPos.y += kDropInitialHeight;
-            dropItem->SetPos(dropPos);
-            m_items.push_back(dropItem);
-        }
-    });
 
     // チュートリアルマネージャ生成・初期化
     m_pTutorialManager = std::make_unique<TutorialManager>();
@@ -450,8 +360,8 @@ void SceneMain::AddScorePopup(int score, bool isHeadShot, int combo)
 
 void SceneMain::SwitchToMainStage()
 {
-    // チュートリアルのアイテムを消去
-    m_items.clear();
+    // チュートリアルのアイテムを消去し、ドロップ状態をリセット
+    m_pItemDropManager->Reset();
 
     // WaveManagerをリセット（敵の消去とWave情報の初期化）
     m_pWaveManager->Reset();
@@ -683,12 +593,7 @@ SceneBase* SceneMain::Update()
             m_pStage->GetCollisionData(), m_pEffect.get());
 
         // アイテム、スコアポップアップなどの更新はタスクチュートリアル中でも実行
-        for (std::shared_ptr<ItemBase>& item : m_items)
-        {
-            item->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
-        }
-        m_items.erase(std::remove_if(m_items.begin(), m_items.end(),
-            [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed() || item->IsExpired(); }), m_items.end());
+        m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
 
         ScoreManager::Instance().Update();
 
@@ -782,12 +687,7 @@ SceneBase* SceneMain::Update()
     m_pWaveManager->UpdateEnemies(m_pPlayer->GetBullets(), m_pPlayer->GetTackleInfo(),
         *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get());
 
-    for (std::shared_ptr<ItemBase>& item : m_items)
-    {
-        item->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
-    }
-    m_items.erase(std::remove_if(m_items.begin(), m_items.end(),
-        [](const std::shared_ptr<ItemBase>& item) { return item->IsUsed() || item->IsExpired(); }), m_items.end());
+    m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
 
     m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
     ScoreManager::Instance().Update();
@@ -808,10 +708,7 @@ void SceneMain::Draw()
 
     MV1DrawModel(m_skyDome);
 
-    for (std::shared_ptr<ItemBase>& item : m_items)
-    {
-        item->Draw();
-    }
+    m_pItemDropManager->Draw();
 
     // ローディング中の表示
     if (m_isLoading)

@@ -24,8 +24,7 @@ class Camera;
 class EnemyNormal;
 class EnemyRunner;
 class EnemyAcid;
-class FirstAidKitItem;
-class ItemBase;
+class ItemDropManager;
 class Stage;
 class WaveManager;
 class Effect;
@@ -200,7 +199,7 @@ private:
     std::shared_ptr<WaveManager>  m_pWaveManager;
     std::unique_ptr<Effect>       m_pEffect;
     std::unique_ptr<AnimationManager> m_pAnimManager;
-    std::vector<std::shared_ptr<ItemBase>> m_items;
+    std::unique_ptr<ItemDropManager>  m_pItemDropManager;
 
     std::unique_ptr<DirectionIndicator> m_pDirectionIndicator;
     std::unique_ptr<UIManager>          m_pUIManager;
@@ -210,9 +209,6 @@ private:
     bool m_isEscapePressed;            // Escapeキー押下状態
     bool m_isReturningFromOtherScene;  // 他シーンから戻ったか
     bool m_isLoading;                  // ロード中か
-    bool m_hasDroppedWave1FirstAid;    // Wave1救急キットドロップ済み
-    bool m_hasDroppedWave1Ammo;        // Wave1弾薬ドロップ済み
-    int  m_wave1DropCount;             // Wave1ドロップ回数
 
     // リソース管理
     SafeHandle<ModelDeleter> m_skyDome; // スカイドームモデルハンドル
