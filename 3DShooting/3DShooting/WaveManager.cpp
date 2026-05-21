@@ -90,7 +90,7 @@ void WaveManager::Init()
     InitEnemyPools();
 
     // チュートリアル達成判定コールバックを全プールの敵に事前登録する。
-    // プールの敵は Init() 後に再利用されるため、ここで一括設定しておく。
+    // プールの敵は Init() 後に再利用されるので、ここで一括設定しておく。
     // このコールバックは「どの攻撃種別で敵を倒したか」を WaveManager に通知する。
     auto deathTypeCallback = [this](const VECTOR& pos, AttackType type) {
         if (m_currentWave == 1)
@@ -111,7 +111,7 @@ void WaveManager::Init()
     // Wave1のチュートリアル達成フラグを敵死亡時に更新するコールバックを設定する。
     // 死亡した敵の座標で m_enemyList から対象を特定し、最後に受けた攻撃種別を確認する。
     // ※ ItemDropManager からも SetOnEnemyDeathCallback が呼ばれる場合は上書きされる点に注意。
-    //   チュートリアル達成判定は上記の SetOnDeathWithTypeCallback 側で完結しているため問題ない。
+    //   チュートリアル達成判定は上記の SetOnDeathWithTypeCallback 側で完結しているので問題ない。
     SetOnEnemyDeathCallback([this](const VECTOR& pos) {
         for (auto& enemy : m_enemyList)
         {
@@ -149,8 +149,8 @@ void WaveManager::InitEnemyPools()
     for (const auto& [wave, cnt] : acidPerWave)   maxAcid   = (std::max)(maxAcid,   cnt);
     for (const auto& [wave, cnt] : bossPerWave)   maxBoss   = (std::max)(maxBoss,   cnt);
 
-    // 現在のプールサイズが不足している場合のみ追加生成する（既存エントリを上書きしない）
-    // ※ 実行時に GetPooled* 関数からも拡張が行われるため、プールは最小保証サイズとして機能する
+    // 現在のプールサイズが不足している場合のみ追加生成する（既存エントリは上書きしない）
+    // ※ 実行時に GetPooled* からも動的拡張されるので、ここでは最低限のサイズだけ確保する
     auto ensurePoolSize = []<typename T>(std::vector<std::shared_ptr<T>>& pool, int size) {
         for (int i = static_cast<int>(pool.size()); i < size; ++i)
         {
@@ -244,7 +244,7 @@ void WaveManager::Update()
                 // スポーンタイマーを 60FPS 相当で進める
                 m_spawnTimer += (1.0f / 60.0f) * Game::GetTimeScale();
 
-                // スポーン時間に達した敵を順次生成する（同時アクティブ数が上限を超えた場合は待機）
+                // スポーン時間に達した敵を順番に生成する（同時アクティブ数が上限を超えたら待機）
                 while (m_currentSpawnIndex < m_spawnInfoList.size() && GetAliveEnemyCount() < kMaxActiveEnemies)
                 {
                     EnemySpawnInfo& spawnInfo = m_spawnInfoList[m_currentSpawnIndex];
@@ -660,9 +660,9 @@ void WaveManager::NextWave()
     for (const auto& wave : m_waveDataList)
     {
         if (wave.wave == m_currentWave) hasNextWave = true;
-        // インターバル時間は「終了した Wave（= m_currentWave - 1）」のデータから取得する。
-        // これは waveInterval が「このWaveが終わってから次のWaveが始まるまでの待機時間」を
-        // 表すフィールドであるためである。
+        // インターバル時間は「終了した Wave（= m_currentWave - 1）」のデータから取る。
+        // waveInterval は「そのWaveが終わった後の待機時間」という意味のフィールドなので、
+        // 次のWaveではなく終わったWaveの方から読む。
         if (wave.wave == m_currentWave - 1 && wave.waveInterval > 0.0f) nextInterval = wave.waveInterval;
     }
 

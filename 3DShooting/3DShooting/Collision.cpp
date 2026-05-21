@@ -92,8 +92,8 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
         if (nearbyTriangles.empty()) useGrid = false;
     }
 
-    // 1フレームで複数ポリゴンにめり込む可能性があるため、
-    // 押し出しを複数回反復することで安定した衝突解決を行う
+    // 1フレームで複数ポリゴンにめり込む可能性があるので、
+    // 押し出しを何度か繰り返して安定した衝突解決をする
     for (int i = 0; i < kCollisionIterations; ++i)
     {
         VECTOR checkPos = VAdd(position, VGet(0.0f, colliderYOffset, 0.0f));

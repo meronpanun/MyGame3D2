@@ -29,10 +29,10 @@ void ItemDropManager::Init(WaveManager* pWaveManager)
     Reset();
 
     // WaveManager の敵死亡コールバックを登録する。
-    // WaveManager は単一コールバックしか持たないため、Init() より後に
-    // SetOnEnemyDeathCallback を呼ぶと上書きされる点に注意。
+    // WaveManager は単一コールバックしか持っていないので、Init() の後で
+    // SetOnEnemyDeathCallback を呼ぶと上書きされてしまう点に注意。
     // （WaveManager::Init() 内のチュートリアル判定コールバックは
-    //   SetOnDeathWithTypeCallback を使用しているため上書きされない）
+    //   SetOnDeathWithTypeCallback を使っているので上書きされない）
     m_pWaveManager->SetOnEnemyDeathCallback([this](const VECTOR& pos)
     {
         OnEnemyDeath(pos);
@@ -72,8 +72,8 @@ void ItemDropManager::Draw()
 
 void ItemDropManager::OnEnemyDeath(const VECTOR& pos)
 {
-    // 同一フレームで同じ座標から複数回コールバックが来た場合（複数ヒットなど）の重複防止。
-    // 浮動小数点の完全一致比較を使用しているため、座標が完全に同じ場合のみ弾かれる。
+    // 同じ座標から複数回コールバックが来た場合（複数ヒットなど）の重複防止。
+    // 浮動小数点の完全一致比較を使っているので、座標がぴったり同じときだけ弾かれる。
     if (pos.x == m_lastDropPos.x && pos.y == m_lastDropPos.y && pos.z == m_lastDropPos.z) return;
     m_lastDropPos = pos;
 
@@ -81,9 +81,9 @@ void ItemDropManager::OnEnemyDeath(const VECTOR& pos)
     VECTOR dropPos = pos;
     dropPos.y += kDropInitialHeight;
 
-    // Wave1 はチュートリアル性を考慮し、救急キットと弾薬を必ず1つずつドロップする特別仕様。
-    // 最初の敵からはランダムでどちらかを先に出し、2体目で残りの方を確定でドロップする。
-    // kWave1MaxDropCount 体分を超えたら以降はドロップしない。
+    // Wave1 はチュートリアルなので、救急キットと弾薬を必ず1つずつ出す特別な仕様にしている。
+    // 最初の敵からはランダムでどちらかを先に出して、2体目で残りの方を確定でドロップする。
+    // kWave1MaxDropCount 体分を超えたらそれ以降はドロップしない。
     if (m_pWaveManager->GetCurrentWave() == 1)
     {
         if (m_wave1DropCount >= kWave1MaxDropCount) return;

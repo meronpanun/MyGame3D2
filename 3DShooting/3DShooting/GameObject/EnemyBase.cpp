@@ -150,8 +150,8 @@ void EnemyBase::UpdateStandard(const EnemyUpdateContext& context)
     MV1SetPosition(m_modelHandle, m_pos);
 
     // 7. 衝突（押し出し）処理
-    // プレイヤーとの押し出しを先に行い、その後で敵同士の押し出しを行う。
-    // この順序により、プレイヤーを基準にした位置補正が敵同士の押し出しで打ち消されるのを防ぐ。
+    // プレイヤーとの押し出しを先にやって、その後で敵同士の押し出しをする。
+    // この順番にしないと、プレイヤー基準の位置補正が敵同士の処理で打ち消されてしまう。
     std::shared_ptr<CapsuleCollider> playerBodyCollider = context.player.GetBodyCollider();
     if (playerBodyCollider)
     {
@@ -161,7 +161,7 @@ void EnemyBase::UpdateStandard(const EnemyUpdateContext& context)
 
     if (m_shouldUpdateAI)
     {
-        // 空間分割グリッドが利用可能な場合は近傍セルの敵のみを対象にして計算量を削減する
+        // グリッドがあれば近傍セルの敵だけを対象にして計算量を減らす
         std::vector<EnemyBase*> neighbors;
         if (context.collisionGrid) context.collisionGrid->GetNeighbors(m_pos, neighbors);
         const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : context.enemyList;
@@ -625,8 +625,8 @@ void EnemyBase::RotateTowards(const VECTOR& targetPos, float rotationSpeed)
     toTarget.y = 0.0f;
     if (VSquareSize(toTarget) < EnemyConstants::kMinDistSqThreshold) return;
 
-    // DxLib のモデル座標系では +Z 方向が「後方」となるため、
-    // atan2f の結果に π を加算することでモデルの正面方向（-Z）に補正する
+    // DxLib のモデル座標系は +Z が「後方」なので、
+    // atan2f の結果に π を足してモデルの正面方向（-Z）に合わせる
     float yaw = atan2f(toTarget.x, toTarget.z) + DX_PI_F;
     float currentYaw = MV1GetRotationXYZ(m_modelHandle).y;
 
@@ -696,9 +696,9 @@ void EnemyBase::ResolvePlayerCollision(const std::shared_ptr<CapsuleCollider>& p
                 if (VDot(pushDir, pushDir) > EnemyConstants::kMinDistSqThreshold)
                 {
                     pushDir = VNorm(pushDir);
-                    // 理想的な対称押し出し（双方 0.5 倍）のうち、プレイヤー側は
-                    // PlayerMovement 内のコリジョン処理で別途補正されるため、
-                    // ここでは敵側の移動分（0.5 倍）のみを適用する
+                    // 対称押し出しなら双方 0.5 倍ずつだが、プレイヤー側は
+                    // PlayerMovement 内のコリジョン処理で別途動くので、
+                    // ここでは敵だけ 0.5 倍分ずらす
                     m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
                 }
             }
@@ -729,9 +729,9 @@ void EnemyBase::ResolveEnemyCollision(const std::vector<EnemyBase*>& targets, fl
             if (dist > 0)
             {
                 VECTOR pushDir = VNorm(diff);
-                // 自分だけを押し出す非対称設計（other 側は own の Update() で同様に押し出される）。
-                // 係数 0.5 は対称押し出し時の半分ずつという考え方に基づくが、
-                // 両者が同じフレームで処理されるため結果として全体的に解消される。
+                // 自分だけを動かす設計（other 側は自分の Update() で同じように押し出される）。
+                // 係数 0.5 は「お互い半分ずつ」をもとにしていて、
+                // 同じフレームで両者が処理されるので結果として全体的にめり込みが解消される。
                 m_pos = VAdd(m_pos, VScale(pushDir, pushBack * 0.5f));
             }
         }
