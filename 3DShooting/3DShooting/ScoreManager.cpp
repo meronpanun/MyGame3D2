@@ -48,12 +48,18 @@ int ScoreManager::AddScore(bool isHeadShot)
     m_combo++;
     if (m_combo > m_maxCombo) m_maxCombo = m_combo; // 最大コンボ更新
 
+    // コンボ倍率: pow(kInitialComboRate, combo - 1) で指数的に増加する。
+    // combo=1 のとき指数が 0 になり倍率 1.0 になるため、1コンボ目は補正なしになる。
+    // 線形ではなく指数を採用することで、高コンボほど爆発的にスコアが伸びるゲーム設計にしている。
     float comboRate  = static_cast<float>(std::pow(kInitialComboRate, m_combo - 1));
     m_lastComboRate  = comboRate;
     int add          = static_cast<int>(baseScore * comboRate);
+
+    // m_score はコンボが切れるとリセットされる「コンボ中スコア」
+    // m_totalScore はリセットされない「ゲーム全体の累計スコア」
     m_score         += add;
-    m_totalScore    += add; // 累計スコアにも加算
-    m_comboTimer     = kComboGraceFrame; // コンボ猶予リセット
+    m_totalScore    += add;
+    m_comboTimer     = kComboGraceFrame; // コンボ猶予タイマーをリセット
 
     if (TaskTutorialManager::GetInstance() && TaskTutorialManager::GetInstance()->IsCompleted())
     {
@@ -78,7 +84,10 @@ void ScoreManager::Update()
         {
             m_combo         = 0;
             m_lastComboRate = 1.0f;
-            m_score         = 0; // コンボが切れたらスコアもリセット
+            // コンボが切れた際は「コンボ中スコア（m_score）」だけをリセットする。
+            // 「累計スコア（m_totalScore）」はリセットせず保持する。
+            // これによりリザルト画面等で「最終的に入れた総スコア」を正確に表示できる。
+            m_score         = 0;
         }
     }
 
@@ -167,6 +176,8 @@ void ScoreManager::SetTargetDisplayValues(int score, int totalScore, int bodyKil
 
 void ScoreManager::ResetAll()
 {
+    // ゲーム開始時のリセット対象: スコア・コンボ・キルカウント・表示値
+    // m_highScores はリセットしない（ゲームセッションをまたいで保持するランキングデータのため）
     m_score               = 0;
     m_totalScore          = 0;
     m_combo               = 0;

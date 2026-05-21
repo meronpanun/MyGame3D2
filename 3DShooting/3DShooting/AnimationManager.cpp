@@ -17,7 +17,11 @@ AnimationManager::~AnimationManager()
 
 int AnimationManager::GetAnimIndexInternal(int modelHandle, const std::string& animName)
 {
-    // キャッシュをチェック
+    // MV1GetAnimIndex は毎フレーム呼ぶには高コストなため、結果をキャッシュして再利用する。
+    // キャッシュキーはモデルハンドルと名前の組み合わせ。
+    // ※ オブジェクトプールでモデルを使い回す場合、同じハンドルが別のモデルに割り当て直される
+    //   ことがある。その場合キャッシュが古くなるが、本プロジェクトでは Init() のたびに
+    //   同じモデルをロードするため問題は生じない。
     if (m_animIndexesCache.count(modelHandle) && m_animIndexesCache[modelHandle].count(animName))
     {
         return m_animIndexesCache[modelHandle][animName];
@@ -34,7 +38,7 @@ int AnimationManager::GetAnimIndexInternal(int modelHandle, const std::string& a
 
 float AnimationManager::PlayAnimation(int modelHandle, const std::string& animName, bool loop)
 {
-    // 既にアタッチされているアニメーションをデタッチ
+    // 既にアタッチされているアニメーションをデタッチ（DxLib は同時に1つしかアタッチできない）
     if (m_attachedAnimHandles.count(modelHandle) && m_attachedAnimHandles[modelHandle] != -1)
     {
         MV1DetachAnim(modelHandle, 0);
@@ -45,6 +49,9 @@ float AnimationManager::PlayAnimation(int modelHandle, const std::string& animNa
 
     if (animIndex != -1)
     {
+        // DxLib の MV1AttachAnim の第4引数 `loop` は「ブレンドアニメーションを使うか」のフラグであり、
+        // 実際のループ再生制御はユーザー側で animTime をリセットすることで行う。
+        // ここでは false を渡すことでブレンドなし（単純アタッチ）にしている。
         int attachedHandle = MV1AttachAnim(modelHandle, animIndex, -1, loop);
         m_attachedAnimHandles[modelHandle] = attachedHandle;
         if (attachedHandle != -1)
@@ -125,6 +132,8 @@ bool AnimationManager::IsAnimationFinished(int modelHandle) const
     auto it = m_animStateToAnimName.find(state);
     if (it == m_animStateToAnimName.end()) return false;
 
+    // PlayAnimation() 呼び出し時にキャッシュした総再生時間を使用する。
+    // GetAnimationTotalTime() で毎回 MV1GetAnimIndex を呼ぶより低コスト。
     float total = 0.0f;
     if (m_currentAnimTotalTimes.count(modelHandle))
     {
