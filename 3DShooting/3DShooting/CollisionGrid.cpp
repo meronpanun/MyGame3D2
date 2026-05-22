@@ -34,7 +34,7 @@ namespace
 
     // 統計パネル
     constexpr int   kStatPanelWidth            = 320;      // 統計パネルの幅
-    constexpr int   kStatPanelHeight           = 150;      // 統計パネルの高さ
+    constexpr int   kStatPanelHeight           = 245;      // 統計パネルの高さ
 
     // テキスト・アイコンレイアウト
     constexpr int   kUITextPaddingX            = 10;       // パネル内テキストの X パディング
@@ -70,6 +70,11 @@ CollisionGrid::CollisionGrid()
     , m_displayedSearchTime(0)
     , m_displayTimer(0)
     , m_totalEnemies(0)
+    , m_totalTriangleQueries(0)
+    , m_totalTrianglesReturned(0)
+    , m_totalTriangleSearchTime(0)
+    , m_displayedTriangleSearchTime(0)
+    , m_registeredTriangleCount(0)
 {
 }
 
@@ -96,6 +101,7 @@ void CollisionGrid::Clear()
 {
     for (auto& cell : m_cells)      cell.clear();
     for (auto& cell : m_stageCells) cell.clear();
+    m_registeredTriangleCount = 0;
 }
 
 void CollisionGrid::ClearEnemies()
@@ -113,9 +119,12 @@ void CollisionGrid::ResetAccessFlags()
 
 void CollisionGrid::ResetStats()
 {
-    m_totalQueries         = 0;
+    m_totalQueries = 0;
     m_totalEntitiesChecked = 0;
-    m_totalSearchTime      = 0;
+    m_totalSearchTime = 0;
+    m_totalTriangleQueries = 0;
+    m_totalTrianglesReturned = 0;
+    m_totalTriangleSearchTime = 0;
 }
 
 void CollisionGrid::CalculateHeights(const std::vector<Stage::StageCollisionData>& collisionData)
@@ -168,8 +177,8 @@ void CollisionGrid::RegisterStageTriangle(const Stage::StageCollisionData& trian
     // 範囲をグリッド内に収める
     startX = (std::max)(0, startX);
     startZ = (std::max)(0, startZ);
-    endX   = (std::min)(m_width  - 1, endX);
-    endZ   = (std::min)(m_height - 1, endZ);
+    endX = (std::min)(m_width - 1, endX);
+    endZ = (std::min)(m_height - 1, endZ);
 
     for (int z = startZ; z <= endZ; ++z)
     {
@@ -178,6 +187,7 @@ void CollisionGrid::RegisterStageTriangle(const Stage::StageCollisionData& trian
             m_stageCells[z * m_width + x].push_back(&triangle);
         }
     }
+    m_registeredTriangleCount++;
 }
 
 void CollisionGrid::RegisterEnemy(EnemyBase* enemy)
@@ -225,7 +235,7 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
 
             int index = z * m_width + x;
             // persist=true なら複数フレーム維持、false なら即時クリア対象（デバッグ用）
-            const_cast<CollisionGrid*>(this)->m_accessedCells[index] = persist ? kAccessFlagPersistDuration : 1;
+            m_accessedCells[index] = persist ? kAccessFlagPersistDuration : 1;
 
             const auto& targetCell = m_cells[index];
             m_totalEntitiesChecked += static_cast<int>(targetCell.size());
@@ -237,12 +247,20 @@ void CollisionGrid::GetNeighbors(const VECTOR& pos, std::vector<EnemyBase*>& out
 
 void CollisionGrid::GetNearbyTriangles(const VECTOR& pos, std::vector<const Stage::StageCollisionData*>& outTriangles) const
 {
+    LONGLONG startTime = GetNowHiPerformanceCount();
+    m_totalTriangleQueries++;
+
     if (!s_useSpatialPartitioning)
     {
         for (const auto& cell : m_stageCells)
         {
             outTriangles.insert(outTriangles.end(), cell.begin(), cell.end());
         }
+        // 同一三角形が複数セルに登録されているため重複を削除
+        std::sort(outTriangles.begin(), outTriangles.end());
+        outTriangles.erase(std::unique(outTriangles.begin(), outTriangles.end()), outTriangles.end());
+        m_totalTrianglesReturned += static_cast<int>(outTriangles.size());
+        m_totalTriangleSearchTime += GetNowHiPerformanceCount() - startTime;
         return;
     }
 
@@ -263,6 +281,9 @@ void CollisionGrid::GetNearbyTriangles(const VECTOR& pos, std::vector<const Stag
     // 同一三角形が複数セルにまたがる場合の重複を削除
     std::sort(outTriangles.begin(), outTriangles.end());
     outTriangles.erase(std::unique(outTriangles.begin(), outTriangles.end()), outTriangles.end());
+
+    m_totalTrianglesReturned += static_cast<int>(outTriangles.size());
+    m_totalTriangleSearchTime += GetNowHiPerformanceCount() - startTime;
 }
 
 int CollisionGrid::GetCellIndex(const VECTOR& pos) const
@@ -489,7 +510,21 @@ void CollisionGrid::DrawUI() const
     if (m_displayTimer <= 0)
     {
         m_displayedSearchTime = m_totalSearchTime;
-        m_displayTimer        = kDisplayTimerInterval;
+        m_displayedTriangleSearchTime = m_totalTriangleSearchTime;
+        m_displayTimer = kDisplayTimerInterval;
     }
     DrawFormatString(sTextX, sTextY, kColorSearchedCell, "検索処理時間: %lld us (マイクロ秒)", m_displayedSearchTime);
+
+    sTextY += kUILineSpacingLarge;
+    DrawString(sTextX, sTextY, "【三角形検索】", kColorUIHeader);
+
+    sTextY += kUILineSpacingSmall;
+    DrawFormatString(sTextX, sTextY, kColorDebugText, "クエリ数: %d / 三角形総数: %d", m_totalTriangleQueries, m_registeredTriangleCount);
+
+    sTextY += kUILineSpacingSmall;
+    int triFullScan = m_registeredTriangleCount * m_totalTriangleQueries;
+    DrawFormatString(sTextX, sTextY, statColor, "実返却数: %d (総当りなら: %d)", m_totalTrianglesReturned, triFullScan);
+
+    sTextY += kUILineSpacingSmall;
+    DrawFormatString(sTextX, sTextY, kColorSearchedCell, "検索処理時間: %lld us (マイクロ秒)", m_displayedTriangleSearchTime);
 }

@@ -178,6 +178,13 @@ private:
     mutable int      m_displayTimer;         // パフォーマンス表示の更新タイマー
     int              m_totalEnemies;         // 登録済み敵の総数
 
+    // 三角形検索パフォーマンス計測
+    mutable int      m_totalTriangleQueries;         // 累計三角形クエリ数
+    mutable int      m_totalTrianglesReturned;       // 累計返却三角形数
+    mutable LONGLONG m_totalTriangleSearchTime;      // 累計三角形検索処理時間（マイクロ秒）
+    mutable LONGLONG m_displayedTriangleSearchTime;  // 表示用にホールドする三角形検索処理時間
+    int              m_registeredTriangleCount;      // 登録済みユニーク三角形総数
+
     static bool s_drawGrid;               // グリッドデバッグ描画フラグ
     static bool s_useSpatialPartitioning; // 空間分割使用フラグ
 };
