@@ -15,7 +15,7 @@ namespace
     constexpr float kCachedHeightBaseOffset    = 1.0f;     // レイが当たらなかった場合の高さオフセット
     constexpr float kCachedHeightHitOffset     = 1.5f;     // レイヒット時の高さオフセット
     constexpr int   kAccessFlagPersistDuration = 30;       // persist モードのアクセスフラグ維持フレーム数
-    constexpr int   kDisplayTimerInterval      = 30;       // パフォーマンス表示の更新間隔（フレーム）
+    constexpr int   kDisplayTimerInterval      = 5;       // パフォーマンス表示の更新間隔（フレーム）
 
     // グリッドデバッグ描画（3D）
     constexpr float kDrawRange                 = 2500.0f;  // グリッドデバッグ描画の最大半径
@@ -501,7 +501,7 @@ void CollisionGrid::DrawUI() const
     DrawFormatString(sTextX, sTextY, statColor, "判定対象削減率: %.1f%%", s_useSpatialPartitioning ? reduction : 0.0f);
 
     sTextY += kUILineSpacingSmall;
-    DrawFormatString(sTextX, sTextY, kColorDebugText, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
+    DrawFormatString(sTextX, sTextY, statColor, "実判定数: %d (総当りなら: %d)", m_totalEntitiesChecked, fullScanChecks);
 
     sTextY += kUILineSpacingLarge;
 
@@ -513,18 +513,18 @@ void CollisionGrid::DrawUI() const
         m_displayedTriangleSearchTime = m_totalTriangleSearchTime;
         m_displayTimer = kDisplayTimerInterval;
     }
-    DrawFormatString(sTextX, sTextY, kColorSearchedCell, "検索処理時間: %lld us (マイクロ秒)", m_displayedSearchTime);
+    DrawFormatString(sTextX, sTextY, kColorSearchedCell, "検索処理時間: %.3f ms", m_displayedSearchTime / 1000.0);
 
     sTextY += kUILineSpacingLarge;
     DrawString(sTextX, sTextY, "【三角形検索】", kColorUIHeader);
 
     sTextY += kUILineSpacingSmall;
-    DrawFormatString(sTextX, sTextY, kColorDebugText, "クエリ数: %d / 三角形総数: %d", m_totalTriangleQueries, m_registeredTriangleCount);
+    DrawFormatString(sTextX, sTextY, kColorDebugText, "三角形総数: %d / クエリ数: %d", m_registeredTriangleCount, m_totalTriangleQueries);
 
     sTextY += kUILineSpacingSmall;
     int triFullScan = m_registeredTriangleCount * m_totalTriangleQueries;
     DrawFormatString(sTextX, sTextY, statColor, "実返却数: %d (総当りなら: %d)", m_totalTrianglesReturned, triFullScan);
 
     sTextY += kUILineSpacingSmall;
-    DrawFormatString(sTextX, sTextY, kColorSearchedCell, "検索処理時間: %lld us (マイクロ秒)", m_displayedTriangleSearchTime);
+    DrawFormatString(sTextX, sTextY, kColorSearchedCell,"検索処理時間: %.3f ms", m_displayedTriangleSearchTime / 1000.0);
 }

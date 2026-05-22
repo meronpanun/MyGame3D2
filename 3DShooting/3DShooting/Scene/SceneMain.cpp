@@ -872,7 +872,7 @@ void SceneMain::DrawDebugHUD()
     y += lineHeight;
 
     // 描画カリングの評価
-    float cullingRate = totalCount > 0 ? (1.0f - static_cast<float>(drawnEnemyCount) / totalCount) * 100.0f : 0.0f;
+    float cullingRate = aliveEnemyCount > 0 ? (1.0f - static_cast<float>(drawnEnemyCount) / aliveEnemyCount) * 100.0f : 0.0f;
     DrawFormatString(x, y, color, "Draw Culling: %.1f%%", cullingRate);
     y += lineHeight;
 
