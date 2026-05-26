@@ -186,6 +186,118 @@ bool EnemyNormal::CanAttackPlayer(const Player& player)
     return m_pAttackHitCollider->IsIntersects(playerBodyCollider.get());
 }
 
+bool EnemyNormal::IsPlayerInAttackRange(const Player& player) const
+{
+    std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
+    return m_pAttackRangeCollider->IsIntersects(playerBodyCollider.get());
+}
+
+void EnemyNormal::UpdateChaseBehavior(const Player& player)
+{
+    VECTOR playerPos = player.GetPos();
+    VECTOR targetPos;
+
+    // プレイヤーが岩の上にいる場合は周囲を徘徊
+    std::string groundObj = player.GetGroundedObjectName();
+    if (groundObj == "Rock3" || groundObj == "Rock6")
+    {
+        m_wanderTimer -= m_aiUpdateInterval;
+        if (m_wanderTimer <= 0)
+        {
+            m_wanderTimer = EnemyNormalConstants::kWanderTimerInterval;
+            float angle = static_cast<float>(GetRand(360)) * DX_PI_F / 180.0f;
+            float dist = EnemyNormalConstants::kWanderMinDist + static_cast<float>(GetRand(EnemyNormalConstants::kWanderDistRange));
+            m_wanderOffset = VGet(cosf(angle) * dist, 0.0f, sinf(angle) * dist);
+        }
+        targetPos = VAdd(playerPos, m_wanderOffset);
+    }
+    else
+    {
+        targetPos = VAdd(playerPos, m_targetOffset);
+    }
+
+    VECTOR toTarget = VSub(targetPos, m_pos);
+    toTarget.y = 0.0f;
+    float disToTarget = VSize(toTarget);
+
+    float rotSpeed = EnemyNormalConstants::kRotateSpeedPerFrame * Game::GetTimeScale() * m_aiUpdateInterval;
+    RotateTowards(targetPos, rotSpeed);
+
+    if (disToTarget > EnemyNormalConstants::kChaseStopDistance)
+    {
+        VECTOR dir = VNorm(toTarget);
+        float moveDist = disToTarget - EnemyNormalConstants::kChaseStopDistance;
+        float scaledSpeed = m_chaseSpeed * Game::GetTimeScale() * m_aiUpdateInterval;
+        float step = (std::min)(moveDist, scaledSpeed);
+        m_pos.x += dir.x * step;
+        m_pos.z += dir.z * step;
+    }
+}
+
+void EnemyNormal::UpdateAttackHitDetection(const Player& player)
+{
+    if (m_currentAnimState != AnimState::Attack) return;
+
+    float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyNormalConstants::kAttackAnimName);
+    float attackStart = totalTime * EnemyNormalConstants::kAttackHitStartRatio;
+    float attackEnd   = totalTime * EnemyNormalConstants::kAttackHitEndRatio;
+
+    if (!m_hasAttackHit && m_animTime >= attackStart && m_animTime <= attackEnd)
+    {
+        if (CanAttackPlayer(player))
+        {
+            const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos);
+            m_hasAttackHit = true;
+        }
+    }
+}
+
+bool EnemyNormal::IsAttackAnimationFinished() const
+{
+    float totalTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyNormalConstants::kAttackAnimName);
+    return m_animTime >= totalTime;
+}
+
+void EnemyNormal::StartAttackEndDelay()
+{
+    if (m_attackEndDelayTimer <= 0)
+    {
+        m_attackEndDelayTimer = EnemyNormalConstants::kAttackEndDelay;
+    }
+}
+
+bool EnemyNormal::TickAttackEndDelay()
+{
+    if (m_attackEndDelayTimer <= 0) return false;
+    m_attackEndDelayTimer -= m_aiUpdateInterval;
+    return m_attackEndDelayTimer <= 0;
+}
+
+bool EnemyNormal::TickDamageTimer()
+{
+    if (m_damageTimer > 0)
+    {
+        m_damageTimer--;
+        return m_damageTimer <= 0;
+    }
+    return false;
+}
+
+void EnemyNormal::ApplyDamageKnockback(const Player& player)
+{
+    VECTOR toPlayer = VSub(player.GetPos(), m_pos);
+    toPlayer.y = 0.0f;
+    if (VSquareSize(toPlayer) > EnemyNormalConstants::kPushBackEpsilon)
+    {
+        if (m_damageTimer > EnemyNormalConstants::kDamageKnockbackMinTimer)
+        {
+            VECTOR knockbackDir = VNorm(VScale(toPlayer, -1.0f));
+            float knockbackSpeed = EnemyNormalConstants::kDamageKnockbackSpeed * Game::GetTimeScale();
+            m_pos = VAdd(m_pos, VScale(knockbackDir, knockbackSpeed));
+        }
+    }
+}
+
 void EnemyNormal::Update(const EnemyUpdateContext& context)
 {
     UpdateStandard(context);

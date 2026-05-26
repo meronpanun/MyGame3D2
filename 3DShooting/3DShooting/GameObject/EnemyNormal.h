@@ -177,6 +177,76 @@ public:
     bool IsShieldBroken() const { return m_isShieldBroken; }
     std::shared_ptr<SphereCollider> GetShieldCollider() const { return m_pShieldCollider; }
 
+    // === State 向けインターフェース ===
+    // ステートクラスから利用される限定的な操作群。
+    // ステートはこれらの公開メソッドのみを通じて EnemyNormal を操作し、
+    // 直接 private メンバへ触れないようにする（friend を不要にするための窓口）。
+
+    /// <summary>
+    /// アニメーションを変更する
+    /// </summary>
+    void ChangeAnimation(AnimState newAnimState, bool loop);
+
+    /// <summary>
+    /// ステートを変更する
+    /// </summary>
+    void ChangeState(std::shared_ptr<EnemyState<EnemyNormal>> newState);
+
+    /// <summary>
+    /// 今フレームに AI 更新を行うべきかどうか
+    /// </summary>
+    bool ShouldUpdateAI() const { return m_shouldUpdateAI; }
+
+    /// <summary>
+    /// プレイヤーに攻撃可能かどうか（攻撃ヒットコライダー判定）
+    /// </summary>
+    bool CanAttackPlayer(const Player& player);
+
+    /// <summary>
+    /// プレイヤーが攻撃範囲（範囲コライダー）内にいるかどうか
+    /// </summary>
+    bool IsPlayerInAttackRange(const Player& player) const;
+
+    /// <summary>
+    /// 攻撃ヒットフラグをリセット
+    /// </summary>
+    void ResetAttackHitFlag() { m_hasAttackHit = false; }
+
+    /// <summary>
+    /// 追跡・徘徊・回転・移動をまとめて行う（Walk ステート用）
+    /// </summary>
+    void UpdateChaseBehavior(const Player& player);
+
+    /// <summary>
+    /// 攻撃アニメーション中のヒット判定とダメージ適用を行う（Attack ステート用）
+    /// </summary>
+    void UpdateAttackHitDetection(const Player& player);
+
+    /// <summary>
+    /// 攻撃アニメーションが終わったか
+    /// </summary>
+    bool IsAttackAnimationFinished() const;
+
+    /// <summary>
+    /// 攻撃後ディレイタイマーを開始する（まだ動作中でなければセット）
+    /// </summary>
+    void StartAttackEndDelay();
+
+    /// <summary>
+    /// 攻撃後ディレイタイマーを進める。タイマーが今フレームで終了した場合 true を返す
+    /// </summary>
+    bool TickAttackEndDelay();
+
+    /// <summary>
+    /// ダメージタイマーを進める。タイマーが今フレームで終了した場合 true を返す
+    /// </summary>
+    bool TickDamageTimer();
+
+    /// <summary>
+    /// 怯み中のノックバック移動を適用する
+    /// </summary>
+    void ApplyDamageKnockback(const Player& player);
+
 protected:
     // ダメージ計算と適用
     void CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect) override;
@@ -184,25 +254,6 @@ protected:
     void ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect) override;
 
 private:
-    /// <summary>
-    /// アニメーションを変更する
-    /// </summary>
-    /// <param name="newAnimState">新しいアニメーション状態</param>
-    /// <param name="loop">ループ再生するかどうか</param>
-    void ChangeAnimation(AnimState newAnimState, bool loop);
-
-    /// <summary>
-    /// ステートを変更する
-    /// </summary>
-    /// <param name="newState">新しいステートオブジェクト</param>
-    void ChangeState(std::shared_ptr<EnemyState<EnemyNormal>> newState);
-
-    /// <summary>
-    /// プレイヤーに攻撃可能かどうかを判定する
-    /// </summary>
-    /// <param name="player">プレイヤーオブジェクト</param>
-    /// <returns>攻撃可能ならtrue</returns>
-    bool CanAttackPlayer(const Player& player);
     void BreakShield(const EnemyUpdateContext* context = nullptr);
 
     // EnemyBase::UpdateStandard から呼び出される内部処理
@@ -266,10 +317,4 @@ private:
     int m_voiceTimer;               // 環境ボイス再生用タイマー
     float m_distToPlayer;           // プレイヤーとの距離
     static int s_modelHandle; // 共有モデルハンドル
-
-    // ステートクラスからのアクセスを許可
-    friend class EnemyNormalStateWalk;
-    friend class EnemyNormalStateAttack;
-    friend class EnemyNormalStateDamage;
-    friend class EnemyNormalStateDead;
 };
