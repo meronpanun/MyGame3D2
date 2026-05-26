@@ -89,9 +89,6 @@ namespace EnemyNormalConstants
 /// </summary>
 class EnemyNormal : public EnemyBase
 {
-    // =========================================================
-    // public
-    // =========================================================
 public:
     EnemyNormal();
     virtual ~EnemyNormal();
@@ -143,11 +140,6 @@ public:
     /// </summary>
     bool IsShieldBroken() const { return m_isShieldBroken; }
     std::shared_ptr<SphereCollider> GetShieldCollider() const { return m_pShieldCollider; }
-
-    // === State 向けインターフェース ===
-    // ステートクラスから利用される限定的な操作群。
-    // ステートはこれらの公開メソッドのみを通じて EnemyNormal を操作し、
-    // 直接 private メンバへ触れないようにする（friend を不要にするための窓口）。
 
     /// <summary>
     /// アニメーションを変更する
@@ -214,18 +206,12 @@ public:
     /// </summary>
     void ApplyDamageKnockback(const Player& player);
 
-    // =========================================================
-    // protected
-    // =========================================================
 protected:
     // ダメージ計算と適用
     void CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect) override;
     float CalcDamage(float bulletDamage, HitPart part) const override;
     void ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect) override;
 
-    // =========================================================
-    // private
-    // =========================================================
 private:
     /// <summary>
     /// どこに当たったかを判定する
