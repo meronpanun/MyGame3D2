@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "AnimationManager.h"
 #include "EnemyBase.h"
 #include "Effect.h"
@@ -89,6 +89,9 @@ namespace EnemyNormalConstants
 /// </summary>
 class EnemyNormal : public EnemyBase
 {
+    // =========================================================
+    // public
+    // =========================================================
 public:
     EnemyNormal();
     virtual ~EnemyNormal();
@@ -113,57 +116,21 @@ public:
     static void LoadModel();
 
     /// <summary>
+    /// モデルの解放(共有)
+    /// </summary>
+    static void DeleteModel();
+
+    /// <summary>
     /// ボディコライダーを取得する
     /// </summary>
     /// <returns>ボディコライダー</returns>
     std::shared_ptr<CapsuleCollider> GetBodyCollider() const override;
-
-    /// <summary>
-    /// モデルの解放(共有)
-    /// </summary>
-    static void DeleteModel();
 
     static void SetDrawCollision(bool draw) { s_shouldDrawCollision = draw; }
     static bool ShouldDrawCollision() { return s_shouldDrawCollision; }
 
     static void SetDrawShieldCollision(bool draw) { s_shouldDrawShieldCollision = draw; }
     static bool IsDrawShieldCollision() { return s_shouldDrawShieldCollision; }
-
-private:
-    static bool s_shouldDrawCollision;
-    static bool s_shouldDrawShieldCollision;
-
-    /// <summary>
-    /// どこに当たったかを判定する
-    /// </summary>
-    /// <param name="rayStart">弾のRayの始点</param>
-    /// <param name="rayEnd">弾のRayの終点</param>
-    /// <returns>当たった部位</returns>
-    HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd,
-                         VECTOR& outHtPos, float& outHtDistSq) const override;
-
-    void ResetTackleHitFlag() override { m_hasTakenTackleDamage = false; }
-
-    /// <summary>
-    /// アイテムドロップ時のコールバック関数を設定する
-    /// </summary>
-    /// <param name="cb">コールバック関数</param>
-    void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
-
-    /// <summary>
-    /// ダメージを受ける処理
-    /// </summary>
-    /// <param name="damage">受けるダメージ量</param>
-    void TakeDamage(float damage, AttackType type) override;
-
-    /// <summary>
-    /// タックルダメージを受ける処理
-    /// </summary>
-    /// <param name="damage">受けるダメージ量</param>
-    void TakeTackleDamage(float damage) override;
-
-
-public:
 
     /// <summary>
     /// シールドを所持するかどうかを設定し、初期化する
@@ -247,13 +214,48 @@ public:
     /// </summary>
     void ApplyDamageKnockback(const Player& player);
 
+    // =========================================================
+    // protected
+    // =========================================================
 protected:
     // ダメージ計算と適用
     void CheckHitAndDamage(std::vector<Bullet>& bullets, Effect* pEffect) override;
     float CalcDamage(float bulletDamage, HitPart part) const override;
     void ApplyBulletDamage(Bullet& bullet, HitPart part, float distSq, Effect* pEffect) override;
 
+    // =========================================================
+    // private
+    // =========================================================
 private:
+    /// <summary>
+    /// どこに当たったかを判定する
+    /// </summary>
+    /// <param name="rayStart">弾のRayの始点</param>
+    /// <param name="rayEnd">弾のRayの終点</param>
+    /// <returns>当たった部位</returns>
+    HitPart CheckHitPart(const VECTOR& rayStart, const VECTOR& rayEnd,
+                         VECTOR& outHtPos, float& outHtDistSq) const override;
+
+    void ResetTackleHitFlag() override { m_hasTakenTackleDamage = false; }
+
+    /// <summary>
+    /// アイテムドロップ時のコールバック関数を設定する
+    /// </summary>
+    /// <param name="cb">コールバック関数</param>
+    void SetOnDropItemCallback(std::function<void(const VECTOR&)> cb);
+
+    /// <summary>
+    /// ダメージを受ける処理
+    /// </summary>
+    /// <param name="damage">受けるダメージ量</param>
+    void TakeDamage(float damage, AttackType type) override;
+
+    /// <summary>
+    /// タックルダメージを受ける処理
+    /// </summary>
+    /// <param name="damage">受けるダメージ量</param>
+    void TakeTackleDamage(float damage) override;
+
     void BreakShield(const EnemyUpdateContext* context = nullptr);
 
     // EnemyBase::UpdateStandard から呼び出される内部処理
@@ -268,53 +270,59 @@ private:
     void UpdateShield(const EnemyUpdateContext& context);
 
 private:
-    VECTOR m_headPosOffset; // ヘッドショット判定用オフセット座標
+    // --- コライダー ---
+    VECTOR m_headPosOffset;                                  // ヘッドショット判定用オフセット座標
+    std::shared_ptr<CapsuleCollider> m_pBodyCollider;        // 体のコライダー
+    std::shared_ptr<SphereCollider>  m_pHeadCollider;        // 頭のコライダー
+    std::shared_ptr<SphereCollider>  m_pAttackRangeCollider; // 攻撃範囲のコライダー
+    std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;   // 攻撃ヒット判定用のコライダー
 
-    std::shared_ptr<CapsuleCollider> m_pBodyCollider;      // 体のコライダー
-    std::shared_ptr<SphereCollider> m_pHeadCollider;       // 頭のコライダー
-    std::shared_ptr<SphereCollider> m_pAttackRangeCollider; // 攻撃範囲のコライダー
-    std::shared_ptr<CapsuleCollider> m_pAttackHitCollider;  // 攻撃ヒット判定用のコライダー
+    // --- アイテムドロップ ---
+    std::function<void(const VECTOR&)> m_onDropItem; // アイテムドロップ時のコールバック関数
 
-    // アイテムドロップ時のコールバック関数
-    std::function<void(const VECTOR&)> m_onDropItem;
-
-    AnimState m_currentAnimState; // 現在のアニメーション状態
+    // --- アニメーション・ステート ---
+    AnimState m_currentAnimState;                           // 現在のアニメーション状態
     std::shared_ptr<EnemyState<EnemyNormal>> m_pCurrentState; // 現在のAIステート
+    AnimationManager m_animationManager;                    // アニメーションマネージャー
+    float m_animTime;                                       // アニメーションの経過時間
 
-    AnimationManager m_animationManager; // EnemyNormalがアニメーションマネージャーを所有
-
-    int m_attackEndDelayTimer; // 攻撃終了までの遅延タイマー
+    // --- タイマー ---
+    int m_attackEndDelayTimer; // 攻撃終了後の遅延タイマー
     int m_damageTimer;         // ダメージ（怯み）タイマー
 
-    float m_animTime;   // アニメーションの経過時間
+    // --- フラグ ---
+    bool m_hasTakenTackleDamage;       // 1フレームで複数回タックルダメージを受けないためのフラグ
+    bool m_hasAttackHit;               // 攻撃がヒットしたかどうか
+    bool m_isDeadAnimPlaying;          // 死亡アニメーション再生中フラグ
+    bool m_hasDroppedItem;             // アイテムドロップ済みフラグ
 
-    bool m_hasTakenTackleDamage;       // 1フレームで複数回ダメージを受けないためのフラグ
-    bool m_hasAttackHit;       // 攻撃がヒットしたかどうか
-    bool m_isDeadAnimPlaying; // 死亡アニメーション再生中フラグ
-    bool m_hasDroppedItem;     // アイテムドロップ済みフラグ
-
-    // 徘徊挙動用
-    int m_wanderTimer;     // 徘徊位置更新タイマー
+    // --- 徘徊挙動 ---
+    int    m_wanderTimer;  // 徘徊位置更新タイマー
     VECTOR m_wanderOffset; // 徘徊位置オフセット
 
-    // 死亡時吹き飛び用
-    bool m_isBlownAway;          // 吹き飛ばされて死亡したか
-    VECTOR m_deathKnockbackDir;  // 吹き飛び方向
-    float m_deathKnockbackSpeed; // 吹き飛び速度
+    // --- 死亡時吹き飛び ---
+    bool   m_isBlownAway;          // 吹き飛ばされて死亡したか
+    VECTOR m_deathKnockbackDir;    // 吹き飛び方向
+    float  m_deathKnockbackSpeed;  // 吹き飛び速度
 
-    // シールド関連メンバ
-    bool m_hasShieldConfigured;    // シールドを持っているか
-    bool m_isShieldBroken;         // シールドが破壊されたか
-    float m_shieldHp;              // シールドHP
-    float m_maxShieldHp;           // シールド最大耐久値
+    // --- シールド ---
+    bool  m_hasShieldConfigured;             // シールドを持っているか
+    bool  m_isShieldBroken;                  // シールドが破壊されたか
+    float m_shieldHp;                        // シールドHP
+    float m_maxShieldHp;                     // シールド最大耐久値
     std::shared_ptr<SphereCollider> m_pShieldCollider; // シールドコライダー
-    std::vector<int> m_shieldEffectHandles;            // シールドエフェクトハンドル
-    float m_shieldRotation;        // シールドの回転角度
-    float m_shieldEffectTimer;     // シールドエフェクトの再生タイマー
-    bool m_hasPlayedShieldBreakableEffect; // シールド破壊可能エフェクト再生済みフラグ
-    int m_shieldChainBreakTimer;   // 連鎖破壊タイマー
+    std::vector<int> m_shieldEffectHandles;  // シールドエフェクトハンドル
+    float m_shieldRotation;                  // シールドの回転角度
+    float m_shieldEffectTimer;               // シールドエフェクトの再生タイマー
+    bool  m_hasPlayedShieldBreakableEffect;  // シールド破壊可能エフェクト再生済みフラグ
+    int   m_shieldChainBreakTimer;           // 連鎖破壊タイマー
 
-    int m_voiceTimer;               // 環境ボイス再生用タイマー
-    float m_distToPlayer;           // プレイヤーとの距離
-    static int s_modelHandle; // 共有モデルハンドル
+    // --- その他 ---
+    int   m_voiceTimer;    // 環境ボイス再生用タイマー
+    float m_distToPlayer;  // プレイヤーとの距離
+
+    // --- 静的メンバ ---
+    static int  s_modelHandle;             // 共有モデルハンドル
+    static bool s_shouldDrawCollision;     // コライダーデバッグ描画フラグ
+    static bool s_shouldDrawShieldCollision; // シールドコライダーデバッグ描画フラグ
 };
