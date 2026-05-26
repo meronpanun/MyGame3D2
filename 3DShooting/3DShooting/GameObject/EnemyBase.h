@@ -63,6 +63,11 @@ public:
     static bool ShouldShowDamage() { return s_shouldShowDamage; }
     static void DrawDebugDamage(); // ダメージ描画用関数
 
+    // デバッグ用ゲッター
+    static float GetDebugLastDamage() { return s_debugLastDamage; }
+    static std::string GetDebugHitInfo() { return s_debugHitInfo; }
+    static int GetDebugDamageTimer() { return s_debugDamageTimer; }
+
     /// <summary>
     /// 当たり判定の部位
     /// </summary>
@@ -385,9 +390,4 @@ protected:
     static int s_debugDamageTimer;
     static std::string s_debugHitInfo; // ヒット部位情報
 
-public:
-    // デバッグ用ゲッター
-    static float GetDebugLastDamage() { return s_debugLastDamage; }
-    static std::string GetDebugHitInfo() { return s_debugHitInfo; }
-    static int GetDebugDamageTimer() { return s_debugDamageTimer; }
 };
