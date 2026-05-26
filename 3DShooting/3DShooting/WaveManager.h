@@ -97,7 +97,7 @@ public:
     /// <param name="collisionData">ステージ衝突データ</param>
     /// <param name="pEffect">エフェクト管理オブジェクト</param>
     void UpdateEnemies(std::vector<Bullet>& bullets,
-                       const Player::TackleInfo& tackleInfo, const Player& player,
+                       const Player::TackleInfo& tackleInfo, Player& player,
                        const std::vector<Stage::StageCollisionData>& collisionData,
                        Effect* pEffect);
 

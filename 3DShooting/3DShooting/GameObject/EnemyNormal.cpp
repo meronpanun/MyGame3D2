@@ -234,7 +234,7 @@ void EnemyNormal::UpdateChaseBehavior(const Player& player)
     }
 }
 
-void EnemyNormal::UpdateAttackHitDetection(const Player& player)
+void EnemyNormal::UpdateAttackHitDetection(Player& player)
 {
     if (m_currentAnimState != AnimState::Attack) return;
 
@@ -246,7 +246,7 @@ void EnemyNormal::UpdateAttackHitDetection(const Player& player)
     {
         if (CanAttackPlayer(player))
         {
-            const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos);
+            player.TakeDamage(m_attackPower, m_pos);
             m_hasAttackHit = true;
         }
     }

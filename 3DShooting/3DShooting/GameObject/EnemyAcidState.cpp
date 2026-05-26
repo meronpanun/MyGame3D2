@@ -43,7 +43,7 @@ void EnemyAcidStateDead::Enter(EnemyAcid* enemy)
 
 void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
 {
-    const Player& player = context.player;
+    Player& player = context.player;
 
     for (auto& ball : m_acidBalls)
     {
@@ -97,7 +97,7 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
                 {
                     hitDetected = true;
                     ball.isReflected = true;
-                    const_cast<Player&>(player).PlayParrySE();
+                    player.PlayParrySE();
                     TaskTutorialManager::GetInstance()->NotifyParrySuccess();
                     const auto& playerCam = player.GetCamera();
                     if (playerCam)
@@ -118,7 +118,7 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
                 if (acidCol.IsIntersects(playerCol.get()))
                 {
                     hitDetected = true;
-                    const_cast<Player&>(player).TakeDamage(ball.damage, m_pos, ball.isParryable);
+                    player.TakeDamage(ball.damage, m_pos, ball.isParryable);
                     ball.active = false;
                     if (ball.effectHandle != -1) { StopEffekseer3DEffect(ball.effectHandle); ball.effectHandle = -1; }
                 }
@@ -153,7 +153,7 @@ void EnemyAcid::UpdateAcidBalls(const EnemyUpdateContext& context)
 
 void EnemyAcid::UpdateMovementAI(const EnemyUpdateContext& context)
 {
-    const Player& player = context.player;
+    Player& player = context.player;
     Effect* pEffect = context.pEffect;
 
     VECTOR playerPos = player.GetPos();
@@ -204,7 +204,7 @@ void EnemyAcid::UpdateMovementAI(const EnemyUpdateContext& context)
         float totalAttackAnimTime = m_animationManager.GetAnimationTotalTime(m_modelHandle, EnemyAcidConstants::kAttackAnimName);
         if (!m_hasAttacked && m_animTime >= totalAttackAnimTime * EnemyAcidConstants::kAttackTimingRatio)
         {
-            ShootAcidBullet(const_cast<std::vector<Bullet>&>(context.bullets), player, pEffect, context.collisionData, context.collisionGrid);
+            ShootAcidBullet(context.bullets, player, pEffect, context.collisionData, context.collisionGrid);
             m_hasAttacked = true;
         }
         if (m_animTime >= totalAttackAnimTime)

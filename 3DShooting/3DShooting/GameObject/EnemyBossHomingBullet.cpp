@@ -9,7 +9,7 @@
 
 void EnemyBoss::UpdateHomingBullets(const EnemyUpdateContext& context)
 {
-    const Player& player = context.player;
+    Player& player = context.player;
 
     for (auto& bullet : m_homingBullets)
     {
@@ -69,7 +69,7 @@ void EnemyBoss::UpdateHomingBullets(const EnemyUpdateContext& context)
                 {
                     hitDetected = true;
                     bullet.isReflected = true;
-                    const_cast<Player&>(player).PlayParrySE();
+                    player.PlayParrySE();
                     TaskTutorialManager::GetInstance()->NotifyParrySuccess();
 
                     // 弾を自分（ボス）に向けて反射
@@ -96,7 +96,7 @@ void EnemyBoss::UpdateHomingBullets(const EnemyUpdateContext& context)
                 if (bulletCol.IsIntersects(pCol.get()))
                 {
                     hitDetected = true;
-                    const_cast<Player&>(player).TakeDamage(bullet.damage, m_pos, bullet.isParryable);
+                    player.TakeDamage(bullet.damage, m_pos, bullet.isParryable);
                     bullet.active = false;
                     if (bullet.effectHandle != -1) { StopEffekseer3DEffect(bullet.effectHandle); bullet.effectHandle = -1; }
                 }

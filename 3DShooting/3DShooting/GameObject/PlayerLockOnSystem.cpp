@@ -48,21 +48,24 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,
     std::sort(nearbyEnemies.begin(), nearbyEnemies.end());
     nearbyEnemies.erase(std::unique(nearbyEnemies.begin(), nearbyEnemies.end()), nearbyEnemies.end());
 
-    // フォールバック：グリッド外にいる場合のみ全敵リストを使用
-    std::vector<EnemyBase*>& targetList = nearbyEnemies.empty() ?
-        const_cast<std::vector<EnemyBase*>&>(enemyList) : nearbyEnemies;
+    // フォールバック：グリッド外にいる場合のみ全敵リストをコピーして使用
+    // （enemyList は const なのでローカルコピーを作成してソート対象にする）
+    if (nearbyEnemies.empty())
+    {
+        nearbyEnemies.assign(enemyList.begin(), enemyList.end());
+    }
 
     // プレイヤーからの距離でソートし、上位 kMaxAimTargets 体に絞る
     // （密集時でもレイキャスト回数を上限に固定する）
-    std::sort(targetList.begin(), targetList.end(), [&playerPos](const EnemyBase* a, const EnemyBase* b)
+    std::sort(nearbyEnemies.begin(), nearbyEnemies.end(), [&playerPos](const EnemyBase* a, const EnemyBase* b)
     {
         float daSq = VSquareSize(VSub(a->GetPos(), playerPos));
         float dbSq = VSquareSize(VSub(b->GetPos(), playerPos));
         return daSq < dbSq;
     });
-    if (static_cast<int>(targetList.size()) > kMaxAimTargets)
+    if (static_cast<int>(nearbyEnemies.size()) > kMaxAimTargets)
     {
-        targetList.resize(kMaxAimTargets);
+        nearbyEnemies.resize(kMaxAimTargets);
     }
 
     // 近傍ステージ三角形を1回だけ取得してキャッシュ
@@ -81,7 +84,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,
         m_aimCheckSkipCounter = 0;
         m_isAimingAtEnemy = false;
 
-        for (const auto& enemy : targetList)
+        for (const auto& enemy : nearbyEnemies)
         {
             if (!enemy || !enemy->IsAlive()) continue;
 
@@ -107,7 +110,7 @@ void PlayerLockOnSystem::Update(const VECTOR& playerPos, Camera* pCamera,
         m_lockedOnEnemy = nullptr;
         float minScreenDistSq = -1.0f;
 
-        for (EnemyBase* enemy : targetList)
+        for (EnemyBase* enemy : nearbyEnemies)
         {
             if (!enemy || !enemy->IsAlive()) continue;
 

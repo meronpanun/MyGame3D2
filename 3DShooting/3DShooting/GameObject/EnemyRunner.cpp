@@ -183,7 +183,7 @@ void EnemyRunner::Update(const EnemyUpdateContext& context)
 
 void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
 {
-    const Player& player = context.player;
+    Player& player = context.player;
 
     // ダメージSEのクールタイム更新
     if (m_damageSECooldown > 0.0f)
@@ -281,7 +281,7 @@ void EnemyRunner::UpdateAI(const EnemyUpdateContext& context)
         {
             if (CanAttackPlayer(player))
             {
-                const_cast<Player&>(player).TakeDamage(m_attackPower, m_pos);
+                player.TakeDamage(m_attackPower, m_pos);
                 m_hasAttackHit = true;
             }
         }

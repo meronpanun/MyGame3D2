@@ -20,7 +20,7 @@ struct EnemyUpdateContext
 {
     std::vector<Bullet>& bullets;
     const Player::TackleInfo& tackleInfo;
-    const Player& player;
+    Player& player;                          // 敵がダメージを与えるため非 const
     const std::vector<EnemyBase*>& enemyList;
     const std::vector<Stage::StageCollisionData>& collisionData;
     Effect* pEffect;

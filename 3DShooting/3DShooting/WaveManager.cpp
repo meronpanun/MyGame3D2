@@ -303,7 +303,7 @@ void WaveManager::Update()
 void WaveManager::UpdateEnemies(
     std::vector<Bullet>& bullets,
     const Player::TackleInfo& tackleInfo,
-    const Player& player,
+    Player& player,
     const std::vector<Stage::StageCollisionData>& collisionData,
     Effect* pEffect)
 {

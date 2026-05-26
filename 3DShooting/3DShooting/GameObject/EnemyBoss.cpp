@@ -177,7 +177,7 @@ void EnemyBoss::Update(const EnemyUpdateContext& context)
 
 void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
 {
-    const Player& player = context.player;
+    Player& player = context.player;
     Effect* pEffect = context.pEffect;
 
     // 初回更新時にプレイヤーの方へ強制的に向く
@@ -273,7 +273,7 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
             {
                 if (m_pAttackHitCollider->IsIntersects(playerBodyCollider.get()))
                 {
-                    const_cast<Player&>(player).TakeDamage(static_cast<float>(m_attackPower), m_pos);
+                    player.TakeDamage(static_cast<float>(m_attackPower), m_pos);
                     m_hasAttackHit = true;
                 }
             }
@@ -451,7 +451,7 @@ void EnemyBoss::UpdateAI(const EnemyUpdateContext& context)
 
 void EnemyBoss::UpdateAnimation(const EnemyUpdateContext& context)
 {
-    const Player& player = context.player;
+    Player& player = context.player;
     Effect* pEffect = context.pEffect;
     std::shared_ptr<CapsuleCollider> playerBodyCollider = player.GetBodyCollider();
 
@@ -544,7 +544,7 @@ void EnemyBoss::UpdateAnimation(const EnemyUpdateContext& context)
     // シールド押し出し処理（EnemyBossShield.cpp で実装）
     UpdateShieldPushout();
 
-    CheckHitAndDamage(const_cast<std::vector<Bullet>&>(context.bullets), pEffect);
+    CheckHitAndDamage(context.bullets, pEffect);
 
 
     // タックル判定

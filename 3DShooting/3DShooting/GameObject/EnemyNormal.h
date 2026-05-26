@@ -220,7 +220,7 @@ public:
     /// <summary>
     /// 攻撃アニメーション中のヒット判定とダメージ適用を行う（Attack ステート用）
     /// </summary>
-    void UpdateAttackHitDetection(const Player& player);
+    void UpdateAttackHitDetection(Player& player);
 
     /// <summary>
     /// 攻撃アニメーションが終わったか
