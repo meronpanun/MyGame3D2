@@ -14,6 +14,8 @@ namespace
     constexpr float kRunAccumGoalTime   = 1.0f;           // 走行チュートリアルのクリア累積時間（秒）
     constexpr float kMouseMoveThreshold = 2.0f;           // 視点移動と判定するマウス移動量の閾値（px）
     constexpr float kTitleStartXOffset  = 750.0f;         // メッセージのスライドイン開始 X オフセット（px）
+    constexpr float kUIAnimationSpeed   = 15.0f;          // メッセージのスライドアニメーション速度（px/frame）
+    constexpr float kMessageDisplayTime =  5.0f;          // メッセージの表示時間（秒）
 }
 
 TutorialManager::TutorialManager()
@@ -154,6 +156,24 @@ void TutorialManager::UpdateMessages()
     for (auto& msg : m_messages)
     {
         msg.displayTimer += kFrameTime;
+
+        // スライドイン・表示・スライドアウトのアニメーション状態機械
+        switch (msg.state)
+        {
+        case UIState::Entering:
+            msg.xOffset -= kUIAnimationSpeed;
+            if (msg.xOffset <= 0.0f) { msg.xOffset = 0.0f; msg.state = UIState::OnScreen; }
+            break;
+        case UIState::OnScreen:
+            if (msg.displayTimer >= kMessageDisplayTime) msg.state = UIState::Exiting;
+            break;
+        case UIState::Exiting:
+            msg.xOffset += kUIAnimationSpeed;
+            if (msg.xOffset >= kTitleStartXOffset) msg.state = UIState::Hidden;
+            break;
+        default:
+            break;
+        }
     }
 }
 

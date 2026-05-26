@@ -166,32 +166,8 @@ void TutorialUI::Update(float deltaTime)
     if (m_isPlayingJumpCheckAnim) m_jumpCheckAnimTime += deltaTime;
     if (m_isPlayingRunCheckAnim)  m_runCheckAnimTime  += deltaTime;
 
-    // メッセージのアニメーション更新 (Manager側のメッセージリストを直接更新)
-    // プロフェッショナルな設計としては、Manager側のconstなメッセージ情報を元に、
-    // UI側で独自のUIStateリストを管理するのが理想だが、今回は簡略化のため
-    // Manager側の構造体を直接（無理やり）更新するか、Manager側に更新メソッドを残す。
-    // ここでは、Manager側のメッセージのUIプロパティを更新する。
-    // ※本来はTutorialManager::UpdateMessagesで行っていた内容
-    auto& messages = const_cast<std::vector<TutorialManager::TutorialMessage>&>(m_pManager->GetMessages());
-    for (auto& msg : messages)
-    {
-        switch (msg.state)
-        {
-        case TutorialManager::UIState::Entering:
-            msg.xOffset -= kUIAnimationSpeed;
-            if (msg.xOffset <= 0.0f) { msg.xOffset = 0.0f; msg.state = TutorialManager::UIState::OnScreen; }
-            break;
-        case TutorialManager::UIState::OnScreen:
-            if (msg.displayTimer >= kMessageDisplayTime) msg.state = TutorialManager::UIState::Exiting;
-            break;
-        case TutorialManager::UIState::Exiting:
-            msg.xOffset += kUIAnimationSpeed;
-            if (msg.xOffset >= kUIOffscreenOffsetX) msg.state = TutorialManager::UIState::Hidden;
-            break;
-        default:
-            break;
-        }
-    }
+    // メッセージのアニメーション更新（xOffset・state の状態機械）は
+    // TutorialManager::UpdateMessages() が担当するため、ここでは行わない。
 }
 
 void TutorialUI::Draw()
