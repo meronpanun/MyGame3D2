@@ -62,6 +62,9 @@ void FirstAidKitItem::DeleteModel()
 
 void FirstAidKitItem::Init()
 {
+    // 落下状態を初期化する（接地後は地形判定をスキップするため、確実に落下中から開始させる）
+    m_isDropping = true;
+    m_velocityY  = 0.0f;
     m_collider.SetCenter(m_pos);
     m_collider.SetRadius(m_radius);
     m_lifeTimer = kLifeTime;
