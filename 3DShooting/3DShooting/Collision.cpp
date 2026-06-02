@@ -82,8 +82,11 @@ CollisionResult Collision::CheckStageCollision(VECTOR& position, float capsuleHe
 
     const float kGroundToleranceSq = (capsuleRadius + kGroundTolerance) * (capsuleRadius + kGroundTolerance);
 
-    // 空間分割グリッドを利用して判定対象ポリゴンを絞り込む
-    std::vector<const Stage::StageCollisionData*> nearbyTriangles;
+    // 空間分割グリッドを利用して判定対象ポリゴンを絞り込む。
+    // 地形判定は毎フレーム多数の敵から呼ばれるため、バッファを関数内 static で
+    // 再利用してヒープ確保を避ける（更新はメインスレッドで逐次実行される前提）。
+    static std::vector<const Stage::StageCollisionData*> nearbyTriangles;
+    nearbyTriangles.clear();
     bool useGrid = (pGrid != nullptr);
     if (useGrid)
     {

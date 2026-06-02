@@ -161,11 +161,21 @@ void EnemyBase::UpdateStandard(const EnemyUpdateContext& context)
 
     if (m_shouldUpdateAI)
     {
-        // グリッドがあれば近傍セルの敵だけを対象にして計算量を減らす
-        std::vector<EnemyBase*> neighbors;
-        if (context.collisionGrid) context.collisionGrid->GetNeighbors(m_pos, neighbors);
-        const std::vector<EnemyBase*>& targets = (context.collisionGrid) ? neighbors : context.enemyList;
-        ResolveEnemyCollision(targets, GetBodyCollider()->GetRadius(), EnemyConstants::kPushBackEpsilon);
+        // グリッドがあれば近傍セルの敵だけを対象にして計算量を減らす。
+        // 近傍バッファは敵更新がメインスレッドで逐次実行されるため関数内 static で
+        // 共有し、毎フレーム・敵ごとのヒープ確保を避ける。
+        // GetNeighbors は内部で clear しない（追記用途があるため）ので、ここで明示クリアする。
+        if (context.collisionGrid)
+        {
+            static std::vector<EnemyBase*> s_neighbors;
+            s_neighbors.clear();
+            context.collisionGrid->GetNeighbors(m_pos, s_neighbors);
+            ResolveEnemyCollision(s_neighbors, GetBodyCollider()->GetRadius(), EnemyConstants::kPushBackEpsilon);
+        }
+        else
+        {
+            ResolveEnemyCollision(context.enemyList, GetBodyCollider()->GetRadius(), EnemyConstants::kPushBackEpsilon);
+        }
     }
 
     // 8. 弾のヒットチェック
@@ -447,23 +457,22 @@ bool EnemyBase::IsTargetVisible(const VECTOR& startPos, const VECTOR& targetPos,
     float t;
     if (pGrid)
     {
-        // 始点と終点の周囲のセルからポリゴンを取得
-        std::vector<const Stage::StageCollisionData*> triangles;
-        pGrid->GetNearbyTriangles(startPos, triangles);
-        
-        std::vector<const Stage::StageCollisionData*> endTriangles;
-        pGrid->GetNearbyTriangles(targetPos, endTriangles);
-        triangles.insert(triangles.end(), endTriangles.begin(), endTriangles.end());
-        
-        std::sort(triangles.begin(), triangles.end());
-        triangles.erase(std::unique(triangles.begin(), triangles.end()), triangles.end());
+        // 始点と終点それぞれの周囲セルからポリゴンを取得する。
+        // GetNearbyTriangles が内部で重複除去するため、ここでの sort/unique は不要。
+        // 始点側と終点側で同じ三角形が重複し得るが、レイ遮蔽判定の結果は冪等なので許容する。
+        // バッファは視線判定がメインスレッドで逐次実行されるため関数内 static で再利用する。
+        static std::vector<const Stage::StageCollisionData*> s_startTriangles;
+        static std::vector<const Stage::StageCollisionData*> s_endTriangles;
+        pGrid->GetNearbyTriangles(startPos, s_startTriangles);
+        pGrid->GetNearbyTriangles(targetPos, s_endTriangles);
 
-        for (const auto* pCol : triangles)
+        for (const auto* pCol : s_startTriangles)
         {
-            if (Collision::IntersectRayTriangle(startPos, dir, pCol->v1, pCol->v2, pCol->v3, t))
-            {
-                if (t < dist) return false;
-            }
+            if (Collision::IntersectRayTriangle(startPos, dir, pCol->v1, pCol->v2, pCol->v3, t) && t < dist) return false;
+        }
+        for (const auto* pCol : s_endTriangles)
+        {
+            if (Collision::IntersectRayTriangle(startPos, dir, pCol->v1, pCol->v2, pCol->v3, t) && t < dist) return false;
         }
         return true;
     }

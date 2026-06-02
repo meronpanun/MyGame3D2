@@ -75,6 +75,7 @@ CollisionGrid::CollisionGrid()
     , m_totalTriangleSearchTime(0)
     , m_displayedTriangleSearchTime(0)
     , m_registeredTriangleCount(0)
+    , m_triQueryStamp(0)
 {
 }
 
@@ -95,6 +96,10 @@ void CollisionGrid::Init(const VECTOR& minArea, const VECTOR& maxArea, float cel
     m_stageCells.assign(m_width * m_height, std::vector<const Stage::StageCollisionData*>());
     m_accessedCells.assign(m_width * m_height, 0);
     m_cachedHeights.assign((m_width + 1) * (m_height + 1), minArea.y + kCachedHeightBaseOffset);
+
+    // 三角形のクエリ世代スタンプは三角形側で 0 初期化されるため、
+    // カウンタも 0 に戻して整合を取る（ステージ再ロード時のリセット）。
+    m_triQueryStamp = 0;
 }
 
 void CollisionGrid::Clear()
@@ -250,15 +255,24 @@ void CollisionGrid::GetNearbyTriangles(const VECTOR& pos, std::vector<const Stag
     LONGLONG startTime = GetNowHiPerformanceCount();
     m_totalTriangleQueries++;
 
+    // 出力バッファを初期化し、今回のクエリ世代を 1 つ進める。
+    // 1 つの三角形は複数セルに登録されるため、queryStamp で「同一クエリ内で
+    // 既に追加済みか」を判定して重複を除く。従来の sort+unique（O(M log M)）を
+    // O(M) に置き換え、毎フレーム・敵ごとの検索コストを削減する。
+    outTriangles.clear();
+    ++m_triQueryStamp;
+
     if (!s_useSpatialPartitioning)
     {
         for (const auto& cell : m_stageCells)
         {
-            outTriangles.insert(outTriangles.end(), cell.begin(), cell.end());
+            for (const auto* pTri : cell)
+            {
+                if (pTri->queryStamp == m_triQueryStamp) continue; // 既出
+                pTri->queryStamp = m_triQueryStamp;
+                outTriangles.push_back(pTri);
+            }
         }
-        // 同一三角形が複数セルに登録されているため重複を削除
-        std::sort(outTriangles.begin(), outTriangles.end());
-        outTriangles.erase(std::unique(outTriangles.begin(), outTriangles.end()), outTriangles.end());
         m_totalTrianglesReturned += static_cast<int>(outTriangles.size());
         m_totalTriangleSearchTime += GetNowHiPerformanceCount() - startTime;
         return;
@@ -274,13 +288,14 @@ void CollisionGrid::GetNearbyTriangles(const VECTOR& pos, std::vector<const Stag
             if (x < 0 || x >= m_width || z < 0 || z >= m_height) continue;
 
             const auto& targetCell = m_stageCells[z * m_width + x];
-            outTriangles.insert(outTriangles.end(), targetCell.begin(), targetCell.end());
+            for (const auto* pTri : targetCell)
+            {
+                if (pTri->queryStamp == m_triQueryStamp) continue; // 既出（複数セルにまたがる三角形）
+                pTri->queryStamp = m_triQueryStamp;
+                outTriangles.push_back(pTri);
+            }
         }
     }
-
-    // 同一三角形が複数セルにまたがる場合の重複を削除
-    std::sort(outTriangles.begin(), outTriangles.end());
-    outTriangles.erase(std::unique(outTriangles.begin(), outTriangles.end()), outTriangles.end());
 
     m_totalTrianglesReturned += static_cast<int>(outTriangles.size());
     m_totalTriangleSearchTime += GetNowHiPerformanceCount() - startTime;

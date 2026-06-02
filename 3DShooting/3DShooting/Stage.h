@@ -22,6 +22,12 @@ public:
         VECTOR      v2;   // 頂点2
         VECTOR      v3;   // 頂点3
 
+        // GetNearbyTriangles の重複除去に使うクエリ世代スタンプ。
+        // 1 つの三角形は複数セルに登録されるため、同一クエリ内で既出かを
+        // この値で判定し、sort/unique を使わずに O(M) で重複を除く。
+        // 検索は const メソッドから行うため mutable にしている。
+        mutable unsigned int queryStamp = 0;
+
         StageCollisionData()
             : name("")
             , v1(VGet(0.0f, 0.0f, 0.0f))

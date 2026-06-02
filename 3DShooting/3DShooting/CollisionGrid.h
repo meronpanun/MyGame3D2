@@ -184,6 +184,7 @@ private:
     mutable LONGLONG m_totalTriangleSearchTime;      // 累計三角形検索処理時間（マイクロ秒）
     mutable LONGLONG m_displayedTriangleSearchTime;  // 表示用にホールドする三角形検索処理時間
     int              m_registeredTriangleCount;      // 登録済みユニーク三角形総数
+    mutable unsigned int m_triQueryStamp;            // GetNearbyTriangles 重複除去用のクエリ世代カウンタ
 
     static bool s_drawGrid;               // グリッドデバッグ描画フラグ
     static bool s_useSpatialPartitioning; // 空間分割使用フラグ
