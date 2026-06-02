@@ -6,6 +6,7 @@
 class Player;
 class WaveManager;
 class ItemBase;
+class CollisionGrid;
 
 /// <summary>
 /// 敵死亡時のアイテムドロップを管理するクラス
@@ -31,7 +32,7 @@ public:
     /// </summary>
     /// <param name="pPlayer">プレイヤーへのポインタ</param>
     /// <param name="collisionData">ステージコリジョンデータ</param>
-    void Update(Player* pPlayer, const std::vector<Stage::StageCollisionData>& collisionData);
+    void Update(Player* pPlayer, const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid);
 
     /// <summary>
     /// 描画処理

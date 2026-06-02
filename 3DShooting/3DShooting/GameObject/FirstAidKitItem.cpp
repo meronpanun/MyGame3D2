@@ -69,29 +69,34 @@ void FirstAidKitItem::Init()
     MV1SetScale(m_modelHandle, VGet(kModelScale, kModelScale, kModelScale));
 }
 
-void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData)
+void FirstAidKitItem::Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid)
 {
     if (IsUsed() || IsExpired()) return;
 
     // 寿命の更新
     if (m_lifeTimer > 0) m_lifeTimer--;
 
-    // 落下処理（重力適用）
-    m_velocityY -= kDropGravity;
-    m_pos.y += m_velocityY;
-
-    CollisionResult result = Collision::CheckStageCollision(m_pos, kItemCollisionHeight, kItemCollisionRadius, kItemCollisionYOffset, collisionData);
-
-    // 地面（Y=0）またはステージ上に接地した場合
-    if (result.isGrounded || m_pos.y <= kGroundY)
+    // 落下中のみ重力と地形判定を行う。接地後は静止するため毎フレームの判定は不要。
+    // 地形判定は空間分割グリッド（pGrid）で周囲セルのみに絞り込む（pGrid が無ければ全件判定にフォールバック）。
+    if (m_isDropping)
     {
-        if (m_pos.y <= kGroundY) m_pos.y = kGroundY;
+        // 落下処理（重力適用）
+        m_velocityY -= kDropGravity;
+        m_pos.y += m_velocityY;
 
-        // 接地したら即停止させる（バウンドなし）
-        if (m_velocityY < 0.0f)
+        CollisionResult result = Collision::CheckStageCollision(m_pos, kItemCollisionHeight, kItemCollisionRadius, kItemCollisionYOffset, collisionData, pGrid);
+
+        // 地面（Y=0）またはステージ上に接地した場合
+        if (result.isGrounded || m_pos.y <= kGroundY)
         {
-            m_velocityY = 0.0f;
-            m_isDropping = false;
+            if (m_pos.y <= kGroundY) m_pos.y = kGroundY;
+
+            // 接地したら即停止させる（バウンドなし）
+            if (m_velocityY < 0.0f)
+            {
+                m_velocityY = 0.0f;
+                m_isDropping = false;
+            }
         }
     }
 

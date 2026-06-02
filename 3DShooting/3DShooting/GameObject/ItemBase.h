@@ -4,6 +4,7 @@
 #include "Stage.h"
 
 class Player;
+class CollisionGrid;
 
 /// <summary>
 /// アイテム基底クラス
@@ -22,7 +23,7 @@ public:
     /// <summary>
     /// 更新処理
     /// </summary>
-    virtual void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) = 0;
+    virtual void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid) = 0;
 
     /// <summary>
     /// 描画処理

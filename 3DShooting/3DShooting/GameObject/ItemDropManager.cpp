@@ -48,11 +48,11 @@ void ItemDropManager::Reset()
     m_lastDropPos             = VGet(kInvalidPos, kInvalidPos, kInvalidPos);
 }
 
-void ItemDropManager::Update(Player* pPlayer, const std::vector<Stage::StageCollisionData>& collisionData)
+void ItemDropManager::Update(Player* pPlayer, const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid)
 {
     for (std::shared_ptr<ItemBase>& item : m_items)
     {
-        item->Update(pPlayer, collisionData);
+        item->Update(pPlayer, collisionData, pGrid);
     }
     // IsUsed() = プレイヤーが拾った、IsExpired() = 一定時間経過で消滅
     // どちらかの条件を満たしたアイテムをリストから除去する

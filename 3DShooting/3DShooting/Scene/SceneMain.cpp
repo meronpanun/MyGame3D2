@@ -600,7 +600,7 @@ SceneBase* SceneMain::Update()
         }
 
         // アイテム、スコアポップアップなどの更新はタスクチュートリアル中でも実行
-        m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
+        m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData(), &m_pWaveManager->GetCollisionGrid());
 
         ScoreManager::Instance().Update();
 
@@ -700,7 +700,7 @@ SceneBase* SceneMain::Update()
             *m_pPlayer, m_pStage->GetCollisionData(), m_pEffect.get());
     }
 
-    m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData());
+    m_pItemDropManager->Update(m_pPlayer.get(), m_pStage->GetCollisionData(), &m_pWaveManager->GetCollisionGrid());
 
     m_pDirectionIndicator->Update(m_pWaveManager->GetEnemyList()); // 方向インジケータも更新
     ScoreManager::Instance().Update();

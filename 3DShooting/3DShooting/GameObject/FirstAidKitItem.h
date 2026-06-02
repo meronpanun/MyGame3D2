@@ -17,7 +17,7 @@ public:
     virtual ~FirstAidKitItem();
 
     void Init() override;
-    void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData) override;
+    void Update(Player* player, const std::vector<Stage::StageCollisionData>& collisionData, const CollisionGrid* pGrid) override;
     void Draw() override;
     void DrawCollisionDebug() override;
 
